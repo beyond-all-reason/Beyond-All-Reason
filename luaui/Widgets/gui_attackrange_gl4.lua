@@ -101,6 +101,29 @@ local builders = {} -- { unitID = unitDef, ...}
 local unitToggles = {}
 local unitTogglesChunked = {}
 
+
+local unitName = {}
+local unitWeapons = {}
+local unitMaxWeaponRange = {}
+local unitBuildDistance = {}
+local unitBuilder = {}
+local unitOnOffable = {}
+local unitOnOffName = {}
+for udid, ud in pairs(UnitDefs) do
+	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
+	if unitBuilder[udid] then
+		unitBuildDistance[udid] = ud.buildDistance
+	end
+	unitName[udid] = ud.name
+	unitWeapons[udid] = ud.weapons
+	unitMaxWeaponRange[udid] = ud.maxWeaponRange
+	unitOnOffable[udid] = ud.onOffable
+	if ud.customParams.onoffname then
+		unitOnOffName[udid] = ud.customParams.onoffname
+	end
+end
+
+
 local chunk, err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
 if chunk then
 	local tmp = {}
@@ -208,18 +231,8 @@ local function getNextWeaponCombination(currentCombination, direction)
 	return convertToStatusTable(bitmap, numWeapons)
 end
 
-
--- this returns if unitDef is a builder and not a factory
-local function isBuilder(unitDef)
-	if not unitDef then return false end
-	if unitDef.isFactory and #unitDef.buildOptions > 0 then
-		return false
-	end
-	return unitDef.isBuilder and (unitDef.canAssist or unitDef.canReclaim)
-end
-
 local function initializeUnitDefRing(unitDefID)
-	local weapons = UnitDefs[unitDefID].weapons
+	local weapons = unitWeapons[unitDefID]
 	unitDefRings[unitDefID]['rings'] = {}
 	local weaponCount = #weapons or 0
 	for weaponNum = 1, #weapons do
@@ -272,9 +285,8 @@ local function initializeUnitDefRing(unitDefID)
 	end
 
 	-- for builders, we need to add a special nano ring def
-	local unitDef = UnitDefs[unitDefID]
-	if isBuilder(unitDef) then
-		local range = unitDef.buildDistance
+	if unitBuilder[unitDefID] then
+		local range = unitBuildDistance[unitDefID]
 		local color = colorConfig['nano'].color
 		local fadeparams = colorConfig['nano'].fadeparams
 		local groupselectionfadescale = colorConfig['nano'].groupselectionfadescale
@@ -430,7 +442,7 @@ local attackRangeShader = nil
 
 local function goodbye(reason)
 	Spring.Echo("AttackRange GL4 widget exiting with reason: " .. reason)
-	widgetHandler:RemoveWidget()
+	widgetHandler:RemoveWidget(widget)
 end
 
 local function makeCircleVBO(circleSegments)
@@ -520,7 +532,7 @@ local vsSrc = [[
 	#line 11000
 
 	float heightAtWorldPos(vec2 w){
-		vec2 uvhm =  heighmapUVatWorldPos(w);
+		vec2 uvhm =  heightmapUVatWorldPos(w);
 		return textureLod(heightmapTex, uvhm, 0.0).x;
 	}
 
@@ -785,15 +797,6 @@ local mouseovers = {} -- mirroring selections, but for mouseovers
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
 local myTeam = Spring.GetMyTeamID()
 
-local function GetUnitDef(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID then
-		local unitDef = UnitDefs[unitDefID]
-		return unitDef
-	end
-	return nil
-end
-
 -- mirrors functionality of UnitDetected
 local function AddSelectedUnit(unitID, mouseover)
 	--if not show_selected_weapon_ranges then return end
@@ -802,21 +805,21 @@ local function AddSelectedUnit(unitID, mouseover)
 		collections = mouseovers
 	end
 
-	local unitDef = GetUnitDef(unitID)
-	if not unitDef then return end
+	local unitDefID = spGetUnitDefID(unitID)
+	if not unitDefID then return end
 	if collections[unitID] ~= nil then return end
 
 	--- if unittype is toggled off we don't proceed at all
-	local unitName = unitDef.name
+	local unitName = unitName[unitDefID]
 	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
 	local allystring = alliedUnit and "ally" or "enemy"
 
 	--local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
 	--local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-	local weapons = unitDef.weapons
-	if (not weapons or #weapons == 0) and not isBuilder(unitDef) then return end -- no weapons and not builder, nothing to add
+	local weapons = unitWeapons[unitDefID]
+	if (not weapons or #weapons == 0) and not unitBuilder[unitDefID] then return end -- no weapons and not builder, nothing to add
 	-- we want to add to unitDefRings here if it doesn't exist
-	if not unitDefRings[unitDef.id] then
+	if not unitDefRings[unitDefID] then
 		-- read weapons and add them to weapons table, then add to entry
 		local entry = { weapons = {} }
 		for weaponNum = 1, #weapons do
@@ -845,15 +848,15 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 		end
 		-- builder can have no weapon but still need to be added
-		if isBuilder(unitDef) then
+		if unitBuilder[unitDefID] then
 			local wt = entry.weapons
 			wt[#wt + 1] = 2 -- 2 is nano
 		end
 
-		unitDefRings[unitDef.id] = entry -- we insert the entry so we can reuse existing code
+		unitDefRings[unitDefID] = entry -- we insert the entry so we can reuse existing code
 		--Spring.Echo("unitDefRings entry added: "..tableToString(entry))
 		-- we need to initialize the other params
-		initializeUnitDefRing(unitDef.id)
+		initializeUnitDefRing(unitDefID)
 	end
 
 
@@ -861,24 +864,16 @@ local function AddSelectedUnit(unitID, mouseover)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
-	local weapons = unitDefRings[unitDef.id]['weapons']
+	local weapons = unitDefRings[unitDefID]['weapons']
 	for j, weaponType in pairs(weapons) do
 		local drawIt = true
 		-- we need to check if the unit has on/off weapon states, and only add the one active
-		local weaponOnOff, onOffName
-
-		local unitIsOnOff = unitDef.onOffable --spFindUnitCmdDesc(unitID, 85) ~= nil	-- if this unit can toggle weapons
-		local customParams = unitDef.customParams
-
-		if customParams then
-			onOffName = customParams.onoffname
-			--Spring.Echo("onOffName: ".. tostring(onOffName))
-		end
-		-- on off can be set on a building, we need to check that
-		if unitIsOnOff and not onOffName then -- if it's a building with actual on/off, we display range if it's on
+		local weaponOnOff
+		-- on off can be set on a building, we need to check that		--spFindUnitCmdDesc(unitID, 85) ~= nil	-- if this unit can toggle weapons
+		if unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
 			weaponOnOff = unitsOnOff[unitID] or 1
 			drawIt = (weaponOnOff == 1)
-		elseif unitIsOnOff and onOffName then         -- this is a unit or building with 2 weapons
+		elseif unitOnOffable[unitDefID] and unitOnOffName[unitDefID] then         -- this is a unit or building with 2 weapons
 			weaponOnOff = unitsOnOff[unitID] or 0
 			drawIt = ((weaponOnOff + 1) == j) or
 			#weapons == 1                             -- remember weaponOnOff is 0 or 1, weapon number starts from 1
@@ -899,7 +894,7 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 		end
 
-		local ringParams = unitDefRings[unitDef.id]['rings'][j]
+		local ringParams = unitDefRings[unitDefID]['rings'][j]
 		if drawIt and ringParams[1] > 0 then
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 			cacheTable[1] = mpx
@@ -935,7 +930,7 @@ local function AddSelectedUnit(unitID, mouseover)
 					posz = mpz,
 					vaokeys = {},
 					allied = alliedUnit,
-					unitDefID = unitDef.id
+					unitDefID = unitDefID
 				}
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
@@ -943,7 +938,7 @@ local function AddSelectedUnit(unitID, mouseover)
 	end
 	--Spring.Echo("Rings added: " ..tostring(addedRings))
 	-- we cheat here and update builder count
-	if isBuilder(unitDef) and addedRings > 0 then
+	if unitBuilder[unitDefID] and addedRings > 0 then
 		selBuilderCount = selBuilderCount + 1
 	end
 end
@@ -964,8 +959,7 @@ local function RemoveSelectedUnit(unitID, mouseover)
 		end
 		--Spring.Echo("Rings removed: "..tostring(removedRings))
 		-- before we get rid of the definition we cheat again
-		local unitDef = UnitDefs[collections[unitID].unitDefID]
-		if isBuilder(unitDef) then
+		if unitBuilder[collections[unitID].unitDefID] then
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
@@ -981,8 +975,8 @@ end
 local function InitializeBuilders()
 	builders = {}
 	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
-		if isBuilder(UnitDefs[spGetUnitDefID(unitID)]) then
-			builders[unitID] = UnitDefs[spGetUnitDefID(unitID)]
+		if unitBuilder[spGetUnitDefID(unitID)] then
+			builders[unitID] = true
 		end
 	end
 end
@@ -1047,6 +1041,10 @@ function ToggleCursorRange(_, _, args)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	initUnitList()
 
 	if initGL4() == false then
@@ -1140,13 +1138,13 @@ end
 local function DrawBuilders()
 	--Spring.Echo("drawing all builders..."..tostring(isBuilding))
 	if isBuilding then
-		for unitID, unitDef in pairs(builders) do
+		for unitID, _ in pairs(builders) do
 			if not selUnits[unitID] then
 				AddSelectedUnit(unitID)
 			end
 		end
 	else -- not building, we remove all builders that aren't selected
-		for unitID, unitDef in pairs(builders) do
+		for unitID, _ in pairs(builders) do
 			if not selUnits[unitID] then
 				RemoveSelectedUnit(unitID)
 			end
@@ -1199,17 +1197,17 @@ local function CycleUnitDisplay(direction)
 
 	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
 	local allystring = alliedUnit and "ally" or "enemy"
-	local unitDef = UnitDefs[spGetUnitDefID(unitID)]
-	if unitDef.maxWeaponRange == 0 and not isBuilder(unitDef) then
+	local unitDefID = spGetUnitDefID(unitID)
+	if unitMaxWeaponRange[unitDefID] == 0 and not unitBuilder[unitDefID] then
 		Spring.Echo("Unit has no weapon range!")
 		return
 	end
-	local name = unitDef.name
+	local name = unitName[unitDefID]
 	local wToggleStatuses = {}
 	local newToggleStatuses = {}
 	unitToggles[name] = unitToggles[name] or {}
 	if not unitToggles[name][allystring] then -- default toggle is on, we set it to off (0)
-		for i = 1, #unitDefRings[unitDef.id].weapons do
+		for i = 1, #unitDefRings[unitDefID].weapons do
 			wToggleStatuses[i] = true      -- every ring defined weapon is on by default
 		end
 		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
@@ -1451,22 +1449,19 @@ end
 
 -- Need to add all the callins for handling unit creation/destruction/gift of builders
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	local unitDef = UnitDefs[unitDefID]
-	if unitTeam == myAllyTeam and isBuilder(unitDef) then
-		builders[unitID] = unitDef
+	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
+		builders[unitID] = true
 	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local unitDef = UnitDefs[unitDefID]
-	if newTeam == myAllyTeam and isBuilder(unitDef) then
-		builders[unitID] = unitDef
+	if newTeam == myAllyTeam and unitBuilder[unitDefID] then
+		builders[unitID] = true
 	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	local unitDef = UnitDefs[unitDefID]
-	if unitTeam == myAllyTeam and isBuilder(unitDef) then
+	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
 		builders[unitID] = nil
 		RemoveSelectedUnit(unitID, false)
 	end

@@ -307,7 +307,7 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
 	},
-	
+
 	armshockwave = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
@@ -1705,7 +1705,7 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
-	},	
+	},
 
 	corgant = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
@@ -1938,7 +1938,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = { "cor-korg-ok1", "cor-korg-ok2", "cor-korg-ok3", },
 		BaseSoundWeaponType = "heatray-xl",
 	},
-	cordemont4 = {
+	cordemon = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
 		BaseSoundWeaponType = "flame-alt",
@@ -2296,13 +2296,18 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+	corcrwh = {
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 
 	-- LEGION COMMANDER
 	legcom = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "fastemg-small",
-	},	
+	},
 	legcomlvl2 = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
@@ -2344,15 +2349,22 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
-	
+
 	-- LEGION T2 BUILDINGS
-	
+
 	legstarfall = {
 		BaseSoundSelectType = "lrpc",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
-	
+
+	legbastion = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-large",
+	},
+
+
 	-- LEGION FACTORIES
 	leglab = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2421,7 +2433,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-bot-medium-alt-ok",
 		BaseSoundWeaponType = "heatray",
 	},
-	
+
 	-- LEGION T2 BOTS
 	legack = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
@@ -2473,7 +2485,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-huge-ok",
 		BaseSoundWeaponType = "plasma-large-alt",
 	},
-	
+	legkeres = {
+		BaseSoundSelectType = "cor-tnk-huge-sel",
+		BaseSoundMovementType = "cor-tnk-huge-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
+
 	-- LEGION T1 VEHICLES
 	legcv = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
@@ -2531,6 +2548,13 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
+	legfloat = {
+		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
+		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
+	-- LEGION T3 VEHICLES
+
 	-- LEGION AIRCRAFT
 	legca = {
 		BaseSoundSelectType = "arm-air-small-sel",
@@ -2577,6 +2601,32 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "plasma-huge",
 	},
+	legstronghold = {
+		BaseSoundSelectType = "arm-air-transport-large-sel",
+		BaseSoundMovementType = "arm-air-transport-large-ok",
+		BaseSoundWeaponType = "fastemg-medium",--transport-large ?
+	},
+	legwhisper = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "radar",
+	},
+	legionnaire = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legvenator = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legphoenix = {
+		BaseSoundSelectType = "arm-air-bomber-sel",
+		BaseSoundMovementType = "arm-air-bomber-ok",
+		BaseSoundWeaponType = "air-bomb-large",
+	},
+
 
 
 	--Various Random Units
@@ -2592,7 +2642,7 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
 	},
-	
+
 	corscavdrag = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
@@ -2622,14 +2672,15 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",
-	},	
+	},
 	corthermite = {
 		BaseSoundSelectType = "cor-bot-t3-at-sel",
 		BaseSoundMovementType = "cor-bot-t3-at-ok",
 		BaseSoundWeaponType = "heatray-xl",
 	},
-	
-	
+
+
+
 	armuwmex = {},
 	coruwmex = {},
 	armgplat = {},
@@ -2643,8 +2694,18 @@ GUIUnitSoundEffects = {
 	nuketest = {},
 	nuketestcor = {},
 	nuketestcororg = {},
-	xmasball = {},
-	xmasball2 = {},
+	xmasball1_1 = {},
+	xmasball1_2 = {},
+	xmasball1_3 = {},
+	xmasball1_4 = {},
+	xmasball1_5 = {},
+	xmasball1_6 = {},
+	xmasball2_1 = {},
+	xmasball2_2 = {},
+	xmasball2_3 = {},
+	xmasball2_4 = {},
+	xmasball2_5 = {},
+	xmasball2_6 = {},
 	armstone = {},
 	corstone = {},
 	resourcecheat = {},
@@ -2679,6 +2740,12 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var2	= LootboxNanoSoundEffects,
 	lootboxnano_t4_var3	= LootboxNanoSoundEffects,
 	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
+
+
+	coruwgeo = corgeo,
+	coruwageo = corageo,
+	armuwgeo = armgeo,
+	armuwageo = armageo,
 
 }
 

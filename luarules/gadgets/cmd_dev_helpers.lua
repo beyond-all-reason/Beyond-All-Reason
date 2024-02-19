@@ -182,48 +182,325 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local terrainTerraformers = {
+		-- invertmap, flips the heightmap, where the height defined is the lowest point, invalid is autotuned to turn land new lowest point at height 0
+		invertmap = function(value)
+			local minHeight
+			if value[1] and value[1] == "wet" then minHeight = 0
+			else
+				minHeight = tonumber(value[1])
+				if not minHeight then
+					_, minHeight = Spring.GetGroundExtremes()
+				end
+			end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, ( minHeight-Spring.GetGroundHeight( x, z )))
+					end
+				end
+			end)
+		end,
+		minheight = function(value)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, ( math.abs( Spring.GetGroundHeight( x, z ) - height ) + height ) )
+					end
+				end
+			end)
+		end,
+		maxheight = function(value)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, -( math.abs( -Spring.GetGroundHeight( x, z ) + height ) - height ) )
+					end
+				end
+			end)
+		end,
+		-- extreme - multipliy the heightmap
+		extreme = function(value)
+			local multiplier = math.clamp(tonumber(value[1]) or 2, -10, 10)
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, Spring.GetGroundHeight( x, z ) * multiplier)
+					end
+				end
+			end)
+		end,
+		extremeabove = function(value)
+			local multiplier = math.clamp(tonumber(value[2]) or 2, -10, 10)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						local tmp = Spring.GetGroundHeight( x, z )
+						if tmp > height then
+							Spring.SetHeightMap( x, z, ( tmp - height ) * multiplier + height )
+						end
+					end
+				end
+			end)
+		end,
+		extremebelow = function(value)
+			local multiplier = math.clamp(tonumber(value[2]) or 2, -10, 10)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						local tmp = Spring.GetGroundHeight( x, z )
+						if tmp < height then
+							Spring.SetHeightMap( x, z, ( tmp - height ) * multiplier + height )
+						end
+					end
+				end
+			end)
+		end,
+		-- flatten anything above/bellow these extremes
+		flatten = function(value)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, math.min( Spring.GetGroundHeight( x, z ), height ) )
+					end
+				end
+			end)
+		end,
+		floor = function(value)
+			local height = tonumber(value[1])
+			if height == nil then return end
+			Spring.SetHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetHeightMap( x, z, math.max( Spring.GetGroundHeight( x, z ), height ) )
+					end
+				end
+			end)
+		end,
+		-- move the water level to designated position, or to the lowest point
+		zero = function(value)
+			local height = Spring.GetGroundExtremes() + (tonumber(value[1]) or 0)
+			Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -height)
+		end,
+		waterlevel = function(value)
+			local height = tonumber(value[1])
+			if height then
+				Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -height)
+			end
+		end,
+	}
+
+	local function isTerrainMod(debugString)
+		for trigger, _ in pairs(terrainTerraformers) do
+			if string.find(string.lower(debugString), trigger) then
+				return true
+			end
+		end
+		return false
+	end
+	-- terrain deformer <br>
+	-- all deformers are performed independantly, rather than merged into a more efficent single caculation, to let the user stack them multiple times in whatever order
+	-- expected format, where each command must be seperated by a comma, space sensetive:
+	--		command <required> [optional], command [optional] [optional], command mode + <height>, etc
+	-- commands:
+	-- 		invertmap [height] or ["wet"]			inverts the height map around the specified point, or "wet" water level aka zero, if unspecified highest ends at zero
+	-- 		minheight [height]						inverts the height below the specified point
+	-- 		maxheight [height]						inverts the height above the specified point
+	-- 		extreme [multiplier]					increases the height intensity
+	-- 		extremeabove <height> [multiplier]		increases the height intensity above specified point
+	-- 		extremebelow <height> [multiplier]		increases the height intensity below specified point
+	-- 		flatten <height>						lowers anything above to it
+	-- 		floor <height>							raises anything bellow to it
+	-- 		zero [height (not mode compatible)]		sets water level to lowest point or specified height to the roughly best of its ability
+	--		waterlevel <height>							move everything up or down
+	-- extra:
+	--		triangular brackets reffer to required <>
+	--		square brackets reffer to optional []
+	--		[height]/<height> can be replaced with "mode [int] [+/- <number>]", otpional offset requires a space before and after the + or -
+	--		when entering single value there can not be a space after the minus, except for mode offset
+	--		e.g. maxheight mode, minheight mode 2, extremeabove mode 1 + 15 2, zero -20
+
+	local function terrainMods(debugString)
+		local commands = string.split(debugString,",")
+
+		-- do we need a list of most common heights? and if so sample it once for all functions
+		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occuring value
+		-- height gets rounded into stepsize of MODESTEPSIZE variable, counted, and sorted based on that count, using the flatest surface found within that step as the representitive height
+		local modeArray = {[1]=0}
+		if string.find(debugString, "mode") then
+			-- count the most common heights, in height groups step sized MODESTEPSIZE variable
+			local normal, height, smallestStepHeight = 0, 0, 0
+			local tempModeArray = {}
+			local MODESTEPSIZE = 16
+			for z=0,Game.mapSizeZ, Game.squareSize do
+				for x=0,Game.mapSizeX, Game.squareSize do
+					height = Spring.GetGroundHeight ( x, z ) or 0
+					_, normal, _ = Spring.GetGroundNormal ( x, z )
+					smallestStepHeight = math.floor((height)/MODESTEPSIZE)
+					if tempModeArray[smallestStepHeight] then
+						tempModeArray[smallestStepHeight][1] = tempModeArray[smallestStepHeight][1] + 1
+						if tempModeArray[smallestStepHeight][2] < normal then
+							tempModeArray[smallestStepHeight][2] = normal
+							tempModeArray[smallestStepHeight][3] = height
+						end
+					else
+						tempModeArray[smallestStepHeight] = {1,
+							normal, height
+						}
+					end
+				end
+			end
+
+			-- drop the step and sort the heights
+			modeArray = {}
+			for _, val in pairs(tempModeArray) do
+				table.insert(modeArray, {val[1],val[3]})
+			end
+			tempModeArray = {}
+			table.sort(modeArray,
+				function(a,b) return a[1] > b[1] end
+			)
+
+			-- log the table of mode heights, might be useful for users who wish to fish them out
+			Spring.Echo("cmd_dev_helpers, terrainMods; generating table format mode height sampling")
+			Spring.Echo("where id is sorted by most common map height for this map")
+			Spring.Echo("id: | height: |\tid: | height: |\tid: | height:")
+			local tableDebth = math.floor(#modeArray / 3)
+			for j = 1, tableDebth do
+				Spring.Echo(
+					j.."\t"..modeArray[j][2].."\t\t\t"..
+					j+tableDebth.."\t"..modeArray[j+tableDebth][2].."\t\t\t"..
+					j+tableDebth+tableDebth.."\t"..modeArray[j+tableDebth+tableDebth][2]
+				)
+			end
+			Spring.Echo("cmd_dev_helpers, terrainMods, end of table")
+		end
+
+		-- used for reading mode position within the array's constraints or 0
+		local function sampleMode(pos)
+			if pos == nil then return modeArray[1][2] end
+			if pos == -1 then return modeArray[#modeArray][2] end
+			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
+		end
+		-- end of mode height related sampling
+
+		-- go thourgh the commands
+		local command
+		local commandProc
+		for i = 1, #commands do
+
+			command = string.split(commands[i], " ")
+			local func = terrainTerraformers[command[1]]
+			if func then
+				-- process the commands, convert anything that needs converting
+				do
+					local j = 2
+					commandProc = {}
+					for k = 1, #command do
+
+						-- if mode is used, it requests most common height, substitue it
+						if command[j] == "mode" then
+
+							-- find which mode value to use, and if we're offsetting it
+							local offset = 0.0
+							local modePtr = 1
+							if command[j+1] == "+" then
+								offset = tonumber(command[j+2])
+								j = j + 2
+							elseif command[j+1] == "-" then
+								offset = -tonumber(command[j+2])
+								j = j + 2
+							else
+								modePtr = tonumber(command[j+1],10)
+								if modePtr then
+									if command[j+2] == "+" then
+										offset = tonumber(command[j+3])
+										j = j + 2
+									elseif command[j+2] == "-" then
+										offset = -tonumber(command[j+3])
+										j = j + 2
+									end
+									j = j + 1
+								else
+									modePtr = 1
+								end
+							end
+							offset = offset or 0
+							
+							commandProc[k] = sampleMode(modePtr) + offset
+						else
+							commandProc[k] = command[j]
+						end
+						j = j + 1
+					end
+				end
+
+				-- call the retrived function with partially processed params
+				func(commandProc)
+			end
+		end
+		
+		-- finishing touches
+		do
+			-- Edge patchwork, something is not right with map edges, i don't know if its the above functions that fail, or if it is during map making
+			Spring.SetHeightMapFunc(function()
+				for x=0,Game.mapSizeX, Game.squareSize do
+					Spring.SetHeightMap( x, Game.mapSizeZ, (Spring.GetGroundHeight ( x, Game.mapSizeZ - Game.squareSize )))
+				end
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					Spring.SetHeightMap( Game.mapSizeX, z, (Spring.GetGroundHeight ( Game.mapSizeX - Game.squareSize, z )))
+				end
+			end)
+
+
+			-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
+			Spring.SetOriginalHeightMapFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetOriginalHeightMap( x, z, Spring.GetGroundHeight ( x, z ))
+					end
+				end
+			end)
+
+
+			-- temporary smooth mesh, as on some maps it can take up to a minute and a half for it to be created
+			Spring.SetSmoothMeshFunc(function()
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						Spring.SetSmoothMesh( x, z, 50+Spring.GetGroundHeight ( x, z ))
+					end
+				end
+			end)
+		end
+
+	end
+
 	local debugcommands = nil
 	function gadget:Initialize()
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
 
-			-- "for fun" option to invert map
-			-- if debugcommands = invertmap
-			-- or if debugcommands = invertmap wet
-			-- this code block runs
-			-- still some odd behavior with start box highlighting
-			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
-				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
-				local ymax = -1000000
-				if (invertmap[2] == "wet") then
-					ymax = 0
-				else
-					_, _, _, ymax = Spring.GetGroundExtremes()
-				end
-				Spring.SetHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
-						end
-					end
-				end)
-				-- temporary smooth mesh, inverting doesn't work as transition ends up inside the ground
-				Spring.SetSmoothMeshFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetSmoothMesh( x, z, 50+Spring.GetGroundHeight ( x, z ))
-						end
-					end
-				end)
-				-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
-				Spring.SetOriginalHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetOriginalHeightMap( x, z, ymax-Spring.GetGroundOrigHeight ( x, z ))
-						end
-					end
-				end)
-			-- END "for fun" option to invert map
-			else
+			local debugString = Spring.GetModOptions().debugcommands
+
+			-- "for fun" terrain moddifiers
+			-- they block any accompanying actual debug comands from running
+			-- see variable terrainTriggers for list of moddifiers
+			-- some odd behavior with start box highlighting
+			if isTerrainMod(debugString) then
+				terrainMods(string.lower(debugString))
+				-- we only need to find 1 command to pass over, cancel actual debug commands
+				return
+			end
+			
 
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
@@ -233,8 +510,6 @@ if gadgetHandler:IsSyncedCode() then
 					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
 					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
 				end
-			end
-
 			end
 
 		end
@@ -395,7 +670,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if n == 1 and string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
 		end
 		if fightertestenabled then
@@ -481,8 +756,8 @@ if gadgetHandler:IsSyncedCode() then
 				local heading = Spring.GetUnitHeading(unitID)
 				local unitTeam = Spring.GetUnitTeam(unitID)
 				Spring.DestroyUnit(unitID, false, true)
-				if UnitDefs[unitDefID].wreckName and FeatureDefNames[UnitDefs[unitDefID].wreckName] then
-					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].wreckName].id, x, y, z, heading, unitTeam)
+				if UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
+					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
 				end
 			end
 		end
@@ -553,6 +828,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
+
+	local vsx,vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
@@ -729,8 +1007,12 @@ else	-- UNSYNCED
 	local su = 0
 	local alpha = 0.98
 
+	function gadget:ViewResize()
+		vsx, vsy = Spring.GetViewGeometry()
+		uiScale = vsy / 1080
+	end
 
-	local gadgetUpdate = function()
+	function gadget:Update() -- START OF UPDATE
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
@@ -744,7 +1026,6 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 	end
-	--function gadget:Update() end gadgetUpdate() end -- START OF UPDATE
 
 	function gadget:GameFrame(n) -- START OF SIM FRAME
 		if fightertestactive then
@@ -762,7 +1043,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local gadgetDrawGenesis = function()
+	function gadget:DrawGenesis() -- START OF DRAW
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
@@ -771,9 +1052,8 @@ else	-- UNSYNCED
 			lastDrawTimerUS = now
 		end
 	end
-	--function gadget:DrawGenesis() gadgetDrawGenesis() end -- START OF DRAW
 
-	local gadgetDrawScreenPost = function()
+	function gadget:DrawScreenPost() -- END OF DRAW
 		if fightertestactive then
 			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
 			fighterteststats.drawFrameTimes[#fighterteststats.drawFrameTimes + 1] = drawTime
@@ -783,21 +1063,17 @@ else	-- UNSYNCED
 			dt = drawTime
 		end
 	end
-	--function gadget:DrawScreenPost() gadgetDrawScreenPost() end -- END OF DRAW
 
-	local gadgetDrawScreen = function()
+	function gadget:DrawScreen()
 		if fightertestactive or isBenchMark then
 			local s = ""
 			if isBenchMark then
 				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
 			end
-
-			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)",
-				ss, simTime, su, updateTime, sd,  drawTime)
-			gl.Text(s, 600,600,16)
+			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
+			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
 		end
 	end
-	--function gadget:DrawScreen() gadgetDrawScreen() end
 
 	function gadget:UnitCreated()
 		if fightertestactive then
@@ -876,7 +1152,6 @@ else	-- UNSYNCED
 				stats.engineVersion = Engine.versionFull
 				stats.gpu = Platform.gpu
 				stats.cpu = Platform.hwConfig
-				local vsx,vsy = Spring.GetViewGeometry()
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")
@@ -902,14 +1177,8 @@ else	-- UNSYNCED
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!
-					local prevIsBenchmark = isBenchMark
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes
-					if prevIsBenchmark ~= isBenchMark then
-						gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
-						gadgetHandler:UpdateCallIn("DrawScreen")
-						gadgetHandler:UpdateCallIn("DrawScreen") --stupid bug
-					end
 				end
 			end
 			-- initialize stats table
@@ -926,16 +1195,6 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 		fightertestactive = not fightertestactive
-
-		gadget.DrawGenesis = fightertestactive and gadgetDrawGenesis or nil
-		gadgetHandler:UpdateCallIn("DrawGenesis")
-		gadget.DrawScreenPost = fightertestactive and gadgetDrawGenesis or nil
-		gadgetHandler:UpdateCallIn("DrawScreenPost")
-		gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
-		gadgetHandler:UpdateCallIn("DrawScreen")
-		gadget.Update = fightertestactive and gadgetUpdate or nil
-		gadgetHandler:UpdateCallIn("Update")
-
 		local msg = PACKET_HEADER .. ':fightertest'
 		for i=1,5 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end

@@ -1,9 +1,9 @@
 return {
 	armrattet4 = {
-		acceleration = 0.0138,
-		brakerate = 0.08759,
-		buildcostenergy = 250000,
-		buildcostmetal = 25000,
+		maxacc = 0.0138,
+		maxdec = 0.08759,
+		energycost = 250000,
+		metalcost = 25000,
 		buildpic = "scavengers/armrattet4.DDS",
 		buildtime = 250000,
 		canmove = true,
@@ -15,14 +15,13 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "scavboss",
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
-		maxdamage = 83000,
+		health = 83000,
 		maxslope = 10,
-		maxvelocity = 0.8,
+		speed = 24.0,
 		maxwaterdepth = 12,
 		movementclass = "EPICVEH",
 		nochasecategory = "VTOL",
@@ -116,7 +115,6 @@ return {
 				burst = 1,
 				sprayAngle = 3000,
 				projectiles = 5,
-
 				areaofeffect = 292,
 				avoidfeature = false,
 				craterareaofeffect = 292,
@@ -135,9 +133,7 @@ return {
 				proximitypriority = -10,
 				range = 1000,
 				reloadtime = 1.5,
-
 				size = 4,
-
 				soundhit = "xplonuk2xs",
 				soundhitwet = "splslrg",
 				soundstart = "shotgunbig",

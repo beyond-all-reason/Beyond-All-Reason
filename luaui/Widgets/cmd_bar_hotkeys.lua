@@ -41,7 +41,6 @@ end
 -- Map old, deleted lua format presets onto uikeys presets
 local legacyToTxt = {
 	['luaui/configs/bar_hotkeys.lua']          = 'luaui/configs/hotkeys/default_keys.txt',
-	['luaui/configs/bar_hotkeys_mnemonic.lua'] = 'luaui/configs/hotkeys/mnemonic_keys.txt',
 	['luaui/configs/bar_hotkeys_60.lua']       = 'luaui/configs/hotkeys/default_keys_60pct.txt',
 	['luaui/configs/bar_hotkeys_grid.lua']     = 'luaui/configs/hotkeys/grid_keys.txt',
 	['luaui/configs/bar_hotkeys_grid_60.lua']  = 'luaui/configs/hotkeys/grid_keys_60pct.txt',

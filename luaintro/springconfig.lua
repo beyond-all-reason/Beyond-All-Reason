@@ -79,7 +79,7 @@ Spring.SetConfigInt("AllowDeferredMapRendering", 1)
 Spring.SetConfigInt("AllowDeferredModelRendering", 1)
 
 -- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
-Spring.SetConfigInt("LoadingMT", 0)
+--Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 -- This was set to 2 as of 2022.08.16, Beherith reduced it to 1 for even less GC probability
@@ -139,8 +139,6 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 
-	Spring.SetConfigInt("version", version)
-
 	if Spring.GetConfigInt("UnitIconFadeVanish", 2700) < 2700 then
 		Spring.SetConfigInt("UnitIconFadeVanish", 2700)
 	end
@@ -149,8 +147,15 @@ if Spring.GetConfigInt("version", 0) < version then
 	end
 
 	Spring.SetConfigInt("VSyncGame", -1)
-
 	Spring.SetConfigInt("CamMode", 3)
+end
+version = 4
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	if Spring.GetConfigFloat("ui_scale", 1) == 1 then
+		Spring.SetConfigFloat("ui_scale", 0.94)
+	end
 end
 
 Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
@@ -175,8 +180,8 @@ else
 	Spring.SetConfigInt("KeyChainTimeout", userKeyChainTimeout)
 end
 
--- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag. 
--- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag 
+-- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag.
+-- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag
 local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
 local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
 
@@ -188,4 +193,3 @@ Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
-

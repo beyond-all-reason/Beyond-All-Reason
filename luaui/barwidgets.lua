@@ -1189,6 +1189,12 @@ end
 
 
 function widgetHandler:Update()
+	
+	if collectgarbage("count") > 1200000 then 
+		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
+		collectgarbage("collect")
+	end
+	
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
@@ -2382,10 +2388,10 @@ function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end
@@ -2393,7 +2399,9 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
+		tracy.ZoneBeginN("W:VisibleUnitsChanged:" .. w.whInfo.name)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 end
@@ -2406,10 +2414,10 @@ function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:AlliedUnitRemoved(unitID)
+function widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:AlliedUnitRemoved")
 	for _, w in ipairs(self.AlliedUnitRemovedList) do
-		w:AlliedUnitRemoved(unitID)
+		w:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end

@@ -5,7 +5,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
+static-var  moving, firing, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -246,6 +246,9 @@ Create()
 	hide aimy1;
 	moving = FALSE;
 	gun_1 = 0;
+	firing = 0;
+	turn body to x-axis <-15.000000> speed <55.000000>;
+	turn aimy1 to x-axis <15.000000> speed <55.000000>;
 	restore_delay = 3000;
 	turn leg6a to y-axis <30> now;
 	turn leg4a to y-axis <-30> now;
@@ -311,18 +314,27 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	gun_1 = !gun_1;
-	if( gun_1 == 0 )
+	if( gun_1 == 0 AND firing == 0)
 	{
-		move barrel1 to z-axis [-3.000000] speed [400.000000];
+		firing = 1;
+		move barrel1 to z-axis [-1.900000] speed [400.000000];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [0.000000] speed [5.000000];
+		wait-for-move barrel1 along z-axis;
+		gun_1 = !gun_1;
+		firing = 0;
+		return (0);
 	}
-	if( gun_1 == 1 )
+	if( gun_1 == 1 AND firing == 0)
 	{
-		move barrel2 to z-axis [-3.000000] speed [400.000000];
+		firing = 1;
+		move barrel2 to z-axis [-1.900000] speed [400.000000];
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
+		move barrel2 to z-axis [0.000000] speed [5.000000];
+		wait-for-move barrel2 along z-axis;
+		gun_1 = !gun_1;
+		firing = 0;
+		return (0);
 	}
 	return (0);
 }
@@ -331,12 +343,12 @@ AimFromPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = barrel1;
+		piecenum = flare1;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = barrel2;
+		piecenum = flare2;
 		return (0);
 	}
 }

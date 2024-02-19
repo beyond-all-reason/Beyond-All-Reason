@@ -314,6 +314,33 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	},
 }
 
+for barname, bt in pairs(barTypeMap) do 
+	local cache = {}
+	for i=1,20 do cache[i] = 0 end 
+	
+	--cache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
+	--cache[2] = effectiveScale
+	--cache[3] = 0.0 -- unused
+	cache[4] = bt.uvoffset -- glyph uv offset
+
+	cache[5] = bt.bartype -- bartype int
+	--cache[6] = unitBars[unitID] - 1   -- bar index (how manyeth per unit)
+	cache[7] = bt.uniformindex -- ssbo location offset (> 20 for health)
+
+	cache[9]  = bt.mincolor[1]
+	cache[10] = bt.mincolor[2]
+	cache[11] = bt.mincolor[3]
+	cache[12] = bt.mincolor[4]
+
+	cache[13] = bt.maxcolor[1]
+	cache[14] = bt.maxcolor[2]
+	cache[15] = bt.maxcolor[3]
+	cache[16] = bt.maxcolor[4]
+	
+	bt['cache'] = cache
+end
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -527,11 +554,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
---'if DBGTRACE then Spring.Echo("%s:%d %s) | ", "caller:"..tostring(debug.getinfo(2).name) %s) end\n'
-local healthBarTableCache = {}
-for i = 1, 20 do healthBarTableCache[i] = 0.0 end
-
-
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
@@ -572,7 +594,6 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		unitBars[unitID] = 1
 	end
 
-
 	--local barpos = unitBars[unitID]
 	--if bartype == 'emp_damage' or bartype == 'paralyze' then
 	--	barpos = 33
@@ -581,26 +602,13 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--end -- to keep these on top
 
 	local effectiveScale = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
+	
+	local healthBarTableCache = bt.cache
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
 	healthBarTableCache[2] = effectiveScale
-	healthBarTableCache[3] = 0.0 -- unused
-	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
-
-	healthBarTableCache[5] = bt.bartype -- bartype int
 	healthBarTableCache[6] = unitBars[unitID] - 1   -- bar index (how manyeth per unit)
-	healthBarTableCache[7] = bt.uniformindex -- ssbo location offset (> 20 for health)
-
-	healthBarTableCache[9] = bt.mincolor[1]
-	healthBarTableCache[10] = bt.mincolor[2]
-	healthBarTableCache[11] = bt.mincolor[3]
-	healthBarTableCache[12] = bt.mincolor[4]
-
-	healthBarTableCache[13] = bt.maxcolor[1]
-	healthBarTableCache[14] = bt.maxcolor[2]
-	healthBarTableCache[15] = bt.maxcolor[3]
-	healthBarTableCache[16] = bt.maxcolor[4]
-
+	
 	return pushElementInstance(
 		healthBarVBO, -- push into this Instance VBO Table
 		healthBarTableCache,
@@ -924,6 +932,10 @@ local function ProjectileCreatedReloadHB(projectileID, unitID, weaponID, unitDef
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['healthbars'] = {}
 	WG['healthbars'].getScale = function()
 		return barScale

@@ -1,10 +1,10 @@
 return {
 	cor_hat_viking = {
-		acceleration = 0,
+		maxacc = 0,
 		blocking = false,
-		brakerate = 0,
-		buildcostenergy = 10000,
-		buildcostmetal = 1000,
+		maxdec = 0,
+		energycost = 10000,
+		metalcost = 1000,
 		buildpic = "ARMSTONE.DDS",
 		buildtime = 10000,
 		canattack = false,
@@ -20,10 +20,9 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-    	icontype = "blank",
 		idleautoheal = 100000, --so it doesnt die
 		mass = 0,
-		maxdamage = 5600000,
+		health = 5600000,
 		maxslope = 64,
 		maxwaterdepth = 1000,
 		movementclass = "NANO",

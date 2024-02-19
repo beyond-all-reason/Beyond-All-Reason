@@ -26,7 +26,7 @@ function AttackerBST:Init()
 	self.congSize = self.size * 1.5 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
-	self.sightDistance = ut.losRadius --* 0.9
+	self.sightDistance = ut.sightDistance --* 0.9
 	self.sturdy = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"

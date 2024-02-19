@@ -97,7 +97,6 @@
 				"needMetalAmount": "J'ai besoin de %{amount} métal !",
 				"needEnergy": "J'ai besoin d'énergie !",
 				"needEnergyAmount": "J'ai besoin de %{amount} d'énergie !",
-				"giveUnits": "J'ai donné %{count} unités à %{name}",
 				"giveMetal": "J'ai envoyé %{amount} métal à %{name}",
 				"giveEnergy": "J'ai envoyé %{amount} énergie à %{name}",
 				"takeTeam": "J'ai pris %{name}",
@@ -477,7 +476,6 @@
 			"killAllUnits": "Annihilez toutes les unités ennemies",
 			"killAllCommanders": "Annihilez tous les commandants ennemis",
 			"commandersSurviveDgun": "Les commandants survivent aux D-Guns et à l'explosion des autres commandants",
-			"unbalancedCommanders": "Les commandants déséquilibrés sont activés : \nles commandants montent de niveau et gagnent des améliorations",
 			"victoryCondition": "Conditions de victoire",
 			"owncomends": "Perdre son commandant = perdre le contrôle de ses unités / abandonner"
 		},
@@ -518,7 +516,9 @@
 			"windStrength": "Vitesse du vent",
 			"waterDamage": "Dégâts d'eau",
 			"raptorOptions": "Options des Raptor",
-			"modOptions": "Options des mods"
+			"modOptions": "Options des mods",
+			"reclaimableMetal": "Métal récupérable",
+			"reclaimableEnergy": "L'énergie récupérable"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "Vous avez mis en file d'attente un trop grand nombre de bâtiments en trop peu de temps, continuer risquerait de vous voir éjecté.",

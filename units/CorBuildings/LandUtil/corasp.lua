@@ -1,11 +1,11 @@
 return {
 	corasp = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 0,
-		buildcostenergy = 4400,
-		buildcostmetal = 400,
+		energycost = 4400,
+		metalcost = 400,
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORASP.DDS",
@@ -19,11 +19,10 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 1780,
+		health = 1780,
 		maxslope = 10,
 		maxwaterdepth = 1,
 		objectname = "Units/CORASP.s3o",
@@ -48,7 +47,6 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landutil",
-			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

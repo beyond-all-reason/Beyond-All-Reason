@@ -1,8 +1,8 @@
 return {
 	armlwall = {
-		acceleration = 0,
-		buildcostenergy = 4800, --3x armclaw
-		buildcostmetal = 1020, --3x armclaw
+		maxacc = 0,
+		energycost = 4800, --3x armclaw
+		metalcost = 1020, --3x armclaw
 		buildpic = "ARMLWALL.DDS",
 		buildtime = 14000, --3x armclaw
 		canrepeat = false,
@@ -18,12 +18,11 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		icontype = "building",
 		idleautoheal = 10,
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 5320, --4x armclaw
+		health = 5320, --4x armclaw
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

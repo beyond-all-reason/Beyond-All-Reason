@@ -1,9 +1,9 @@
 return {
 	corgant = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 62000,
-		buildcostmetal = 8400,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 62000,
+		metalcost = 8400,
 		builder = true,
 		buildpic = "CORGANT.DDS",
 		buildtime = 67300,
@@ -17,10 +17,9 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 17800,
+		health = 17800,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalstorage = 800,
@@ -41,6 +40,7 @@ return {
 			[4] = "corshiva",
 			[5] = "corcat",
 			[6] = "corsok",
+			[7] = "cordemon",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

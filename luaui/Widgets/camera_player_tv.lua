@@ -37,7 +37,6 @@ local currentTrackedPlayer
 local playersTS = {}
 local nextTrackingPlayerChange = os.clock() - 200
 
-local tsOrderedPlayerCount = 0
 local tsOrderedPlayers = {}
 
 local isSpec, fullview = Spring.GetSpectatingState()
@@ -54,6 +53,7 @@ local desiredLosmodeChanged = 0
 
 local math_isInRect = math.isInRect
 
+local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 
 local aiTeams = {}
@@ -70,44 +70,32 @@ for i = 1, #teams do
 end
 teams = nil
 
+local spGetPlayerInfo= Spring.GetPlayerInfo
+
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local function addPlayerTsOrdered(ts, playerID, teamID, spec)
-	local inserted = false
-	local newTsOrderedPlayers = {}
-	tsOrderedPlayerCount = 0
-	for _, params in ipairs(tsOrderedPlayers) do
-		if not inserted and ts > params[1] then
-			tsOrderedPlayerCount = tsOrderedPlayerCount + 1
-			newTsOrderedPlayers[tsOrderedPlayerCount] = { ts, playerID, teamID, spec }
-			inserted = true
-		end
-		tsOrderedPlayerCount = tsOrderedPlayerCount + 1
-		newTsOrderedPlayers[tsOrderedPlayerCount] = params
-	end
-	if not inserted then
-		tsOrderedPlayerCount = tsOrderedPlayerCount + 1
-		newTsOrderedPlayers[tsOrderedPlayerCount] = { ts, playerID, teamID, spec }
-	end
-	tsOrderedPlayers = table.copy(newTsOrderedPlayers)
-end
-
 local function tsOrderPlayers()
-	local playersList = Spring.GetPlayerList()
+	tsOrderedPlayers = {}
 	for _, playerID in ipairs(playersList) do
-		local _, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
-		if playersTS[playerID] ~= nil then
-			addPlayerTsOrdered(playersTS[playerID], playerID, teamID, spec)
+		if playersTS[playerID] then
+			local _, _, spec, teamID = spGetPlayerInfo(playerID, false)
+			if not spec then
+				tsOrderedPlayers[#tsOrderedPlayers+1] = {playersTS[playerID], playerID}
+			end
 		end
 	end
+	local function compare(a,b)
+		return a[1] > b[1]
+	end
+	table.sort(tsOrderedPlayers, compare)
 end
 
 local function GetSkill(playerID)
-	local customtable = select(11, Spring.GetPlayerInfo(playerID)) -- player custom table
+	local customtable = select(11, spGetPlayerInfo(playerID)) -- player custom table
 	local tsMu = customtable.skill
 	return tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
 end
@@ -118,16 +106,15 @@ local function SelectTrackingPlayer(playerID)
 	local spec = false
 
 	if playerID then
-		_, active, spec = Spring.GetPlayerInfo(playerID, false)
+		_, active, spec = spGetPlayerInfo(playerID, false)
 	end
 
 	if playerID and (not spec) and active then
 		newTrackedPlayer = playerID
 	else
 		local highestTs = 0
-		local playersList = Spring.GetPlayerList()
 		for _, playerID in ipairs(playersList) do
-			local _, active, spec = Spring.GetPlayerInfo(playerID, false)
+			local _, active, spec = spGetPlayerInfo(playerID, false)
 			if not spec and active then
 				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs+math.random(-10,10) then
 					highestTs = playersTS[playerID]
@@ -347,35 +334,37 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-	isSpec, fullview = Spring.GetSpectatingState()
-	tsOrderPlayers()
-	local receateLists = false
-	if not rejoining then
-		if playerID == currentTrackedPlayer then
-			SelectTrackingPlayer()
-			receateLists = true
+	if Spring.GetGameFrame() > 0 then
+		myTeamID = Spring.GetMyTeamID()
+		myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+		isSpec, fullview = Spring.GetSpectatingState()
+		tsOrderPlayers()
+		local receateLists = false
+		if not rejoining then
+			if playerID == currentTrackedPlayer then
+				SelectTrackingPlayer()
+				receateLists = true
+			end
 		end
-	end
-	local name = Spring.GetPlayerInfo(playerID, false)
-	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
-		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
-		name = niceName or aiName
-	end
-	if name and drawlistsPlayername[name] then
-		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
-	end
-	if receateLists then
-		createList()
+		local name = spGetPlayerInfo(playerID, false)
+		if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+			local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
+			local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+			name = niceName or aiName
+		end
+		if name and drawlistsPlayername[name] then
+			drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
+		end
+		if receateLists then
+			createList()
+		end
 	end
 end
 
 
 local function switchPlayerCam()
 	nextTrackingPlayerChange = os.clock() + playerChangeDelay
-
+	local tsOrderedPlayerCount = #tsOrderedPlayers
 	local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.33)
 	if tsOrderedPlayerCount <= 2 then
 		scope = 2
@@ -450,7 +439,7 @@ function widget:Update(dt)
 		end
 
 		if currentTrackedPlayer ~= nil and not rejoining then
-			local _, active, spec = Spring.GetPlayerInfo(currentTrackedPlayer, false)
+			local _, active, spec = spGetPlayerInfo(currentTrackedPlayer, false)
 			if not active or spec then
 				SelectTrackingPlayer()
 			end
@@ -552,7 +541,7 @@ function widget:DrawScreen()
 					prevLockPlayerID = lockPlayerID
 					lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
 				end
-				local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(myTeamPlayerID, false)
+				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
 				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
 					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 					local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
@@ -667,9 +656,8 @@ function widget:Initialize()
 	end
 
 	local humanPlayers = 0
-	local playersList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playersList) do
-		local _, active, spec, team = Spring.GetPlayerInfo(playerID, false)
+		local _, active, spec, team = spGetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
 			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
@@ -786,7 +774,7 @@ function widget:TextCommand(command)
 		end
 		if #words > 1 then
 			local playerID = tonumber(words[#words])
-			local teamID = select(4, Spring.GetPlayerInfo(playerID))
+			local teamID = select(4, spGetPlayerInfo(playerID))
 			if teamID then
 				Spring.SendCommands("specteam " .. teamID)
 			end
@@ -803,7 +791,7 @@ function widget:TextCommand(command)
 		end
 		if #words > 1 then
 			local playerID = tonumber(words[#words])
-			local teamID = select(4, Spring.GetPlayerInfo(playerID))
+			local teamID = select(4, spGetPlayerInfo(playerID))
 			if teamID and WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLockPlayerID then
 				Spring.SendCommands("specteam " .. teamID)
 				WG['advplayerlist_api'].SetLockPlayerID(playerID)

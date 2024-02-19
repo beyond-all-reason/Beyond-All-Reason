@@ -1,11 +1,10 @@
 return {
 	raptor_land_assault_basic_t2_v3 = {
-		acceleration = 0.414,
+		maxacc = 0.414,
 		airsightdistance = 650,
-
-		brakerate = 0.46,
-		buildcostenergy = 3520,
-		buildcostmetal = 152,
+		maxdec = 0.46,
+		energycost = 3520,
+		metalcost = 152,
 		builder = false,
 		buildpic = "raptors/raptora1c.DDS",
 		buildtime = 7500,
@@ -26,15 +25,14 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100000,
-		maxdamage = 4450,
+		health = 4450,
 		maxslope = 18,
-		maxvelocity = 1.3,
+		speed = 39.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorac.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora1c.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
@@ -157,11 +155,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				onlytargetcategory = "VTOL",

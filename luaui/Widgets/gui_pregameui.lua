@@ -153,10 +153,9 @@ local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
 	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
-	if (not spec) and 
-	   (Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil)
-	   or (ihavejoined == false) then
-		Spring.SendLuaRulesMsg("joined_game") 
+	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
+	if not spec and not ihavejoined and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true
 	end
 
@@ -218,7 +217,7 @@ function widget:MousePress(sx, sy)
 								Spring.SendLuaRulesMsg("ready_to_start_game")
 								-- also default lock player in place
 								locked = true
-								Spring.SendLuaRulesMsg("locking_in_place") 
+								Spring.SendLuaRulesMsg("locking_in_place")
 							else
 								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
 							end
@@ -239,10 +238,10 @@ function widget:MousePress(sx, sy)
 				else
 					if locked then
 						locked = false
-						Spring.SendLuaRulesMsg("unlocking_in_place") 
+						Spring.SendLuaRulesMsg("unlocking_in_place")
 					else
 						locked = true
-						Spring.SendLuaRulesMsg("locking_in_place") 
+						Spring.SendLuaRulesMsg("locking_in_place")
 					end
 				end
 
@@ -391,7 +390,7 @@ function widget:DrawScreen()
 		end
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
-		font:End()		
+		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
 end

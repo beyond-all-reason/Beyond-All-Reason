@@ -38,7 +38,7 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 
 end
 if not Spring.GetModOptions().unit_restrictions_nolrpc then
-	
+
 	raptorTurrets["raptor_turret_basic_t4_v1"]			= { minQueenAnger = 60, spawnedPerWave = 0.25, 	maxExisting = 2,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turret_emp_t4_v1"]	= { minQueenAnger = 75, spawnedPerWave = 0.25, 	maxExisting = 1,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turret_acid_t4_v1"]		= { minQueenAnger = 75, spawnedPerWave = 0.25, 	maxExisting = 1,	maxQueenAnger = 1000,}
@@ -638,7 +638,7 @@ addNewSquad({ type = "basic", minAnger = 100, units = { "8 raptor_land_swarmer_b
 -- Special --------------------------------------
 -------------------------------------------------
 
---Swarmers------------------------------------------------------------------------------------------------------  
+--Swarmers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 0, units =	{ "1 raptor_land_swarmer_basic_t2_v1" }, maxAnger = 15 })
 addNewSquad({ type = "special", minAnger = 0, units =	{ "1 raptor_land_swarmer_basic_t2_v2" }, maxAnger = 15 })
@@ -687,7 +687,7 @@ addNewSquad({ type = "special", minAnger = 85, units = { "4 raptor_land_swarmer_
 addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_basic_t4_v2", "8 raptor_land_swarmer_spectre_t4_v1" }, maxAnger = 1000 })
 addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_basic_t4_v1", "8 raptor_land_swarmer_spectre_t4_v1" }, maxAnger = 1000 })
 
---All Terrain Swarmers------------------------------------------------------------------------------------------------------  
+--All Terrain Swarmers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptor_allterrain_swarmer_basic_t2_v1" }, weight = 2, maxAnger = 60 })
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptor_allterrain_swarmer_basic_t2_v1" }, weight = 2, maxAnger = 90 })
@@ -713,7 +713,7 @@ addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptor_allterrain_s
 
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptor_allterrain_swarmer_emp_t2_v1", "10 raptor_allterrain_swarmer_acid_t2_v1"}, maxAnger = 1000 })
 
---Brawlers------------------------------------------------------------------------------------------------------  
+--Brawlers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_assault_basic_t2_v1" }, maxAnger = 35 })
 addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_assault_basic_t2_v2" }, maxAnger = 35 })
@@ -792,7 +792,7 @@ addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_land_assault
 addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_assault_basic_t4_v1", "2 raptor_land_assault_spectre_t4_v1" }, maxAnger = 1000})
 addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_assault_basic_t4_v2", "2 raptor_land_assault_spectre_t4_v1" }, maxAnger = 1000})
 
---Spikers------------------------------------------------------------------------------------------------------  
+--Spikers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptor_land_spiker_basic_t2_v1" }, maxAnger = 30 })
 
@@ -813,7 +813,7 @@ addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptor_land_spiker_
 
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_land_spiker_basic_t4_v1", "5 raptor_land_spiker_spectre_t4_v1" }, maxAnger = 1000 })
 
---Kamikaze------------------------------------------------------------------------------------------------------  
+--Kamikaze------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 40, units = 	{ "15 raptor_land_kamikaze_basic_t2_v1" } })
 
@@ -835,7 +835,7 @@ addNewSquad({ type = "special", minAnger = 70, units = 	{ "20 raptor_land_kamika
 
 addNewSquad({ type = "special", minAnger = 100, units = { "20 raptor_land_kamikaze_basic_t4_v1", "20 raptor_land_kamikaze_emp_t4_v1" }, maxAnger = 1000 })
 
---Flamers------------------------------------------------------------------------------------------------------  
+--Flamers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_swarmer_fire_t2_v1" }, maxAnger = 20 })
 
@@ -851,7 +851,7 @@ addNewSquad({ type = "special", minAnger = 60, units = 	{ "8 raptor_land_swarmer
 
 addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_swarmer_fire_t4_v1" }, maxAnger = 1000 })
 
---Artillery------------------------------------------------------------------------------------------------------  
+--Artillery------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptor_allterrain_arty_basic_t2_v1" }, maxAnger = 50})
 
@@ -918,7 +918,7 @@ addNewSquad({ type = "special", minAnger = 90, units =	{ "1 raptor_allterrain_ar
 
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_allterrain_arty_brood_t4_v1" }, maxAnger = 1000 })
 
---Brood------------------------------------------------------------------------------------------------------  
+--Brood------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "2 raptor_land_swarmer_brood_t2_v1" } })
 
@@ -950,7 +950,7 @@ addNewSquad({ type = "special", minAnger = 80, units = 	{ "4 raptor_land_swarmer
 
 addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_brood_t4_v1" }, maxAnger = 1000 })
 
---Matriarchs------------------------------------------------------------------------------------------------------  
+--Matriarchs------------------------------------------------------------------------------------------------------
 
 for j = 1, #miniBosses do
 	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
@@ -963,7 +963,7 @@ end
 ---------------------------------------------
 
 local airStartAnger = 0 -- needed for air waves to work correctly.
---Scouts------------------------------------------------------------------------------------------------------  
+--Scouts------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "basicAir", minAnger = 0, units = { "3 raptor_air_scout_basic_t2_v1" }, maxAnger = 20, weight = 10, })
 
@@ -973,7 +973,7 @@ addNewSquad({ type = "basicAir", minAnger = 33, units = { "1 raptor_air_scout_ba
 
 addNewSquad({ type = "basicAir", minAnger = 66, units = { "1 raptor_air_scout_basic_t4_v1" }, maxAnger = 1000 })
 
---Fighters------------------------------------------------------------------------------------------------------  
+--Fighters------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptor_air_fighter_basic_t1_v1" }, maxAnger = 20 })
 
@@ -995,7 +995,7 @@ addNewSquad({ type = "basicAir", minAnger = 80, units = { "6 raptor_air_fighter_
 
 addNewSquad({ type = "basicAir", minAnger = 100, units = { "8 raptor_air_fighter_basic_t4_v1" }, weight = 2, maxAnger = 1000 })
 
---Bombers------------------------------------------------------------------------------------------------------  
+--Bombers------------------------------------------------------------------------------------------------------
 
 addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptor_air_bomber_basic_t1_v1" }, maxAnger = 20 })
 
@@ -1047,7 +1047,7 @@ addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bombe
 addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bomber_brood_t4_v3" }, maxAnger = 1000 })
 addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bomber_brood_t4_v2" }, maxAnger = 1000 })
 
---Kamikaze------------------------------------------------------------------------------------------------------  
+--Kamikaze------------------------------------------------------------------------------------------------------
 
 -- addNewSquad({ type = "specialAir", minAnger = 70, units = { "10 raptor_air_kamikaze_basic_t2_v1" } })
 
@@ -1113,6 +1113,8 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["corfus"].id] 	= 0.000125,
 	[UnitDefNames["armuwfus"].id] 	= 0.000125,
 	[UnitDefNames["coruwfus"].id] 	= 0.000125,
+	[UnitDefNames["armageo"].id] 	= 0.000125,
+	[UnitDefNames["corageo"].id] 	= 0.000125,
 	[UnitDefNames["armafus"].id] 	= 0.0005,
 	[UnitDefNames["corafus"].id] 	= 0.0005,
 
@@ -1128,33 +1130,6 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["armuwmmm"].id] 	= 0.0005,
 	[UnitDefNames["coruwmmm"].id] 	= 0.0005,
 	]]--
-}
-
-local highValueTargets = { -- Priority targets for Raptors. Must be immobile to prevent issues.
-	-- T2 Energy
-	[UnitDefNames["armwint2"].id] 	= true,
-	[UnitDefNames["corwint2"].id] 	= true,
-	[UnitDefNames["armfus"].id] 	= true,
-	[UnitDefNames["armckfus"].id] 	= true,
-	[UnitDefNames["corfus"].id] 	= true,
-	[UnitDefNames["armuwfus"].id] 	= true,
-	[UnitDefNames["coruwfus"].id] 	= true,
-	[UnitDefNames["armafus"].id] 	= true,
-	[UnitDefNames["corafus"].id] 	= true,
-	-- T2 Metal Makers
-	[UnitDefNames["armmmkr"].id] 	= true,
-	[UnitDefNames["cormmkr"].id] 	= true,
-	[UnitDefNames["armuwmmm"].id] 	= true,
-	[UnitDefNames["coruwmmm"].id] 	= true,
-	-- T2 Metal Extractors
-	[UnitDefNames["cormoho"].id] 	= true,
-	[UnitDefNames["armmoho"].id] 	= true,
-	-- Nukes
-	[UnitDefNames["corsilo"].id] 	= true,
-	[UnitDefNames["armsilo"].id] 	= true,
-	-- Antinukes
-	[UnitDefNames["armamd"].id] 	= true,
-	[UnitDefNames["corfmd"].id] 	= true,
 }
 
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1180,7 +1155,6 @@ local config = { -- Don't touch this! ------------------------------------------
 	squadSpawnOptionsTable	= squadSpawnOptionsTable,
 	airStartAnger			= airStartAnger,
 	ecoBuildingsPenalty		= ecoBuildingsPenalty,
-	highValueTargets		= highValueTargets,
 	bossFightWaveSizeScale  = bossFightWaveSizeScale,
 	defaultRaptorFirestate = defaultRaptorFirestate,
 }

@@ -37,6 +37,7 @@ local spGetFullBuildQueue = Spring.GetFullBuildQueue
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local myTeamID = Spring.GetMyTeamID()
 
 local floor = math.floor
@@ -106,7 +107,7 @@ local function isIdleBuilder(unitID)
 				if isFactory[udef] then
 					return true
 				else
-					if spGetCommandQueue(unitID, 0) == 0 then
+					if (spGetCommandQueue(unitID, 0) == 0) and not(spGetUnitMoveTypeData(unitID).aircraftState == "crashing") then
 						return true
 					end
 				end
@@ -459,7 +460,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
-	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+	if not showWhenSpec and spec then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -468,6 +469,10 @@ end
 local initializeGameFrame = 0
 
 function widget:Initialize()
+	if not showWhenSpec and spec then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
@@ -482,7 +487,7 @@ function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
 	end
-	if WG['guishader'] and dlistGuishader then
+	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
 		dlistGuishader = nil
 	end

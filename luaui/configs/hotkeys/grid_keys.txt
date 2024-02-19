@@ -70,7 +70,6 @@ bind               sc_w  capture
 bind         Shift+sc_w  capture
 bind               sc_y  wait
 bind         Shift+sc_y  wait queued
-bind          Ctrl+sc_z  areamex
 
 bind          sc_b,sc_b  onoff 0
 bind               sc_b  onoff 1
@@ -111,7 +110,6 @@ bind             Any+f8  ShowElevation
 bind                f10  options
 bind                f11  luaui selector
 bind            Any+f12  screenshot png
-bind      Alt+backspace  fullscreen
 
 bind          Ctrl+sc_`  group unset
 bind           Alt+sc_`  remove_from_autogroup

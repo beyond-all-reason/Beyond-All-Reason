@@ -1,10 +1,10 @@
 return {
 	armlun = {
 		activatewhenbuilt = true,
-		acceleration = 0.01788,
-		brakerate = 0.01788,
-		buildcostenergy = 23000,
-		buildcostmetal = 1150,
+		maxacc = 0.01788,
+		maxdec = 0.01788,
+		energycost = 23000,
+		metalcost = 1150,
 		builder = false,
 		buildpic = "ARMLUN.DDS",
 		buildtime = 32000,
@@ -21,9 +21,9 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5300,
+		health = 5300,
 		maxslope = 16,
-		maxvelocity = 1.67,
+		speed = 50.1,
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
 		nochasecategory = "VTOL",
@@ -180,7 +180,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-
 				},
 				damage = {
 					default = 370,

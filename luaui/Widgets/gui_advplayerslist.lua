@@ -47,7 +47,7 @@ end
 	v36   (Floris): show grey player name for missing + dead players
 	v37   (Floris/Borg_King): add support for much larger player/spec counts  64 -> 256
 	v38   (Floris): significant performance improvement, + fast updating resources
-	v39   (Floris): auto compress when large amount (33+) of players are participating (same is seperately applied for spectator list)
+	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -62,6 +62,7 @@ local lockcameraLos = true                    -- togglelos
 local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
+local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
@@ -72,6 +73,11 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local font, font2
 
 local AdvPlayersListAtlas
+
+if not SkillUncertainties then
+    SkillUncertainties = VFS.Include("luaui/configs/SkillUncertainties.lua") or {}
+end
+
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -194,8 +200,8 @@ local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
-local updateRate = 0.75
-local updateFastRate = 0.09 -- only updates resources
+local updateRate = 0.8
+local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
@@ -527,7 +533,7 @@ modules = {
 
 m_point = {
     active = true,
-    defaut = true, -- defaults dont seem to be accesible on widget data load
+    default = true,
 }
 
 m_take = {
@@ -1082,10 +1088,11 @@ function GetAliveAllyTeams()
     aliveAllyTeams = {}
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
+	local gf = Spring.GetGameFrame()
     for i = 0, teamN - 1 do
-        local _, _, isDead, _, _, tallyteam = Spring_GetTeamInfo(i, false)
-        if not isDead then
-            aliveAllyTeams[tallyteam] = true
+        local _, _, isDead, _, _, allyTeam = Spring_GetTeamInfo(i, false)
+        if not isDead or gf == 0 then
+            aliveAllyTeams[allyTeam] = true
         end
     end
 end
@@ -1097,43 +1104,44 @@ end
 
 function GetSkill(playerID)
     local customtable = select(11, Spring.GetPlayerInfo(playerID))
-    local tsMu = customtable.skill
-    local tsSigma = customtable.skilluncertainty
-    local tskill = ""
-    if tsMu then
-        tskill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
-        tskill = round(tskill, 0)
-        if string.find(tsMu, ")", nil, true) then
-            tskill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. tskill -- ')' means inferred from lobby rank
+    local osMu = customtable.skill
+    local osSigma = customtable.skilluncertainty
+    local osSkill = ""
+    if osMu then
+        osSkill = osMu and tonumber(osMu:match("-?%d+%.?%d*")) or 0
+        osSkill = round(osSkill, 0)
+        if string.find(osMu, ")", nil, true) then
+            osSkill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. osSkill -- ')' means inferred from lobby rank
         else
             -- show privacy mode
             local priv = ""
-            if string.find(tsMu, "~", nil, true) then
+            if string.find(osMu, "~", nil, true) then
                 -- '~' means privacy mode is on
                 priv = "\255" .. string.char(200) .. string.char(200) .. string.char(200) .. "*"
             end
 
             --show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
-            if tsSigma and type(tsSigma) == 'number' then
-                -- 0 is low sigma, 3 is high sigma
-                tsSigma = tonumber(tsSigma)
-                if tsSigma > 2 then
-                    tsRed, tsGreen, tsBlue = 190, 130, 130
-                elseif tsSigma == 2 then
-                    tsRed, tsGreen, tsBlue = 140, 140, 140
-                elseif tsSigma == 1 then
-                    tsRed, tsGreen, tsBlue = 195, 195, 195
-                elseif tsSigma < 1 then
-                    tsRed, tsGreen, tsBlue = 250, 250, 250
+            if osSigma and next(SkillUncertainties) then
+                osSigma = tonumber(osSigma)
+
+                -- 0.00 is absolute certain , 8.33 is initial uncertaintiy at registration time (written at 2024/01/11)
+                if osSigma < SkillUncertainties[0].limit then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[0].color)
+                elseif osSigma < SkillUncertainties[1].limit then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[1].color)
+                elseif osSigma < SkillUncertainties[2].limit  then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[2].color)
+                else
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[3].color)
                 end
             end
-            tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
+            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
         end
     else
-        tskill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
+        osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
     end
-    return tskill
+    return osSkill
 end
 
 function CreatePlayer(playerID)
@@ -1146,8 +1154,7 @@ function CreatePlayer(playerID)
 	end
 
     --skill
-    local tskill
-    tskill = GetSkill(playerID)
+    local osSkillFormatted = GetSkill(playerID)
 
     --cpu/ping
     local tpingLvl = GetPingLvl(tping)
@@ -1176,7 +1183,7 @@ function CreatePlayer(playerID)
     end
     return {
         rank = trank,
-        skill = tskill,
+        skill = osSkillFormatted,
         name = tname,
         team = tteam,
         allyteam = tallyteam,
@@ -1224,10 +1231,10 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
-    if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+    if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
         tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
     end
-    local tname, ttotake, tskill, tai
+    local tname, ttotake, tai
     local tdead = true
 
     if isAI then
@@ -1251,7 +1258,6 @@ function CreatePlayerFromTeam(teamID)
     if tname == nil then
         tname = absentName
     end
-    tskill = ""
 
     -- resources
     local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
@@ -1270,7 +1276,7 @@ function CreatePlayerFromTeam(teamID)
 
     return {
         rank = 8, -- "don't know which" value
-        skill = tskill,
+        skill = "",
         name = tname,
         team = teamID,
         allyteam = tallyteam,
@@ -1373,7 +1379,12 @@ function SortList()
     mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
 
     -- checks if a team has died
-    local teamList = Spring_GetTeamList()
+    local teamList
+    if enemyListShow then
+        teamList = Spring_GetTeamList()
+    else
+        teamList = Spring_GetTeamList(myAllyTeamID)
+    end
     if mySpecStatus ~= myOldSpecStatus then
         if mySpecStatus then
             for _, team in ipairs(teamList) do
@@ -1395,12 +1406,22 @@ function SortList()
 
 
     local aliveTeams = 0
-    for _, team in ipairs(teamList) do
-        if not select(3, Spring_GetTeamInfo(team, false)) then
-            aliveTeams = aliveTeams  + 1
+    local deadTeams = 0
+    for _, teamID in ipairs(teamList) do
+        local _, _, alive, _, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+        if aliveAllyTeams[allyTeamID] then
+            if not alive then
+                aliveTeams = aliveTeams  + 1
+            else
+                deadTeams = deadTeams + 1
+            end
         end
     end
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamList-aliveTeams)*0.5))-1)))
+    local deadTeamSize = 0.66
+    playerScale = math.max(0.4, math.min(1, 33 / (aliveTeams+(deadTeams*deadTeamSize))))
+    if #Spring_GetAllyTeamList() > 24 then
+        playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
+    end
 
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
@@ -1425,7 +1446,7 @@ function SortAllyTeams(vOffset)
     local allyTeamList = Spring_GetAllyTeamList()
     local allyTeamsCount = table.maxn(allyTeamList) - 1
 
-    --find own ally team
+    -- find own ally team
     vOffset = 12 / 2.66
     for allyTeamID = 0, allyTeamsCount - 1 do
         if allyTeamID == myAllyTeamID then
@@ -1444,7 +1465,7 @@ function SortAllyTeams(vOffset)
     -- add the others
     local firstenemy = true
     for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID then
+        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
             if firstenemy then
                 vOffset = vOffset + 13
                 vOffset = vOffset + labelOffset - 3
@@ -1467,14 +1488,11 @@ function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
-
-    --add teams
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
     end
-
     return vOffset
 end
 
@@ -2304,7 +2322,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
 
-    if energyConversion ~= 0.75 and not dead then    -- default = 0.75
+    if energyConversion and energyConversion ~= 0.75 and not dead then    -- default = 0.75
         gl_Color(0,0,0, 0.125)
         gl_Texture(false)
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
@@ -2452,7 +2470,7 @@ end
 
 function colourNames(teamID)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
-	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
     local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
@@ -3071,14 +3089,8 @@ function widget:MousePress(x, y, button)
                                         if clickedPlayer.team == myTeamID then
                                             Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
                                         else
-                                            local unitsCount = Spring.GetSelectedUnitsCount()
-                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.giveUnits', { count = unitsCount, name = clickedPlayer.name }))
-                                            local selectedUnits = Spring.GetSelectedUnits()
-                                            for i = 1, #selectedUnits do
-                                                local ux, uy, uz = Spring.GetUnitPosition(selectedUnits[i])
-                                                Spring.MarkerAddPoint(ux, uy, uz)
-                                            end
                                             Spring_ShareResources(clickedPlayer.team, "units")
+                                            Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
                                     release = nil
@@ -3477,7 +3489,7 @@ function CheckPlayersChange()
                     player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
-				if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
@@ -3719,7 +3731,7 @@ function widget:ViewResize()
 		--AdvPlayersListAtlas:Delete()
 	end
 
-	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
+	local cellheight = math.max(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}

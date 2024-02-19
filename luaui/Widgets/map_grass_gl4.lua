@@ -1239,6 +1239,10 @@ local function GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['grassgl4'] = {}
 	WG['grassgl4'].getDistanceMult = function()
 		return distanceMult
@@ -1503,7 +1507,7 @@ function widget:DrawWorldPreUnit()
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
-	if instanceCount == 0 or startInstanceIndex == #grassInstanceData/4 then return end
+	if instanceCount <= 0 or startInstanceIndex == #grassInstanceData/4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()

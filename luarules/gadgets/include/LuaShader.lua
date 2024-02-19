@@ -73,6 +73,10 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 shadowProj;
 	mat4 shadowViewProj;
 
+	mat4 reflectionView;
+	mat4 reflectionProj;
+	mat4 reflectionViewProj;
+
 	mat4 orthoProj01;
 
 	// transforms for [0] := Draw, [1] := DrawInMiniMap, [2] := Lua DrawInMiniMap
@@ -101,16 +105,16 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 fogColor; //fog color
 	vec4 fogParams; //fog {start, end, 0.0, scale}
 
-	vec4 sunDir;
+	vec4 sunDir; // (sky != nullptr) ? sky->GetLight()->GetLightDir() : float4(/*map default*/ 0.0f, 0.447214f, 0.894427f, 1.0f);
 
 	vec4 sunAmbientModel;
 	vec4 sunAmbientMap;
 	vec4 sunDiffuseModel;
 	vec4 sunDiffuseMap;
-	vec4 sunSpecularModel;
-	vec4 sunSpecularMap;
+	vec4 sunSpecularModel; // float4{ sunLighting->modelSpecularColor.xyz, sunLighting->specularExponent };
+	vec4 sunSpecularMap; //  float4{ sunLighting->groundSpecularColor.xyz, sunLighting->specularExponent };
 
-	vec4 shadowDensity;
+	vec4 shadowDensity; //  float4{ sunLighting->groundShadowDensity, sunLighting->modelShadowDensity, 0.0, 0.0 };
 
 	vec4 windInfo; // windx, windy, windz, windStrength
 	vec2 mouseScreenPos; //x, y. Screen space.
@@ -123,6 +127,17 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 
 // glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
 
+mat3 rotation3dX(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		1.0, 0.0, 0.0,
+		0.0, c, s,
+		0.0, -s, c
+	);
+}
+
 mat3 rotation3dY(float a) {
 	float s = sin(a);
 	float c = cos(a);
@@ -131,6 +146,17 @@ mat3 rotation3dY(float a) {
     c, 0.0, -s,
     0.0, 1.0, 0.0,
     s, 0.0, c);
+}
+
+mat3 rotation3dZ(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		c, s, 0.0,
+		-s, c, 0.0,
+		0.0, 0.0, 1.0
+	);
 }
 
 mat4 scaleMat(vec3 s) {
@@ -150,9 +176,95 @@ mat4 translationMat(vec3 t) {
 		t.x, t.y, t.z, 1.0
 	);
 }
-    ]]
 
-    return eubs
+mat4 mat4mix(mat4 a, mat4 b, float alpha) {
+	return (a * (1.0 - alpha) + b * alpha);
+}
+
+// Additional helper functions useful in Spring
+
+vec2 heightmapUVatWorldPos(vec2 worldpos){
+	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = clamp(worldpos, heightmaptexel, mapSize.xy - heightmaptexel);
+	uvhm = uvhm	* inverseMapSize;
+	return uvhm;
+}
+
+// This does 'mirror' style tiling of UVs like the way the map edge extension works
+vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
+	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = worldpos * inverseMapSize;
+	
+	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
+}
+
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
+// the radius to cameradist ratio is a good proxy for visibility in the XY plane
+bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
+	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
+	float isqrtDistRatio = wR * inversesqrt(dot(ToCamera, ToCamera)); // calculate the relative screen-space size of it
+	vec4 cWPpos = cameraViewProj * wP; // transform the worldpos into clip space
+	vec2 clipVec = cWPpos.ww * (1.0 + isqrtDistRatio); // normalize the clip tolerance
+	return any(greaterThan(abs(cWPpos.xy), clipVec)); // check if the clip space coords lie outside of the tolerance relaxed [-1.0, 1.0] space
+}
+
+/*
+vec3 hsv2rgb(vec3 c){
+	vec4 K=vec4(1.,2./3.,1./3.,3.);
+	return c.z*mix(K.xxx,saturate(abs(fract(c.x+K.xyz)*6.-K.w)-K.x),c.y);
+}
+
+vec3 rgb2hsv(vec3 c){
+	vec4 K=vec4(0.,-1./3.,2./3.,-1.);
+	vec4 p=mix(vec4(c.bg ,K.wz),vec4(c.gb,K.xy ),step(c.b,c.g));
+	vec4 q=mix(vec4(p.xyw,c.r ),vec4(c.r ,p.yzx),step(p.x,c.r));
+	float d=q.x-min(q.w,q.y);
+	float e=1e-10;
+	return vec3(abs(q.z+(q.w-q.y)/(6.*d+e)),d/(q.x+e),q.x);
+}
+*/
+
+]]
+
+
+	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
+	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
+	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
+	
+	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
+	--Spring.Debug.TableEcho(waterAbsorbColor)
+	local waterUniforms = 
+[[ 
+#define WATERABSORBCOLOR vec3(%f,%f,%f)
+#define WATERMINCOLOR vec3(%f,%f,%f)
+#define WATERBASECOLOR vec3(%f,%f,%f)
+#define SMF_SHALLOW_WATER_DEPTH_INV 0.1
+
+// vertex below shallow water depth --> alpha=1
+// vertex above shallow water depth --> alpha=waterShadeAlpha
+vec4 waterBlend(float fragmentheight){
+	if (fragmentheight>=0) return vec4(0.0);
+	vec4 waterBlendResult = vec4(1.0, 1.0, 1.0, 0.0);
+	waterBlendResult.rgb = WATERBASECOLOR.rgb;
+	waterBlendResult.rgb -= WATERABSORBCOLOR * clamp( -fragmentheight, 0, 1023);
+	waterBlendResult.rgb = max(waterBlendResult.rgb, WATERMINCOLOR);
+	waterBlendResult.a = clamp(-fragmentheight * SMF_SHALLOW_WATER_DEPTH_INV, 0.0, 1.0);
+	return waterBlendResult;
+}
+]]
+	waterUniforms = string.format(waterUniforms, 
+		waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB,
+		waterMinColorR, waterMinColorG, waterMinColorB, 
+		waterBaseColorR, waterBaseColorG, waterBaseColorB
+	)
+
+    return eubs .. waterUniforms
 end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
@@ -162,6 +274,7 @@ local function CreateShaderDefinesString(args) -- Args is a table of stuff that 
   end
   return table.concat(defines)
 end
+
 
 local LuaShader = setmetatable({}, {
 	__call = function(self, ...) return new(self, ...) end,
@@ -175,6 +288,154 @@ LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 
 
+local function CheckShaderUpdates(shadersourcecache, delaytime)
+	-- todo: extract shaderconfig
+	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
+		shadersourcecache.lastshaderupdate = Spring.GetTimer()
+		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
+		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
+		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
+		if vsSrcNew == shadersourcecache.vsSrc and 
+			fsSrcNew == shadersourcecache.fsSrc and 
+			gsSrcNew == shadersourcecache.gsSrc and 
+			not shadersourcecache.forceupdate then 
+			--Spring.Echo("No change in shaders")
+			return nil
+		else
+			local compilestarttime = Spring.GetTimer()
+			shadersourcecache.vsSrc = vsSrcNew
+			shadersourcecache.fsSrc = fsSrcNew
+			shadersourcecache.gsSrc = gsSrcNew
+			shadersourcecache.forceupdate = nil
+			shadersourcecache.updateFlag = true
+			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+			if vsSrcNew then 
+				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			if gsSrcNew then 
+				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			local reinitshader =  LuaShader(
+				{
+				vertex = vsSrcNew,
+				fragment = fsSrcNew,
+				geometry = gsSrcNew,
+				uniformInt = shadersourcecache.uniformInt,
+				uniformFloat = shadersourcecache.uniformFloat,
+				},
+				shadersourcecache.shaderName
+			)
+			local shaderCompiled = reinitshader:Initialize()
+			
+			Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			if shaderCompiled then 
+				reinitshader.ignoreUnkUniform = true
+				return reinitshader
+			else
+				return nil
+			end
+		end
+	end
+	return nil
+end
+
+LuaShader.CheckShaderUpdates = CheckShaderUpdates
+
+
+local function lines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
+
+
+function LuaShader:CreateLineTable()
+	--[[
+	-- self.shaderParams == 
+			 ({[ vertex   = "glsl code" ,]
+		   [ tcs      = "glsl code" ,]
+		   [ tes      = "glsl code" ,]
+		   [ geometry = "glsl code" ,]
+		   [ fragment = "glsl code" ,]
+		   [ uniform       = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformInt    = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformFloat  = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformMatrix = { uniformName = number value, ...} ,]
+		   [ geoInputType = number inType,]
+		   [ geoOutputType = number outType,]
+		   [ geoOutputVerts = number maxVerts,]
+		   [ definitions = "string of shader #defines", ]
+		 })
+	]]--
+	
+	local numtoline = {}
+	
+	--try to translate errors that look like this into lines: 
+	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
+	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
+	--for k, v in pairs(self) do
+	--	Spring.Echo(k)
+	--end
+	
+	for _, shadertype in pairs({'vertex', 'tcs', 'tes', 'geometry', 'fragment', 'compute'}) do 
+		if self.shaderParams[shadertype] ~= nil then 
+			local shaderLines = (self.shaderParams.definitions or "") .. self.shaderParams[shadertype]
+			local currentlinecount = 0
+			for i, line in ipairs(lines(shaderLines)) do
+				numtoline[currentlinecount] = string.format("%s:%i %s", shadertype, currentlinecount, line)
+				--Spring.Echo(currentlinecount, numtoline[currentlinecount] )
+				if line:find("#line ", nil, true) then 
+					local defline = tonumber(line:sub(7)) 
+					if defline then 
+						currentlinecount = defline
+					end
+				else
+				
+					currentlinecount = currentlinecount + 1
+				end
+			end
+		end
+	end
+	return numtoline
+end
+
+local function translateLines(alllines, errorcode) 
+	if string.len(errorcode) < 3 then 
+		return ("The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match")
+	end
+	local result = ""
+	for _,line in pairs(lines(errorcode)) do 
+		local pstart = line:find("(", nil, true)
+		local pend = line:find(")", nil, true)
+		local found = false
+		if pstart and pend then 
+			local lineno = line:sub(pstart +1,pend-1)
+			--Spring.Echo(lineno)
+			lineno = tonumber(lineno) 
+			--Spring.Echo(lineno, alllines[lineno])
+			if alllines[lineno] then 
+				result = result .. string.format("%s\n ^^ %s \n", alllines[lineno], line)
+				found = true
+			end
+		end
+		if found == false then 
+			result = result .. line ..'\n'
+		end
+	end
+	return result
+end
+
+
+
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)
 	local message
@@ -182,12 +443,19 @@ function LuaShader:OutputLogEntry(text, isError)
 	local warnErr = (isError and "error") or "warning"
 
 	message = string.format("LuaShader: [%s] shader %s(s):\n%s", self.shaderName, warnErr, text)
-
-	if self.logHash[message] == nil then
-		self.logHash[message] = 0
+	Spring.Echo(message)
+	
+	if isError then 
+		local linetable = self:CreateLineTable()
+		Spring.Echo(translateLines(linetable, text))
 	end
 
-	if self.logHash[message] <= self.logEntries then
+
+	if self.logHash[message] == nil then
+	--	self.logHash[message] = 0
+	end
+
+	if false and self.logHash[message] <= self.logEntries then
 		local newCnt = self.logHash[message] + 1
 		self.logHash[message] = newCnt
 		if (newCnt == self.logEntries) then
@@ -257,7 +525,7 @@ end
 -----------------========= End of Handle Ghetto Include<> ==========-----------------
 
 -----------------============ General LuaShader methods ============-----------------
-function LuaShader:Compile()
+function LuaShader:Compile(suppresswarnings)
 	if not gl.CreateShader then
 		self:ShowError("GLSL Shaders are not supported by hardware or drivers")
 		return false
@@ -279,11 +547,11 @@ function LuaShader:Compile()
 	local shaderObj = self.shaderObj
 
 	local shLog = gl.GetShaderLog() or ""
-
+	self.shLog = shLog
 	if not shaderObj then
 		self:ShowError(shLog)
 		return false
-	elseif (shLog ~= "") then
+	elseif (shLog ~= "") and suppresswarnings ~= true then
 		self:ShowWarning(shLog)
 	end
 
@@ -359,6 +627,8 @@ function LuaShader:Deactivate()
 	self.active = false
 	glUseShader(0)
 end
+
+
 -----------------============ End of general LuaShader methods ============-----------------
 
 
@@ -414,7 +684,36 @@ local function isUpdateRequired(uniform, tbl)
 
 	return update
 end
+
+local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
+	if (u2 == nil) and (type(u1) == "string") then --named matrix
+		return true --no need to update cache
+	end
+
+	local update = false
+	local cachedValues = uniform.values
+	
+	if u1 and cachedValues[1] ~= u1 then 
+		update = true 
+		cachedValues[1] = val 	
+	end 
+	if u2 and cachedValues[2] ~= u2 then 
+		update = true 
+		cachedValues[2] = u2	
+	end 
+	if u3 and cachedValues[3] ~= u3 then 
+		update = true 
+		cachedValues[3] = u3 	
+	end 
+	if u4 and cachedValues[4] ~= u4 then 
+		update = true 
+		cachedValues[4] = u4 	
+	end 
+
+	return update
+end
 -----------------============ End of friend LuaShader functions ============-----------------
+
 
 
 -----------------============ LuaShader uniform manipulation functions ============-----------------
@@ -425,32 +724,40 @@ function LuaShader:GetUniformLocation(name)
 end
 
 --FLOAT UNIFORMS
-local function setUniformAlwaysImpl(uniform, ...)
-	glUniform(uniform.location, ...)
+local function setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
+	if u4 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3, u4)
+	elseif u3 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3)
+	elseif u2 ~= nil then 
+		glUniform(uniform.location, u1, u2)
+	else
+		glUniform(uniform.location, u1)
+	end
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformAlways(name, ...)
+function LuaShader:SetUniformAlways(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformAlwaysImpl(uniform, ...)
+	return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformImpl(uniform, ...)
-	if isUpdateRequired(uniform, {...}) then
-		return setUniformAlwaysImpl(uniform, ...)
+local function setUniformImpl(uniform, u1, u2, u3, u4)
+	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
+		return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 	end
 	return true
 end
 
-function LuaShader:SetUniform(name, ...)
+function LuaShader:SetUniform(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformImpl(uniform, ...)
+	return setUniformImpl(uniform, u1, u2, u3, u4)
 end
 
 LuaShader.SetUniformFloat = LuaShader.SetUniform
@@ -458,32 +765,40 @@ LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
 
 --INTEGER UNIFORMS
-local function setUniformIntAlwaysImpl(uniform, ...)
-	glUniformInt(uniform.location, ...)
+local function setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
+	if u4 ~= nil then 
+		glUniformInt(uniform.location, u1, u2, u3, u4)
+	elseif u3 ~= nil then 
+		glUniformInt(uniform.location, u1, u2, u3)
+	elseif u2 ~= nil then 
+		glUniformInt(uniform.location, u1, u2)
+	else
+		glUniformInt(uniform.location, u1)
+	end
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformIntAlways(name, ...)
+function LuaShader:SetUniformIntAlways(name,  u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntAlwaysImpl(uniform, ...)
+	return setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
 end
 
-local function setUniformIntImpl(uniform, ...)
-	if isUpdateRequired(uniform, {...}) then
-		return setUniformIntAlwaysImpl(uniform, ...)
+local function setUniformIntImpl(uniform, u1, u2, u3, u4)
+	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
+		return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 	end
 	return true
 end
 
-function LuaShader:SetUniformInt(name, ...)
+function LuaShader:SetUniformInt(name,  u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntImpl(uniform, ...)
+	return setUniformIntImpl(uniform,  u1, u2, u3, u4)
 end
 
 

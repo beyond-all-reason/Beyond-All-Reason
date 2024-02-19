@@ -334,8 +334,8 @@ void main(void)
 		collectedNoise += localNoise.a;
 	}
 	
-	vec2 uvhmWorld = heighmapUVatWorldPos(mapWorldPos.xz);
-	vec2 uvhmFrag =  heighmapUVatWorldPos(fragWorldPos.xz);
+	vec2 uvhmWorld = heightmapUVatWorldPos(mapWorldPos.xz);
+	vec2 uvhmFrag =  heightmapUVatWorldPos(fragWorldPos.xz);
 	vec4 areaNoiseWorld = textureLod(dithernoise2d, uvhmWorld - noiseOffset.xz * 0.02, 0.0);
 	vec4 areaNoiseFrag = textureLod(dithernoise2d, uvhmFrag - noiseOffset.xz * 0.02, 0.0);
 	fragColor.rgb *= vec3(collectedShadow / steps);

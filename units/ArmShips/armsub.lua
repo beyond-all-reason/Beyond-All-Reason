@@ -1,11 +1,11 @@
 return {
 	armsub = {
-		acceleration = 0.04592,
+		maxacc = 0.04592,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		brakerate = 0.04592,
-		buildcostenergy = 3100,
-		buildcostmetal = 440,
+		maxdec = 0.04592,
+		energycost = 3100,
+		metalcost = 440,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 5800,
 		canmove = true,
@@ -17,11 +17,10 @@ return {
 		explodeas = "smallExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 840, --
-		maxvelocity = 2.1,
+		health = 840, --
+		speed = 66.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",

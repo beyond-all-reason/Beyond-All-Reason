@@ -1,9 +1,9 @@
 return {
 	cortermite = {
-		acceleration = 0.19665,
-		brakerate = 0.60375,
-		buildcostenergy = 9000,
-		buildcostmetal = 600,
+		maxacc = 0.19665,
+		maxdec = 0.60375,
+		energycost = 9000,
+		metalcost = 600,
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 15000,
 		canmove = true,
@@ -17,9 +17,9 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3100,
+		health = 3100,
 		maxslope = 50,
-		maxvelocity = 1.61,
+		speed = 48.3,
 		maxwaterdepth = 30,
 		movementclass = "TBOT3",
 		mygravity = 10000,
@@ -34,6 +34,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
+		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Beherith",
@@ -46,8 +47,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0.0 -1.81045331299 4.38243865967",
-				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
+				collisionvolumeoffsets = "0.0 -1.2 0",
+				collisionvolumescales = "26 12 43",
 				collisionvolumetype = "Box",
 				damage = 2000,
 				energy = 0,
@@ -114,6 +115,7 @@ return {
 			cor_termite_laser = {
 				areaofeffect = 42,
 				avoidfeature = false,
+				avoidfriendly = true,
 				beamtime = 0.55,
 				corethickness = 0.2,
 				craterareaofeffect = 0,

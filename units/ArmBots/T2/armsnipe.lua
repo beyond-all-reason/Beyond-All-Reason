@@ -1,9 +1,9 @@
 return {
 	armsnipe = {
-		acceleration = 0.138,
-		brakerate = 0.6486,
-		buildcostenergy = 20000,
-		buildcostmetal = 680,
+		maxacc = 0.138,
+		maxdec = 0.6486,
+		energycost = 20000,
+		metalcost = 680,
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19000,
 		canmove = true,
@@ -19,9 +19,9 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 580,
+		health = 580,
 		maxslope = 14,
-		maxvelocity = 1.1,
+		speed = 33.0,
 		maxwaterdepth = 22,
 		mincloakdistance = 80,
 		movementclass = "BOT3",
@@ -190,7 +190,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 3000,
 				customparams = {
-
 				},
 				damage = {
 					commanders = 1025,

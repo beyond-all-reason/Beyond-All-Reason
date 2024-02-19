@@ -171,6 +171,11 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local math_max = math.max
 local math_ceil = math.ceil
 
+local unitName = {}
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+end
+
 ---------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
 
@@ -416,6 +421,7 @@ local function InitializeLight(lightTable, unitID)
 			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
+			lightTable.lightConfig = nil -- never used again after initialization
 		end
 
 		if unitID then
@@ -478,7 +484,9 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	end
 	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
 	lightparams[pieceIndexPos] = pieceIndex or 0
+	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
+	--tracy.ZoneEnd()
 	if lightparams[18] > 0 then
 		calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	end
@@ -799,10 +807,10 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
-local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
+local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
 		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress < 0.99999 then return end
+		if buildprogress < 1 then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
@@ -817,7 +825,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 
 				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
-				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable)
+				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
 			end
 		end
 	end
@@ -1008,7 +1016,7 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		end
 		if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
-		local instanceID = tostring(unitID) .. "_" .. tostring(UnitDefs[unitDefID].name) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
+		local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
@@ -1075,6 +1083,34 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
+	
+	deferredLightShader:Delete()
+	local ram = 0
+	for lighttype, vbo in pairs(unitLightVBOMap) do ram = ram + vbo:Delete() end 
+	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
+	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end 	
+	ram = ram + cursorPointLightVBO:Delete()
+	
+	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000) 
+	--Spring.Echo("featureDefLights", table.countMem(featureDefLights))
+	--Spring.Echo("unitEventLights", table.countMem(unitEventLights))
+	--Spring.Echo("unitDefLights", table.countMem(unitDefLights))
+	--Spring.Echo("projectileDefLights", table.countMem(projectileDefLights))
+	--Spring.Echo("explosionLights", table.countMem(explosionLights))
+	
+	-- Note, these must be nil'ed manually, because 
+	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
+	unitDefLights = nil
+	featureDefLights = nil
+	unitEventLights = nil
+	muzzleFlashLights = nil 
+	projectileDefLights = nil 
+	explosionLights  = nil 
+	gibLight = nil 
+	
+	--collectgarbage("collect")
+	--collectgarbage("collect")
+	
 end
 
 local windX = 0
@@ -1143,7 +1179,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								local unitHeight = Spring.GetUnitHeight(unitID)
 								if unitHeight == nil then
 									local losstate = Spring.GetUnitLosState(unitID)
-									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name, eventName, lightname, 'losstate', losstate and losstate.los)
+									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, 'losstate', losstate and losstate.los)
 								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
@@ -1293,9 +1329,10 @@ local function updateProjectileLights(newgameframe)
 					--end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] then
+					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
+
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz

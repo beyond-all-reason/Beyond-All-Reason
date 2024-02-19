@@ -69,14 +69,6 @@ local function tableMergeSpecial(t1, t2)
 	return newTable
 end
 
--- Unbalanced (upgradeable) Commanders modoption
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/unbacom_post.lua")
-	VFS.Include("unbaconfigs/stats.lua")
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	UnbaCom_Post("armcom")
-	UnbaCom_Post("corcom")
-end
 
 local function getDimensions(scale)
 	if not scale then
@@ -105,7 +97,7 @@ local function enlargeSelectionVolumes()
 
 	for name, ud in pairs(UnitDefs) do
 		local scale = STATIC_SEL_SCALE
-		if ud.acceleration and ud.acceleration > 0 and ud.canmove then
+		if ud.maxacc and ud.maxacc > 0 and ud.canmove then
 			scale = SEL_SCALE
 		end
 		if ud.customparams.selectionscalemult then
