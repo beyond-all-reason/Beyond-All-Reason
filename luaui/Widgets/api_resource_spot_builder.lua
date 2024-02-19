@@ -98,10 +98,9 @@ end
 ---@param spot table
 local function spotHasExtractor(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	local type = spot.isMex and mexBuildings or geoBuildings
 	for j=1, #units do
-		if mexBuildings[spGetUnitDefID(units[j])] or geoBuildings[spGetUnitDefID(units[j])] then
-			return units[j]
-		end
+		if type[spGetUnitDefID(units[j])] then return units[j] end
 	end
 	return false
 end
@@ -222,7 +221,7 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	for i = 1, #units do
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
-		local isExtractor = mexBuildings[uDefId] or geoBuildings[uDefId]
+		local isExtractor = spot.isMex and mexBuildings[uDefId] or geoBuildings[uDefId]
 		local canUpgrade = extractorCanBeUpgraded(uid, extractorId)
 		local isBeingBuilt, _ = spGetUnitIsBeingBuilt(uid)
 		if(isExtractor and (not canUpgrade or isBeingBuilt)) then
@@ -339,7 +338,7 @@ end
 ---ApplyPreviewCmds to actually give the orders to units
 ---@param params table
 ---@param extractor table
----@param spot table can be a spot or a position, just needs to have { x, y, z } properties
+---@param spot table must be a full spot, not just position. isMex or isGeo field required for things to work.
 ---@return table format is { buildingId, x, y, z, facing, owner }
 local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
@@ -360,11 +359,12 @@ local function PreviewExtractorCommand(params, extractor, spot)
 
 	local buildingId = -extractor
 	local targetPos, targetOwner
-	local occupiedMex = spotHasExtractor(command)
-	if occupiedMex then
-		local occupiedPos = { spGetUnitPosition(occupiedMex) }
+	local occupiedSpot = spotHasExtractor(command)
+	if occupiedSpot then
+
+		local occupiedPos = { spGetUnitPosition(occupiedSpot) }
 		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
-		targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
+		targetOwner = Spring.GetUnitTeam(occupiedSpot)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
 		local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(spot, -buildingId, 0, true)
 		targetPos = math.getClosestPosition(cmdX, cmdZ, buildingPositions)
@@ -373,7 +373,6 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	if targetPos then
 		local newx, newz = targetPos.x, targetPos.z
 		finalCommand = { math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
-
 	end
 	return finalCommand
 end

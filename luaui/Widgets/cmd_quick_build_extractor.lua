@@ -157,9 +157,11 @@ function widget:Update(dt)
 			if unitIsMex then
 				selectedPos = { x = x, y = y, z = z }
 				selectedMex = bestMex
+				selectedSpot = WG['resource_spot_finder'].GetClosestMexSpot(x, z)
 			else
 				selectedPos = { x = x, y = y, z = z }
 				selectedGeo = bestGeo
+				selectedSpot = WG['resource_spot_finder'].GetClosestGeoSpot(x, z)
 			end
 		else
 			clearGhostBuild()
@@ -190,7 +192,6 @@ function widget:Update(dt)
 			selectedMex = bestMex
 			extractor = bestMex
 			selectedSpot = nearestMex
-
 		elseif geoDist < math.huge and geoDist < mexDist and geoDist < geoPlacementRadius then
 			selectedGeo = bestGeo
 			extractor = bestGeo
@@ -209,11 +210,10 @@ function widget:Update(dt)
 
 
 	-- Set up ghost
-	if extractor and (selectedSpot or selectedPos) then
+	if extractor and selectedSpot then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
 		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
-		local spotPos = selectedPos and selectedPos or selectedSpot -- When a specific mex is moused over, we use that position instead of the spot for previewing the command
-		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, spotPos)
+		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot)
 		if not cmd then
 			clearGhostBuild()
 			return
