@@ -155,11 +155,6 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
-Demo()
-{
-	return (0);
-}
-
 Activate()
 {
 	signal SIG_ACTIVATE;

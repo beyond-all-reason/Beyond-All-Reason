@@ -5,7 +5,7 @@
 
 piece  base, rtracks, ltracks, larm1, larm2, larm3, rarm1,rarm2,rarm3,rturret,lturret,lnano,rnano;
 
-static-var  unitviewer, Static_Var_2, statechg_DesiredState, statechg_StateChanging,nano;
+static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging,nano;
 
 
 #define BASEPIECE base
@@ -101,7 +101,6 @@ Create()
 {
 	hide rnano;
 	hide lnano;
-	unitviewer = FALSE;
 	Static_Var_2 = 0;
 	nano=0;
 	call-script InitState();

@@ -5,7 +5,7 @@
 
 piece  base, pad, main1, main2,main3,mid1,mid2,mid3,end1,end3,end2,nano1,nano2,nano3,beam1,beam2,beam3,cover1,cover2;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -131,7 +131,6 @@ Create()
 	hide beam1;
 
 	spray = 0;
-	unitviewer = FALSE;
 	call-script InitState();
 	return (0);
 }

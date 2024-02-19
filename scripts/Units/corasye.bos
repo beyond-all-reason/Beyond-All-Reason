@@ -6,7 +6,7 @@
 piece  base, beam1, beam2, blinks, gun1, gun2, explodpt1, explodpt2,
        explodpt3, explodpt4, slip;
 
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -120,7 +120,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
 	turn slip to y-axis <90.021978> now;
@@ -147,12 +146,6 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-	return (0);
-}
-
 Activate()
 {
 	signal SIG_ACTIVATE;
@@ -164,10 +157,9 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+
+	sleep 5000;
+	
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);

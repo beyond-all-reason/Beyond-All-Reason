@@ -5,7 +5,7 @@
 
 piece  pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf, cagelight, cagelight_emit;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -120,7 +120,6 @@ Create()
 	hide nano1;
 	hide pad;
 	hide cagelight_emit;
-	unitviewer = FALSE;
 	spray = 0;
 	call-script InitState();
 }
@@ -151,11 +150,6 @@ QueryNanoPiece(piecenum)
 	{
 		spray=0;
 	}
-}
-
-Demo()
-{
-	unitviewer = TRUE;
 }
 
 Activate()

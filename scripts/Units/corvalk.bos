@@ -5,7 +5,7 @@
 
 piece  base, link, thrust1, thrust2, thrust3, thrust4;
 
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 
 pickupscr()
@@ -80,7 +80,6 @@ Create()
 	turn thrust3 to x-axis <-90> now; 
 	turn thrust4 to x-axis <-90> now; 
 	
-	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )

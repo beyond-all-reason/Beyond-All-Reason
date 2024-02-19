@@ -5,7 +5,7 @@
 
 piece  base, pad, nano3, nano4, nano2, nano1, head1, head2, head3, head4, cil, dish, blink, cagelight, cagelight_emit;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
@@ -152,7 +152,6 @@ Create()
 	hide cagelight_emit;
 	hide blink;
 	hide pad;
-	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
@@ -193,10 +192,6 @@ QueryNanoPiece(piecenum)
 	}
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
 
 Activate()
 {

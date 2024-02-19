@@ -5,7 +5,7 @@
 
 piece  base, pad, beam1, beam2, beam3, beam4, nano1,nano2,nano3,nano4;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -129,7 +129,6 @@ Create()
 	hide nano3;
 	hide nano1;
 	hide nano2;
-	unitviewer = FALSE;
 	spray = base;
 	set ARMORED to 1;
 	move base to y-axis [5.000000] now;

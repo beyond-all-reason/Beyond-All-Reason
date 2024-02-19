@@ -7,7 +7,7 @@ piece  base, pole, turret, sleeve, barrel, flare, link, thrustrr, thrustrl, thru
 		thrustrra, thrustrla, thrustfra, thrustfla, 
 		thrustrr2, thrustrl2, thrustfr2, thrustfl2, thrustrra2, thrustrla2, thrustfra2, thrustfla2;
 
-static-var  moverate, unitviewer, statechg_DesiredState, statechg_StateChanging, restore_delay, wpn1_lasthead;
+static-var  moverate, statechg_DesiredState, statechg_StateChanging, restore_delay, wpn1_lasthead;
 
 #define SIG_AIM				2
 
@@ -52,7 +52,6 @@ Create()
 	turn pole to x-axis <45> now;
 	
 	hide link;
-	unitviewer = FALSE;
 	moverate = 0;
 	call-script InitState();
 	restore_delay = 300;
@@ -99,12 +98,6 @@ RequestState(requestedstate, currentstate)
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
 #include "idlehover.h"
-
-//nani the what now
-Demo()
-{
-	unitviewer = TRUE;
-}
 
 
 QueryTransport(Func_Var_1, Func_Var_2)

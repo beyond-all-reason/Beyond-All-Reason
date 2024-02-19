@@ -5,7 +5,7 @@
 
 piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
@@ -151,7 +151,6 @@ Create()
 	hide nano3;
 	hide nano4;
 	hide pad;
-	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
 	start-script Standby();
@@ -191,11 +190,6 @@ QueryNanoPiece(piecenum)
 	{
 		spray=0;
 	}
-}
-
-Demo()
-{
-	unitviewer = TRUE;
 }
 
 Activate()

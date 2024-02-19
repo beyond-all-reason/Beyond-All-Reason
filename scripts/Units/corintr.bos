@@ -5,7 +5,7 @@
 
 piece  base, link ;
 
-static-var  unitviewer, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
+static-var  Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
 
 // Signal definitions
 #define SIG_MOVE			4
@@ -23,7 +23,6 @@ static-var  unitviewer, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
 Create()
 {
 	hide link;
-	unitviewer = FALSE;
 	set ARMORED to 1;
 }
 
@@ -36,11 +35,6 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-}
-
-Demo()
-{
-	unitviewer = TRUE;
 }
 
 SweetSpot(piecenum)
