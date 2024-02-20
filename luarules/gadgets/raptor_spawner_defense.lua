@@ -1318,7 +1318,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- }
 
 			if not squadTargetsByEcoWeight[ecoValue] then
-				squadTargetsByEcoWeight[ecoValue] = NewSetListNoTable()
+				squadTargetsByEcoWeight[ecoValue] = SetListUtilities.NewSetListNoTable()
 			end
 
 			squadTargetsByEcoWeight[ecoValue]:Add(unitID)
