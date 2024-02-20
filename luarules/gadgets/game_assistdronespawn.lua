@@ -1,13 +1,6 @@
-local droneSpawnEnabled = false
-local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
-if Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and PvEEnabled) then
-	droneSpawnEnabled = true
+if not (Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and Spring.Utilities.Gametype.IsPvE())) then
+	return
 end
-local droneCount = Spring.GetModOptions().assistdronescount
-local teamIDDroneList = {}
-
-local UDN = UnitDefNames
-local teamsList = Spring.GetTeamList()
 
 function gadget:GetInfo()
     return {
@@ -17,13 +10,18 @@ function gadget:GetInfo()
       date      = "2021",
 	  license   = "GNU GPL, v2 or later",
       layer     = -100,
-      enabled   = droneSpawnEnabled,
+      enabled   = true,
     }
 end
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
+
+local droneCount = Spring.GetModOptions().assistdronescount
+local teamIDDroneList = {}
+
+local teamsList = Spring.GetTeamList()
 
 function CountItemsInArray(array)
     local count = 0
@@ -34,6 +32,7 @@ function CountItemsInArray(array)
 end
 
 local drones = {}
+--local UDN = UnitDefNames
 if Spring.GetModOptions().assistdronesair == true then
 	--drones = {
 	--	[UDN.armcom.id] = "armassistdrone",

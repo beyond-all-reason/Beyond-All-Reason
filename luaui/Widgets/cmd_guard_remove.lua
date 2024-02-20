@@ -11,13 +11,19 @@ function widget:GetInfo()
 	}
 end
 
+include("keysym.h.lua")
+VFS.Include("LuaRules/Configs/customcmds.h.lua")
+
 local CMD_GUARD = CMD.GUARD
 local CMD_PATROL = CMD.PATROL
+
+local doCommandRemove = false
 
 local removableCommand = {
 	[CMD_GUARD] = true,
 	[CMD_PATROL] = true,
 }
+
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
@@ -25,7 +31,12 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if not doCommandRemove then
+		return false
+	end
+
 	if not cmdOpts.shift then
+		doCommandRemove = false
 		return false
 	end
 
@@ -40,5 +51,12 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 		end
 	end
 
+	doCommandRemove = false
 	return false
+end
+
+function widget:KeyPress(key, modifier, isRepeat)
+	if not isRepeat and (key == KEYSYMS.LSHIFT or key == KEYSYMS.RSHIFT) then
+		doCommandRemove = true
+	end
 end

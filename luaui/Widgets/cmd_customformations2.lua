@@ -51,6 +51,7 @@ local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = 34923
+local CMD_MANUAL_LAUNCH = 32102
 
 local formationCmds = {
     [CMD.MOVE] = true,
@@ -58,7 +59,8 @@ local formationCmds = {
     [CMD.ATTACK] = true,
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
-    [CMD_SETTARGET] = true -- set target
+    [CMD_SETTARGET] = true,
+	[CMD_MANUAL_LAUNCH] = true,
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -72,10 +74,15 @@ local overrideCmds = {
 
 -- What commands can be issued at a position or unit/feature ID (Only used by GetUnitPosition)
 local positionCmds = {
-    [CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
-    [CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.MANUALFIRE]=true,
-    [CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-    [CMD_SETTARGET] = true -- set target
+    [CMD.MOVE]=true,		[CMD.ATTACK]=true,		 [CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
+    [CMD.PATROL]=true,		[CMD.CAPTURE]=true,		 [CMD.FIGHT]=true, 		    [CMD.MANUALFIRE]=true,
+    [CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true, [CMD.LOAD_UNITS]=true,	    [CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
+    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true,
+}
+
+-- What commands need more than one unit selected to be issued as a formation command
+local multiUnitOnlyCmds = {
+	[CMD_MANUAL_LAUNCH]=true
 }
 
 local chobbyInterface
@@ -218,10 +225,11 @@ end
 
 
 local function SetColor(cmdID, alpha)
-    if     cmdID == CMD_MOVE       then glColor(0.5, 1.0, 0.5, alpha) -- Green
-    elseif cmdID == CMD_ATTACK     then glColor(1.0, 0.2, 0.2, alpha) -- Red
-    elseif cmdID == CMD_UNLOADUNIT then glColor(1.0, 1.0, 0.0, alpha) -- Yellow
-    elseif cmdID == CMD_SETTARGET  then glColor(1.0, 0.7, 0.0, alpha) -- Orange
+    if     cmdID == CMD_MOVE       		then glColor(0.5, 1.0, 0.5, alpha) -- Green
+    elseif cmdID == CMD_ATTACK
+		or cmdID == CMD_MANUAL_LAUNCH 	then glColor(1.0, 0.2, 0.2, alpha) -- Red
+    elseif cmdID == CMD_UNLOADUNIT 		then glColor(1.0, 1.0, 0.0, alpha) -- Yellow
+    elseif cmdID == CMD_SETTARGET 		then glColor(1.0, 0.7, 0.0, alpha) -- Orange
     else                                glColor(0.5, 0.5, 1.0, alpha) -- Blue
     end
 end
@@ -433,7 +441,7 @@ function widget:MousePress(mx, my, mButton)
     end
 
     -- Is this command eligible for a custom formation ?
-    if not (formationCmds[usingCmd]) then
+    if not (formationCmds[usingCmd] and (not multiUnitOnlyCmds[usingCmd] or #GetExecutingUnits(usingCmd) > 1)) then
         return false
     end
 

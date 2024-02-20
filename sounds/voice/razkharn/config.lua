@@ -169,6 +169,16 @@ return {
     -- Awareness
 
 
+	['MaxUnitsReached'] = {
+		sound = {
+			[1] = {
+				--file = 'MaxUnitsReached.wav',
+				text = 'tips.notifications.maxUnitsReached',
+			},
+		},
+		length = 3,
+		delay = 90,
+	},
     ['UnitsReceived'] = {
        sound = {
            [1] = {
