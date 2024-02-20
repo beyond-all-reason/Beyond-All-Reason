@@ -1,3 +1,11 @@
+
+if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
+else
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	return false
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Spawner",
@@ -8,13 +16,6 @@ function gadget:GetInfo()
 		layer = 0,
 		enabled = true
 	}
-end
-
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
-	return false
 end
 
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')

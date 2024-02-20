@@ -142,7 +142,7 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
 	uv = worldPos.xz / mapSize.xy;
 	uv = uv - dataIn[0].vMirrorParams.xy; // So negative UVs mean flipping
-	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
