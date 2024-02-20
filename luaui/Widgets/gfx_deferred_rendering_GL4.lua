@@ -1307,9 +1307,9 @@ local function updateProjectileLights(newgameframe)
 					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
 					if lightType ~= 'beam' then 
-						local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
+						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
+							projectileID, px,py,pz, nil, dx,dy,dz)
 						if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
 					end
 					
@@ -1379,9 +1379,12 @@ local function updateProjectileLights(newgameframe)
 			-- SO says we can modify or remove elements while iterating, we just cant add
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then
-				if newgameframe then
-					updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
+			if px then -- this means that this projectile 
+				local lightType = trackedProjectileTypes[projectileID]
+				if newgameframe and lightType ~= 'beam' then
+					local dx,dy,dz = spGetProjectileVelocity(projectileID)
+					updateLightPosition(projectileLightVBOMap[lightType], 
+						projectileID, px,py,pz, nil, dx,dy,dz )
 				end
 			else
 				numremoved = numremoved + 1
