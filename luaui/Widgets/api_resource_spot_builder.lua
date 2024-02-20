@@ -359,7 +359,7 @@ local function PreviewExtractorCommand(params, extractor, spot)
 
 	local buildingId = -extractor
 	local targetPos, targetOwner
-	local occupiedSpot = spotHasExtractor(command)
+	local occupiedSpot = spotHasExtractor(spot)
 	if occupiedSpot then
 
 		local occupiedPos = { spGetUnitPosition(occupiedSpot) }
