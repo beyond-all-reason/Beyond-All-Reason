@@ -12,7 +12,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.IsDevMode() then
+if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -62,6 +62,10 @@ local RECEIVE_MODES = {
 }
 
 function gadget:RecvLuaMsg(msg, playerID)
+	-- check cheating here because cheats might not be enabled when the game starts
+	if not Spring.IsCheatingEnabled() then
+		return
+	end
 	for prefix, fn in pairs(RECEIVE_MODES) do
 		if msg:sub(1, #prefix) == prefix then
 			fn(msg:sub(#prefix + 1))
