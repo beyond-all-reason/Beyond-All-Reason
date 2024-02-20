@@ -66,7 +66,7 @@ function MexUpBST:Priority()
 	if self.upType  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.expand[self.name]  , self.id) then
 		return 99
 	elseif
-	self.upType  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.eco[self.name]  , self.id) and self.ai.tool:countMyUnit({self.ai.armyhst._mex_}) < 3 and self.ai.Metal.full < 0.3 then
+	self.upType  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.eco[self.name]  , self.id) and self.ai.tool:countMyUnit({self.ai.armyhst._mex_}) < 3 and self.ai.ecohst.Metal.full < 0.3 then
 		return 150
 	else
 		return 0

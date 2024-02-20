@@ -11,6 +11,9 @@ end
 function LabsHST:Init()
 	self.DebugEnabled = false
 	self.labs = {}
+	self.ECONOMY = 0
+	self.lastLabEcoM = 0
+	self.lastLabEcoE = 0
 	self:factoriesRating()
 end
 
@@ -125,15 +128,26 @@ function LabsHST:EconomyToBuildFactories()
 	for id,factory in pairs(self.labs) do
 		factoryCount = factoryCount + 1
 	end
-	local factoryCountPow = factoryCount * factoryCount
-	if self.ai.overviewhst.ECONOMY >= factoryCount * 4 or self.ai.Energy.income > factoryCountPow * 800 then
-		return true
-	end
+-- 	local factoryCountPow = factoryCount * factoryCount
+-- 	if self.ECONOMY or 0 >= factoryCount * 4 or self.ai.ecohst.Energy.income > factoryCountPow * 800 then
+-- 		return true
+-- 	end
+	if factoryCount == 0 then return true end
+	if self.ai.ecohst.Energy.income > self.lastLabEcoE + (600*factoryCount) then return true end
 	self:EchoDebug('not economy to build factory')
 end
 
 function LabsHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	self:LabsLevels()
+	local M = self.ai.ecohst.Metal
+	local E = self.ai.ecohst.Energy
+	self.X100M = self.ai.tool:countMyUnit({'extractsMetal'}) / #self.ai.maphst.METALS
+	self.ECONOMY = math.floor(math.min(M.income / 10,E.income / 100))
+	self.needT2 = ((M.income > 20 or self.X100M > 0.2) and E.income > 800 and self.T1LAB)
+	self.needT3 = ((M.income > 50 or self.X100M > 0.4) and E.income > 4000 and self.T2LAB)
+	self:EchoDebug('ECO',self.ECONOMY , ' M',math.floor(M.income / 10), 'E',math.floor(E.income / 100),'X100M',self.X100M,'lab',self.T1LAB,self.T2LAB,M.income > 20,E.income > 800)
+
 	self.ai.buildingshst:VisualDBG()--here cause buildingshst have no update
 end
 
@@ -168,6 +182,22 @@ function LabsHST:GetLabListParam(param,value)
 	end
 end
 
+function LabsHST:LabsLevels()
+	self.maxFactoryLevel = 0
+	for id,lab in pairs(self.labs) do
+		if lab.level > self.maxFactoryLevel then
+			self.maxFactoryLevel = lab.level
+		end
+		if lab.level == 1 then
+			self.T1LAB = true
+		elseif lab.level == 3 then
+			self.T2LAB = true
+		elseif lab.level == 5 then
+			self.T3LAB = true
+		end
+	end
+end
+
 function LabsHST:PrePositionFilter()
 	self:EchoDebug('pre positional filtering...')
 	local factoriesPreCleaned = {}
@@ -186,7 +216,7 @@ function LabsHST:PrePositionFilter()
 		end
 		if buildMe and mtype == 'bot' and level == 1 then--dont start bot if veh is up and we d not have t3
 			for id,lab in pairs(self.labs) do
-				if lab.mtype == 'veh' and not self.ai.overviewhst.T3LAB then
+				if lab.mtype == 'veh' and not self.T3LAB then
 					buildMe = false
 					self:EchoDebug(' already have a ',lab.name,'but no t3 then',factoryName, 'is early')
 					break
@@ -195,7 +225,7 @@ function LabsHST:PrePositionFilter()
 		end
 		if buildMe and mtype == 'veh' and level == 1 then--dont start veh if bot is up and we d not have t3
 			for id,lab in pairs(self.labs) do
-				if lab.mtype == 'bot' and not self.ai.overviewhst.T3LAB then
+				if lab.mtype == 'bot' and not self.T3LAB then
 					buildMe = false
 					self:EchoDebug(' already have a ',lab.name,'but no t3 then',factoryName, 'is early')
 					break
@@ -203,23 +233,24 @@ function LabsHST:PrePositionFilter()
 			end
 		end
 
- 		if buildMe and mtype == 'air' and not self.ai.overviewhst.T2LAB  then
+ 		if buildMe and mtype == 'air' and not self.T2LAB  then
  			self:EchoDebug(factoryName ..' dont build air before advanced ')
  			buildMe = false
  		end
-		if self.ai.overviewhst.needT2 and not self.ai.overviewhst.T2LAB and not T2 then
+		if self.needT2 and not self.T2LAB and not T2 then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
 		end
-		if buildMe and self.ai.overviewhst.needT3 and not self.ai.overviewhst.T3LAB and not T3 then
+		if buildMe and self.needT3 and not self.T3LAB and not T3 then
 			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false
 		end
-		if buildMe and not self.ai.overviewhst.needT2  and T2 then
-			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
+		if buildMe and not self.needT2  and T2 then
+
+			self:EchoDebug(factoryName .. ' Advanced when i dont need it',buildMe,self.needT2,T2)
 			buildMe = false
 		end
-		if buildMe and not self.ai.overviewhst.needT3  and T3 then
+		if buildMe and not self.needT3  and T3 then
 			self:EchoDebug(factoryName .. ' Experimental when i dont need it')
 			buildMe = false
 		end
@@ -245,12 +276,12 @@ function LabsHST:FactoryPosition(factoryName,builder)
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near nano')
 		return p
 	end
-	p = site:searchPosNearCategories(utype, builder,50,780,{'_nano_'})
+	p = site:searchPosNearCategories(utype, builder,50,390,{'_nano_'})
 	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near _nano_ ')
 		return p
 	end
-	p = site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'})
+	p = site:searchPosNearCategories(utype, builder,250,780,{'factoryMobilities'})
 	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near factory')
 		return p
