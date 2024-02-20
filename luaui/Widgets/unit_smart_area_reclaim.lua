@@ -24,16 +24,14 @@ function widget:GetInfo()
 end
 
 local maxOrdersCheck = 100 -- max amount of orders to check for duplicate orders on units
-local maxReclaimOrders = 100 -- max amount of orders to issue at once
+local maxReclaimOrders = 1000 -- max amount of orders to issue at once
 
 local maxUnits = Game.maxUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitPosition = Spring.GetUnitPosition
-local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local GetFeaturePosition = Spring.GetFeaturePosition
-local GetFeatureRadius = Spring.GetFeatureRadius
 local GetFeatureResources = Spring.GetFeatureResources
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 
@@ -93,6 +91,7 @@ end
 
 
 local function tsp(rList, tList, dx, dz)
+	Spring.Echo("processing " .. #rList .. " reclaim commands")
 	dx = dx or 0
 	dz = dz or 0
 	tList = tList or {}
@@ -324,10 +323,6 @@ function widget:CommandNotify(id, params, options)
 						if not options.shift or checkNoDuplicateOrder(uid, fid) then
 							mListCount = mListCount + 1
 							mList[mListCount] = item
-							-- early exit if count exceeds limit
-							if mListCount > maxReclaimOrders then
-								break
-							end
 						end
 					elseif stationaries[uid] ~= nil then
 						if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
@@ -335,6 +330,10 @@ function widget:CommandNotify(id, params, options)
 							sList[sListCount] = item
 						end
 					end
+				end
+				if mListCount > maxReclaimOrders then
+					Spring.Echo("Command count exceeded, feature selection may be incomplete")
+					break
 				end
 			end
 		end
