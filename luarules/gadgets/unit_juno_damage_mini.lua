@@ -121,9 +121,19 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- kill appropriate things from initial juno blast --
 
-	local junoWeapons = {
-		[WeaponDefNames.legcib_juno_pulse_mini'] = true,
+	local junoWeaponsNames = {
+		['legcib_juno_pulse_mini'] = true,
 	}
+	-- convert unitname -> unitDefID
+	local junoWeapons = {}
+	for name, params in pairs(junoWeaponsNames) do
+		if not WeaponDefNames[name] then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find weapondef name: '..name)
+		else
+			junoWeapons[WeaponDefNames[name].id] = params
+		end
+	end
+	junoWeaponsNames = nil
 
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
