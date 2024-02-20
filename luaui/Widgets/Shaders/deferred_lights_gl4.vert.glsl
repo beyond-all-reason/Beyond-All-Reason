@@ -9,8 +9,8 @@
 layout (location = 0) in vec4 position; // xyz and etc garbage
 //layout locations 1 and 2 contain primitive specific garbage and should not be used
 
-layout (location = 3) in vec4 worldposrad; 
-layout (location = 4) in vec4 worldposrad2; 
+layout (location = 3) in vec4 worldposrad;  // Centerpos
+layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
 layout (location = 5) in vec4 lightcolor; 
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // 
 layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
@@ -178,11 +178,11 @@ void main()
 		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
 		
 		
-		float colortime = worldposrad2.a; // Matches colortime in lightConf for point lights
+		float colortime = color2.a; // Matches colortime in lightConf for point lights
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
-				v_lightcolor.rgb = mix( worldposrad2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
 			if (colortime >0.0){
@@ -194,7 +194,14 @@ void main()
 				else {
 					colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
 				}
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colormod); 
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, color2.rgb, colormod); 
+			}
+			if (worldposrad2.w < 1.0) {
+				lightCenterPosition += timeInfo.w * worldposrad2.xyz;
+			}else{
+				// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
+				vec3 lightWorldMovement = sin(time * 0.017453292 * worldposrad2.xyz) * worldposrad2.w;
+				lightCenterPosition += lightWorldMovement;
 			}
 		}
 		
@@ -271,6 +278,12 @@ void main()
 				newfw, 
 				newright 
 			);
+			
+		// if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
+		if (attachedtounitID < 0.5){
+			lightCenterPosition += worldposrad2.xyz * timeInfo.w;
+		}
+		
 		// rotate the cone, and place it into local space
 		worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;
 
