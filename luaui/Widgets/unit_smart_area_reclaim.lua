@@ -73,20 +73,24 @@ local function maybeRemoveSelf()
     end
 end
 
+
 function widget:GameStart()
     gameStarted = true
     maybeRemoveSelf()
 end
 
+
 function widget:PlayerChanged()
     maybeRemoveSelf()
 end
+
 
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end
+
 
 local function tsp(rList, tList, dx, dz)
 	dx = dx or 0
@@ -118,6 +122,7 @@ local function tsp(rList, tList, dx, dz)
 	rList[closestIndex] = 0
 	return tsp(rList, tList, closestItem[1], closestItem[2])
 end
+
 
 local function stationary(rList)
 	local sList = {}
@@ -278,7 +283,7 @@ function widget:CommandNotify(id, params, options)
 				if featM > 0 then
 					rmtw[#rmtw + 1] = featureID
 				elseif featE > 0 then
-					retw[retw + 1] = featureID
+					retw[#retw + 1] = featureID
 				end
 			elseif featY > 0 then
 				if featM > 0 then
