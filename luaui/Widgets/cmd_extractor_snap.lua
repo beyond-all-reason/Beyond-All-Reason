@@ -260,6 +260,9 @@ function widget:MousePress(x, y, button)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			if(not shift and WG["gridmenu"] and WG["gridmenu"].clearCategory) then
+				WG["gridmenu"].clearCategory()
+			end
 			return true
 		end
 		if selectedGeo then
