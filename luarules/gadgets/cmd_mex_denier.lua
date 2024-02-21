@@ -11,6 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_INSERT = CMD.INSERT
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -36,19 +37,24 @@ end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
-	if #cmdParams > 4 then
+	if cmdID == CMD_INSERT then
 		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
 	end
+
 	if not isMex[-cmdID] then
 		return true
 	end
 
 	local bx, bz = cmdParams[1], cmdParams[3]
+	if cmdID == CMD_INSERT then
+		bx, bx = cmdParams[4], cmdParams[6] -- this is where the cmd position is placed in prepended commands with commandinsert
+	end
 	-- We find the closest metal spot to the assigned command position
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
+		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Extractors cannot be placed off of metal spots")
 		return false
 	end
 
