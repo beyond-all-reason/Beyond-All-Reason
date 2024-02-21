@@ -247,12 +247,12 @@ local function CreatePanelDisplayList()
 	local currentTime = GetGameSeconds()
 	local stage = RaptorStage(currentTime)
 
-	if stageGrace == stage then
+	if stage == stageGrace then
 		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
 		DrawPlayerAggros(stage)
-	elseif stageMain == stage then
+	elseif stage == stageMain  then
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
 		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59), "")
 
@@ -267,7 +267,7 @@ local function CreatePanelDisplayList()
 			currentlyResistantToNames = {}
 			currentlyResistantTo = {}
 		end
-	elseif stageQueen == stage then
+	elseif stage == stageQueen then
 		font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize, "")
 		local healthText = tostring(gameInfo.raptorQueenHealth)
 		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
