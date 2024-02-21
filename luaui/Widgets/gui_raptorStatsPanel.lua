@@ -211,7 +211,7 @@ local function WaveRow(n)
 end
 
 local function CutStringAtPixelWidth(text, width)
-	while font:GetTextWidth(text) * panelFontSize > width and text:len() >= 0 do
+	while font:GetTextWidth(text) * panelFontSize > width and text:len() > 0 do
 		text = text:sub(1, -2)
 	end
 	return text
