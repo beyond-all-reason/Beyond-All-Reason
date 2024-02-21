@@ -13,17 +13,10 @@ end
 local useWaveMsg        = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
 
 local DiffTimers        = Spring.DiffTimers
-local GetAIInfo         = Spring.GetAIInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
 local GetGameSeconds    = Spring.GetGameSeconds
-
-local GetMyTeamID       = Spring.GetMyTeamID
-local GetPlayerInfo     = Spring.GetPlayerInfo
-local GetPlayerList     = Spring.GetPlayerList
-local GetTeamList       = Spring.GetTeamList
 local GetTimer          = Spring.GetTimer
 local I18N              = Spring.I18N
-local UnitDefs          = UnitDefs
 
 local RaptorCommon = VFS.Include('LuaRules/gadgets/raptors/common.lua')
 
@@ -106,8 +99,8 @@ local function updatePos(x, y)
 end
 
 local function EcoAggroPlayerAggregation()
-	local myTeamId      = GetMyTeamID()
-	local teamList      = GetTeamList()
+	local myTeamId      = Spring.GetMyTeamID()
+	local teamList      = Spring.GetTeamList()
 	local playerAggros  = {}
 	local sum           = 0
 	local nPlayerAggros = 0
@@ -115,11 +108,11 @@ local function EcoAggroPlayerAggregation()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		local playerName
-		local playerList = GetPlayerList(teamID)
+		local playerList = Spring.GetPlayerList(teamID)
 		if playerList[1] then
-			playerName = GetPlayerInfo(playerList[1])
+			playerName = Spring.GetPlayerInfo(playerList[1])
 		else
-			_, playerName = GetAIInfo(teamID)
+			_, playerName = Spring.GetAIInfo(teamID)
 		end
 
 		local aggroEcoValue = ecoAggrosByPlayerRaw[teamID] or 0
