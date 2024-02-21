@@ -163,8 +163,11 @@ local scoreCount                = 0
 local resistancesTable          = {}
 local currentlyResistantTo      = {}
 local currentlyResistantToNames = {}
-
-local playersAggroEcos          = {}
+local ecoAggrosByPlayerRaw      = {}
+local ecoAggrosByPlayerRender   = {}
+local stageGrace                = 0
+local stageMain                 = 1
+local stageQueen                = 2
 
 local guiPanel --// a displayList
 local updatePanel
@@ -193,7 +196,7 @@ local function updatePos(x, y)
 
 	updatePanel = true
 end
-local function PlayerAggroAggregation()
+local function EcoAggroPlayerAggregation()
 	local myTeamId      = GetMyTeamID()
 	local teamList      = GetTeamList()
 	local playerAggros  = {}
@@ -210,7 +213,7 @@ local function PlayerAggroAggregation()
 			_, playerName = GetAIInfo(teamID)
 		end
 
-		local aggroEcoValue = playersAggroEcos[teamID] or 0
+		local aggroEcoValue = ecoAggrosByPlayerRaw[teamID] or 0
 		if playerName and not playerName:find("Raptors") then
 			sum = sum + aggroEcoValue
 			nPlayerAggros = nPlayerAggros + 1
@@ -226,13 +229,36 @@ local function PlayerAggroAggregation()
 	return playerAggros, sum
 end
 
+local function RaptorStage(currentTime)
+	local stage = stageGrace
+	if (currentTime and currentTime or GetGameSeconds()) > gameInfo.raptorGracePeriod then
+		if gameInfo.raptorQueenAnger < 100 then
+			stage = stageMain
+		else
+			stage = stageQueen
+		end
+	end
+	return stage
+end
+
 local function SortValueDesc(a, b)
 	return a.value > b.value
 end
 
-local function PlayerAggroLimitFormat(maxRows)
-	maxRows                 = (maxRows or 3) - 1
-	local playerAggros, sum = PlayerAggroAggregation()
+local function Interpolate(value, inMin, inMax, outMin, outMax)
+	-- Ensure the value is within the specified range
+	value = (value < inMin) and inMin or ((value > inMax) and inMax or value)
+
+	-- Calculate the interpolation
+	local t = (value - inMin) / (inMax - inMin)
+	local result = outMin + t * (outMax - outMin)
+
+	return result
+end
+
+local function EcoAggrosByPlayerRender()
+	local maxRows           = RaptorStage() == stageMain and 3 or 4
+	local playerAggros, sum = EcoAggroPlayerAggregation()
 
 	if sum == 0 then
 		return {}
@@ -241,9 +267,9 @@ local function PlayerAggroLimitFormat(maxRows)
 	table.sort(playerAggros, SortValueDesc)
 
 	-- add string formatting, forced current player result and limit results
-	local playerAggrosLimited = {}
+	local playerAggrosLimited  = {}
 	local nPlayerAggrosLimited = 0
-	local nPlayerAggros = #playerAggros
+	local nPlayerAggros        = #playerAggros
 	local playerAggro
 	for i = 1, nPlayerAggros do
 		playerAggro = playerAggros[i]
@@ -257,10 +283,20 @@ local function PlayerAggroLimitFormat(maxRows)
 			if playerAggro.me and i > nPlayerAggrosLimited + 1 then
 				playerAggro.forced = true
 			end
-			playerAggro.aggroMultiple                 = nPlayerAggros * playerAggro.value / sum
-			playerAggro.aggroFraction                 = playerAggro.value * 100 / sum
-			playerAggro.aggroMultipleString           = string.format("%.1fX", playerAggro.aggroMultiple)
-			playerAggro.aggroFractionString           = string.format(" (%.0f%%)", playerAggro.aggroFraction)
+			playerAggro.aggroMultiple       = nPlayerAggros * playerAggro.value / sum
+			playerAggro.aggroFraction       = playerAggro.value * 100 / sum
+			playerAggro.aggroMultipleString = string.format("%.1fX", playerAggro.aggroMultiple)
+			playerAggro.aggroFractionString = string.format(" (%.0f%%)", playerAggro.aggroFraction)
+			local greenBlue                 = 1
+			local alpha                     = 1
+			if playerAggro.aggroMultiple > 1.7 then
+				greenBlue = Interpolate(playerAggro.aggroMultiple, 1.7, 6, 0.5, 0.3)
+			elseif playerAggro.aggroMultiple > 1.2 then
+				greenBlue = Interpolate(playerAggro.aggroMultiple, 1.2, 1.7, 0.8, 0.5)
+			elseif playerAggro.aggroMultiple < 0.8 then
+				alpha = Interpolate(playerAggro.aggroMultiple, 0, 0.7, 1, 0.8)
+			end
+			playerAggro.color                         = { red = 1, green = greenBlue, blue = greenBlue, alpha = playerAggro.forced and 0.6 or alpha }
 			nPlayerAggrosLimited                      = nPlayerAggrosLimited + 1
 			playerAggrosLimited[nPlayerAggrosLimited] = playerAggro
 		end
@@ -277,17 +313,6 @@ local function WaveRow(n)
 	return n * (waveFontSize + waveSpacingY)
 end
 
-local function Interpolate(value, inMin, inMax, outMin, outMax)
-	-- Ensure the value is within the specified range
-	value = (value < inMin) and inMin or ((value > inMax) and inMax or value)
-
-	-- Calculate the interpolation
-	local t = (value - inMin) / (inMax - inMin)
-	local result = outMin + t * (outMax - outMin)
-
-	return result
-end
-
 local function CutStringAtPixelWidth(text, width)
 	while font:GetTextWidth(text) * panelFontSize > width and text:len() >= 0 do
 		text = text:sub(1, -2)
@@ -295,37 +320,23 @@ local function CutStringAtPixelWidth(text, width)
 	return text
 end
 
-local function DrawPlayerAggros(row)
+local function DrawPlayerAggros(stage)
+	local row = stageMain == stage and 3 or 2
 	font:Print(I18N("ui.raptors.playerAggroLabel"):gsub("ui.raptors.playerAggroLabel", 'Player Aggros:'), panelMarginX, PanelRow(row), panelFontSize, "")
-	local playersEcoInfo = PlayerAggroLimitFormat(7 - row)
+	for i = 1, #ecoAggrosByPlayerRender do
+		local ecoAggro = ecoAggrosByPlayerRender[i]
+		font:SetTextColor(ecoAggro.color.red, ecoAggro.color.green, ecoAggro.color.blue, ecoAggro.color.alpha)
 
-	for i = 1, #playersEcoInfo do
-		local playerEcoInfo = playersEcoInfo[i]
-		if playerEcoInfo.name then
-			local gb = 1
-			local alpha = 1
-			if playerEcoInfo.aggroMultiple > 1.7 then
-				gb = Interpolate(playerEcoInfo.aggroMultiple, 1.7, 6, 0.5, 0.3)
-			elseif playerEcoInfo.aggroMultiple > 1.2 then
-				gb = Interpolate(playerEcoInfo.aggroMultiple, 1.2, 1.7, 0.8, 0.5)
-			elseif playerEcoInfo.aggroMultiple < 0.8 then
-				alpha = Interpolate(playerEcoInfo.aggroMultiple, 0, 0.7, 1, 0.8)
-			end
-			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
-
-			local namePosX = i == 7 - row and 80 or panelMarginX + 11
-			local aggroFractionStringWidth = math.floor(0.5 + font:GetTextWidth(playerEcoInfo.aggroFractionString) * panelFontSize)
-			local valuesRightX = panelMarginX + 220
-			local valuesLeftX = panelMarginX + 145
-			local rowY = PanelRow(row + i)
-			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
-			font:Print(CutStringAtPixelWidth(playerEcoInfo.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize, "")
-			font:Print(playerEcoInfo.aggroMultipleString, valuesLeftX, rowY, panelFontSize, "")
-			font:Print(playerEcoInfo.aggroFractionString, valuesRightX - aggroFractionStringWidth, rowY, panelFontSize, "")
-		end
+		local namePosX = i == 7 - row and 80 or panelMarginX + 11
+		local aggroFractionStringWidth = math.floor(0.5 + font:GetTextWidth(ecoAggro.aggroFractionString) * panelFontSize)
+		local valuesRightX = panelMarginX + 220
+		local valuesLeftX = panelMarginX + 145
+		local rowY = PanelRow(row + i)
+		font:Print(CutStringAtPixelWidth(ecoAggro.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize, "")
+		font:Print(ecoAggro.aggroMultipleString, valuesLeftX, rowY, panelFontSize, "")
+		font:Print(ecoAggro.aggroFractionString, valuesRightX - aggroFractionStringWidth, rowY, panelFontSize, "")
 	end
 	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
 end
 
 local function CreatePanelDisplayList()
@@ -337,41 +348,41 @@ local function CreatePanelDisplayList()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 	local currentTime = GetGameSeconds()
-	if currentTime > gameInfo.raptorGracePeriod then
-		if gameInfo.raptorQueenAnger < 100 then
-			local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
-			font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59), "")
+	local stage = RaptorStage(currentTime)
 
-			font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize, "")
-			local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
-			local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
-			font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub(':.*', '')) * panelFontSize, PanelRow(2), panelFontSize, "")
-
-			DrawPlayerAggros(3)
-
-			if #currentlyResistantToNames > 0 then
-				currentlyResistantToNames = {}
-				currentlyResistantTo = {}
-			end
-		else
-			font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize, "")
-			local healthText = tostring(gameInfo.raptorQueenHealth)
-			font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
-
-			DrawPlayerAggros(2)
-
-			for i = 1, #currentlyResistantToNames do
-				if i == 1 then
-					font:Print(I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
-				end
-				font:Print(currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize, "")
-			end
-		end
-	else
+	if stageGrace == stage then
 		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
-		DrawPlayerAggros(2)
+		DrawPlayerAggros(stage)
+	elseif stageMain == stage then
+		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
+		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59), "")
+
+		font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize, "")
+		local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
+		local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
+		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub(':.*', '')) * panelFontSize, PanelRow(2), panelFontSize, "")
+
+		DrawPlayerAggros(stage)
+
+		if #currentlyResistantToNames > 0 then
+			currentlyResistantToNames = {}
+			currentlyResistantTo = {}
+		end
+	elseif stageQueen == stage then
+		font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize, "")
+		local healthText = tostring(gameInfo.raptorQueenHealth)
+		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
+
+		DrawPlayerAggros(stage)
+
+		for i = 1, #currentlyResistantToNames do
+			if i == 1 then
+				font:Print(I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
+			end
+			font:Print(currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize, "")
+		end
 	end
 
 	local endless = ""
@@ -533,6 +544,9 @@ function widget:GameFrame(n)
 			enabled = true
 		end
 	end
+	if n % 5 == 0 then
+		ecoAggrosByPlayerRender = EcoAggrosByPlayerRender()
+	end
 	if gotScore then
 		local sDif = gotScore - scoreCount
 		if sDif > 0 then
@@ -599,7 +613,7 @@ local function RegisterUnit(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 
 	if RaptorCommon.IsValidEcoUnitDef(unitDef, unitTeam) then
-		playersAggroEcos[unitTeam] = (playersAggroEcos[unitTeam] or 0) + RaptorCommon.EcoValueDef(unitDef)
+		ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + RaptorCommon.EcoValueDef(unitDef)
 	end
 end
 
@@ -607,7 +621,7 @@ local function DeregisterUnit(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 
 	if RaptorCommon.IsValidEcoUnitDef(unitDef, unitTeam) then
-		playersAggroEcos[unitTeam] = (playersAggroEcos[unitTeam] or 0) - RaptorCommon.EcoValueDef(unitDef)
+		ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) - RaptorCommon.EcoValueDef(unitDef)
 	end
 end
 
