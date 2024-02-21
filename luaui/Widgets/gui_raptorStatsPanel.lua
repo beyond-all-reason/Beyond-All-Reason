@@ -148,7 +148,7 @@ local function Interpolate(value, inMin, inMax, outMin, outMax)
 end
 
 local function UpdateEcoAggrosByPlayerRender()
-	local maxRows           = RaptorStage() == stageMain and 3 or 4
+	local maxRows           = (RaptorStage() == stageMain and 3 or 4) + (Spring.GetMyTeamID() == 0 and 1 or 0)
 	local playerAggros, sum = EcoAggroPlayerAggregation()
 
 	if sum == 0 then
@@ -185,7 +185,7 @@ local function UpdateEcoAggrosByPlayerRender()
 			elseif playerAggro.aggroMultiple > 1.2 then
 				greenBlue = Interpolate(playerAggro.aggroMultiple, 1.2, 1.7, 0.8, 0.5)
 			elseif playerAggro.aggroMultiple < 0.8 then
-				alpha = Interpolate(playerAggro.aggroMultiple, 0, 0.7, 1, 0.8)
+				alpha = 0.8
 			end
 			playerAggro.color = { red = 1, green = greenBlue, blue = greenBlue, alpha = playerAggro.forced and 0.6 or alpha }
 			nEcoAggrosByPlayerRender = nEcoAggrosByPlayerRender + 1
@@ -253,14 +253,14 @@ local function CreatePanelDisplayList()
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
 		DrawPlayerAggros(stage)
-	elseif stage == stageMain  then
+	elseif stage == stageMain then
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
 		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59), "")
 
 		font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize, "")
 		local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
 		local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
-		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub(':.*', '')) * panelFontSize, PanelRow(2), panelFontSize, "")
+		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub('(.*):.*$', '%1')) * panelFontSize, PanelRow(2), panelFontSize, "")
 
 		DrawPlayerAggros(stage)
 
