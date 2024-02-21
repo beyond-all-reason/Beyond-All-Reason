@@ -252,9 +252,7 @@ local function Interpolate(value, inMin, inMax, outMin, outMax)
 
 	-- Calculate the interpolation
 	local t = (value - inMin) / (inMax - inMin)
-	local result = outMin + t * (outMax - outMin)
-
-	return result
+	return outMin + t * (outMax - outMin)
 end
 
 local function UpdateEcoAggrosByPlayerRender()
