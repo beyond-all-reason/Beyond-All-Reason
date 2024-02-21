@@ -148,7 +148,7 @@ local function Interpolate(value, inMin, inMax, outMin, outMax)
 end
 
 local function UpdateEcoAggrosByPlayerRender()
-	local maxRows           = (RaptorStage() == stageMain and 3 or 4) + (Spring.GetMyTeamID() == 0 and 1 or 0)
+	local maxRows           = (RaptorStage() == stageMain and 3 or 4) + (Spring.GetMyTeamID() == raptorTeamID and 1 or 0)
 	local playerAggros, sum = EcoAggroPlayerAggregation()
 
 	if sum == 0 then
@@ -220,7 +220,7 @@ end
 
 local function DrawPlayerAggros(stage)
 	local row = stageMain == stage and 3 or 2
-	font:Print(I18N("ui.raptors.playerAggroLabel"):gsub("ui.raptors.playerAggroLabel", 'Player Aggros:'), panelMarginX, PanelRow(row), panelFontSize, "")
+	font:Print(I18N("ui.raptors.playerAggroLabel"):gsub("ui.raptors.playerAggroLabel", 'Player Aggros:'), panelMarginX, PanelRow(row), panelFontSize)
 	for i = 1, #ecoAggrosByPlayerRender do
 		local ecoAggro = ecoAggrosByPlayerRender[i]
 		font:SetTextColor(ecoAggro.color.red, ecoAggro.color.green, ecoAggro.color.blue, ecoAggro.color.alpha)
@@ -230,9 +230,9 @@ local function DrawPlayerAggros(stage)
 		local valuesRightX = panelMarginX + 220
 		local valuesLeftX = panelMarginX + 145
 		local rowY = PanelRow(row + i)
-		font:Print(CutStringAtPixelWidth(ecoAggro.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize, "")
-		font:Print(ecoAggro.aggroMultipleString, valuesLeftX, rowY, panelFontSize, "")
-		font:Print(ecoAggro.aggroFractionString, valuesRightX - aggroFractionStringWidth, rowY, panelFontSize, "")
+		font:Print(CutStringAtPixelWidth(ecoAggro.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize)
+		font:Print(ecoAggro.aggroMultipleString, valuesLeftX, rowY, panelFontSize)
+		font:Print(ecoAggro.aggroFractionString, valuesRightX - aggroFractionStringWidth, rowY, panelFontSize)
 	end
 	font:SetTextColor(1, 1, 1, 1)
 end
@@ -249,18 +249,18 @@ local function CreatePanelDisplayList()
 	local stage = RaptorStage(currentTime)
 
 	if stage == stageGrace then
-		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize)
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
-		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
+		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize)
 		DrawPlayerAggros(stage)
 	elseif stage == stageMain then
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
-		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59), "")
+		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59))
 
-		font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize, "")
+		font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize)
 		local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
 		local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
-		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub('(.*):.*$', '%1')) * panelFontSize, PanelRow(2), panelFontSize, "")
+		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub('(.*):.*$', '%1')) * panelFontSize, PanelRow(2), panelFontSize)
 
 		DrawPlayerAggros(stage)
 
@@ -269,17 +269,17 @@ local function CreatePanelDisplayList()
 			currentlyResistantTo = {}
 		end
 	elseif stage == stageQueen then
-		font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize)
 		local healthText = tostring(gameInfo.raptorQueenHealth)
-		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
+		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize)
 
 		DrawPlayerAggros(stage)
 
 		for i = 1, #currentlyResistantToNames do
 			if i == 1 then
-				font:Print(I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
+				font:Print(I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize)
 			end
-			font:Print(currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize, "")
+			font:Print(currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize)
 		end
 	end
 
@@ -288,7 +288,7 @@ local function CreatePanelDisplayList()
 		endless = ' (' .. I18N('ui.raptors.difficulty.endless') .. ')'
 	end
 	local difficultyCaption = I18N('ui.raptors.difficulty.' .. modOptions.raptor_difficulty)
-	font:Print(I18N('ui.raptors.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize, "")
+	font:Print(I18N('ui.raptors.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize)
 	font:End()
 
 	gl.Texture(false)
