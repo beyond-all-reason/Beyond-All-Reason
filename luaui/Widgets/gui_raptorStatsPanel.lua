@@ -158,6 +158,7 @@ local function UpdateEcoAggrosByPlayerRender()
 	table.sort(playerAggros, SortValueDesc)
 
 	-- add string formatting, forced current player result and limit results
+	ecoAggrosByPlayerRender        = {}
 	local nEcoAggrosByPlayerRender = 0
 	local nPlayerAggros            = #playerAggros
 	local playerAggro
