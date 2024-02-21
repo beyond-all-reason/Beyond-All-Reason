@@ -1,12 +1,11 @@
-local Set                   = VFS.Include('common/SetList.lua').NewSetListMin
-
-local WALLS = Set()
-WALLS:Add("armdrag")
-WALLS:Add("armfort")
-WALLS:Add("cordrag")
-WALLS:Add("corfort")
-WALLS:Add("scavdrag")
-WALLS:Add("scavfort")
+local WALLS = {
+	armdrag  = true,
+	armfort  = true,
+	cordrag  = true,
+	corfort  = true,
+	scavdrag = true,
+	scavfort = true,
+}
 
 local raptorTeamID
 local teams = Spring.GetTeamList()
@@ -20,14 +19,9 @@ if not raptorTeamID then
 	raptorTeamID = Spring.GetGaiaTeamID()
 end
 
-
-local function IsWall(unitDef)
-    return WALLS.hash[unitDef.name] ~= nil
-end
-
 local function IsValidEcoUnitDef(unitDef, teamID)
 	-- skip Raptor AI, moving units and player built walls
-	if (teamID and teamID == raptorTeamID) or unitDef.canMove or IsWall(unitDef) then
+	if (teamID and teamID == raptorTeamID) or unitDef.canMove or WALLS[unitDef.name] then
 		return false
 	end
 	return true
@@ -89,7 +83,6 @@ local function EcoValueDef(unitDef)
 end
 
 return {
-	IsWall            = IsWall,
 	IsValidEcoUnitDef = IsValidEcoUnitDef,
 	EcoValueDef       = EcoValueDef,
 }

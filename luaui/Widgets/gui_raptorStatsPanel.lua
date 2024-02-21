@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 local useWaveMsg        = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
-local Set               = VFS.Include('common/SetList.lua').NewSetListMin
 
 local DiffTimers        = Spring.DiffTimers
 local GetAIInfo         = Spring.GetAIInfo
@@ -27,15 +26,16 @@ local I18N              = Spring.I18N
 local UnitDefs          = UnitDefs
 
 -- to be deleted pending PR #2572
-local WALLS             = Set()
-WALLS:Add("armdrag")
-WALLS:Add("armfort")
-WALLS:Add("cordrag")
-WALLS:Add("corfort")
-WALLS:Add("scavdrag")
-WALLS:Add("scavfort")
+local WALLS             = {
+	armdrag  = true,
+	armfort  = true,
+	cordrag  = true,
+	corfort  = true,
+	scavdrag = true,
+	scavfort = true,
+}
 local raptorTeamID
-local teams = GetTeamList()
+local teams             = GetTeamList()
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
@@ -48,7 +48,7 @@ end
 
 local function IsValidEcoUnitDef(unitDef, teamID)
 	-- skip Raptor AI, moving units and player built walls
-	if teamID == raptorTeamID or unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
+	if teamID == raptorTeamID or unitDef.canMove or WALLS[unitDef.name] then
 		return false
 	end
 	return true
@@ -544,7 +544,7 @@ function widget:GameFrame(n)
 			enabled = true
 		end
 	end
-	if n % 5 == 0 then
+	if n % 10 == 0 then
 		ecoAggrosByPlayerRender = EcoAggrosByPlayerRender()
 	end
 	if gotScore then
@@ -610,19 +610,12 @@ function widget:LanguageChanged()
 end
 
 local function RegisterUnit(unitID, unitDefID, unitTeam)
-	local unitDef = UnitDefs[unitDefID]
-
-	if RaptorCommon.IsValidEcoUnitDef(unitDef, unitTeam) then
-		ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + RaptorCommon.EcoValueDef(unitDef)
-	end
+	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + RaptorCommon.EcoValueDef(UnitDefs[unitDefID])
 end
 
 local function DeregisterUnit(unitID, unitDefID, unitTeam)
-	local unitDef = UnitDefs[unitDefID]
-
-	if RaptorCommon.IsValidEcoUnitDef(unitDef, unitTeam) then
-		ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) - RaptorCommon.EcoValueDef(unitDef)
-	end
+	local newRaw = (ecoAggrosByPlayerRaw[unitTeam] or 0) - RaptorCommon.EcoValueDef(UnitDefs[unitDefID])
+	ecoAggrosByPlayerRaw[unitTeam] = newRaw < 0 and 0 or newRaw
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
