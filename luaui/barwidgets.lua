@@ -836,9 +836,10 @@ local function SafeWrapWidget(widget)
 		if widget[ciName] then
 			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
 		end
-		if widget.Initialize then
-			widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
-		end
+	end
+
+	if widget.Initialize then
+		widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
 	end
 end
 
