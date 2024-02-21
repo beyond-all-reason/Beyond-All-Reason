@@ -1,3 +1,7 @@
+if not WeaponDefNames.legcib_juno_pulse_mini then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage Mini',
@@ -59,9 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
 	for name, params in pairs(tokillUnitsNames) do
-		if not UnitDefNames[name] then
-			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-		else
+		if UnitDefNames[name] then
 			tokillUnits[UnitDefNames[name].id] = params
 		end
 	end
@@ -80,9 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
 	for name, params in pairs(todenyUnitsNames) do
-		if not UnitDefNames[name] then
-			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-		else
+		if UnitDefNames[name] then
 			todenyUnits[UnitDefNames[name].id] = params
 		end
 	end
@@ -127,9 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}
 	for name, params in pairs(junoWeaponsNames) do
-		if not WeaponDefNames[name] then
-			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find weapondef name: '..name)
-		else
+		if WeaponDefNames[name] then
 			junoWeapons[WeaponDefNames[name].id] = params
 		end
 	end
@@ -156,7 +154,9 @@ if gadgetHandler:IsSyncedCode() then
 	local counter = 1 --index each explosion of juno missile with this counter
 
 	function gadget:Initialize()
-		Script.SetWatchExplosion(WeaponDefNames.legcib_juno_pulse_mini.id, true)
+		if WeaponDefNames.legcib_juno_pulse_mini then
+			Script.SetWatchExplosion(WeaponDefNames.legcib_juno_pulse_mini.id, true)
+		end
 	end
 
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)

@@ -1817,9 +1817,7 @@ local UnitScriptDecalsNames = {
 -- convert unitname -> unitDefID
 local UnitScriptDecals = {}
 for unitName, decals in pairs(UnitScriptDecalsNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Echo('WARNING... gfx_decals_gl4: couldnt apply decals for unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		UnitScriptDecals[UnitDefNames[unitName].id] = decals
 	end
 end

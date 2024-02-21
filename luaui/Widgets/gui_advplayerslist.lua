@@ -260,9 +260,9 @@ local numberOfSpecs = 0
 local numberOfEnemies = 0
 
 --To determine faction at start
-local sideOneDefID = UnitDefNames.armcom.id
-local sideTwoDefID = UnitDefNames.corcom.id
-local sideThreeDefID = UnitDefNames.legcom.id
+local sideOneDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+local sideTwoDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+local sideThreeDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
 
 local teamSideOne = "armada"
 local teamSideTwo = "cortex"
