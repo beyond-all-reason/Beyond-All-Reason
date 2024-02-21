@@ -115,6 +115,7 @@ if io.open('LuaRules/gadgets/raptors/common.lua', "r") == nil then
 		IsValidEcoUnitDef = IsValidEcoUnitDef
 	}
 else
+	-- end of delete pending PR #2572
 	RaptorCommon = VFS.Include('LuaRules/gadgets/raptors/common.lua')
 end
 
@@ -153,13 +154,12 @@ local panelSpacingY             = 5
 local waveSpacingY              = 7
 local moving
 local capture
-local gameInfo
 local waveSpeed                 = 0.1
 local waveCount                 = 0
 local waveTime
-local enabled
 local gotScore
 local scoreCount                = 0
+local gameInfo                  = {}
 local resistancesTable          = {}
 local currentlyResistantTo      = {}
 local currentlyResistantToNames = {}
@@ -196,6 +196,7 @@ local function updatePos(x, y)
 
 	updatePanel = true
 end
+
 local function EcoAggroPlayerAggregation()
 	local myTeamId      = GetMyTeamID()
 	local teamList      = GetTeamList()
@@ -256,7 +257,7 @@ local function Interpolate(value, inMin, inMax, outMin, outMax)
 	return result
 end
 
-local function EcoAggrosByPlayerRender()
+local function UpdateEcoAggrosByPlayerRender()
 	local maxRows           = RaptorStage() == stageMain and 3 or 4
 	local playerAggros, sum = EcoAggroPlayerAggregation()
 
@@ -267,20 +268,19 @@ local function EcoAggrosByPlayerRender()
 	table.sort(playerAggros, SortValueDesc)
 
 	-- add string formatting, forced current player result and limit results
-	local playerAggrosLimited  = {}
-	local nPlayerAggrosLimited = 0
-	local nPlayerAggros        = #playerAggros
+	local nEcoAggrosByPlayerRender = 0
+	local nPlayerAggros            = #playerAggros
 	local playerAggro
 	for i = 1, nPlayerAggros do
 		playerAggro = playerAggros[i]
 
 		-- Always include current player
-		if playerAggro.me or nPlayerAggrosLimited < maxRows then
+		if playerAggro.me or nEcoAggrosByPlayerRender < maxRows then
 			if playerAggro.me then
 				maxRows = maxRows + 1
 			end
 			-- Current player added as last, so forced
-			if playerAggro.me and i > nPlayerAggrosLimited + 1 then
+			if playerAggro.me and i > nEcoAggrosByPlayerRender + 1 then
 				playerAggro.forced = true
 			end
 			playerAggro.aggroMultiple       = nPlayerAggros * playerAggro.value / sum
@@ -296,13 +296,11 @@ local function EcoAggrosByPlayerRender()
 			elseif playerAggro.aggroMultiple < 0.8 then
 				alpha = Interpolate(playerAggro.aggroMultiple, 0, 0.7, 1, 0.8)
 			end
-			playerAggro.color                         = { red = 1, green = greenBlue, blue = greenBlue, alpha = playerAggro.forced and 0.6 or alpha }
-			nPlayerAggrosLimited                      = nPlayerAggrosLimited + 1
-			playerAggrosLimited[nPlayerAggrosLimited] = playerAggro
+			playerAggro.color = { red = 1, green = greenBlue, blue = greenBlue, alpha = playerAggro.forced and 0.6 or alpha }
+			nEcoAggrosByPlayerRender = nEcoAggrosByPlayerRender + 1
+			ecoAggrosByPlayerRender[nEcoAggrosByPlayerRender] = playerAggro
 		end
 	end
-
-	return playerAggrosLimited
 end
 
 local function PanelRow(n)
@@ -434,15 +432,10 @@ local function getResistancesMessage()
 	return messages
 end
 
-local function Draw()
-	if not enabled or not gameInfo then
-		return
-	end
-
+function widget:DrawScreen()
 	if updatePanel then
 		if (guiPanel) then
 			gl.DeleteList(guiPanel);
-			guiPanel = nil
 		end
 		guiPanel = gl.CreateList(CreatePanelDisplayList)
 		updatePanel = false
@@ -479,10 +472,6 @@ local function Draw()
 end
 
 local function UpdateRules()
-	if not gameInfo then
-		gameInfo = {}
-	end
-
 	for i = 1, #rules do
 		local rule = rules[i]
 		gameInfo[rule] = GetGameRulesParam(rule) or 0
@@ -538,14 +527,9 @@ function widget:GameFrame(n)
 		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
 		hasRaptorEvent = true
 	end
-	if n % 30 < 1 then
-		UpdateRules()
-		if not enabled and n > 1 then
-			enabled = true
-		end
-	end
 	if n % 10 == 0 then
-		ecoAggrosByPlayerRender = EcoAggrosByPlayerRender()
+		UpdateRules()
+		UpdateEcoAggrosByPlayerRender()
 	end
 	if gotScore then
 		local sDif = gotScore - scoreCount
@@ -560,19 +544,14 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawScreen()
-	Draw()
-end
-
 function widget:MouseMove(x, y, dx, dy, button)
-	if enabled and moving then
+	if moving then
 		updatePos(x1 + dx, y1 + dy)
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if enabled and
-		x > x1 and x < x1 + (w * widgetScale) and
+	if x > x1 and x < x1 + (w * widgetScale) and
 		y > y1 and y < y1 + (h * widgetScale)
 	then
 		capture = true
@@ -582,12 +561,8 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if not enabled then
-		return
-	end
 	capture = nil
 	moving = nil
-	return capture
 end
 
 function widget:ViewResize()
