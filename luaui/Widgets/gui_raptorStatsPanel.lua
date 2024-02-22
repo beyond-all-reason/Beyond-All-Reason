@@ -11,6 +11,7 @@ function widget:GetInfo()
 end
 
 local useWaveMsg        = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
+local EcoValueDef		= VFS.Include('LuaRules/gadgets/raptors/common.lua').EcoValueDef
 
 local DiffTimers        = Spring.DiffTimers
 local GetGameRulesParam = Spring.GetGameRulesParam
@@ -18,7 +19,17 @@ local GetGameSeconds    = Spring.GetGameSeconds
 local GetTimer          = Spring.GetTimer
 local I18N              = Spring.I18N
 
-local RaptorCommon = VFS.Include('LuaRules/gadgets/raptors/common.lua')
+local teams             = Spring.GetTeamList()
+local raptorTeamID
+for _, teamID in ipairs(teams) do
+	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
+		raptorTeamID = teamID
+	end
+end
+if not raptorTeamID then
+	raptorTeamID = Spring.GetGaiaTeamID()
+end
 
 local customScale           = 1
 local widgetScale           = customScale
@@ -107,6 +118,7 @@ local function EcoAggroPlayerAggregation()
 		end
 
 		local aggroEcoValue = ecoAggrosByPlayerRaw[teamID] or 0
+		aggroEcoValue = aggroEcoValue > 0 and aggroEcoValue or 0
 		if playerName and not playerName:find("Raptors") then
 			sum = sum + aggroEcoValue
 			nPlayerAggros = nPlayerAggros + 1
@@ -407,26 +419,29 @@ function RaptorEvent(raptorEventArgs)
 	end
 end
 
-local function RegisterUnit(unitID, unitDefID, unitTeam)
-	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + RaptorCommon.EcoValueDef(UnitDefs[unitDefID])
+local function RegisterUnit(unitDefID, unitTeam)
+	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + EcoValueDef(UnitDefs[unitDefID])
 end
 
-local function DeregisterUnit(unitID, unitDefID, unitTeam)
-	local newRaw = (ecoAggrosByPlayerRaw[unitTeam] or 0) - RaptorCommon.EcoValueDef(UnitDefs[unitDefID])
-	ecoAggrosByPlayerRaw[unitTeam] = newRaw < 0 and 0 or newRaw
+local function DeregisterUnit(unitDefID, unitTeam)
+	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) - EcoValueDef(UnitDefs[unitDefID])
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	RegisterUnit(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(_, unitDefID, unitTeam)
+	if unitTeam ~= raptorTeamID then
+		RegisterUnit(unitDefID, unitTeam)
+	end
 end
 
-function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	RegisterUnit(unitID, unitDefID, unitTeam)
-	DeregisterUnit(unitID, unitDefID, oldTeam)
+function widget:UnitGiven(_, unitDefID, unitTeam, oldTeam)
+	RegisterUnit(unitDefID, unitTeam)
+	DeregisterUnit(unitDefID, oldTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	DeregisterUnit(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(_, unitDefID, unitTeam)
+	if unitTeam ~= raptorTeamID then
+		DeregisterUnit(unitDefID, unitTeam)
+	end
 end
 
 function widget:Initialize()
@@ -456,7 +471,7 @@ function widget:Initialize()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		RegisterUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		RegisterUnit(unitDefID, Spring.GetUnitTeam(unitID))
 	end
 end
 
@@ -480,7 +495,7 @@ function widget:GameFrame(n)
 		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
 		hasRaptorEvent = true
 	end
-	if n % 10 == 0 then
+	if n % 30 == 0 then
 		UpdateRules()
 		UpdateEcoAggrosByPlayerRender()
 	end
