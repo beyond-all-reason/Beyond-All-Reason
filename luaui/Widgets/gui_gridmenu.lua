@@ -650,7 +650,6 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 
 	if alwaysReturn or not cmdOpts.shift then
 		setCurrentCategory(nil)
-		doUpdate = true
 	end
 end
 
@@ -781,6 +780,9 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
+	end
+	WG["gridmenu"].setCurrentCategory = function(category)
+		setCurrentCategory(category)
 	end
 	WG["gridmenu"].clearCategory = function()
 		clearCategory()
