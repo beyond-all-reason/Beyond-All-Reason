@@ -253,7 +253,6 @@ local function CreatePanelDisplayList()
 		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize)
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize)
-		DrawPlayerAggros(stage)
 	elseif stage == stageMain then
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
 		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59))
@@ -262,8 +261,6 @@ local function CreatePanelDisplayList()
 		local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
 		local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
 		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub('(.*):.*$', '%1')) * panelFontSize, PanelRow(2), panelFontSize)
-
-		DrawPlayerAggros(stage)
 
 		if #currentlyResistantToNames > 0 then
 			currentlyResistantToNames = {}
@@ -274,8 +271,6 @@ local function CreatePanelDisplayList()
 		local healthText = tostring(gameInfo.raptorQueenHealth)
 		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize)
 
-		DrawPlayerAggros(stage)
-
 		for i = 1, #currentlyResistantToNames do
 			if i == 1 then
 				font:Print(I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize)
@@ -283,6 +278,8 @@ local function CreatePanelDisplayList()
 			font:Print(currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize)
 		end
 	end
+
+	DrawPlayerAggros(stage)
 
 	local endless = ""
 	if modOptions.raptor_endless then
