@@ -69,12 +69,14 @@ function widget:Update(dt)
 
 	local oldIds = {}
 
+	-- Get all recent units that are outside of the time window
 	for i, t in pairs(recentUnits) do
 		if t < spGetGameFrame() - 5 then
 			oldIds[#oldIds + 1] = i
 		end
 	end
 
+	-- Remove old units. This is in a separate loop to avoid any iterator issues with removing elements mid-iteration
 	for i = 1, #oldIds do
 		recentUnits[oldIds[i]] = nil
 	end
