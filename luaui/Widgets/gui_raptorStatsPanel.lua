@@ -11,25 +11,13 @@ function widget:GetInfo()
 end
 
 local useWaveMsg        = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
-local EcoValueDef		= VFS.Include('LuaRules/gadgets/raptors/common.lua').EcoValueDef
+local defIDsEcoValues 	= VFS.Include('LuaRules/gadgets/raptors/common.lua').defIDsEcoValues
 
 local DiffTimers        = Spring.DiffTimers
 local GetGameRulesParam = Spring.GetGameRulesParam
 local GetGameSeconds    = Spring.GetGameSeconds
 local GetTimer          = Spring.GetTimer
 local I18N              = Spring.I18N
-
-local teams             = Spring.GetTeamList()
-local raptorTeamID
-for _, teamID in ipairs(teams) do
-	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
-		raptorTeamID = teamID
-	end
-end
-if not raptorTeamID then
-	raptorTeamID = Spring.GetGaiaTeamID()
-end
 
 local customScale           = 1
 local widgetScale           = customScale
@@ -77,6 +65,8 @@ local currentlyResistantTo      = {}
 local currentlyResistantToNames = {}
 local ecoAggrosByPlayerRaw      = {}
 local ecoAggrosByPlayerRender   = {}
+local teamIDs                   = {}
+local raptorTeamID
 local stageGrace                = 0
 local stageMain                 = 1
 local stageQueen                = 2
@@ -102,13 +92,12 @@ local rules                     = {
 
 local function EcoAggroPlayerAggregation()
 	local myTeamId      = Spring.GetMyTeamID()
-	local teamList      = Spring.GetTeamList()
 	local playerAggros  = {}
 	local sum           = 0
 	local nPlayerAggros = 0
 
-	for i = 1, #teamList do
-		local teamID = teamList[i]
+	for i = 1, #teamIDs do
+		local teamID = teamIDs[i]
 		local playerName
 		local playerList = Spring.GetPlayerList(teamID)
 		if playerList[1] then
@@ -420,11 +409,11 @@ function RaptorEvent(raptorEventArgs)
 end
 
 local function RegisterUnit(unitDefID, unitTeam)
-	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) + EcoValueDef(UnitDefs[unitDefID])
+	ecoAggrosByPlayerRaw[unitTeam] = ecoAggrosByPlayerRaw[unitTeam] + (defIDsEcoValues[unitDefID] or 0)
 end
 
 local function DeregisterUnit(unitDefID, unitTeam)
-	ecoAggrosByPlayerRaw[unitTeam] = (ecoAggrosByPlayerRaw[unitTeam] or 0) - EcoValueDef(UnitDefs[unitDefID])
+	ecoAggrosByPlayerRaw[unitTeam] = ecoAggrosByPlayerRaw[unitTeam] - (defIDsEcoValues[unitDefID] or 0)
 end
 
 function widget:UnitCreated(_, unitDefID, unitTeam)
@@ -467,11 +456,28 @@ function widget:Initialize()
 
 	updatePos(x, y)
 
+	teamIDs = Spring.GetTeamList()
+	for i = 1, #teamIDs do
+		local teamID = teamIDs[i]
+		local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+		if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
+			raptorTeamID = teamID
+		else
+			ecoAggrosByPlayerRaw[teamID] = 0
+		end
+	end
+	if not raptorTeamID then
+		raptorTeamID = Spring.GetGaiaTeamID()
+	end
+
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		RegisterUnit(unitDefID, Spring.GetUnitTeam(unitID))
+		local unitTeamID = Spring.GetUnitTeam(unitID)
+		if unitTeamID ~= raptorTeamID then
+			RegisterUnit(unitDefID, unitTeamID)
+		end
 	end
 end
 

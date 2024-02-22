@@ -1,12 +1,11 @@
-local Set = VFS.Include('common/SetList.lua').NewSetListMin
-
-local WallDefNamesSet = Set()
-WallDefNamesSet:Add("armdrag")
-WallDefNamesSet:Add("armfort")
-WallDefNamesSet:Add("cordrag")
-WallDefNamesSet:Add("corfort")
-WallDefNamesSet:Add("scavdrag")
-WallDefNamesSet:Add("scavfort")
+local WallDefNames = {
+	armdrag  = true,
+	armfort  = true,
+	cordrag  = true,
+	corfort  = true,
+	scavdrag = true,
+	scavfort = true,
+}
 
 local raptorTeamID
 local teams = Spring.GetTeamList()
@@ -20,9 +19,8 @@ if not raptorTeamID then
 	raptorTeamID = Spring.GetGaiaTeamID()
 end
 
-
 local function IsWallDef(unitDef)
-    return WallDefNamesSet.hash[unitDef.name] ~= nil
+    return WallDefNames[unitDef.name] ~= nil
 end
 
 local function IsValidEcoUnitDef(unitDef, teamID)
@@ -45,8 +43,7 @@ end
 --	3000: [adv fusion]
 -- }
 local function EcoValueDef(unitDef)
-
-    if not IsValidEcoUnitDef(unitDef) then
+	if unitDef.canMove or WallDefNames[unitDef.name] then
 		return 0
 	end
 
@@ -66,30 +63,42 @@ local function EcoValueDef(unitDef)
 	if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
 		ecoValue = ecoValue + 200
 	end
-	if unitDef.customParams and unitDef.customParams.energyconv_capacity then
-		ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
-	end
 
-	-- Decoy fusion support
-	if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
-		ecoValue = ecoValue + 1000
-	end
+	if unitDef.customParams then
+		if unitDef.customParams.energyconv_capacity then
+			ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
+		end
 
-	-- Make it extra risky to build T2 eco
-	if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
-		ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
-	end
+		-- Decoy fusion support
+		if unitDef.customParams.decoyfor == "armfus" then
+			ecoValue = ecoValue + 1000
+		end
 
-	-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
-	if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
-		ecoValue = 1000
+		-- Make it extra risky to build T2 eco
+		if unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+			ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
+		end
+
+		-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
+		if unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke" then
+			ecoValue = 1000
+		end
 	end
 
 	return ecoValue
+end
+
+local defIDsEcoValues = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local ecoValue = EcoValueDef(unitDef) or 0
+	if ecoValue > 0 then
+		defIDsEcoValues[unitDefID] = ecoValue
+	end
 end
 
 return {
 	IsWallDef         = IsWallDef,
 	IsValidEcoUnitDef = IsValidEcoUnitDef,
 	EcoValueDef       = EcoValueDef,
+	defIDsEcoValues   = defIDsEcoValues,
 }
