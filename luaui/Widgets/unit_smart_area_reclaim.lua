@@ -91,7 +91,6 @@ end
 
 
 local function tsp(rList, tList, dx, dz)
-	Spring.Echo("processing " .. #rList .. " reclaim commands")
 	dx = dx or 0
 	dz = dz or 0
 	tList = tList or {}
@@ -220,7 +219,7 @@ function widget:CommandNotify(id, params, options)
 	local x, y, z, r = params[1], params[2], params[3], params[4]
 
 	if r > mapSize / 4 then
-		Spring.Echo("Smart reclaim area is too large, limiting size")
+		Spring.Log(widget.GetInfo().name, LOG.WARNING, "Smart reclaim area is too large, limiting size")
 		r = math.floor(mapSize / 4)
 	end
 
@@ -332,7 +331,7 @@ function widget:CommandNotify(id, params, options)
 					end
 				end
 				if mListCount > maxReclaimOrders then
-					Spring.Echo("Command count exceeded, feature selection may be incomplete")
+					Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, feature selection may be incomplete")
 					break
 				end
 			end
