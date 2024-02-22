@@ -40,9 +40,7 @@ local isAirplantNames = {
 -- convert unitname -> unitDefID
 local isAirplant = {}
 for unitName, params in pairs(isAirplantNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		isAirplant[UnitDefNames[unitName].id] = params
 	end
 end

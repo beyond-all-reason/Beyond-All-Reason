@@ -421,7 +421,7 @@ for name, effects in pairs(effectDefs) do
 			if not effectDefs[name][fx].emitVector then
 				effectDefs[name][fx].emitVector = { 0, 0, -1 }
 			end
-			if effectDefs[name][fx].xzVelocity and then
+			if effectDefs[name][fx].xzVelocity then
 				xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
 			end
 			if effectDefs[name][fx].limit then

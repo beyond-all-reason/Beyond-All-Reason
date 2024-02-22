@@ -48,7 +48,7 @@ end
 
 local luaFiles = RecursiveFileSearch('units/', '*.lua')
 
-local legionEnabled = true --Spring.GetModOptions().experimentallegionfaction
+local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 for _, filename in ipairs(luaFiles) do
 	if legionEnabled or not filename:find('legion') then
 		local udEnv = {}

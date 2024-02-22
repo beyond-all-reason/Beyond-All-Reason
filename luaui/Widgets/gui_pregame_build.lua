@@ -58,11 +58,7 @@ local armToCorNames = {
 -- convert unitname -> unitDefID
 local armToCor = {}
 for unitName, corUnitName in pairs(armToCorNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Echo('WARNING... gui_pregame_build: couldnt find unit name: '..unitName)
-	elseif not UnitDefNames[corUnitName] then
-		Spring.Echo('WARNING... gui_pregame_build: couldnt find unit name: '..corUnitName)
-	else
+	if UnitDefNames[unitName] and UnitDefNames[corUnitName] then
 		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
 	end
 end
