@@ -19387,9 +19387,7 @@ local unitEventLights = {
 -- convert unitname -> unitDefID
 local unitDefLights = {}
 for unitName, lights in pairs(unitLights) do
-	if not UnitDefNames[unitName] then
-		Spring.Echo('WARNING... DeferredLightsGL4config: couldnt apply light config for unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		unitDefLights[UnitDefNames[unitName].id] = lights
 	end
 end
