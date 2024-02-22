@@ -188,7 +188,7 @@
 			"stopproduction_tooltip": "Leert die Warteschlange für alle Einheiten in den ausgewählten Fabriken",
 			"morph": "Verbessern",
 			"morph_tooltip": "Auf die nächste Technologiestufe aufwerten (zweiter Klick bricht ab)",
-
+			
 			"Fire at will": "Feuer frei",
 			"Hold fire": "Feuer einstellen",
 			"Return fire": "Zurückschießen",
@@ -524,12 +524,12 @@
 			"raptorCount": "Raptoren: %{count}",
 			"raptorKillCount": "Raptoren getötet: %{count}",
 			"raptorPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
-			"playerAggroLabel": "Spieler zieht Aggro:",
+			"playerEcoAttractionLabel": "Attraktionen der Spielerwirtschaft:",
 			"queenAnger": "Königin schlüpft:%{anger}%% (+%{gain}%%/s)",
 			"queenAngerBase": "Basis: +%{value}%%/s",
 			"queenAngerAggression": "Aggressivität: +%{value}%%/s",
 			"queenAngerEco": "Wirtschaft: +%{value}%%/s",
-			"queenHealth": "Leben der Königin: %{health}%%",
+			"queenHealth": "Leben der Königin: ",
 			"queenResistantToList": "Die Königin ist resistent gegen:",
 			"gracePeriod": "Friedenszeit: %{time}",
 			"burrowCount": "Baue: %{count}",

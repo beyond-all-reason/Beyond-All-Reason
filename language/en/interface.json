@@ -193,7 +193,7 @@
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
 			"Spawning Enabled": "Spawning enabled",
-
+			
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -538,7 +538,7 @@
 			"raptorCount": "Raptors: %{count}",
 			"raptorKillCount": "Raptors Killed: %{count}",
 			"raptorPlayerAgression": "Player Aggression Level: %{count}",
-			"playerAggroLabel": "Player Aggros:",
+			"playerEcoAttractionLabel": "Player Eco Attractions:",
 			"queenAngerWithGain": "Queen Hatch: %{anger}%% (+%{gain}%%/s)",
 			"queenAngerWithTech": "Queen Hatch: %{anger}%% (Evolution: %{techAnger}%%)",
 			"queenAngerBase": "Base: +%{value}%%/s",
