@@ -37,17 +37,18 @@ end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
+	local adjustedCmdID = cmdID
 	if cmdID == CMD_INSERT then
-		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
+		adjustedCmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
 	end
 
-	if not isMex[-cmdID] then
+	if not isMex[-adjustedCmdID] then
 		return true
 	end
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	if cmdID == CMD_INSERT then
-		bx, bx = cmdParams[4], cmdParams[6] -- this is where the cmd position is placed in prepended commands with commandinsert
+		bx, bz = cmdParams[4], cmdParams[6] -- this is where the cmd position is placed in prepended commands with commandinsert
 	end
 	-- We find the closest metal spot to the assigned command position
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
