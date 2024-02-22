@@ -7,28 +7,8 @@ local WallDefNames = {
 	scavfort = true,
 }
 
-local raptorTeamID
-local teams = Spring.GetTeamList()
-for _, teamID in ipairs(teams) do
-	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
-		raptorTeamID = teamID
-	end
-end
-if not raptorTeamID then
-	raptorTeamID = Spring.GetGaiaTeamID()
-end
-
 local function IsWallDef(unitDef)
     return WallDefNames[unitDef.name] ~= nil
-end
-
-local function IsValidEcoUnitDef(unitDef, teamID)
-	-- skip Raptor AI, moving units and player built walls
-	if (teamID and teamID == raptorTeamID) or unitDef.canMove or IsWallDef(unitDef) then
-		return false
-	end
-	return true
 end
 
 -- Calculate an eco value based on energy and metal production
@@ -97,8 +77,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 return {
-	IsWallDef         = IsWallDef,
-	IsValidEcoUnitDef = IsValidEcoUnitDef,
-	EcoValueDef       = EcoValueDef,
-	defIDsEcoValues   = defIDsEcoValues,
+	IsWallDef       = IsWallDef,
+	defIDsEcoValues = defIDsEcoValues,
 }
