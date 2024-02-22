@@ -36,7 +36,7 @@ for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
-function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
 
 	if not cmdOpts.shift then
 		return false
@@ -67,18 +67,11 @@ function widget:Update(dt)
 		return
 	end
 
-	local oldIds = {}
-
-	-- Get all recent units that are outside of the time window
+	-- Clear all recent units that are outside of the time window
 	for i, t in pairs(recentUnits) do
 		if t < spGetGameFrame() - 5 then
-			oldIds[#oldIds + 1] = i
+			recentUnits[i] = nil;
 		end
-	end
-
-	-- Remove old units. This is in a separate loop to avoid any iterator issues with removing elements mid-iteration
-	for i = 1, #oldIds do
-		recentUnits[oldIds[i]] = nil
 	end
 
 	updateTime = 0
