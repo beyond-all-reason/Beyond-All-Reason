@@ -78,4 +78,6 @@ function widget:Update(dt)
 	for i = 1, #oldIds do
 		recentUnits[oldIds[i]] = nil
 	end
+
+	updateTime = 0
 end
