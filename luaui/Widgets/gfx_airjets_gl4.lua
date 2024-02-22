@@ -386,18 +386,19 @@ local function deepcopy(orig)
 end
 
 for name, effects in pairs(effectDefs) do
-
-	-- make length and width smaller cause will enlarge when in full effect
-	for i, effect in pairs(effects) do
-		effect.length = math.floor(effect.length * 0.8)
-		effect.width = math.floor(effect.width * 0.92)
-	end
-
-	-- create scavenger variant
-	if UnitDefNames[name..'_scav'] then
-		effectDefs[name..'_scav'] = deepcopy(effects)
+	if UnitDefNames[name] then
+		-- make length and width smaller cause will enlarge when in full effect
 		for i, effect in pairs(effects) do
-			effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
+			effect.length = math.floor(effect.length * 0.8)
+			effect.width = math.floor(effect.width * 0.92)
+		end
+
+		-- create scavenger variant
+		if UnitDefNames[name..'_scav'] then
+			effectDefs[name..'_scav'] = deepcopy(effects)
+			for i, effect in pairs(effects) do
+				effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
+			end
 		end
 	end
 end
@@ -429,8 +430,6 @@ for name, effects in pairs(effectDefs) do
 			end
 		end
 		defs[UnitDefNames[name].id] = effectDefs[name]
-	else
-		Spring.Echo("Airjets: Error: unitdef name '"..name.."' doesnt exist")
 	end
 end
 effectDefs = defs
