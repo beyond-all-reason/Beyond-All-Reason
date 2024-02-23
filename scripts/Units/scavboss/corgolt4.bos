@@ -132,7 +132,7 @@ startLaughing (){
 		
 		//animate flag in
 		show flag;
-		move flag to y-axis [44] speed [200.000000];//start is 14 abs, 0 rel...
+		move flag to y-axis [34] speed [200.000000];//start is 14 abs, 0 rel...
 		sleep 1000;
 		willlaughing=0;
 		islaughing=1;
