@@ -1,3 +1,7 @@
+if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+	return false
+end
+
 function widget:GetInfo()
 	return {
 		name = "Raptor Stats Panel",
