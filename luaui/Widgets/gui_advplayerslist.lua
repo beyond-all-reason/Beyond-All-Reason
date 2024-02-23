@@ -61,7 +61,6 @@ local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 local minWidth = 190	-- for the sake of giving the addons some room
 
-local hideDeadTeams = true
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
@@ -82,8 +81,6 @@ end
 -- SPEED UPS
 --------------------------------------------------------------------------------
 
-local Spring_GetGameSeconds = Spring.GetGameSeconds
-local Spring_GetGameFrame = Spring.GetGameFrame
 local Spring_GetAllyTeamList = Spring.GetAllyTeamList
 local Spring_GetTeamInfo = Spring.GetTeamInfo
 local Spring_GetTeamList = Spring.GetTeamList
@@ -204,6 +201,9 @@ local updateRate = 0.8
 local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
+
+local updateRateMult = 1	-- goes up when more players	(auto adjusts)
+local updateFastRateMult = 1	-- goes up when more players	(auto adjusts)
 
 --------------------------------------------------------------------------------
 -- LockCamera variables
@@ -1245,7 +1245,7 @@ function CreatePlayerFromTeam(teamID)
         tdead = false
         tai = true
     else
-        if Spring_GetGameSeconds() < 0.1 then
+        if Spring.GetGameSeconds() < 0.1 then
             tname = absentName
             ttotake = false
             tdead = false
@@ -1307,41 +1307,43 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and player[playerID].team then
-            if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
-                energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
-                metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
-                if energy == nil then
-                    -- need to be there for when you do /specfullview
-                    energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
-                else
-                    energy = math.floor(energy)
-                    metal = math.floor(metal)
-                    if energy < 0 then
-                        energy = 0
-                    end
-                    if metal < 0 then
-                        metal = 0
-                    end
-                end
-                player[playerID].energy = energy
-                player[playerID].energyIncome = energyIncome
-                player[playerID].energyStorage = energyStorage
-                player[playerID].energyShare = energyShare
-                player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
-                player[playerID].metal = metal
-                player[playerID].metalIncome = metalIncome
-                player[playerID].metalStorage = metalStorage
-                player[playerID].metalShare = metalShare
-                if not allyTeamMaxStorage[player[playerID].allyteam] then
-                    allyTeamMaxStorage[player[playerID].allyteam] = {}
-                end
-                if not allyTeamMaxStorage[player[playerID].allyteam][1] or energyStorage > allyTeamMaxStorage[player[playerID].allyteam][1] then
-                    allyTeamMaxStorage[player[playerID].allyteam][1] = energyStorage
-                end
-                if not allyTeamMaxStorage[player[playerID].allyteam][2] or metalStorage > allyTeamMaxStorage[player[playerID].allyteam][2] then
-                    allyTeamMaxStorage[player[playerID].allyteam][2] = metalStorage
-                end
-            end
+			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
+				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
+					energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
+					metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
+					if energy == nil then
+						-- need to be there for when you do /specfullview
+						energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
+					else
+						energy = math.floor(energy)
+						metal = math.floor(metal)
+						if energy < 0 then
+							energy = 0
+						end
+						if metal < 0 then
+							metal = 0
+						end
+					end
+					player[playerID].energy = energy
+					player[playerID].energyIncome = energyIncome
+					player[playerID].energyStorage = energyStorage
+					player[playerID].energyShare = energyShare
+					player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
+					player[playerID].metal = metal
+					player[playerID].metalIncome = metalIncome
+					player[playerID].metalStorage = metalStorage
+					player[playerID].metalShare = metalShare
+					if not allyTeamMaxStorage[player[playerID].allyteam] then
+						allyTeamMaxStorage[player[playerID].allyteam] = {}
+					end
+					if not allyTeamMaxStorage[player[playerID].allyteam][1] or energyStorage > allyTeamMaxStorage[player[playerID].allyteam][1] then
+						allyTeamMaxStorage[player[playerID].allyteam][1] = energyStorage
+					end
+					if not allyTeamMaxStorage[player[playerID].allyteam][2] or metalStorage > allyTeamMaxStorage[player[playerID].allyteam][2] then
+						allyTeamMaxStorage[player[playerID].allyteam][2] = metalStorage
+					end
+				end
+			end
         end
     end
 end
@@ -1551,7 +1553,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = specOffset + teamID  -- no players team
             player[specOffset + teamID].posY = vOffset
-            if Spring_GetGameFrame() > 0 then
+            if Spring.GetGameFrame() > 0 then
                 player[specOffset + teamID].totake = IsTakeable(teamID)
             end
         end
@@ -1684,7 +1686,7 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
         timeFastCounter = 0
     end
     if onlyMainList2 then
-        if tipTextTime+updateFastRate < os.clock() then
+        if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
             drawTipText = nil
             tipTextTime = 0
@@ -1992,10 +1994,6 @@ end
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
 -- onlyMainList3 to only draw resources
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onlyMainList2, onlyMainList3)
-    --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
-    --    return
-    --end
-
     player[playerID].posY = vOffset
 
     tipY = nil
@@ -2124,7 +2122,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
 
         if (onlyMainList2 or onlyMainList3) and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
-            if mySpecStatus or myAllyTeamID == allyteam then
+            if (mySpecStatus and enemyListShow) or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
                 local ei = player[playerID].energyIncome
@@ -3528,7 +3526,7 @@ function CheckPlayersChange()
 			player[i].desynced = desynced
         end
 
-        if teamID and Spring_GetGameFrame() > 0 then
+        if teamID and Spring.GetGameFrame() > 0 then
             local totake = IsTakeable(teamID)
             player[i].totake = totake
             if totake then
@@ -3613,7 +3611,7 @@ function widget:Update(delta)
     totalTime = totalTime + delta
     timeCounter = timeCounter + delta
     timeFastCounter = timeFastCounter + delta
-    curFrame = Spring_GetGameFrame()
+    curFrame = Spring.GetGameFrame()
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 
     if scheduledSpecFullView ~= nil then
@@ -3674,7 +3672,7 @@ function widget:Update(delta)
             reportTake = false
         end
     end
-    if curFrame <= 0 and timeCounter > updateRate then
+    if curFrame <= 0 and timeCounter > updateRate*updateRateMult then
         SetSidePics() -- if the game hasn't started, update factions
     elseif curFrame > 15 and not gameStartRefreshed then
         gameStartRefreshed = true
@@ -3683,8 +3681,8 @@ function widget:Update(delta)
     if forceMainListRefresh then
         CreateLists()
     else
-        local updateMainList2 = timeCounter > updateRate
-        local updateMainList3 = ((m_resources.active or m_income.active) and timeFastCounter > updateFastRate)
+        local updateMainList2 = timeCounter > updateRate*updateRateMult
+        local updateMainList3 = ((m_resources.active or m_income.active) and timeFastCounter > updateFastRate*updateFastRateMult)
         if updateMainList2 or updateMainList3 then
             CreateLists(curFrame==0, updateMainList2, updateMainList3)
         end
