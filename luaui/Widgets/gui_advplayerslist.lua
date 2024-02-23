@@ -835,38 +835,39 @@ function widget:TeamDied(teamID)
 end
 
 function widget:Initialize()
-    widget:ViewResize()
+	widget:ViewResize()
 
-    widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
-    widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
-    widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
-    widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
-    widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-    UpdateRecentBroadcasters()
+	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
+	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
+	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
+	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
+	UpdateRecentBroadcasters()
 
-    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
-    if Spring.GetGameFrame() <= 0 then
-        if mySpecStatus and not alwaysHideSpecs then
-            specListShow = true
-        else
-            specListShow = false
-        end
-    end
-    if Spring.GetConfigInt("ShowPlayerInfo") == 1 then
-        Spring.SendCommands("info 0")
-    end
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
+	if Spring.GetGameFrame() <= 0 then
+		if mySpecStatus and not alwaysHideSpecs then
+			specListShow = true
+		else
+			specListShow = false
+		end
+	end
+	if Spring.GetConfigInt("ShowPlayerInfo") == 1 then
+		Spring.SendCommands("info 0")
+	end
 
-    if Spring.GetGameFrame() > 0 then
-        gameStarted = true
-    end
+	if Spring.GetGameFrame() > 0 then
+		gameStarted = true
+	end
 
-    GeometryChange()
-    SetModulesPositionX()
-    SetSidePics()
-    InitializePlayers()
-    SortList()
+	GeometryChange()
+	SetModulesPositionX()
+	SetSidePics()
+	InitializePlayers()
+	GetAliveAllyTeams()
+	SortList()
 
-    WG['advplayerlist_api'] = {}
+	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
 		return alwaysHideSpecs
 	end
@@ -879,95 +880,95 @@ function widget:Initialize()
 			CreateLists()
 		end
 	end
-    WG['advplayerlist_api'].GetScale = function()
-        return customScale
-    end
-    WG['advplayerlist_api'].SetScale = function(value)
-        customScale = value
-        updateWidgetScale()
-    end
-    WG['advplayerlist_api'].GetPosition = function()
-        return apiAbsPosition
-    end
-    WG['advplayerlist_api'].GetAbsoluteResbars = function()
-        return absoluteResbarValues
-    end
-    WG['advplayerlist_api'].SetAbsoluteResbars = function(value)
-        absoluteResbarValues = value
-    end
-    WG['advplayerlist_api'].GetLockPlayerID = function()
-        return lockPlayerID
-    end
-    WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
-        LockCamera(playerID)
-    end
-    WG['advplayerlist_api'].GetLockHideEnemies = function()
-        return lockcameraHideEnemies
-    end
-    WG['advplayerlist_api'].SetLockHideEnemies = function(value)
-        lockcameraHideEnemies = value
-        if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
-            if not lockcameraHideEnemies then
-                if not fullView then
-                    Spring.SendCommands("specfullview")
-                    if lockcameraLos and mySpecStatus then
-                        desiredLosmode = 'normal'
-                        desiredLosmodeChanged = os.clock()
-                        Spring.SendCommands("togglelos")
-                    end
-                end
-            else
-                if fullView then
-                    Spring.SendCommands("specfullview")
-                    if lockcameraLos and mySpecStatus then
-                        desiredLosmode = 'los'
-                        desiredLosmodeChanged = os.clock()
-                    end
-                end
-            end
-        end
-    end
-    WG['advplayerlist_api'].GetLockTransitionTime = function()
-        return transitionTime
-    end
-    WG['advplayerlist_api'].SetLockTransitionTime = function(value)
-        transitionTime = value
-    end
-    WG['advplayerlist_api'].GetLockLos = function()
-        return lockcameraLos
-    end
-    WG['advplayerlist_api'].SetLockLos = function(value)
-        lockcameraLos = value
-        if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
-            if lockcameraLos and mySpecStatus then
-                desiredLosmode = 'los'
-                desiredLosmodeChanged = os.clock()
-                Spring.SendCommands("togglelos")
-            elseif not lockcameraLos and Spring.GetMapDrawMode() == "los" then
-                desiredLosmode = 'normal'
-                desiredLosmodeChanged = os.clock()
-                Spring.SendCommands("togglelos")
-            end
-        end
-    end
-    WG['advplayerlist_api'].SetLosMode = function(value)
-        desiredLosmode = value
-        desiredLosmodeChanged = os.clock()
-    end
-    WG['advplayerlist_api'].GetModuleActive = function(module)
-        return modules[module].active
-    end
-    WG['advplayerlist_api'].SetModuleActive = function(value)
-        for n, module in pairs(modules) do
-            if module.name == value[1] then
-                modules[n].active = value[2]
-                SetModulesPositionX()
-                SortList()
-                CreateLists()
-                break
-            end
-        end
-    end
+	WG['advplayerlist_api'].GetScale = function()
+		return customScale
+	end
+	WG['advplayerlist_api'].SetScale = function(value)
+		customScale = value
+		updateWidgetScale()
+	end
+	WG['advplayerlist_api'].GetPosition = function()
+		return apiAbsPosition
+	end
+	WG['advplayerlist_api'].GetAbsoluteResbars = function()
+		return absoluteResbarValues
+	end
+	WG['advplayerlist_api'].SetAbsoluteResbars = function(value)
+		absoluteResbarValues = value
+	end
+	WG['advplayerlist_api'].GetLockPlayerID = function()
+		return lockPlayerID
+	end
+	WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
+		LockCamera(playerID)
+	end
+	WG['advplayerlist_api'].GetLockHideEnemies = function()
+		return lockcameraHideEnemies
+	end
+	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
+		lockcameraHideEnemies = value
+		if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
+			if not lockcameraHideEnemies then
+				if not fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus then
+						desiredLosmode = 'normal'
+						desiredLosmodeChanged = os.clock()
+						Spring.SendCommands("togglelos")
+					end
+				end
+			else
+				if fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus then
+						desiredLosmode = 'los'
+						desiredLosmodeChanged = os.clock()
+					end
+				end
+			end
+		end
+	end
+	WG['advplayerlist_api'].GetLockTransitionTime = function()
+	    return transitionTime
+	end
+	WG['advplayerlist_api'].SetLockTransitionTime = function(value)
+	    transitionTime = value
+	end
+	WG['advplayerlist_api'].GetLockLos = function()
+	    return lockcameraLos
+	end
+	WG['advplayerlist_api'].SetLockLos = function(value)
+		lockcameraLos = value
+		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
+			if lockcameraLos and mySpecStatus then
+				desiredLosmode = 'los'
+				desiredLosmodeChanged = os.clock()
+				Spring.SendCommands("togglelos")
+			elseif not lockcameraLos and Spring.GetMapDrawMode() == "los" then
+				desiredLosmode = 'normal'
+				desiredLosmodeChanged = os.clock()
+				Spring.SendCommands("togglelos")
+			end
+		end
+	end
+	WG['advplayerlist_api'].SetLosMode = function(value)
+		desiredLosmode = value
+		desiredLosmodeChanged = os.clock()
+	end
+	WG['advplayerlist_api'].GetModuleActive = function(module)
+		return modules[module].active
+	end
+	WG['advplayerlist_api'].SetModuleActive = function(value)
+		for n, module in pairs(modules) do
+			if module.name == value[1] then
+				modules[n].active = value[2]
+				SetModulesPositionX()
+				SortList()
+				CreateLists()
+				break
+			end
+		end
+	end
 end
 
 function widget:GameFrame(n)
