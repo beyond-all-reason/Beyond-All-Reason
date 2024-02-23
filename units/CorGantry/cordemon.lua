@@ -5,7 +5,7 @@ return {
 		energycost = 90000,--150000,
 		metalcost = 6000,--10000,
 		buildpic = "CORDEMON.DDS",
-		buildtime = 90000,--150000,
+		buildtime = 120000,--150000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
