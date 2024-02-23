@@ -39,10 +39,11 @@ return {
 			[5] = "corssub",
 			[6] = "corarch",
 			[7] = "corsjam",
-			[8] = "corcarry",
+			[8] = "corantiship",
 			[9] = "corbats",
 			[10] = "cormship",
 			[11] = "corblackhy",
+			[12] = "corfship",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

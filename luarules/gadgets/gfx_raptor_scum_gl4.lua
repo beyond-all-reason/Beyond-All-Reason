@@ -350,7 +350,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		mapPos.xz += xyworld_xyfract.xy *  worldposradius.w;
 
 		// Sample the heightmap to get reasonable world depth
-		vec2 uvhm = heighmapUVatWorldPos(mapPos.xz);
+		vec2 uvhm = heightmapUVatWorldPos(mapPos.xz);
 		mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 3.0;
 
 		// sample the map normals and pass it on for later use:

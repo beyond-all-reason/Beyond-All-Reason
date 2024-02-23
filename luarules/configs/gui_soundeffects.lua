@@ -1960,7 +1960,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = { "cor-korg-ok1", "cor-korg-ok2", "cor-korg-ok3", },
 		BaseSoundWeaponType = "heatray-xl",
 	},
-	cordemont4 = {
+	cordemon = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
 		BaseSoundWeaponType = "flame-alt",
@@ -2576,12 +2576,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-large",
 	},
 	-- LEGION T3 VEHICLES
-	
-	legjugglite = {
-		BaseSoundSelectType = "cor-tnk-large-sel",
-		BaseSoundMovementType = "cor-tnk-large-ok",
-		BaseSoundWeaponType = "heatray-xl",
-	},
+
 	-- LEGION AIRCRAFT
 	legca = {
 		BaseSoundSelectType = "arm-air-small-sel",

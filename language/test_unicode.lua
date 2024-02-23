@@ -467,7 +467,6 @@ return {
 			gametypeInfo = {
 				killAllUnits = "Kill all enemy units",
 				killAllCommanders = "Kill all enemy Commanders",
-				unbalancedCommanders = "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 				victoryCondition = "Victory condition",
 			},
 			startSpot = {
@@ -1101,7 +1100,7 @@ return {
 				corcut = "Cutlass",
 				corcv = "Construction Vehicle",
 				cordecom = "Commander",
-				cordemont4 = "Demon",
+				cordemon = "Demon",
 				cordl = "Jellyfish",
 				cordoom = "Doomsday Machine",
 				cordoomt3 = "Epic Doomsday Machine",
@@ -1654,7 +1653,7 @@ return {
 				corcut = "Seaplane Gunship",
 				corcv = "Tech Level 1",
 				cordecom = "Decoy Commander",
-				cordemont4 = "Flamethrower Mech",
+				cordemon = "Flamethrower Mech",
 				cordl = "Coastal Torpedo Launcher",
 				corarmag = "High Power Energy Defense",
 				cordoom = "Energy Weapon",

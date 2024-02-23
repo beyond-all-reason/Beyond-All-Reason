@@ -11,6 +11,9 @@ function widget:GetInfo()
 	}
 end
 
+
+local spTestBuildOrder = Spring.TestBuildOrder
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = {south=0, east=1, north=2, west=3}
@@ -23,36 +26,45 @@ local metalMap = false
 
 local unitshapes = {}
 
-armToCor = {
-	[UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
-	[UnitDefNames["armuwmex"].id] = UnitDefNames["coruwmex"].id,
-	[UnitDefNames["armsolar"].id] = UnitDefNames["corsolar"].id,
-	[UnitDefNames["armwin"].id] = UnitDefNames["corwin"].id,
-	[UnitDefNames["armtide"].id] = UnitDefNames["cortide"].id,
-	[UnitDefNames["armllt"].id] = UnitDefNames["corllt"].id,
-	[UnitDefNames["armrad"].id] = UnitDefNames["corrad"].id,
-	[UnitDefNames["armrl"].id] = UnitDefNames["corrl"].id,
-	[UnitDefNames["armtl"].id] = UnitDefNames["cortl"].id,
-	[UnitDefNames["armsonar"].id] = UnitDefNames["corsonar"].id,
-	[UnitDefNames["armfrt"].id] = UnitDefNames["corfrt"].id,
-	[UnitDefNames["armlab"].id] = UnitDefNames["corlab"].id,
-	[UnitDefNames["armvp"].id] = UnitDefNames["corvp"].id,
-	[UnitDefNames["armsy"].id] = UnitDefNames["corsy"].id,
-	[UnitDefNames["armmstor"].id] = UnitDefNames["cormstor"].id,
-	[UnitDefNames["armestor"].id] = UnitDefNames["corestor"].id,
-	[UnitDefNames["armmakr"].id] = UnitDefNames["cormakr"].id,
-	[UnitDefNames["armeyes"].id] = UnitDefNames["coreyes"].id,
-	[UnitDefNames["armdrag"].id] = UnitDefNames["cordrag"].id,
-	[UnitDefNames["armdl"].id] = UnitDefNames["cordl"].id,
-	[UnitDefNames["armap"].id] = UnitDefNames["corap"].id,
-	[UnitDefNames["armfrad"].id] = UnitDefNames["corfrad"].id,
-	[UnitDefNames["armuwms"].id] = UnitDefNames["coruwms"].id,
-	[UnitDefNames["armuwes"].id] = UnitDefNames["coruwes"].id,
-	[UnitDefNames["armfmkr"].id] = UnitDefNames["corfmkr"].id,
-	[UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
-	[UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
+local armToCorNames = {
+	['armmex'] = 'cormex',
+	['armuwmex'] = 'coruwmex',
+	['armsolar'] = 'corsolar',
+	['armwin'] = 'corwin',
+	['armtide'] = 'cortide',
+	['armllt'] = 'corllt',
+	['armrad'] = 'corrad',
+	['armrl'] = 'corrl',
+	['armtl'] = 'cortl',
+	['armsonar'] = 'corsonar',
+	['armfrt'] = 'corfrt',
+	['armlab'] = 'corlab',
+	['armvp'] = 'corvp',
+	['armsy'] = 'corsy',
+	['armmstor'] = 'cormstor',
+	['armestor'] = 'corestor',
+	['armmakr'] = 'cormakr',
+	['armeyes'] = 'coreyes',
+	['armdrag'] = 'cordrag',
+	['armdl'] = 'cordl',
+	['armap'] = 'corap',
+	['armfrad'] = 'corfrad',
+	['armuwms'] = 'coruwms',
+	['armuwes'] = 'coruwes',
+	['armfmkr'] = 'corfmkr',
+	['armfdrag'] = 'corfdrag',
+	['armptl'] = 'corptl',
 }
-corToArm = table.invert(armToCor)
+-- convert unitname -> unitDefID
+local armToCor = {}
+for unitName, corUnitName in pairs(armToCorNames) do
+	if UnitDefNames[unitName] and UnitDefNames[corUnitName] then
+		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
+	end
+end
+armToCorNames = nil
+
+local corToArm = table.invert(armToCor)
 
 
 local function buildFacingHandler(_, _, args)
@@ -64,16 +76,13 @@ local function buildFacingHandler(_, _, args)
 	if args and args[1] == "inc" then
 		facing = (facing + 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and args[1] == "dec" then
 		facing = (facing - 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and facingMap[args[1]] then
 		Spring.SetBuildFacing(facingMap[args[1]])
-
 		return true
 	end
 end
@@ -159,10 +168,7 @@ function widget:Initialize()
 		end
 	end
 
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 
 	WG['pregame-build'] = {}
 	WG['pregame-build'].getPreGameDefID = function()
@@ -304,12 +310,14 @@ function widget:MousePress(x, y, button)
 							end
 						end
 
-						-- Special handling to check if mex position is valid
-						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
-						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
-						local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
-						if isMex and not metalMap and (not validPos or spotIsTaken) then
-							return true
+						if isMex and not metalMap then
+							-- Special handling to check if mex position is valid
+							local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
+							local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
+							local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+							if not validPos or spotIsTaken then
+								return true
+							end
 						end
 
 						if not anyClashes then
@@ -318,7 +326,7 @@ function widget:MousePress(x, y, button)
 					else
 						-- don't place mex if the spot is not valid
 						if isMex then
-							if WG.ExtractorSnap.position then
+							if WG.ExtractorSnap.position or metalMap then
 								buildQueue = { buildData }
 							end
 						else
@@ -440,9 +448,10 @@ function widget:DrawWorld()
 	if selBuildData then
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
-		local testOrder = Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
-		if testOrder and not isMex then
-			DrawBuilding(selBuildData, borderValidColor, true)
+		local testOrder = spTestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
+		if not isMex then
+			local color = testOrder and borderValidColor or borderInvalidColor
+			DrawBuilding(selBuildData, color, true)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
 				DrawBuilding(selBuildData, borderValidColor, true)

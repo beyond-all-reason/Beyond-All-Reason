@@ -14,28 +14,37 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local queenUnits = {
-    [UnitDefNames["raptor_queen_veryeasy"].id] = true,
-    [UnitDefNames["raptor_queen_easy"].id] = true,
-    [UnitDefNames["raptor_queen_normal"].id] = true,
-    [UnitDefNames["raptor_queen_hard"].id] = true,
-    [UnitDefNames["raptor_queen_veryhard"].id] = true,
-    [UnitDefNames["raptor_queen_epic"].id] = true,
+local queenUnitDefs = {
+    raptor_queen_veryeasy = true,
+    raptor_queen_easy = true,
+    raptor_queen_normal = true,
+    raptor_queen_hard = true,
+    raptor_queen_veryhard = true,
+    raptor_queen_epic = true,
     
-    [UnitDefNames["raptor_matriarch_spectre"].id] = true,
-	[UnitDefNames["raptor_matriarch_electric"].id] = true,
-	[UnitDefNames["raptor_matriarch_acid"].id] = true,
-	[UnitDefNames["raptor_matriarch_healer"].id] = true,
-	[UnitDefNames["raptor_matriarch_basic"].id] = true,
-	[UnitDefNames["raptor_matriarch_fire"].id] = true,
+    raptor_matriarch_spectre = true,
+	raptor_matriarch_electric = true,
+	raptor_matriarch_acid = true,
+	raptor_matriarch_healer = true,
+	raptor_matriarch_basic = true,
+	raptor_matriarch_fire = true,
 
-    [UnitDefNames["armscavengerbossv2_veryeasy"].id] = true,
-    [UnitDefNames["armscavengerbossv2_easy"].id] = true,
-    [UnitDefNames["armscavengerbossv2_normal"].id] = true,
-    [UnitDefNames["armscavengerbossv2_hard"].id] = true,
-    [UnitDefNames["armscavengerbossv2_veryhard"].id] = true,
-    [UnitDefNames["armscavengerbossv2_epic"].id] = true,
+    armscavengerbossv2_veryeasy = true,
+    armscavengerbossv2_easy = true,
+    armscavengerbossv2_normal = true,
+    armscavengerbossv2_hard = true,
+    armscavengerbossv2_veryhard = true,
+    armscavengerbossv2_epic = true,
 }
+
+
+local queenUnits = {}
+for unitDefName, isqueen in pairs(queenUnitDefs) do 
+	if UnitDefNames[unitDefName] then 
+		queenUnits[UnitDefNames[unitDefName].id] = isqueen
+	end
+end
+queenUnitDefs = nil
 
 local queenTargets = {}
 for unitDefID, unitDef in pairs(UnitDefs) do

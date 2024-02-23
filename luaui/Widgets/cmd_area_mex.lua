@@ -35,11 +35,9 @@ end
 
 function widget:Initialize()
 	metalSpots = WG['resource_spot_finder'].metalSpotsList
+	metalMap = WG['resource_spot_finder'].isMetalMap
 	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
 	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
 
 	WG['areamex'] = {}
 	WG['areamex'].setAreaMexType = function(uDefID)
@@ -107,7 +105,9 @@ local function getCmdsForValidSpots(spots, shift)
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
 			local cmd = WG['resource_spot_builder'].PreviewExtractorCommand(pos, selectedMex, spot)
-			cmds[#cmds + 1] = cmd
+			if cmd then
+				cmds[#cmds + 1] = cmd
+			end
 		end
 	end
 	return cmds

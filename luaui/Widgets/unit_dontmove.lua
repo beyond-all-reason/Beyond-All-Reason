@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 
-local unitArray_ = {
+local unitNames = {
 
   --comms added below separately
 
@@ -109,17 +109,17 @@ local unitArray_ = {
 -- add commanders too
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
-		unitArray_[#unitArray_+1] = unitDef.name
+		unitNames[#unitNames+1] = unitDef.name
 	end
 end
 
 local unitArray = {}
-for _, name in pairs(unitArray_) do
+for _, name in pairs(unitNames) do
 	if UnitDefNames[name] then
 		unitArray[UnitDefNames[name].id] = true
 	end
 end
-unitArray_ = nil
+unitNames = nil
 
 local myTeamID = Spring.GetMyTeamID()
 

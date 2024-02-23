@@ -11,7 +11,7 @@ function ScoutBST:Init()
 	self.attacking = nil
 	self.evading = nil
 	self.active = false
-
+	self.position = self.unit:Internal():GetPosition()
 	self.mtype, self.network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.name = self.unit:Internal():Name()
 	self.isWeapon = self.ai.armyhst.unitTable[self.name].isWeapon
@@ -26,20 +26,7 @@ function ScoutBST:Init()
 end
 
 function ScoutBST:Priority()
-	local raider = self.ai.raidhst.raiders[self.id]
-	if not raider or not raider.inSquad then
-		self:EchoDebug('not in raider')
-		return 1
-	end
-	self:EchoDebug('priority',raider.inSquad)
-	local mySquad = self.ai.raidhst.squads[raider.inSquad]
- 	if raider and mySquad and  mySquad.target and mySquad.path then
-		self:EchoDebug('priority scout',self.id)
- 		return 0
- 	else
-		self:EchoDebug('priority scout',self.id)
- 		return 200
- 	end
+	return 100
 end
 
 function ScoutBST:Activate()
@@ -69,10 +56,10 @@ function ScoutBST:Evading()
 	if home then
 		home = home.position
 	else
-		home = self.unit:Internal():GetPosition()
+		home = self.position
 	end
 
-	home = self.ai.tool:RandomAway(home,300)
+	home = self.ai.tool:RandomAway2(home,300)
 	if home then
 		self.unit:Internal():Move(home)
 	end
@@ -91,13 +78,13 @@ end
 
 function ScoutBST:Scouting()
 	self:EchoDebug('scouting')
-	local randomAway = self.ai.tool:RandomAway(self.target,128)
+	local randomAway = self.ai.tool:RandomAway2(self.target,128)
 	self.unit:Internal():Move(randomAway)
 end
 
 function ScoutBST:ImmediateTarget()
 	self:EchoDebug('immediate targeting')
-	local scoutPos = self.unit:Internal():GetPosition()
+	local scoutPos = self.position
 	local bestDist = math.huge
 	if self.target then
 		bestDist = self.ai.tool:distance(scoutPos,self.target)
@@ -105,9 +92,11 @@ function ScoutBST:ImmediateTarget()
 	local attack
 	for Z,cells in pairs(self.ai.loshst.ENEMY) do
 		for X, cell in pairs(cells) do
-			local danger,subValues, targetCells = self.ai.maphst:getCellsFields(cell.POS,{'ARMED'},1,self.ai.loshst.ENEMY)
-			if self.ai.maphst:UnitCanGoHere(self.unit:Internal()) then
-				if danger < 1 then
+			--local danger,subValues, targetCells = self.ai.maphst:getCellsFields(cell.POS,{'ARMED'},1,self.ai.loshst.ENEMY)
+			if self.ai.maphst:UnitCanGoHere(self.unit:Internal(),cell.POS) then
+				local danger = cell.ENEMY_BALANCE
+				local unarm = cell.UNARM
+				if danger == 0 and unarm > 0 then
 					local d = self.ai.tool:DISTANCE(scoutPos,cell.POS)
 					if d < bestDist then
 						bestDist = d
@@ -130,8 +119,8 @@ function ScoutBST:Update()
 	end
 	if self.active then
 		local unit = self.unit:Internal()
-		local scoutPos = unit:GetPosition()
-		local X,Z = self.ai.maphst:PosToGrid(scoutPos)
+		self.position.x, self.position.y ,self.position.z = unit:GetRawPos()
+		local X,Z = self.ai.maphst:PosToGrid(self.position)
 		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
 		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
 		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
@@ -150,16 +139,13 @@ function ScoutBST:Update()
 			self:Attacking()
 			return
 		end
-
 		if not self.target  and not self.attacking and not self.evading  then
 			self.target = self.ai.scouthst:ClosestSpot2(self)
+			if self.target then
+				self:Scouting()
+			end
+
 		end
-
-		if self.target then
-			self:Scouting()
-		end
-
-
 		if self.target then
 			self:EchoDebug('check',self.id)
 			local X,Z = self.ai.maphst:PosToGrid(self.target)
@@ -167,14 +153,13 @@ function ScoutBST:Update()
 				self.target = nil
 			end
 		end
-
 	end
 	self.unit:ElectBehaviour()
 end
 
 
 function ScoutBST:bestAdjacentPos(unit,target)
-	local upos = unit:GetPosition()
+	local upos = self.position
 	local X, Z = self.ai.maphst:PosToGrid(upos)
 	local areacells = self.ai.maphst:areaCells(X,Z,1,self.ai.loshst.ENEMY)
 	local risky = {}

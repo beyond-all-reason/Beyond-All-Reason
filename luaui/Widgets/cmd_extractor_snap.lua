@@ -58,9 +58,7 @@ function widget:Initialize()
 
 	geoSpots = WG["resource_spot_finder"].geoSpotsList
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
 
 
@@ -253,6 +251,21 @@ function widget:Update()
 end
 
 
+-- Since mex snap bypasses normal building behavior, we have to hand hold gridmenu a little bit
+local function handleGridmenu(shift)
+	local grid = WG["gridmenu"]
+	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		return
+	end
+
+	if(not shift and not grid.getAlwaysReturn()) then
+		grid.clearCategory()
+	elseif grid.getAlwaysReturn() then
+		grid.setCurrentCategory(nil)
+	end
+end
+
+
 function widget:MousePress(x, y, button)
 	if isPregame then
 		return
@@ -262,12 +275,12 @@ function widget:MousePress(x, y, button)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			handleGridmenu(shift)
+			return true
 		end
 		if selectedGeo then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
-			if(not shift and WG["gridmenu"] and WG["gridmenu"].clearCategory) then
-				WG["gridmenu"].clearCategory()
-			end
+			handleGridmenu(shift)
 			return true -- override other mouse presses and handle stuff manually
 		end
 	end

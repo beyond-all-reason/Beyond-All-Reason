@@ -348,9 +348,6 @@ local function RefreshCommands()
 		else
 			categories = Cfgs.buildCategories
 			local buildOptions = unitBuildOptions[activeBuilder]
-			if isPregame and units.unbaStartBuildoptions then
-				buildOptions = units.unbaStartBuildoptions
-			end
 			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 		end
 	end
@@ -596,9 +593,6 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		if args[3] and args[3] == "builder" then
 			return false
 		end
-		if meta then
-			return
-		end
 
 		local opts
 
@@ -656,7 +650,6 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 
 	if alwaysReturn or not cmdOpts.shift then
 		setCurrentCategory(nil)
-		doUpdate = true
 	end
 end
 
@@ -787,6 +780,9 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
+	end
+	WG["gridmenu"].setCurrentCategory = function(category)
+		setCurrentCategory(category)
 	end
 	WG["gridmenu"].clearCategory = function()
 		clearCategory()

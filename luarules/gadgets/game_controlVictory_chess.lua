@@ -399,7 +399,7 @@ local landUnitsList = {
                 "armrattet4",
                 "armvadert4",
                 "corakt4",
-                "cordemont4",
+                "cordemon",
                 "corkarganetht4",
                 "corgolt4",
             },
