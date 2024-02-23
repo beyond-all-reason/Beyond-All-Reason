@@ -202,8 +202,8 @@ local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
-local updateRateMult = 1	-- goes up when more players	(auto adjusts)
-local updateFastRateMult = 1	-- goes up when more players	(auto adjusts)
+local updateRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
+local updateFastRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
 
 --------------------------------------------------------------------------------
 -- LockCamera variables
@@ -1305,10 +1305,12 @@ function UpdatePlayerResources()
     allyTeamMaxStorage = {}
     local energy, energyStorage, energyShare, metal, metalStorage, metalShare = 0, 1, 0, 0, 1, 0
     local energyIncome, metalIncome
+    local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if player[playerID].name and not player[playerID].spec and player[playerID].team then
+        if playerID < specOffset and player[playerID].name and not player[playerID].spec and player[playerID].team then
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
+                    displayedPlayers = displayedPlayers + 1
 					energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
 					metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
 					if energy == nil then
@@ -1346,6 +1348,9 @@ function UpdatePlayerResources()
 			end
         end
     end
+
+    updateRateMult = math.min(2, math.max(1, displayedPlayers*0.05))
+    updateFastRateMult = math.min(3.3, math.max(1, displayedPlayers*0.07))
 end
 
 function GetDark(red, green, blue)
