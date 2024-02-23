@@ -48,9 +48,7 @@ local exludedUnitsNames = {    -- exclude auto target range boost for popup unit
 -- convert unitname -> unitDefID + add scavengers
 local exludedUnits = {}
 for name, params in pairs(exludedUnitsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		exludedUnits[UnitDefNames[name].id] = params
 		if UnitDefNames[name..'_scav'] then
 			exludedUnits[UnitDefNames[name..'_scav'].id] = params

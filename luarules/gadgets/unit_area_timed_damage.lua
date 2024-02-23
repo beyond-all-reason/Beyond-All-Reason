@@ -256,9 +256,7 @@ local TimedDamageWeaponsNames = {
 -- convert weaponname -> weaponDefID
 local TimedDamageWeapons = {}
 for name, params in pairs(TimedDamageWeaponsNames) do
-	if not WeaponDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find weapon name: '..name)
-	else
+	if WeaponDefNames[name] then
 		TimedDamageWeapons[WeaponDefNames[name].id] = params
 	end
 end
@@ -309,9 +307,7 @@ local TimedDamageDyingUnitsNames = {
 -- convert unitname -> unitDefID
 local TimedDamageDyingUnits = {}
 for name, params in pairs(TimedDamageDyingUnitsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		TimedDamageDyingUnits[UnitDefNames[name].id] = params
 	end
 end

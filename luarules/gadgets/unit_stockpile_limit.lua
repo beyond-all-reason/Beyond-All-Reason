@@ -63,9 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- convert unitname -> unitDefID + add scavengers
 	local isStockpilingUnit = {}
 	for name, params in pairs(isStockpilingUnitNames) do
-		if not UnitDefNames[name] then
-			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-		else
+		if UnitDefNames[name] then
 			isStockpilingUnit[UnitDefNames[name].id] = params
 			if UnitDefNames[name..'_scav'] then
 				isStockpilingUnit[UnitDefNames[name..'_scav'].id] = params
