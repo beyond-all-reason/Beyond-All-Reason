@@ -412,6 +412,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 		else
 			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
+			-- issuing any command without shift will clear the queue for us,
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
 			local fakeShift = i == 1 and shift or true
