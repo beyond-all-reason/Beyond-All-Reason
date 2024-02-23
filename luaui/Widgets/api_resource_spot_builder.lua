@@ -394,50 +394,29 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		return
 	end
 
-	local checkDuplicateOrders = true
-	local alt, ctrl, meta, _ = Spring.GetModKeyState()
+	local _, _, meta, _ = Spring.GetModKeyState()
 
-	local unitArray = {}
-	for ct = 1, #mainBuilders do
-		unitArray[#unitArray + 1] = mainBuilders[ct]
+	local unitArray = {} -- make unit array to avoid extra work
+	for i = 1, #mainBuilders do
+		unitArray[#unitArray + 1] = mainBuilders[i]
 	end
-
-	local mexOrders = {}
 
 	for i = 1, #cmds do
 		local cmd = cmds[i]
-
 		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		local duplicateFound = false
-
-		if checkDuplicateOrders then
-			for mI, mexOrder in pairs(mexOrders) do
-				if mexOrder["id"] == buildingId then
-					local mParams = mexOrder["params"]
-					if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
-						duplicateFound = true
-						mexOrders[mI] = nil
-						break
-					end
-				end
-			end
-		end
-
-		if not(checkDuplicateOrders and duplicateFound) then
+		if meta then -- put at front of queue
+			-- cmd insert layout is really weird, it needs to be formatted like:
+			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
+			-- this an engine command so index starts at 0. Increment position by command count
+			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+		else
 			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
 			local fakeShift = i == 1 and shift or true
-			if meta then
-				-- cmd insert layout is really weird, it needs to be formatted like:
-				-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
-				-- this an engine command so index starts at 0. Increment position by command count
-				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
-			else
-				opt = fakeShift and { "shift" } or { }
-				Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
-			end
+			local opt = fakeShift and { "shift" } or { }
+			Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 		end
 	end
 end
