@@ -321,10 +321,11 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	for i, uid in pairs(secondaryBuilders) do
 		local mainBuilderId = mainBuilders[index]
 		if not shift then
-			spGiveOrderToUnit(uid, CMD_STOP, {}, { })
-			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { })
 			index = index + 1
 		end
+		-- if we give a guard order on a unit already guarded with shift, it will get cancelled
+		-- so do some queue analysis and avoid duplicate commands
 		if shift and not hasExistingGuardOrder(uid) then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
 			index = index + 1
