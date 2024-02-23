@@ -365,9 +365,9 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 		end
-		
+
 		--Drone Carriers
-		
+
 		if name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
@@ -376,7 +376,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
 		end
-		
+
 	end
 
 	-- Add scav units to normal factories and builders
