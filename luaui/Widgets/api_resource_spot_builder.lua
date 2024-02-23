@@ -18,6 +18,10 @@ end
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_META = CMD.OPT_META
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -391,44 +395,65 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	end
 
 	local checkDuplicateOrders = true
+	local alt, ctrl, meta, _ = Spring.GetModKeyState()
 
 	-- Shift key not used = give stop command first
-	if not shift then
-		checkDuplicateOrders = false -- no need to check for duplicate orders
-		for ct = 1, #mainBuilders do
-			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
-		end
+	--if not shift then
+	--	checkDuplicateOrders = false -- no need to check for duplicate orders
+	--	for ct = 1, #mainBuilders do
+	--		spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
+	--	end
+	--end
+
+
+	local unitArray = {}
+	for ct = 1, #mainBuilders do
+		unitArray[#unitArray + 1] = mainBuilders[ct]
 	end
 
+	local mexOrders = {}
+
 	local finalCommands = {}
-	for ct = 1, #mainBuilders do
-		local id = mainBuilders[ct]
-		local mexOrders = {}
+	for i = 1, #cmds do
+		local cmd = cmds[i]
 
-		for i = 1, #cmds do
-			local cmd = cmds[i]
+		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-			local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
+		local duplicateFound = false
 
-			local duplicateFound = false
-
-			if checkDuplicateOrders then
-				for mI, mexOrder in pairs(mexOrders) do
-					if mexOrder["id"] == buildingId then
-						local mParams = mexOrder["params"]
-						if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
-							duplicateFound = true
-							mexOrders[mI] = nil
-							break
-						end
+		if checkDuplicateOrders then
+			for mI, mexOrder in pairs(mexOrders) do
+				if mexOrder["id"] == buildingId then
+					local mParams = mexOrder["params"]
+					if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
+						duplicateFound = true
+						mexOrders[mI] = nil
+						break
 					end
 				end
 			end
+		end
 
-			if not(checkDuplicateOrders and duplicateFound) then
-				finalCommands[#finalCommands + 1] = { id, math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
-				spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
+		if not(checkDuplicateOrders and duplicateFound) then
+			finalCommands[#finalCommands + 1] = { math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
+			local fakeShift = i == 1 and shift or true
+			local opt = 0
+			if alt then opt = opt + CMD.OPT_ALT end
+			if ctrl then opt = opt + CMD.OPT_CTRL end
+			if right then opt = opt + CMD.OPT_RIGHT end
+			if fakeShift then opt = opt + CMD.OPT_SHIFT end
+			if meta then
+				--opt = fakeShift and { "shift" } or { }
+				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, opt, unpack(orderParams) }, { "alt" })
+			else
+				opt = fakeShift and { "shift" } or { }
+				Spring.Echo("giving order with shift", table.toString(opt))
+				Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
+				--spGiveOrderToUnit(mainBuilders[1], -buildingId, orderParams, { "shift" })
 			end
+
+			-- spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
+
 		end
 	end
 	return finalCommands
