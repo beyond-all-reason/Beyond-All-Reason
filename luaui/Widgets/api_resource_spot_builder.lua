@@ -397,15 +397,6 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	local checkDuplicateOrders = true
 	local alt, ctrl, meta, _ = Spring.GetModKeyState()
 
-	-- Shift key not used = give stop command first
-	--if not shift then
-	--	checkDuplicateOrders = false -- no need to check for duplicate orders
-	--	for ct = 1, #mainBuilders do
-	--		spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
-	--	end
-	--end
-
-
 	local unitArray = {}
 	for ct = 1, #mainBuilders do
 		unitArray[#unitArray + 1] = mainBuilders[ct]
@@ -413,7 +404,6 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 
 	local mexOrders = {}
 
-	local finalCommands = {}
 	for i = 1, #cmds do
 		local cmd = cmds[i]
 
@@ -435,28 +425,21 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		end
 
 		if not(checkDuplicateOrders and duplicateFound) then
-			finalCommands[#finalCommands + 1] = { math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
+			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
+			-- so we use the real shift value for the first command, then we force shift for all the others
+			-- since any commands passed to this function are intended to be queued, not discarded.
 			local fakeShift = i == 1 and shift or true
-			local opt = 0
-			if alt then opt = opt + CMD.OPT_ALT end
-			if ctrl then opt = opt + CMD.OPT_CTRL end
-			if right then opt = opt + CMD.OPT_RIGHT end
-			if fakeShift then opt = opt + CMD.OPT_SHIFT end
 			if meta then
-				--opt = fakeShift and { "shift" } or { }
-				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, opt, unpack(orderParams) }, { "alt" })
+				-- cmd insert layout is really weird, it needs to be formatted like:
+				-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
+				-- this an engine command so index starts at 0. Increment position by command count
+				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 			else
 				opt = fakeShift and { "shift" } or { }
-				Spring.Echo("giving order with shift", table.toString(opt))
 				Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
-				--spGiveOrderToUnit(mainBuilders[1], -buildingId, orderParams, { "shift" })
 			end
-
-			-- spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
-
 		end
 	end
-	return finalCommands
 end
 
 
