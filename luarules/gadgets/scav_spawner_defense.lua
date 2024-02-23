@@ -781,7 +781,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
-				
+
 				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
 					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
@@ -1225,7 +1225,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
 						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
 							local attempts = 0
 							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
@@ -1475,7 +1475,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
 			else
-				Spring.Echo("Error: Cannot spawn unit " .. defs.unitName .. ", invalid name.")
+				--Spring.Echo("Error: Cannot spawn unit " .. defs.unitName .. ", invalid name.")
 				spawnQueue[i] = nil
 				return
 			end

@@ -112,9 +112,7 @@ local convertedUnitsNames = {
 -- convert unitname -> unitDefID
 local convertedUnits = {}
 for name, params in pairs(convertedUnitsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		convertedUnits[UnitDefNames[name].id] = params
 	end
 end
@@ -131,9 +129,7 @@ local spamUnitsTeamsNames = { --{unitDefID = {teamID = totalcreated,...}}
 -- convert unitname -> unitDefID
 local spamUnitsTeams = {}
 for name, params in pairs(spamUnitsTeamsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		spamUnitsTeams[UnitDefNames[name].id] = params
 	end
 end

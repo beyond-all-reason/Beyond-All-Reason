@@ -29,9 +29,7 @@ local unitdefConfigNames = {
 -- convert unitname -> unitDefID
 local unitdefConfig = {}
 for unitName, params in pairs(unitdefConfigNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Echo('WARNING... unit_auto_cloak: couldnt apply for not existing unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		unitdefConfig[UnitDefNames[unitName].id] = params
 	end
 end

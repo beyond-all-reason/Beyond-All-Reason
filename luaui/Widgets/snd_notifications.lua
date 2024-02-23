@@ -147,9 +147,7 @@ local unitsOfInterestNames = {
 -- convert unitname -> unitDefID
 local unitsOfInterest = {}
 for unitName, sound in pairs(unitsOfInterestNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Echo('WARNING... snd_notifications: couldnt apply sound/warning for unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		unitsOfInterest[UnitDefNames[unitName].id] = sound
 	end
 end

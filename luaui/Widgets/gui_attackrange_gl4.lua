@@ -12,7 +12,6 @@ function widget:GetInfo()
 		license = "GPLv2",
 		layer   = -99,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -442,7 +441,7 @@ local attackRangeShader = nil
 
 local function goodbye(reason)
 	Spring.Echo("AttackRange GL4 widget exiting with reason: " .. reason)
-	widgetHandler:RemoveWidget(widget)
+	widgetHandler:RemoveWidget()
 end
 
 local function makeCircleVBO(circleSegments)
@@ -1056,7 +1055,7 @@ function widget:Initialize()
 		unitToggles[i] = v
 	end
 
-	widgetHandler.actionHandler:AddAction(self, "cursor_range_toggle", ToggleCursorRange, nil, "p")
+	widgetHandler:AddAction("cursor_range_toggle", ToggleCursorRange, nil, "p")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	local allyteamlist = Spring.GetAllyTeamList()
@@ -1085,6 +1084,10 @@ function widget:Initialize()
 		cursor_unit_range = value
 		widget:Initialize()
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("cursor_range_toggle", "p")
 end
 
 local gameFrame = 0

@@ -269,12 +269,13 @@ lightCacheTable[16] = 1
 local lightParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable light parameters
 	posx = 1, posy = 2, posz = 3, radius = 4,
 	r = 9, g = 10, b = 11, a = 12,
-	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, animtype = 20 -- unused
-	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE!
+	lifetime = 18, sustain = 19, animtype = 20, -- animtype unused
+	
+	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE! -- Nope, beherith ate these like a greedy boy
+	color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point lights only, colortime in seconds for unit-attached
 }
 
 local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
@@ -367,7 +368,7 @@ local function initGL4()
 				-- for cone, this is center.xyz and height
 				-- for beam this is center.xyz and radiusleft
 			{id = 4, name = 'worldposrad2', size = 4},
-				-- for spot, this is 0
+				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
 			{id = 5, name = 'lightcolor', size = 4},
@@ -565,10 +566,10 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
 		lightparams[20] = animtype or 0
-		lightparams[21] = 0 -- unused
-		lightparams[22] = 0 --unused
-		lightparams[23] = 0 --unused
-		lightparams[24] = 0 --unused
+		lightparams[21] = r2 or 0
+		lightparams[22] = g2 or 0
+		lightparams[23] = b2 or 0
+		lightparams[24] = colortime or 0
 		lightparams[pieceIndexPos] = pieceIndex or 0
 	else
 		lightparams = px_or_table
@@ -1305,13 +1306,13 @@ local function updateProjectileLights(newgameframe)
 				if newgameframe then
 					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
-					if lightType == 'point' then
-						local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
-					elseif lightType == 'cone' then
+					if lightType ~= 'beam' then 
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
-					end -- NOTE: WE DONT UPDATE BEAM POS!
-					if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
+						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
+							projectileID, px,py,pz, nil, dx,dy,dz)
+						if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+					end
+					
 				end
 			else
 				-- add projectile
@@ -1333,19 +1334,21 @@ local function updateProjectileLights(newgameframe)
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
 
+
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
 						if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
 
+						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+
 						if lightType == 'beam' then
-							local dx,dy,dz = spGetProjectileVelocity(projectileID)
 							lightParamTable[5] = px + dx
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
-						elseif lightType == 'cone' then
-
-							local dx,dy,dz = spGetProjectileVelocity(projectileID)						lightParamTable[5] = dx
+						else 
+							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
+							lightParamTable[5] = dx
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
@@ -1376,9 +1379,12 @@ local function updateProjectileLights(newgameframe)
 			-- SO says we can modify or remove elements while iterating, we just cant add
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then
-				if newgameframe then
-					updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
+			if px then -- this means that this projectile 
+				local lightType = trackedProjectileTypes[projectileID]
+				if newgameframe and lightType ~= 'beam' then
+					local dx,dy,dz = spGetProjectileVelocity(projectileID)
+					updateLightPosition(projectileLightVBOMap[lightType], 
+						projectileID, px,py,pz, nil, dx,dy,dz )
 				end
 			else
 				numremoved = numremoved + 1
