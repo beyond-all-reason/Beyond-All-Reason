@@ -3,7 +3,7 @@
 
 
 #define SIGNAL_BUILD 2
-#define SIG_MOTION		8	
+#define SIGNAL_MOVE	1	
 piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
@@ -11,8 +11,8 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	signal SIG_MOTION;
-	set-signal-mask SIG_MOTION;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	show thrust;
 	if( TRUE )
 	{
@@ -26,8 +26,8 @@ activatescr()
 
 deactivatescr()
 {
-	signal SIG_MOTION;
-	set-signal-mask SIG_MOTION;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	hide nanolight;
 	hide thrust;
 	if( TRUE )

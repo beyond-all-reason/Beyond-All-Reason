@@ -8,7 +8,7 @@ static-var  gun_1, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_ROCK		8
+#define SIGNAL_ROCK 64
 
 
 #define BASEPIECE base
@@ -45,8 +45,8 @@ ProjXPW(Func_Var_1, Func_Var_2)
 
 RockZ(Func_Var_1, Func_Var_2)
 {
-	signal SIG_ROCK;
-	set-signal-mask SIG_ROCK;
+	signal SIGNAL_ROCK;
+	set-signal-mask SIGNAL_ROCK;
 	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
 	Static_Var_5 = Static_Var_5 + Static_Var_4;
 	Static_Var_4 = get ABS(Static_Var_5);
