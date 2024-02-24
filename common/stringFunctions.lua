@@ -38,13 +38,13 @@ if not string.lines then
 end
 
 -- Returns python style tuple string.partition()
-if not string.partition then 
+if not string.partition then
 	function string:partition(sep)
 		local seppos = self:find(sep, nil, true)
-		if seppos == nil then 
-			return self, nil, nil 
+		if seppos == nil then
+			return self, nil, nil
 		else
-			if seppos == 1 then 
+			if seppos == 1 then
 				return nil, sep, self:sub(sep:len()+1)
 			else
 				return self:sub(1, seppos -1), sep, self:sub(seppos + sep:len())
