@@ -1,8 +1,8 @@
 #ifndef SCRIPTS_YARD_H
 #define SCRIPTS_YARD_H
 
-// keep trying to open building's yard until we succeed
-OpenYard()
+// keep trying to open building'sbuild areauntil we succeed
+OpenBuildArea()
 	{
 	set YARD_OPEN to TRUE;
 
@@ -17,8 +17,8 @@ OpenYard()
 	}
 
 
-// keep trying to close building's yard until we succeed
-CloseYard()
+// keep trying to close building'sbuild areauntil we succeed
+CloseBuildArea()
 	{
 	set YARD_OPEN to FALSE;
 

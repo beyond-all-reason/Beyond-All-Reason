@@ -80,7 +80,7 @@ deactivatescr()
 }
 
 
-OpenYard()
+OpenBuildArea()
 {
 	set YARD_OPEN to 1;
 	while( !get YARD_OPEN )
@@ -92,7 +92,7 @@ OpenYard()
 	set BUGGER_OFF to 0;
 }
 
-CloseYard()
+CloseBuildArea()
 {
 	set YARD_OPEN to 0;
 	while( get YARD_OPEN )
@@ -107,14 +107,14 @@ CloseYard()
 Go()
 {
 	call-script activatescr();
-	call-script OpenYard();
+	call-script OpenBuildArea();
 	set INBUILDSTANCE to 1;
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	call-script CloseYard();
+	call-script CloseBuildArea();
 	call-script deactivatescr();
 }
 

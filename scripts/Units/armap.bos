@@ -60,7 +60,7 @@ deactivatescr()
 }
 
 
-OpenYard()
+OpenBuildArea()
 {
 	set YARD_OPEN to 1;
 	while( !get YARD_OPEN )
@@ -71,7 +71,7 @@ OpenYard()
 	}
 }
 
-CloseYard()
+CloseBuildArea()
 {
 	set YARD_OPEN to 0;
 	while( get YARD_OPEN )
@@ -85,7 +85,7 @@ CloseYard()
 Go()
 {
 	call-script activatescr();
-	call-script OpenYard();
+	call-script OpenBuildArea();
 	set INBUILDSTANCE to 1;
 }
 
@@ -94,7 +94,7 @@ Stop()
 	set INBUILDSTANCE to 0;
 	hide cagelight_emit;
 	//turn cagelight to y-axis <0> speed <1000>;
-	call-script CloseYard();
+	call-script CloseBuildArea();
 	call-script deactivatescr();
 }
 

@@ -34,7 +34,7 @@ deactivatescr()
 	//sleep 25;
 }
 
-OpenYard()
+OpenBuildArea()
 {
 	set YARD_OPEN to 1;
 	while( !get YARD_OPEN )
@@ -45,7 +45,7 @@ OpenYard()
 	}
 }
 
-CloseYard()
+CloseBuildArea()
 {
 	set YARD_OPEN to 0;
 	while( get YARD_OPEN )
@@ -59,7 +59,7 @@ CloseYard()
 Go()
 {
 	call-script activatescr();
-	call-script OpenYard();
+	call-script OpenBuildArea();
 	//spin dish1 around z-axis speed <150.0>;
 	//spin dish2 around z-axis speed <150.0>;
 	set INBUILDSTANCE to 1;
@@ -68,7 +68,7 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	call-script CloseYard();
+	call-script CloseBuildArea();
 	//spin dish1 around z-axis speed <0.0>;
 	//spin dish2 around z-axis speed <0.0>;
 	call-script deactivatescr();
