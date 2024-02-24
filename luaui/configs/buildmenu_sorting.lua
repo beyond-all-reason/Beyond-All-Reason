@@ -213,6 +213,7 @@ local unitOrderTable = {
 	['corvroc']        = 006420,
 	['armmerl']        = 006430,
 	['corban']         = 006440,
+	['legmed']         = 006450,
 
 	['armfido']        = 006500, --ARTILLERY
 	['cormort']        = 006510,
