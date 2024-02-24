@@ -523,8 +523,10 @@ end
 
 function widget:Shutdown()
 	-- Stop drawing all ghosts
-	for id, _ in pairs(unitshapes) do
-		removeUnitShape(id)
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
 	end
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
