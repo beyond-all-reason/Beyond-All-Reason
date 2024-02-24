@@ -3,7 +3,7 @@
 
 piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel, rflare, luparm, lblimb, lflimb, lcannon, lbarrel, lflare;
 
-static-var  Static_Var_1, gun_1, isMoving, isAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
+static-var  gun_1, isMoving, isAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
 
 // Signal definitions
 #define SIG_WALK			2
@@ -406,7 +406,6 @@ Create()
 	gun_1 = 0;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_1 = 3500;
 	wpnheading  = 0;
 	animSpeed = 6;
 	shotcount = 0;
@@ -423,8 +422,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 RestoreAfterDelay(Func_Var_1)
 {
+	sleep 3500;
 	set-signal-mask SIG_AIM;
-	sleep Static_Var_1;
 	turn aimx1 to x-axis <0> speed <75>;
 	turn aimy1 to y-axis <0> speed <75>;
 	wait-for-turn aimy1 around y-axis;

@@ -4,7 +4,7 @@
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
        rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
+static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -277,7 +277,6 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
 	restore_delay = 3000;
 	animSpeed = 4;
 }
@@ -330,10 +329,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
+
 	turn aimy1 to y-axis heading speed <130.027473>;
 	turn aimx1 to x-axis <-90> - pitch speed <180.021978>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
