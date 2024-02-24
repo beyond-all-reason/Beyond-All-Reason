@@ -71,10 +71,7 @@ Create()
 	start-script Activate();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -174,10 +174,7 @@ AimFromPrimary(piecenum)
 	piecenum = sleeve;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

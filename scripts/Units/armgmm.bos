@@ -89,10 +89,7 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

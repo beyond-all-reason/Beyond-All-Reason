@@ -131,10 +131,7 @@ AimFromPrimary(piecenum)
 	piecenum = turret;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

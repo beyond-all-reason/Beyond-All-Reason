@@ -123,10 +123,7 @@ SetSpeed(Func_Var_1)
 	Static_Var_8 = Func_Var_1 * 400;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimPrimary(heading, pitch)
 {

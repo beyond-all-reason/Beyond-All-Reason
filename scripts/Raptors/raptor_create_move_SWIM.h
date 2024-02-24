@@ -95,10 +95,7 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum=body;	
-}	
+	
 
 	
 RestoreAfterDelay()

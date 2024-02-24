@@ -111,10 +111,7 @@ QueryPrimary(piecenum)
 	piecenum = barrel;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimFromPrimary(piecenum)
 {

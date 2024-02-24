@@ -71,10 +71,7 @@ Deactivate()
 	stop-spin dish around y-axis;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -363,10 +363,7 @@ StopMoving()
 	call-script StopWalking();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 AimFromPrimary(piecenum)
 {

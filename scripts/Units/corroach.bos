@@ -181,10 +181,7 @@ FireWeapon2()
 {
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = lega2;
-}
+
 
 Killed(severity, corpsetype)
 {

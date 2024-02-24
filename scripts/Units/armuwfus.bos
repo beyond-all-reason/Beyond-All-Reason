@@ -85,11 +85,7 @@ SetStunned(State)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

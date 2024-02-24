@@ -635,11 +635,7 @@ Create()
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-	return (0);
-}
+
 
 QueryPrimary(piecenum)
 {

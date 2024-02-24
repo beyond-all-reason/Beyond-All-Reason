@@ -126,10 +126,7 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Activate()
 {

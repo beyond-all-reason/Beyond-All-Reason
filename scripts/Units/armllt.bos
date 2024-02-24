@@ -63,10 +63,7 @@ QueryPrimary(piecenum)
 	piecenum = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 #define BASEPIECE base
 #define HITSPEED <20.0>

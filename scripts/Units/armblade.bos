@@ -111,10 +111,7 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 
 QueryPrimary(piecenum)

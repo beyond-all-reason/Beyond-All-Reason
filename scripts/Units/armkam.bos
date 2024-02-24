@@ -164,10 +164,7 @@ StopMoving()
 	wait-for-move lfin along z-axis;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

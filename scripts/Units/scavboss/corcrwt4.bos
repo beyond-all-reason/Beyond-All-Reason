@@ -87,10 +87,7 @@ Deactivate()
 	hide thrustfla;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = aimy;
-}
+
 
 //flamer
 QueryPrimary(piecenum)

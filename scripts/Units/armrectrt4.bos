@@ -355,10 +355,7 @@ StopBuilding()
 	start-script RequestState(1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = pelvis;
-}
+
 
 QueryNanoPiece(piecenum)
 {

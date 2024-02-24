@@ -534,11 +534,7 @@ ResumeBuilding()
 //--gun functions;
 //-----------------------------------------------------------------------
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
+
 /////////// pew pew laser
 QueryPrimary(piecenum) //pew laser
 {

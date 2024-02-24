@@ -366,10 +366,7 @@ StopMoving()
 	call-script StopWalking();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = pelvis;
-}
+
 
 AimFromPrimary(piecenum)
 {

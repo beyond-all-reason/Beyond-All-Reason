@@ -169,10 +169,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-}
+
 
 AimFromPrimary(piecenum)
 {

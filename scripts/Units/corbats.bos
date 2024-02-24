@@ -474,10 +474,7 @@ QueryWeapon4(piecenum)
 	piecenum = flarea;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

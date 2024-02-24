@@ -223,10 +223,7 @@ QueryBuildInfo(piecenum)
 	piecenum = base;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = pad;
-}
+
 
 Killed(severity, corpsetype)
 {

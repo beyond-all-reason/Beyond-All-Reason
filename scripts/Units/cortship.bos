@@ -95,10 +95,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.25];
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 StartDoorOpen()
 {

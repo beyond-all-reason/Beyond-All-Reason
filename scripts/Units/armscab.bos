@@ -446,11 +446,7 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-	return (0);
-}
+
 
 stocked_no()
 {

@@ -74,11 +74,7 @@ Create()
 	start-script UnitSpeed();
 }
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
+
 
 QueryPrimary(piecenum)
 	{	piecenum=head; }

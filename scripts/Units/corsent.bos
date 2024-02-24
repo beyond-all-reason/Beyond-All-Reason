@@ -126,10 +126,7 @@ QuerySecondary(piecenum)
 		piecenum = flare2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-}
+
 
 Killed(severity, corpsetype)
 {

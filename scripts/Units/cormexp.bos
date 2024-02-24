@@ -237,10 +237,7 @@ SetSpeed(Func_Var_1)
 	ExtractionSpeed = Func_Var_1 * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -529,10 +529,7 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

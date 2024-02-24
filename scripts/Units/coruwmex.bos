@@ -89,10 +89,7 @@ Deactivate()
 	signal SIG_ACTIVATE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 SetSpeed(Func_Var_1)
 {

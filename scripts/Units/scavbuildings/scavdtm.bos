@@ -189,10 +189,7 @@ QueryPrimary(piecenum)
 	if (firepoint == 2 ) piecenum = flare3;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimFromPrimary(piecenum)
 {

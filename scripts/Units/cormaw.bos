@@ -156,10 +156,7 @@ QueryPrimary(piecenum)
 	piecenum = firepoint;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimFromPrimary(piecenum)
 {

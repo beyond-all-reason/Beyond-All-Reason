@@ -70,10 +70,7 @@ FirePrimary(Func_Var_1)
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

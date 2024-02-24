@@ -287,10 +287,7 @@ StopBuilding()
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-}
+
 
 SetMaxReloadTime(Func_Var_1)
 {

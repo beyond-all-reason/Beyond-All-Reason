@@ -149,10 +149,7 @@ AimFromPrimary(piecenum)
 	piecenum = aimpoint;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Shot1()
 {

@@ -57,11 +57,7 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 #include "raptor_create_move_swim.h"
 
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-	return (0);
-}
+
 
 AimFromPrimary(piecenum)
 {

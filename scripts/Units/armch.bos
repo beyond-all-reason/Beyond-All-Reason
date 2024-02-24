@@ -239,10 +239,7 @@ QueryNanoPiece(piecenum)
 	piecenum = beam;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -90,10 +90,7 @@ QueryPrimary(piecenum)
 	piecenum = gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 StartMoving()
 {
 	spin lwheel around x-axis speed <150> accelerate <15>;

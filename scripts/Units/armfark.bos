@@ -355,10 +355,7 @@ StopMoving()
 	call-script StopWalking();	
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = pelvis;
-}
+
 
 QueryNanoPiece(piecenum)
 {

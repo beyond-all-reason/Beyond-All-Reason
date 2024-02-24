@@ -350,10 +350,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 QueryLandingPad(piecenum)
 {

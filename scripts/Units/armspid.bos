@@ -638,10 +638,7 @@ StopBuilding()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-}
+
 
 
 QueryNanoPiece(piecenum)

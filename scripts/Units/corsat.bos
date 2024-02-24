@@ -60,10 +60,7 @@ Deactivate()
 	turn bwing to x-axis <40> speed <45>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -363,10 +363,7 @@ StopMoving()
 	isMoving = FALSE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

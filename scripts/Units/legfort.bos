@@ -65,10 +65,7 @@ Deactivate()
 	hide thrustfla;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 QueryPrimary(piecenum)
 {

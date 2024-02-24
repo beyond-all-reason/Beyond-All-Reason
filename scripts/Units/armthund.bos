@@ -121,10 +121,7 @@ AimPrimary(heading, pitch)
 	turn doorr to z-axis <60> speed <120>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 FirePrimary()
 {

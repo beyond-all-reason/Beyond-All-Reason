@@ -54,11 +54,7 @@ Create()
 	start-script UnitSpeed();
 }
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=aimy1;	}
+
 
 QueryPrimary(piecenum)
 	{	piecenum=firepoint; }

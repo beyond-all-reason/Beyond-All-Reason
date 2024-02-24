@@ -196,11 +196,7 @@ RestoreAfterDelay()
 }
 
 
-SweetSpot(piecenum)
-	{	piecenum=torso;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=torso;	}
+
 
 QueryPrimary(piecenum)
 	{	piecenum=flare; }

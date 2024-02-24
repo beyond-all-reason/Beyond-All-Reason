@@ -201,10 +201,7 @@ StopMoving()
 	start-script stopwalk();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 
 RestoreAfterDelay(Func_Var_1)

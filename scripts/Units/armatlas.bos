@@ -137,10 +137,7 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 
 QueryTransport(Func_Var_1)

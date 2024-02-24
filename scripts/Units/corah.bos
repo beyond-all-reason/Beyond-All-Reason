@@ -217,11 +217,7 @@ QueryWeapon1(Func_Var_1)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

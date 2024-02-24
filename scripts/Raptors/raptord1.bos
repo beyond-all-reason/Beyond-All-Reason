@@ -32,10 +32,7 @@ QueryPrimary(piecenum)
 	piecenum = firepoint;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-}
+
 
 HitByWeaponId()
 {

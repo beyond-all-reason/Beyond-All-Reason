@@ -422,10 +422,7 @@ StopBuilding()
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 
 QueryPrimary(piecenum)

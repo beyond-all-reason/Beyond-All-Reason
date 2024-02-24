@@ -406,10 +406,7 @@ QueryNanoPiece(piecenum)
 	piecenum = nano;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armck_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()

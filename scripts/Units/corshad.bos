@@ -82,10 +82,7 @@ QueryPrimary(piecenum)
 	piecenum = bombbay;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

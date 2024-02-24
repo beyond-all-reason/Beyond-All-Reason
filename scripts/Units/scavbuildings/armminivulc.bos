@@ -112,10 +112,7 @@ AimFromPrimary(piecenum)
 	piecenum = spindle;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

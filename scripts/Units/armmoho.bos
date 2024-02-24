@@ -90,10 +90,7 @@ SetSpeed(Func_Var_1)
 	meatspin = Func_Var_1 * 2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

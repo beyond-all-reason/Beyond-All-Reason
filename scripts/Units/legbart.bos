@@ -576,10 +576,7 @@ Create()
 	animSpeed = 4;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 
 AimFromWeapon1(piecenum)

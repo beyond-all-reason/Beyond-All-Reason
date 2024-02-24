@@ -357,10 +357,7 @@ QueryPrimary(piecenum)
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = aimy;
-}
+
 
 Killed(severity, corpsetype)
 {

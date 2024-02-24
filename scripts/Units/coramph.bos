@@ -397,10 +397,7 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 SetStunned(State)
 {

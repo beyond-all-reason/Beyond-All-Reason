@@ -102,10 +102,7 @@ HitByWeapon(anglex, anglez)
 	set ACTIVATION to 1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -185,10 +185,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.17];
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 QueryLandingPad(Func_Var_1, Func_Var_2)
 {

@@ -519,10 +519,7 @@ QueryPrimary(piecenum)
 	
 	
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-}
+
 
 
 static-var  Stunned;

@@ -1081,11 +1081,7 @@ RestoreAfterDelay()
 }
 
 
-SweetSpot(piecenum)
-	{	piecenum=rig_Raptor_Artillery_Thorax;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=rig_Raptor_Artillery_Thorax;	}
+
 
 QueryPrimary(piecenum)
 	{	piecenum=rig_Raptor_Artillery_Tail5; }

@@ -104,10 +104,7 @@ QueryPrimary(piecenum)
 {
 	piecenum = drop;
 }
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 FireWeaponPrimary()
 {
 	turn circle to y-axis  <240> speed <300>;

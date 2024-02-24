@@ -135,10 +135,7 @@ AimFromPrimary(piecenum)
 	piecenum = stand;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = stand;
-}
+
 
 Killed(severity, corpsetype)
 {

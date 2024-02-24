@@ -183,11 +183,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

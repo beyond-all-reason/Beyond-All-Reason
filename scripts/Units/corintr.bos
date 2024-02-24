@@ -35,10 +35,7 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 BoomCalc(posxz, posy)
 {

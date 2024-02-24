@@ -1301,10 +1301,7 @@ AimFromWeapon4(piecenum)
 	piecenum = flare24;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base1;
-}
+
 
 Killed(severity, corpsetype)
 {

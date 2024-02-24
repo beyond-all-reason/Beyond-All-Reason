@@ -280,10 +280,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.17];
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimFromWeapon1(piecenum)
 {

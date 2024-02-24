@@ -398,11 +398,7 @@ RestoreAfterDelay(){
 	wpn1_lasthead = 1000000;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = Main_hull;
-	return (0);
-}
+
 
 QueryWeapon1(piecenum) //Hull Rotation
 {

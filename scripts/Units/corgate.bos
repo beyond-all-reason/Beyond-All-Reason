@@ -107,10 +107,7 @@ AimFromPrimary(piecenum)
 	piecenum = base;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimSecondary(heading, pitch)
 {

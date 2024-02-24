@@ -86,11 +86,7 @@ Deactivate()
 /*    a2:*/	return (0);
 /*    a3:*/}
 
-SweetSpot(piecenum)
-/*    a4:*/{
-/*    a6:*/	piecenum = base;
-/*    aa:*/	return (0);
-/*    ab:*/}
+
 
 Killed(severity, corpsetype)
 {

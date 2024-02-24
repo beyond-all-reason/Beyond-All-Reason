@@ -1086,10 +1086,7 @@ StopMoving()
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 DrawWeapon1()
 {

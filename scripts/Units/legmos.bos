@@ -167,10 +167,7 @@ MoveRate3()
 	set-signal-mask SIG_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

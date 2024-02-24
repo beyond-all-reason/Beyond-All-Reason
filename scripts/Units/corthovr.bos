@@ -120,11 +120,7 @@ StopMoving()
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 StartDoorOpen()
 {

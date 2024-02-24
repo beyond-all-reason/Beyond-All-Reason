@@ -83,10 +83,7 @@ Create()
 	start-script IdleHover();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 QueryTransport(Func_Var_1, Func_Var_2)
 {

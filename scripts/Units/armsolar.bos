@@ -135,10 +135,7 @@ HitByWeapon(anglex, anglez)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -122,10 +122,7 @@ AimPrimary()
 	turn doorr to z-axis <90.000000> speed <25.000000>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

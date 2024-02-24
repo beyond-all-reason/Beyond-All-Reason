@@ -60,10 +60,7 @@ Create()
 	start-script RockOnWaves();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

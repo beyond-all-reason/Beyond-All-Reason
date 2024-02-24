@@ -693,10 +693,7 @@ Create()
 	turn rexhaust2 to z-axis <180> now;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 
 AimFromWeapon1(piecenum)

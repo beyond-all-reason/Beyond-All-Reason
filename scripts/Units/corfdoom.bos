@@ -478,10 +478,7 @@ QueryTertiary(piecenum)
 	
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

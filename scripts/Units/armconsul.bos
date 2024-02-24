@@ -121,11 +121,7 @@ QueryNanoPiece(piecenum)
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Activate()
 {

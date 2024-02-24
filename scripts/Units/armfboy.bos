@@ -323,11 +323,7 @@ SetMaxReloadTime(Func_Var_1)
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-	return (0);
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

@@ -104,10 +104,7 @@ Deactivate()
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 QueryTransport(Func_Var_1)
 {

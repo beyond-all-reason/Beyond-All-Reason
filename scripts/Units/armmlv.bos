@@ -139,10 +139,7 @@ QueryNanoPiece(piecenum)
 	piecenum = nanosleeve;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimPrimary(heading, pitch)
 {

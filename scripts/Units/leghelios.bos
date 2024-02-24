@@ -103,10 +103,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-}
+
 
 Killed(severity, corpsetype)
 {

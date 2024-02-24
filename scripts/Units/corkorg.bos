@@ -931,10 +931,7 @@ QueryWeapon2(piecenum)
 	piecenum = eyeflare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 AimWeapon4(heading, pitch)
 {

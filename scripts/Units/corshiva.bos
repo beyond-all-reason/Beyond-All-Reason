@@ -856,10 +856,7 @@ QuerySecondary(piecenum)
 	piecenum = rocketflare; // not sure what should go here 
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = aimy1;
-}
+
 
 
 Killed(severity, corpsetype)

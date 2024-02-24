@@ -558,10 +558,7 @@ Deactivate()
 	last_primary_pitch = -1000000;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

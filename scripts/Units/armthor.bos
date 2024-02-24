@@ -126,10 +126,7 @@ SetStunned(State)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 //Weapon 1: Double Heavy Tesla Cannon
 //===================================

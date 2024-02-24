@@ -318,10 +318,7 @@ QuerySecondary(piecenum)
 	piecenum = aaflare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = hull;
-}
+
 
 Killed(severity, corpsetype)
 {

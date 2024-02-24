@@ -104,10 +104,7 @@ StopMoving()
 	set-signal-mask SIG_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

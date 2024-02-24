@@ -169,11 +169,7 @@ QueryBuildInfo(piecenum)
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = blinks;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

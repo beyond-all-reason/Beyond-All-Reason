@@ -53,10 +53,7 @@ Create()
 #include "smokeunit_thread_nohit.h"
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

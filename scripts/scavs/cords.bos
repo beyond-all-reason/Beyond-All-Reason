@@ -144,10 +144,7 @@ FirePrimary(){ //called first and once only
 	start-script Reload();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

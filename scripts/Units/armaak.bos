@@ -244,11 +244,7 @@ Create()
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

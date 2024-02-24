@@ -137,8 +137,6 @@ Shot1()
 	move mblade to z-axis <0> speed [20];
 	}
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
 	
 
 	

@@ -160,10 +160,7 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 5;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = pelvis;
-}
+
 
 AimFromPrimary(piecenum)
 {

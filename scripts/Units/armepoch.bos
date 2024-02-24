@@ -510,10 +510,7 @@ QueryWeapon7(piecenum)
 	piecenum = misflare2 + Static_Var_7;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = ground;
-}
+
 
 Killed(severity, corpsetype)
 {

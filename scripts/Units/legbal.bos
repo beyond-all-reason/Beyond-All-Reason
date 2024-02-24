@@ -369,10 +369,7 @@ Create()
 	start-script StopMoving();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = aimy1;
-}
+
 
 AimFromPrimary(piecenum)
 {

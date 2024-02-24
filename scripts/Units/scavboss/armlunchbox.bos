@@ -400,10 +400,7 @@ StopMoving()
 
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-}
+
 
 RestoreAfterDelay()
 {
