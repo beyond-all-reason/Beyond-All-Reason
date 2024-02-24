@@ -159,10 +159,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode dummy type BITMAPONLY | NOHEATCLOUD;
-		//explode dbr type BITMAPONLY | NOHEATCLOUD;
-		//explode dtl type BITMAPONLY | NOHEATCLOUD;
-		//explode dtr type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -171,10 +167,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dtl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dtr type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -184,9 +176,6 @@ Killed(severity, corpsetype)
 		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dbr type SMOKE | FALL | NOHEATCLOUD;
-		//explode dtl type SMOKE | FALL | NOHEATCLOUD;
-		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -194,8 +183,5 @@ Killed(severity, corpsetype)
 		explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dtl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

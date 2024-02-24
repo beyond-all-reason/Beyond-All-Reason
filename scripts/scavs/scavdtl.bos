@@ -205,7 +205,6 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode post type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel type FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);

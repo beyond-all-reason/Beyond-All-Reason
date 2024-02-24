@@ -188,9 +188,6 @@ Killed(severity, corpsetype)
 		explode cannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode body type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
-		//explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -199,8 +196,6 @@ Killed(severity, corpsetype)
 	explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode turret type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }

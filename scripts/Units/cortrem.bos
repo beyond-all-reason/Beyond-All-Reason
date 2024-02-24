@@ -393,22 +393,6 @@ Killed(severity, corpsetype)
 		explode spindle type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve3 type BITMAPONLY | NOHEATCLOUD;
 		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare3 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve2 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel2 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve1 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve6 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel6 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare6 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve5 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel5 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare5 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve4 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel4 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare4 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -419,22 +403,6 @@ Killed(severity, corpsetype)
 		explode spindle type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FALL | NOHEATCLOUD;
-		//explode sleeve6 type FALL | NOHEATCLOUD;
-		//explode barrel6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare6 type FALL | NOHEATCLOUD;
-		//explode sleeve5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel5 type FALL | NOHEATCLOUD;
-		//explode flare5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve4 type FALL | NOHEATCLOUD;
-		//explode barrel4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )

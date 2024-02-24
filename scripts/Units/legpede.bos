@@ -1317,18 +1317,6 @@ Killed(severity, corpsetype)
 		explode stand1 type BITMAPONLY | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4b type BITMAPONLY | NOHEATCLOUD;
-		//explode legl1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leglb1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg3b type BITMAPONLY | NOHEATCLOUD;
-		//explode legr1 type BITMAPONLY | NOHEATCLOUD;
-		//explode legrb1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -1338,18 +1326,6 @@ Killed(severity, corpsetype)
 		explode stand1 type FALL | NOHEATCLOUD;
 		explode barrel1 type FALL | NOHEATCLOUD;
 		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legr1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -1359,17 +1335,6 @@ Killed(severity, corpsetype)
 		explode stand1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type SMOKE | FALL | NOHEATCLOUD;
-		//explode legr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -1377,16 +1342,5 @@ Killed(severity, corpsetype)
 		explode stand1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode legr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

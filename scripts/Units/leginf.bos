@@ -138,9 +138,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode gun type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -149,9 +146,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -160,9 +155,7 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -171,6 +164,5 @@ Killed(severity, corpsetype)
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

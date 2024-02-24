@@ -211,20 +211,12 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode nanoemit2 type BITMAPONLY | NOHEATCLOUD;
-		//explode door1 type BITMAPONLY | NOHEATCLOUD;
-		//explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode door2 type BITMAPONLY | NOHEATCLOUD;
-		//explode antiflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nanoemit2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode antiflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -232,21 +224,10 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode nanoemit1 type SMOKE | FALL | NOHEATCLOUD;
-		//explode nanoemit2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode door1 type BITMAPONLY | NOHEATCLOUD;
-		//explode radar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode door2 type BITMAPONLY | NOHEATCLOUD;
-		//explode antiflare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode nanoemit2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode radar type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode antiflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

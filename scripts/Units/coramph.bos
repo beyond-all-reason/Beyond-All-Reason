@@ -556,21 +556,6 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
 		explode lancher type BITMAPONLY | NOHEATCLOUD;
-		//explode tflare type BITMAPONLY | NOHEATCLOUD;
-		//explode neck type BITMAPONLY | NOHEATCLOUD;
-		//explode head type BITMAPONLY | NOHEATCLOUD;
-		//explode rbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode rflare type BITMAPONLY | NOHEATCLOUD;
-		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode ltoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode rtoe type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )

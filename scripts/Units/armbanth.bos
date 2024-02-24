@@ -787,21 +787,11 @@ Killed(severity, corpsetype)
 		explode rfoot type BITMAPONLY | NOHEATCLOUD;
 		explode rtoe type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lshoulder type BITMAPONLY | NOHEATCLOUD;
-		//explode luparm type BITMAPONLY | NOHEATCLOUD;
-		//explode lloarm type BITMAPONLY | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode rshoulder type BITMAPONLY | NOHEATCLOUD;
-		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
-		//explode rloarm type BITMAPONLY | NOHEATCLOUD;
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type BITMAPONLY | NOHEATCLOUD;
 		explode antenna type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode laserflare type BITMAPONLY | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -818,19 +808,10 @@ Killed(severity, corpsetype)
 		explode rtoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lshoulder type FALL | NOHEATCLOUD;
 		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type FALL | NOHEATCLOUD;
-		//explode rshoulder type FALL | NOHEATCLOUD;
-		//explode ruparm type FALL | NOHEATCLOUD;
-		//explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode laserflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -846,21 +827,12 @@ Killed(severity, corpsetype)
 		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rtoe type SMOKE | FALL | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lshoulder type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode rshoulder type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode ruparm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode laserflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -874,20 +846,10 @@ Killed(severity, corpsetype)
 		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rtoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lshoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rshoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ruparm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode laserflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

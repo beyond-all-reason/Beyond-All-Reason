@@ -840,12 +840,6 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type FALL | NOHEATCLOUD;
-		//explode lhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -854,23 +848,11 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type SMOKE | FALL | NOHEATCLOUD;
-		//explode rhip type SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lhip type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rhip type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

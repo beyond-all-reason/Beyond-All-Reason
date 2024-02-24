@@ -1885,22 +1885,6 @@ Killed(severity, corpsetype)
 		explode lthigh type FALL | NOHEATCLOUD;
 		explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode llfinger type FALL | NOHEATCLOUD;
-		//explode lrfinger type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode aimy1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode aimx1 type FALL | NOHEATCLOUD;
-		//explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rblimb type FALL | NOHEATCLOUD;
-		//explode rflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type FALL | NOHEATCLOUD;
-		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lblimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -1915,19 +1899,6 @@ Killed(severity, corpsetype)
 		explode lfoot type SMOKE | FALL | NOHEATCLOUD ;
 		explode aimy1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
 		explode torso type BITMAPONLY | NOHEATCLOUD ;
-		//explode aimx1 type EXPLODE_ON_HIT | SMOKE | FALL;
-		//explode ruparm type FIRE | SMOKE | FALL;
-		//explode rblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode rflimb type EXPLODE_ON_HIT | SMOKE | FALL;
-		//explode rcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode luparm type FIRE | SMOKE | FALL;
-		//explode lblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode lflimb type FIRE | SMOKE | FALL;
-		//explode lcannon type FIRE | SMOKE | FALL;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -1942,18 +1913,5 @@ Killed(severity, corpsetype)
 		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aimy1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode aimx1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rflimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rcannon type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lflimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 }
