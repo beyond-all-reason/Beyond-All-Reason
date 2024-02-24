@@ -11,6 +11,7 @@ function widget:GetInfo()
 	}
 end
 
+include("keysym.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
@@ -252,9 +253,15 @@ end
 
 
 -- Since mex snap bypasses normal building behavior, we have to hand hold gridmenu a little bit
+local endShift = false
 local function handleBuildMenu(shift)
 	local grid = WG["gridmenu"]
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		if not shift then
+			Spring.SetActiveCommand(0)
+		else
+			endShift = true
+		end
 		return
 	end
 
@@ -283,6 +290,14 @@ function widget:MousePress(x, y, button)
 			handleBuildMenu(shift)
 			return true -- override other mouse presses and handle stuff manually
 		end
+	end
+end
+
+
+-- I really hate that I have to do this, but something is hardcoding shift behavior with mouse clicks, and I need to override it
+function widget:KeyRelease(code)
+	if endShift and (code == KEYSYMS.LSHIFT or code == KEYSYMS.RSHIFT) then
+		Spring.SetActiveCommand(0)
 	end
 end
 
