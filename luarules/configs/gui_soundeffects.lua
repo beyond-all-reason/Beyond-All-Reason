@@ -2553,6 +2553,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legmed = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "arty-large",
+	},
 	-- LEGION T3 VEHICLES
 
 	-- LEGION AIRCRAFT

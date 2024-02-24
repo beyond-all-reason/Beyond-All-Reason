@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl legkeres
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
