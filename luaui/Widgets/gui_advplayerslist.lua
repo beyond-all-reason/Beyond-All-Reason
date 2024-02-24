@@ -971,6 +971,18 @@ function widget:Initialize()
 	end
 end
 
+
+local function SetOriginalColourNames()
+    -- Saves the original team colours associated to team teamID
+    for playerID, _ in pairs(player) do
+        if player[playerID].name then
+            if not player[playerID].spec then
+                originalColourNames[playerID] = colourNames(player[playerID].team)
+            end
+        end
+    end
+end
+
 function widget:GameFrame(n)
     if n > 0 and not gameStarted then
         if mySpecStatus and not alwaysHideSpecs then
@@ -982,8 +994,8 @@ function widget:GameFrame(n)
         gameStarted = true
         SetSidePics()
         InitializePlayers()
-        SetOriginalColourNames()
         SortList()
+        SetOriginalColourNames()
         forceMainListRefresh = true
     end
 end
@@ -1307,7 +1319,7 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if playerID < specOffset and player[playerID].name and not player[playerID].spec and player[playerID].team then
+        if (playerID < specOffset or player[playerID].ai) and player[playerID].name and not player[playerID].spec and player[playerID].team then
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
@@ -1363,17 +1375,6 @@ function GetDark(red, green, blue)
         return true
     end
     return false
-end
-
-function SetOriginalColourNames()
-    -- Saves the original team colours associated to team teamID
-    for playerID, _ in pairs(player) do
-        if player[playerID].name then
-            if not player[playerID].spec then
-                originalColourNames[playerID] = colourNames(player[playerID].team)
-            end
-        end
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
