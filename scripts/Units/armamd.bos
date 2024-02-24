@@ -18,7 +18,7 @@
 
 piece  base, flare, door1, door2, antenna, greenlight, orangelight;
 
-static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging, missiles_stockpiled;
+static-var  restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging, missiles_stockpiled;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -58,13 +58,11 @@ deactivatescr()
 Go()
 {
 	call-script activatescr();
-	Static_Var_1 = 1;
 	return (0);
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
 	call-script deactivatescr();
 	return (0);
 }
@@ -106,7 +104,6 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide flare;
-	Static_Var_1 = 0;
 	gun_1 = flare;
 	restore_delay = 3000;
 	missiles_stockpiled = 0;

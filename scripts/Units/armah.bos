@@ -3,7 +3,7 @@
 
 piece  flare, base, sleeve, turret,wake, doorr, doorl;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5, Wobble_status;
+static-var  Wobble_status;
 
 // Signal definitions
 #define SIG_MOVE			4
@@ -113,10 +113,6 @@ Create()
 {
 	hide wake;
 	hide flare;
-	Static_Var_1 = 0;
-	Static_Var_5 = 0;
-	Static_Var_4 = 5000;
-	Static_Var_2 = 1;
 	turn sleeve to x-axis <-20.000000> speed <25.000000>;
 	return (0);	
 	while( get BUILD_PERCENT_LEFT )
