@@ -4,7 +4,7 @@
 piece  pelvis, lflare, rflare, lvent,rvent, lthigh, rthigh,
        torso, rleg, rfoot, lleg, lfoot,rarm, larm, rbarrel, lbarrel, aimy1, aimx1;
 
-static-var  isMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
+static-var  isMoving, canAim, gun_1, gun_2,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
             moveSpeed, currentSpeed, restore, wpn1_lasthead;
 
@@ -296,34 +296,28 @@ StopMoving(){
 
 Go()
 {
-	Static_Var_2 = 1;
-	if( !Static_Var_4 )
+	if( !canAim )
 	{
-		while( !Static_Var_3 )
-		{
-			sleep 75;
-		}
 		move lvent to x-axis [-1.200000] speed [2.400000];
 		move lvent to z-axis [-0.400000] speed [0.800000];
 		move rvent to x-axis [1.200000] speed [2.400000];
 		move rvent to z-axis [-0.400000] speed [0.800000];
 		sleep 300;
-		Static_Var_4 = 1;
+		canAim = 1;
 	}
 }
 
 Stop()
 {
-	if( Static_Var_4 )
+	if( canAim )
 	{
-		Static_Var_4 = 0;
+		canAim = 0;
 		move lvent to x-axis [0.000000] speed [2.400000];
 		move lvent to z-axis [0.000000] speed [0.800000];
 		move rvent to x-axis [0.000000] speed [2.400000];
 		move rvent to z-axis [0.000000] speed [0.800000];
 		sleep 300;
 	}
-	Static_Var_2 = 0;
 }
 
 RequestState(requestedstate, currentstate)
@@ -360,9 +354,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	isMoving = FALSE;
-	Static_Var_2 = 0;
-	Static_Var_3 = 1;
-	Static_Var_4 = 0;
+	canAim = 0;
 	gun_1 = pelvis;
 	restore_delay = 3000;
 	hide rflare;
@@ -423,7 +415,7 @@ AimWeapon1(heading, pitch)
         signal SIGNAL_AIM1;
         turn aimy1 to y-axis heading speed <140>;
         turn aimx1 to x-axis <0.000000> - pitch speed <50>;
-        while( !Static_Var_4 )
+        while( !canAim )
         {
             return(0);
         }

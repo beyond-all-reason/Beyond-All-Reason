@@ -3,8 +3,8 @@
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot, prop, barrel, flare, turret, misbarrel, lmisflare, rmisflare;
 
-static-var  isMoving, isAiming, Static_Var_3, Static_Var_4, gun_3,
-            restore_delay, Static_Var_7, wpn1_lasthead, wpn3_lasthead;
+static-var  isMoving, isAiming, inWaterForm, gun_3,
+            restore_delay, terrainType, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -206,78 +206,45 @@ swim()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-Movement(Func_Var_1)
+Movement()
 {
-	Func_Var_1 = 1;
 	while( TRUE )
 	{
-		if( !Static_Var_4 )
+		if( !inWaterForm )
 		{
-			if( Static_Var_7 == 2 )
+			if( terrainType == 2 )
 			{
 				call-script transform();
-				Static_Var_4 = 1;
-				Func_Var_1 = 1;
-			}
-			if( Static_Var_7 == 3 )
-			{
-				call-script transform();
-				Static_Var_4 = 1;
-				Func_Var_1 = 1;
+				inWaterForm = 1;
 			}
 		}
-		if( Static_Var_4 )
+		else
 		{
-			if( Static_Var_7 == 1 )
+			if( terrainType == 4 )
 			{
 				call-script reform();
-				Static_Var_4 = 0;
-				Func_Var_1 = 1;
-			}
-			if( Static_Var_7 == 4 )
-			{
-				call-script reform();
-				Static_Var_4 = 0;
-				Func_Var_1 = 1;
+				inWaterForm = 0;
 			}
 		}
+
 		if( isMoving )
 		{
-			if( isAiming )
-			{
-				Static_Var_3 = 1;
-				if( Static_Var_4 )
+			if( inWaterForm )
 				{
 					call-script swim();
-				}
-				if( !Static_Var_4 )
-				{
+			}else{
+				if( isAiming ){
 					call-script walklegs();
 				}
-			}
-			if( !isAiming )
-			{
-				Static_Var_3 = 0;
-				if( Static_Var_4 )
-				{
-					call-script swim();
-				}
-				if( !Static_Var_4 )
+				else
 				{
 					call-script walk();
 				}
 			}
-			Func_Var_1 = 1;
-		}
-		if( !isMoving )
-		{
-			Static_Var_3 = 1;
-			if( Func_Var_1 AND ( !Static_Var_4 ) )
-			{
-				Func_Var_1 = 0;
-			}
+		}else{
 			sleep 100;
 		}
+		
 	}
 	return (0);
 }
@@ -289,8 +256,7 @@ Create()
 	hide flare;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
-	Static_Var_4 = 0;
+	inWaterForm = 0;
 	gun_3 = 0;
 	restore_delay = 3000;
 	start-script Movement();
@@ -304,24 +270,19 @@ StartMoving()
 	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
-		if( Static_Var_7 == 1 )
+		if( terrainType == 1 )
 		{
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 		}
-		if( Static_Var_7 == 2 )
+		if( terrainType == 2 )
 		{
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
-		}
-		if( Static_Var_7 == 3 )
-		{
-			emit-sfx 259 from prop;
-			emit-sfx 259 from prop;
 		}
 		sleep 250;
 	}
@@ -335,9 +296,12 @@ StopMoving()
 	return (0);
 }
 
-setSFXoccupy(Func_Var_1)
+//0 = transported, 
+//1 = sea < 0 and unit is upright, or sea < -5 and unit is upright
+//2 = deep sea (greater than 5 water depth and unit is upright), 4 = land.
+SetSFXoccupy(terraintype)
 {
-	Static_Var_7 = Func_Var_1;
+	terrainType = terraintype;
 	return (0);
 }
 
@@ -384,10 +348,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
+
 	turn torso to y-axis heading speed <150.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -454,10 +415,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	isAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		sleep 100;
-	}
+
 	turn turret to y-axis heading speed <300.000000>;
 	turn misbarrel to x-axis <0.000000> - pitch speed <300.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))

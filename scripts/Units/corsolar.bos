@@ -3,7 +3,7 @@
 
 piece  base, fan, d1,d2,d3,d4;
 
-static-var  activationState, Static_Var_2, Static_Var_3;
+static-var  activationState, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
@@ -65,17 +65,17 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 RequestState(requestedstate, currentstate)
 {
-	if( Static_Var_3 )
+	if( statechg_StateChanging )
 	{
-		Static_Var_2 = requestedstate;
+		statechg_DesiredState = requestedstate;
 		return (0);
 	}
-	Static_Var_3 = 1;
-	currentstate = Static_Var_2;
-	Static_Var_2 = requestedstate;
-	while( Static_Var_2 != currentstate )
+	statechg_StateChanging = 1;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
 	{
-		if( Static_Var_2 )
+		if( statechg_DesiredState )
 		{
 			call-script deactivatescr();
 			currentstate = 1;
@@ -86,13 +86,13 @@ RequestState(requestedstate, currentstate)
 			currentstate = 0;
 		}
 	}
-	Static_Var_3 = 0;
+	statechg_StateChanging = 0;
 }
 
 Create()
 {
-	Static_Var_2 = 1;
-	Static_Var_3 = 0;
+	statechg_DesiredState = 1;
+	statechg_StateChanging = 0;
 	start-script SmokeUnit();
 	activationState = 0;
 }

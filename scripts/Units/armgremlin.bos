@@ -3,7 +3,7 @@
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;
 
-static-var  Static_Var_1, isMoving, Static_Var_3, Static_Var_4, restore_delay,
+static-var  animating, isMoving, isOpen, isAiming, restore_delay,
             statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
@@ -75,26 +75,26 @@ FoldGun()
 
 Go()
 {
-	Static_Var_3 = 1;
-	if( !Static_Var_1 )
+	isOpen = 1;
+	if( !animating )
 	{
-		while( !Static_Var_4 )
+		while( !isAiming )
 		{
 			sleep 150;
 		}
 		call-script OpenGun();
-		Static_Var_1 = 1;
+		animating = 1;
 	}
 }
 
 Stop()
 {
-	if( Static_Var_1 )
+	if( animating )
 	{
-		Static_Var_1 = 0;
+		animating = 0;
 		call-script FoldGun();
 	}
-	Static_Var_3 = 0;
+	isOpen = 0;
 }
 
 RequestState(requestedstate, currentstate)
@@ -130,23 +130,23 @@ Movement(moving, aiming, justmoved)
 	while( TRUE )
 	{
 		moving = isMoving;
-		aiming = Static_Var_3;
+		aiming = isOpen;
 		if( moving )
 		{
 			sleep 100;
 			if( aiming )
 			{
-				Static_Var_4 = 1;
+				isAiming = 1;
 			}
 			else
 			{
-				Static_Var_4 = 0;
+				isAiming = 0;
 			}
 			justmoved = TRUE;
 		}
 		else
 		{
-			Static_Var_4 = 1;
+			isAiming = 1;
 			if( justmoved )
 			{
 
@@ -163,9 +163,9 @@ Create()
 {
 	hide flare;
 	isMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
-	Static_Var_1 = 0;
+	isOpen = 0;
+	isAiming = 1;
+	animating = 0;
 	restore_delay = 2000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -220,7 +220,7 @@ AimWeapon1(heading, pitch)
 	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( !Static_Var_1 )
+	while( !animating )
 	{
 		sleep 200;
 	}
