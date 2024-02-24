@@ -297,10 +297,7 @@ local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
 	if doMoreYield then
-		local doMoreYield = Spring.Yield()
-		if doMoreYield == false then --GetThreadSafety == false
-			--Spring.Echo("WidgetHandler Yield: entering critical section")
-		end
+		doMoreYield = Spring.Yield()
 	end
 end
 
