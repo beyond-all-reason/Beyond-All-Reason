@@ -73,7 +73,7 @@ Weapon1Control()
 		{
 			curPitch1 = <360> + curPitch1;
 		}
-		if (Static_Var_3 == 1)
+		if (Static_Var_Weapon1Control == 1)
 		{
 			if (((get ABS(curHead1 - wtdHead1)) > <360>) OR(((get ABS(curHead1 - wtdHead1)) > (Weapon1TurretY / 30)) AND ((get ABS(curHead1 - wtdHead1)) < <360> - (Weapon1TurretY / 30))))
 			{
