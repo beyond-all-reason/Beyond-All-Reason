@@ -104,9 +104,9 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 }
 
 Activate()
@@ -142,9 +142,9 @@ StopBuilding()
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 

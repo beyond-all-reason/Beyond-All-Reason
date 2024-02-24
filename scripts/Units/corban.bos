@@ -158,14 +158,14 @@ FireWeapon1()
 	gun_1 = !gun_1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
 

@@ -176,20 +176,20 @@ FireWeapon1()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 
@@ -222,14 +222,14 @@ FireWeapon2()
 {
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-  piecenum = flare3;
+  pieceIndex = flare3;
 }
 
 SetSpeed(windOrMetal)

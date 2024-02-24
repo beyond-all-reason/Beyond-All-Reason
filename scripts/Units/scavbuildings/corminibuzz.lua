@@ -115,7 +115,7 @@ function script.FireWeapon1()
 	end
 end
 
-function script.QueryWeapon1(piecenum)
+function script.QueryWeapon1(pieceIndex)
 
 	if  gun_1 == 0  then
 	

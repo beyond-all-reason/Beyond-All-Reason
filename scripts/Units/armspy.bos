@@ -242,9 +242,9 @@ Activate()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = body;
+	pieceIndex = body;
 }
 
 

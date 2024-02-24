@@ -586,32 +586,32 @@ Create()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	//get PRINT(GET GAME_FRAME, 1111,gun_1);
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	if( gun_1 == 4 )
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 
 	}
-	return(piecenum);
+	return(pieceIndex);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 	return (0);
 }
 
@@ -688,18 +688,18 @@ FireWeapon1()
 	return (1);
 }
 
-AimFromWeapon2(piecenum)
-	{	piecenum=aimx1;	}
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=aimx1;	}
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if (gun_2 == 1)
 	{
-	piecenum = aaflare1;
+	pieceIndex = aaflare1;
 	}
 	if (gun_2 == 2)
 	{
-	piecenum = aaflare2;
+	pieceIndex = aaflare2;
 	}
 }
 

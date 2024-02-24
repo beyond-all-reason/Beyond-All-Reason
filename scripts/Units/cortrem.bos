@@ -351,27 +351,27 @@ TargetCleared(Func_Var_1)
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = spindle;
+	pieceIndex = spindle;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = spindle;
+	pieceIndex = spindle;
 	return (0);
 }
 

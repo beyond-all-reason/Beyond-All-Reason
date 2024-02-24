@@ -339,20 +339,20 @@ Shot1(zero)
 	return(1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = body;
+	pieceIndex = body;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if(miniguncount == 0)
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if(miniguncount == 1)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	return (0);
 }

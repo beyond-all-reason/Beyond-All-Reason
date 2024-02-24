@@ -82,15 +82,15 @@ FireWeapon1()
 	//move barrel to z-axis [0.000000] speed [3.000000];
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	//get PRINT(get GAME_FRAME,piecenum,flare_count,piecenum);
-	piecenum = flare1;
+	//get PRINT(get GAME_FRAME,pieceIndex,flare_count,pieceIndex);
+	pieceIndex = flare1;
 	hide thruster1;
 	hide thruster2;
 	hide thruster3;

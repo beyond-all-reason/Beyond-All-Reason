@@ -77,9 +77,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }
 
 

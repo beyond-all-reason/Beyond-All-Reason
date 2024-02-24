@@ -189,14 +189,14 @@ AimWeapon1(heading, pitch) // ground weapon
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = shootflare;
+	pieceIndex = shootflare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 
@@ -211,14 +211,14 @@ AimWeapon2(heading, pitch) // anti air weapon
 	return (1);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = topflare;
+	pieceIndex = topflare;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = topflare;
+	pieceIndex = topflare;
 }
 
 
@@ -228,14 +228,14 @@ AimWeapon3(heading, pitch) // meteor
 	set-signal-mask SIG_AIM1;
 	return (0); // always return false?
 }
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 
@@ -352,14 +352,14 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 
 
-QueryLandingPad(piecenum)
+QueryLandingPad(pieceIndex)
 {
-	piecenum = armbase;
+	pieceIndex = armbase;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 

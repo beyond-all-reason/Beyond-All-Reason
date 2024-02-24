@@ -264,24 +264,24 @@ RestoreAfterDelay()
 	turn torso to y-axis <0.000000> speed <90.000000>;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
 AimWeapon2(heading, pitch)
@@ -298,14 +298,14 @@ FireWeapon2()
 {
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
 AimWeapon3(heading, pitch)
@@ -322,14 +322,14 @@ FireWeapon3()
 {
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flare3;
+	pieceIndex = flare3;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
 AimWeapon4(heading, pitch)
@@ -346,14 +346,14 @@ FireWeapon4()
 {
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flare4;
+	pieceIndex = flare4;
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
 AimWeapon5(heading, pitch)
@@ -366,14 +366,14 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flareflak;
+	pieceIndex = flareflak;
 }
 
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = flakgun;
+	pieceIndex = flakgun;
 }
 
 AimWeapon6(heading, pitch)

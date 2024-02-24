@@ -157,15 +157,15 @@ FireWeapon1()
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1 == 0)
 	{
-	piecenum = misflarel;
+	pieceIndex = misflarel;
 	}
 	if (gun_1 == 1)
 	{
-	piecenum = misflarer;
+	pieceIndex = misflarer;
 	}
 	return (0);
 }

@@ -181,65 +181,65 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( buildAnimPiece == 1 )
 	{
-		piecenum = n1;
+		pieceIndex = n1;
 	}
 	if( buildAnimPiece == 1 )
 	{
-		piecenum = n1;
+		pieceIndex = n1;
 	}
 	if( buildAnimPiece == 1 )
 	{
-		piecenum = n1;
+		pieceIndex = n1;
 	}
 	if( buildAnimPiece == 2 )
 	{
-		piecenum = n2;
+		pieceIndex = n2;
 	}
 	if( buildAnimPiece == 3 )
 	{
-		piecenum = n3;
+		pieceIndex = n3;
 	}
 	if( buildAnimPiece == 4 )
 	{
-		piecenum = n4;
+		pieceIndex = n4;
 	}
 	if( buildAnimPiece == 5 )
 	{
-		piecenum = n5;
+		pieceIndex = n5;
 	}
 	if( buildAnimPiece == 6 )
 	{
-		piecenum = n6;
+		pieceIndex = n6;
 	}
 	if( buildAnimPiece == 7 )
 	{
-		piecenum = n7;
+		pieceIndex = n7;
 	}
 	if( buildAnimPiece == 8 )
 	{
-		piecenum = n8;
+		pieceIndex = n8;
 	}
 	if( buildAnimPiece == 9 )
 	{
-		piecenum = n9;
+		pieceIndex = n9;
 	}
 	if( buildAnimPiece == 10 )
 	{
-		piecenum = n10;
+		pieceIndex = n10;
 		
 	}
 	
 	if( buildAnimPiece == 11 )
 	{
-		piecenum = n11;
+		pieceIndex = n11;
 	}
 	if( buildAnimPiece == 12 )
 	{
-		piecenum = n12;
+		pieceIndex = n12;
 	}
 	++buildAnimPiece;
 	if( buildAnimPiece == 13 )
@@ -301,9 +301,9 @@ StopBuilding() // give the gantry a 1 second breathing room
 	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 

@@ -128,17 +128,17 @@ Create()
 #include "smokeunit_thread_nohit.h"
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( whichBuildAnim == 0 )
 	{
-		piecenum = beam1;
+		pieceIndex = beam1;
 		whichBuildAnim = 1;
 		return (0);
 	}
 	if( whichBuildAnim == 1 )
 	{
-		piecenum = beam2;
+		pieceIndex = beam2;
 		whichBuildAnim = 0;
 	}
 	return (0);
@@ -163,9 +163,9 @@ Deactivate()
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = slip;
+	pieceIndex = slip;
 	return (0);
 }
 

@@ -102,14 +102,14 @@ TargetCleared(Func_Var_1)
 	}
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = spindle;
+	pieceIndex = spindle;
 }
 
 

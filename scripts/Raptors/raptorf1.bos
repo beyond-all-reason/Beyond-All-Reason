@@ -76,8 +76,8 @@ Create()
 
 
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 RestoreAfterDelay()
 	{

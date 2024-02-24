@@ -151,16 +151,16 @@ FireWeapon1()
 {
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

@@ -408,20 +408,20 @@ StopMoving()
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = gun;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rfirept;
+		pieceIndex = rfirept;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lfirept;
+		pieceIndex = lfirept;
 	}
 }
 

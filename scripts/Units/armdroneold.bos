@@ -154,9 +154,9 @@ MoveRate3()
 	turn base to z-axis <0.000000> speed <120.000000>;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon1(heading, pitch)
@@ -164,9 +164,9 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 FireWeapon1()

@@ -199,9 +199,9 @@ FireWeapon1()
 	start-script RequestState(1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 

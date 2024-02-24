@@ -135,25 +135,25 @@ FireWeapon1()
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = launcher;
+	pieceIndex = launcher;
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	return (0);
 }

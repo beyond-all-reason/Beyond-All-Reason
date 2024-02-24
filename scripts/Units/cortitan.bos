@@ -92,9 +92,9 @@ Deactivate()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
 Killed(severity, corpsetype)

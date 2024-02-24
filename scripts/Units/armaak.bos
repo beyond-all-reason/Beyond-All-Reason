@@ -270,24 +270,24 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lflare1;
+	pieceIndex = lflare1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum=lflare2;
+	pieceIndex=lflare2;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum=torso;
+	pieceIndex=torso;
 }
 
 AimWeapon2(heading, pitch)
@@ -308,14 +308,14 @@ FireWeapon2()
 {
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum=rflare2;
+	pieceIndex=rflare2;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum=torso;
+	pieceIndex=torso;
 }
 
 AimWeapon3(heading, pitch)
@@ -337,14 +337,14 @@ FireWeapon3()
 }
 
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum=rflare1;
+	pieceIndex=rflare1;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum=torso;
+	pieceIndex=torso;
 }
 
 
@@ -367,14 +367,14 @@ FireWeapon4()
 }
 
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum=lflare2;
+	pieceIndex=lflare2;
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum=torso;
+	pieceIndex=torso;
 }
 AimWeapon5(heading, pitch)
 {

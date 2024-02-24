@@ -100,11 +100,11 @@ Create()
 	start-script UnitSpeed();
 }
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 RestoreAfterDelay()
 	{

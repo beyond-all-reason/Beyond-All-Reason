@@ -205,15 +205,15 @@ FireWeapon1()
 	currentBarrel = !currentBarrel;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if (currentBarrel) piecenum = flare1;
-	if (!currentBarrel) piecenum = flare2;
+	if (currentBarrel) pieceIndex = flare1;
+	if (!currentBarrel) pieceIndex = flare2;
 }
 
 //Weapon 2: EMP Missile Launcher
@@ -309,27 +309,27 @@ FireWeapon2()
 	}
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
 	if (missiles_stockpiled == 2)
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	else
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if (missiles_stockpiled == 2)
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	else
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 	}
 }
 
@@ -374,14 +374,14 @@ FireWeapon3()
 	wait-for-move lempbarrel along z-axis;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = lempslv;
+	pieceIndex = lempslv;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare5;
+	pieceIndex = flare5;
 }
 
 //Weapon 3: Right EMP
@@ -426,14 +426,14 @@ FireWeapon4()
 	wait-for-move rempbarrel along z-axis;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = rempslv;
+	pieceIndex = rempslv;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flare7;
+	pieceIndex = flare7;
 }
 
 Killed(severity, corpsetype)

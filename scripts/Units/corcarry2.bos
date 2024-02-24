@@ -217,14 +217,14 @@ FireWeapon2()
 	sleep 150;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = anti;
+	pieceIndex = anti;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = anti;
+	pieceIndex = anti;
 }
 
 AimWeapon1(heading, pitch)
@@ -240,15 +240,15 @@ FireWeapon1()
 	sleep 150;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = dish;
+	pieceIndex = dish;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = dish;
+	pieceIndex = dish;
 	return (0);
 }
 

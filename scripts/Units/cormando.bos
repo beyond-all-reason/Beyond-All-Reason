@@ -425,14 +425,14 @@ StopBuilding()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
 AimWeapon1(heading, pitch)
@@ -463,20 +463,20 @@ FireWeapon1()
 
 FireWeapon2() {}
 AimWeapon2(heading, pitch) { return(1); }
-AimFromWeapon2(piecenum) { piecenum = torso; }
-QueryWeapon2(piecenum) { piecenum = flare; }
+AimFromWeapon2(pieceIndex) { pieceIndex = torso; }
+QueryWeapon2(pieceIndex) { pieceIndex = flare; }
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	spray = !spray;
 	if( spray )
 	{
-		piecenum = rnano;
+		pieceIndex = rnano;
 	}
 	if( !spray )
 	{
-		piecenum = lnano;
+		pieceIndex = lnano;
 	}
 }
 

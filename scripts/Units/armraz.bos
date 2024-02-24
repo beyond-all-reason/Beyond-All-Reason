@@ -432,28 +432,28 @@ RestoreAfterDelay(Func_Var_1)
 	wpnheading  = 0;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 
 }

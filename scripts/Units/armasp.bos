@@ -30,9 +30,9 @@ QueryLandingPad(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = tower;
+	pieceIndex = tower;
 	return (0);
 }
 

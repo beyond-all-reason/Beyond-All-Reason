@@ -56,14 +56,14 @@ FireWeapon1()
 	//sleep 150; // this sleep should not be necessary, no return is expected from FireWeapon1 and nothing is being done before or after the sleep
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 

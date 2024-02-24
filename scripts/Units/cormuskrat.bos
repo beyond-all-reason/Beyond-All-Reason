@@ -128,9 +128,9 @@ StopBuilding()
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = beam;
+	pieceIndex = beam;
 }
 
 

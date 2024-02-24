@@ -162,27 +162,27 @@ FireWeapon2()
 	sleep 100;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1 == 0)
 	{
-	piecenum = flare3;
+	pieceIndex = flare3;
 	}
 	if (gun_1 == 1)
 	{
-	piecenum = flare4;
+	pieceIndex = flare4;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if (gun_2 == 0)
 	{
-	piecenum = flare1;
+	pieceIndex = flare1;
 	}
 	if (gun_2 == 1)
 	{
-	piecenum = flare2;
+	pieceIndex = flare2;
 	}
 }
 

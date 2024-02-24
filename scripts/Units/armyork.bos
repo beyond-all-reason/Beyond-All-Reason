@@ -131,27 +131,27 @@ FireWeapon2()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	if (gun_3 == 0) piecenum = flare1;
-	if (gun_3 == 1) piecenum = flare2;
-	if (gun_3 == 2) piecenum = flare3;
-	if (gun_3 == 3) piecenum = flare4;
+	if (gun_3 == 0) pieceIndex = flare1;
+	if (gun_3 == 1) pieceIndex = flare2;
+	if (gun_3 == 2) pieceIndex = flare3;
+	if (gun_3 == 3) pieceIndex = flare4;
 	
 }
 

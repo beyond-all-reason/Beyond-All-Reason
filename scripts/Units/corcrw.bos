@@ -63,19 +63,19 @@ Deactivate()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flaref;
+	pieceIndex = flaref;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flarel;
+	pieceIndex = flarel;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flarer;
+	pieceIndex = flarer;
 }
 
 SetMaxReloadTime(Func_Var_1)

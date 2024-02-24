@@ -83,20 +83,20 @@ FireWeapon1()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = torp1;
+		pieceIndex = torp1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = torp2;
+		pieceIndex = torp2;
 	}
 }
 

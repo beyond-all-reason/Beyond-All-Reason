@@ -91,9 +91,9 @@ StopMoving()
 	isMoving = FALSE;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 

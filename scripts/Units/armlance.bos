@@ -111,9 +111,9 @@ Deactivate()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = bombdrop;
+	pieceIndex = bombdrop;
 }
 
 Killed(severity, corpsetype)

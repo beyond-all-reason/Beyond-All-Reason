@@ -114,15 +114,15 @@ AimWeapon1(heading, pitch)
 {
 	return (1);
 }
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 FireWeapon1()

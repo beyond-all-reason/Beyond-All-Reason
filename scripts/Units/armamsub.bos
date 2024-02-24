@@ -133,9 +133,9 @@ Create()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum=beam1+spray;
+	pieceIndex=beam1+spray;
 	spray=spray+1;
 	if (spray>2) spray=0;
 }
@@ -170,9 +170,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 

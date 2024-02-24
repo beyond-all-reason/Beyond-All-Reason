@@ -182,14 +182,14 @@ AimWeapon3(heading, pitch)
 	return(1);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretaa;
+	pieceIndex = turretaa;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flareaa;
+	pieceIndex = flareaa;
 }
 
 AimWeapon1(heading, pitch)
@@ -226,24 +226,24 @@ FireWeapon2()
 	move plungerr to z-axis [0.000000] speed [10.000000];
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretl;
+	pieceIndex = turretl;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turretr;
+	pieceIndex = turretr;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flarel;
+	pieceIndex = flarel;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flarer;
+	pieceIndex = flarer;
 }
 
 

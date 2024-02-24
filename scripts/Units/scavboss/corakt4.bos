@@ -1073,14 +1073,14 @@ RestoreAfterDelay()
 
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimy1;
+	pieceIndex = aimy1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rfire + gun_1;
+	pieceIndex = rfire + gun_1;
 }
 
 AimWeapon1(heading, pitch)

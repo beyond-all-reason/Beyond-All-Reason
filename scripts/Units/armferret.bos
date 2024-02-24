@@ -137,15 +137,15 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	
-	piecenum = flare1 + gun1;
+	pieceIndex = flare1 + gun1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 

@@ -336,14 +336,14 @@ HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angle
 
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = eye;
+	pieceIndex = eye;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = eye;
+	pieceIndex = eye;
 }
 
 

@@ -701,37 +701,37 @@ FireWeapon2()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimy1;
+	pieceIndex = aimy1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimy1;
+	pieceIndex = aimy1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_primary == 1 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	if( gun_primary == 2 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_2 == 1 )
 	{
-		piecenum = laaturret;
+		pieceIndex = laaturret;
 	}
 	if( gun_2 == 2 )
 	{
-		piecenum = raaturret;
+		pieceIndex = raaturret;
 	}
 }
 

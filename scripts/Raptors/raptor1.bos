@@ -49,11 +49,11 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 
 AimWeapon1(heading,pitch)

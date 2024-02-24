@@ -285,14 +285,14 @@ FireWeapon1()
 
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 
@@ -343,14 +343,14 @@ FireWeapon2()
 	move lbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = lball;
+	pieceIndex = lball;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 }
 
 
@@ -404,14 +404,14 @@ FireWeapon3()
 	move rbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = rball;
+	pieceIndex = rball;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = rflare;
+	pieceIndex = rflare;
 }
 
 

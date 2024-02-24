@@ -1523,14 +1523,14 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = loturret;
+	pieceIndex = loturret;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = loturret;
+	pieceIndex = loturret;
 }
 
 FireWeapon1()
@@ -1549,14 +1549,14 @@ FireWeapon2()
 	move barrel to z-axis [0.000000] speed [3.00000];
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armfido_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()

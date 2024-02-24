@@ -872,9 +872,9 @@ StopMoving()
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nanospray;
+	pieceIndex = nanospray;
 	return (0);
 }
 
@@ -905,15 +905,15 @@ ResumeBuilding()
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lfirept;
+	pieceIndex = lfirept;
 	return (0);
 }
 
@@ -957,15 +957,15 @@ FireWeapon1()
 	return (0);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = biggun;
+	pieceIndex = biggun;
 	return (0);
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = rbigflash;
+	pieceIndex = rbigflash;
 	return (0);
 }
 
@@ -993,15 +993,15 @@ FireWeapon3()
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = lfirept;
+	pieceIndex = lfirept;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = lfirept;
+	pieceIndex = lfirept;
 	return (0);
 }
 
@@ -1045,14 +1045,14 @@ FireWeapon2()
 	return (0);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
 StartBuilding(heading, pitch)

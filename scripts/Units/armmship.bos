@@ -183,35 +183,35 @@ FireWeapon2()
 	gun_3 = !gun_3;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare12;
+	pieceIndex = flare12;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = launcher2;
+	pieceIndex = launcher2;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare12;
+		pieceIndex = flare12;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare11;
+		pieceIndex = flare11;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare13;
+		pieceIndex = flare13;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = gun_3;
+	pieceIndex = gun_3;
 }
 
 

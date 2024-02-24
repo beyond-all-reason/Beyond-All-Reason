@@ -137,39 +137,39 @@ Create()
 	call-script InitState();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( spray == 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}
 	if( spray == 3 )
 	{
-		piecenum = nano4;
+		pieceIndex = nano4;
 	}
 	if( spray == 4 )
 	{
-		piecenum = nano5;
+		pieceIndex = nano5;
 	}
 	if( spray == 5 )
 	{
-		piecenum = nano6;
+		pieceIndex = nano6;
 	}
 	if( spray == 6 )
 	{
-		piecenum = nano7;
+		pieceIndex = nano7;
 	}
 	if( spray == 7 )
 	{
-		piecenum = nano8;
+		pieceIndex = nano8;
 	}
 	spray = spray +1;
 	if( spray > 7)
@@ -218,9 +218,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 

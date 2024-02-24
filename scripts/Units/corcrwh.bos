@@ -139,59 +139,59 @@ Deactivate()
 
 
 //flamer
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flaref;
+	pieceIndex = flaref;
 }
 //aa
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	if( aa_gun == 1 ) piecenum = flareaa1;
-	if( aa_gun == 2 ) piecenum = flareaa2; 
-	if( aa_gun == 3 ) piecenum = flareaa3;
-	if( aa_gun == 4 ) piecenum = flareaa1;
-	if( aa_gun == 5 ) piecenum = flareaa2; 
-	if( aa_gun == 6 ) piecenum = flareaa3;
-	if( aa_gun == 7 ) piecenum = flareaa1;
-	if( aa_gun == 8 ) piecenum = flareaa2; 
+	if( aa_gun == 1 ) pieceIndex = flareaa1;
+	if( aa_gun == 2 ) pieceIndex = flareaa2; 
+	if( aa_gun == 3 ) pieceIndex = flareaa3;
+	if( aa_gun == 4 ) pieceIndex = flareaa1;
+	if( aa_gun == 5 ) pieceIndex = flareaa2; 
+	if( aa_gun == 6 ) pieceIndex = flareaa3;
+	if( aa_gun == 7 ) pieceIndex = flareaa1;
+	if( aa_gun == 8 ) pieceIndex = flareaa2; 
 	
 	return (0);
 }
 
 
 //sidelasers
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flarer1;
+	pieceIndex = flarer1;
 }
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flarer2;
+	pieceIndex = flarer2;
 }
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flarel1;
+	pieceIndex = flarel1;
 }
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flarel2;
+	pieceIndex = flarel2;
 }
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = barrelr1;
+	pieceIndex = barrelr1;
 }
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = barrelr2;
+	pieceIndex = barrelr2;
 }
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = barrell1;
+	pieceIndex = barrell1;
 }
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = barrell2;
+	pieceIndex = barrell2;
 }
 
 //flamer

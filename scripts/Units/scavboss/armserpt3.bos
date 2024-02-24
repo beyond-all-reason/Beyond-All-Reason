@@ -132,9 +132,9 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon1(heading, pitch)
@@ -150,14 +150,14 @@ Shot1()
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
 AimWeapon2(heading, pitch)
@@ -177,14 +177,14 @@ Shot2()
 	return (1);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = llturret;
+	pieceIndex = llturret;
 }
 
 AimWeapon3(heading, pitch)
@@ -204,14 +204,14 @@ Shot3()
 	return (1);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = llturret;
+	pieceIndex = llturret;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = rturret;
+	pieceIndex = rturret;
 }
 
 AimWeapon4(heading, pitch)
@@ -231,14 +231,14 @@ Shot4()
 	return (1);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = rturret;
+	pieceIndex = rturret;
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = rrturret;
+	pieceIndex = rrturret;
 }
 
 AimWeapon5(heading, pitch)
@@ -258,9 +258,9 @@ Shot5()
 	return (1);
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = rrturret;
+	pieceIndex = rrturret;
 }
 
 Killed(severity, corpsetype)

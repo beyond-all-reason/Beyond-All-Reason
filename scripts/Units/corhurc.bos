@@ -83,9 +83,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = bombs;
+	pieceIndex = bombs;
 }
 
 

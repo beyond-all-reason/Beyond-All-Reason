@@ -411,33 +411,33 @@ FireWeapon2()
 	hide misflare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = body;
+	pieceIndex = body;
 }
 
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = misturret;
+	pieceIndex = misturret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = misflare;
+	pieceIndex = misflare;
 }
 
 

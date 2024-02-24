@@ -155,10 +155,10 @@ StopBuilding()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	
-	piecenum = nano1+nano;
+	pieceIndex = nano1+nano;
 	nano = !nano;
 	return (0);
 }

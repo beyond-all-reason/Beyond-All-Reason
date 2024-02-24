@@ -61,9 +61,9 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
 AimWeapon1(heading, pitch)
@@ -76,9 +76,9 @@ FireWeapon1()
 	gun_1 = !gun_1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
 

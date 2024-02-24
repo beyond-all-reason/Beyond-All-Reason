@@ -296,9 +296,9 @@ StopMoving()
 	call-script StopWalking();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 }
 
 

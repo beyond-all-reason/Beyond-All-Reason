@@ -389,14 +389,14 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rflare + gun_3;;
+	pieceIndex = rflare + gun_3;;
 }
 
 AimWeapon2(heading, pitch)
@@ -437,14 +437,14 @@ FireWeapon2()
 	gun_3 = !gun_3;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = rflare + gun_3;
+	pieceIndex = rflare + gun_3;
 }
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armjeth_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))

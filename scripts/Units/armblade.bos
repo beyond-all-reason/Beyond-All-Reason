@@ -113,15 +113,15 @@ StartMoving()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flarel;
+		pieceIndex = flarel;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flarer;
+		pieceIndex = flarer;
 	}
 }
 
@@ -132,9 +132,9 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 FireWeapon1()

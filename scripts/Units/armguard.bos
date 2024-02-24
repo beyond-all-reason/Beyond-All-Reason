@@ -111,14 +111,14 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeves;
+	pieceIndex = sleeves;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = sleeves;
+	pieceIndex = sleeves;
 }
 
 fireCommon()
@@ -150,27 +150,27 @@ FireWeapon2()
 	call-script fireCommon();
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( nextBarrel == 0 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( nextBarrel == 1 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( nextBarrel == 0 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( nextBarrel == 1 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 

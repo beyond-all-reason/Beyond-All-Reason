@@ -64,15 +64,15 @@ FxEmit()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 	return (0);
 }
 
@@ -135,11 +135,11 @@ Shot2()
 	set CHANGE_TARGET to 2;
 	}
 
-QueryWeapon2(piecenum)
-	{	piecenum=head; }
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=head; }
 	
-AimFromWeapon2(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=head;	}
 
 StartBuilding(heading, pitch)
 {
@@ -154,8 +154,8 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = head_emit;
+	pieceIndex = head_emit;
 }
 

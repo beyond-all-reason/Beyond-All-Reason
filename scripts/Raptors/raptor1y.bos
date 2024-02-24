@@ -47,11 +47,11 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 #include "raptor_create_move_swim.h"
 
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 
 

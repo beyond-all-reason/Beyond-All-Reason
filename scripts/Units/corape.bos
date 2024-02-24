@@ -132,15 +132,15 @@ RestoreAfterDelay()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 }
 

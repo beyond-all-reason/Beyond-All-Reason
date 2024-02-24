@@ -99,9 +99,9 @@ AimWeaponX(heading, pitch)
 		return 1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = drop;
+	pieceIndex = drop;
 }
 
 FireWeaponWeapon1()

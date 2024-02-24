@@ -187,14 +187,14 @@ FireWeapon1()
 	sleep 150;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = antiflare;
+	pieceIndex = antiflare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = antiflare;
+	pieceIndex = antiflare;
 }
 
 Killed(severity, corpsetype)

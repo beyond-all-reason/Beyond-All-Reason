@@ -1059,14 +1059,14 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve1;
+	pieceIndex = sleeve1;
 }
 
 FireWeapon6()
@@ -1086,14 +1086,14 @@ AimWeapon6(heading, pitch)
 	return (1);
 }
 
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flare6;
+	pieceIndex = flare6;
 }
 
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = sleeve6;
+	pieceIndex = sleeve6;
 }
 
 FireWeapon2()
@@ -1127,14 +1127,14 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = sleeve2;
+	pieceIndex = sleeve2;
 }
 
 FireWeapon5()
@@ -1167,14 +1167,14 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flare5;
+	pieceIndex = flare5;
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = sleeve5;
+	pieceIndex = sleeve5;
 }
 
 FireWeapon3()
@@ -1218,25 +1218,25 @@ AimWeapon3(heading, pitch)
 	return (1);
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
 	if(fire_count_3==0)
 	{
-		piecenum=flare13;	
+		pieceIndex=flare13;	
 	}
 	if(fire_count_3==1)
 	{
-		piecenum=flare23;
+		pieceIndex=flare23;
 	}
 	if(fire_count_3==2)
 	{
-		piecenum=flare33;
+		pieceIndex=flare33;
 	}
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = flare23;
+	pieceIndex = flare23;
 }
 
 FireWeapon4()
@@ -1280,25 +1280,25 @@ AimWeapon4(heading, pitch)
 	return (1);
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
 	if(fire_count_4==0)
 	{
-		piecenum=flare14;	
+		pieceIndex=flare14;	
 	}
 	if(fire_count_4==1)
 	{
-		piecenum=flare24;
+		pieceIndex=flare24;
 	}
 	if(fire_count_4==2)
 	{
-		piecenum=flare34;
+		pieceIndex=flare34;
 	}
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = flare24;
+	pieceIndex = flare24;
 }
 
 

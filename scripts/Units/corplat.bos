@@ -140,26 +140,26 @@ Create()
 	start-script RockOnWaves();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( spray ==0)
 	{
-		piecenum = beam1;
+		pieceIndex = beam1;
 	}
 	
 	if( spray ==1)
 	{
-		piecenum = beam2;
+		pieceIndex = beam2;
 	}
 	
 	if( spray ==2)
 	{
-		piecenum = beam3;
+		pieceIndex = beam3;
 	}
 	
 	if( spray ==3)
 	{
-		piecenum = beam4;
+		pieceIndex = beam4;
 	}
 	spray=spray+1;
 	if (spray>3)
@@ -201,9 +201,9 @@ StopBuilding()
 	stop-spin pad around y-axis;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 

@@ -677,9 +677,9 @@ function Restore()
 end
 
 function script.QueryNanoPiece()
-	local piecenum;
-	piecenum = nanospray;
-	return piecenum
+	local pieceIndex;
+	pieceIndex = nanospray;
+	return pieceIndex
 end
 
 function script.Killed()

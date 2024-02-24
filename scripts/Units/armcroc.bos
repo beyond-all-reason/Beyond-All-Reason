@@ -113,14 +113,14 @@ FireWeapon1()
 	move barrel to z-axis [0.000000] speed [3.000000];
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
 AimWeapon2(heading, pitch)
@@ -157,15 +157,15 @@ FireWeapon2()
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turretmis;
+	pieceIndex = turretmis;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = misflare;
+	pieceIndex = misflare;
 	return (0);
 }
 

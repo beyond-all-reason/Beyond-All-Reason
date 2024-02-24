@@ -108,23 +108,23 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from exhaust;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (is_open == 1)
 	{
-		piecenum = flare;
+		pieceIndex = flare;
 	}
 	else
 	{
-		piecenum = aimpoint;
+		pieceIndex = aimpoint;
 	}
 }
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

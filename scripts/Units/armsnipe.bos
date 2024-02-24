@@ -877,20 +877,20 @@ FireWeapon1()
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimy1;
+	pieceIndex = aimy1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( GunOpen )
 	{
-		piecenum = flare;
+		pieceIndex = flare;
 	}
 	else
 	{
-		piecenum = aimy1; //no aiming from ankle height
+		pieceIndex = aimy1; //no aiming from ankle height
 	}
 }
 

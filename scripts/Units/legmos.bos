@@ -82,9 +82,9 @@ RestoreAfterDelay()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon1(heading, pitch)
@@ -92,16 +92,16 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1==0)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 		gun_1=1;
 	}
 	else 
 	{
-		piecenum=rflare;
+		pieceIndex=rflare;
 		gun_1=0;
 	}
 }

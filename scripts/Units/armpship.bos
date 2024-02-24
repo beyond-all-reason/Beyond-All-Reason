@@ -218,14 +218,14 @@ Shot1()
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret1;
+	pieceIndex = turret1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare11 + gun_1;
+	pieceIndex = flare11 + gun_1;
 }
 
 AimWeapon2(heading, pitch)
@@ -261,14 +261,14 @@ Shot2()
 
 
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret2;
+	pieceIndex = turret2;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare21 + gun_2;
+	pieceIndex = flare21 + gun_2;
 }
 
 AimWeapon3(heading, pitch)
@@ -276,14 +276,14 @@ AimWeapon3(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 

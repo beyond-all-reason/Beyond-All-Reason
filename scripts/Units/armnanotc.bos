@@ -62,9 +62,9 @@ StopBuilding()
 	start-script RestoreAfterDelay();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano;
+	pieceIndex = emitnano;
 }
 
 

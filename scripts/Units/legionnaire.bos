@@ -105,15 +105,15 @@ AimWeapon1(heading, pitch)
 {
 	return (1);
 }
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = missilea;
+		pieceIndex = missilea;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = missileb;
+		pieceIndex = missileb;
 	}
 }
 FireWeapon1()

@@ -67,8 +67,8 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 

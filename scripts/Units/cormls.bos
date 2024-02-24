@@ -169,9 +169,9 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 	turn base to x-axis <0.0> speed <3.0>;
 	move base to y-axis [0.0] speed [0.23];
 }

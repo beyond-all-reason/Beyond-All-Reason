@@ -133,9 +133,9 @@ StopMoving()
 	stop-spin lwheel around x-axis;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nanosleeve;
+	pieceIndex = nanosleeve;
 }
 
 
@@ -156,16 +156,16 @@ FireWeapon1()
 	gun_2 = nanosleeve;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = turret;
-	piecenum = lnano;
-	piecenum = rnano;
+	pieceIndex = turret;
+	pieceIndex = lnano;
+	pieceIndex = rnano;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon2(heading, pitch)
@@ -184,14 +184,14 @@ FireWeapon2()
 	gun_2 = nanosleeve;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)

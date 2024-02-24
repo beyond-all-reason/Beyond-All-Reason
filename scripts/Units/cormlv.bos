@@ -123,9 +123,9 @@ StopMoving()
  return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 AimWeapon1(heading, pitch)

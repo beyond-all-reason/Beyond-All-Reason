@@ -176,37 +176,37 @@ FireWeapon1()
 
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	if( gun_1 == 4 )
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 	}
 	if( gun_1 == 5 )
 	{
-		piecenum = flare5;
+		pieceIndex = flare5;
 	}
 	if( gun_1 == 6 )
 	{
-		piecenum = flare6;
+		pieceIndex = flare6;
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = spindle;
+	pieceIndex = spindle;
 }
 
 

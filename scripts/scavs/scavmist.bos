@@ -44,9 +44,9 @@ Create()
 	start-script Emitsmoke();
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum=flare;
+	pieceIndex=flare;
 }
 
 AimWeapon1()

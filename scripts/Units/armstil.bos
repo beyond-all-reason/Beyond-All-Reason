@@ -58,9 +58,9 @@ Deactivate()
 }
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = fan;
+	pieceIndex = fan;
 }
 
 FireWeapon1(Func_Var_1)

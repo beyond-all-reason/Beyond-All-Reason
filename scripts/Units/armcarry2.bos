@@ -208,14 +208,14 @@ FireWeapon2()
 	sleep 150;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = antiflare;
+	pieceIndex = antiflare;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = antiflare;
+	pieceIndex = antiflare;
 }
 
 AimWeapon1(heading, pitch)
@@ -231,15 +231,15 @@ FireWeapon1()
 	sleep 150;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = radar;
+	pieceIndex = radar;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = radar;
+	pieceIndex = radar;
 	return (0);
 }
 

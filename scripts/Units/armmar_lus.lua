@@ -150,11 +150,11 @@ function WeaponControl()
 					curPitch = wtdPitch
 					pitchReady = true
 				end
-				for id,piecenum in pairs (aimy) do
-					Turn(piecenum, 2, curHead)
+				for id,pieceIndex in pairs (aimy) do
+					Turn(pieceIndex, 2, curHead)
 				end
-				for id,piecenum in pairs (aimx) do
-					Turn(piecenum, 1, curPitch)
+				for id,pieceIndex in pairs (aimx) do
+					Turn(pieceIndex, 1, curPitch)
 				end
 				weapons[weaponID].curHead = curHead
 				weapons[weaponID].curPitch = curPitch

@@ -357,9 +357,9 @@ StopBuilding()
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = head + nanoNozzle;  //head was nano
+	pieceIndex = head + nanoNozzle;  //head was nano
 	nanoNozzle = !nanoNozzle;
 }
 

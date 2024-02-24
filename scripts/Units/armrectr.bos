@@ -315,10 +315,10 @@ StopBuilding()
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 
-	piecenum = nano;
+	pieceIndex = nano;
 }
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armrectr_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))

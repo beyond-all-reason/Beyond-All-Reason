@@ -198,8 +198,8 @@ RestoreAfterDelay()
 
 
 
-QueryWeapon1(piecenum)
-	{	piecenum=flare; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=flare; }
 
 
 AimWeapon1(heading,pitch)

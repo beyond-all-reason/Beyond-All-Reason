@@ -80,15 +80,15 @@ FireWeapon1()
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = gun;
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
@@ -111,15 +111,15 @@ FireWeapon2()
 	hide flarel;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = barrell;
+	pieceIndex = barrell;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flarel;
+	pieceIndex = flarel;
 	return (0);
 }
 
@@ -142,15 +142,15 @@ FireWeapon3()
 	hide flarer;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = barrelr;
+	pieceIndex = barrelr;
 	return (0);
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flarer;
+	pieceIndex = flarer;
 	return (0);
 }
 

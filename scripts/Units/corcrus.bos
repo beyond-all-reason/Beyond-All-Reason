@@ -180,27 +180,27 @@ FireWeapon2()
 	gun_2 = !gun_2;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
 	if( gun_2 )
 	{
-		piecenum = aftturret;
+		pieceIndex = aftturret;
 	}
 	else
 	{
-		piecenum = foreturret;
+		pieceIndex = foreturret;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_2 )
 	{
-		piecenum = aftflare;
+		pieceIndex = aftflare;
 	}
 	else
 	{
-		piecenum = foreflare;
+		pieceIndex = foreflare;
 	}
 }
 
@@ -214,14 +214,14 @@ FireWeapon3()
 	sleep 150;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon1(heading, pitch)
@@ -253,14 +253,14 @@ FireWeapon1()
 	gun_1 = !gun_1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1 + gun_1;
+	pieceIndex = flare1 + gun_1;
 }
 
 

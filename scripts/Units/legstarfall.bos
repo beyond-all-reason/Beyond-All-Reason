@@ -123,16 +123,16 @@ Shot1(heading,pitch) {
 
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 
-		piecenum = guncount+7;
+		pieceIndex = guncount+7;
 
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = stand;
+	pieceIndex = stand;
 }
 
 

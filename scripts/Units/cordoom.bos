@@ -409,40 +409,40 @@ FireWeapon3()
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = body1;
+	pieceIndex = body1;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretr;
+	pieceIndex = turretr;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flareb;
+	pieceIndex = flareb;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flareg;
+	pieceIndex = flareg;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
 	if( gun_3 == 0 )
 	{
-		piecenum = flarer1;
+		pieceIndex = flarer1;
 	}
 	else
 	{
-		piecenum = flarer2;
+		pieceIndex = flarer2;
 	}
 	
 }

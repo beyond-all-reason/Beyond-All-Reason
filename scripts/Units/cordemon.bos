@@ -933,60 +933,60 @@ Create()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = lfflare1;
+		pieceIndex = lfflare1;
 		return (0);
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = rfflare1;
+		pieceIndex = rfflare1;
 		return (0);
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = lfflare2;
+		pieceIndex = lfflare2;
 		return (0);
 	}
 	if( gun_1 == 4 )
 	{
-		piecenum = rfflare2;
+		pieceIndex = rfflare2;
 		return (0);
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_2 == 0 )
 	{
-		piecenum = aaflarel;
+		pieceIndex = aaflarel;
 		return (0);
 	}
 	if( gun_2 == 1 )
 	{
-		piecenum = aaflarer;
+		pieceIndex = aaflarer;
 		return (0);
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
 	if( gun_2 == 1 )
 	{
-		piecenum = aaflarel;
+		pieceIndex = aaflarel;
 		return (0);
 	}
 	if( gun_2 == 0 )
 	{
-		piecenum = aaflarer;
+		pieceIndex = aaflarer;
 		return (0);
 	}
 }

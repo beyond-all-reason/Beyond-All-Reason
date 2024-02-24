@@ -405,33 +405,33 @@ FireWeapon1()
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrel;
+	pieceIndex = barrel;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = misbarrel;
+	pieceIndex = misbarrel;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_3 == 0 )
 	{
-		piecenum = lmisflare;
+		pieceIndex = lmisflare;
 	}
 	if( gun_3 == 1 )
 	{
-		piecenum = rmisflare;
+		pieceIndex = rmisflare;
 	}
 	return (0);
 }

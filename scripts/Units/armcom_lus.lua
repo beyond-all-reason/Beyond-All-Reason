@@ -1074,9 +1074,9 @@ function script.StopBuilding()
 end
 
 function script.QueryNanoPiece()
-	local piecenum;
-	piecenum = nano;
-	return piecenum
+	local pieceIndex;
+	pieceIndex = nano;
+	return pieceIndex
 end
 
 function Restore()

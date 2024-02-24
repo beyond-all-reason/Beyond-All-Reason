@@ -121,27 +121,27 @@ Create()
 #include "smokeunit_thread_nohit.h"
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( spray == 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}
 	if( spray == 3 )
 	{
-		piecenum = nano4;
+		pieceIndex = nano4;
 	}
 	if( spray == 4 )
 	{
-		piecenum = nano5;
+		pieceIndex = nano5;
 	}
 	spray = spray+1;
 	if( spray >4  )
@@ -183,9 +183,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 

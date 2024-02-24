@@ -125,21 +125,21 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	//get PRINT(get GAME_FRAME,piecenum, spray);
+	//get PRINT(get GAME_FRAME,pieceIndex, spray);
 
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( spray >= 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}	
 	
 	if (spray >=2)
@@ -196,9 +196,9 @@ StopBuilding()
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 

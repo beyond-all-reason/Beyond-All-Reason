@@ -183,15 +183,15 @@ StopBuilding()
 	start-script RequestState(1);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if(nano==1)
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	else
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	nano = !nano;
 }

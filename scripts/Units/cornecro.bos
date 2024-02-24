@@ -221,9 +221,9 @@ StopMoving()
 	call-script StopWalking();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = spray;
+	pieceIndex = spray;
 	spray = !spray;
 }
 

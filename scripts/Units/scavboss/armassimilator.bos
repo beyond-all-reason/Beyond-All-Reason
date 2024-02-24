@@ -215,28 +215,28 @@ RestoreAfterDelay(Func_Var_1)
 	wpn1_lasthead = 1000000;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare1;
+		pieceIndex = rflare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare1;
+		pieceIndex = lflare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = rflare2;
+		pieceIndex = rflare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = lflare2;
+		pieceIndex = lflare2;
 	}
 }
 

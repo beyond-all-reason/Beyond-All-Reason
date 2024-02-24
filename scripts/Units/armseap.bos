@@ -124,9 +124,9 @@ StopMoving()
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 	return (0);
 }
 

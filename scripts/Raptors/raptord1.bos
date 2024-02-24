@@ -22,14 +22,14 @@ AimWeapon1(heading, pitch)
 	return (TRUE);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }
 
 
@@ -52,7 +52,7 @@ StopBuilding()
 {
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }

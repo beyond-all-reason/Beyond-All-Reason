@@ -182,18 +182,18 @@ FireWeapon1()
 	if (firepoint >= 3) firepoint = 0;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if (firepoint == 0 ) piecenum = flare1;
-	if (firepoint == 1 ) piecenum = flare2;
-	if (firepoint == 2 ) piecenum = flare3;
+	if (firepoint == 0 ) pieceIndex = flare1;
+	if (firepoint == 1 ) pieceIndex = flare2;
+	if (firepoint == 2 ) pieceIndex = flare3;
 }
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

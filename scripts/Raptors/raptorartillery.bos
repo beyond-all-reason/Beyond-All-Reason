@@ -1083,8 +1083,8 @@ RestoreAfterDelay()
 
 
 
-QueryWeapon1(piecenum)
-	{	piecenum=rig_Raptor_Artillery_Tail5; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=rig_Raptor_Artillery_Tail5; }
 
 
 AimWeapon1(heading,pitch)

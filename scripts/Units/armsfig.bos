@@ -159,15 +159,15 @@ FireWeapon2()
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flarel;
+	pieceIndex = flarel;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flarer;
+	pieceIndex = flarer;
 	return (0);
 }
 

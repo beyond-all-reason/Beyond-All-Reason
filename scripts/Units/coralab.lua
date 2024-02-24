@@ -49,24 +49,24 @@ function script.Create()
 end
 
 function script.QueryNanoPiece()
-	local piecenum;
+	local pieceIndex;
 	if (spray == 0) then
-		piecenum = nano1;
+		pieceIndex = nano1;
 	end
 	if (spray == 1) then
-		piecenum = nano2;
+		pieceIndex = nano2;
 	end
 	if (spray == 2) then
-		piecenum = nano3;
+		pieceIndex = nano3;
 	end
 	if (spray == 3) then
-		piecenum = nano4;
+		pieceIndex = nano4;
 	end
 	spray = spray + 1;
 	if(spray == 4) then
 		spray = 0;
 	end
-	return piecenum;
+	return pieceIndex;
 end
 
 function Activate_real()

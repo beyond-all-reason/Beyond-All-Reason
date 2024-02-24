@@ -480,19 +480,19 @@ Shot1(zero)
 	return(1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if(fire_count==0)
 	{
-		piecenum=flare1;	
+		pieceIndex=flare1;	
 	}
 	if(fire_count==1)
 	{
-		piecenum=flare2;
+		pieceIndex=flare2;
 	}
 	if(fire_count==2)
 	{
-		piecenum=flare3;
+		pieceIndex=flare3;
 	}
 }
 
@@ -562,9 +562,9 @@ AimWeapon1(heading, pitch)
 }
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
 

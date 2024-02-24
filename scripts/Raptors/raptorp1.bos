@@ -53,23 +53,23 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 }
 
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
-AimFromWeapon2(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon2(piecenum)
-	{	piecenum=head; }
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=head; }
 
-AimFromWeapon3(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon3(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon3(piecenum)
-	{	piecenum=head; }
+QueryWeapon3(pieceIndex)
+	{	pieceIndex=head; }
 
 
 

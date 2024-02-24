@@ -177,15 +177,15 @@ Create()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray != 0 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	spray = !spray;
 	return (0);
@@ -223,9 +223,9 @@ StopBuilding()
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 

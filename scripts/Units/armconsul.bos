@@ -106,15 +106,15 @@ Create()
 }
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if (nano==1){
 	
-		piecenum = rnano;
+		pieceIndex = rnano;
 	}
 	else
 	{
-		piecenum = lnano;
+		pieceIndex = lnano;
 	}
 	nano = !nano;
 	return (0);

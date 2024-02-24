@@ -170,23 +170,23 @@ Create()
 	start-script RockOnWaves();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( buildAnimPiece == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( buildAnimPiece == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( buildAnimPiece == 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}
 	if( buildAnimPiece == 3 )
 	{
-		piecenum = nano4;
+		pieceIndex = nano4;
 	}
 			buildAnimPiece=buildAnimPiece+1;
 			if( buildAnimPiece >3 )
@@ -235,9 +235,9 @@ StopBuilding()
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 

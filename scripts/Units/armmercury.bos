@@ -85,21 +85,21 @@ FireWeapon1()
 	set DELAY_UNIT_VAR to 0;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flarel;
+		pieceIndex = flarel;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flarer;
+		pieceIndex = flarer;
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
 

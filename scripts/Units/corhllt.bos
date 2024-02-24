@@ -52,14 +52,14 @@ SetMaxReloadTime(Func_Var_1)
 
 
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret1;
+	pieceIndex = turret1;
 }
 
 AimWeapon2(heading, pitch)
@@ -79,14 +79,14 @@ FireWeapon2()
 	hide flare1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret2;
+	pieceIndex = turret2;
 }
 
 AimWeapon1(heading, pitch)

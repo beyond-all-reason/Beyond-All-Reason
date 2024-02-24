@@ -52,8 +52,8 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 
 AimWeapon1(heading,pitch)

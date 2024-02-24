@@ -179,27 +179,27 @@ FireWeapon2()
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = emit_spark;
+	pieceIndex = emit_spark;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = mbarrel;
+	pieceIndex = mbarrel;
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 	return (0);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = mflare;
+	pieceIndex = mflare;
 	return (0);
 }
 

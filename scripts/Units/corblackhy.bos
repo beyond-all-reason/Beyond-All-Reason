@@ -224,14 +224,14 @@ StopMoving()
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = tur1;
+	pieceIndex = tur1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1a + Static_Var_1;
+	pieceIndex = flare1a + Static_Var_1;
 }
 
 
@@ -363,14 +363,14 @@ FireWeapon1()
 	}
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = tur2;
+	pieceIndex = tur2;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
 AimWeapon2(heading, pitch)
@@ -397,14 +397,14 @@ FireWeapon2()
 	turn gun2 to z-axis <0.000000> now;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = tur3;
+	pieceIndex = tur3;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare3a + Static_Var_2;
+	pieceIndex = flare3a + Static_Var_2;
 }
 
 AimWeapon3(heading, pitch)
@@ -424,14 +424,14 @@ FireWeapon3()
 	Static_Var_2 = !Static_Var_2;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = tur5;
+	pieceIndex = tur5;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flare5;
+	pieceIndex = flare5;
 }
 
 AimWeapon4(heading, pitch)
@@ -458,14 +458,14 @@ FireWeapon4()
 	turn gun5 to z-axis <0.000000> now;
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = tur6;
+	pieceIndex = tur6;
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flare6;
+	pieceIndex = flare6;
 }
 
 AimWeapon5(heading, pitch)
@@ -492,14 +492,14 @@ FireWeapon5()
 	turn gun6 to z-axis <0.000000> now;
 }
 
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = tur4;
+	pieceIndex = tur4;
 }
 
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flare4a + Static_Var_3;
+	pieceIndex = flare4a + Static_Var_3;
 }
 
 AimWeapon6(heading, pitch)

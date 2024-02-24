@@ -496,9 +496,9 @@ Create(){
 	call-script StopWalking();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 	return (0);
 }
 
@@ -546,15 +546,15 @@ ResumeBuilding()
 
 
 /////////// pew pew laser
-QueryWeapon1(piecenum) //pew laser
+QueryWeapon1(pieceIndex) //pew laser
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = ruparm;
+	pieceIndex = ruparm;
 	return (0);
 }
 
@@ -591,15 +591,15 @@ FireWeapon1()
 
 /////////// uw weapon
 
-QueryWeapon2(piecenum) //uw weapon
+QueryWeapon2(pieceIndex) //uw weapon
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
@@ -641,15 +641,15 @@ FireWeapon2()
 	return (0);
 }
 
-QueryWeapon3(piecenum) //dgun
+QueryWeapon3(pieceIndex) //dgun
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 	return (0);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = biggun;
+	pieceIndex = biggun;
 	return (0);
 }
 
@@ -685,15 +685,15 @@ AimWeapon3(heading, pitch)
 	return (1);
 }
 
-QueryWeapon4(piecenum) //ferret
+QueryWeapon4(pieceIndex) //ferret
 {
-	piecenum = misflare;
+	pieceIndex = misflare;
 	return (0);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = turretmis;
+	pieceIndex = turretmis;
 	return (0);
 }
 

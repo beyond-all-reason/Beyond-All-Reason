@@ -166,30 +166,30 @@ Shot1(zero)
 	return(1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
 	if (gun_1 == 0 or gun_1 == 1){
-		piecenum = gunr;
+		pieceIndex = gunr;
 	}
 	if (gun_1 >= 2){
-		piecenum = gunl;
+		pieceIndex = gunl;
 	}
 	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1 <= 1){
-		piecenum = flarer;
+		pieceIndex = flarer;
 	}
 	if (gun_1 == 2){
-		piecenum = flarer2;
+		pieceIndex = flarer2;
 	}
 	if (gun_1 == 3){
-		piecenum = flarel;
+		pieceIndex = flarel;
 	}
 	if (gun_1 >= 4){
-		piecenum = flarel2;
+		pieceIndex = flarel2;
 	}
 	return (0);
 }

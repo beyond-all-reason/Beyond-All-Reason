@@ -696,9 +696,9 @@ Create()
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
 FireWeapon1() {
@@ -724,29 +724,29 @@ Shot1(zero) {
 	
 }
 
-QueryWeapon1(piecenum) {
+QueryWeapon1(pieceIndex) {
 
 	if (gun_1 == 0)
 	{
-		piecenum = lflare2;
+		pieceIndex = lflare2;
 			
 		//emit-sfx UNIT_SFX0 from lexhaust2;
 	} 
 	if (gun_1 == 1)
 	{
-		piecenum = lflare1;
+		pieceIndex = lflare1;
 			
 		//emit-sfx UNIT_SFX0 from lexhaust1;
 	} 
 	if (gun_1 == 2)
 	{
-		piecenum = rflare1;
+		pieceIndex = rflare1;
 			
 		//emit-sfx UNIT_SFX0 from rexhaust1;
 	} 
 	if (gun_1 == 3)
 	{
-		piecenum = rflare2;
+		pieceIndex = rflare2;
 			
 		//emit-sfx UNIT_SFX0 from rexhaust2;
 	}

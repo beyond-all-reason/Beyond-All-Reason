@@ -75,14 +75,14 @@ FireWeapon1()
 	gun_2 = !gun_2;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrell;
+	pieceIndex = barrell;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flarel;
+	pieceIndex = flarel;
 }
 
 AimWeapon2(heading, pitch)
@@ -103,14 +103,14 @@ FireWeapon2()
 	gun_2 = !gun_2;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = barrelr;
+	pieceIndex = barrelr;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flarer;
+	pieceIndex = flarer;
 }
 
 

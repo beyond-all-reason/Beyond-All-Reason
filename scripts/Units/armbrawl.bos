@@ -186,23 +186,23 @@ Shot1(zero)
 	return(1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 	}
 }
 
@@ -215,9 +215,9 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)

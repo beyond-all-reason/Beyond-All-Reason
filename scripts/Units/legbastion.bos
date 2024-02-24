@@ -342,15 +342,15 @@ AimWeapon1(heading, pitch) {
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimfromy;
+	pieceIndex = aimfromy;
 }
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lineflare;
+	pieceIndex = lineflare;
 }
 
 

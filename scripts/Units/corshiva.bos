@@ -820,40 +820,40 @@ FireWeapon2()
 
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
 	if( gun_left )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	else
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
-AimFromWeapon2(piecenum) //not needed?
+AimFromWeapon2(pieceIndex) //not needed?
 {
-	piecenum = rlauncher;
+	pieceIndex = rlauncher;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_left )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	else
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	
-	piecenum = rocketflare; // not sure what should go here 
+	pieceIndex = rocketflare; // not sure what should go here 
 }
 
 

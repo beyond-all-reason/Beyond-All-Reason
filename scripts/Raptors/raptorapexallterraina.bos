@@ -51,17 +51,17 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, 
 
 #include "raptor_killed_allterrain.h"
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 	
-AimFromWeapon2(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon2(piecenum)
-	{	piecenum=head; }
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=head; }
 
 AimWeapon1(heading,pitch)
 	{

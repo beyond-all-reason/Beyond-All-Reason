@@ -125,23 +125,23 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( spray == 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}
 	if( spray == 3 )
 	{
-		piecenum = nano4;
+		pieceIndex = nano4;
 	}
 	spray = spray +1;
 	if( spray == 4 )
@@ -189,9 +189,9 @@ StopBuilding()
 	turn cagelight to y-axis <0> speed <1000>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 

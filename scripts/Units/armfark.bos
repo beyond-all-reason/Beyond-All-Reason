@@ -357,9 +357,9 @@ StopMoving()
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = rnano + nanoNozzle;
+	pieceIndex = rnano + nanoNozzle;
 	nanoNozzle = !nanoNozzle;
 }
 

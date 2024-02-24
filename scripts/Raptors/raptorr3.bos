@@ -52,14 +52,14 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
   return 0;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
 AimWeapon1(heading, pitch)

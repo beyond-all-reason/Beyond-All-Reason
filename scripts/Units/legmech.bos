@@ -400,29 +400,29 @@ RestoreAfterDelay(){
 
 
 
-QueryWeapon1(piecenum) //Hull Rotation
+QueryWeapon1(pieceIndex) //Hull Rotation
 {
 	if(missile_count==0)
 	{
-		piecenum=mis1;	
+		pieceIndex=mis1;	
 	}
 	if(missile_count==1)
 	{
-		piecenum=mis2;
+		pieceIndex=mis2;
 	}
 	if(missile_count==2)
 	{
-		piecenum=mis3;
+		pieceIndex=mis3;
 	}
 	if(missile_count==3)
 	{
-		piecenum=mis4;
+		pieceIndex=mis4;
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = Main_hull;
+	pieceIndex = Main_hull;
 	return (0);
 }
 
@@ -506,15 +506,15 @@ Shot1(zero)
 	return(1);
 }
 
-QueryWeapon2(piecenum) //R Shotgun
+QueryWeapon2(pieceIndex) //R Shotgun
 {
-	piecenum = Right_turret_gun_flare;
+	pieceIndex = Right_turret_gun_flare;
 	return (0);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = Right_turret_main;
+	pieceIndex = Right_turret_main;
 	return (0);
 }
 
@@ -543,15 +543,15 @@ FireWeapon2()
 	return (1);
 }
 
-QueryWeapon3(piecenum) //L Railgun
+QueryWeapon3(pieceIndex) //L Railgun
 {
-	piecenum = Left_turret_gun_flare;
+	pieceIndex = Left_turret_gun_flare;
 	return (0);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = Left_turret_main;
+	pieceIndex = Left_turret_main;
 	return (0);
 }
 
@@ -580,22 +580,22 @@ FireWeapon3()
 	return (1);
 }
 
-QueryWeapon4(piecenum) //Mid Guns
+QueryWeapon4(pieceIndex) //Mid Guns
 {
 	if(miniguncount == 0)
 	{
-		piecenum = Torso_turret_Right_gun;
+		pieceIndex = Torso_turret_Right_gun;
 	}
 	if(miniguncount == 1)
 	{
-		piecenum = Torso_turret_left_gun;
+		pieceIndex = Torso_turret_left_gun;
 	}
 	return (0);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = Torso_turret_main;
+	pieceIndex = Torso_turret_main;
 	return (0);
 }
 
@@ -644,22 +644,22 @@ Shot4(zero)
 	return(1);
 }
 
-QueryWeapon5(piecenum) //top AA
+QueryWeapon5(pieceIndex) //top AA
 {
 	if(gun_1 == 0)
 	{
-		piecenum = AA_turret_gun_1;
+		pieceIndex = AA_turret_gun_1;
 	}
 	if(gun_1 == 1)
 	{
-		piecenum = AA_turret_gun_2;
+		pieceIndex = AA_turret_gun_2;
 	}
 	return (0);
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = Torso_turret_main;
+	pieceIndex = Torso_turret_main;
 	return (0);
 }
 

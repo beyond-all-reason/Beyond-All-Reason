@@ -67,51 +67,51 @@ Deactivate()
 
 
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_2 == 0 )
 	{
-		piecenum = flare2r;
+		pieceIndex = flare2r;
 	}
 	if( gun_2 == 1 )
 	{
-		piecenum = flare1r;
+		pieceIndex = flare1r;
 	}
 	if( gun_2 == 2 )
 	{
-		piecenum = flare2r;
+		pieceIndex = flare2r;
 	}
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
 	if( gun_3 == 0 )
 	{
-		piecenum = flare2l;
+		pieceIndex = flare2l;
 	}
 	if( gun_3 == 1 )
 	{
-		piecenum = flare1l;
+		pieceIndex = flare1l;
 	}
 	if( gun_3 == 2 )
 	{
-		piecenum = flare2l;
+		pieceIndex = flare2l;
 	}
 }
 
@@ -317,19 +317,19 @@ FireWeapon3()
 	++gun_3;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turretr;
+	pieceIndex = turretr;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretl;
+	pieceIndex = turretl;
 }
 
 Killed(severity, corpsetype)

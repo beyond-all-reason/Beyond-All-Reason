@@ -55,11 +55,11 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 
-AimFromWeapon1(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryWeapon1(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 
 AimWeapon1(heading,pitch)

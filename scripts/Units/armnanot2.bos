@@ -136,9 +136,9 @@ StopBuilding()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano1;
+	pieceIndex = emitnano1;
 	return (0);
 }
 

@@ -205,34 +205,34 @@ FireWeapon3()
 	gun_3 = !gun_3;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = missilebox1 + gun_2;
+	pieceIndex = missilebox1 + gun_2;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretgun1;
+	pieceIndex = turretgun1;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = missileflare1 + gun_2;
+	pieceIndex = missileflare1 + gun_2;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = gun_3;
+	pieceIndex = gun_3;
 }
 
 /*
@@ -247,14 +247,14 @@ FireWeapon4()
 	sleep 100;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
 	sleep 100;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 */
 

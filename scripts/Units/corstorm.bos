@@ -380,14 +380,14 @@ Create()
 
 
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rfirept + gun_1;
+	pieceIndex = rfirept + gun_1;
 }
 
 static-var  Stunned;

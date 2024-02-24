@@ -157,9 +157,9 @@ StopBuilding()
 	start-script RequestState(1);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano1;
+	pieceIndex = nano1;
 }
 
 

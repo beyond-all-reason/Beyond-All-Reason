@@ -105,16 +105,16 @@ Reload(){
 	}
 }
 
-QueryWeapon1(piecenum) // called third, and all the fucking time
+QueryWeapon1(pieceIndex) // called third, and all the fucking time
 {
 	//get PRINT(3, currbomb);
-	piecenum = bay3l + currbomb - 1;
-	//piecenum = bomb3l;
+	pieceIndex = bay3l + currbomb - 1;
+	//pieceIndex = bomb3l;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 

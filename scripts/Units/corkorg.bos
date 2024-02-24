@@ -682,14 +682,14 @@ FireWeapon3()
 	WhichShoulderRocket = !WhichShoulderRocket;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = 3;
+	pieceIndex = 3;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = rmispoint + WhichShoulderRocket;
+	pieceIndex = rmispoint + WhichShoulderRocket;
 }
 /*
 AimWeapon1(heading, pitch)
@@ -831,7 +831,7 @@ AimWeapon1(heading, pitch)
 }
 /*
 static-var tryme;
-AccelTurn(piecenum, axis, startpos, target,startspeed, accel){ // this wont ever work cause piecenum cant be variable
+AccelTurn(pieceIndex, axis, startpos, target,startspeed, accel){ // this wont ever work cause pieceIndex cant be variable
 	//this is BLOCKING until we go past target
 	//axis can be 0,1,2 for X, Y , Z
 	//startpos is current known position
@@ -844,8 +844,8 @@ AccelTurn(piecenum, axis, startpos, target,startspeed, accel){ // this wont ever
 			startpos = startpos - startspeed;
 			startspeed = startspeed + accel;
 			if (axis == 0) turn tryme to x-axis startpos now;
-			if (axis == 1) turn piecenum to y-axis startpos now;
-			if (axis == 2) turn piecenum to z-axis startpos now;
+			if (axis == 1) turn pieceIndex to y-axis startpos now;
+			if (axis == 2) turn pieceIndex to z-axis startpos now;
 			sleep 30;
 		}
 	
@@ -853,9 +853,9 @@ AccelTurn(piecenum, axis, startpos, target,startspeed, accel){ // this wont ever
 		while (startpos < target){
 			startpos = startpos + startspeed;
 			startspeed = startspeed + accel;
-			if (axis == 0) turn piecenum to x-axis startpos now;
-			if (axis == 1) turn piecenum to y-axis startpos now;
-			if (axis == 2) turn piecenum to z-axis startpos now;
+			if (axis == 0) turn pieceIndex to x-axis startpos now;
+			if (axis == 1) turn pieceIndex to y-axis startpos now;
+			if (axis == 2) turn pieceIndex to z-axis startpos now;
 			sleep 30;
 		}
 	
@@ -889,14 +889,14 @@ FireWeapon1()
 	ShootingArm = !ShootingArm;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rgunflare + ShootingArm;
+	pieceIndex = rgunflare + ShootingArm;
 }
 
 AimWeapon2(heading, pitch) //headlazor
@@ -921,14 +921,14 @@ FireWeapon2()
 	hide eyeflare;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = eyeflare;
+	pieceIndex = eyeflare;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = eyeflare;
+	pieceIndex = eyeflare;
 }
 
 
@@ -941,14 +941,14 @@ AimWeapon4(heading, pitch)
 	return (0);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = ltoes;
+	pieceIndex = ltoes;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = ltoes;
+	pieceIndex = ltoes;
 }
 
 AimWeapon5(heading, pitch)
@@ -959,14 +959,14 @@ AimWeapon5(heading, pitch)
 	return (0);
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = rtoes;
+	pieceIndex = rtoes;
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = rtoes;
+	pieceIndex = rtoes;
 }
 
 
