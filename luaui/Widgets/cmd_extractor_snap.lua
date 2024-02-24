@@ -252,7 +252,7 @@ end
 
 
 -- Since mex snap bypasses normal building behavior, we have to hand hold gridmenu a little bit
-local function handleGridmenu(shift)
+local function handleBuildMenu(shift)
 	local grid = WG["gridmenu"]
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
 		return
@@ -275,12 +275,12 @@ function widget:MousePress(x, y, button)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
-			handleGridmenu(shift)
+			handleBuildMenu(shift)
 			return true
 		end
 		if selectedGeo then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
-			handleGridmenu(shift)
+			handleBuildMenu(shift)
 			return true -- override other mouse presses and handle stuff manually
 		end
 	end

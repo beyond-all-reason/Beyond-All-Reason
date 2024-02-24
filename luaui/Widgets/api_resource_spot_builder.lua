@@ -416,7 +416,13 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			-- issuing any command without shift will clear the queue for us,
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
-			local fakeShift = i == 1 and shift or true
+			-- NEVER USE TERNARIES WITH OUTCOME VALUES THAT CAN BE FALSE
+			local fakeShift = false
+			if i == 1 then
+				fakeShift = shift
+			else
+				fakeShift = true
+			end
 			local opt = fakeShift and { "shift" } or { }
 			Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 		end
