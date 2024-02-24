@@ -1307,7 +1307,7 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if playerID < specOffset and player[playerID].name and not player[playerID].spec and player[playerID].team then
+        if player[playerID].name and not player[playerID].spec and player[playerID].team then
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
