@@ -6,9 +6,9 @@ piece  base, turret, gun, sleeve, lgun, lgatling, rgun, rgatling, flare, lflare,
 static-var  restore_delay, last_gun_heading;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 #define SIG_FIRE1 			16
 #define SIG_FIRE2 			32
 
@@ -74,8 +74,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <90.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
@@ -116,8 +116,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn lgun to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn lgun around x-axis;
@@ -151,8 +151,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn rgun to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rgun around x-axis;

@@ -7,7 +7,7 @@ piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
 static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE pelvis
@@ -27,10 +27,10 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armrock_anim_walk.blend 
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:3
 			turn lfoot to x-axis <-18.289469> speed <236.911429> / animSpeed; //delta=7.90 
 			turn lfoot to z-axis <-0.000304> speed <231.437786> / animSpeed; //delta=7.71 
@@ -258,14 +258,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-  signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	 call-script StopWalking();
 }
 
@@ -310,7 +310,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -327,7 +327,7 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 
 	turn aimy1 to y-axis heading speed <130.027473>;
@@ -356,8 +356,8 @@ FireWeapon1()
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armrock_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armrock_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;

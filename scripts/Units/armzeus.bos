@@ -5,7 +5,7 @@ piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, lupar
 static-var  isMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 static-var maxSpeed, animFramesPerKeyframe;
 
@@ -15,7 +15,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {
 	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-7.199620> speed <215.988613> / animSpeed; 
@@ -378,14 +378,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -607,7 +607,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -615,7 +615,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	
 	if (isAiming == 1) return 0;
@@ -656,8 +656,8 @@ FireWeapon1()
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armzeus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armzeus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;

@@ -26,7 +26,7 @@ UnitSpeed(){
 					start-script UnitSpeed();
 					start-script Walk();
 					isSwimming = FALSE;
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 				}
 				
 			}else{
@@ -35,7 +35,7 @@ UnitSpeed(){
 					start-script Swim();
 					start-script UnitSpeed();
 					isSwimming = TRUE;
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 				}
 			}
 		}
@@ -51,8 +51,8 @@ UnitSpeed(){
 
 
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	if (isSwimming == TRUE) start-script Swim();
@@ -60,7 +60,7 @@ StartMoving(){
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	if (!isDying){
 		if (isSwimming == TRUE ) call-script StopSwimming();

@@ -10,9 +10,9 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM 2
-#define SIG_WALK 4
-#define SIG_AIM_2 8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM2 512
 #define SIG_FIRE1 16
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
@@ -21,7 +21,7 @@ static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm
 static-var maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <113.735764> / animSpeed; //delta=-3.79
 			turn head to x-axis <-2.620635> speed <39.654598> / animSpeed; //delta=1.32
@@ -437,14 +437,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-  signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 }
@@ -512,7 +512,7 @@ QueryNanoPiece(pieceIndex)
 
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
 	turn torso to  y-axis <0> speed <105.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	
@@ -567,8 +567,8 @@ AimWeapon1(heading, pitch) //pew pew
 	}
 	rightarm = 0;
 	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn torso to  y-axis heading + <10> speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	
 	var gun_xz;
@@ -680,8 +680,8 @@ AimWeapon2(heading, pitch)
 	}
 	rightarm = 0;
 	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
@@ -734,8 +734,8 @@ FireWeapon3()
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAimingDgun = 1;
 	isAiming = 1;
 	leftArm = 0;
@@ -803,8 +803,8 @@ FireWeapon4()
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn railturretr to y-axis heading - torsoaim speed <250.000000>;
 	turn railsleever to x-axis <0> - pitch speed <200.000000>;
 	turn railturretl to y-axis heading - torsoaim speed <250.000000>;
@@ -817,7 +817,7 @@ AimWeapon4(heading, pitch)
 }
 
 SprayNano(heading, pitch){
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
 	while (1){
 	
@@ -831,8 +831,8 @@ SprayNano(heading, pitch){
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	//set-signal-mask SIGNAL_AIM1;
 	isBuilding		= 1;
 	rightArm = 0;
 	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
@@ -854,8 +854,8 @@ StartBuilding(heading, pitch)
 
 TargetCleared(Func_Var_1)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }
@@ -866,8 +866,8 @@ StopBuilding()
 	rightArm = 1;
 	isBuilding = 0;
 	set INBUILDSTANCE to 0;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }

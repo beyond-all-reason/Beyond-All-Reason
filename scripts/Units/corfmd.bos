@@ -8,7 +8,7 @@ piece  base, dbl, dbr, dtr, dtl, dummy;
 static-var  restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 activatescr()
@@ -126,8 +126,8 @@ SetMaxReloadTime(Func_Var_1)
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	return (1);
 }
 

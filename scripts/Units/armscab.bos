@@ -6,11 +6,11 @@ piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg
 static-var  isOpen, isMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming, missiles_stockpiled;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK 			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armscab_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lbfoot to x-axis <-16.810781> speed <504.323427> / animSpeed; //delta=16.81 
 			turn lbleg to x-axis <4.239536> speed <127.186080> / animSpeed; //delta=-4.24 
@@ -261,15 +261,15 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -422,8 +422,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	while( !isOpen )
 	{

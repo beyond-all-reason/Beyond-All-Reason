@@ -10,8 +10,8 @@ static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, statechg_Desir
 			animFramesPerKeyframe;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK 			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -19,7 +19,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armmav_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <-2.530919> speed <75.927574> / animSpeed; //delta=2.53 
 			turn lfoot to y-axis <-0.860483> speed <25.814476> / animSpeed; //delta=-0.86 
@@ -444,14 +444,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -808,14 +808,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	start-script RequestState(0);
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <250.027473>;

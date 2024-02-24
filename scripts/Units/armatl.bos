@@ -6,7 +6,7 @@ piece  base, flare, launcher, turret, hinge, door;
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 RockOnWaves()
 {
@@ -79,8 +79,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move door to z-axis [3.5] speed [15];
 	turn hinge to x-axis <75> speed <270>;
 	turn turret to y-axis heading speed <80.016484>;

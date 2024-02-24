@@ -5,7 +5,7 @@
 //use call-script DeathAnim(); from Killed()
 
 DeathAnim() {// For N:\animations\Raptors\raptor_death_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 		if (TRUE) { //Frame:10
 			move body to z-axis (((([-5.896167] *DEATHSCALE)/100) *DEATHAMPLIDUTE)/100) speed (((([176.885018] *DEATHSCALE)/100) *DEATHAMPLIDUTE)/100) / DEATHSPEED; //delta=-5.90

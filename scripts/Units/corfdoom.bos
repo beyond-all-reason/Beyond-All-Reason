@@ -8,9 +8,9 @@ static-var  closed, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var
 				aimdir, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -263,9 +263,9 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_AIM;
-	signal SIG_AIM_2;
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM1;
+	signal SIGNAL_AIM2;
+	signal SIGNAL_AIM3;
 	start-script RequestState(1);
 }
 
@@ -280,8 +280,8 @@ AimWeapon1(heading, pitch)
 	{
 		return (0);
 	}	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time
 	turn turretb to x-axis <0.000000> - pitch speed <85.000000>;
 	aimDir = heading;
@@ -341,8 +341,8 @@ AimWeapon2(heading, pitch)
 	{
 		return (0);
 	}	
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	//We can do this any time
 	turn turretg to x-axis <0.000000> - pitch speed <85.000000>;
 	
@@ -397,8 +397,8 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	while( !Static_Var_3 )
 	{
 		sleep 250;

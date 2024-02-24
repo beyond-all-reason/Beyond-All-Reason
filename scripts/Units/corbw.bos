@@ -3,7 +3,7 @@
 
 piece  base, flare, thrusta, thrustb;
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
@@ -52,8 +52,8 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	 	while( 255 > heading )
 		{
 			set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNKNOWN_UNIT_VALUE(82);

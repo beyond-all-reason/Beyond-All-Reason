@@ -4,7 +4,7 @@
 //#deine IDLESPEED
 //Animframes spacing is 12.500000, THIS SHOULD BE AN INTEGER, SPACE YOUR KEYFRAMES EVENLY!
 Idle() {// For N:\animations\raptor_allterrain_idle_V1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 100;
 	if (!isMoving) { //Frame:10
 			turn body to x-axis ((<1.633554> *IDLEAMPLITUDE)/100) speed ((<49.006618> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-1.63

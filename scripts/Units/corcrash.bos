@@ -8,12 +8,12 @@ static-var  gun_3, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, is
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_WALK			4
-#define SIG_AIM_3			8
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM3 1024
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn head to x-axis <-4.000000> speed <119.999986> / animSpeed; 
 			move lleg to z-axis [-2.190000] speed [65.700002] / animSpeed; 
@@ -129,8 +129,8 @@ UnitSpeed(){
 
 StartMoving()
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
@@ -139,7 +139,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
@@ -201,14 +201,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM_3;
+	set-signal-mask SIGNAL_AIM3;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 	turn aimy1 to y-axis heading speed <225.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{

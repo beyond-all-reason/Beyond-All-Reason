@@ -23,14 +23,14 @@ Deactivatescr()
 	return (0);
 }
 
-#define SIG_AIM 2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1 4
 #define SIG_BUILD	5
-#define SIG_WALK 8
+#define SIGNAL_MOVE 1
 #define SMOKEPIECE1 body
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspid_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn leg1a to x-axis <-3.803232> speed <114.096974> / animSpeed; //delta=3.80 
 			turn leg1a to z-axis <-0.253780> speed <7.613403> / animSpeed; //delta=0.25 
@@ -456,12 +456,12 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	\signal SIG_WALK;
+	\signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -669,7 +669,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -688,7 +688,7 @@ Deactivate()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	turn turret to y-axis heading speed <150.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <100.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))

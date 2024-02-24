@@ -25,7 +25,7 @@ local gun_1 = 0
 local dmgPieces = { piece "turret" }
 
 -- Signal definitions
-local SIG_AIM = 1
+local SIGNAL_AIM1 = 1
 
 -- includes
 	include "dmg_smoke.lua"
@@ -48,8 +48,8 @@ function script.Create()
 end
 
 function script.AimWeapon1(heading, pitch)
-	Signal( SIG_AIM)
-	SetSignalMask( SIG_AIM)
+	Signal( SIGNAL_AIM1)
+	SetSignalMask( SIGNAL_AIM1)
 	Turn( turret , y_axis, heading, math.rad(15.000000) )
 	Turn( spindle , x_axis,(math.rad(60.005495) * gun_1) - pitch, math.rad(200.038462) )
 	--Spring.Echo(gun_1,gun_1*60)

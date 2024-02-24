@@ -4,7 +4,7 @@
 static-var animAmplitude, animSpeed;
 
 Walk() {// For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn liwing to z-axis ((<-27.699998> *animAmplitude)/100) speed ((<830.999934> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn riwing to z-axis ((<27.699998> *animAmplitude)/100) speed ((<830.999934> *animAmplitude)/100) / animspeed; //delta=%.2f

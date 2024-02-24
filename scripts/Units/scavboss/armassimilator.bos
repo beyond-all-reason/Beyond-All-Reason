@@ -9,8 +9,8 @@ static-var  gun_1, isMoving, isAiming, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 
 
 
@@ -204,7 +204,7 @@ StopMoving()
 
 RestoreAfterDelay(Func_Var_1)
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 3500;
 	
 	turn torso  to y-axis <0> speed <30>;
@@ -242,7 +242,7 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn torso to y-axis heading speed <320>;
 	turn rloarm to x-axis <-90> - pitch speed <320>;

@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  base, turret, barrel, flare;
-#define SIG_AIM 2 
+#define SIGNAL_AIM1 256
 
 
 #define SMOKEPIECE base
@@ -56,8 +56,8 @@ static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	//We can do this any time
 	turn barrel to x-axis <0.000000> - pitch speed <125.000000>;

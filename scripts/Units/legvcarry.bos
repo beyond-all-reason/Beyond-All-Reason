@@ -6,7 +6,7 @@ piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, dron
 static-var  moveSpeed, currentSpeed, animSpeed, terrain, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 UnitSpeed()
 {
@@ -66,8 +66,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
 	return (1);
 }

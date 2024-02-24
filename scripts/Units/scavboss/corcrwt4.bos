@@ -14,12 +14,12 @@ thrustrr, thrustrl, thrustfr, thrustfl, thrustrra, thrustrla, thrustfra, thrustf
 static-var  restore_delay, v1, aa_gun;
 
 // Signal definitions
-#define SIG_AIM				4
-#define SIG_AIM_2			8
-#define SIG_AIM_3			16
-#define SIG_AIM_4			32
-#define SIG_AIM_5			64
-#define SIG_AIM_6			128
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
+#define SIGNAL_AIM5 4096
+#define SIGNAL_AIM6 8192
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -151,8 +151,8 @@ AimFromWeapon6(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	turn turretf to x-axis 0-pitch speed <200.000000>;
 	turn turretf to y-axis heading speed <200.000000>;
@@ -178,8 +178,8 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	turn turretaa to y-axis heading speed <450.00000>;
 	turn sleeveaa to x-axis <0.00000> - pitch speed <450.00000>;
@@ -206,8 +206,8 @@ FireWeapon2()
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 
 
 	turn turretr1 to x-axis 0-pitch speed <200.000000>;
@@ -225,8 +225,8 @@ FireWeapon3()
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 
 	turn turretr2 to x-axis 0-pitch speed <200.000000>;
 	turn turretr2 to y-axis heading speed <200.000000>;
@@ -242,8 +242,8 @@ FireWeapon4()
 
 AimWeapon5(heading, pitch)
 {
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 
 	turn turretl1 to x-axis 0-pitch speed <200.000000>;
 	turn turretl1 to y-axis heading speed <200.000000>;
@@ -260,8 +260,8 @@ FireWeapon5()
 
 AimWeapon6(heading, pitch)
 {
-	signal SIG_AIM_6;
-	set-signal-mask SIG_AIM_6;
+	signal SIGNAL_AIM6;
+	set-signal-mask SIGNAL_AIM6;
 
 	turn turretl2 to x-axis 0-pitch speed <200.000000>;
 	turn turretl2 to y-axis heading speed <200.000000>;

@@ -9,7 +9,7 @@ static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, statechg_Desired
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1			8
 
 RockUnit(anglex, anglez)
@@ -111,8 +111,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <200.000000>;
 	turn gunr to x-axis <0.000000> - pitch speed <200.000000>;
 	turn gunl to x-axis <0.000000> - pitch speed <200.000000>;

@@ -8,8 +8,8 @@ piece  base, turret, flare, barrel1, barrel2, barrel3, barrel4, sleeve, rfhip, r
 static-var  isMoving, isAiming, oldHeading, bSteering, wpn1_lasthead, speedmult;
 
 // Signal definitions
-#define SIG_WALK			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -19,7 +19,7 @@ static-var  isMoving, isAiming, oldHeading, bSteering, wpn1_lasthead, speedmult;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armvang_anim_walk_2legs_v2.blend
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			move base to y-axis [-0.688000] speed [20.639999] / animSpeed; //delta=-0.69
 			turn base to x-axis <0.688000> speed <20.639998> / animSpeed; //delta=-0.69
@@ -469,13 +469,13 @@ UnitSpeed(){
 }
 StartMoving(){
 	isMoving=TRUE;
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 }
@@ -552,7 +552,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 8000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -570,7 +570,7 @@ QueryWeapon1(pieceIndex)
 AimWeapon1(heading, pitch)
 {
 	isAiming = TRUE;
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <45.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <70.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))

@@ -8,7 +8,7 @@ static-var  Stunned, oldHead;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
-#define SIG_AIM_2			4
+#define SIGNAL_AIM2 512
 
 SetDirection(heading)
 {
@@ -171,8 +171,8 @@ StopMoving()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	move dtl to x-axis [-10] speed [5];
 	move dbl to x-axis [-10] speed [5];
 	move dtr to x-axis [10] speed [5];

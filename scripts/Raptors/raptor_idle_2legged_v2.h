@@ -5,7 +5,7 @@
 
 Idle() {// For N:\animations\Raptors\raptor_idle_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	sleep 300;
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (!isMoving) { //Frame:10
 			move body to z-axis (((([-0.355065] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([10.651937] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.36
 			move body to y-axis (((([1.471361] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([44.140835] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=1.47

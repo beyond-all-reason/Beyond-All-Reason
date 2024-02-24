@@ -8,8 +8,8 @@ static-var  gun_3, restore_delay, gun_2, oldHead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -132,8 +132,8 @@ StopMoving()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	if( gun_2 )
 	{
 		turn turretb to y-axis heading speed <455.000000>;
@@ -154,8 +154,8 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn turret to y-axis heading speed <755.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <730.000000>;
 	wait-for-turn turret around y-axis;

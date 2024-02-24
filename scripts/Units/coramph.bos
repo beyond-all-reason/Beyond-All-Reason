@@ -13,8 +13,8 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 #define SIGNAL_MOVE 1
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -417,8 +417,8 @@ RestoreAfterDelayGun()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
@@ -494,8 +494,8 @@ AimWeapon1(heading, pitch)
     {
      return (0);
     }	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// checks if the torpedo launcher is deployed
 	if (torp_deploy == FALSE)
 	{

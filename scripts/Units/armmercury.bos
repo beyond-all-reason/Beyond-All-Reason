@@ -6,7 +6,7 @@ piece  flarel, flarer, base, turret, gunl,gunr;
 static-var gun_1, last_fire, firstaim;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define DELAY_UNIT_VAR 1024
 
 //lua_TargetCheck() { return 0; }
@@ -54,8 +54,8 @@ Create()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 //	call-script lua_TargetCheck();
 //	if ((get DELAY_UNIT_VAR) == 0) {
 //	  return(0);

@@ -9,8 +9,8 @@ static-var  Stunned, oldHead;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
-#define SIG_AIM				4
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 SetDirection(heading)
 {
@@ -194,8 +194,8 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 AimWeapon2(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn door1 to z-axis <-40> speed <70>;
 	turn door2 to z-axis <40> speed <70>;
 	wait-for-turn door1 around z-axis;
@@ -220,8 +220,8 @@ AimFromWeapon2(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }

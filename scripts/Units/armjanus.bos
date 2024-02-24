@@ -6,8 +6,8 @@ piece  flarel,flarer, barrelr,barrell,turret, base, aimfrom;
 static-var  restore_delay, gun_2;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 
@@ -59,8 +59,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <80.000000>;
 	turn barrell to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
@@ -87,8 +87,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn turret to y-axis heading speed <80.000000>;
 	turn barrelr to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;

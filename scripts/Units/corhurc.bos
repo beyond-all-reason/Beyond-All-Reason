@@ -6,7 +6,7 @@ piece  base, bombs, thrusta1, thrusta2, thrustb;
 static-var  gun_2, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_AIM_2			2
+#define SIGNAL_AIM2 512
 
 
 activatescr()

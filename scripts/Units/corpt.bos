@@ -7,8 +7,8 @@ static-var  gun_1, restore_delay;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -115,8 +115,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <300.000000>;
 	turn launcher to x-axis <0> - pitch speed <300>;  //?
 	wait-for-turn turret around y-axis;

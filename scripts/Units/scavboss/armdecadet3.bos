@@ -8,8 +8,8 @@ piece  base, flare1, flare2, turret1, turret2, turret3, turret4, barrel101, barr
 static-var  gun_1, gun_2, restore_delay, oldHead;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
 #define BASEPIECE base
@@ -175,8 +175,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret3 to y-axis heading speed <60.>;
 	turn neck1 to x-axis <0.> - pitch speed <30.>;
 	wait-for-turn turret3 around y-axis;
@@ -187,8 +187,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn turret4 to y-axis heading speed <60.>;
 	turn neck2 to x-axis <0.> - pitch speed <30.>;
 	wait-for-turn turret4 around y-axis;
@@ -269,7 +269,7 @@ TargetCleared(Func_Var_1)
 {
 	if( Func_Var_1 == 1 )
 	{
-		signal SIG_AIM;
+		signal SIGNAL_AIM1;
 		stop-spin turret3 around y-axis;
 		stop-spin neck1 around x-axis;
 		stop-spin turret4 around y-axis;

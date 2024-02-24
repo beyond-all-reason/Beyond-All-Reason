@@ -8,8 +8,8 @@ static-var isMoving, isAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK            4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 //corcom travels at 40 elmos per  sec (30 frames)
 //if his animation loops in 8*8 = 64 frames
 //then he has to travel 85 elmos in a loop
@@ -21,7 +21,7 @@ static-var animFramesPerKeyframe;
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn biggun to x-axis <7.000000> speed <474.333919> / animSpeed; 
 			turn biggun to z-axis <-0.000000> speed <59.118463> / animSpeed; 
@@ -450,14 +450,14 @@ StartMoving()
 {
 	isMoving = TRUE;
 	gun_3 = torso;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	start-script walk();
 	return (0);
 }
 
 StopMoving()
 {
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 	return (0);
@@ -474,7 +474,7 @@ QueryNanoPiece(pieceIndex)
 RestorePosition()
 {
 	gun_3 = torso;
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 700;
 	turn aimy1 to y-axis <0.000000> speed <30.000000>;
 	turn aimx1 to x-axis <0> speed <30>;
@@ -512,8 +512,8 @@ AimWeapon1(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <300.000000>;
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
@@ -549,8 +549,8 @@ QueryWeapon3(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	gun_3 = lfirept;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.000000>;
@@ -595,8 +595,8 @@ AimWeapon2(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <300.000000>;
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
@@ -634,8 +634,8 @@ QueryWeapon4(pieceIndex)
 StartBuilding(heading, pitch)
 {
 	gun_3 = torso;
-	signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	//set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	bIsBuilding = 1;
 	//while( !Busy ) //aiming shouldnt block construction
@@ -654,8 +654,8 @@ StartBuilding(heading, pitch)
 
 TargetCleared(Func_Var_1)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestorePosition();
 	return (0);
 }
@@ -664,8 +664,8 @@ StopBuilding()
 {
 	bIsBuilding = 0;
 	set INBUILDSTANCE to 0;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestorePosition();
 	return (0);
 }

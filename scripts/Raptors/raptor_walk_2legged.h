@@ -4,7 +4,7 @@
 static-var animAmplitude, animSpeed;
 
 Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			move body to x-axis (((([0.716533] *MOVESCALE)/100) *animAmplitude)/100) speed (((([21.495981] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([1.053885] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f

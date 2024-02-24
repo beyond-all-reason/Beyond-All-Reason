@@ -3,7 +3,7 @@
 //static-var IDLEAMPLITUDE, IDLESPEED;
 
 Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 500;
 	if (!isMoving) { //Frame:10
 			move body to x-axis (((([-1.425531] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([42.765920] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f

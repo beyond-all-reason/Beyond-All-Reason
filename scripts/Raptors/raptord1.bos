@@ -4,7 +4,7 @@
 piece  body, firepoint;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 Create()
 {
@@ -16,8 +16,8 @@ Create()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 30;
 	return (TRUE);
 }

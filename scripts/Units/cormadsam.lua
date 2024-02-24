@@ -25,7 +25,7 @@
 
 
 --signals
-        local SIG_AIM = 1
+        local SIGNAL_AIM1 = 1
 
 
         function script.Create()
@@ -75,8 +75,8 @@
         function script.AimFromWeapon1() return turret end
 
         function script.AimWeapon1( heading, pitch )
-                Signal(SIG_AIM)
-                SetSignalMask(SIG_AIM)
+                Signal(SIGNAL_AIM1)
+                SetSignalMask(SIGNAL_AIM1)
                 Turn(turret, y_axis, heading, math.rad(245.000000))
                 Turn(launcher, x_axis, -pitch, math.rad(185.000000))
                 WaitForTurn(turret, y_axis)

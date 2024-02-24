@@ -8,9 +8,9 @@ static-var  isMoving, buildTimer;
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corspy_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn head to x-axis <-8.500000> speed <254.999990> / animSpeed; 
 			turn head to z-axis <-0.884000> speed <26.519997> / animSpeed; 
@@ -297,14 +297,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }

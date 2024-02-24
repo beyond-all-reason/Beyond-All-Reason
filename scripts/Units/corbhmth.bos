@@ -7,9 +7,9 @@ piece  base, vent, turret, sleeve, barrel1, flare1, barrel2, flare2,
 static-var reloading_barrel_1, reloading_barrel_2;
 
 // Signal definitions
-#define SIG_AIM_1				2
-#define SIG_AIM_2				4
-#define SIG_AIM_3				8
+#define SIGNAL_AIM1_1				2
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
@@ -163,8 +163,8 @@ Create()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM_1;
-	set-signal-mask SIG_AIM_1;
+	signal SIGNAL_AIM1_1;
+	set-signal-mask SIGNAL_AIM1_1;
 
 	//We can do this any time
 	restore_position = 0;
@@ -186,8 +186,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	aimy1target = heading;
 	while ( TRUE )
 	{
@@ -206,8 +206,8 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	aimy1target = heading;
 	while ( TRUE )
 	{

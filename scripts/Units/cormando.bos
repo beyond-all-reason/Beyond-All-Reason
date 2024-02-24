@@ -19,9 +19,9 @@ static-var  isMoving, spray, statechg_DesiredState, statechg_StateChanging, notB
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 8
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cormando_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn head to y-axis <8.499999> speed <254.999964> / animSpeed; //delta=8.50 
 			turn larm to x-axis <-10.977423> speed <590.877889> / animSpeed; //delta=19.70 
@@ -301,14 +301,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 Go()

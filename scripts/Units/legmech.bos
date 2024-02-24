@@ -11,14 +11,14 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
             restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, isMoving, animSpeed, maxspeed, missile_count;
 
 // Signal definitions
-#define SIG_AIM_1	2
-#define SIG_AIM_2 	4
-#define SIG_AIM_3 	8
-#define SIG_AIM_4 	16
+#define SIGNAL_AIM1	256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
 #define SIG_FIRE1 	32
-#define SIG_AIM_5 	64
-#define SIG_WALK	128
-#define SIG_FIRE2 	256
+#define SIGNAL_AIM5 4096
+#define SIGNAL_MOVE 1
+#define SIG_FIRE2 	64
 
 // REMEMBER TO animspeed = 4 in Create() !!
 //--------------------------------------------------------
@@ -27,7 +27,7 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
 
 walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 {
-	set-signal-mask SIG_WALK;	if (isMoving) { //Frame:4
+	set-signal-mask SIGNAL_MOVE;	if (isMoving) { //Frame:4
 			//turn lfoot to x-axis <-45.174461> speed <1339.883614> / animSpeed; 
 			//turn lfoot to z-axis <-8.711228> speed <587.665429> / animSpeed; 
 			//turn lfoot to y-axis <-2.849490> speed <76.187203> / animSpeed; 
@@ -345,8 +345,8 @@ UnitSpeed(){
 
 StartMoving()
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = 1;
 	start-script UnitSpeed();
 	start-script walk();
@@ -354,7 +354,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = 0;
 	start-script StopWalking();
 }
@@ -382,7 +382,7 @@ Create(){
 }
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_AIM_1;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 3000;
 	turn Main_hull to  y-axis <0> speed <105.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	turn AA_turret_main to y-axis <0> speed <180>;
@@ -428,8 +428,8 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_1;
-	set-signal-mask SIG_AIM_1;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn Main_hull to y-axis heading speed <90.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	var gun_xz;
     gun_xz = get PIECE_XZ(Main_hull);                                //get packed gun coordinates
@@ -520,8 +520,8 @@ AimFromWeapon2(pieceIndex)
 
 AimWeapon2(heading, pitch) //pew pew
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn Right_turret_main to y-axis heading - torsoaim speed <100.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Right_turret_main to x-axis -1*pitch speed <100.0000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 2500) AND ((get ABS(wpn2_lasthead - heading)) < 64236)))
@@ -557,8 +557,8 @@ AimFromWeapon3(pieceIndex)
 
 AimWeapon3(heading, pitch) //pew pew
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn Left_turret_main to y-axis heading - torsoaim speed <100.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Left_turret_main to x-axis -1*pitch speed <100.0000> ;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
@@ -601,8 +601,8 @@ AimFromWeapon4(pieceIndex)
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 	turn Torso_turret_main to y-axis heading - torsoaim speed <200.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Torso_turret_right_hull_2 to x-axis -1*pitch speed <200.0000>;
 	turn Torso_turret_left_hull_2 to x-axis -1*pitch speed <200.0000>;
@@ -665,8 +665,8 @@ AimFromWeapon5(pieceIndex)
 
 AimWeapon5(heading, pitch) //pew pew
 {
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 	turn AA_turret_main to  y-axis heading - torsoaim speed <200.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn AA_turret_gun_hull to x-axis -1*pitch speed <200>;
 	wait-for-turn AA_turret_main around y-axis;

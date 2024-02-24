@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1 			4
 piece  flare1, flare2, base, wingl, wingr, finl, finr, fan, flare3, flare4,pivot;
 
@@ -208,8 +208,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn pivot to x-axis <0> speed <180>;
 	start-script RestoreAfterDelay();
 	return (1);

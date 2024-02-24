@@ -9,7 +9,7 @@
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 //static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn foot1l to z-axis ((<-0.971251> *animAmplitude)/100) speed ((<748.423405> *animAmplitude)/100) / animSpeed; //delta=24.95
 			turn foot1r to z-axis ((<-44.049437> *animAmplitude)/100) speed ((<609.039448> *animAmplitude)/100) / animSpeed; //delta=20.30

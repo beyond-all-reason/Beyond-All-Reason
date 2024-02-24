@@ -6,10 +6,10 @@ piece  base, flare, turret, sleeve, barrel, smoke1, smoke2, lflare, rflare, lbal
 static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lball_heading, last_rball_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_AIML				8
-#define SIG_AIMR				16
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM4	1024
 #define SIG_TICKLE				32
 
 UnitSpeed()
@@ -238,7 +238,7 @@ RestoreAfterDelay()
 
 RestoreAfterDelay_lspon()
 {
-	set-signal-mask SIG_AIML; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM2; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_lball_heading = -1000000;
@@ -248,7 +248,7 @@ RestoreAfterDelay_lspon()
 
 RestoreAfterDelay_rspon()
 {
-	set-signal-mask SIG_AIMR; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM3; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_rball_heading = -1000000;
@@ -261,8 +261,8 @@ RestoreAfterDelay_rspon()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <40.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
@@ -311,8 +311,8 @@ AimWeapon2(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIG_AIML;
-	set-signal-mask SIG_AIML;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
@@ -369,8 +369,8 @@ AimWeapon3(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIG_AIMR;
-	set-signal-mask SIG_AIMR;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second

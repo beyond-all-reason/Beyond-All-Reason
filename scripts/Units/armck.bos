@@ -25,10 +25,10 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armck_anim_walk.blend 
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	
 	if (isMoving) { //Frame:6
 			turn lfoot to x-axis <34.680733> speed <1040.421987> / animSpeed; //delta=-34.68 
@@ -288,14 +288,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIG_WALK;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }

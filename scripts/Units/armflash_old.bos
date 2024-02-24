@@ -7,7 +7,7 @@ static-var  restore_delay, gun_1, fire_count;
 static-var  last_primary_heading,last_primary_pitch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1			4
 
 
@@ -67,8 +67,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second

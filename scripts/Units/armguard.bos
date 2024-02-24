@@ -5,7 +5,7 @@ piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
 static-var  nextBarrel, trajectoryMode, lastHeading;
 
-#define SIGNAL_AIM			1
+#define SIGNAL_AIM2			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
@@ -29,19 +29,19 @@ RequestState(requestedState)
 
 Activate()
 {
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM2;
 	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM2;
 	start-script RequestState(LOW_TRAJECTORY);
 }
 
 restoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM2;
 	sleep 3500;
 	if(lastHeading > <-180.000000>)
 	{
@@ -83,8 +83,8 @@ AimWeapon1(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	call-script aimCommon(heading, pitch);
 
 	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
@@ -105,8 +105,8 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	call-script aimCommon(heading, pitch);
 	return (1);
 }

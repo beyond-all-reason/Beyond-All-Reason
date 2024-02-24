@@ -6,7 +6,7 @@ piece  base, cog, cog1, cog2, cog3, cog4, stand, tubes,handle, f11,f12,f13,f14,f
 static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading, aiming, clockwork_started;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE			4
 
 //#define SMOKEPIECE base
@@ -61,8 +61,8 @@ AimWeapon1(heading, pitch)
 {
 //get PRINT( get GAME_FRAME,7777);
 	aiming = 1;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	//clockwork_started = GAME_FRAME;
 	if (last_visual_heading != heading) { 
 		start-script clockwork(Rand(-90,90), Rand(-90,90));

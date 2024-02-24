@@ -10,9 +10,9 @@ static-var  gun_1, isMoving, isAiming, gun_2, targetswap, oldheading, isfiring, 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
-#define SIG_AIM			2
-#define SIG_WALK		4
-#define SIG_AIM_2		8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM2 512
 #define SIG_FIRE1 		16
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
@@ -22,7 +22,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:7
 			turn lbturret to x-axis <-2.000000> speed <60.000000> / animSpeed; 
 			turn lbturret to z-axis <-2.000000> speed <60.000000> / animSpeed; 
@@ -517,8 +517,8 @@ UnitSpeed(){
 }
 
 Die(){
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;
@@ -822,8 +822,8 @@ Die(){
 
 StartMoving()
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
@@ -832,7 +832,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	start-script StopWalking();
 	isMoving = FALSE;
 }
@@ -1065,8 +1065,8 @@ SweepFire()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	start-script SmokeItUp();
 	turn aimy1 to y-axis heading speed <130.000000>;
@@ -1114,8 +1114,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn aaturretl to y-axis heading speed <192.500000>;
 	turn aaturretr to y-axis heading speed <192.500000>;
 	turn boxl to x-axis -1*pitch speed <90>;

@@ -7,7 +7,7 @@ piece  flare1, flare2, torso, lthigh, rthigh, rleg, rfoot, lleg,
 static-var  gun_1, isOpen, isMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -18,9 +18,9 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corhrk_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <-43.438135> speed <1502.214769> / animSpeed; //delta=50.07 
 			turn lfoot to z-axis <4.911848> speed <171.148067> / animSpeed; //delta=5.70 
@@ -196,14 +196,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	 call-script StopWalking();
 }
@@ -356,7 +356,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -364,7 +364,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn lfvent to y-axis <-90> speed <190>;
 	turn rfvent to y-axis <90> speed <190>;

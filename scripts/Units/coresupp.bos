@@ -7,8 +7,8 @@ static-var  gun_1, gun_2, restore_delay, oldheading;
 
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 #define SIG_STEER			16
 
@@ -139,8 +139,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn fturret to y-axis heading speed <270.>;
 	turn fturret to x-axis -1*pitch speed <150.>;
 	wait-for-turn fturret around y-axis;
@@ -185,8 +185,8 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn bturret to y-axis heading speed <270.>;
 	turn bturret to x-axis -1*pitch speed <150.>;
 	wait-for-turn bturret around y-axis;

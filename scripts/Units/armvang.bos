@@ -5,8 +5,8 @@ piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip
 
 static-var  isMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode;
 
-#define SIG_WALK			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
@@ -24,7 +24,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armvang_anim_walk_2legs_v2.blend
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			move base to y-axis [-0.688000] speed [20.639999] / animSpeed; //delta=-0.69
 			turn base to x-axis <0.688000> speed <20.639998> / animSpeed; //delta=-0.69
@@ -478,14 +478,14 @@ UnitSpeed(){
 
 StartMoving(){
 	isMoving=TRUE;
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 }
@@ -542,7 +542,7 @@ Create()
 
 Activate()
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	trajectoryMode = HIGH_TRAJECTORY;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
@@ -551,7 +551,7 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	trajectoryMode = LOW_TRAJECTORY;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
@@ -588,7 +588,7 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 8000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -621,8 +621,8 @@ AimWeapon1(heading, pitch)
 		return(0);
 	}
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
@@ -671,8 +671,8 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second

@@ -9,11 +9,11 @@ static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, cu
 static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
 
 #define SIGNAL_MOVE 1
-#define SIG_AIM_1			2
-#define SIG_AIM_2			4 //rlauncher
-#define SIG_AIM_3			8
-#define SIG_AIM_4			16
-#define SIG_AIM_5			32 //llauncher
+#define SIGNAL_AIM1_1			2
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
+#define SIGNAL_AIM5 4096
 
 UnitSpeed()
 {
@@ -80,7 +80,7 @@ static-var  Stunned;
 
 RestoreAfterDelay_tesla()
 {
-	set-signal-mask SIG_AIM_1; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM1_1; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_tesla_heading = -1000000;
@@ -91,14 +91,14 @@ RestoreAfterDelay_tesla()
 
 RestoreAfterDelay_EMP_missile()
 {
-	set-signal-mask SIG_AIM_2; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM2; //ensures restore animation is killed if this weapon is aimed
 	sleep 6000; // allows the emp missile to be deployed for 6 seconds, can be adjusted for balance reasons
 	turn rlauncher to x-axis <0> speed <30>;
 }
 
 RestoreAfterDelay_lEMP()
 {
-	set-signal-mask SIG_AIM_3; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM3; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_lempslv_heading = -1000000;
@@ -107,7 +107,7 @@ RestoreAfterDelay_lEMP()
 
 RestoreAfterDelay_rEMP()
 {
-	set-signal-mask SIG_AIM_4; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIGNAL_AIM4; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_lempslv_heading = -1000000;
@@ -132,8 +132,8 @@ SetStunned(State)
 //===================================
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_1;
-	set-signal-mask SIG_AIM_1;
+	signal SIGNAL_AIM1_1;
+	set-signal-mask SIGNAL_AIM1_1;
 	turn turret to y-axis heading speed <45.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
 	wait-for-turn turret around y-axis;
@@ -223,29 +223,29 @@ QueryWeapon1(pieceIndex)
 //separated out to make sure signals work correctly
 retract_rlauncher()
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn rlauncher to x-axis <0.000000> speed <60.000000>;
 }
 
 retract_llauncher()
 {
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 	turn llauncher to x-axis <0.000000> speed <60.000000>;
 }
 
 deploy_rlauncher()
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
 }
 
 deploy_llauncher()
 {
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 	turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
 }
 
@@ -281,16 +281,16 @@ AimWeapon2(heading, pitch)
 {
 	if (missiles_stockpiled == 2)
 	{
-		signal SIG_AIM_5;
-		set-signal-mask SIG_AIM_5;
+		signal SIGNAL_AIM5;
+		set-signal-mask SIGNAL_AIM5;
 		turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
 		wait-for-turn llauncher around x-axis;
 		return (1);
 	}
 	if (missiles_stockpiled == 1)
 	{
-		signal SIG_AIM_2;
-		set-signal-mask SIG_AIM_2;
+		signal SIGNAL_AIM2;
+		set-signal-mask SIGNAL_AIM2;
 		turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
 		wait-for-turn rlauncher around x-axis;
 		return (1);
@@ -337,8 +337,8 @@ QueryWeapon2(pieceIndex)
 //===================================
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 
 	// logic to restrict turret rotation due to unitdef maxangledif
 	// maxangledif=180 = 0 to 180 degrees = 0 to 32,768
@@ -388,8 +388,8 @@ QueryWeapon3(pieceIndex)
 //===================================
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 
 	// logic to restrict turret rotation due to unitdef maxangledif
 	// maxangledif=180 = -180 to 0 degrees = -32,768 to 0

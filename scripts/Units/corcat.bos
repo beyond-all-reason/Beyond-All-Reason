@@ -10,7 +10,7 @@ piece  torso, pelvis, rleg, rfoot, lleg, lfoot, head, lthigh,
 static-var  isMoving, isAiming, isReady, gun_1;
 
 // Signal definitions
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -23,9 +23,9 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 16
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcat_anim_walk_v2.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:8
 			turn head to x-axis <3.000000> speed <90.000003> / animSpeed; //delta=-3.00 
 			turn head to y-axis <-7.000000> speed <210.000002> / animSpeed; //delta=-7.00 
@@ -645,14 +645,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -809,8 +809,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	isAiming = TRUE;
 	//signal SIG_HEAD;

@@ -8,10 +8,10 @@ static-var  gun_2, restore_delay, Static_Var_7, Static_Var_8;
 static-var reloading_barrel_1, reloading_barrel_2;
 static-var deltaheading, newchassisheading, chassisheading, restore_position;
 // Signal definitions
-#define SIG_AIM_1			2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
-#define SIG_AIM_4			16
+#define SIGNAL_AIM1	256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
 #define SIGNAL_MOVE 1
 
 #define BASEPIECE base
@@ -248,8 +248,8 @@ SetMaxReloadTime(Func_Var_1)
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM_1;
-	set-signal-mask SIG_AIM_1;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	//We can do this any time
 	restore_position = 0;
@@ -273,8 +273,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	aimy1target = heading;
 	while ( TRUE )
 	{
@@ -293,8 +293,8 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	aimy1target = heading;
 	while ( TRUE )
 	{
@@ -360,8 +360,8 @@ StopMoving()
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 	turn turreta to y-axis heading speed <200.000000>;
 	wait-for-turn turreta around y-axis;
 	start-script RestoreLaser();

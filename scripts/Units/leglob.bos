@@ -6,10 +6,10 @@ piece  center, pelvis, turret, sleeve, barrel, flare,
 
 static-var  isMoving, isAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
 // Signal definitions
-#define SIG_AIM				4
-#define SIG_WALK			2
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corthud_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn turret to x-axis <-6.599999> speed <197.999970> / animSpeed; 
 			turn lfoot to x-axis <-19.636401> speed <576.401349> / animSpeed; 
@@ -353,15 +353,15 @@ Create()
 StartMoving()
 {
 	isMoving = TRUE;
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 
 StopMoving()
 {
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 }
@@ -400,7 +400,7 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
     sleep 2750;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -409,7 +409,7 @@ static-var aimy1target, aimy2target, scaled;
 AimWeapon1(heading, pitch)
 {
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	
 	if (isAiming == 1) return;
 	aimy1target = heading;
@@ -462,8 +462,8 @@ FireWeapon1()
 // For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn turret to y-axis <0> speed <200>;
 	turn pelvis to x-axis <0> speed <200>;

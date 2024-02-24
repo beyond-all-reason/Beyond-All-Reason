@@ -6,8 +6,8 @@ piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, 
 static-var  restore_delay, isMoving, gun_2, corrected;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 
@@ -92,8 +92,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move turret to y-axis [6] speed [20];
 	wait-for-move turret along y-axis;
 	turn turret to y-axis heading speed <90.000000>;
@@ -125,8 +125,8 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn lid to x-axis <-179.000000> speed <200.000000>;
 	
 		

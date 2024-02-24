@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
-#define SIG_WALK    2
+#define SIGNAL_MOVE 1
 
 piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
        luparm, ruparm, rnano, lnano, aimx1, aimy1, armhexl, armhexl2, armhexl_emit, armhexl2_emit;
@@ -340,8 +340,8 @@ StopBuilding()
 
 StartMoving()
 {
-  	signal SIG_WALK;
-  	set-signal-mask SIG_WALK;
+  	signal SIGNAL_MOVE;
+  	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
@@ -350,7 +350,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();	
 }

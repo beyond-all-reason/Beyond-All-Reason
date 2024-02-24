@@ -9,11 +9,11 @@ static-var  GunOpen, isMoving, restore_delay, laser_persist, wpn1_lasthead, anim
 			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming, shotcount;
 
 // Signal definitions
-#define SIG_AIM				4
-#define SIG_WALK 			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armsnipe_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:7
 			turn lfoot to z-axis <0.512782> speed <15.380441> / animSpeed; //delta=-0.51 
 			turn lfoot to y-axis <3.894376> speed <116.598709> / animSpeed; //delta=3.89 
@@ -560,14 +560,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -833,7 +833,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep (laser_persist);
 	hide laser;
 	sleep (restore_delay - laser_persist);
@@ -841,7 +841,7 @@ RestoreAfterDelay()
 }
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	start-script RequestState(0);
 	start-script RestoreAfterDelay();

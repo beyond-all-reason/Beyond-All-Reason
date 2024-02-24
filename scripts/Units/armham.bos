@@ -9,7 +9,7 @@ static-var  isMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
             moveSpeed, currentSpeed, restore, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
@@ -39,10 +39,10 @@ RockUnit(anglex, anglez)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armham_anim_walk.blend 
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn larm to x-axis <1.500000> speed <45.000001> / animSpeed; //delta=-1.50 
 			turn lfoot to x-axis <-6.163154> speed <185.068507> / animSpeed; //delta=6.17 
@@ -282,14 +282,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIG_WALK;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -404,7 +404,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	while (restore == FALSE) // attempt to block restore when switching from 1 to 2 or 2 to 1.
 	{
 	    sleep 50;
@@ -420,7 +420,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
         start-script RequestState(0);
-        signal SIG_AIM;
+        signal SIGNAL_AIM1;
         turn aimy1 to y-axis heading speed <140>;
         turn aimx1 to x-axis <0.000000> - pitch speed <50>;
         while( !Static_Var_4 )
@@ -469,8 +469,8 @@ FireWeapon1()
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armham_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armham_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;

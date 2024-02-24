@@ -6,7 +6,7 @@ piece  base, turret, lloarm, flare, nano, beam;
 static-var  restore_delay, last_primary_heading;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_BUILD		4
 
 #define BASEPIECE base
@@ -86,8 +86,8 @@ SetStunned(State)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle

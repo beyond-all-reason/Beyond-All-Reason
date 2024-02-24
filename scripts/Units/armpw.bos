@@ -8,7 +8,7 @@ static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, restore_delay,
 #include "weapon1control.h"
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 
@@ -372,7 +372,7 @@ ExecuteRestoreAfterDelay()
 
 static-var bAnimate;
 Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_idle_pushup.blend 
-		set-signal-mask (SIG_AIM | SIGNAL_MOVE);
+		set-signal-mask (SIGNAL_AIM1 | SIGNAL_MOVE);
 		if (RAND(1,100) > 10) return; // reduce probs to only 10%
 		sleep 10000 + 100*RAND(1,200); // 10-30 secs
 		//sleep 5000;
@@ -1075,7 +1075,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -1122,7 +1122,7 @@ Shot1()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	start-script Weapon1Control();
 	
 	call-script StopAnimation();
@@ -1139,7 +1139,7 @@ AimWeapon1(heading, pitch)
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armpw_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armpw_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;

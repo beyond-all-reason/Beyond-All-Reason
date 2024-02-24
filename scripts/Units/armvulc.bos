@@ -7,7 +7,7 @@ piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
 static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount, shooting, spin_speed, last_primary_heading, last_primary_pitch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE			4
 
 activatescr()
@@ -113,8 +113,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
@@ -227,7 +227,7 @@ TargetCleared(Func_Var_1)
 {
 	if( Func_Var_1 == 1 )
 	{
-		signal SIG_AIM;
+		signal SIGNAL_AIM1;
 		stop-spin turret around y-axis;
 		stop-spin neck around x-axis;
 		call-script deactivatescr();

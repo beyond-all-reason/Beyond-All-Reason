@@ -8,7 +8,7 @@ static-var  restore_delay, moveSpeed, wheelSpeed, gun_2, statechg_DesiredState, 
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 Steering(heading, steer, currentSpeed)
 {
@@ -125,8 +125,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn gun to y-axis heading speed <300.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))

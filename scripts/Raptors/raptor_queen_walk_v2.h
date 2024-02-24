@@ -4,10 +4,10 @@
 //#define MOVESCALE 100 //Higher values are bigger, 100 is default
 //#define MOVESPEED 6
 //#define animAmplitude 66
-//#define SIG_WALK 64 //these defines are needed before includes!
+//#define SIGNAL_MOVE 1
 
 Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			turn body to x-axis ((<-0.217126> *animAmplitude)/100) speed ((<9.134978> *animAmplitude)/100) / animSpeed; //delta=-0.30

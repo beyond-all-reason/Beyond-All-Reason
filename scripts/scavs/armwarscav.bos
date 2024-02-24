@@ -7,7 +7,7 @@ piece  torso,rflare, lflare, pelvis, lthigh, rthigh, luparm,
 static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 HitByWeapon(anglex, anglez)
 {
@@ -387,7 +387,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -422,7 +422,7 @@ FireWeapon1()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn torso to y-axis heading speed <200.000000>;
 	turn ruparm to x-axis <0.000000> - pitch speed <200.000000>;

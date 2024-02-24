@@ -31,7 +31,7 @@ static-var  silo_state;
 #include "smokeunit_thread_nohit.h"
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 Create()
 {
@@ -91,7 +91,7 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIG_AIM; // kill any OpenSilo threads
+	signal SIGNAL_AIM1; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
@@ -108,8 +108,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script OpenSilo();
 	start-script RestoreAfterDelay();
 	if (silo_state == 2)

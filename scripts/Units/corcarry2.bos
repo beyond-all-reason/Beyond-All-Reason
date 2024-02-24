@@ -10,8 +10,8 @@ static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				3
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 #define BASEPIECE base
 #define HITSPEED <10.0>
@@ -197,8 +197,8 @@ RestoreAfterDelay()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move dbl to x-axis [-5.6] speed [8];
 	move dbl to z-axis [-5.6] speed [8];
 	move dbr to x-axis [5.6] speed [8];
@@ -229,8 +229,8 @@ AimFromWeapon2(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }

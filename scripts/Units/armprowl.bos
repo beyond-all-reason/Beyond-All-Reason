@@ -6,16 +6,16 @@ piece  pelvis, grill, lthigh, lleg, lshin, lfoot, rthigh, rleg, rshin, rfoot, ai
 static-var  isAiming,  restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 // For N:\animations\armprowl_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn body to y-axis <-2.062500> speed <61.875008> / animSpeed; //delta=-2.06
 			turn lfoot to x-axis <-21.185328> speed <706.519846> / animSpeed; //delta=23.55
@@ -387,14 +387,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -432,7 +432,7 @@ SetMaxReloadTime(Func_Var_1)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.000000> speed <120.000000>;
 	turn aimx1 to x-axis <0.000000> speed <120.000000>;
@@ -444,8 +444,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <140.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
@@ -460,8 +460,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	isAiming = TRUE;
 	turn misturret to y-axis (heading - wpn1_lasthead) speed <360.000000>;
 	turn misturret to x-axis <0.000000> - pitch speed <270.000000>;

@@ -6,7 +6,7 @@ piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
 
@@ -205,8 +205,8 @@ static-var aimy1delta, timetozero, deceleratethreshold, gameFrame;
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time
 	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
 	

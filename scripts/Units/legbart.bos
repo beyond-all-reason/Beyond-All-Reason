@@ -9,7 +9,7 @@ piece  tail, torso, rleg, rfoot, rtoes, lleg, lfoot, ltoes, lthigh,
 static-var  isMoving, isAiming, isReady;
 
 // Signal definitions
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 // 
 // LICENSED CC BY NC ND to Beherith mysterme@gmail.com
@@ -17,9 +17,9 @@ static-var  isMoving, isAiming, isReady;
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 16
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcat_anim_walk_v2.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:8
 			turn lfoot to x-axis <-0.607104> speed <36.255456> / animSpeed; //delta=1.21 
 			turn lfoot to z-axis <-7.167780> speed <425.045024> / animSpeed; //delta=14.17 
@@ -517,14 +517,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -600,8 +600,8 @@ static-var tilt;
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	//signal SIG_HEAD;
 	//We can do this any time

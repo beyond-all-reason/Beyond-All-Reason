@@ -16,8 +16,8 @@ static-var  Stunned;
 // weapon_state = 6, popping down
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIG_WEAPON_DEPLOY 16
 
 #define SMOKEPIECE base
@@ -159,8 +159,8 @@ AimWeapon1(heading, pitch)
 	{
     call-script DeployWeapon();
 	}
-  signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+  signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret1 to y-axis heading speed 40000;
 	wait-for-turn turret1 around y-axis;
 	start-script RestoreAfterDelay();
@@ -205,8 +205,8 @@ AimWeapon2(heading, pitch)
   {
     call-script DeployWeapon();
   }
-  signal SIG_AIM_2;
-  set-signal-mask SIG_AIM_2;
+  signal SIGNAL_AIM2;
+  set-signal-mask SIGNAL_AIM2;
   turn turret2 to y-axis heading speed 40000;
   wait-for-turn turret2 around y-axis;
   start-script RestoreAfterDelay();

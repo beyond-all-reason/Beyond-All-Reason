@@ -7,13 +7,13 @@ static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_las
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 // For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 static-var walkCount;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 
 LOLEMPTYFUNCTION(){
 	// Ok let me tell you what wierd error this script has, which is probably an error of scriptor.
@@ -67,7 +67,7 @@ StopWalking() {
 
 
 Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	walkCount = walkCount + 1;
 	if (isMoving) { //Frame:6
 			turn lfoot to x-axis <-33.421407> speed <1002.642225> / animSpeed; //delta=33.42
@@ -357,7 +357,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 // Call this from StopMoving()!
 
 Swim() {// For N:\animations\Raptors\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 
 	//get PRINT (get GAME_FRAME, 777);
 	if (isMoving) { //Frame:6
@@ -444,7 +444,7 @@ UnitSpeed(){
 			if (groundheight > (((-1) * 66))){
 				if (isSwimming == TRUE){
 					//get PRINT( get GAME_FRAME, 6666);
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 					// switch to walk
 					call-script StopSwimming();
 					start-script Walk(11);
@@ -458,7 +458,7 @@ UnitSpeed(){
 				if (isSwimming == FALSE){
 
 					//get PRINT( get GAME_FRAME, 7777);
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 					call-script StopWalking();
 					start-script Swim();
 					isSwimming = TRUE;
@@ -477,8 +477,8 @@ UnitSpeed(){
 
 
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	//start-script UnitSpeed();
 	if (isSwimming == TRUE) {
@@ -490,7 +490,7 @@ StartMoving(){
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 		//if (isSwimming == TRUE ) call-script StopSwimming();
 		//else call-script StopWalking();
@@ -532,7 +532,7 @@ RetractWeapon2()
 
 RestoreAfterDelay_Weapon1()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	if (Stunned) {
 			return (1);
@@ -546,7 +546,7 @@ RestoreAfterDelay_Weapon1()
 
 RestoreAfterDelay_Weapon2()
 {
-	set-signal-mask SIG_AIM_2;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restore_delay;
 	if (Stunned) {
 			return (1);
@@ -603,8 +603,8 @@ SetStunned(State)
 
 AimWeapon1(heading, pitch)
 {
-	set-signal-mask SIG_AIM;
-	signal SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
+	signal SIGNAL_AIM1;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
@@ -627,8 +627,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	set-signal-mask SIG_AIM_2;
-	signal SIG_AIM_2;
+	set-signal-mask SIGNAL_AIM2;
+	signal SIGNAL_AIM2;
 
 	if (secondary_deployed == 0)
 	{

@@ -7,7 +7,7 @@ piece  base, L6, L5, L4, L3, L2, L1, J2,
 static-var  isMoving, gun_1, waterSpeed;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 AmphSpeed()
@@ -202,8 +202,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	return (1);
 }
 

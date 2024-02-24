@@ -5,9 +5,9 @@ piece  base, armbase, arm1, arm2, arm3, arm4, arm5, flare1, flare2, flare3, flar
 
 static-var  restore_delay, shootflare;
 // Signal definitions
-#define SIG_AIM1				1 
-#define SIG_AIM2				2 
-#define SIG_AIM3			    4 
+#define SIGNAL_AIM1 256 
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3	1024		    4 
 //------------------------------- Worm Options --------------------------------------------------
 #define HIVESIZE 100 // This is for scaling move animations, as percent 
 
@@ -174,8 +174,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch) // ground weapon
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	
 	var deg;
 	deg = heading / 182;
@@ -202,8 +202,8 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch) // anti air weapon
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	
 	//get PRINT(heading, pitch)
 	turn topflare to y-axis heading now;
@@ -224,8 +224,8 @@ AimFromWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch) // meteor
 {
-	signal SIG_AIM1;
-	set-signal-mask SIG_AIM1;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	return (0); // always return false?
 }
 QueryWeapon3(pieceIndex)

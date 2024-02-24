@@ -14,16 +14,16 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 
 // For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, moveHands;
-#define SIG_WALK 1
+#define SIGNAL_MOVE 1
 Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn antenna to x-axis <0.777777> speed <53.333339> / animSpeed; //delta=1.78
 			turn head to x-axis <3.786915> speed <8.607460> / animSpeed; //delta=-0.29
@@ -556,15 +556,15 @@ UnitSpeed(){
 }
 
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIG_WALK;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -633,7 +633,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -657,7 +657,7 @@ AimHands() {
 
 AimWeapon1(heading, pitch) //hand cannons
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	call-script AimHands();
 	isAiming = TRUE;
 	myHeading = heading;
@@ -678,7 +678,7 @@ AimWeapon1(heading, pitch) //hand cannons
 
 AimWeapon2(heading, pitch) //HEAD LASER
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn turret to y-axis (heading - myHeading) speed <300.071429>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))

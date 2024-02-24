@@ -17,14 +17,14 @@ piece	base1, rdoor1, ldoor1, legr1, legrb1, legl1, leglb1, steer2, base2, rdoor2
 static-var fire_count_3, fire_count_4, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, wpn2_lasthead, wpn5_lasthead, 
 			oldHeading, speed2, speed3, speed4, speed5, speed6, steerstore, steerslow, turnslow;
 
-#define SIG_AIM 2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE3 4
-#define SIG_WALK 8
-#define SIG_AIM_2 16
-#define SIG_AIM_3 32
-#define SIG_AIM_4 64
-#define SIG_AIM_5 128
-#define SIG_AIM_6 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
+#define SIGNAL_AIM5 4096
+#define SIGNAL_AIM6 8192
 #define SIG_FIRE4 512
 #define SMOKEPIECE1 base1
 
@@ -104,13 +104,13 @@ ExecuteRestoreAfterDelay()
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM_2;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspid_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn legl1 to x-axis <7.879442> speed <236.383259> / animSpeed; //delta=-7.88 
 			turn legl1 to z-axis <-6.25> speed <615> / animSpeed; //delta=-13.64 
@@ -933,15 +933,15 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Steering();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -1050,8 +1050,8 @@ FireWeapon1()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn sleeve1 to y-axis heading speed <120.000000>;
 	turn sleeve1 to x-axis <0.000000> - pitch speed <65.000000>;
 	wait-for-turn sleeve1 around y-axis;
@@ -1077,8 +1077,8 @@ FireWeapon6()
 
 AimWeapon6(heading, pitch)
 {
-	signal SIG_AIM_6;
-	set-signal-mask SIG_AIM_6;
+	signal SIGNAL_AIM6;
+	set-signal-mask SIGNAL_AIM6;
 	turn sleeve6 to y-axis heading - 3 * steerstore speed <120.000000>;
 	turn sleeve6 to x-axis <0.000000> - pitch speed <65.000000>;
 	wait-for-turn sleeve6 around y-axis;
@@ -1113,7 +1113,7 @@ FireWeapon2()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
+	signal SIGNAL_AIM2;
 	turn aimy12 to y-axis heading speed <45.000000>;
 	turn sleeve2 to x-axis <0.000000> - pitch speed <70.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <2>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <2>)))
@@ -1154,7 +1154,7 @@ FireWeapon5()
 
 AimWeapon5(heading, pitch)
 {
-	signal SIG_AIM_5;
+	signal SIGNAL_AIM5;
 	turn aimy15 to y-axis heading - 3 * steerstore speed <45.000000>;
 	turn sleeve5 to x-axis <0.000000> - pitch speed <70.000000>;
 	if (((get ABS(wpn5_lasthead - heading + 3 * steerstore)) > 65536) OR(((get ABS(wpn5_lasthead - heading + 3 * steerstore)) > <2>) AND ((get ABS(wpn5_lasthead - heading + 3 * steerstore)) < 65536 - <2>)))
@@ -1209,8 +1209,8 @@ Shot3(zero)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn turret3 to y-axis heading - steerstore speed <150.000000>;
 	turn turret3 to x-axis 0 - pitch speed <150.000000>;
 	wait-for-turn turret3 around y-axis;
@@ -1271,8 +1271,8 @@ Shot4(zero)
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 	turn turret4 to y-axis heading - 2 * steerstore speed <150.000000>;
 	turn turret4 to x-axis 0 - pitch speed <150.000000>;
 	wait-for-turn turret4 around y-axis;

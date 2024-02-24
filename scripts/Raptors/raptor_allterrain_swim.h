@@ -1,7 +1,7 @@
 // For N:\animations\raptor_allterrain_swim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 
 Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to z-axis (((([-2.030000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.899999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.03

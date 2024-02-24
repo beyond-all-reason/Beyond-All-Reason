@@ -10,11 +10,11 @@
 //#define RUHAND rsack  
 //#define LLHAND lsack  //define these as the left and right head thingies
 //#define RLHAND rsack  
-//#define SIG_WALK 64 //these defines are needed before includes!
+//#define SIGNAL_MOVE 1
 
 
 Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			move body to x-axis (((([-2.055556] *MOVESCALE)/100) *animAmplitude)/100) speed (((([61.666667] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.06
 			move body to y-axis (((([3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([104.060361] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=3.47

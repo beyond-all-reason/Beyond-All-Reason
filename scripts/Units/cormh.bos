@@ -7,7 +7,7 @@ static-var  isOpen, gun_1, restore_delay, statechg_DesiredState,
             statechg_StateChanging, Wobble_status;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIG_RESTORE			8
 #define SIG_IDLE			16
@@ -249,8 +249,8 @@ StopMoving()
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
 	{
 		sleep 200;

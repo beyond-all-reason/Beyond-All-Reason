@@ -6,8 +6,8 @@ piece  flare21, flare22, base, turret2, launcher2, door1, door2, flare11, flare1
 static-var  gun_1, gun_3, restore_delay, oldHead;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_3			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 #define SIGNAL_MOVE 1
 
 
@@ -71,7 +71,7 @@ Create()
 abaim()
 {
 	sleep 4000;
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -145,8 +145,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	turn door1 to z-axis <-90> speed <160>;
 	turn door2 to z-axis <90> speed <160>;
@@ -157,8 +157,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn turret2 to y-axis heading speed <170.038462>;
 	turn launcher2 to x-axis <0.000000> - pitch speed <130.027473>;
 	wait-for-turn turret2 around y-axis;
@@ -169,7 +169,7 @@ AimWeapon2(heading, pitch)
 
 TargetCleared(Func_Var_1)
 {
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 }
 
 FireWeapon1()

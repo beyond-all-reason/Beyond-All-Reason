@@ -7,7 +7,7 @@ static-var  isMoving, isAiming, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -401,7 +401,7 @@ StopMoving()
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 8000;
 	turn turret to y-axis <0.000000> speed <36.000000>;
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
@@ -424,7 +424,7 @@ QueryWeapon1(pieceIndex)
 AimWeapon1(heading, pitch)
 {
 	isAiming = TRUE;
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	turn turret to y-axis heading speed <30.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))

@@ -7,12 +7,12 @@ static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving,
 targetswap, isfiring, timer;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4 
 			move lfleg to z-axis [-1.47] speed [43] / animSpeed; 
 			move lfhip to z-axis [-1.80000] speed [54] / animSpeed; 
@@ -126,8 +126,8 @@ UnitSpeed(){
 
 StartMoving()
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
@@ -136,14 +136,14 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    signal SIG_AIM;
+    signal SIGNAL_AIM1;
     isfiring = 0;
 	oldhead = -1000000;
 	if (Stunned) {
@@ -157,7 +157,7 @@ ExecuteRestoreAfterDelay()
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -173,7 +173,7 @@ SweepFire()
 		}
 		if (timer > 150)
 		{
-			//signal SIG_AIM;
+			//signal SIGNAL_AIM1;
 			//timer = 0;
 			start-script ExecuteRestoreAfterDelay();
 		}
@@ -223,8 +223,8 @@ SetStunned(State)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <25>;
 	turn barrel to x-axis -1*pitch speed <5>;
 	if (get ABS(oldhead - heading) > 500)

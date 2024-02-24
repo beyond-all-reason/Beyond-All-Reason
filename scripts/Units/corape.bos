@@ -7,7 +7,7 @@ piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -113,7 +113,7 @@ Deactivate()
 //}
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	set-signal-mask 0;
    	turn rjet to x-axis <0> speed <90>;
@@ -146,8 +146,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn rwing to z-axis <0> speed <90>;
 	turn lwing to z-axis <0> speed <90>;
 	turn rwing to x-axis <90> speed <90>;

@@ -8,8 +8,8 @@ static-var  isMoving, isAiming, Static_Var_3, Static_Var_4, gun_3,
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 
 
 walk()
@@ -375,14 +375,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -452,7 +452,7 @@ FireWeapon2()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 	isAiming = TRUE;
 	while( !Static_Var_3 )
 	{

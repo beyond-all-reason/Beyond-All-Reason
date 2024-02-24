@@ -1,6 +1,6 @@
 
 Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 1)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:2
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<23.461623> *animAmplitude)/100) speed ((<669.069328> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-6.587734> *animAmplitude)/100) speed ((<14.171661> *animAmplitude)/100) / animSpeed; 

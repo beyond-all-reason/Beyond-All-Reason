@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
-#define SIG_WALK		2	
+#define SIGNAL_MOVE 1
 
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
        rfoot, lfoot, beamcase, nano, aimy1, cagelight, cagelight_emit;
@@ -11,7 +11,7 @@ static-var  notBuilding, isMoving, statechg_DesiredState, statechg_StateChanging
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-29.399999> speed <948.439919> / animSpeed; 
 			turn lfoot to y-axis <0.000000> speed <19.876628> / animSpeed; 
@@ -283,8 +283,8 @@ StopBuilding()
 StartMoving()
 {
 	isMoving = TRUE;
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
@@ -292,7 +292,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
@@ -305,7 +305,7 @@ QueryNanoPiece(pieceIndex)
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\corck_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\corck_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 		if (TRUE) { //Frame:2

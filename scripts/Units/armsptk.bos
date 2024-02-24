@@ -11,13 +11,13 @@ piece	flare1, flare2, flare3 ,base, turret, leg1a, leg1b, leg1c, leg2a, leg2b, l
 
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
-#define SIG_AIM 2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1 4
-#define SIG_WALK 8
+#define SIGNAL_MOVE 1
 #define SMOKEPIECE1 body
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armsptk_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			move base to y-axis [-0.333333] speed [10.000000] / animSpeed; //delta=-0.33 
 			turn base to z-axis <-0.666667> speed <19.999999> / animSpeed; //delta=0.67 
@@ -348,14 +348,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -551,8 +551,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <150.000000>;
 	turn turret to x-axis 0 - pitch speed <150.000000>;
 	wait-for-turn turret around y-axis;

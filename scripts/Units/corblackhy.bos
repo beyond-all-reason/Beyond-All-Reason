@@ -249,12 +249,12 @@ QueryWeapon1(pieceIndex)
 static-var aimy1delta, timetozero, deceleratethreshold;
 
 
-#define SIG_AIM 2
+#define SIGNAL_AIM1 256
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	//signal SIG_HEAD;
 	//We can do this any time

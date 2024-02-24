@@ -2,7 +2,7 @@ piece rig_Raptor_Artillery_Root, rig_Raptor_Artillery_Thorax, rig_Raptor_Artille
 
 #include "exptype.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
@@ -10,7 +10,7 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 #define MOVESCALE 100 // Higher values are bigger, 100 is default, for bigger/smaller units
 #define MOVESPEED 8 // At this movespeed and animamplitude, the ideal maxvelocity is 2.1 
 #define animAmplitude 100
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptorartillery_walk_6legged.h"
 
 // For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 1))
@@ -19,10 +19,10 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 //static-var animAmplitude; //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 //static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-//#define SIG_WALK 4 
+//#define SIGNAL_MOVE 1
 /*
 Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 1)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:2
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<-23.461623> *animAmplitude)/100) speed ((<669.069328> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<6.587734> *animAmplitude)/100) speed ((<14.171661> *animAmplitude)/100) / animSpeed; 
@@ -1023,15 +1023,15 @@ UnitSpeed(){
 
 
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
@@ -1089,8 +1089,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	var tailspeed;
 	tailspeed = 5;
@@ -1125,7 +1125,7 @@ Killed( severity, corpsetype )
 {
 	isDying = TRUE;
 	corpsetype = 1;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	emit-sfx 1025 from rig_Raptor_Artillery_Thorax;
 	if (RAND(0,100)<severity) explode rig_Raptor_Artillery_Thorax type FALL | NOHEATCLOUD;
 	return( 0 );

@@ -6,7 +6,7 @@ piece  flare1, flare6,flare7, flare5, flare4, flare3, flare2, base, turret;
 static-var  gun_1, last_fire, firstaim;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 #define SMOKEPIECE base
@@ -54,8 +54,8 @@ Create()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <250>;
 	if (firstaim == 1) {
 	  last_fire = (get GAME_FRAME) + 30;

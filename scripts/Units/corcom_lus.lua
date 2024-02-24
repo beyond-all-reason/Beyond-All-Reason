@@ -41,8 +41,8 @@ local weapons = {
 
 
 
-local SIG_AIM = 2
-local SIG_WALK = 4
+local SIGNAL_AIM1 = 2
+local SIGNAL_MOVE = 4
 local PlaySoundFile 	= Spring.PlaySoundFile
 local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
@@ -81,7 +81,7 @@ local function move(piece, axis, goal, speed)
 end
 
 function walk()
-	SetSignalMask(SIG_WALK)
+	SetSignalMask(SIGNAL_MOVE)
 		if (isMoving) then --Frame:6
 			if (rightArm) then turn(biggun, 1, 7.000000, 474.333919 / animSpeed) end
 			if (rightArm) then turn(biggun, 3, -0.000000, 59.118463 / animSpeed)  end
@@ -419,7 +419,7 @@ function walk()
 end
 
 function SprayNano(heading, pitch)
-	SetSignalMask(SIG_AIM)
+	SetSignalMask(SIGNAL_AIM1)
 	Sleep(1000)
 	while (true) do
 		Sleep(1000)
@@ -554,7 +554,7 @@ function script.StartMoving()
 end
 
 function script.StopMoving()
-	Signal(SIG_WALK)
+	Signal(SIGNAL_MOVE)
 	isMoving = false
 	StartThread(StopWalking)
 end
@@ -575,8 +575,8 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIG_AIM)
-			Signal(SIG_AIM)
+			SetSignalMask(SIGNAL_AIM1)
+			Signal(SIGNAL_AIM1)
 			Turn(aimy1, 2, heading, rad(300.000000))
 			Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 			WaitForTurn(aimy1,2)
@@ -594,8 +594,8 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIG_AIM)
-			Signal(SIG_AIM)
+			SetSignalMask(SIGNAL_AIM1)
+			Signal(SIGNAL_AIM1)
 			Turn(aimy1, 2, heading, rad(300.000000))
 			Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 			WaitForTurn(aimy1,2)
@@ -642,7 +642,7 @@ function script.QueryWeapon(weapon)
 end
 
 function script.StartBuilding(heading, pitch)
-	Signal(SIG_AIM)
+	Signal(SIGNAL_AIM1)
 	isBuilding = true
 	leftArm = false
 		Turn(aimy1, 2, heading, rad(300.000000))
@@ -659,14 +659,14 @@ function script.StopBuilding()
 	leftArm = true
 	isBuilding = false
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
-	Signal(SIG_AIM)
-	SetSignalMask(SIG_AIM)
+	Signal(SIGNAL_AIM1)
+	SetSignalMask(SIGNAL_AIM1)
 	StartThread(Restore)
 	return true
 end
 
 function Restore()
-	SetSignalMask(SIG_AIM)
+	SetSignalMask(SIGNAL_AIM1)
 	Sleep(3000)
 	turn(aimy1, 2, 0, 90)
 	turn(aimx1, 1, 0, 90)

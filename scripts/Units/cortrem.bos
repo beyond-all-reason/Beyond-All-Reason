@@ -12,7 +12,7 @@ static-var global_heading;
 static-var recoiling;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 
@@ -87,7 +87,7 @@ RestoreAfterDelay()
 Activate()
 {
 	// signal kills any current aim animations
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	// variable setting weapon state
 	fire_mode = 1;
 	// set last heading values to large negative, ensure first aim waits for the turn
@@ -100,7 +100,7 @@ Activate()
 Deactivate()
 {
 	// signal kills any current aim animations
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	// variable setting weapon state
 	fire_mode = 0;
 	// set last heading values to large negative, ensure first aim waits for the turn
@@ -119,8 +119,8 @@ AimWeapon1(heading, pitch)
 		return(0);
 	}
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
     // out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
@@ -170,8 +170,8 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
     // out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
@@ -345,7 +345,7 @@ TargetCleared(Func_Var_1)
 {
 	if( Func_Var_1 == 1 )
 	{
-		signal SIG_AIM;
+		signal SIGNAL_AIM1;
 		stop-spin turret around y-axis;
 	}
 	return (0);

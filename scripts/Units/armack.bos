@@ -20,10 +20,10 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 
-#define SIG_WALK 8
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armack_anim_walk.blend 
 	//CC BY NC ND (c) Beherith
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-0.485482> speed <110.281531> / animSpeed; //delta=3.68 
 			turn lfoot to y-axis <0.072222> speed <16.825555> / animSpeed; //delta=0.56 
@@ -263,14 +263,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

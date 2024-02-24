@@ -6,7 +6,7 @@ piece  flare1, flare2, turret, base, sleeves, barrel1, barrel2, smoke1, smoke2;
 static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
 
@@ -125,8 +125,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <85.005495>;
 	turn sleeves to x-axis <0.000000> - pitch speed <50.005495>;
 	wait-for-turn turret around y-axis;

@@ -8,7 +8,7 @@ static-var  Stunned, oldHead, missiles_stockpiled;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
-#define SIG_AIM_2			4
+#define SIGNAL_AIM2 512
 
 SetDirection(heading)
 {
@@ -223,8 +223,8 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn door1 to z-axis <-40> speed <70>;
 	turn door2 to z-axis <40> speed <70>;
 	wait-for-turn door1 around z-axis;

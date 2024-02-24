@@ -7,7 +7,7 @@ piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve,
 static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, miniguncount, animspeed;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_FIRE1 			4
 
 
@@ -287,14 +287,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn body to y-axis heading speed <180.000000>;
 	turn luparm to x-axis 0 - pitch speed <360>;

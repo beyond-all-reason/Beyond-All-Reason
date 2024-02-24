@@ -7,8 +7,8 @@ static-var  statechg_DesiredState, statechg_StateChanging, gun_1, gun_2;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM				4
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 activatescr()
@@ -133,8 +133,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	turn turret to x-axis 0-pitch speed <720.000000>;
 	turn turret to y-axis heading speed <360.000000>;
@@ -151,8 +151,8 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	return (1);
 }
 

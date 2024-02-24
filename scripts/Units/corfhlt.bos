@@ -7,7 +7,7 @@ piece  flare1, flare2, base, turret1, barrel1, barrel2, turret2;
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 RockOnWaves()
 {
@@ -67,8 +67,8 @@ static-var aimy1velocity, aimy1target, aimy1position, aimy1delta, timetozero, de
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time
 	turn turret2 to x-axis <10.000000> - pitch speed <45.000000>;
 	

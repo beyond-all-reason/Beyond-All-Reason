@@ -7,7 +7,7 @@ static-var  isOpen, gun1, restore_delay, statechg_DesiredState,
             statechg_StateChanging;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 Activatescr()
@@ -106,7 +106,7 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script RequestState(0);
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -125,8 +125,8 @@ SetMaxReloadTime(Func_Var_1)
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
 	{
 		sleep 250;

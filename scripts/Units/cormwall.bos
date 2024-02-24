@@ -6,7 +6,7 @@ piece  base, lid, sleeve, flare1, flare2, flare3, flare4, flare5, flare6, flare7
 static-var  restore_delay, deploy_state, animate_speed, close_speed;
 static-var  barrel;
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_DEPLOY			4
 
 static-var  Stunned;
@@ -79,8 +79,8 @@ Deploy()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	if (get WEAPON_RELOADSTATE(1) < get GAME_FRAME)
 	{
 		start-script Deploy();

@@ -6,7 +6,7 @@ piece  lftrack, rftrack, lbtrack, rbtrack, turret, guns, base, barrel1, flare1, 
 static-var  restore_delay, gun_3;
 
 // Signal definitions
-#define SIG_AIM_3			2
+#define SIGNAL_AIM3 1024
 
 
 
@@ -69,8 +69,8 @@ RestoreAfterDelay()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn turret to y-axis heading speed <670.000000>;
 	turn guns to x-axis <0.000000> - pitch speed <670.000000>;
 	wait-for-turn turret around y-axis;

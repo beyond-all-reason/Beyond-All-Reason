@@ -9,9 +9,9 @@ static-var isMoving, Static_Var_3, Static_Var_4, Static_Var_5, animSpeed, maxSpe
 #define SIG_ACTIVATE			2
 
 
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspy_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn lfoot to x-axis <5.075082> speed <152.252460> / animSpeed; //delta=-5.08 
 			turn lleg to x-axis <3.801859> speed <114.055762> / animSpeed; //delta=-3.80 
@@ -177,14 +177,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

@@ -6,8 +6,8 @@ piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,le
 static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM2				128
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 #define SIGNAL_MOVE 1
 #define SIG_SIG_CHILL 16
@@ -342,14 +342,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	turn head to y-axis heading speed <180.000000>;
 	turn head to x-axis <0.000000> - pitch speed <110.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
@@ -438,7 +438,7 @@ AimWeapon2(heading, pitch)
 		
 
 
-	signal SIG_AIM2;
+	signal SIGNAL_AIM2;
 	turn turretr to y-axis heading speed <180.000000>;
 	turn turretr to x-axis <0.000000> - pitch speed <110.000000>;
 

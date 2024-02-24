@@ -5,7 +5,7 @@ piece  base, flare, turret, barrel, sleeve;
 
 static-var shotcount;
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 Create()
@@ -25,8 +25,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <5.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <3.500000>;
 	wait-for-turn turret around y-axis;
@@ -51,7 +51,7 @@ TargetCleared(Func_Var_1)
 {
 	if( Func_Var_1 == 1 )
 	{
-		signal SIG_AIM;
+		signal SIGNAL_AIM1;
 		stop-spin turret around y-axis;
 		stop-spin sleeve around x-axis;
 	}

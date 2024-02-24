@@ -7,7 +7,7 @@ static-var  restore_delay, is_open;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_OPENCLOSE       4
 
 #define BASEPIECE base
@@ -20,7 +20,7 @@ static-var  Stunned;
 
 Close()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	is_open = 0;
 	move turret to y-axis [-44.000000] speed [69.000000];
 	wait-for-move turret along y-axis;
@@ -86,8 +86,8 @@ Create()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	if ( is_open == 0 )
 	{
 		start-script Open();

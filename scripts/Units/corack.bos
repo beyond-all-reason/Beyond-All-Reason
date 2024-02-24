@@ -10,9 +10,9 @@ piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
 static-var  isMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging;
             
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 2
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corack_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lforeleg to y-axis <-0.000000> speed <473.999948> / animSpeed; 
 			turn lhindleg to y-axis <-0.000000> speed <1388.999837> / animSpeed; 
@@ -105,14 +105,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

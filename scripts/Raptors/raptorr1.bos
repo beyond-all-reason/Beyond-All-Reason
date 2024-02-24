@@ -3,8 +3,8 @@ piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rs
 static-var aMoving, isMoving,maxSpeed, animFramesPerKeyframe, animSpeed, isDying, gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
 #include "exptype.h"
@@ -18,7 +18,7 @@ static-var aMoving, isMoving,maxSpeed, animFramesPerKeyframe, animSpeed, isDying
 #define RUHAND rsack  
 #define LLHAND lsack  //define these as the left and right head thingies
 #define RLHAND rsack  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 #define IDLEMOVESCALE 55
@@ -64,8 +64,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;

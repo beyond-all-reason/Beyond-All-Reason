@@ -7,12 +7,12 @@ piece  lturret, lbarrel, lflare, rturret, rbarrel, rflare, uturret, ubarrel, ufl
 static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 // Signal definitions
-#define SIG_AIM		2
-#define SIG_WALK 	4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 #define SIG_FIRE1 	8
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armfido_anim_walk2.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lhand to x-axis <-11.904617> speed <509.978555> / animSpeed; 
 			turn lleg to x-axis <51.319873> speed <1547.548193> / animSpeed; 
@@ -292,15 +292,15 @@ UnitSpeed(){
 }
 
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -355,7 +355,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -370,7 +370,7 @@ SetMaxReloadTime(Func_Var_1)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	turn aimx1 to y-axis heading speed <200.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <100.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))

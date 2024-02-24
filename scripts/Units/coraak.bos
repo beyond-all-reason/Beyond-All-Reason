@@ -6,9 +6,9 @@ piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso
 static-var  isMoving;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
-#define SIG_WALK 1
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\coraak_anim_walk.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lbfoot to x-axis <19.449998> speed <583.499953> / animSpeed; //delta=-19.45 
 			turn lbleg to x-axis <-10.149999> speed <304.499976> / animSpeed; //delta=10.15 
@@ -226,14 +226,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

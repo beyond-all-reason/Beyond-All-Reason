@@ -43,8 +43,8 @@ local weapons = {
 
 
 
-local SIG_AIM = 2
-local SIG_WALK = 4
+local SIGNAL_AIM1 = 2
+local SIGNAL_MOVE = 4
 local PlaySoundFile 	= Spring.PlaySoundFile
 local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
@@ -466,8 +466,8 @@ end
 
 local isDancing = false
 local function Dance1()
-	Signal(SIG_WALK)
-	SetSignalMask(SIG_WALK)
+	Signal(SIGNAL_MOVE)
+	SetSignalMask(SIGNAL_MOVE)
 	local speedMult = 1/4
 	local sleepTime = 33*4
 
@@ -738,8 +738,8 @@ end
 
 local function StopDance1()
 	isDancing = false
-	Signal(SIG_WALK)
-	SetSignalMask(SIG_WALK)
+	Signal(SIGNAL_MOVE)
+	SetSignalMask(SIGNAL_MOVE)
 
 	local speedMult = 4
 
@@ -787,7 +787,7 @@ local function StopDance1()
 end
 
 function SprayNano(heading, pitch)
-	SetSignalMask(SIG_AIM)
+	SetSignalMask(SIGNAL_AIM1)
 	Sleep(1000)
 	while (true) do
 		Turn(torso, 2, rad(10) + buildHeading, rad(10))
@@ -936,7 +936,7 @@ function script.StartMoving()
 end
 
 function script.StopMoving()
-	Signal(SIG_WALK)
+	Signal(SIGNAL_MOVE)
 	isMoving = false
 	StartThread(StopWalking)
 end
@@ -958,8 +958,8 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIG_AIM)
-			Signal(SIG_AIM)
+			SetSignalMask(SIGNAL_AIM1)
+			Signal(SIGNAL_AIM1)
 			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
@@ -983,8 +983,8 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIG_AIM)
-			Signal(SIG_AIM)
+			SetSignalMask(SIGNAL_AIM1)
+			Signal(SIGNAL_AIM1)
 
 			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
@@ -1041,7 +1041,7 @@ end
 
 function script.StartBuilding(heading, pitch)
 	Show(nano)
-	Signal(SIG_AIM)
+	Signal(SIGNAL_AIM1)
 	isBuilding = true
 	leftArm = false
 	Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
@@ -1064,8 +1064,8 @@ function script.StopBuilding()
 	leftArm = true
 	isBuilding = false
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
-	Signal(SIG_AIM)
-	SetSignalMask(SIG_AIM)
+	Signal(SIGNAL_AIM1)
+	SetSignalMask(SIGNAL_AIM1)
 	StartThread(Restore)
 	Hide (armhexl_emit)
 	Hide (armhexl2_emit)
@@ -1080,7 +1080,7 @@ function script.QueryNanoPiece()
 end
 
 function Restore()
-	SetSignalMask(SIG_AIM)
+	SetSignalMask(SIGNAL_AIM1)
 	isAiming = false
 	isAimingDgun = false
 	Sleep(3000)

@@ -9,7 +9,7 @@ static-var  Stunned;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -169,8 +169,8 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
 	return (1);
 }

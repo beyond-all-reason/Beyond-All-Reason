@@ -9,7 +9,7 @@ static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
-#define SIG_WALK 				4
+#define SIGNAL_MOVE 1
 #define SIG_OFF 				8
 
 static-var  Stunned;
@@ -56,7 +56,7 @@ spinarms()
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armaser_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			move base to y-axis [-1.000000] speed [30.000000] / animSpeed; //delta=-1.00 
 			turn base to y-axis <-1.666667> speed <49.999997> / animSpeed; //delta=-1.67 
@@ -205,14 +205,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIG_WALK;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

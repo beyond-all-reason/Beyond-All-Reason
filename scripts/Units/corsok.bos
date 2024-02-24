@@ -7,8 +7,8 @@ piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
 static-var  isAiming;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 #define SIG_IDLE			16
 
@@ -116,8 +116,8 @@ FireWeapon1()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn turret to y-axis heading speed <120.00000>;
 	turn support to x-axis <0.00000> - pitch speed <80.00000>;
@@ -146,8 +146,8 @@ FireWeapon2()
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }

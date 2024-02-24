@@ -9,15 +9,15 @@ static-var  isMoving, Static_Var_2, Static_Var_3, gun_3, restore_delay,
             moveSpeed, currentSpeed, wpn2_lasthead;
 
 // Signal definitions
-#define SIG_AIM_3			2
+#define SIGNAL_AIM3 1024
 // Generated for N:\animations\armjeth_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armjeth_anim_walk.blend 
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:3
 			turn lfoot to x-axis <41.977052> speed <1239.793115> / animSpeed; //delta=-41.33 
 			turn lfoot to z-axis <-0.000352> speed <300.031170> / animSpeed; //delta=10.00 
@@ -262,14 +262,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIG_WALK;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
@@ -384,7 +384,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM_3;
+	set-signal-mask SIGNAL_AIM3;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -402,7 +402,7 @@ QueryWeapon1(pieceIndex)
 AimWeapon2(heading, pitch)
 {
 	start-script RequestState(0);
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 	while( !Static_Var_3 )
 	{
 		return(0);
@@ -450,7 +450,7 @@ QueryWeapon2(pieceIndex)
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armjeth_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armjeth_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;

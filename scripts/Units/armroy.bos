@@ -6,7 +6,7 @@ piece  flare1, flare2, base, turret, sleeve1, sleeve2, depthturret, depthflare, 
 static-var  gun_1, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
 
 // Signal definitions
-#define SIG_AIM			2
+#define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIG_ROCK		8
 
@@ -199,8 +199,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <100.000000>;
 	turn sleeve1 to x-axis <0.000000> - pitch speed <40.000000>;
 	turn sleeve2 to x-axis <0.000000> - pitch speed <40.000000>;

@@ -6,7 +6,7 @@ piece  base, base2, base3, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr
 static-var  restore_delay,  dakka, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define SIG_LIGHT			4
 #define SIG_RESTORE			8
 
@@ -39,7 +39,7 @@ activatescr () {
 }
 
 deactivatescr() {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	state=0;
 	//hide fireline;
 	
@@ -130,7 +130,7 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	start-script RequestState(1);
 }
 
@@ -244,8 +244,8 @@ AimWeapon1(heading, pitch) {
 	lastfired = gameframe;
 	
 	//get PRINT(1, heading, pitch);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn sauronarms to x-axis <0.000000> - pitch speed <85>;
 	turn sauron to y-axis heading speed <35>;
 	
@@ -282,8 +282,8 @@ Shot1() {
 
 AimWeapon1(heading, pitch) {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time
 	
 	aimy1target = heading;

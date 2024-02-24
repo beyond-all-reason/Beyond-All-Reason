@@ -7,7 +7,7 @@ static-var  gun_1;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -60,8 +60,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	if( gun_1 == 1 )
 	{
 		turn sleeve to z-axis <0.000000> speed <400.000000>;

@@ -2,8 +2,8 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
 #include "exptype.h"
@@ -14,7 +14,7 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 #define MOVESPEED 3
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var  maxSpeed, animFramesPerKeyframe, isMoving, deltaSpeed;
-#define SIG_WALK 1
+#define SIGNAL_MOVE 1
 
 #include "raptor_fly.h"
 // REMEMBER TO animspeed = 3 in Create() !!
@@ -45,12 +45,12 @@ UnitSpeed(){
 	//animSpeed = 3;
 }
 StartMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }
@@ -113,8 +113,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn head to x-axis 0 -pitch speed <200>;
 	wait-for-turn head around y-axis;
 	start-script RestoreAfterDelay();

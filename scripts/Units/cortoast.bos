@@ -5,7 +5,7 @@
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
 
 static-var  turretOpen, restoreDelay, stunned, trajectoryMode;
-#define SIGNAL_AIM			1
+#define SIGNAL_AIM2			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
@@ -100,7 +100,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -127,13 +127,13 @@ Create()
 
 Activate()
 {
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM2;
 	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM2;
 	start-script RequestState(LOW_TRAJECTORY);
 }
 
@@ -159,8 +159,8 @@ AimWeapon1(heading, pitch)
 	 	return(0);
 	 }
 	
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -185,8 +185,8 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();

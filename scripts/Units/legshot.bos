@@ -7,11 +7,11 @@ static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, currentSpeed, anim
 
 static-var  maxSpeed, animFramesPerKeyframe;
 // Signal definitions
-#define SIG_AIM				4
-#define SIG_WALK			2
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corpyro_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
+	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:3
 			turn head to y-axis <-1.600000> speed <47.999996> / animSpeed; //delta=-1.60 
 			turn lfoot to x-axis <-48.749789> speed <1641.513271> / animSpeed; //delta=54.72 
@@ -455,8 +455,8 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	isMoving = TRUE;
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
@@ -464,7 +464,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	start-script StopWalking();
 }
 
@@ -495,7 +495,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -512,7 +512,7 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
+	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <200.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <90.000000>;

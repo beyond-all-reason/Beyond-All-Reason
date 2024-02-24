@@ -14,10 +14,10 @@ static-var recently_damaged, desired_activation;
 // For N:\animations\corspec_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	//CC BY NC ND (c) Beherith
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <26.466910> speed <49.000477> / animSpeed; //delta=-1.63 
 			turn lleg to x-axis <-9.730538> speed <130.748442> / animSpeed; //delta=4.36 
@@ -228,14 +228,14 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

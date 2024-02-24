@@ -3,9 +3,9 @@
 //static-var animAmplitude; //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 //static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-//#define SIG_WALK 4
+//#define SIGNAL_MOVE 1
 Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn head to x-axis ((<-6.375634> *animAmplitude)/100) speed ((<191.269023> *animAmplitude)/100) / animSpeed; //delta=6.38
 			turn head to z-axis ((<0.411281> *animAmplitude)/100) speed ((<12.338443> *animAmplitude)/100) / animSpeed; //delta=-0.41

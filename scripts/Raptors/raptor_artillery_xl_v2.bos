@@ -2,7 +2,7 @@ piece base,torso, thigh1l, thigh1r, thigh2l, thigh2r, thigh3l, thigh3r, leg1l, l
 
 #include "exptype.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
@@ -10,7 +10,7 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 #define MOVESCALE 200 // Higher values are bigger, 100 is default, for bigger/smaller units
 #define MOVESPEED 12 // At this movespeed and animamplitude, the ideal maxvelocity is 2.1 
 #define animAmplitude 100
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_6legged.h"
 
 /*
@@ -136,15 +136,15 @@ UnitSpeed(){
 
 
 StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
@@ -204,8 +204,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	var tailspeed;
 	tailspeed = 5;
@@ -244,7 +244,7 @@ Killed( severity, corpsetype )
 {
 	isDying = TRUE;
 	corpsetype = 1;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	emit-sfx 1025 from torso;
 	if (RAND(0,100)<severity) explode torso type FALL | NOHEATCLOUD;
 	if (RAND(0,100)<severity) explode leg1l type FALL | NOHEATCLOUD;

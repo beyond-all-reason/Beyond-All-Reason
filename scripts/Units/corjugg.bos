@@ -15,9 +15,9 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 {
 	return 0;
 }
-#define SIG_WALK 2
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corjugg_anim_walk_v2.blend 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:10
 			turn lbfoot to x-axis <-12.491154> speed <374.734623> / animSpeed; //delta=12.49 
 			turn lbfoot to z-axis <0.276222> speed <8.286674> / animSpeed; //delta=-0.28 
@@ -605,15 +605,15 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
   start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
 	isMoving=FALSE;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
@@ -778,7 +778,7 @@ static-var bAnimate;
 //Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corjugg_anim_death.blend
 Killed(severity, corpsetype)
 {
-		signal SIG_WALK;
+		signal SIGNAL_MOVE;
 			bAnimate = TRUE;
 		if (bAnimate) { //Frame:10
 			turn lbfoot to x-axis <5.952370> speed <17.857110> ; 

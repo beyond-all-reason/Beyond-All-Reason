@@ -7,7 +7,7 @@ local flare1 = piece "flare1"
 local flare2 = piece "flare2"
 local tail = piece "tail"
 
-local SIG_WALK = 2
+local SIGNAL_MOVE = 2
 
 local tspeed = math.rad (180)
 local ta = math.rad (30)
@@ -23,8 +23,8 @@ end
 
 bodyWiggleAxis = z_axis --z while walking, y while swimming
 function walk()
-	Signal(SIG_WALK)
-	SetSignalMask(SIG_WALK)
+	Signal(SIGNAL_MOVE)
+	SetSignalMask(SIGNAL_MOVE)
 	Sleep (math.random (0, 100))
 	while (true) do
 		Turn (foot1, x_axis, ta, tspeed)
@@ -46,7 +46,7 @@ function walk()
 end
 
 function stopwalk()
-	Signal(SIG_WALK) --stop the walk thread
+	Signal(SIGNAL_MOVE) --stop the walk thread
 	Turn (foot1, x_axis, 0, tspeed)
 	Turn (foot2, x_axis, 0, tspeed)
 	--Turn (body, x_axis, math.rad (0), math.rad (45))
