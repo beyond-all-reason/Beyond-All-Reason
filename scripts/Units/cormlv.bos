@@ -135,13 +135,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
-
 SweetSpot(piecenum)
 {
 	piecenum = base;

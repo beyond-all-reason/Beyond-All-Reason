@@ -232,12 +232,6 @@ QueryNanoPiece(piecenum)
 	piecenum = nano;
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
 
 SweetSpot(piecenum)
 {

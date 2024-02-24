@@ -156,12 +156,6 @@ StopBuilding()
 	return (0);
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_2 = 0 - Func_Var_1;
-	return (0);
-}
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

@@ -176,11 +176,6 @@ QueryNanoPiece(piecenum)
 	move base to y-axis [0.0] speed [0.23];
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_2 = 0 - Func_Var_1;
-}
-
 SweetSpot(piecenum)
 {
 	piecenum = Base;

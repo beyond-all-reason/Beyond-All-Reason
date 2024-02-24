@@ -3,8 +3,7 @@
 
 piece pelvis, rthigh, rleg, lthigh, lleg, torso, lfoot, rfoot, lturret, rturret, lflare1,lflare2,rflare1,rflare2, aimy1, aimx1;
 
-static-var isMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-  Static_Var_6, Static_Var_7, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var isMoving, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define SIG_WALK 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armaak_anim_walk.blend 
