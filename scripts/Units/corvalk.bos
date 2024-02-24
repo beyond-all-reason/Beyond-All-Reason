@@ -3,7 +3,7 @@
 
 piece  base, link, thrust1, thrust2, thrust3, thrust4;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  moveRate, statechg_DesiredState, statechg_StateChanging;
 
 
 pickupscr()
@@ -78,7 +78,7 @@ Create()
 	turn thrust3 to x-axis <-90> now; 
 	turn thrust4 to x-axis <-90> now; 
 	
-	Static_Var_1 = 0;
+	moveRate = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -133,7 +133,7 @@ Deactivate()
 StopMoving()
 {
 	signal 8;
-	Static_Var_1 = 0;
+	moveRate = 0;
 	return (0);
 }
 
@@ -141,7 +141,7 @@ MoveRate1()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 1;
+	moveRate = 1;
 	return (0);
 }
 
@@ -149,7 +149,7 @@ MoveRate2()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 2;
+	moveRate = 2;
 	return (0);
 }
 
@@ -157,7 +157,7 @@ MoveRate3()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 3;
+	moveRate = 3;
 	return (0);
 }
 

@@ -3,7 +3,7 @@
 
 piece  lwing, rwing, base, thrustm, lthrust, rthrust;
 
-static-var  gun_3, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_3, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_MOVE			2

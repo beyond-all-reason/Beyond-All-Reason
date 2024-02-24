@@ -3,8 +3,7 @@
 
 piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2;
 
-static-var  Static_Var_1, oldHead;
-static-var  Stunned;
+static-var  Stunned, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -110,7 +109,6 @@ Create()
 	hide blink;
 	hide antiflare;
 	hide ground;
-	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;

@@ -3,7 +3,7 @@
 
 piece  base, flare1, flare2, thrusta1, thrusta2, thrustb1, thrustb2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()

@@ -4,7 +4,7 @@
 piece  torso, Rthigh, Rleg, Rfoot, Lleg, Lfoot, Lthigh, rdish,
        ldish, pelvis,rarm, rshoulder,larm,lshoulder;
 
-static-var  isMoving, Static_Var_2;
+static-var  isMoving;
 static-var  Stunned;
 
 // Signal definitions
@@ -275,7 +275,6 @@ stand()
 Create()
 {
 	isMoving = FALSE;
-	Static_Var_2 = 1000;
 	animSpeed = 4;
 	return (0);
 }

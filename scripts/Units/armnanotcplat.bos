@@ -3,7 +3,7 @@
 
 piece  base, aim, emitnano;
 
-static-var  buildHeading, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 RockOnWaves()
 {
@@ -122,7 +122,6 @@ Create()
 	hide emitnano;
 	call-script InitState();
 	buildHeading = 0;
-	Static_Var_2 = 5000;
 	return (0);
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -149,7 +148,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 

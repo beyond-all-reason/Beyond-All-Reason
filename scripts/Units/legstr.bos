@@ -4,7 +4,7 @@
 piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve, lbarrel, luparm, ruparm, 
 	 rbarrel, lflare, rflare, aimx1, aimy1;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, miniguncount, animspeed;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -197,19 +197,16 @@ Movement(moving, aiming, justmoved)
 		{
 			if( aiming )
 			{
-				Static_Var_3 = 1;
 				call-script walk();
 			}
 			if( !aiming )
 			{
-				Static_Var_3 = 0;
 				call-script walk();
 			}
 			justmoved = TRUE;
 		}
 		if( !moving )
 		{
-			Static_Var_3 = 1;
 			if( justmoved )
 			{
 						
@@ -244,7 +241,6 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
 	miniguncount = 0;
 	restore_delay = 3000;
 	animspeed = 2.5;
@@ -303,10 +299,6 @@ AimPrimary(heading, pitch)
 	turn body to y-axis heading speed <180.000000>;
 	turn luparm to x-axis 0 - pitch speed <360>;
 	turn ruparm to x-axis 0 - pitch speed <360>;
-	//while( !Static_Var_3 )
-	//{
-	//	return(0);
-	//}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

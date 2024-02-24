@@ -3,7 +3,7 @@
 
 piece  base, pad, head, wheel1, wheel2, nano, cagelight, cagelight_emit;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -96,8 +96,6 @@ Create()
 	hide nano;
 	hide cagelight_emit;
 
-	Static_Var_2 = 0;
-	Static_Var_1 = 0;
 	set ARMORED to 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

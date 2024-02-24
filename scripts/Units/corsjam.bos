@@ -3,7 +3,7 @@
 
 piece  base, dish, wake;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var recently_damaged, desired_activation;
 
 
@@ -67,7 +67,6 @@ Create()
 	start-script SmokeUnit();
 	recently_damaged = 0;
 	desired_activation = 1;
-	Static_Var_1 = 0;
 }
 
 Activate()

@@ -3,7 +3,7 @@
 
 piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl, blink;
 
-static-var  Static_Var_1, oldHead;
+static-var  landingPadSelector, oldHead;
 static-var  Stunned;
 
 // Signal definitions
@@ -74,7 +74,7 @@ Create()
 	hide wake;
 	hide nano1;
 	hide nano2;
-	Static_Var_1 = 0;
+	landingPadSelector = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -152,8 +152,8 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 {
 	Func_Var_1 = 1;
 	Func_Var_2 = 2;
-	Static_Var_1 = !Static_Var_1;
-	if( Static_Var_1 )
+	landingPadSelector = !landingPadSelector;
+	if( landingPadSelector )
 	{
 		Func_Var_1 = 2;
 		Func_Var_2 = 1;

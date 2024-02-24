@@ -3,17 +3,17 @@
 
 piece  base, shield;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
 
 
 ShieldOn()
 {
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 }
 
 ShieldOff()
 {
-	Static_Var_1 = 0;
+	shieldEnabled = 0;
 }
 
 InitState()
@@ -52,7 +52,7 @@ Create()
 {
 	hide shield;
 
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 	call-script InitState();
 }
 
@@ -72,7 +72,7 @@ Deactivate()
 AimPrimary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FirePrimary()
@@ -93,7 +93,7 @@ AimFromPrimary(piecenum)
 AimSecondary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FireSecondary()

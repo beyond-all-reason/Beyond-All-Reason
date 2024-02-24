@@ -3,7 +3,7 @@
 
 piece  flare1, flare2, base, thrust, turret, sleeve, flare3, flare4;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging, gun_1, gun_2;
+static-var  statechg_DesiredState, statechg_StateChanging, gun_1, gun_2;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -76,7 +76,7 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 	while (TRUE){
 		sleep 2000;
 		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
+		//get PRINT(maxSpeed, currentSpeed);
 		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
 		{
 			turn base to z-axis <240.054945> speed <120.027473>;

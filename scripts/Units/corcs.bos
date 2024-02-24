@@ -6,7 +6,7 @@ piece  base, turret, arm, beam, lpump, rpump, nano1, nano2, wake;
 #define SIG_BUILD		2
 #define SIG_MOVE		4
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, nano, pump;
+static-var  statechg_DesiredState, statechg_StateChanging, notBuilding, nano, pump;
 
 
 
@@ -135,7 +135,6 @@ Create()
 	hide wake;
 	hide nano2;
 	hide nano1;
-	Static_Var_1 = 0;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

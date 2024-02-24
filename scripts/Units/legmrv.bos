@@ -4,7 +4,7 @@
 piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_1, gun_2, statechg_DesiredState, 
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, statechg_DesiredState, 
 			statechg_StateChanging, oldHeading;
 
 // Signal definitions
@@ -55,7 +55,6 @@ Create()
 	hide flarer2;
 	hide flarel;
 	hide flarel2;
-	Static_Var_1 = 0;
 	gun_1 = 0;
 	gun_2 = 0;
 	oldheading = get HEADING;

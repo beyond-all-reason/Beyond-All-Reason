@@ -3,7 +3,7 @@
 
 piece  base, link, flare, barrel, fan1,fan2,fan3,fan4,thrusta,thrustb;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
@@ -79,7 +79,6 @@ Create()
 	hide link;
 	hide thrusta;
 	hide thrustb;
-	Static_Var_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

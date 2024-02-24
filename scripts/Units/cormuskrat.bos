@@ -5,7 +5,7 @@
 
 piece  base, track, arm1, arm2, turret, beam, door, nano, cagelight, cagelight_emit ;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, isMoving;
+static-var  statechg_DesiredState, statechg_StateChanging, notBuilding, isMoving;
 
 
 #define BASEPIECE base

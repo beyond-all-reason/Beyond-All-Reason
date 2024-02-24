@@ -3,7 +3,7 @@
 
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_2, statechg_DesiredState, statechg_StateChanging,
 			oldHeading, dishturn, wpn1_lasthead;
 
 // Signal definitions
@@ -41,7 +41,6 @@ Steering(heading, steery, currentSpeed)
 Create()
 {
 	hide flare;
-	Static_Var_1 = 0;
 	dishturn = 1;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;

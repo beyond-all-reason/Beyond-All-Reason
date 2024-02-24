@@ -3,7 +3,7 @@
 
 piece  base, aim, emitnano;
 
-static-var  buildHeading, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -100,7 +100,6 @@ Create()
 	}
 	start-script RockOnWaves();
 	buildHeading = 0;
-	Static_Var_2 = 5000;
 }
 
 static-var  Stunned;
@@ -121,7 +120,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 

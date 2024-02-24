@@ -9,7 +9,7 @@
 
 piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
 
-static-var Static_Var_1, fire_count, statechg_DesiredState, statechg_StateChanging, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+static-var fire_count, statechg_DesiredState, statechg_StateChanging, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 Activatescr()
 {
@@ -523,7 +523,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Go()
 {
 	call-script Activatescr();
-	turn turret to y-axis Static_Var_1 speed <100.000000>;
+	turn turret to y-axis <0> speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 	return (0);

@@ -3,7 +3,7 @@
 
 piece  base, turret, flare, rrleg, rfleg, lrleg, lfleg, aimy1;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead;
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead;
 #define SIG_AIM 2
 
 // Signal definitions
@@ -146,7 +146,6 @@ Create()
 	hide flare;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
 	restore_delay = 3000;
 	animSpeed = 4;
 }
@@ -198,10 +197,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <450.000000>;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
+
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

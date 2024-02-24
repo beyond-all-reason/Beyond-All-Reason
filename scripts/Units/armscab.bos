@@ -3,7 +3,7 @@
 
 piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1, unstocked, stocked;
 
-static-var  Static_Var_1, Static_Var_2, isMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming, missiles_stockpiled;
+static-var  isOpen, isMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming, missiles_stockpiled;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -335,13 +335,13 @@ Go()
 {
 	call-script activatescr();
 	wait-for-turn turret around x-axis;
-	Static_Var_1 = 1;
+	isOpen = 1;
 	return (0);
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script deactivatescr();
 	isAiming = FALSE;
 	return (0);
@@ -389,8 +389,7 @@ Create()
 	hide stocked;
 	show unstocked;
 	isMoving = FALSE;
-	Static_Var_1 = 0;
-	Static_Var_2 = 3000;
+	isOpen = 0;
 	isAiming = FALSE;
 	call-script InitState();
 	animspeed = 4;
@@ -416,7 +415,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -426,7 +425,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = TRUE;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 100;
 	}

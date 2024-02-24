@@ -3,7 +3,7 @@
 
 piece  base, fork1, fork2, ground;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var recently_damaged, desired_activation;
 
 // Signal definitions
@@ -74,7 +74,6 @@ Create()
 	recently_damaged = 0;
 	desired_activation = 1;
 	start-script SmokeUnit();
-	Static_Var_1 = 0;
 }
 
 Activate()

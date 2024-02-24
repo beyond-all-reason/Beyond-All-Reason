@@ -4,8 +4,7 @@
 //piece  base, column, turret, barrel1, barrel2, flare1, flare2;
 piece  base, pins, clock, shaft, emp, flare, aimy;
 
-static-var  meatspin, Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging,
+static-var  meatspin,  restore_delay, statechg_DesiredState, statechg_StateChanging,
             Stunned;
 
 // Signal definitions
@@ -17,13 +16,11 @@ Go()
 	if (Stunned) {
 		return (0);
 	}
-	//spin column around y-axis speed Static_Var_3 accelerate Static_Var_4;
 	spin clock around y-axis speed meatspin accelerate <0.500000>;
 }
 
 Stop()
 {
-	//stop-spin column around y-axis decelerate Static_Var_5;
 	stop-spin clock around y-axis decelerate <1.000000>;
 	wait-for-turn clock around y-axis;
 }
@@ -64,13 +61,6 @@ Create()
 {
 	hide flare;
 	meatspin = 500;
-
-	Static_Var_3 = 0;
-	Static_Var_4 = 91;
-	Static_Var_5 = 182;
-	Static_Var_7 = 0;
-	Static_Var_8 = 0;
-	Static_Var_1 = 1;
 	call-script InitState();
 }
 

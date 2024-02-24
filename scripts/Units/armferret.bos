@@ -3,7 +3,7 @@
 
 piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, aimpoint;
 
-static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_DesiredState,
+static-var  isOpen, gun1, restore_delay, statechg_DesiredState,
             statechg_StateChanging;
 
 // Signal definitions
@@ -31,18 +31,18 @@ Deactivatescr()
 
 Go()
 {
-	if( !Static_Var_1 )
+	if( !isOpen )
 	{
 		call-script Activatescr();
 	}
-	Static_Var_1 = 1;
+	isOpen = 1;
 	set ARMORED to 0;
 }
 
 Stop()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script Deactivatescr();
 }
 
@@ -100,9 +100,8 @@ Create()
 	hide flare1;
 	hide flare2;
 
-	Static_Var_1 = 1;
-	Static_Var_2 = 0;
-	Static_Var_4 = 1;
+	isOpen = 1;
+	gun1 = 0;
 	restore_delay = 3000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -128,7 +127,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -141,7 +140,7 @@ AimPrimary(heading, pitch)
 QueryPrimary(piecenum)
 {
 	
-	piecenum = flare1 + Static_Var_2;
+	piecenum = flare1 + gun1;
 }
 
 AimFromPrimary(piecenum)
@@ -153,7 +152,7 @@ AimFromPrimary(piecenum)
 
 Shot1()
 {
-	Static_Var_2 = !Static_Var_2;
+	gun1 = !gun1;
 }
 
 Killed(severity, corpsetype)

@@ -4,7 +4,7 @@
 piece  base, beam1, beam2, blinks, gun1, gun2, explodpt1, explodpt2,
        explodpt3, explodpt4, slip;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  whichBuildAnim, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -118,7 +118,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 0;
+	whichBuildAnim = 0;
 	call-script InitState();
 	turn slip to y-axis <90.021978> now;
 	return (0);
@@ -130,16 +130,16 @@ Create()
 
 QueryNanoPiece(piecenum)
 {
-	if( Static_Var_1 == 0 )
+	if( whichBuildAnim == 0 )
 	{
 		piecenum = beam1;
-		Static_Var_1 = 1;
+		whichBuildAnim = 1;
 		return (0);
 	}
-	if( Static_Var_1 == 1 )
+	if( whichBuildAnim == 1 )
 	{
 		piecenum = beam2;
-		Static_Var_1 = 0;
+		whichBuildAnim = 0;
 	}
 	return (0);
 }

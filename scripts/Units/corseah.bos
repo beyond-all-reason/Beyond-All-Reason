@@ -4,7 +4,7 @@
 piece  base, link, thrustrr, thrustrl, thrustfr, thrustfl, 
        thrustrra, thrustrla, thrustfra, thrustfla;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 pickupscr()
 {
@@ -74,7 +74,6 @@ Create()
 	turn thrustrra to x-axis <-90> now; 
 	
 	hide link;
-	Static_Var_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -126,7 +125,6 @@ Deactivate()
 StopMoving()
 {
 	signal 8;
-	Static_Var_1 = 0;
 }
 
 MoveRate0()
@@ -141,7 +139,6 @@ MoveRate1()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 1;
 	turn thrustrr to x-axis <10.000000> speed <60.000000>;
 	turn thrustrl to x-axis <10.000000> speed <60.000000>;
 	turn thrustfr to x-axis <10.000000> speed <60.000000>;
@@ -152,7 +149,6 @@ MoveRate2()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 2;
 	turn thrustrr to x-axis <20.000000> speed <45.000000>;
 	turn thrustrl to x-axis <20.000000> speed <45.000000>;
 	turn thrustfr to x-axis <20.000000> speed <45.000000>;
@@ -163,7 +159,6 @@ MoveRate3()
 {
 	signal 8;
 	set-signal-mask 8;
-	Static_Var_1 = 3;
 	turn thrustrr to x-axis <0.000000> speed <70.000000>;
 	turn thrustrl to x-axis <0.000000> speed <70.000000>;
 	turn thrustfr to x-axis <0.000000> speed <70.000000>;

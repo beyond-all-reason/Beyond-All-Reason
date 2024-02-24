@@ -4,7 +4,7 @@
 piece  base, wingl, wingr, thrusta, thrustb, drop,
        doorl, doorr, circle;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
@@ -74,7 +74,6 @@ Create()
 	hide thrustb;
 	hide drop;
 	hide thrusta;
-	Static_Var_1 = 3000;
 	call-script InitState();
 }
 

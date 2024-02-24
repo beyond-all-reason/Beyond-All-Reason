@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  buildAnimPiece, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -174,7 +174,7 @@ Create()
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	hide cagelight_emit3;
-	Static_Var_1 = 1;
+	buildAnimPiece = 1;
 	call-script InitState();
 }
 
@@ -183,68 +183,68 @@ Create()
 
 QueryNanoPiece(piecenum)
 {
-	if( Static_Var_1 == 1 )
+	if( buildAnimPiece == 1 )
 	{
 		piecenum = n1;
 	}
-	if( Static_Var_1 == 1 )
+	if( buildAnimPiece == 1 )
 	{
 		piecenum = n1;
 	}
-	if( Static_Var_1 == 1 )
+	if( buildAnimPiece == 1 )
 	{
 		piecenum = n1;
 	}
-	if( Static_Var_1 == 2 )
+	if( buildAnimPiece == 2 )
 	{
 		piecenum = n2;
 	}
-	if( Static_Var_1 == 3 )
+	if( buildAnimPiece == 3 )
 	{
 		piecenum = n3;
 	}
-	if( Static_Var_1 == 4 )
+	if( buildAnimPiece == 4 )
 	{
 		piecenum = n4;
 	}
-	if( Static_Var_1 == 5 )
+	if( buildAnimPiece == 5 )
 	{
 		piecenum = n5;
 	}
-	if( Static_Var_1 == 6 )
+	if( buildAnimPiece == 6 )
 	{
 		piecenum = n6;
 	}
-	if( Static_Var_1 == 7 )
+	if( buildAnimPiece == 7 )
 	{
 		piecenum = n7;
 	}
-	if( Static_Var_1 == 8 )
+	if( buildAnimPiece == 8 )
 	{
 		piecenum = n8;
 	}
-	if( Static_Var_1 == 9 )
+	if( buildAnimPiece == 9 )
 	{
 		piecenum = n9;
 	}
-	if( Static_Var_1 == 10 )
+	if( buildAnimPiece == 10 )
 	{
 		piecenum = n10;
 		
 	}
 	
-	if( Static_Var_1 == 11 )
+	if( buildAnimPiece == 11 )
 	{
 		piecenum = n11;
 	}
-	if( Static_Var_1 == 12 )
+	if( buildAnimPiece == 12 )
 	{
 		piecenum = n12;
 	}
-	++Static_Var_1;
-	if( Static_Var_1 == 13 )
+	++buildAnimPiece;
+	if( buildAnimPiece == 13 )
 	{
-		Static_Var_1 = 1;
+		buildAnimPiece = 1;
 	}
 }
 

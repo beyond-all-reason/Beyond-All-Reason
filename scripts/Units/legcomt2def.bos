@@ -6,7 +6,7 @@
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare;  
 
-static-var Static_Var_1, statechg_DesiredState, statechg_StateChanging, isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
+static-var shieldEnabled, statechg_DesiredState, statechg_StateChanging, isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -20,12 +20,12 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving;
 
 ShieldOn()
 {
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 }
 
 ShieldOff()
 {
-	Static_Var_1 = 0;
+	shieldEnabled = 0;
 }
 
 InitState()
@@ -521,7 +521,7 @@ Create(){
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 	call-script InitState();
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))

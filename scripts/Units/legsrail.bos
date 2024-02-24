@@ -5,7 +5,7 @@ piece  base, turret, flare, barrel1, barrel2, barrel3, barrel4, sleeve, rfhip, r
 		lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, 
 		rbleg, rbankle, aimy1;
 
-static-var  isMoving, isAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
+static-var  isMoving, isAiming, oldHeading, bSteering, wpn1_lasthead, speedmult;
 
 // Signal definitions
 #define SIG_WALK			2
@@ -517,7 +517,6 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	bSteering = FALSE;
-	Static_Var_3 = 1;
 	oldHeading = get HEADING;
 	animSpeed = 1.8;
 	start-script Steering();

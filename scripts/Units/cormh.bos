@@ -3,7 +3,7 @@
 
 piece  base, turret, fan, wake, flare1, flare2;
 
-static-var  Static_Var_1, gun_1, Static_Var_3, restore_delay, statechg_DesiredState,
+static-var  isOpen, gun_1, restore_delay, statechg_DesiredState,
             statechg_StateChanging, Wobble_status;
 
 // Signal definitions
@@ -114,13 +114,13 @@ BankControl()
 Go()
 {
 	call-script activatescr();
-	Static_Var_1 = 1;
+	isOpen = 1;
 	return (0);
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script deactivatescr();
 	return (0);
 }
@@ -166,7 +166,7 @@ Create()
 	hide flare1;
 	gun_1 = 0;
 	spin fan around z-axis speed <300>;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	restore_delay = 3000;
 	call-script InitState();
 	
@@ -251,7 +251,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 200;
 	}

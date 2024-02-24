@@ -3,7 +3,7 @@
 
 piece  torso, rthigh, lthigh, lleg, lfoot, rleg, rfoot, dish1,belt,dish2,cover1,cover2,cover3,lens1,lens2,lens3, pelvis;
 
-static-var  isMoving, Static_Var_2;
+static-var  isMoving;
 static-var  Stunned;
 
 // Signal definitions
@@ -263,7 +263,6 @@ Lights()
 Create()
 {
 	isMoving = FALSE;
-	Static_Var_2 = 1000;
 	animSpeed = 4;
 	return (0);
 }

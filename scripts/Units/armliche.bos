@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  flare1, flare2, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1, bomb2;
-static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  inAileronRoll, gun_1, statechg_DesiredState, statechg_StateChanging;
 
 
 #define BASEPIECE base
@@ -88,15 +88,15 @@ RequestState(requestedstate, currentstate)
 
 MoveRate2()
 {
-	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
+	if( Rand( 1, 10 ) == 1 AND ( !inAileronRoll ) )
 	{
-		Static_Var_1 = 1;
+		inAileronRoll = 1;
 		turn base to z-axis <240.049451> speed <120.027473>;
 		wait-for-turn base around z-axis;
 		turn base to z-axis <120.027473> speed <180.038462>;
 		wait-for-turn base around z-axis;
 		turn base to z-axis <0.000000> speed <120.027473>;
-		Static_Var_1 = 0;
+		inAileronRoll = 0;
 	}
 }
 
@@ -107,7 +107,7 @@ Create()
 	hide flare2;
 	hide thrustb;
 	hide flare1;
-	Static_Var_1 = 0;
+	inAileronRoll = 0;
 	gun_1 = flare1;
 	call-script InitState();
 }

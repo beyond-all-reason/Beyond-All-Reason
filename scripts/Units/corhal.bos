@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  base, turret, barrel, flare, wake, fan1, fan2,sleeve;
-static-var  Static_Var_1, restore_delay, Wobble_status;
+static-var  restore_delay, Wobble_status;
 
 // Signal definitions
 #define SIG_MOVE			2

@@ -3,7 +3,7 @@
 
 piece  torso, flare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, ruparm, luparm, lloarm, rloarm, lfoot, gun, head, aimx1, aimy1;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -380,7 +380,6 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 4;
-	Static_Var_3 = 1;
 	restore_delay = 3000;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
@@ -438,11 +437,6 @@ AimPrimary(heading, pitch)
 	turn aimy1 to y-axis heading speed <400>;
 	turn ruparm to x-axis <-90.000000> - pitch speed <500>;
 	//turn ruparm to x-axis <90> - pitch speed <500>;
-
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
 
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 3500) AND ((get ABS(wpn1_lasthead - heading)) < 62036)))
 	{

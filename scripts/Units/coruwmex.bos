@@ -3,7 +3,7 @@
 
 piece  base, drive, emit1, emit2, emit3,emit4;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  resourceRate, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -11,12 +11,12 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, sta
 
 Go()
 {
-	spin drive around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin drive around y-axis speed resourceRate accelerate 90;
 }
 
 Stop()
 {
-	stop-spin drive around y-axis decelerate Static_Var_3;
+	stop-spin drive around y-axis decelerate 180;
 	wait-for-turn drive around y-axis;
 }
 
@@ -58,9 +58,7 @@ Create()
 	hide emit2;
 	hide emit4;
 	hide emit1;
-	Static_Var_1 = 0;
-	Static_Var_2 = 91;
-	Static_Var_3 = 182;
+	resourceRate = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -93,7 +91,7 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
-	Static_Var_1 = windOrMetal * 20;
+	resourceRate = windOrMetal * 20;
 }
 
 Killed(severity, corpsetype)

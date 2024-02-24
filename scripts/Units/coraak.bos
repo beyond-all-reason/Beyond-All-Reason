@@ -3,7 +3,7 @@
 
 piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso, flakgun, flareflak, flare1, flare2, flare3, flare4, aimy1;
 
-static-var  isMoving, Static_Var_2;
+static-var  isMoving;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define SIG_WALK 1

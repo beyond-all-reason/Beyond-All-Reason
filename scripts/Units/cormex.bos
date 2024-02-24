@@ -3,7 +3,7 @@
 
 piece  base,stand;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
@@ -14,12 +14,12 @@ Go()
 	set ARMORED to 0;
 	move stand to y-axis [3.000000] speed [10.000000];
 	wait-for-move stand along y-axis;
-	spin stand around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin stand around y-axis speed resourceRate accelerate 90;
 }
 
 Stop()
 {
-	stop-spin stand around y-axis decelerate Static_Var_3;
+	stop-spin stand around y-axis decelerate 180;
 	wait-for-turn stand around y-axis;
 	move stand to y-axis [0.000000] speed [10.000000];
 	set ARMORED to 1;
@@ -71,9 +71,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 500;
-	Static_Var_2 = 80;
-	Static_Var_3 = 160;
+	resourceRate = 500;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -96,7 +94,7 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
-	Static_Var_1 = windOrMetal * 20;
+	resourceRate = windOrMetal * 20;
 }
 
 

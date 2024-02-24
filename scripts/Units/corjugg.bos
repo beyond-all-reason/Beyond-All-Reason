@@ -5,8 +5,7 @@ piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe,
 	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail;
 	
 
-static-var  isMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
-            Static_Var_6, Static_Var_7, mainturretheading;
+static-var  isMoving, restore_delay, mainturretheading;
 // Generated for N:\animations\corjugg_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -634,8 +633,6 @@ Create()
 	hide llaserflare;
 	hide rlaserflare;
 	isMoving = FALSE;
-	Static_Var_2 = 0;
-	Static_Var_3 = 1;
 	animSpeed = 5;
 	mainturretheading = 0;
 	restore_delay = 3000;
@@ -660,7 +657,6 @@ RestoreAfterDelay()
 	turn toplaser to y-axis <0.000000> speed <30.000000>;
 	turn llaser to x-axis <0.000000> speed <30.000000>;
 	turn rlaser to x-axis <0.000000> speed <30.000000>;
-	Static_Var_2 = 0;
 }
 
 AimFromWeapon1(piecenum)
@@ -678,7 +674,6 @@ AimWeapon1(heading, pitch)
 {
 	signal 4;
 	set-signal-mask 4;
-	Static_Var_2 = 1;
 	mainturretheading = heading;
 	turn aimy1 to y-axis heading speed <90.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;

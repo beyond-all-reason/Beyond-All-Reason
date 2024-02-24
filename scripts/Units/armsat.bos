@@ -13,7 +13,7 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 	while (TRUE){
 		sleep 2000;
 		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
+		//get PRINT(maxSpeed, currentSpeed);
 		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
 		{
 			turn base to z-axis <240.054945> speed <120.027473>;

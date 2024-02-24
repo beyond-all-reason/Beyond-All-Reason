@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  buildAnimPiece, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -171,7 +171,7 @@ Create()
 	hide emitr;
 	hide emitl;
 
-	Static_Var_1 = 0;
+	buildAnimPiece = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -182,18 +182,18 @@ Create()
 
 QueryNanoPiece(piecenum)
 {
-	if( Static_Var_1 == 0 )
+	if( buildAnimPiece == 0 )
 	{
 		piecenum = emitr;
 	}
-	if( Static_Var_1 == 1 )
+	if( buildAnimPiece == 1 )
 	{
 		piecenum = emitl;
 	}
-	++Static_Var_1;
-	if( Static_Var_1 == 2 )
+	++buildAnimPiece;
+	if( buildAnimPiece == 2 )
 	{
-		Static_Var_1 = 0;
+		buildAnimPiece = 0;
 	}
 	return (0);
 }

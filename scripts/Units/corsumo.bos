@@ -3,7 +3,7 @@
 
 piece  rflare, lflare, torso, turret, Rbarrel, Lbarrel, rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot, aimy1;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, gun_1;
+static-var  isMoving, isAiming,  restore_delay, gun_1;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -271,7 +271,6 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 6;
-	Static_Var_3 = 1;
 	gun_1 = rflare;
 	hide rflare;
 	hide lflare;

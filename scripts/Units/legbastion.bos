@@ -3,7 +3,7 @@
 
 piece  base, base2, base3, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
 
-static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay,  dakka, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -163,7 +163,6 @@ Create()
 	dakka = 0;
 	lastfired = get(GAME_FRAME);
 	shotcount = 0;
-	//Static_Var_3 = 0;
 	restore_delay = 2000;
 	while( get BUILD_PERCENT_LEFT )
 	{

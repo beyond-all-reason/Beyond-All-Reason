@@ -3,7 +3,7 @@
 
 piece  base, emit;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -15,12 +15,12 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 emitOn()
 {
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 }
 
 emitOff()
 {
-	Static_Var_1 = 0;
+	shieldEnabled = 0;
 }
 
 InitState()
@@ -58,7 +58,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide emit;
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 	call-script InitState();
 }
 
@@ -75,7 +75,7 @@ Deactivate()
 AimPrimary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FirePrimary()
@@ -96,7 +96,7 @@ AimFromPrimary(piecenum)
 AimSecondary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FireSecondary()

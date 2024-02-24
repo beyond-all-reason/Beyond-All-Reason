@@ -5,7 +5,7 @@ piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel,
  		nanosleeve, lnano, rnano, lflare, rflare; 
 
 
-static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
+static-var  gun_2, statechg_DesiredState, statechg_StateChanging,
 			oldHeading;
 
 #define SIG_MOVE	2
@@ -45,7 +45,6 @@ Create()
 {
 	hide rflare;
 	hide lflare;
-	Static_Var_1 = 0;
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;

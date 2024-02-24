@@ -4,7 +4,7 @@
 piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
        rrocket, base;
 
-static-var  Static_Var_1, gun_1, isAiming, restore_delay;
+static-var  gun_1, isAiming, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -189,46 +189,7 @@ Killed(severity, corpsetype)
 {
 	hide lflare;
 	hide rflare;
-	if( Static_Var_1 == 1 )
-	{
-		if( severity <= 50 )
-		{
-			corpsetype = 2;
-			explode lbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode rbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			explode launch type FALL | BITMAP3 | NOHEATCLOUD;
-			explode turret type BITMAP4 | NOHEATCLOUD;
-			return (corpsetype);
-		}
-		corpsetype = 3;
-		explode lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode turret type BITMAP4 | NOHEATCLOUD;
-		return (corpsetype);
-	}
-	if( Static_Var_1 == 2 )
-	{
-		if( severity <= 50 )
-		{
-			corpsetype = 2;
-			explode lbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode rbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			explode launch type FALL | BITMAP3 | NOHEATCLOUD;
-			explode turret type BITMAP4 | NOHEATCLOUD;
-			return (corpsetype);
-		}
-		corpsetype = 3;
-		explode lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode turret type BITMAP4 | NOHEATCLOUD;
-		return (corpsetype);
-	}
+
 	if( severity <= 25 )
 	{
 		corpsetype = 1;

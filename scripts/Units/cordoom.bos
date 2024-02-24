@@ -4,7 +4,7 @@
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  closed, gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  closed, gun_3, restore_delay, isOpen, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -126,16 +126,16 @@ Go()
 {
 
 	set ARMORED to 0;
-	if( !Static_Var_3 )
+	if( !isOpen )
 	{
 		call-script activatescr();
 	}
-	Static_Var_3 = 1;
+	isOpen = 1;
 }
 
 Stop()
 {
-	Static_Var_3 = 0;
+	isOpen = 0;
 	call-script deactivatescr();
 	set ARMORED to 1;
 
@@ -187,7 +187,7 @@ Create()
 	gun_3 = 0;
 	closed = FALSE;
 	call-script InitState();
-	Static_Var_3 = 0;
+	isOpen = 0;
 	restore_delay = 2000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -344,7 +344,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_3 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -359,7 +359,7 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	while( !Static_Var_3 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -374,7 +374,7 @@ AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	while( !Static_Var_3 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}

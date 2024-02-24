@@ -3,7 +3,7 @@
 
 piece  base,fan,top,column;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
@@ -14,12 +14,12 @@ Go()
 	set ARMORED to 0;
 	move fan to y-axis [3.000000] speed [10.000000];
 	wait-for-move fan along y-axis;
-	spin fan around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin fan around y-axis speed resourceRate accelerate 90;
 }
 
 Stop()
 {
-	stop-spin fan around y-axis decelerate Static_Var_3;
+	stop-spin fan around y-axis decelerate 180;
 	wait-for-turn fan around y-axis;
 	move fan to y-axis [0.000000] speed [10.000000];
 	set ARMORED to 1;
@@ -71,9 +71,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 1500;
-	Static_Var_2 = 240;
-	Static_Var_3 = 480;
+	resourceRate = 1500;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -95,7 +93,7 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
-	Static_Var_1 = windOrMetal * 60;
+	resourceRate = windOrMetal * 60;
 }
 
 

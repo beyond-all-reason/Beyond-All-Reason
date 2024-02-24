@@ -3,7 +3,7 @@
 
 piece  flarel, flarer, flareaa, turretaa, ground, base, turretl, turretr, radar, blink;
 
-static-var  gun_1, Static_Var_2, restore_delay, oldHead;
+static-var  gun_1, restore_delay, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -78,7 +78,6 @@ Create()
 	hide ground;
 	hide blink;
 	gun_1 = flarel;
-	Static_Var_2 = 1;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{

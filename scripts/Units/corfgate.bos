@@ -3,7 +3,7 @@
 
 piece  base, dish,emit;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 #define BASEPIECE base
@@ -16,12 +16,12 @@ static-var  Stunned;
 
 ShieldOn()
 {
-	Static_Var_1 = 1;
+	shieldEnabled = 1;
 }
 
 ShieldOff()
 {
-	Static_Var_1 = 0;
+	shieldEnabled = 0;
 }
 
 InitState()
@@ -93,7 +93,7 @@ Deactivate()
 AimPrimary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FirePrimary()
@@ -116,7 +116,7 @@ AimFromPrimary(piecenum)
 AimSecondary(heading, pitch)
 {
 	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
 FireSecondary()

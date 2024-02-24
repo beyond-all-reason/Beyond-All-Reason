@@ -5,7 +5,7 @@
 
 piece  base, tower;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  recentlyDamaged, statechg_DesiredState, statechg_StateChanging;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -39,7 +39,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
-	if( Static_Var_1 )
+	if( recentlyDamaged )
 	{
 		set ACTIVATION to 0;
 		return (0);
@@ -92,7 +92,7 @@ Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
-	Static_Var_1 = 0;
+	recentlyDamaged = 0;
 	return (0);
 }
 
@@ -112,15 +112,15 @@ HitByWeapon(anglex, anglez)
 {
 	if( get ACTIVATION )
 	{
-		Static_Var_1 = 1;
+		recentlyDamaged = 1;
 	}
-	if( Static_Var_1 )
+	if( recentlyDamaged )
 	{
 		signal 2;
 		set-signal-mask 2;
 		set ACTIVATION to 0;
 		sleep 8000;
-		Static_Var_1 = 0;
+		recentlyDamaged = 0;
 		set ACTIVATION to 100;
 	}
 	return (0);

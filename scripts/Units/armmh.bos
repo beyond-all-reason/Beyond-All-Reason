@@ -3,7 +3,7 @@
 
 piece  flare, base, box, wake;
 
-static-var  Static_Var_1, Static_Var_2, restore_delay, statechg_DesiredState, statechg_StateChanging, Wobble_status, pivotAngle;
+static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging, Wobble_status, pivotAngle;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -139,17 +139,17 @@ deactivatescr()
 
 Go()
 {
-	if( !Static_Var_1 )
+	if( !isOpen )
 	{
 		call-script activatescr();
 	}
-	Static_Var_1 = 1;
+	isOpen = 1;
 	return (0);
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script deactivatescr();
 	return (0);
 }
@@ -231,7 +231,7 @@ Create()
 {
 	hide wake;
 	hide flare;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	restore_delay = 3000;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
@@ -278,7 +278,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 200;
 	}

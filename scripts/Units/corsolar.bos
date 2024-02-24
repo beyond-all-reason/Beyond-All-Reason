@@ -3,7 +3,7 @@
 
 piece  base, fan, d1,d2,d3,d4;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3;
+static-var  activationState, Static_Var_2, Static_Var_3;
 
 activatescr()
 {
@@ -94,12 +94,12 @@ Create()
 	Static_Var_2 = 1;
 	Static_Var_3 = 0;
 	start-script SmokeUnit();
-	Static_Var_1 = 0;
+	activationState = 0;
 }
 
 Activate()
 {
-	if( Static_Var_1 )
+	if( activationState )
 	{
 		set ACTIVATION to 0;
 		return (0);
@@ -118,15 +118,15 @@ HitByWeapon(anglex, anglez)
 {
 	if( get ACTIVATION )
 	{
-		Static_Var_1 = 1;
+		activationState = 1;
 	}
-	if( Static_Var_1 )
+	if( activationState )
 	{
 		signal 2;
 		set-signal-mask 2;
 		set ACTIVATION to 0;
 		sleep 8000;
-		Static_Var_1 = 0;
+		activationState = 0;
 		set ACTIVATION to 100;
 	}
 }

@@ -5,7 +5,7 @@ piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr,
 drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, 
 drone11, drone12, drone13, drone14, drone15, drone16, drone17, drone18, drone19, drone20, drone21, drone22, drone23, drone24;
 
-static-var  Static_Var_1, oldHead;
+static-var  landingPadSelector, oldHead;
 static-var  Stunned;
 
 // Signal definitions
@@ -77,7 +77,7 @@ Create()
 	hide wake;
 	hide nano1;
 	hide nano2;
-	Static_Var_1 = 0;
+	landingPadSelector = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -155,8 +155,8 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 {
 	Func_Var_1 = 1;
 	Func_Var_2 = 2;
-	Static_Var_1 = !Static_Var_1;
-	if( Static_Var_1 )
+	landingPadSelector = !landingPadSelector;
+	if( landingPadSelector )
 	{
 		Func_Var_1 = 2;
 		Func_Var_2 = 1;

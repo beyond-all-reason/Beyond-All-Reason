@@ -4,7 +4,7 @@
 piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
        body, base;
 
-static-var  Static_Var_1, isAiming;
+static-var  isAiming;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -159,14 +159,12 @@ Killed(severity, corpsetype)
 	hide flare;
 	hide rmis;
 	hide lmis;
-	if( Static_Var_1 >= 4 )
+
+	if( severity <= 25 )
 	{
-		if( severity <= 25 )
-		{
-			corpsetype = 1;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			return (corpsetype);
-		}
+		corpsetype = 1;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{

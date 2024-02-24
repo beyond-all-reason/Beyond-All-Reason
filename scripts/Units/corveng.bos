@@ -3,7 +3,7 @@
 
 piece  missile1, missile2, base, thrust1, thrust2;
 
-static-var  Static_Var_2;
+static-var  gun_1;
 
 
 
@@ -68,25 +68,25 @@ AimSecondary(heading, pitch)
 
 FirePrimary(Func_Var_1)
 {
-	Static_Var_2 = !Static_Var_2;
+	gun_1 = !gun_1;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = Static_Var_2;
+	piecenum = gun_1;
 	return (0);
 }
 
 FireSecondary(Func_Var_1)
 {
-	Static_Var_2 = !Static_Var_2;
+	gun_1 = !gun_1;
 	return (0);
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = Static_Var_2;
+	piecenum = gun_1;
 	return (0);
 }
 

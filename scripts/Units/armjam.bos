@@ -3,7 +3,7 @@
 
 piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg;
 
-static-var  Static_Var_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
+static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
 static-var recently_damaged, desired_activation;
 
@@ -112,9 +112,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-
 	start-script SmokeUnit();
-	Static_Var_1 = 0;
 	recently_damaged = 0;
 	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;

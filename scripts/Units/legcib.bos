@@ -3,7 +3,7 @@
 
 piece  base, firepoint, thrust;
 
-static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging;
+static-var   gun_2, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM_2			2
@@ -62,7 +62,6 @@ Create()
 {
 	hide thrust;
 	hide firepoint;
-	Static_Var_1 = 3000;
 	call-script InitState();
 }
 

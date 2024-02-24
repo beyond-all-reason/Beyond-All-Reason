@@ -3,7 +3,7 @@
 
 piece  base,thrusta, thrustb,thrustc,doorl,doorr,drop;
 
-static-var  Static_Var_1, isMoving, statechg_DesiredState, statechg_StateChanging;
+static-var  isMoving, statechg_DesiredState, statechg_StateChanging;
 
 Go()
 {
@@ -73,7 +73,6 @@ Create()
 	hide thrustc;
 	hide thrustb;
 	hide thrusta;
-	Static_Var_1 = 0;
 	isMoving = FALSE;
 	call-script InitState();
 	start-script Movement();
@@ -96,10 +95,6 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
-}
 
 StartMoving()
 {

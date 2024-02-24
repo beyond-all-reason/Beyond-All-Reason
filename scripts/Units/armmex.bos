@@ -3,7 +3,7 @@
 
 piece  base, arms1, arms2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
@@ -11,14 +11,14 @@ Go()
 	if (Stunned) {
 		return(0);
 	}
-	spin arms1 around y-axis speed Static_Var_1 accelerate Static_Var_2;
-	spin arms2 around y-axis speed -1*Static_Var_1 accelerate Static_Var_2;
+	spin arms1 around y-axis speed resourceRate accelerate 90;
+	spin arms2 around y-axis speed -1*resourceRate accelerate 90;
 }
 
 Stop()
 {
-	stop-spin arms1 around y-axis decelerate Static_Var_3;
-	stop-spin arms2 around y-axis decelerate Static_Var_3;
+	stop-spin arms1 around y-axis decelerate 180;
+	stop-spin arms2 around y-axis decelerate 180;
 	wait-for-turn arms1 around y-axis;
 }
 
@@ -68,9 +68,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 0;
-	Static_Var_2 = 80;
-	Static_Var_3 = 160;
+	resourceRate = 0;
 	call-script InitState();
 }
 
@@ -91,7 +89,7 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
-	Static_Var_1 = windOrMetal * 20;
+	resourceRate = windOrMetal * 20;
 }
 
 Killed(severity, corpsetype)

@@ -4,8 +4,7 @@
 piece  support, flare, lthigh, rthigh, Torso, Shoulder, Barrel, rfoot,
        lfoot, Forearm, lleg, rleg, pelvis, aimx1, aimy1, head;
 
-static-var  isAiming, Static_Var_3, restore_delay, Static_Var_5,
-            Static_Var_6, wpn1_lasthead;
+static-var  isAiming, restore_delay, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -280,7 +279,6 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
 	hide flare;
 	animSpeed = 4;
 	restore_delay = 2000;
@@ -327,10 +325,7 @@ AimPrimary(heading, pitch)
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <190.043956>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <150.032967>;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
+
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

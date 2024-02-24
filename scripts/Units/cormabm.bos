@@ -3,7 +3,7 @@
 
 piece  base, dbl, dbr, dtr, dtl, dummy, turret;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -17,75 +17,8 @@ static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateCha
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-Go()
-{
-	Static_Var_1 = 1;
-	return (0);
-}
-
-Stop()
-{
-	Static_Var_1 = 0;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-Create()
-{
-	hide dummy;
-	Static_Var_1 = 0;
-	Static_Var_2 = 10000;
-	call-script InitState();
-	return (0);
-}
-
-StartMoving()
-{
-	start-script RequestState(0);
-	return (0);
-}
-
-StopMoving()
-{
-	start-script RequestState(1);
-	return (0);
-}
-
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -101,6 +34,7 @@ ExecuteRestoreAfterDelay()
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -110,7 +44,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -142,8 +76,6 @@ QueryPrimary(piecenum)
 	piecenum = dummy;
 	return (0);
 }
-
-
 
 Killed(severity, corpsetype)
 {
