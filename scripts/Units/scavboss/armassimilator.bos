@@ -5,7 +5,7 @@ piece  pelvis, lthigh, lshin, lcalf, lfoot, rthigh, rshin, rcalf, rfoot,
 	torso, ruparm, relbow, rloarm, rbarrel, rflare1, rflare2, luparm, 
 	lelbow, lloarm, lbarrel, lflare1, lflare2;
 
-static-var  Static_Var_1, gun_1, isMoving, isAiming, wpn1_lasthead;
+static-var  gun_1, isMoving, isAiming, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -172,7 +172,6 @@ Create()
 	gun_1 = 0;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_1 = 3500;
 	start-script SmokeUnit();
 }
 
@@ -184,7 +183,6 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	if( !isAiming )
 	{
-		//Static_Var_8 = 0;
 		turn pelvis to y-axis <0.000000> speed <60.000000>;
 		move pelvis to y-axis [0.000000] speed [6.000000];
 	}
@@ -207,7 +205,7 @@ StopMoving()
 RestoreAfterDelay(Func_Var_1)
 {
 	set-signal-mask SIG_AIM;
-	sleep Static_Var_1;
+	sleep 3500;
 	
 	turn torso  to y-axis <0> speed <30>;
 	turn rloarm to x-axis <0> speed <320>;

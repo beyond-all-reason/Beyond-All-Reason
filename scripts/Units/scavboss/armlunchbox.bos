@@ -3,7 +3,7 @@
 
 piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
 
-static-var  isMoving, isAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
+static-var  isMoving, isAiming, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -378,7 +378,6 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	bSteering = FALSE;
-	Static_Var_3 = 1;
 	oldHeading = get HEADING;
 	gun_1 = body;
 	start-script SmokeUnit();
@@ -396,8 +395,6 @@ StopMoving()
 {
 	isMoving = FALSE;
 	//signal SIG_MOVE;
-	Static_Var_3 = 1;
-
 }
 
 

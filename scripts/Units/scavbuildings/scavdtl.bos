@@ -3,7 +3,7 @@
 
 piece  base, post, turret, flare, aimpoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -44,13 +44,13 @@ Go()
 	wait-for-move post along y-axis;
 	turn turret to x-axis <0> speed <300>; 
 	wait-for-turn turret around x-axis;
-	Static_Var_1 = 1;
+	isOpen = 1;
 }
 
 Stop()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	turn post to y-axis <0.000000> speed <300.000000>;
 	turn turret to x-axis <90> speed <300>;
 	wait-for-turn post around y-axis;
@@ -97,7 +97,7 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 2000;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script InitState();
 	start-script RequestState(0);
 	while( get BUILD_PERCENT_LEFT )
@@ -150,7 +150,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}

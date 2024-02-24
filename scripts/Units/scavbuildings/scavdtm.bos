@@ -3,7 +3,7 @@
 
 piece  base, tube, door1, door2, flare1, flare2, flare3, aimpoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, firepoint;
+static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging, firepoint;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -48,13 +48,13 @@ Go()
 	turn door2 to x-axis <0> speed <300>;
 	wait-for-turn door2 around x-axis;
 	
-	Static_Var_1 = 1;
+	isOpen = 1;
 }
 
 Stop()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	turn tube to y-axis <0.000000> speed <300.000000>;
 	wait-for-turn tube around y-axis;
 	
@@ -104,7 +104,7 @@ Create()
 	hide flare2;
 	hide flare1;
 	restore_delay = 2000;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script InitState();
 	start-script RequestState(0);
 	while( get BUILD_PERCENT_LEFT )
@@ -160,7 +160,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 100;
 	}
