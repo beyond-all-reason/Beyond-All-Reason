@@ -9,6 +9,7 @@
 
 // if a unit does not use hitbyweaponid, just hitbyweapon, then the hitbyweapon should use the smokeunit
 
+#define SMOKETHRESHOLD 65
 
 static-var isSmoking;
 SmokeUnit(healthpercent) // ah yes, clever use of stack variables 
@@ -20,7 +21,7 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if (healthpercent > 66) {
+		if (healthpercent > SMOKETHRESHOLD) {
 			sleep 97;
 			isSmoking = 0;
 			return;
@@ -28,7 +29,7 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 		if (healthpercent < 4 ) healthpercent = 4;
 		sleep healthpercent * 50;
 
-		if( Rand( 1, 66 ) < healthpercent ) emit-sfx 257 from SMOKEPIECE;
+		if( Rand( 1, SMOKETHRESHOLD ) < healthpercent ) emit-sfx 257 from SMOKEPIECE;
 		else emit-sfx 258 from SMOKEPIECE;
 	}
 }
@@ -38,6 +39,7 @@ HitByWeapon() //weaponID is always 0,lasers and flamers give angles of 0
 {
 	//get PRINT(1,get BUILD_PERCENT_LEFT);
 	if( get BUILD_PERCENT_LEFT) return (0);
+	if( get (HEALTH) > SMOKETHRESHOLD) return (0);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
 		start-script SmokeUnit();
