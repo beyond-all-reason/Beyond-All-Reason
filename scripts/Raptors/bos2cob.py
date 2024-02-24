@@ -114,7 +114,9 @@ OPS = {
 	'&&' : OPCODES['LOGICAL_AND'],
 	'||' : OPCODES['LOGICAL_OR'],
 	'AND' : OPCODES['LOGICAL_AND'],
+	'and' : OPCODES['LOGICAL_AND'],
 	'OR' : OPCODES['LOGICAL_OR'],
+	'or' : OPCODES['LOGICAL_OR'],
 }
 
 OPS_PRECEDENCE = {
@@ -132,8 +134,10 @@ OPS_PRECEDENCE = {
 	'|' : 6,
 	'&&' : 7,
 	'AND' : 7,
+	'and' : 7,
 	'||' : 8,
 	'OR' : 8,
+	'or' : 8,
 }
 
 UNARY_OPS = {
@@ -936,7 +940,7 @@ def token_generator(code):
 
 def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN_UNIT_VALUE" : ""}, recursion = 0):
 	if recursion > 10:
-		print "Error: recursion limit reached"
+		print ("Error: recursion limit reached")
 		exit(1)
 
 	gen = token_generator(code)
@@ -948,10 +952,10 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 			token = gen.next()
 		except:
 			if ifs > 0:
-				print "Error: Missing #endif"
+				print ("Error: Missing #endif")
 				exit(1)
 			if is_preprocessor_directive:
-				print "Preprocessor error"
+				print ("Preprocessor error")
 				exit(1)
 			break
 
@@ -983,7 +987,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 				if not os.path.exists(included):
 					alt_path = os.path.join(include_path, included)
 					if not os.path.exists(alt_path):
-						print 'Error: can\'t find %s' % included
+						print ('Error: can\'t find %s' % included)
 						exit(1)
 					included = alt_path
 
@@ -991,7 +995,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 				for prep_tokens in preprocess(content, include_path, defs, recursion + 1):
 					yield prep_tokens
 			except:
-				print 'Error: Couldn\'t include %s' % (included,)
+				print ('Error: Couldn\'t include %s' % (included,))
 				exit(1)
 			continue
 
@@ -1065,14 +1069,14 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 
 		if token.lower() == 'endif':
 			if ifs == 0:
-				print "Error: extraneous #endif"
+				print ("Error: extraneous #endif")
 				exit(1)
 			ifs -= 1
 			if skip > 0:
 				skip -= 1
 			continue
 
-		print "Error: unhandled token %s" % (token,)
+		print ("Error: unhandled token %s" % (token,))
 		exit(1)
 
 
@@ -1085,7 +1089,7 @@ def main(path, output_path = None):
 	else:
 		input_path = path
 	if not os.path.exists(input_path):
-		print "File %s doesn't exist" % (input_path,)
+		print ("File %s doesn't exist" % (input_path,))
 		exit()
 	if os.path.isdir(input_path):
 		include_path = input_path
@@ -1095,14 +1099,14 @@ def main(path, output_path = None):
 		files = [input_path]
 		input_path = os.path.split(input_path)[0]
 	for bos_file_path in files:
-		print "processing %s" % (bos_file_path,)
+		print ("processing %s" % (bos_file_path,))
 		root = Node('root')
-		content = open(bos_file_path, 'rb').read()
+		content = open(bos_file_path, 'r').read() # why rb binary?
 		pump = Pump(preprocess(content, input_path))
 		result = try_parse(pump, root, '_file')
 		if len(pump.next()) != 0:
-			print "Syntax Error!"
-			print pump._leftovers[pump._index - 1:pump._max_index], pump._index, pump._max_index
+			print ("Syntax Error!")
+			print (pump._leftovers[pump._index - 1:pump._max_index], pump._index, pump._max_index)
 			exit(1)
 
 		# root.print_node()
@@ -1116,6 +1120,7 @@ def main(path, output_path = None):
 		print (len(data))
 		if output_path == None:
 			output_path = "%s.%s" % (os.path.splitext(bos_file_path)[0], COB_EXT)
+		print("bos2cob Writing", output_path)
 		output_file = open(output_path, "wb")
 		output_file.write(data)
 
@@ -1150,4 +1155,7 @@ def main(path, output_path = None):
 
 
 if __name__ == '__main__':
-	main(sys.argv[1])
+	if len(sys.argv)>1:
+		main(sys.argv[1])
+	else:
+		print ("Specify a path to a .%s file, or a path to a directory containing .%s files"%(BOS_EXT,BOS_EXT))
