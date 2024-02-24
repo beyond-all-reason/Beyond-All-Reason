@@ -6,7 +6,7 @@ piece  flarea1, flarea2, flareb, base, turret, sleeves, wake, bow, barrel1, barr
 static-var  Static_Var_1, restore_delay, Static_Var_7, Static_Var_8, aimDir;
 
 // Signal definitions
-#define SIG_MOVE			8
+#define SIGNAL_MOVE 1
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -127,8 +127,8 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-    signal SIG_MOVE;
-    set-signal-mask SIG_MOVE;
+    signal SIGNAL_MOVE;
+    set-signal-mask SIGNAL_MOVE;
     var waketime;
     var bowtime;
     bowtime = 0;
@@ -145,7 +145,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

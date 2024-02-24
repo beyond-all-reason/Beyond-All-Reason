@@ -6,7 +6,7 @@ piece  base, rfin, lfin, door, prop, turret, gun, nano1, nano2;
 static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
 
 // Signal definitions
-#define SIG_MOVE		2
+#define SIGNAL_MOVE 1
 #define SIG_BUILD		4	
 
 Propcontrol()
@@ -63,8 +63,8 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	move door to y-axis [1.000000] speed [4.000000];
 	move lfin to x-axis [-5.600000] speed [5.600000];
 	move rfin to x-axis [5.600000] speed [5.600000];
@@ -77,7 +77,7 @@ StartMoving()
 
 StopMoving()
 {	
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	move door to y-axis [0.000000] speed [4.000000];
 	move lfin to x-axis [0.000000] speed [5.600000];
 	move rfin to x-axis [0.000000] speed [5.600000];

@@ -7,7 +7,7 @@ static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE     	 	4
+#define SIGNAL_MOVE 1
 #define SIG_FIRE1 			8
 
 UnitSpeed()
@@ -82,8 +82,8 @@ StartMoving()
 	spin lwheel around x-axis speed <110> accelerate <5>;
 	spin rwheel around x-axis speed <110> accelerate <5>;
   
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
   start-script UnitSpeed();
 	start-script Smoke();
 }
@@ -92,7 +92,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;
 }

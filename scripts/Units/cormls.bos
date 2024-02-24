@@ -6,7 +6,7 @@ piece  base, door1, door2, neck, boom, nano, wake;
 static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -151,8 +151,8 @@ waveSplash()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	var waketime;
 	start-script waveSplash();
 	while( TRUE )
@@ -166,7 +166,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 QueryNanoPiece(pieceIndex)

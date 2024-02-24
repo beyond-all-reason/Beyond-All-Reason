@@ -6,7 +6,7 @@ piece  flare1, flare2, base, thrust, turret, sleeve, flare3, flare4;
 static-var  statechg_DesiredState, statechg_StateChanging, gun_1, gun_2;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 #define SIG_AIM_2			8
 
@@ -116,8 +116,8 @@ Deactivate()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		sleep 150;
@@ -127,7 +127,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

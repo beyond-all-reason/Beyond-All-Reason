@@ -6,7 +6,7 @@ piece  flare1, flare2, base, thrust;
 static-var  statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 activatescr()
@@ -112,8 +112,8 @@ Deactivate()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		sleep 150;
@@ -123,7 +123,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

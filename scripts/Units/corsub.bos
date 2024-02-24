@@ -4,7 +4,7 @@ piece  tube1, tube2, base, wake;
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -44,8 +44,8 @@ Create()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -58,7 +58,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 AimFromWeapon1(pieceIndex)

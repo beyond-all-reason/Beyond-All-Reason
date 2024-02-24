@@ -8,7 +8,7 @@ static-var  restore_delay, isAiming;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			4
-#define SIG_MOVE			8
+#define SIGNAL_MOVE 1
 static-var oldheading, tilt, maxspeed;
 
 #define tiltspeed <0.75>
@@ -16,8 +16,8 @@ static-var oldheading, tilt, maxspeed;
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -106,7 +106,7 @@ StartMoving()
 StopMoving()
 {
 	stop-spin wheels around x-axis decelerate <24.000000>;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	tilt = 0;
 	turn base to z-axis <0> speed <180>;
 	move base to z-axis [0] speed [2];

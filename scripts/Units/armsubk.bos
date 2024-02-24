@@ -6,7 +6,7 @@ piece  base, doorr, doorl, flare, prop;
 static-var  currentSpeed, moveSpeed;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -37,8 +37,8 @@ Create()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from base;
@@ -52,7 +52,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

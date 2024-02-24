@@ -6,7 +6,7 @@ piece  base, turret, nano, wake, cagelight, cagelight_emit;
 static-var  terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
 
 // Signal definitions
-#define SIG_MOVE		2
+#define SIGNAL_MOVE 1
 #define SIG_BUILD		4	
 #define SIG_IDLE		8
 
@@ -122,8 +122,8 @@ HoverIdle()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	signal SIG_IDLE;
 	var waketime;
 	var bowtime;
@@ -140,7 +140,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
 	return (0);

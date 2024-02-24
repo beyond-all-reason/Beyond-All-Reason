@@ -8,7 +8,7 @@ static-var  moving, firing, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PE
 // Signal definitions
 #define SIG_AIM				2
 
-#define SIG_MOVE 8
+#define SIGNAL_MOVE 1
 
 #define FRONT_RIGHT_UP\
 	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
@@ -213,8 +213,8 @@ StopWalk()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script DoTheWalking();
 	moving=TRUE;
@@ -222,9 +222,9 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	moving=FALSE;
-	set-signal-mask SIG_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script StopWalk();
 }
 

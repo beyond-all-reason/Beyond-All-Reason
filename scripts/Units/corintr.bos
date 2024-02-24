@@ -6,7 +6,7 @@ piece  base, link ;
 static-var  Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
 
 // Signal definitions
-#define SIG_MOVE			4
+#define SIGNAL_MOVE 1
 
 
 
@@ -26,13 +26,13 @@ Create()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 

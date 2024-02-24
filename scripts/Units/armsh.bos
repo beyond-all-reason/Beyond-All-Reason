@@ -7,7 +7,7 @@ static-var  restore_delay, Wobble_status;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE			4
+#define SIGNAL_MOVE 1
 #define SIG_IDLE			8
 
 WobbleUnit()
@@ -86,8 +86,8 @@ HoverIdle()
 StartMoving()
 {
 	spin fan around z-axis speed <1400> accelerate <100>; 
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	signal SIG_IDLE;
 	var waketime;
 	while( TRUE )
@@ -102,7 +102,7 @@ StartMoving()
 StopMoving()
 {
 	stop-spin fan around z-axis decelerate <50>;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
 	return (0);

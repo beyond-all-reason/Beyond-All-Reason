@@ -4,7 +4,7 @@
 piece  base, jet, thrustl, thrustr, rflare, lflare;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -164,21 +164,21 @@ QueryWeapon1(pieceIndex)
 
 FireWeapon1()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 200;
 }
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 

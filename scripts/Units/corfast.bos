@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
-#define SIG_MOVE 2
+#define SIGNAL_MOVE 1
 
 piece  torso, flare, Hip, RLLeg, LLLeg, LULeg, RULeg, LUArm,
        RUArm, RLArm, LLArm, Head,lfoot,rfoot, aimx1, aimy1;
@@ -369,8 +369,8 @@ StopBuilding()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
@@ -378,7 +378,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
 }

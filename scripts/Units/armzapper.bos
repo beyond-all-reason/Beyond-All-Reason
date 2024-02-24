@@ -7,13 +7,13 @@ static-var  restore_delay, moveSpeed, wheelSpeed, gun_2, statechg_DesiredState, 
 			oldHeading, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE 			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -78,7 +78,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	stop-spin rfwheel around x-axis;
 	stop-spin lfwheel around x-axis;
 	stop-spin lbwheel around x-axis;

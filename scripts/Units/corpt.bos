@@ -6,7 +6,7 @@ piece base, turret, launcher, radar, wake1, flare1, flare2, flare3, blink;
 static-var  gun_1, restore_delay;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 #define SIG_AIM_3			8
 
@@ -94,8 +94,8 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	var waketime;
 	while( TRUE )
 	{
@@ -108,7 +108,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

@@ -8,7 +8,7 @@ static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, cu
 
 static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
 
-#define SIG_MOVE 1
+#define SIGNAL_MOVE 1
 #define SIG_AIM_1			2
 #define SIG_AIM_2			4 //rlauncher
 #define SIG_AIM_3			8
@@ -58,14 +58,14 @@ Create()
 
 StartMoving()
 {
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 }
 
 StopMoving()
 {
-  signal SIG_MOVE;
+  signal SIGNAL_MOVE;
 }
 
 SetMaxReloadTime(time)

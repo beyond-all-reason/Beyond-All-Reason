@@ -7,7 +7,7 @@ static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lb
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE				4
+#define SIGNAL_MOVE 1
 #define SIG_AIML				8
 #define SIG_AIMR				16
 #define SIG_TICKLE				32
@@ -193,8 +193,8 @@ Create()
 StartMoving()
 {
 	isMoving = TRUE;
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	start-script Smoke();
 	start-script UnitSpeed();
 }
@@ -202,7 +202,7 @@ StartMoving()
 
 StopMoving()
 {
-  signal SIG_MOVE;
+  signal SIGNAL_MOVE;
 	isMoving = FALSE;
 }
 

@@ -6,7 +6,7 @@ piece  base, flare, flareb, turret, gun, bore, cylinder, barrel, wake1;
 static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir;
 
 // Signal definitions
-#define SIG_MOVE			8
+#define SIGNAL_MOVE 1
 #define SIG_AIM				2
 
 #define BASEPIECE base
@@ -168,8 +168,8 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 2 from wake1;
@@ -180,7 +180,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

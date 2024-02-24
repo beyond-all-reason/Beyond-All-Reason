@@ -15,7 +15,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			8
-#define SIG_MOVE			16
+#define SIGNAL_MOVE 1
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\coramph_anim_walk.blend 
@@ -379,8 +379,8 @@ Create()
 StartMoving()
 {
 	isMoving = TRUE;
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
@@ -388,7 +388,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 

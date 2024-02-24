@@ -6,7 +6,7 @@ piece  lturret, rturret, llturret, rrturret, base, lprop, rprop, bprop;
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define SIG_AIM				4
 #define SIG_AIM_2			8
@@ -86,8 +86,8 @@ Create()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 
 	while( TRUE )
 	{
@@ -100,8 +100,8 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 

@@ -8,7 +8,7 @@ static-var recently_damaged, desired_activation;
 
 
 // Signal definitions
-#define SIG_MOVE			4
+#define SIGNAL_MOVE 1
 #define SIG_ACTIVATE			2
 #define SIG_OFF 				8
 
@@ -152,8 +152,8 @@ waveSplash()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	var waketime;
 	start-script waveSplash();
 	while( TRUE )
@@ -167,7 +167,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	turn base to x-axis <0.0> speed <3.0>;
 	move base to y-axis [0.0] speed [0.23];
 }

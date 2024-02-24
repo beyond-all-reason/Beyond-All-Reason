@@ -1,7 +1,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD 4	
-#define SIG_MOVE 2
+#define SIGNAL_MOVE 1
 
 piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
@@ -128,8 +128,8 @@ setSFXoccupy(state)
 
 StartMoving()
 {
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
   start-script UnitSpeed();
 	start-script Smoke();
@@ -138,7 +138,7 @@ StartMoving()
 
 StopMoving()
 {
-  signal SIG_MOVE;
+  signal SIGNAL_MOVE;
 	isMoving = FALSE;
 }
 

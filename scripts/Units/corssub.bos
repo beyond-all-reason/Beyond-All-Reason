@@ -6,7 +6,7 @@ piece  base, torp1, torp2, bubbles1, bubbles2, bubbles3 ;
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -48,8 +48,8 @@ Create()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 259 from bubbles1;
@@ -61,7 +61,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 AimWeapon1(heading, pitch)

@@ -9,7 +9,7 @@ static-var  gun_1, gun_2, restore_delay;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
-#define SIG_MOVE			8
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -139,8 +139,8 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 2 from wake1;
@@ -151,7 +151,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

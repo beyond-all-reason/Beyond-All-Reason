@@ -6,7 +6,7 @@ piece  base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3, boom4, magnet,
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5, Wobble_status;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_IDLE			4
 
 WobbleUnit()
@@ -96,8 +96,8 @@ HoverIdle()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	signal SIG_IDLE;
 	var waketime;
 	var bowtime;
@@ -114,7 +114,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
 	return (0);

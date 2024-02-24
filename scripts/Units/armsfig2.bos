@@ -6,7 +6,7 @@ piece  base, wingl, wingr, flarel, flarer, thrust, turretmisl, misboxl, misflare
 static-var  statechg_DesiredState, statechg_StateChanging, gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 
 
@@ -125,14 +125,14 @@ Deactivate()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

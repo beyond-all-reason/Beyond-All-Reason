@@ -8,7 +8,7 @@ static-var out_of_arc_count;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE      4
+#define SIGNAL_MOVE 1
 
 UnitSpeed()
 {
@@ -87,8 +87,8 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	isMoving = TRUE;
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
   start-script UnitSpeed();
 	start-script Smoke();
 }
@@ -97,7 +97,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-  signal SIG_MOVE;
+  signal SIGNAL_MOVE;
 }
 
 static-var  Stunned;

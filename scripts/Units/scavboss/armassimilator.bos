@@ -8,7 +8,7 @@ piece  pelvis, lthigh, lshin, lcalf, lfoot, rthigh, rshin, rcalf, rfoot,
 static-var  gun_1, isMoving, isAiming, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 #define SIG_AIM_3			8
 
@@ -179,8 +179,8 @@ StartMoving()
 {
 
 	isMoving = TRUE;
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	if( !isAiming )
 	{
 		turn pelvis to y-axis <0.000000> speed <60.000000>;
@@ -195,7 +195,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	start-script stopwalk();
 }
 

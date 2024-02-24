@@ -6,7 +6,7 @@ piece  base, flare, wake1, wake2, door1, door2, neck, gun ;
 static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_MOVE		2
+#define SIGNAL_MOVE 1
 #define SIG_BUILD		4	
 
 
@@ -61,8 +61,8 @@ deactivatescr()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 259 from wake1;
@@ -73,7 +73,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 RequestState(requestedstate, currentstate)

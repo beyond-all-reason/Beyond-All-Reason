@@ -6,7 +6,7 @@ piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, fan, wake;
 static-var  gunStatus, sleeveOpen, Wobble_status, isidle;
 
 // Signal definitions
-#define SIG_MOVE			4
+#define SIGNAL_MOVE 1
 #define SIG_IDLE			2
 
 WobbleUnit()
@@ -83,8 +83,8 @@ HoverIdle()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	signal SIG_IDLE;
 	var waketime;
 	var bowtime;
@@ -101,7 +101,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
 	return (0);

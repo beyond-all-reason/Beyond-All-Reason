@@ -7,7 +7,7 @@ static-var  restore_delay, Wobble_status;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE			4
+#define SIGNAL_MOVE 1
 #define SIG_IDLE			8
 
 WobbleUnit()
@@ -93,8 +93,8 @@ HoverIdle()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	signal SIG_IDLE;
 	var waketime;
 	var bowtime;
@@ -111,7 +111,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
 	return (0);

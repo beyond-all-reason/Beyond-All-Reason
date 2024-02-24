@@ -9,7 +9,7 @@ static-var  gun_1, gun_2, restore_delay, oldheading;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
-#define SIG_MOVE			8
+#define SIGNAL_MOVE 1
 #define SIG_STEER			16
 
 
@@ -44,8 +44,8 @@ RockOnWaves()
 
 Steering(heading, steery, currentspeed)
 {
-	//signal SIG_MOVE;
-	//set-signal-mask SIG_MOVE;
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -107,8 +107,8 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script Steering();
 	var waketime;
 	while( TRUE )
@@ -132,7 +132,7 @@ boatposition(speed, maxspeed)
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 	
 }

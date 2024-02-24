@@ -6,7 +6,7 @@ piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfl
 static-var  isMoving, isAiming, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 
 
@@ -388,13 +388,13 @@ Create()
 StartMoving()
 {
 	isMoving = TRUE;
-	//set-signal-mask SIG_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
 }
 
 StopMoving()
 {
 	isMoving = FALSE;
-	//signal SIG_MOVE;
+	//signal SIGNAL_MOVE;
 }
 
 

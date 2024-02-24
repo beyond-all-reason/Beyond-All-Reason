@@ -8,13 +8,13 @@ piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel,
 static-var  gun_2, statechg_DesiredState, statechg_StateChanging,
 			oldHeading;
 
-#define SIG_MOVE	2
+#define SIGNAL_MOVE 1
 #define SIG_BUILD	4
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -128,7 +128,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
 }

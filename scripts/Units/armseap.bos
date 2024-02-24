@@ -6,7 +6,7 @@ piece  lwing, rwing, base, thrustm, lthrust, rthrust;
 static-var  gun_3, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -113,14 +113,14 @@ Deactivate()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

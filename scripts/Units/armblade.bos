@@ -6,7 +6,7 @@ piece  base, thrust, wingl, wingr, turretl, turretr, flarer, flarel, fan;
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 activatescr()
@@ -40,8 +40,8 @@ deactivatescr()
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 15;
 }
 
@@ -106,8 +106,8 @@ Deactivate()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 
@@ -127,8 +127,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	return (1);
 }
 

@@ -7,7 +7,7 @@ static-var  isMoving, isAiming, Static_Var_3, Static_Var_4, gun_3,
             restore_delay, Static_Var_7, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 #define SIG_AIM				4
 #define SIG_AIM_3			8
 
@@ -300,8 +300,8 @@ Create()
 StartMoving()
 {
 	isMoving = TRUE;
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		if( Static_Var_7 == 1 )
@@ -331,7 +331,7 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 

@@ -72,7 +72,7 @@ armamex.bos:            return(corpsetype);
 armamex.bos:    corpsetype = 3 ;
 armamex.bos:    return corpsetype;
 Binary file armamex.cob matches
-armamph.bos:    set-signal-mask SIG_MOVE;
+armamph.bos:    set-signal-mask SIGNAL_MOVE;
 armamph.bos:setSFXoccupy(Func_Var_1)
 armamph.bos:SetMaxReloadTime(Func_Var_1)
 armamph.bos:    set-signal-mask 0;
@@ -110,7 +110,7 @@ armamsub.bos:           return(corpsetype);
 armamsub.bos:   corpsetype = 3 ;
 armamsub.bos:   return corpsetype;
 armanac.bos:            // Set values for tilt
-armanac.bos:    set-signal-mask SIG_MOVE;
+armanac.bos:    set-signal-mask SIGNAL_MOVE;
 armanac.bos:setSFXoccupy(Func_Var_1)
 armanac.bos:SetMaxReloadTime(Func_Var_1)
 armanac.bos:SetStunned(State)
@@ -306,7 +306,7 @@ armbanth.bos:   return corpsetype;
 Binary file armbanth.cob matches
 armbats.bos:SetDirection(heading)
 armbats.bos:SetMaxReloadTime(Func_Var_1)
-armbats.bos:    set-signal-mask SIG_MOVE;
+armbats.bos:    set-signal-mask SIGNAL_MOVE;
 armbats.bos:    set-signal-mask SIG_AIM;
 armbats.bos:    set-signal-mask SIG_AIM_2;
 armbats.bos:Killed(severity, corpsetype)
@@ -342,9 +342,9 @@ armbeaver.bos:          corpsetype = 3 ;
 armbeaver.bos:          return(corpsetype);
 armbeaver.bos:  corpsetype = 3 ;
 armbeaver.bos:  return corpsetype;
-armblade.bos:   set-signal-mask SIG_MOVE;
-armblade.bos:   set-signal-mask SIG_MOVE;
-armblade.bos:   set-signal-mask SIG_MOVE;
+armblade.bos:   set-signal-mask SIGNAL_MOVE;
+armblade.bos:   set-signal-mask SIGNAL_MOVE;
+armblade.bos:   set-signal-mask SIGNAL_MOVE;
 armblade.bos:Killed(severity, corpsetype)
 armblade.bos:           corpsetype = 1 ;
 armblade.bos:           return(corpsetype);
@@ -407,7 +407,7 @@ armca.bos:      return corpsetype;
 armcarry.bos:SetDirection(heading)
 armcarry.bos:   set-signal-mask 0;
 armcarry.bos:SetStunned(State)
-armcarry.bos:   set-signal-mask SIG_MOVE;
+armcarry.bos:   set-signal-mask SIGNAL_MOVE;
 armcarry.bos:   set-signal-mask SIG_AIM_2;
 armcarry.bos:Killed(severity, corpsetype)
 armcarry.bos:           corpsetype = 1 ;
@@ -421,7 +421,7 @@ armcarry.bos:   return corpsetype;
 Binary file armcarry.cob matches
 armch.bos:              // Set values for tilt
 armch.bos:      set INBUILDSTANCE to 0;
-armch.bos:      set-signal-mask SIG_MOVE;
+armch.bos:      set-signal-mask SIGNAL_MOVE;
 armch.bos:setSFXoccupy(state)
 armch.bos:      set INBUILDSTANCE to 1;
 armch.bos:      set-signal-mask SIG_BUILD;
@@ -554,7 +554,7 @@ armcrus.bos:SetMaxReloadTime(Func_Var_1)
 armcrus.bos:    set-signal-mask 0;
 armcrus.bos:SetStunned(State)
 armcrus.bos:    set-signal-mask 0;
-armcrus.bos:    set-signal-mask SIG_MOVE;
+armcrus.bos:    set-signal-mask SIGNAL_MOVE;
 armcrus.bos:    set-signal-mask SIG_AIM_2;
 armcrus.bos:    set-signal-mask SIG_AIM;
 armcrus.bos:Killed(severity, corpsetype)
@@ -569,7 +569,7 @@ armcrus.bos:    return corpsetype;
 Binary file armcrus.cob matches
 armcs.bos:      set INBUILDSTANCE to 0;
 armcs.bos:SetDirection(heading)
-armcs.bos:      set-signal-mask SIG_MOVE;
+armcs.bos:      set-signal-mask SIGNAL_MOVE;
 armcs.bos:      set INBUILDSTANCE to 1;
 armcs.bos:      set-signal-mask SIG_BUILD;
 armcs.bos:      set-signal-mask 0;
@@ -583,7 +583,7 @@ armcs.bos:              return(corpsetype);
 armcs.bos:      corpsetype = 3 ;
 armcs.bos:      return corpsetype;
 Binary file armcs.cob matches
-armcsa.bos:     set-signal-mask SIG_MOVE;
+armcsa.bos:     set-signal-mask SIGNAL_MOVE;
 armcsa.bos:     set INBUILDSTANCE to 1;
 armcsa.bos:     set INBUILDSTANCE to 0;
 armcsa.bos:Killed(severity, corpsetype)
@@ -611,7 +611,7 @@ armcv.bos:      return corpsetype;
 armdecade.bos:SetDirection(heading)
 armdecade.bos:SetMaxReloadTime(Func_Var_1)
 armdecade.bos:SetStunned(State)
-armdecade.bos:  set-signal-mask SIG_MOVE;
+armdecade.bos:  set-signal-mask SIGNAL_MOVE;
 armdecade.bos:  set-signal-mask SIG_AIM;
 armdecade.bos:  set-signal-mask SIG_AIM_2;
 armdecade.bos:Killed(severity, corpsetype)
@@ -678,7 +678,7 @@ armepoch.bos:SetDirection(heading)
 armepoch.bos:   set ARMORED to 1;
 armepoch.bos:SetMaxReloadTime(Func_Var_1)
 armepoch.bos:SetStunned(State)
-armepoch.bos:   set-signal-mask SIG_MOVE;
+armepoch.bos:   set-signal-mask SIGNAL_MOVE;
 armepoch.bos:   set-signal-mask 2;
 armepoch.bos:   set-signal-mask 4;
 armepoch.bos:   set-signal-mask 8;
@@ -749,7 +749,7 @@ armfatf.bos:            corpsetype = 3 ;
 armfatf.bos:            return(corpsetype);
 armfatf.bos:    corpsetype = 3 ;
 armfatf.bos:    return corpsetype;
-armfav.bos:     set-signal-mask SIG_MOVE;
+armfav.bos:     set-signal-mask SIGNAL_MOVE;
 armfav.bos:SetMaxReloadTime(Func_Var_1)
 armfav.bos:SetStunned(State)
 armfav.bos:     set-signal-mask SIG_AIM;
@@ -1149,12 +1149,12 @@ armjuno.bos:    corpsetype = 3 ;
 armjuno.bos:    return corpsetype;
 Binary file armjuno.cob matches
 armkam.bos:SetStunned(State)
-armkam.bos:     set-signal-mask SIG_MOVE;
-armkam.bos:     set-signal-mask SIG_MOVE;
-armkam.bos:     set-signal-mask SIG_MOVE;
-armkam.bos:     set-signal-mask SIG_MOVE;
-armkam.bos:     set-signal-mask SIG_MOVE;
-armkam.bos:     set-signal-mask SIG_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
+armkam.bos:     set-signal-mask SIGNAL_MOVE;
 armkam.bos:Killed(severity, corpsetype)
 armkam.bos:             corpsetype = 1 ;
 armkam.bos:             return(corpsetype);
@@ -1230,7 +1230,7 @@ armllt.bos:             corpsetype = 3 ;
 armllt.bos:             return(corpsetype);
 armllt.bos:     corpsetype = 3 ;
 armllt.bos:     return corpsetype;
-armlun.bos:     set-signal-mask SIG_MOVE;
+armlun.bos:     set-signal-mask SIGNAL_MOVE;
 armlun.bos:setSFXoccupy(state)
 armlun.bos:SetMaxReloadTime(Func_Var_1)
 armlun.bos:SetStunned(State)
@@ -1380,7 +1380,7 @@ armmex.bos:     corpsetype = 3 ;
 armmex.bos:     return corpsetype;
 Binary file armmex.cob matches
 armmh.bos:              // Set values for tilt
-armmh.bos:      set-signal-mask SIG_MOVE;
+armmh.bos:      set-signal-mask SIGNAL_MOVE;
 armmh.bos:setSFXoccupy(Func_Var_1)
 armmh.bos:SetMaxReloadTime(Func_Var_1)
 armmh.bos:      set-signal-mask 0;
@@ -1400,7 +1400,7 @@ Binary file armmh.cob matches
 armmls.bos:SetDirection(heading)
 armmls.bos:     set INBUILDSTANCE to 1;
 armmls.bos:     set INBUILDSTANCE to 0;
-armmls.bos:     set-signal-mask SIG_MOVE;
+armmls.bos:     set-signal-mask SIGNAL_MOVE;
 armmls.bos:Killed(severity, corpsetype)
 armmls.bos:             corpsetype = 1 ;
 armmls.bos:             return(corpsetype);
@@ -1411,7 +1411,7 @@ armmls.bos:             return(corpsetype);
 armmls.bos:     corpsetype = 3 ;
 armmls.bos:     return corpsetype;
 Binary file armmls.cob matches
-armmlv.bos:     set-signal-mask SIG_MOVE;
+armmlv.bos:     set-signal-mask SIGNAL_MOVE;
 armmlv.bos:     set INBUILDSTANCE to 1;
 armmlv.bos:     set-signal-mask SIG_BUILD;
 armmlv.bos:     set-signal-mask 0;
@@ -1452,7 +1452,7 @@ Binary file armmoho.cob matches
 armmship.bos:SetDirection(heading)
 armmship.bos:SetMaxReloadTime(Func_Var_1)
 armmship.bos:SetStunned(State)
-armmship.bos:   set-signal-mask SIG_MOVE;
+armmship.bos:   set-signal-mask SIGNAL_MOVE;
 armmship.bos:   set-signal-mask SIG_AIM;
 armmship.bos:   set-signal-mask SIG_AIM_3;
 armmship.bos:Killed(severity, corpsetype)
@@ -1500,7 +1500,7 @@ armnanotcplat.bos:              return(corpsetype);
 armnanotcplat.bos:      corpsetype = 3 ;
 armnanotcplat.bos:      return corpsetype;
 Binary file armnanotcplat.cob matches
-armnukevader.bos:       set-signal-mask SIG_MOVE;
+armnukevader.bos:       set-signal-mask SIGNAL_MOVE;
 armnukevader.bos:Killed(severity, corpsetype)
 armnukevader.bos:               corpsetype = 1 ;
 armnukevader.bos:               return(corpsetype);
@@ -1587,7 +1587,7 @@ armpship.bos:   set-signal-mask 4096;
 armpship.bos:SetMaxReloadTime(Func_Var_1)
 armpship.bos:   set-signal-mask 0;
 armpship.bos:SetStunned(State)
-armpship.bos:   set-signal-mask SIG_MOVE;
+armpship.bos:   set-signal-mask SIGNAL_MOVE;
 armpship.bos:   set-signal-mask SIG_AIM;
 armpship.bos:   set-signal-mask SIG_AIM_2;
 armpship.bos:Killed(severity, corpsetype)
@@ -1602,7 +1602,7 @@ armpt.bos:SetDirection(heading)
 armpt.bos:SetMaxReloadTime(Func_Var_1)
 armpt.bos:      set-signal-mask 0;
 armpt.bos:SetStunned(State)
-armpt.bos:      set-signal-mask SIG_MOVE;
+armpt.bos:      set-signal-mask SIGNAL_MOVE;
 armpt.bos:      set-signal-mask SIG_AIM_3;
 armpt.bos:      set-signal-mask SIG_AIM;
 armpt.bos:Killed(severity, corpsetype)
@@ -1627,8 +1627,8 @@ armptl.bos:             return(corpsetype);
 armptl.bos:     corpsetype = 3 ;
 armptl.bos:     return corpsetype;
 Binary file armptl.cob matches
-armpw.bos:      set-signal-mask SIG_MOVE;
-armpw.bos:              set-signal-mask (SIG_AIM | SIG_MOVE);
+armpw.bos:      set-signal-mask SIGNAL_MOVE;
+armpw.bos:              set-signal-mask (SIG_AIM | SIGNAL_MOVE);
 armpw.bos:              bAnimate = TRUE; // this sets animation started, so that
  StopAnimate knows that it should restore state quickly
 armpw.bos:      start-script InitialSetup1();
@@ -1734,7 +1734,7 @@ armroy.bos:SetDirection(heading)
 armroy.bos:SetMaxReloadTime(Func_Var_1)
 armroy.bos:     set-signal-mask 0;
 armroy.bos:SetStunned(State)
-armroy.bos:     set-signal-mask SIG_MOVE;
+armroy.bos:     set-signal-mask SIGNAL_MOVE;
 armroy.bos:     set-signal-mask SIG_AIM;
 armroy.bos:Killed(severity, corpsetype)
 armroy.bos:             corpsetype = 1 ;
@@ -1806,7 +1806,7 @@ armsd.bos:              corpsetype = 3 ;
 armsd.bos:              return(corpsetype);
 armsd.bos:      corpsetype = 3 ;
 armsd.bos:      return corpsetype;
-armseap.bos:    set-signal-mask SIG_MOVE;
+armseap.bos:    set-signal-mask SIGNAL_MOVE;
 armseap.bos:Killed(severity, corpsetype)
 armseap.bos:            corpsetype = 1 ;
 armseap.bos:            return(corpsetype);
@@ -1829,7 +1829,7 @@ armseer.bos:            return(corpsetype);
 armseer.bos:    corpsetype = 3 ;
 armseer.bos:    return corpsetype;
 Binary file armseer.cob matches
-armsehak.bos:   set-signal-mask SIG_MOVE;
+armsehak.bos:   set-signal-mask SIGNAL_MOVE;
 armsehak.bos:setSFXoccupy(Func_Var_1)
 armsehak.bos:Killed(severity, corpsetype)
 armsehak.bos:           corpsetype = 1 ;
@@ -1842,8 +1842,8 @@ armsehak.bos:   corpsetype = 3 ;
 armsehak.bos:   return corpsetype;
 Binary file armsehak.cob matches
 armserp.bos:            // Set values for tilt
-armserp.bos:    set-signal-mask SIG_MOVE;
-armserp.bos:    set-signal-mask SIG_MOVE;
+armserp.bos:    set-signal-mask SIGNAL_MOVE;
+armserp.bos:    set-signal-mask SIGNAL_MOVE;
 armserp.bos:SetStunned(State)
 armserp.bos:    set-signal-mask SIG_AIM;
 armserp.bos:Killed(severity, corpsetype)
@@ -1856,7 +1856,7 @@ armserp.bos:            return(corpsetype);
 armserp.bos:    corpsetype = 3 ;
 armserp.bos:    return corpsetype;
 Binary file armserp.cob matches
-armsfig.bos:    set-signal-mask SIG_MOVE;
+armsfig.bos:    set-signal-mask SIGNAL_MOVE;
 armsfig.bos:Killed(severity, corpsetype)
 armsfig.bos:            corpsetype = 1 ;
 armsfig.bos:            return(corpsetype);
@@ -1867,7 +1867,7 @@ armsfig.bos:            return(corpsetype);
 armsfig.bos:    corpsetype = 3 ;
 armsfig.bos:    return corpsetype;
 armsh.bos:              // Set values for tilt
-armsh.bos:      set-signal-mask SIG_MOVE;
+armsh.bos:      set-signal-mask SIGNAL_MOVE;
 armsh.bos:setSFXoccupy(Func_Var_1)
 armsh.bos:SetMaxReloadTime(Func_Var_1)
 armsh.bos:      set-signal-mask 0;
@@ -1928,7 +1928,7 @@ armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set-signal-mask 4;
 armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 100;
-armsjam.bos:    set-signal-mask SIG_MOVE;
+armsjam.bos:    set-signal-mask SIGNAL_MOVE;
 armsjam.bos:Killed(severity, corpsetype)
 armsjam.bos:            corpsetype = 1 ;
 armsjam.bos:            return(corpsetype);
@@ -2059,7 +2059,7 @@ armstump.bos:           return(corpsetype);
 armstump.bos:   corpsetype = 3 ;
 armstump.bos:   return corpsetype;
 Binary file armstump.cob matches
-armsub.bos:     set-signal-mask SIG_MOVE;
+armsub.bos:     set-signal-mask SIGNAL_MOVE;
 armsub.bos:SetStunned(State)
 armsub.bos:     set-signal-mask SIG_AIM;
 armsub.bos:Killed(severity, corpsetype)
@@ -2072,7 +2072,7 @@ armsub.bos:             return(corpsetype);
 armsub.bos:     corpsetype = 3 ;
 armsub.bos:     return corpsetype;
 Binary file armsub.cob matches
-armsubk.bos:    set-signal-mask SIG_MOVE;
+armsubk.bos:    set-signal-mask SIGNAL_MOVE;
 armsubk.bos:Killed(severity, corpsetype)
 armsubk.bos:            corpsetype = 1 ;
 armsubk.bos:            return(corpsetype);
@@ -2117,7 +2117,7 @@ armtarg.bos:            return(corpsetype);
 armtarg.bos:    corpsetype = 3 ;
 armtarg.bos:    return corpsetype;
 armthovr.bos:           // Set values for tilt
-armthovr.bos:   set-signal-mask SIG_MOVE;
+armthovr.bos:   set-signal-mask SIGNAL_MOVE;
 armthovr.bos:setSFXoccupy(Func_Var_1)
 armthovr.bos:   set-signal-mask 4;
 armthovr.bos:BoomReset()
@@ -2167,7 +2167,7 @@ armtl.bos:              return(corpsetype);
 armtl.bos:      corpsetype = 3 ;
 armtl.bos:      return corpsetype;
 Binary file armtl.cob matches
-armtship.bos:   set-signal-mask SIG_MOVE;
+armtship.bos:   set-signal-mask SIGNAL_MOVE;
 armtship.bos:   set-signal-mask 4;
 armtship.bos:BoomReset()
 armtship.bos:           set BUSY to 1;
@@ -2265,7 +2265,7 @@ armuwms.bos:            corpsetype = 3 ;
 armuwms.bos:            return(corpsetype);
 armuwms.bos:    corpsetype = 3 ;
 armuwms.bos:    return corpsetype;
-armvader.bos:   set-signal-mask SIG_MOVE;
+armvader.bos:   set-signal-mask SIGNAL_MOVE;
 armvader.bos:Killed(severity, corpsetype)
 armvader.bos:           corpsetype = 1 ;
 armvader.bos:           return(corpsetype);
@@ -2514,7 +2514,7 @@ corack.bos:             return(corpsetype);
 corack.bos:     corpsetype = 3 ;
 corack.bos:     return corpsetype;
 coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set-signal-mask SIG_MOVE;
+coracsub.bos:   set-signal-mask SIGNAL_MOVE;
 coracsub.bos:   set INBUILDSTANCE to 1;
 coracsub.bos:   set-signal-mask SIG_BUILD;
 coracsub.bos:   set-signal-mask 0;
@@ -2583,7 +2583,7 @@ corageo.lua:            return 1 -- corpsetype
 corageo.lua:            return 2 -- corpsetype
 corageo.lua:            return 3 -- corpsetype
 corah.bos:              // Set values for tilt
-corah.bos:      set-signal-mask SIG_MOVE;
+corah.bos:      set-signal-mask SIGNAL_MOVE;
 corah.bos:setSFXoccupy(Func_Var_1)
 corah.bos:SetStunned(State)
 corah.bos:      set-signal-mask 2;
@@ -2626,7 +2626,7 @@ coralab.lua:            corpsetype = 3;
 coralab.lua:            return corpsetype;
 coralab.lua:    corpsetype = 1;
 coralab.lua:    return corpsetype;
-coramph.bos:    set-signal-mask SIG_MOVE;
+coramph.bos:    set-signal-mask SIGNAL_MOVE;
 coramph.bos:SetMaxReloadTime(Func_Var_1)
 coramph.bos:SetStunned(State)
 coramph.bos:    set-signal-mask SIG_AIM;
@@ -2726,7 +2726,7 @@ corarad.bos:    return corpsetype;
 corarch.bos:SetMaxReloadTime(Func_Var_1)
 corarch.bos:    set-signal-mask 0;
 corarch.bos:SetStunned(State)
-corarch.bos:    set-signal-mask SIG_MOVE;
+corarch.bos:    set-signal-mask SIGNAL_MOVE;
 corarch.bos:    set-signal-mask SIG_AIM_2;
 corarch.bos:    set-signal-mask SIG_AIM_3;
 corarch.bos:Killed(severity, corpsetype)
@@ -2864,7 +2864,7 @@ corbats.bos:SetMaxReloadTime(Func_Var_1)
 corbats.bos:SetStunned(State)
 corbats.bos:    set-signal-mask SIG_AIM;
 corbats.bos:    set-signal-mask 0;
-corbats.bos:    set-signal-mask SIG_MOVE;
+corbats.bos:    set-signal-mask SIGNAL_MOVE;
 corbats.bos:    set-signal-mask SIG_AIM_2;
 corbats.bos:Killed(severity, corpsetype)
 corbats.bos:            corpsetype = 1 ;
@@ -2899,7 +2899,7 @@ corblackhy.bos: set-signal-mask 16;
 corblackhy.bos: set ARMORED to 1;
 corblackhy.bos:SetMaxReloadTime(Func_Var_1)
 corblackhy.bos:SetStunned(State)
-corblackhy.bos: set-signal-mask SIG_MOVE;
+corblackhy.bos: set-signal-mask SIGNAL_MOVE;
 corblackhy.bos: set-signal-mask SIG_AIM;
 corblackhy.bos: set-signal-mask 2;
 corblackhy.bos: set-signal-mask 4;
@@ -2960,7 +2960,7 @@ corcan.bos:             return(corpsetype);
 corcan.bos:     corpsetype = 3 ;
 corcan.bos:     return corpsetype;
 Binary file corcan.cob matches
-corcarry.bos:   set-signal-mask SIG_MOVE;
+corcarry.bos:   set-signal-mask SIGNAL_MOVE;
 corcarry.bos:   set-signal-mask 0;
 corcarry.bos:SetStunned(State)
 corcarry.bos:   set-signal-mask SIG_AIM;
@@ -2989,7 +2989,7 @@ corcat.bos:     return corpsetype;
 Binary file corcat.cob matches
 corch.bos:      set INBUILDSTANCE to 0;
 corch.bos:              // Set values for tilt
-corch.bos:      set-signal-mask SIG_MOVE;
+corch.bos:      set-signal-mask SIGNAL_MOVE;
 corch.bos:setSFXoccupy(state)
 corch.bos:      set INBUILDSTANCE to 1;
 corch.bos:      set-signal-mask SIG_BUILD;
@@ -3070,7 +3070,7 @@ corcrus.bos:SetMaxReloadTime(Func_Var_1)
 corcrus.bos:    set-signal-mask 0;
 corcrus.bos:SetStunned(State)
 corcrus.bos:    set-signal-mask 0;
-corcrus.bos:    set-signal-mask SIG_MOVE;
+corcrus.bos:    set-signal-mask SIGNAL_MOVE;
 corcrus.bos:    set-signal-mask SIG_AIM_2;
 corcrus.bos:    set-signal-mask SIG_AIM;
 corcrus.bos:Killed(severity, corpsetype)
@@ -3098,7 +3098,7 @@ corcrw.bos:             return(corpsetype);
 corcrw.bos:     corpsetype = 3 ;
 corcrw.bos:     return corpsetype;
 Binary file corcrw.cob matches
-corcs.bos:      set-signal-mask SIG_MOVE;
+corcs.bos:      set-signal-mask SIGNAL_MOVE;
 corcs.bos:      set INBUILDSTANCE to 1;
 corcs.bos:      set INBUILDSTANCE to 0;
 corcs.bos:Killed(severity, corpsetype)
@@ -3230,7 +3230,7 @@ corestor.bos:   corpsetype = 3 ;
 corestor.bos:   return corpsetype;
 coresupp.bos:SetMaxReloadTime(Func_Var_1)
 coresupp.bos:SetStunned(State)
-coresupp.bos:   set-signal-mask SIG_MOVE;
+coresupp.bos:   set-signal-mask SIGNAL_MOVE;
 coresupp.bos:   set-signal-mask SIG_AIM;
 coresupp.bos:   set-signal-mask SIG_AIM_2;
 coresupp.bos:Killed(severity, corpsetype)
@@ -3532,7 +3532,7 @@ corgplat.bos:           return(corpsetype);
 corgplat.bos:   corpsetype = 3 ;
 corgplat.bos:   return corpsetype;
 corhal.bos:             // Set values for tilt
-corhal.bos:     set-signal-mask SIG_MOVE;
+corhal.bos:     set-signal-mask SIGNAL_MOVE;
 corhal.bos:setSFXoccupy(Func_Var_1)
 corhal.bos:SetMaxReloadTime(Func_Var_1)
 corhal.bos:SetStunned(State)
@@ -3641,7 +3641,7 @@ corint.bos:             return(corpsetype);
 corint.bos:     corpsetype = 3 ;
 corint.bos:     return corpsetype;
 corintr.bos:    set ARMORED to 1;
-corintr.bos:    set-signal-mask SIG_MOVE;
+corintr.bos:    set-signal-mask SIGNAL_MOVE;
 corintr.bos:BoomReset()
 corintr.bos:    set-signal-mask 2;
 corintr.bos:            set BUSY to 1;
@@ -3900,7 +3900,7 @@ cormh.bos:SetMaxReloadTime(Func_Var_1)
 cormh.bos:      set-signal-mask 0;
 cormh.bos:SetStunned(State)
 cormh.bos:      set-signal-mask SIG_RESTORE;
-cormh.bos:      set-signal-mask SIG_MOVE;
+cormh.bos:      set-signal-mask SIGNAL_MOVE;
 cormh.bos:setSFXoccupy(Func_Var_1)
 cormh.bos:      set-signal-mask SIG_AIM;
 cormh.bos:Killed(severity, corpsetype)
@@ -3928,7 +3928,7 @@ cormist.bos:    return corpsetype;
 Binary file cormist.cob matches
 cormls.bos:     set INBUILDSTANCE to 1;
 cormls.bos:     set INBUILDSTANCE to 0;
-cormls.bos:     set-signal-mask SIG_MOVE;
+cormls.bos:     set-signal-mask SIGNAL_MOVE;
 cormls.bos:Killed(severity, corpsetype)
 cormls.bos:             corpsetype = 1 ;
 cormls.bos:             return(corpsetype);
@@ -3994,7 +3994,7 @@ cormort.bos:    return corpsetype;
 Binary file cormort.cob matches
 cormship.bos:SetMaxReloadTime(Func_Var_1)
 cormship.bos:SetStunned(State)
-cormship.bos:   set-signal-mask SIG_MOVE;
+cormship.bos:   set-signal-mask SIGNAL_MOVE;
 cormship.bos:   set-signal-mask SIG_AIM;
 cormship.bos:   set-signal-mask SIG_AIM_3;
 cormship.bos:Killed(severity, corpsetype)
@@ -4119,7 +4119,7 @@ corpship.bos:   set-signal-mask 4096;
 corpship.bos:SetMaxReloadTime(Func_Var_1)
 corpship.bos:SetStunned(State)
 corpship.bos:   set-signal-mask 0;
-corpship.bos:   set-signal-mask SIG_MOVE;
+corpship.bos:   set-signal-mask SIGNAL_MOVE;
 corpship.bos:   set-signal-mask SIG_AIM;
 corpship.bos:Killed(severity, corpsetype)
 corpship.bos:           corpsetype = 1;
@@ -4132,7 +4132,7 @@ Binary file corpship.cob matches
 corpt.bos:SetMaxReloadTime(Func_Var_1)
 corpt.bos:      set-signal-mask 0;
 corpt.bos:SetStunned(State)
-corpt.bos:      set-signal-mask SIG_MOVE;
+corpt.bos:      set-signal-mask SIGNAL_MOVE;
 corpt.bos:      set-signal-mask SIG_AIM_3;
 corpt.bos:      set-signal-mask SIG_AIM;
 corpt.bos:Killed(severity, corpsetype)
@@ -4216,7 +4216,7 @@ correap.bos:            return(corpsetype);
 correap.bos:    corpsetype = 3 ;
 correap.bos:    return corpsetype;
 Binary file correap.cob matches
-correcl.bos:    set-signal-mask SIG_MOVE;
+correcl.bos:    set-signal-mask SIGNAL_MOVE;
 correcl.bos:    set INBUILDSTANCE to 1;
 correcl.bos:    set INBUILDSTANCE to 0;
 correcl.bos:Killed(severity, corpsetype)
@@ -4256,7 +4256,7 @@ corroach.bos:   corpsetype = 3 ;
 corroach.bos:   return corpsetype;
 corroy.bos:SetMaxReloadTime(Func_Var_1)
 corroy.bos:SetStunned(State)
-corroy.bos:     set-signal-mask SIG_MOVE;
+corroy.bos:     set-signal-mask SIGNAL_MOVE;
 corroy.bos:     set-signal-mask 2;
 corroy.bos:     set-signal-mask 4;
 corroy.bos:Killed(severity, corpsetype)
@@ -4356,7 +4356,7 @@ corsent.bos:            return(corpsetype);
 corsent.bos:    corpsetype = 3 ;
 corsent.bos:    return corpsetype;
 Binary file corsent.cob matches
-corsfig.bos:    set-signal-mask SIG_MOVE;
+corsfig.bos:    set-signal-mask SIGNAL_MOVE;
 corsfig.bos:Killed(severity, corpsetype)
 corsfig.bos:            corpsetype = 1 ;
 corsfig.bos:            return(corpsetype);
@@ -4367,7 +4367,7 @@ corsfig.bos:            return(corpsetype);
 corsfig.bos:    corpsetype = 3 ;
 corsfig.bos:    return corpsetype;
 corsh.bos:              // Set values for tilt
-corsh.bos:      set-signal-mask SIG_MOVE;
+corsh.bos:      set-signal-mask SIGNAL_MOVE;
 corsh.bos:setSFXoccupy(Func_Var_1)
 corsh.bos:SetMaxReloadTime(Func_Var_1)
 corsh.bos:SetStunned(State)
@@ -4391,7 +4391,7 @@ corshad.bos:            corpsetype = 3 ;
 corshad.bos:            return(corpsetype);
 corshad.bos:    corpsetype = 3 ;
 corshad.bos:    return corpsetype;
-corshark.bos:   set-signal-mask SIG_MOVE;
+corshark.bos:   set-signal-mask SIGNAL_MOVE;
 corshark.bos:Killed(severity, corpsetype)
 corshark.bos:           corpsetype = 1 ;
 corshark.bos:           return(corpsetype);
@@ -4465,7 +4465,7 @@ corsjam.bos:            set ACTIVATION to 0;
 corsjam.bos:            set-signal-mask 4;
 corsjam.bos:            set ACTIVATION to 0;
 corsjam.bos:            set ACTIVATION to 100;
-corsjam.bos:    set-signal-mask SIG_MOVE;
+corsjam.bos:    set-signal-mask SIGNAL_MOVE;
 corsjam.bos:Killed(severity, corpsetype)
 corsjam.bos:            corpsetype = 1 ;
 corsjam.bos:            return(corpsetype);
@@ -4485,7 +4485,7 @@ corsktl.bos:            return(corpsetype);
 corsktl.bos:    corpsetype = 3 ;
 corsktl.bos:    return corpsetype;
 corsnap.bos:            // Set values for tilt
-corsnap.bos:    set-signal-mask SIG_MOVE;
+corsnap.bos:    set-signal-mask SIGNAL_MOVE;
 corsnap.bos:setSFXoccupy(Func_Var_1)
 corsnap.bos:SetMaxReloadTime(Func_Var_1)
 corsnap.bos:SetStunned(State)
@@ -4500,7 +4500,7 @@ corsnap.bos:            return(corpsetype);
 corsnap.bos:    corpsetype = 3 ;
 corsnap.bos:    return corpsetype;
 Binary file corsnap.cob matches
-corsok.bos:     set-signal-mask SIG_MOVE;
+corsok.bos:     set-signal-mask SIGNAL_MOVE;
 corsok.bos:setSFXoccupy(state)
 corsok.bos:SetStunned(State)
 corsok.bos:     set-signal-mask SIG_AIM;
@@ -4586,7 +4586,7 @@ corspy.bos:             return(corpsetype);
 corspy.bos:     corpsetype = 3 ;
 corspy.bos:     return corpsetype;
 Binary file corspy.cob matches
-corssub.bos:    set-signal-mask SIG_MOVE;
+corssub.bos:    set-signal-mask SIGNAL_MOVE;
 corssub.bos:Killed(severity, corpsetype)
 corssub.bos:            corpsetype = 1 ;
 corssub.bos:            return(corpsetype);
@@ -4597,7 +4597,7 @@ corssub.bos:            return(corpsetype);
 corssub.bos:    corpsetype = 3 ;
 corssub.bos:    return corpsetype;
 corstorm.bos:   set-signal-mask SIG_WALK;       if (isMoving) { //Frame:4
-corstorm.bos:   set-signal-mask SIG_MOVE;
+corstorm.bos:   set-signal-mask SIGNAL_MOVE;
 corstorm.bos:SetStunned(State)
 corstorm.bos:   set-signal-mask SIG_AIM;
 corstorm.bos:Killed(severity, corpsetype)
@@ -4610,7 +4610,7 @@ corstorm.bos:           return(corpsetype);
 corstorm.bos:   corpsetype = 3 ;
 corstorm.bos:   return corpsetype;
 Binary file corstorm.cob matches
-corsub.bos:     set-signal-mask SIG_MOVE;
+corsub.bos:     set-signal-mask SIGNAL_MOVE;
 corsub.bos:Killed(severity, corpsetype)
 corsub.bos:             corpsetype = 1 ;
 corsub.bos:             return(corpsetype);
@@ -4675,8 +4675,8 @@ cortarg.bos:            corpsetype = 3 ;
 cortarg.bos:            return(corpsetype);
 cortarg.bos:    corpsetype = 3 ;
 cortarg.bos:    return corpsetype;
-cortermite.bos: set-signal-mask SIG_MOVE;
-cortermite.bos: set-signal-mask SIG_MOVE;
+cortermite.bos: set-signal-mask SIGNAL_MOVE;
+cortermite.bos: set-signal-mask SIGNAL_MOVE;
 cortermite.bos:SetMaxReloadTime(Func_Var_1)
 cortermite.bos:SetStunned(State)
 cortermite.bos: set-signal-mask SIG_AIM;
@@ -4691,7 +4691,7 @@ cortermite.bos: corpsetype = 3 ;
 cortermite.bos: return corpsetype;
 Binary file cortermite.cob matches
 corthovr.bos:           // Set values for tilt
-corthovr.bos:   set-signal-mask SIG_MOVE;
+corthovr.bos:   set-signal-mask SIGNAL_MOVE;
 corthovr.bos:setSFXoccupy(Func_Var_1)
 corthovr.bos:   set-signal-mask 4;
 corthovr.bos:BoomReset()
@@ -4801,7 +4801,7 @@ cortron.bos:    corpsetype = 3 ;
 cortron.bos:    return corpsetype;
 Binary file cortron.cob matches
 cortship.bos:SetDirection(heading)
-cortship.bos:   set-signal-mask SIG_MOVE;
+cortship.bos:   set-signal-mask SIGNAL_MOVE;
 cortship.bos:   set-signal-mask 4;
 cortship.bos:BoomReset()
 cortship.bos:           set BUSY to 1;

@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
-#define SIG_MOVE    2
+#define SIGNAL_MOVE 1
 
 piece  base, gun, nano1, nano2, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
@@ -101,15 +101,15 @@ setSFXoccupy(state)
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script Smoke();
 }
 
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 Activate()

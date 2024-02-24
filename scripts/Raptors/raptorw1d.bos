@@ -4,7 +4,7 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
-#define SIG_MOVE			16
+#define SIGNAL_MOVE 1
 
 #include "exptype.h"
 
