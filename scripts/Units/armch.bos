@@ -3,7 +3,7 @@
 
 piece  base, beam, nanogun, doorr, doorl, post, wake, turret, cagelight, cagelight_emit;
 
-static-var  Static_Var_1, notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
+static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
 
 // Signal definitions
 #define SIG_MOVE		2

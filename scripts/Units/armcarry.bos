@@ -3,8 +3,7 @@
 
 piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow, unstocked, stocked;
 
-static-var  Static_Var_1, oldHead, missiles_stockpiled;
-static-var  Stunned;
+static-var  Stunned, oldHead, missiles_stockpiled;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -115,7 +114,6 @@ Create()
 	missiles_stockpiled = 0;
 	hide stocked;
 	show unstocked;
-	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;

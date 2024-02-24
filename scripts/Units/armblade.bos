@@ -3,7 +3,7 @@
 
 piece  base, thrust, wingl, wingr, turretl, turretr, flarer, flarel, fan;
 
-static-var  gun_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -83,7 +83,6 @@ Create()
 	hide flarer;
 	hide thrust;
 	gun_1 = base;
-	Static_Var_2 = 3000;
 	call-script InitState();
 	start-script StopMoving();	
 	while( get BUILD_PERCENT_LEFT )

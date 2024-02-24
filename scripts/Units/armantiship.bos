@@ -3,7 +3,7 @@
 
 piece  ground, base, anti, antiflare, door1, door2, front, radar, blink, wake1, wake2;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var  Stunned;
 
 // Signal definitions
@@ -108,7 +108,6 @@ Create()
 	hide blink;
 	hide antiflare;
 	hide ground;
-	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;

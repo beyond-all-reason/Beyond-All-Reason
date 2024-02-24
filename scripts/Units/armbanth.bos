@@ -5,7 +5,7 @@ piece  head, torso, pelvis, missleflare,
        rleg, rthigh, lthigh, lleg, ltoe,  rtoe, lfoot, rfoot,
         luparm, ruparm, rloarm, lloarm, rshoulder, lshoulder, lbarrel, rbarrel, rflare, lflare, turret, laserflare, antenna, aimx1, aimy1;
 
-static-var  gun_1, gun_3,  isAiming, Static_Var_5, StompXZ, StompHeading,
+static-var  gun_1, gun_3,  isAiming, StompXZ, StompHeading,
             restore_delay, myHeading, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
@@ -591,7 +591,6 @@ Create()
 	moveHands = TRUE;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_5 = 1;
 	animSpeed = 5;
 	gun_1 = 0;
 	gun_3 = 0;
@@ -665,10 +664,6 @@ AimPrimary(heading, pitch) //hand cannons
 	moveHands = FALSE;
 	turn aimx1 to x-axis 0 - pitch speed <120>;
 	turn aimy1 to y-axis heading speed <100.021978>;
-	while( !Static_Var_5 )
-	{
-		return(0);
-	}
 
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{

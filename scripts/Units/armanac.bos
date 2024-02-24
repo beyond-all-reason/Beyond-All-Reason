@@ -3,7 +3,7 @@
 
 piece  base, flare, turret, wake, sleeve, barrel;
 
-static-var  Static_Var_1, Wobble_status, restore_delay;
+static-var  Wobble_status, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2

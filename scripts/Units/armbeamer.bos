@@ -3,9 +3,6 @@
 
 piece  base, flare, turret, sleeve, barrel;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7;
-			
 static-var lastheading, lastpitch;
 
 // Signal definitions

@@ -3,7 +3,7 @@
 
 piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwing, centerwing, centerpadd, rhookbase, rhookext1, rhookext2, rhook, lhookbase, lhookext1, lhookext2, lhook;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()   //transport start  - LOAD - animation of claws
@@ -127,7 +127,6 @@ Create()
 	hide link;
 	turn jetl to x-axis <-90.000000> now;
 	turn jetr to x-axis <-90.000000> now;
-	Static_Var_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

@@ -4,7 +4,7 @@
 
 piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1;
 
-static-var  isMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  isMoving, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
 static-var recently_damaged, desired_activation;
 
 // Signal definitions
@@ -236,11 +236,8 @@ Create()
 {
 	hide aimy1;
 	isMoving = FALSE;
-	Static_Var_3 = 1;
-	Static_Var_4 = 3000;
 	animSpeed = 4;
 	start-script spinarms();
-	Static_Var_5 = 0;
 	recently_damaged = 0;
 	desired_activation = 1;
 	return (0);
