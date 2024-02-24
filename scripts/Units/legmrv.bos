@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,

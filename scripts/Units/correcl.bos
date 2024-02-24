@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, wake1, wake2, nano1, nano2;

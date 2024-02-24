@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, fanfr, fanfl, fanbr, fanbl, cowlfr, cowlfl, cowlbr, cowlbl, dish, turret, wing1, wingr;

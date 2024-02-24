@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;

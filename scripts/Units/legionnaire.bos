@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  missilea, missileb, nose, base, thrustb1, thrustb2,

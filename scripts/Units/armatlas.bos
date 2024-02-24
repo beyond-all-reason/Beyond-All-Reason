@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwing, centerwing, centerpadd, rhookbase, rhookext1, rhookext2, rhook, lhookbase, lhookext1, lhookext2, lhook;

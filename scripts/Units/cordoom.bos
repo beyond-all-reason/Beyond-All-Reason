@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,

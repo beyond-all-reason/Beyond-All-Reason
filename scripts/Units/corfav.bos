@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;

@@ -14,7 +14,6 @@
 // OffsetToFirstName                   a2c
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, flare1, flare2, flare3, turret;

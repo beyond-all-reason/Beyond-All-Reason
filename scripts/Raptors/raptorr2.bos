@@ -9,7 +9,6 @@ static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #define SIG_MOVE			16
 #define SIG_RESTORE			32
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 // For N:\animations\raptor_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))

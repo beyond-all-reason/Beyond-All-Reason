@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake1,

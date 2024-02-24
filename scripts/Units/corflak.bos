@@ -1,6 +1,5 @@
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  flare1, flare2, gun, barrel, base;

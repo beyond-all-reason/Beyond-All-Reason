@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret, r1arm, r2arm, l1arm, l2arm, rcannon1, rcannon2, lcannon1, lcannon2, rflare1, rflare2, lflare1, lflare2;

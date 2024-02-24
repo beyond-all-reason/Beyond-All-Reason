@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  aimy1, turret, flare, barrel, pelvis, rfhip, rfthigh, rfleg, rbhip, rbthigh, rbleg, lfhip, lfthigh, lfleg, lbhip, lbthigh, lbleg;

@@ -2,7 +2,6 @@
 // OffsetToFirstName                   794
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, emit;

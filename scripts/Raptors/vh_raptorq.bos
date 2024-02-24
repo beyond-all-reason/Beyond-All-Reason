@@ -6,7 +6,6 @@ static-var aMoving, isMoving, gun_1, shot5pitch, shot5heading;
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;

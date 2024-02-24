@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull, AA_turret_gun_1, 

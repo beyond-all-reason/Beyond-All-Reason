@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr;

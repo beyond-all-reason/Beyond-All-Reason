@@ -14,7 +14,6 @@
 // OffsetToFirstName                   680
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, dish, blink;

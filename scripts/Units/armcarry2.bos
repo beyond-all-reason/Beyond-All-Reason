@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow,

@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad, main1, mid1, end1, nano1, main2, mid2, end2, nano2, main3, mid3, end3, nano3, main4, mid4, end4, nano4,beam1,beam2,beam3,beam4;

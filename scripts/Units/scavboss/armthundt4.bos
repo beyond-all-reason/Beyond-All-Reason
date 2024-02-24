@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4, blinka, blinkb;

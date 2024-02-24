@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot, prop, barrel, flare, turret, misbarrel, lmisflare, rmisflare;

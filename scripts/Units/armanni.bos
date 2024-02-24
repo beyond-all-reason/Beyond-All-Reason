@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light, aimfromy;

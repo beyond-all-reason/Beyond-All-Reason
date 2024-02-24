@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, wingl, wingr, flarel, flarer, thrust, turretmisl, misboxl, misflarel, turretmisr, misboxr, misflarer;

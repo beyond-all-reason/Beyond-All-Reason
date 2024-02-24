@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece base, cockpit, rwing, rventblade, rbwing, lwing, lventblade, lbwing, fdoor, bdoor, bombdrop, thrust1;

@@ -8,7 +8,6 @@ static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #define SIG_MOVE			16
 #define SIG_RESTORE			32
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 

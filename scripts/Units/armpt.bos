@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  flarel, flarer, flareaa, turretaa, ground, base, turretl, turretr, radar, blink;

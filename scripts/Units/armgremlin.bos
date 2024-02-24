@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;

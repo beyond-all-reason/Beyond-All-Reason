@@ -1,6 +1,5 @@
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, fan, emit;

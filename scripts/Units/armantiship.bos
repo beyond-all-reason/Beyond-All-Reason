@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  ground, base, anti, antiflare, door1, door2, front, radar, blink, wake1, wake2;

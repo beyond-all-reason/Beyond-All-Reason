@@ -10,7 +10,6 @@ piece base, body, head,tail,rblade,lblade, flare, aimy1,
 #define SIG_AIM_2			4
 #define SIG_MOVE			16
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, gun_1, isDying;

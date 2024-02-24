@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;

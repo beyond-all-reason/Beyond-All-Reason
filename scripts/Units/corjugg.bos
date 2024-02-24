@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe, lftoe, rbtoe, rftoe, aimy1,

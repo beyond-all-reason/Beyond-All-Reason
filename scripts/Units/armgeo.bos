@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  smoke1,smoke2,smoke3,smoke4,base, arm1,arm2,arm3,clamp1,clamp2,barrell, barrelr,hotr,hotl,fan;

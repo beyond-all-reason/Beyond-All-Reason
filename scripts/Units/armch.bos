@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, beam, nanogun, doorr, doorl, post, wake, turret, cagelight, cagelight_emit;

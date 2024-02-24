@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turretl, sleevel, barrell, flarel, turretr, sleever, barrelr, flarer, 

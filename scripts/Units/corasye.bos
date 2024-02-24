@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, beam1, beam2, blinks, gun1, gun2, explodpt1, explodpt2,

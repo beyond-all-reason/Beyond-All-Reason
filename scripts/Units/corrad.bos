@@ -2,7 +2,6 @@
 static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, dish, blink;

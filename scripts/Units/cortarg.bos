@@ -1,7 +1,6 @@
 
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base;

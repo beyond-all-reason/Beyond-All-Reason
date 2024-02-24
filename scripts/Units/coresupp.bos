@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, bturret, bsleeve, blbarrel, brbarrel, fturret, fsleeve, flbarrel, frbarrel, fin, blflare, brflare, flflare, frflare, wake1;

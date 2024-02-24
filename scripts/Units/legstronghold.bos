@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pole, turret, sleeve, barrel, flare, link, thrustrr, thrustrl, thrustfr, thrustfl, 

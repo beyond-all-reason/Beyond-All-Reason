@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  lwing, rwing, base, thrustm, lthrust, rthrust;

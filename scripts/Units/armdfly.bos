@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, link, flare, barrel, fan1,fan2,fan3,fan4,thrusta,thrustb;

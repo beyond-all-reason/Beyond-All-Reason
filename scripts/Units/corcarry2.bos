@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl, blink, 

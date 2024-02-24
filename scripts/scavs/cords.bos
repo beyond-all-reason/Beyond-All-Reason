@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, thrustfl, thrustfr, thrustbl, thrustbr,  flarefl, flarefr, flarebl, flarebr, 

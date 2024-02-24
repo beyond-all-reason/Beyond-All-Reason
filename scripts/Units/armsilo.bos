@@ -14,7 +14,6 @@
 // OffsetToFirstName                   ca4
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, door1, door2, flare, light1, light2, light3, light4;

@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, stand, centerpoint, aim1, aim2, aim3, emitnano1;

@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  aimy1, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,

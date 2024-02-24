@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, flare, thrust, base2, lloarm, lgun, lfire;

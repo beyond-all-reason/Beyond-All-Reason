@@ -14,7 +14,6 @@
 // OffsetToFirstName                   12ac
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad, head, nano1, nano2, dish;

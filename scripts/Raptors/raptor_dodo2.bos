@@ -1,6 +1,5 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack,rblade,lblade,mblade,spike1,spike2,spike3,aimy1;
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying;

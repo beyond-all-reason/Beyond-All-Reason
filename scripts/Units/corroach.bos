@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,

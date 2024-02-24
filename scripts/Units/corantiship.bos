@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2;

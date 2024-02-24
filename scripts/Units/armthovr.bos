@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret1, wake, weight, turret2, doorr, doorl, boom2, boom3,

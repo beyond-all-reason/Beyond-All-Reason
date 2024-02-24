@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  torso, ruparm, luparm, flare, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, lknee, rknee, lloarm, head, backpack, aimy1, aimx1;

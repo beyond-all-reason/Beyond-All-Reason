@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;

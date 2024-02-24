@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret, lloarm, flare1, thruster1, thruster2, thruster3;

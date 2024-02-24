@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret, arm1, arm2, arm3, link, door1, door2, door3, magnet, arm4, arm5, arm6, arm7, ground, wake;

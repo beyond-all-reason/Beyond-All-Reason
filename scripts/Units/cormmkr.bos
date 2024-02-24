@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 #include "StateChg.h"
 

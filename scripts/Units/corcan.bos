@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;

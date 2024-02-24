@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret, flare, barrel1, barrel2, barrel3, barrel4, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, 

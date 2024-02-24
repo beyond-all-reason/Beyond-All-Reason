@@ -1,6 +1,5 @@
 
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;

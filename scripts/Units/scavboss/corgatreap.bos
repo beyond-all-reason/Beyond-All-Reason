@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;

@@ -4,7 +4,6 @@ piece base,body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lfor
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying,aaheading, aapitch;

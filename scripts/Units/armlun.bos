@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,

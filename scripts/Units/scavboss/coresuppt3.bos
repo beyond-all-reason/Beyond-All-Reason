@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, turret1, turret2, abarrela, abarrelb, bbarrela, bbarrelb, flare11,

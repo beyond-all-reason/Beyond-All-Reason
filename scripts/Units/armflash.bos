@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece base, parts, track, turret, sleeve, lbarrel, lflare, rbarrel, rflare;

@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "exptype.h"
 
 piece  base, pad, head, wheel1, wheel2, nano, cagelight, cagelight_emit;
