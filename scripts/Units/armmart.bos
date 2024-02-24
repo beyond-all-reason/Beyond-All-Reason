@@ -5,7 +5,7 @@
 
 piece  base, flare, turret, sleeve, barrel;
 
-static-var  restore_delay, wpnheading, bAiming;
+static-var  restore_delay, wpnheading, isAiming;
 static-var  out_of_arc_count;
 
 // Signal definitions
@@ -41,7 +41,7 @@ Create()
 	restore_delay = 3000;
 	out_of_arc_count = 0;
 	wpnheading = 0;
-	bAiming = 0;
+	isAiming = 0;
 	return (0);
 }
 
@@ -60,7 +60,7 @@ ExecuteRestoreAfterDelay()
 	turn turret to y-axis <0.000000> speed <50.005495>;
 	turn sleeve to x-axis <0.000000> speed <50.005495>;
 	wpnheading = 0;
-	bAiming = 0;
+	isAiming = 0;
 }
 SetStunned(State)
 {
@@ -78,7 +78,7 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
+	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

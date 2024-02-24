@@ -5,7 +5,7 @@
 
 piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
+static-var  bMoving, isAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -378,7 +378,7 @@ Create()
 	hide flare;
 	hide flare;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	bSteering = FALSE;
 	Static_Var_3 = 1;
 	oldHeading = get HEADING;
@@ -416,7 +416,7 @@ RestoreAfterDelay()
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 
 AimFromPrimary(piecenum)
@@ -431,7 +431,7 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	bAiming = TRUE;
+	isAiming = TRUE;
 	signal SIG_AIM;
 	turn turret to y-axis heading speed <30.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;

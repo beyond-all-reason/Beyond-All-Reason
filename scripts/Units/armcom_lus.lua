@@ -906,7 +906,7 @@ function script.Create()
 	isAimingDgun = false
 	isBuilding = false
 	isDancing = false
-	bAiming = false
+	isAiming = false
 	buildHeading = 0
 	buildPitch = 0
 	leftArm = true

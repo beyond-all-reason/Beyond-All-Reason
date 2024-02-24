@@ -6,7 +6,7 @@
 piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
        body, base;
 
-static-var  Static_Var_1, bAiming;
+static-var  Static_Var_1, isAiming;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -67,7 +67,7 @@ Create()
 	hide flare;
 	hide rmis;
 	hide lmis;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	return (0);
 }
 
@@ -80,7 +80,7 @@ ExecuteRestoreAfterDelay()
 	turn turret to y-axis <0.00000> speed <75.00000>;
 	turn support to x-axis <0.00000> speed <50.00000>;
 	
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -120,7 +120,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn turret to y-axis heading speed <120.00000>;
 	turn support to x-axis <0.00000> - pitch speed <80.00000>;
 	wait-for-turn turret around y-axis;

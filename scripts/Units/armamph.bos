@@ -5,7 +5,7 @@
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot, prop, barrel, flare, turret, misbarrel, lmisflare, rmisflare;
 
-static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, gun_3,
+static-var  bMoving, isAiming, Static_Var_3, Static_Var_4, gun_3,
             restore_delay, Static_Var_7, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
@@ -245,7 +245,7 @@ MotionControl(Func_Var_1)
 		}
 		if( bMoving )
 		{
-			if( bAiming )
+			if( isAiming )
 			{
 				Static_Var_3 = 1;
 				if( Static_Var_4 )
@@ -257,7 +257,7 @@ MotionControl(Func_Var_1)
 					call-script walklegs();
 				}
 			}
-			if( !bAiming )
+			if( !isAiming )
 			{
 				Static_Var_3 = 0;
 				if( Static_Var_4 )
@@ -290,7 +290,7 @@ Create()
 	hide lmisflare;
 	hide flare;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	Static_Var_4 = 0;
 	gun_3 = 0;
@@ -370,7 +370,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn misbarrel around x-axis;
 	wpn3_lasthead = 1000000;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -389,7 +389,7 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	while( !Static_Var_3 )
 	{
 		return(0);
@@ -459,7 +459,7 @@ FireSecondary()
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	while( !Static_Var_3 )
 	{
 		sleep 100;

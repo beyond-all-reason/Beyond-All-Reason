@@ -6,7 +6,7 @@
 piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
        rrocket, base;
 
-static-var  Static_Var_1, gun_1, bAiming, restore_delay;
+static-var  Static_Var_1, gun_1, isAiming, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -71,7 +71,7 @@ Create()
 	turn rflare to y-axis <175> now;
 	move lflare to z-axis [6] now;
 	move rflare to z-axis [6] now;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	gun_1 = lflare;
 	hide lrocket;
 	hide rrocket;
@@ -92,7 +92,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	bAiming = FALSE;
+	isAiming = FALSE;
 	turn turret to y-axis <0.00000> speed <80.00000>;
 	turn barrelcon to x-axis <0.00000> speed <50.00000>;
 }
@@ -112,7 +112,7 @@ RestoreAfterDelay()
 RestoreSecondary()
 {
 	sleep restore_delay;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	turn launch to x-axis <0.00000> speed <20.00000>;
 	return (0);
 }
@@ -121,7 +121,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn turret to y-axis heading speed <120.00000>;
 	turn barrelcon to x-axis <0.00000> - pitch speed <80.00000>;
 	wait-for-turn turret around y-axis;

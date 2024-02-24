@@ -8,7 +8,7 @@ piece  tail, torso, rleg, rfoot, rtoes, lleg, lfoot, ltoes, lthigh,
 
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
-static-var  bMoving, bAiming, isReady;
+static-var  bMoving, isAiming, isReady;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -550,7 +550,7 @@ ExecuteRestoreAfterDelay()
 	turn gun to x-axis <0.000000> speed <45.000000>;
 	turn aimy1 to y-axis <0.000000> speed <45.000000>;
 	turn turret to x-axis <0> speed <10>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 
 }
 
@@ -573,7 +573,7 @@ Create()
 	hide flare;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	isReady = 1;
 	animSpeed = 4;
 }
@@ -607,7 +607,7 @@ AimWeapon1(heading, pitch)
 
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	//signal SIG_HEAD;
 	//We can do this any time
 	tilt = heading;

@@ -6,7 +6,7 @@
 piece  torso, torso2, lfire, rfire, gun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1;
 
-static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  bMoving, isAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -343,7 +343,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = 0;
+	isAiming = 0;
 	wpnheading = 0;
 	animSpeed = 4;
 	gun_1 = 1;
@@ -396,7 +396,7 @@ ExecuteRestoreAfterDelay()
     turn aimy1 to y-axis <0.000000> speed <90>;
     turn aimx1 to x-axis <0.000000> speed <45>;
     wpnheading = 0;
-    bAiming = 0;
+    isAiming = 0;
 
 }
 SetStunned(State)
@@ -417,19 +417,19 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
+	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
 	
-	if (bAiming == 1) return;
+	if (isAiming == 1) return;
 	turn aimy1 to y-axis heading speed <200>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <100>;
 	
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 500){
-		bAiming = 1;
+		isAiming = 1;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
+		isAiming = 0;
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();

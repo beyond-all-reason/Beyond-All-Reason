@@ -9,7 +9,7 @@ piece  torso, pelvis, rleg, rfoot, lleg, lfoot, head, lthigh,
 
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
-static-var  bMoving, bAiming, isReady, gun_1;
+static-var  bMoving, isAiming, isReady, gun_1;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -683,7 +683,7 @@ Create()
 	hide aimy1;
 	spin thing around x-axis speed <30> accelerate <1>;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	isReady = 1;
 	gun_1 = 0;
 	animSpeed = 4;
@@ -781,7 +781,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aimx1 to x-axis <0.000000> speed <45.000000>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
 		if (aimy1position > 0 ) {
 			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
@@ -817,7 +817,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	
-	bAiming = TRUE;
+	isAiming = TRUE;
 	//signal SIG_HEAD;
 	//We can do this any time
 	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;

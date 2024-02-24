@@ -6,7 +6,7 @@
 piece  pelvis, aimy1, torso, aimx1, rturret, rflare, rrecoil, lturret, lflare, lrecoil, rlauncher, rocketflare, 
 	ldoor, rdoor, lthigh, rleg, rankle, rfoot, rwake, rtoe1, rtoe2, rtoe3, rthigh, lleg, lankle, lfoot, lwake, ltoe1, ltoe2, ltoe3;
 
-static-var  bMoving, bAiming, restore_delay, gun_left, firststep;
+static-var  bMoving, isAiming, restore_delay, gun_left, firststep;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 
@@ -535,9 +535,9 @@ MotionControl(moving, aiming, justmoved)
 	
 	while( TRUE )
 	{	
-		//get PRINT(bMoving, bAiming, justmoved);
+		//get PRINT(bMoving, isAiming, justmoved);
 		moving = bMoving;
-		aiming = bAiming;
+		aiming = isAiming;
 		if( moving )
 		{
 			signal SIG_WALK;
@@ -562,7 +562,7 @@ MotionControl(moving, aiming, justmoved)
 			
 			sleep 100;
 			if (RAND(1,200) ==1){ //this is bad place and thread to do this, just showing off...
-				if (!bAiming){
+				if (!isAiming){
 					bAnimate = TRUE;
 					start-script Animate();
 					sleep 2000;
@@ -608,7 +608,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	doorOpen = FALSE;
 	gun_left = TRUE;
 	animFramesPerKeyframe = 6;
@@ -669,7 +669,7 @@ RestoreAfterDelay()
 	turn aimx1 to x-axis <0.000000> speed <125.000000>;
 	turn rdoor to z-axis <0> speed <100>;
 	turn ldoor to z-axis <0> speed <100>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	doorOpen = FALSE;
 
 	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
@@ -693,7 +693,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	
-	bAiming = TRUE;
+	isAiming = TRUE;
 	//signal SIG_HEAD;
 	//We can do this any time
 	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
@@ -753,7 +753,7 @@ AimPrimary(heading, pitch)
 	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <180.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <110.000000>;
 	wait-for-turn aimy1 around y-axis;

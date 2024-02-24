@@ -525,7 +525,7 @@ function script.Create()
 	isAiming = false
 	isAimingDgun = false
 	isBuilding = false
-	bAiming = false
+	isAiming = false
 	buildHeading = 0
 	buildPitch = 0
 	leftArm = true

@@ -7,7 +7,7 @@ piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarre
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
 lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare, head, horns, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount, lightcount1, lightcount2;
+static-var  gun_1, bMoving, isAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount, lightcount1, lightcount2;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -62,7 +62,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rlarm to z-axis <-1.239022> speed <37.170674> / animSpeed; 
 			turn llarm to x-axis <-26.801591> speed <804.047718> / animSpeed; 
 			turn llarm to z-axis <1.239022> speed <37.170664> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn ruparm to y-axis <1.015624> speed <30.468725> / animSpeed; 
 			turn luparm to y-axis <-1.015624> speed <30.468725> / animSpeed; 
 			turn torso to y-axis <-3.001825> speed <90.054764> / animSpeed;
@@ -112,7 +112,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rlarm to z-axis <-2.739799> speed <45.023306> / animSpeed; 
 			turn luparm to x-axis <-1.638990> speed <559.052727> / animSpeed; 
 			turn luparm to z-axis <-3.608069> speed <195.285123> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn llarm to y-axis <-0.050031> speed <10.301184> / animSpeed; 
 			turn ruparm to y-axis <1.804893> speed <23.678055> / animSpeed; 
 			turn torso to y-axis <-4.999999> speed <59.945219> / animSpeed; 
@@ -160,7 +160,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <1.258670> speed <71.015082> / animSpeed; 
 			turn torso to x-axis <1.989039> speed <59.671177> / animSpeed; 
 			turn torso to z-axis <-0.209141> speed <6.274228> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn luparm to y-axis <0.132403> speed <10.762751> / animSpeed; 
 			turn rlarm to y-axis <0.892855> speed <4.682357> / animSpeed; 
 			turn ruparm to y-axis <2.163651> speed <10.762754> / animSpeed; 
@@ -209,7 +209,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <3.827077> speed <77.052218> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <59.671177> / animSpeed; 
 			turn torso to z-axis <-0.000000> speed <6.274228> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn llarm to y-axis <-0.050031> speed <4.682357> / animSpeed; 
 			turn luparm to y-axis <-0.226356> speed <10.762752> / animSpeed; 
 			turn rlarm to y-axis <0.736776> speed <4.682356> / animSpeed; 
@@ -258,7 +258,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <10.117573> speed <188.714874> / animSpeed; 
 			turn torso to x-axis <-1.997258> speed <59.917736> / animSpeed; 
 			turn torso to z-axis <-0.104714> speed <3.141430> / animSpeed; 
-			if(!bAiming) {
+			if(!isAiming) {
 			turn llarm to y-axis <-0.393403> speed <10.301183> / animSpeed; 
 			turn luparm to y-axis <-1.015624> speed <23.678055> / animSpeed; 
 			turn rlarm to y-axis <0.393403> speed <10.301185> / animSpeed; 
@@ -305,7 +305,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <3.608069> speed <195.285123> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <59.917736> / animSpeed; 
 			turn torso to z-axis <-0.000000> speed <3.141430> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn luparm to y-axis <-1.804893> speed <23.678055> / animSpeed; 
 			turn llarm to y-axis <-0.736776> speed <10.301184> / animSpeed; 
 			turn rlarm to y-axis <0.050031> speed <10.301184> / animSpeed; 
@@ -353,7 +353,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <1.989039> speed <59.671177> / animSpeed; 
 			turn torso to z-axis <0.209141> speed <6.274228> / animSpeed; 
 			turn rlarm to z-axis <0.943926> speed <20.465139> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn rlarm to y-axis <-0.106048> speed <4.682356> / animSpeed; 
 			turn luparm to y-axis <-2.163651> speed <10.762754> / animSpeed; 
 			turn ruparm to y-axis <-0.132403> speed <10.762751> / animSpeed; 
@@ -399,7 +399,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <3.504354> speed <72.836316> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <59.671177> / animSpeed; 
 			turn torso to z-axis <-0.000000> speed <6.274228> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn luparm to y-axis <-1.804893> speed <10.762754> / animSpeed; 
 			turn llarm to y-axis <-0.736776> speed <4.682356> / animSpeed; 
 			turn rlarm to y-axis <0.050031> speed <4.682357> / animSpeed; 
@@ -446,7 +446,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <8.247604> speed <142.297502> / animSpeed; 
 			turn torso to x-axis <-1.997258> speed <59.917736> / animSpeed; 
 			turn torso to z-axis <0.104714> speed <3.141430> / animSpeed; 
-			if (!bAiming) {
+			if (!isAiming) {
 			turn llarm to y-axis <-0.393403> speed <10.301185> / animSpeed; 
 			turn luparm to y-axis <-1.015624> speed <23.678055> / animSpeed; 
 			turn rlarm to y-axis <0.393403> speed <10.301183> / animSpeed; 
@@ -917,7 +917,7 @@ Create()
 	lightcount1 = 0;
 	lightcount2 = 0;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	animSpeed = 6;
 	
 	turn rbflare to x-axis <-130> now;
@@ -1000,7 +1000,7 @@ AimFromSecondary(piecenum)
 RestoreAfterDelay()
 {
 	sleep 1000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	isfiring = 0;
 	targetswap = 0;
 	turn aimx1 to x-axis <0.000000> speed <80.000000>;
@@ -1073,7 +1073,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	start-script SmokeItUp();
 	turn aimy1 to y-axis heading speed <130.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <120.000000>;

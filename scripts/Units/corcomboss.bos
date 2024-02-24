@@ -6,7 +6,7 @@
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
     rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1;
 
-static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
+static-var bMoving, isAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
 
 // Signal definitions
@@ -431,7 +431,7 @@ Create()
 	hide teleport;
 	hide rbigflash;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	bIsBuilding = 0;
 	gun_2 = torso;
 	Busy = 1;
@@ -485,7 +485,7 @@ RestorePosition()
 	turn aimy1 to y-axis <0.000000> speed <30.000000>;
 	turn aimx1 to x-axis <0> speed <30>;
 	//wait-for-turn aimy1 around y-axis;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	return (0);
 }
 
@@ -520,7 +520,7 @@ AimPrimary(heading, pitch)
 	}
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <300.000000>;
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
 	//turn nanolathe to x-axis <000000> speed <2500.000000>;
@@ -558,7 +558,7 @@ AimTertiary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	gun_3 = lfirept;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
 	//turn ruparm to x-axis <0> speed <3600>;
@@ -603,7 +603,7 @@ AimSecondary(heading, pitch)
 	}
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <300.000000>;
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
 	//turn nanolathe to x-axis <000000> speed <2500.000000>;
@@ -642,7 +642,7 @@ StartBuilding(heading, pitch)
 	gun_3 = torso;
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	bIsBuilding = 1;
 	//while( !Busy ) //aiming shouldnt block construction
 	//{

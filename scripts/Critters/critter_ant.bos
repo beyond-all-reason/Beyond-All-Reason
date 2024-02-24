@@ -6,7 +6,7 @@
 piece  base, L6, L5, L4, L3, L2, L1, J2,
        spot1, spot2, J1;
 
-static-var  bMoving, gun_1, Static_Var_3;
+static-var  bMoving, gun_1, waterSpeed;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -14,16 +14,16 @@ static-var  bMoving, gun_1, Static_Var_3;
 
 AmphSpeed()
 {
-	Static_Var_3 = get MAX_SPEED;
+	waterSpeed = get MAX_SPEED;
 	while( TRUE )
 	{
 		if( get IN_WATER )
 		{
-			set MAX_SPEED to Static_Var_3 * 2 / 3;
+			set MAX_SPEED to waterSpeed * 2 / 3;
 		}
 		else
 		{
-			set MAX_SPEED to Static_Var_3;
+			set MAX_SPEED to waterSpeed;
 		}
 		sleep 30;
 	}

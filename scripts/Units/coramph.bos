@@ -6,7 +6,7 @@
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
-static-var  bMoving, bAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
+static-var  bMoving, isAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
 
 static-var  Stunned;
 

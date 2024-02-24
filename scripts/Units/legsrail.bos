@@ -7,7 +7,7 @@ piece  base, turret, flare, barrel1, barrel2, barrel3, barrel4, sleeve, rfhip, r
 		lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, 
 		rbleg, rbankle, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
+static-var  bMoving, isAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
 
 // Signal definitions
 #define SIG_WALK			2
@@ -517,7 +517,7 @@ Create()
 	hide flare;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	bSteering = FALSE;
 	Static_Var_3 = 1;
 	oldHeading = get HEADING;
@@ -547,7 +547,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn sleeve around x-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -575,7 +575,7 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	bAiming = TRUE;
+	isAiming = TRUE;
 	signal SIG_AIM;
 	turn aimy1 to y-axis heading speed <45.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <70.000000>;

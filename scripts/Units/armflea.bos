@@ -5,7 +5,7 @@
 
 piece  base, turret, flare, rrleg, rfleg, lrleg, lfleg, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead;
+static-var  bMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead;
 #define SIG_AIM 2
 
 // Signal definitions
@@ -147,7 +147,7 @@ Create()
 	hide aimy1;
 	hide flare;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	restore_delay = 3000;
 	animSpeed = 4;
@@ -172,7 +172,7 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to y-axis <0.000000> speed <300.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -201,7 +201,7 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <450.000000>;
 	while( !Static_Var_3 )
 	{

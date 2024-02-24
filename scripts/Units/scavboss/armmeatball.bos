@@ -5,7 +5,7 @@
 
 piece  pelvis, body, rthigh, lthigh , lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel, rbarrel, lflare, rflare;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
+static-var  bMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -263,7 +263,7 @@ MotionControl(moving, aiming, justmoved)
 	while( TRUE )
 	{
 		moving = bMoving;
-		aiming = bAiming;
+		aiming = isAiming;
 		if( moving )
 		{
 			if( aiming )
@@ -317,7 +317,7 @@ Create()
 	hide lflare;
 	hide misflare;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = 1;
 
@@ -349,7 +349,7 @@ RestoreAfterDelay()
 	turn lturret to x-axis <0.000000> speed <120.000000>;
 	turn rturret to x-axis <0.000000> speed <120.000000>;
 	turn misturret to y-axis <0.000000> speed <120.000000>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
 	wpn3_lasthead = 1000000;
@@ -358,7 +358,7 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn body to y-axis heading speed <140.000000>;
 	turn lturret to x-axis 0 - pitch speed <360>;
 	turn rturret to x-axis 0 - pitch speed <360>;

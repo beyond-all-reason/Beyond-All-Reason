@@ -6,7 +6,7 @@
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
        rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
+static-var  bMoving, isAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -278,7 +278,7 @@ Create()
 	hide exhaust;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	restore_delay = 3000;
 	animSpeed = 4;
@@ -305,7 +305,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -334,7 +334,7 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	while( !Static_Var_3 )
 	{
 		return(0);

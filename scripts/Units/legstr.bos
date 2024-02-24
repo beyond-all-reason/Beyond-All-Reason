@@ -6,7 +6,7 @@
 piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve, lbarrel, luparm, ruparm, 
 	 rbarrel, lflare, rflare, aimx1, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
+static-var  bMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -194,7 +194,7 @@ MotionControl(moving, aiming, justmoved)
 	while( TRUE )
 	{
 		moving = bMoving;
-		aiming = bAiming;
+		aiming = isAiming;
 		if( moving )
 		{
 			if( aiming )
@@ -245,7 +245,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	miniguncount = 0;
 	restore_delay = 3000;
@@ -281,7 +281,7 @@ ExecuteRestoreAfterDelay()
 	turn ruparm to x-axis <0.000000> speed <120.000000>;
 	spin rbarrel around z-axis speed <0.000000>;
 	spin lbarrel around z-axis speed <0.000000>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
@@ -301,7 +301,7 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn body to y-axis heading speed <180.000000>;
 	turn luparm to x-axis 0 - pitch speed <360>;
 	turn ruparm to x-axis 0 - pitch speed <360>;

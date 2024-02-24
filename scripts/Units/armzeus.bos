@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
-static-var  bMoving, bAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
+static-var  bMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
 
 // Signal definitions
 #define SIG_AIM				2
@@ -453,7 +453,7 @@ drawgun()
 	
 	hide gunstatic;
 	show gunhand;
-	//turn luparm to x-axis <0> speed <360>; //90   arm bleibt beim schieïssen nun unten
+	//turn luparm to x-axis <0> speed <360>; //90   arm bleibt beim schieï¿½ssen nun unten
 	turn ruparm to x-axis <-60> speed <360>; //-179*   720
 	sleep 125;
 	turn ruparm to x-axis <-10> speed <360>;  //0* ****** arm position when shooting (only ruparm, rloarm is in aiming)
@@ -531,7 +531,7 @@ Sparks()
 {
 	while( TRUE )
 	{
-		while( !bAiming )
+		while( !isAiming )
 		{
 			sleep 100;
 		}
@@ -567,7 +567,7 @@ Create()
 	statechg_StateChanging = FALSE;
 	gunDrawn = 0;
 	moveSpeed = get MAX_SPEED;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	start-script Sparks();
 }
 
@@ -599,7 +599,7 @@ ExecuteRestoreAfterDelay()
 	turn luparm to z-axis <0.000000> speed <16.270322>;	
     
     wpnheading = 0;
-    bAiming = 0;
+    isAiming = 0;
 }
 SetStunned(State)
 {
@@ -623,17 +623,17 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	isAiming = TRUE;
 	
-	if (bAiming == 1) return 0;
+	if (isAiming == 1) return 0;
 	turn aimy1 to y-axis heading speed <225.005495>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <75.005495>;
 	
 	if (!gunDrawn ) return 0;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 2000){
-		bAiming = 1;
+		isAiming = 1;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
+		isAiming = 0;
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();

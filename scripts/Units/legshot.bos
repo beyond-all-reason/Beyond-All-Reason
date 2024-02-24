@@ -5,7 +5,7 @@
 
 piece  torso, ruparm, shield, luparm, rgunflare, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, lknee, rknee, shotgun, head, aimy1, aimx1;
 
-static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, animSpeed, movespeed, tdamage, shieldup;
+static-var  bMoving, isAiming, restore_delay, wpn1_lasthead, currentSpeed, animSpeed, movespeed, tdamage, shieldup;
 
 static-var  maxSpeed, animFramesPerKeyframe;
 // Signal definitions
@@ -439,7 +439,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	currentSpeed = 200;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 9;
@@ -489,7 +489,7 @@ ExecuteRestoreAfterDelay()
 	tdamage = 0;	
 	set ARMORED to 1;
 	shieldup = 1;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -518,7 +518,7 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <200.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <90.000000>;
 	//wait-for-turn aimy1 around y-axis;

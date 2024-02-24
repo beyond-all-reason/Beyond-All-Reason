@@ -5,7 +5,7 @@
 
 piece  rflare, lflare, torso, turret, Rbarrel, Lbarrel, rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
+static-var  bMoving, isAiming, Static_Var_3, restore_delay, gun_1;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -271,7 +271,7 @@ Create()
 	hide rflare;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	animSpeed = 6;
 	Static_Var_3 = 1;
 	gun_1 = rflare;
@@ -298,7 +298,7 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.000000> speed 1.5 * <90.000000>;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	return (0);
 }
 
@@ -325,7 +325,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed 1.5 * <140.000000>;
 	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();

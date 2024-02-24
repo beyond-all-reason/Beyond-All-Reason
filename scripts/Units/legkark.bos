@@ -8,7 +8,7 @@ piece  torso, rflare, lflare, pelvis,
 	   shield, shldbot, shldout, shldin, shldtop, rhand, rheatray,
 	   backpack, neck, head;
 
-static-var  bMoving, bAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
+static-var  bMoving, isAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
 			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
 
 // Signal definitions
@@ -321,7 +321,7 @@ Stop()
 {
 	ReadyToAim = 0;
 	call-script holster();
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 
 RequestState(requestedstate, currentstate)
@@ -394,7 +394,7 @@ Create()
 	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=800;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	ReadyToAim = 0;
 	restore_delay = 10000;
 	gun_1 = rflare;
@@ -429,7 +429,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 
 SetStunned(State)
@@ -493,7 +493,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	start-script RequestState(0);
-	bAiming = TRUE;
+	isAiming = TRUE;
 	while( !ReadyToAim )
 	{
 		return(0);
@@ -513,7 +513,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	while( !ReadyToAim )
 	{
 		return(0);

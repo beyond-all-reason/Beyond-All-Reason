@@ -5,7 +5,7 @@
 #include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
-static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
+static-var  bMoving, isAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
 
 #include "weapon1control.h"
 
@@ -41,7 +41,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to z-axis <-0.000000> speed <383.999971> / animSpeed; //delta=12.80 
 			turn torso to x-axis <2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn torso to y-axis <10.727512> speed <321.825366> / animSpeed; //delta=10.73 
-			if (!bAiming){
+			if (!isAiming){
 				turn ruparm to x-axis <-10.149999> speed <304.499976> / animSpeed; //delta=10.15 
 				turn luparm to x-axis <25.899997> speed <776.999912> / animSpeed; //delta=-25.90 
 				turn lloarm to x-axis <32.099997> speed <752.999977> / animSpeed; //delta=25.10 
@@ -70,7 +70,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <-0.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn torso to y-axis <16.091268> speed <160.912683> / animSpeed; //delta=5.36 
 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <39.699996> speed <227.999979> / animSpeed; //delta=-7.60 
 				turn rloarm to x-axis <25.099998> speed <376.499963> / animSpeed; //delta=-12.55 
 				turn ruparm to x-axis <-20.299998> speed <304.499976> / animSpeed; //delta=10.15 
@@ -101,7 +101,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-3.186299> speed <437.161897> / animSpeed; //delta=14.57 
 			turn torso to x-axis <5.000000> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn torso to y-axis <10.727512> speed <160.912683> / animSpeed; //delta=-5.36 
-			if (!bAiming){
+			if (!isAiming){
 				turn luparm to x-axis <17.499998> speed <524.999946> / animSpeed; //delta=17.50 
 				turn lloarm to x-axis <19.849998> speed <595.499947> / animSpeed; //delta=19.85 
 				turn ruparm to x-axis <-1.750000> speed <556.499942> / animSpeed; //delta=-18.55 
@@ -131,7 +131,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-6.117383> speed <87.932523> / animSpeed; //delta=-2.93 
 			turn torso to x-axis <2.000000> speed <89.999996> / animSpeed; //delta=3.00 
 			turn torso to y-axis <0.000000> speed <321.825366> / animSpeed; //delta=-10.73 
-			if (!bAiming){
+			if (!isAiming){
 				turn ruparm to x-axis <16.799998> speed <556.499942> / animSpeed; //delta=-18.55 
 				turn rloarm to x-axis <24.499998> speed <8.999970> / animSpeed; //delta=0.30 
 				turn luparm to x-axis <-0.000000> speed <524.999946> / animSpeed; //delta=17.50 
@@ -161,7 +161,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-8.657335> speed <76.198555> / animSpeed; //delta=-2.54 
 			turn torso to x-axis <1.500000> speed <14.999998> / animSpeed; //delta=0.50 
 			turn torso to y-axis <-10.727512> speed <321.825366> / animSpeed; //delta=-10.73 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <12.549999> speed <376.499963> / animSpeed; //delta=-12.55 
 				turn luparm to x-axis <-10.149999> speed <304.499976> / animSpeed; //delta=10.15 
 				turn ruparm to x-axis <25.899997> speed <272.999980> / animSpeed; //delta=-9.10 
@@ -189,7 +189,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-7.981488> speed <20.275391> / animSpeed; //delta=0.68 
 			turn torso to x-axis <1.000000> speed <15.000001> / animSpeed; //delta=0.50 
 			turn torso to y-axis <-16.091268> speed <160.912683> / animSpeed; //delta=-5.36 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <25.099998> speed <376.499963> / animSpeed; //delta=-12.55 
 				turn luparm to x-axis <-20.299998> speed <304.499976> / animSpeed; //delta=10.15 
 				turn rloarm to x-axis <39.699996> speed <227.999979> / animSpeed; //delta=-7.60 
@@ -220,7 +220,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-5.529112> speed <73.571293> / animSpeed; //delta=2.45 
 			turn torso to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
 			turn torso to y-axis <-10.727512> speed <160.912683> / animSpeed; //delta=5.36 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <24.799997> speed <9.000021> / animSpeed; //delta=0.30 
 				turn luparm to x-axis <-1.750000> speed <556.499942> / animSpeed; //delta=-18.55 
 				turn rloarm to x-axis <19.849998> speed <595.499947> / animSpeed; //delta=19.85 
@@ -250,7 +250,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-3.644399> speed <56.541390> / animSpeed; //delta=1.88 
 			turn torso to x-axis <5.000000> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn torso to y-axis <0.000000> speed <321.825366> / animSpeed; //delta=10.73 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <24.499998> speed <8.999970> / animSpeed; //delta=0.30 
 				turn luparm to x-axis <16.799998> speed <556.499942> / animSpeed; //delta=-18.55 
 				turn rloarm to x-axis <-0.000000> speed <595.499947> / animSpeed; //delta=19.85 
@@ -280,7 +280,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to y-axis <-9.420859> speed <173.293788> / animSpeed; //delta=-5.78 
 			turn torso to x-axis <2.000000> speed <89.999996> / animSpeed; //delta=3.00 
 			turn torso to y-axis <10.727512> speed <321.825366> / animSpeed; //delta=10.73 
-			if (!bAiming){
+			if (!isAiming){
 				turn lloarm to x-axis <32.099997> speed <227.999979> / animSpeed; //delta=-7.60 
 				turn luparm to x-axis <25.899997> speed <272.999980> / animSpeed; //delta=-9.10 
 				turn rloarm to x-axis <12.549999> speed <376.499963> / animSpeed; //delta=-12.55 
@@ -321,7 +321,7 @@ StopWalking() {
 	turn ruparm to x-axis <0.000000> speed <278.249971>;
 	turn torso to x-axis <0.000000> speed <74.999998>;
 	turn torso to y-axis <0.000000> speed <160.912683>;
-	if (!bAiming){
+	if (!isAiming){
 		turn lloarm to x-axis <57.199996> speed <376.499988>;
 		turn luparm to x-axis <0.000000> speed <388.499956>;
 		turn rloarm to x-axis <51.399998> speed <582.749985>;
@@ -368,7 +368,7 @@ ExecuteRestoreAfterDelay()
 	turn rloarm to x-axis <90> speed <300.000000>;
 	start-script RestoreWeapon1();
 	call-script Weapon1Restored();
-	bAiming = FALSE;
+	isAiming = FALSE;
 	
 }
 
@@ -1012,7 +1012,7 @@ Create()
 	hide lfire;
 	turn lfire to x-axis <10> now;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = 0;
 	restore_delay = 3000;
@@ -1056,7 +1056,7 @@ SweetSpot(piecenum)
 
 DrawWeapon1()
 {
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis <0> speed <300.00>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn ruparm to x-axis <0> speed <300.000000>;
@@ -1132,7 +1132,7 @@ AimPrimary(heading, pitch)
 	
 	call-script StopAnimation();
 	start-script RestoreAfterDelay();
-	bAiming = TRUE;
+	isAiming = TRUE;
 	start-script Weapon1SetWtdAim(heading, pitch);
 	if (wpnReady1 == 0)
 	{

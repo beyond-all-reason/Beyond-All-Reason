@@ -5,7 +5,7 @@
 
 piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel, rflare, luparm, lblimb, lflimb, lcannon, lbarrel, lflare;
 
-static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
+static-var  Static_Var_1, gun_1, bMoving, isAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
 
 // Signal definitions
 #define SIG_WALK			2
@@ -407,7 +407,7 @@ Create()
 	hide aimy1;
 	gun_1 = 0;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_1 = 3500;
 	wpnheading  = 0;
 	animSpeed = 6;
@@ -434,7 +434,7 @@ RestoreAfterDelay(Func_Var_1)
 	turn aimy1 to y-axis <0> speed <75>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	wpnheading  = 0;
 }
 
@@ -466,19 +466,19 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
+	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
-	if (bAiming == 1) return;
+	if (isAiming == 1) return;
 	turn aimy1 to y-axis heading speed <225.005495>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <75.005495>;
 	spin rbarrel around z-axis speed <1000>;
 	spin lbarrel around z-axis speed <1000>;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 2000){
-		bAiming = 1;
+		isAiming = 1;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
+		isAiming = 0;
 	}
 	wpnheading = heading;
 	stop-spin rbarrel around z-axis decelerate <10>;

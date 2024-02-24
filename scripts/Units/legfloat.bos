@@ -6,7 +6,7 @@
 piece  hull, lankle, lwheel, rankle, rwheel, turret, gun, barrel,
        flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater;
 
-static-var  restore_delay, oldheading, bAiming, Stunned, moving;
+static-var  restore_delay, oldheading, isAiming, Stunned, moving;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -198,7 +198,7 @@ AimPrimary(heading, pitch)
 	turn gun to x-axis <0.000000> - pitch speed <30.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
-	bAiming = heading;
+	isAiming = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -207,8 +207,8 @@ Rock_Main_Cannon()
 {
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) >= 0 )
 	{
-		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 / 2 speed <125.000000>;
-		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 10 speed <75.000000>;
+		turn hull to z-axis <0.000000> - (GET KSIN(isAiming)) * 3 / 2 speed <125.000000>;
+		turn hull to x-axis <0.000000> - (GET KCOS(isAiming)) * 9 / 10 speed <75.000000>;
 		wait-for-turn hull around z-axis;
 		wait-for-turn hull around x-axis;
 		turn hull to z-axis <0.000000> speed <45.000000>;
@@ -216,8 +216,8 @@ Rock_Main_Cannon()
 	}
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 )
 	{
-		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 speed <125.000000>;
-		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 5 speed <75.000000>;
+		turn hull to z-axis <0.000000> - (GET KSIN(isAiming)) * 3 speed <125.000000>;
+		turn hull to x-axis <0.000000> - (GET KCOS(isAiming)) * 9 / 5 speed <75.000000>;
 		wait-for-turn hull around z-axis;
 		wait-for-turn hull around x-axis;
 		turn hull to z-axis <0.000000> speed <15.000000>;

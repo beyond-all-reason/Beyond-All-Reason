@@ -7,7 +7,7 @@ piece  head, torso, pelvis, missleflare,
        rleg, rthigh, lthigh, lleg, ltoe,  rtoe, lfoot, rfoot,
         luparm, ruparm, rloarm, lloarm, rshoulder, lshoulder, lbarrel, rbarrel, rflare, lflare, turret, laserflare, antenna, aimx1, aimy1;
 
-static-var  gun_1, gun_3,  bAiming, Static_Var_5, StompXZ, StompHeading,
+static-var  gun_1, gun_3,  isAiming, Static_Var_5, StompXZ, StompHeading,
             restore_delay, myHeading, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
@@ -592,7 +592,7 @@ Create()
 	myHeading=0;
 	moveHands = TRUE;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_5 = 1;
 	animSpeed = 5;
 	gun_1 = 0;
@@ -625,7 +625,7 @@ ExecuteRestoreAfterDelay()
 	//wait-for-turn lshoulder around y-axis;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -662,7 +662,7 @@ AimPrimary(heading, pitch) //hand cannons
 {
 	signal SIG_AIM;
 	call-script AimHands();
-	bAiming = TRUE;
+	isAiming = TRUE;
 	myHeading = heading;
 	moveHands = FALSE;
 	turn aimx1 to x-axis 0 - pitch speed <120>;
@@ -686,7 +686,7 @@ AimPrimary(heading, pitch) //hand cannons
 AimSecondary(heading, pitch) //HEAD LASER
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn turret to y-axis (heading - myHeading) speed <300.071429>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
@@ -700,7 +700,7 @@ AimSecondary(heading, pitch) //HEAD LASER
 
 AimTertiary(heading, pitch) //MISSILE WEAPON
 {
-	bAiming = TRUE;
+	isAiming = TRUE;
 	return (1);
 }
 

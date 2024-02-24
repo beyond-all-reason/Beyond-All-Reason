@@ -6,7 +6,7 @@
 piece  center, pelvis, turret, sleeve, barrel, flare,
        rfoot, rleg, lleg, lfoot, lthigh, rthigh, ltoe, rtoe;
 
-static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  bMoving, isAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_WALK			2
@@ -347,7 +347,7 @@ Create()
 {
 	hide flare;
 	bMoving = FALSE;
-	bAiming = 0;
+	isAiming = 0;
 	wpnheading = 0;
 	animSpeed = 4;
 }
@@ -392,7 +392,7 @@ ExecuteRestoreAfterDelay()
     turn turret to y-axis <0.000000> speed <90>;
     turn pelvis to x-axis <0.000000> speed <45>;
     wpnheading = 0;
-    bAiming = 0;
+    isAiming = 0;
 
 }
 SetStunned(State)
@@ -413,10 +413,10 @@ RestoreAfterDelay()
 static-var aimy1target, aimy2target, scaled;
 AimPrimary(heading, pitch)
 {
-	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
+	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
 	
-	if (bAiming == 1) return;
+	if (isAiming == 1) return;
 	aimy1target = heading;
 	if (heading > <180>){
 		aimy1target = <360> - aimy1target;
@@ -440,10 +440,10 @@ AimPrimary(heading, pitch)
 	wait-for-turn pelvis around x-axis;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 500){
-		bAiming = 1;
+		isAiming = 1;
 		wait-for-turn turret around y-axis;
 		wait-for-turn pelvis around x-axis;
-		bAiming = 0;
+		isAiming = 0;
 	}
 
 	wpnheading = heading;

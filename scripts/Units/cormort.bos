@@ -6,7 +6,7 @@
 piece  support, flare, lthigh, rthigh, Torso, Shoulder, Barrel, rfoot,
        lfoot, Forearm, lleg, rleg, pelvis, aimx1, aimy1, head;
 
-static-var  bAiming, Static_Var_3, restore_delay, Static_Var_5,
+static-var  isAiming, Static_Var_3, restore_delay, Static_Var_5,
             Static_Var_6, wpn1_lasthead;
 
 // Signal definitions
@@ -281,7 +281,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	Static_Var_3 = 1;
 	hide flare;
 	animSpeed = 4;
@@ -310,7 +310,7 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to y-axis <0.000000> speed <90.021978>;
 	turn aimx1 to x-axis <0.000000> speed <45.010989>;
 	wait-for-turn aimy1 around y-axis;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
@@ -330,7 +330,7 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	bAiming = TRUE;
+	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <190.043956>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <150.032967>;
 	while( !Static_Var_3 )

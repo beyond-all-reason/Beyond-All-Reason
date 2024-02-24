@@ -5,7 +5,7 @@
 
 piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger, lturbine, rturbine;
 
-static-var  bAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
+static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
 // Signal definitions
@@ -570,7 +570,7 @@ Create()
 	hide lflareaa;
 	hide aimy1;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
