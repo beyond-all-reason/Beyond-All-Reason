@@ -208,7 +208,7 @@ swim()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-MotionControl(Func_Var_1)
+Movement(Func_Var_1)
 {
 	Func_Var_1 = 1;
 	while( TRUE )
@@ -295,7 +295,7 @@ Create()
 	Static_Var_4 = 0;
 	gun_3 = 0;
 	restore_delay = 3000;
-	start-script MotionControl();
+	start-script Movement();
 	return (0);
 }
 

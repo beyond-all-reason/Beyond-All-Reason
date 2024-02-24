@@ -356,7 +356,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [0] speed [8.433585];
 	move pelvis to z-axis [0] speed [6.811742];
@@ -529,7 +529,7 @@ StopAnimation() {
 	turn torso to y-axis <0> speed <1.639040>;
 	turn torso to z-axis <0> speed <0.912995>;
 }
-MotionControl(moving, aiming, justmoved)
+Movement(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
 	

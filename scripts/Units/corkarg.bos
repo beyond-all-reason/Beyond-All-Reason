@@ -490,7 +490,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move lbhip to y-axis [-2.366058] speed [-2.087699];
 	move lfhip to y-axis [-2.366060] speed [-2.087700];

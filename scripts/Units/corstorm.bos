@@ -290,7 +290,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [0.000000] speed [5.925000];
 	turn launcher to x-axis <5.899999> speed <82.499994>;

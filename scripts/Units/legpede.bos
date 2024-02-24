@@ -838,7 +838,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	turn legl1 to x-axis <0.000000> speed <78.794420>;
 	turn legl1 to y-axis <0.000000> speed <187.467365>;

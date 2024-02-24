@@ -21,7 +21,7 @@ walkscr()
 	}
 }
 
-MotionControl(Func_Var_1)
+Movement(Func_Var_1)
 {
 	while( TRUE )
 	{
@@ -53,7 +53,7 @@ Create()
 	{
 		sleep 500;
 	}
-	start-script MotionControl();
+	start-script Movement();
 }
 
 

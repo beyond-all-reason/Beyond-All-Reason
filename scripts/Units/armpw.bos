@@ -291,7 +291,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [0.000000] speed [15.000000];
 	turn head to x-axis <0.000000> speed <45.000001>;
@@ -956,7 +956,7 @@ Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animati
 		start-script ExecuteRestoreAfterDelay();
 		bAnimate = FALSE;
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopAnimation() {
 	if (bAnimate) {
 		move pelvis to y-axis [0] speed [17.979473];

@@ -325,7 +325,7 @@ Walk() {
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [0.000000] speed [19.143617];
 	turn lfoot to x-axis <0.000000> speed <398.008510>;

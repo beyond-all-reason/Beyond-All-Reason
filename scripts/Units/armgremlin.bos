@@ -125,7 +125,7 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-MotionControl(moving, aiming, justmoved)
+Movement(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
 	while( TRUE )
@@ -174,7 +174,7 @@ Create()
 	{
 		sleep 500;
 	}
-	start-script MotionControl();
+	start-script Movement();
 }
 
 SetMaxReloadTime(Func_Var_1)

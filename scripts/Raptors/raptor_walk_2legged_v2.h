@@ -327,7 +327,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 2*MOVESPEED; // tune restore speed here, higher values are slower restore speeds
 	move body to x-axis ([0.000000]*MOVESCALE)/100 speed (([176.805556]*MOVESCALE)/100) / animSpeed;

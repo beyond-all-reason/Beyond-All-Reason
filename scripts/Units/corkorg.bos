@@ -448,7 +448,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move hips to y-axis [0.000000] speed [10.419391];
 	move lfoot to y-axis [0.000000] speed [29.850000];

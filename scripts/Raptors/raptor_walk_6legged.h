@@ -213,7 +213,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	turn foot1l to z-axis <23.976196> speed <3645.013267> / animSpeed;

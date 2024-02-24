@@ -175,7 +175,7 @@ Walk() {// For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to y-axis ([0.000000]*MOVESCALE)/100 speed (([51.406264]*MOVESCALE)/100) / animSpeed;

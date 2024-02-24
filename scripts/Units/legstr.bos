@@ -188,7 +188,7 @@ walklegs()
 
 }
 
-MotionControl(moving, aiming, justmoved)
+Movement(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
 	while( TRUE )
@@ -252,7 +252,7 @@ Create()
 	animspeed = 2.5;
 	turn rsleeve to y-axis <5> now;
 	turn lsleeve to y-axis <-5> now;
-	start-script MotionControl();
+	start-script Movement();
 }
 
 SetMaxReloadTime(Func_Var_1)

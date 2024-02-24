@@ -9,7 +9,7 @@ piece  base, lbLeg, lbFoot, rbLeg, rbFoot, lfLeg, lfFoot, rfLeg,
 static-var  isMoving;
 
 
-MotionControl()
+Movement()
 {
 	while( TRUE )
 	{
@@ -173,7 +173,7 @@ MotionControl()
 Create()
 {
 	isMoving = FALSE;
-	start-script MotionControl();
+	start-script Movement();
 }
 
 #define SMOKEPIECE base

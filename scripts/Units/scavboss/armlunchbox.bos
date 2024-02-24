@@ -39,7 +39,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-MotionControl()
+Movement()
 {
 	while(TRUE)
 	{
@@ -385,7 +385,7 @@ Create()
 	gun_1 = body;
 	start-script SmokeUnit();
 	start-script Steering();
-	start-script MotionControl();
+	start-script Movement();
 }
 
 StartMoving()

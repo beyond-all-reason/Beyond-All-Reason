@@ -489,7 +489,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move lbhip to y-axis [-2.366058] speed [-0.835079];
 	move lfhip to y-axis [-2.366060] speed [-0.835080];

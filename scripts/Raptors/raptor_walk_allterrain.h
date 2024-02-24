@@ -554,7 +554,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to x-axis ([0.000000]*MOVESCALE)/100 speed (([80.175000]*MOVESCALE)/100) / animSpeed;

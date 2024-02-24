@@ -469,7 +469,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopIdle() {
 	//IDLESPEED = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to x-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([81.714166]*IDLEMOVESCALE)/100) / IDLESPEED;

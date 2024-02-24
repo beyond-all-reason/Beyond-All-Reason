@@ -255,7 +255,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [-2.643835] speed [27.205528];
 	move pelvis to z-axis [1.085860] speed [14.163395];

@@ -204,7 +204,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [-0.500000] speed [10.000000];
 	turn lfoot to x-axis <-11.418329> speed <313.378541>;

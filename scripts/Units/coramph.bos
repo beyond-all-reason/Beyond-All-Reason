@@ -300,7 +300,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move torso to y-axis [0] speed [6.347763];
 	move torso to z-axis [0] speed [7.066637];

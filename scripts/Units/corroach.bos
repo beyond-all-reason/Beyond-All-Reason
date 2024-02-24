@@ -109,7 +109,7 @@ walkscr()
 }
 
 
-MotionControl(Func_Var_1)
+Movement(Func_Var_1)
 {
 	while( TRUE )
 	{
@@ -128,7 +128,7 @@ MotionControl(Func_Var_1)
 Create()
 {
 	isMoving = FALSE;
-	start-script MotionControl();
+	start-script Movement();
 }
 
 #define SMOKEPIECE base

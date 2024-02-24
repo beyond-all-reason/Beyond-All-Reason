@@ -270,7 +270,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopSwimming() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to y-axis ([0.000000]*MOVESCALE)/100 speed (([26.936901]*MOVESCALE)/100) / animSpeed;

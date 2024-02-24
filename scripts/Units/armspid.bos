@@ -400,7 +400,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	turn base to x-axis <0.000000> speed <43.010081>;
 	turn base to y-axis <0.000000> speed <15.042372>;

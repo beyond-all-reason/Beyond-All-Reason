@@ -187,7 +187,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [-1.000000] speed [11.462613];
 	turn lfoot to x-axis <-15.801670> speed <432.984684>;

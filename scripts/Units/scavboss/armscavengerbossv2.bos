@@ -390,7 +390,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [-1.000000] speed [6.944444];
 	if (leftArm) turn biggun to x-axis <-52.006372> speed <7>;

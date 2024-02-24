@@ -257,7 +257,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-MotionControl(moving, aiming, justmoved)
+Movement(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
 	while( TRUE )
@@ -322,7 +322,7 @@ Create()
 	gun_1 = 1;
 
 	restore_delay = 3000;
-	start-script MotionControl();
+	start-script Movement();
 	start-script SmokeUnit();
 }
 

@@ -244,7 +244,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move lfoot to y-axis [0.000000] speed [13.661119];
 	move lfoot to z-axis [0.000000] speed [8.977308];

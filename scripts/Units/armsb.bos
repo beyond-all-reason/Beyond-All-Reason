@@ -64,7 +64,7 @@ RequestState(requestedstate, currentstate)
 }
 
 
-MotionControl()
+Movement()
 {
 
 }
@@ -78,7 +78,7 @@ Create()
 	Static_Var_1 = 0;
 	isMoving = FALSE;
 	call-script InitState();
-	start-script MotionControl();
+	start-script Movement();
 }
 
 

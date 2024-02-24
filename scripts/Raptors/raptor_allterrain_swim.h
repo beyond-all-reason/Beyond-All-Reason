@@ -565,7 +565,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopSwimming() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to x-axis ([0.000000]*MOVESCALE)/100 speed (([53.450000]*MOVESCALE)/100) / animSpeed;

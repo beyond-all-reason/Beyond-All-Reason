@@ -352,7 +352,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to x-axis [0.000000] speed [7.224650]/6;
 	move pelvis to y-axis [-0.301224] speed [6.500000]/6;

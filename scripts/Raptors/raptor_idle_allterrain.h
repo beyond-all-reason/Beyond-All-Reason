@@ -462,7 +462,7 @@ Idle() {// For N:\animations\raptor_allterrain_idle_V1.blend Created by https://
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopIdle() {
 	//IDLESPEED = 10; // tune restore speed here, higher values are slower restore speeds
 	move head to x-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;

@@ -503,7 +503,7 @@ ResetHands() {
 	turn ruparm to y-axis <-12.199999> speed <616.666703> / animSpeed;
 	turn ruparm to z-axis <17.599999> speed <473.333441> / animSpeed;
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move pelvis to x-axis [0.000000] speed [120.000000] / animSpeed;

@@ -356,7 +356,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 
 Swim() {// For N:\animations\Raptors\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIG_WALK;

@@ -775,4 +775,4 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!

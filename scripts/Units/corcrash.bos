@@ -88,7 +88,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move lleg to z-axis [0.000000] speed [20.250000];
 	move lthigh to z-axis [0.000000] speed [30.481575];

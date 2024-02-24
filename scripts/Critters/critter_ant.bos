@@ -145,7 +145,7 @@ walk2()
 	return (0);
 }
 
-MotionControl(Func_Var_1)
+Movement(Func_Var_1)
 {
 	while( TRUE )
 	{
@@ -184,7 +184,7 @@ Create()
 {
 	isMoving = FALSE;
 	gun_1 = base;
-	start-script MotionControl();
+	start-script Movement();
 	start-script AmphWalk();
 	start-script AmphSpeed();
 	return (0);

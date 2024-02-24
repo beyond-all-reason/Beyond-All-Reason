@@ -35,7 +35,7 @@ include("units/"..unitName.."_lus/weaponsdata.lua")
 isMoving, isAiming, isBuilding, counter, canAim, isInLoop, isUW = false, false, false, 0, false, false, false
 step = 1
 	
-function MotionControl()
+function Movement()
 	local justmoved = true
 	while true do
 		step = 1
@@ -178,7 +178,7 @@ end
 
 function script.Create()
 	InitialPiecesSetup()
-	StartThread(MotionControl)
+	StartThread(Movement)
 	StartThread(ypos)
 	if hasWpn then
 		StartThread(WeaponControl)
