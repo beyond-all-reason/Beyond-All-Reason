@@ -8,8 +8,8 @@ static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_RESTORE			8
-#define SIG_IDLE			16
+#define SIGNAL_IDLE 8
+#define SIGNAL_IDLE 8
 
 WobbleUnit()
 {
@@ -190,8 +190,8 @@ RequestState(requestedstate, currentstate)
 
 HoverIdle()
 {
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	while( TRUE )
 	{
 	    emit-sfx 1024 + 2 from wake;
@@ -205,7 +205,7 @@ StartMoving()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	signal SIG_IDLE;
+	signal SIGNAL_IDLE;
 	var waketime;
 	var bowtime;
 	while( TRUE )
@@ -222,7 +222,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	signal SIG_IDLE;
+	signal SIGNAL_IDLE;
 	start-script HoverIdle();
 	return (0);
 }
@@ -267,8 +267,8 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }

@@ -8,7 +8,7 @@ static-var  restore_delay,  dakka, shotcount, timer, lastfired, gameframe, state
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIG_LIGHT			4
-#define SIG_RESTORE			8
+#define SIGNAL_IDLE 8
 
 
 //-------------------------------CONSTANT maxaccTURRET TURNING---------------------------
@@ -173,8 +173,8 @@ Create()
 
 RestoreAfterDelay() {
 	//get PRINT(888);
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 
 	sleep restore_delay;
 	gameframe = get(GAME_FRAME);

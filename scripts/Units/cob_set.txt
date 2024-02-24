@@ -1355,7 +1355,7 @@ armmerl.bos:    set ARMORED to 0;
 armmerl.bos:SetMaxReloadTime(Func_Var_1)
 armmerl.bos:    set-signal-mask 0;
 armmerl.bos:SetStunned(State)
-armmerl.bos:    set-signal-mask SIG_RESTORE;
+armmerl.bos:    set-signal-mask SIGNAL_IDLE;
 armmerl.bos:    set-signal-mask SIGNAL_AIM1;
 armmerl.bos:Killed(severity, corpsetype)
 armmerl.bos:            corpsetype = 1 ;
@@ -1385,7 +1385,7 @@ armmh.bos:setSFXoccupy(Func_Var_1)
 armmh.bos:SetMaxReloadTime(Func_Var_1)
 armmh.bos:      set-signal-mask 0;
 armmh.bos:SetStunned(State)
-armmh.bos:      set-signal-mask SIG_RESTORE;
+armmh.bos:      set-signal-mask SIGNAL_IDLE;
 armmh.bos:      set-signal-mask SIGNAL_AIM1;
 armmh.bos:Killed(severity, corpsetype)
 armmh.bos:              corpsetype = 1 ;
@@ -1514,7 +1514,7 @@ armpb.bos:      set ARMORED to 0;
 armpb.bos:      set ARMORED to 1;
 armpb.bos:      set-signal-mask 0;
 armpb.bos:SetStunned(State)
-armpb.bos:      set-signal-mask SIG_RESTORE;
+armpb.bos:      set-signal-mask SIGNAL_IDLE;
 armpb.bos:SetMaxReloadTime(Func_Var_1)
 armpb.bos:      set-signal-mask SIGNAL_AIM1;
 armpb.bos:Killed(severity, corpsetype)
@@ -3728,7 +3728,7 @@ corkarg.bos:            corpsetype = 2 ;
 corkarg.bos:            corpsetype = 3 ;
 corkarg.bos:    corpsetype = 3 ;
 corkarg.lua_old:        SetSignalMask(SIGNAL_MOVE)
-corkarg.lua_old:        SetSignalMask(SIG_RESTORE)
+corkarg.lua_old:        SetSignalMask(SIGNAL_IDLE)
 corkarg.lua_old:                SetSignalMask(SIGNAL_AIM1)
 corkorg.bos:    set-signal-mask SIGNAL_MOVE;
 corkorg.bos:    set ARMORED to 1;
@@ -3899,7 +3899,7 @@ cormh.bos:              // Set values for tilt
 cormh.bos:SetMaxReloadTime(Func_Var_1)
 cormh.bos:      set-signal-mask 0;
 cormh.bos:SetStunned(State)
-cormh.bos:      set-signal-mask SIG_RESTORE;
+cormh.bos:      set-signal-mask SIGNAL_IDLE;
 cormh.bos:      set-signal-mask SIGNAL_MOVE;
 cormh.bos:setSFXoccupy(Func_Var_1)
 cormh.bos:      set-signal-mask SIGNAL_AIM1;
@@ -4634,7 +4634,7 @@ corsumo.bos:    corpsetype = 3;
 corsumo.bos:    return (corpsetype);
 Binary file corsumo.cob matches
 corsumo.lua_old:        SetSignalMask(SIGNAL_MOVE)
-corsumo.lua_old:    SetSignalMask(SIG_RESTORE)
+corsumo.lua_old:    SetSignalMask(SIGNAL_IDLE)
 corsumo.lua_old:                SetSignalMask(SIGNAL_AIM1)
 corsy.bos:      set YARD_OPEN to 1;
 corsy.bos:              set BUGGER_OFF to 1;
@@ -5043,7 +5043,7 @@ Binary file corvrad.cob matches
 corvroc.bos:SetMaxReloadTime(Func_Var_1)
 corvroc.bos:    set-signal-mask 0;
 corvroc.bos:SetStunned(State)
-corvroc.bos:    set-signal-mask SIG_RESTORE;
+corvroc.bos:    set-signal-mask SIGNAL_IDLE;
 corvroc.bos:    set-signal-mask SIGNAL_AIM1;
 corvroc.bos:Killed(severity, corpsetype)
 corvroc.bos:            corpsetype = 1 ;
@@ -6265,9 +6265,9 @@ Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
 armmerl.bos:    set ARMORED to 0;
 armmerl.bos:    set ARMORED to 0;
-armmerl.bos:    set-signal-mask SIG_RESTORE;
+armmerl.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file armmerl.cob matches
-armmh.bos:      set-signal-mask SIG_RESTORE;
+armmh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armmh.cob matches
 armmls.bos:     set INBUILDSTANCE to 1;
 armmls.bos:     set INBUILDSTANCE to 0;
@@ -6286,7 +6286,7 @@ armnanotcplat.bos:      set INBUILDSTANCE to 0;
 Binary file armnanotcplat.cob matches
 armpb.bos:      set ARMORED to 0;
 armpb.bos:      set ARMORED to 1;
-armpb.bos:      set-signal-mask SIG_RESTORE;
+armpb.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armpb.cob matches
 Binary file armpincer.cob matches
 armplat.bos:    set ARMORED to 0;
@@ -6681,7 +6681,7 @@ corjuno.bos:// OffsetToScriptCode                  2c
 corjuno.bos:// OffsetToNameArray                   e4c
 corjuno.bos:// OffsetToFirstName                   e4c
 Binary file corjuno.cob matches
-corkarg.lua_old:        SetSignalMask(SIG_RESTORE)
+corkarg.lua_old:        SetSignalMask(SIGNAL_IDLE)
 corkorg.bos:    set ARMORED to 1;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_L;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_R;
@@ -6704,7 +6704,7 @@ cormexp.bos:    set ACTIVATION to 100;
 cormexp.bos:            set ACTIVATION to 0;
 cormexp.bos:    set ARMORED to 0;
 Binary file cormexp.cob matches
-cormh.bos:      set-signal-mask SIG_RESTORE;
+cormh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file cormh.cob matches
 Binary file cormist.cob matches
 cormls.bos:     set INBUILDSTANCE to 1;
@@ -6837,7 +6837,7 @@ corspy.bos:     set INBUILDSTANCE to 1;
 corspy.bos:     set INBUILDSTANCE to 0;
 Binary file corstorm.cob matches
 Binary file corsumo.cob matches
-corsumo.lua_old:    SetSignalMask(SIG_RESTORE)
+corsumo.lua_old:    SetSignalMask(SIGNAL_IDLE)
 corsy.bos:      set YARD_OPEN to 1;
 corsy.bos:              set BUGGER_OFF to 1;
 corsy.bos:              set YARD_OPEN to 1;
@@ -6923,7 +6923,7 @@ corvp.bos:              set YARD_OPEN to 0;
 corvp.bos:      set BUGGER_OFF to 0;
 corvp.bos:      set INBUILDSTANCE to 1;
 corvp.bos:      set INBUILDSTANCE to 0;
-corvroc.bos:    set-signal-mask SIG_RESTORE;
+corvroc.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file corvroc.cob matches
 corwin.bos:                     set ACTIVATION to 100;
 corwin.bos:             set ACTIVATION to 0;
@@ -7111,8 +7111,8 @@ armmercury.bos: set DELAY_UNIT_VAR to 0;
 armmerl.bos:    set ARMORED to 1;
 armmerl.bos:    set ARMORED to 0;
 armmerl.bos:    set ARMORED to 0;
-armmerl.bos:    set-signal-mask SIG_RESTORE;
-armmh.bos:      set-signal-mask SIG_RESTORE;
+armmerl.bos:    set-signal-mask SIGNAL_IDLE;
+armmh.bos:      set-signal-mask SIGNAL_IDLE;
 armmls.bos:     set INBUILDSTANCE to 1;
 armmls.bos:     set INBUILDSTANCE to 0;
 armmlv.bos:     set INBUILDSTANCE to 1;
@@ -7126,7 +7126,7 @@ armnanotcplat.bos:      set INBUILDSTANCE to 1;
 armnanotcplat.bos:      set INBUILDSTANCE to 0;
 armpb.bos:      set ARMORED to 0;
 armpb.bos:      set ARMORED to 1;
-armpb.bos:      set-signal-mask SIG_RESTORE;
+armpb.bos:      set-signal-mask SIGNAL_IDLE;
 armplat.bos:    set ARMORED to 0;
 armplat.bos:    set ARMORED to 1;
 armplat.bos:    set YARD_OPEN to 1;
@@ -7378,7 +7378,7 @@ cormexp.bos:    set ARMORED to 1;
 cormexp.bos:    set ACTIVATION to 100;
 cormexp.bos:            set ACTIVATION to 0;
 cormexp.bos:    set ARMORED to 0;
-cormh.bos:      set-signal-mask SIG_RESTORE;
+cormh.bos:      set-signal-mask SIGNAL_IDLE;
 cormls.bos:     set INBUILDSTANCE to 1;
 cormls.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
@@ -7476,7 +7476,7 @@ corvp.bos:              set YARD_OPEN to 0;
 corvp.bos:      set BUGGER_OFF to 0;
 corvp.bos:      set INBUILDSTANCE to 1;
 corvp.bos:      set INBUILDSTANCE to 0;
-corvroc.bos:    set-signal-mask SIG_RESTORE;
+corvroc.bos:    set-signal-mask SIGNAL_IDLE;
 corwin.bos:                     set ACTIVATION to 100;
 corwin.bos:             set ACTIVATION to 0;
 corwin.bos:             set ACTIVATION to 100;
@@ -7703,9 +7703,9 @@ Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
 armmerl.bos:    set ARMORED to 0;
 armmerl.bos:    set ARMORED to 0;
-armmerl.bos:    set-signal-mask SIG_RESTORE;
+armmerl.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file armmerl.cob matches
-armmh.bos:      set-signal-mask SIG_RESTORE;
+armmh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armmh.cob matches
 armmls.bos:     set INBUILDSTANCE to 1;
 armmls.bos:     set INBUILDSTANCE to 0;
@@ -7724,7 +7724,7 @@ armnanotcplat.bos:      set INBUILDSTANCE to 0;
 Binary file armnanotcplat.cob matches
 armpb.bos:      set ARMORED to 0;
 armpb.bos:      set ARMORED to 1;
-armpb.bos:      set-signal-mask SIG_RESTORE;
+armpb.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armpb.cob matches
 Binary file armpincer.cob matches
 armplat.bos:    set ARMORED to 0;
@@ -8029,7 +8029,7 @@ corjugg.bos:    set CHANGE_TARGET to 4;
 Binary file corjugg.cob matches
 corjugg.lua_old:        SetSignalMask( SIG_stop )
 Binary file corjuno.cob matches
-corkarg.lua_old:        SetSignalMask(SIG_RESTORE)
+corkarg.lua_old:        SetSignalMask(SIGNAL_IDLE)
 corkorg.bos:    set ARMORED to 1;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_L;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_R;
@@ -8052,7 +8052,7 @@ cormexp.bos:    set ACTIVATION to 100;
 cormexp.bos:            set ACTIVATION to 0;
 cormexp.bos:    set ARMORED to 0;
 Binary file cormexp.cob matches
-cormh.bos:      set-signal-mask SIG_RESTORE;
+cormh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file cormh.cob matches
 Binary file cormist.cob matches
 cormls.bos:     set INBUILDSTANCE to 1;
@@ -8143,7 +8143,7 @@ corspy.bos:     set INBUILDSTANCE to 1;
 corspy.bos:     set INBUILDSTANCE to 0;
 Binary file corstorm.cob matches
 Binary file corsumo.cob matches
-corsumo.lua_old:    SetSignalMask(SIG_RESTORE)
+corsumo.lua_old:    SetSignalMask(SIGNAL_IDLE)
 corsy.bos:      set YARD_OPEN to 1;
 corsy.bos:              set BUGGER_OFF to 1;
 corsy.bos:              set YARD_OPEN to 1;
@@ -8187,7 +8187,7 @@ corvp.bos:              set YARD_OPEN to 0;
 corvp.bos:      set BUGGER_OFF to 0;
 corvp.bos:      set INBUILDSTANCE to 1;
 corvp.bos:      set INBUILDSTANCE to 0;
-corvroc.bos:    set-signal-mask SIG_RESTORE;
+corvroc.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file corvroc.cob matches
 corwin.bos:                     set ACTIVATION to 100;
 corwin.bos:             set ACTIVATION to 0;
@@ -8479,9 +8479,9 @@ Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
 armmerl.bos:    set ARMORED to 0;
 armmerl.bos:    set ARMORED to 0;
-armmerl.bos:    set-signal-mask SIG_RESTORE;
+armmerl.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file armmerl.cob matches
-armmh.bos:      set-signal-mask SIG_RESTORE;
+armmh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armmh.cob matches
 armmls.bos:     set INBUILDSTANCE to 1;
 armmls.bos:     set INBUILDSTANCE to 0;
@@ -8500,7 +8500,7 @@ armnanotcplat.bos:      set INBUILDSTANCE to 0;
 Binary file armnanotcplat.cob matches
 armpb.bos:      set ARMORED to 0;
 armpb.bos:      set ARMORED to 1;
-armpb.bos:      set-signal-mask SIG_RESTORE;
+armpb.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file armpb.cob matches
 Binary file armpincer.cob matches
 armplat.bos:    set ARMORED to 0;
@@ -8805,7 +8805,7 @@ corjugg.bos:    set CHANGE_TARGET to 4;
 Binary file corjugg.cob matches
 corjugg.lua_old:        SetSignalMask( SIG_stop )
 Binary file corjuno.cob matches
-corkarg.lua_old:        SetSignalMask(SIG_RESTORE)
+corkarg.lua_old:        SetSignalMask(SIGNAL_IDLE)
 corkorg.bos:    set ARMORED to 1;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_L;
 corkorg.bos:    set-signal-mask SIG_FOOTSTOMP_R;
@@ -8828,7 +8828,7 @@ cormexp.bos:    set ACTIVATION to 100;
 cormexp.bos:            set ACTIVATION to 0;
 cormexp.bos:    set ARMORED to 0;
 Binary file cormexp.cob matches
-cormh.bos:      set-signal-mask SIG_RESTORE;
+cormh.bos:      set-signal-mask SIGNAL_IDLE;
 Binary file cormh.cob matches
 Binary file cormist.cob matches
 cormls.bos:     set INBUILDSTANCE to 1;
@@ -8919,7 +8919,7 @@ corspy.bos:     set INBUILDSTANCE to 1;
 corspy.bos:     set INBUILDSTANCE to 0;
 Binary file corstorm.cob matches
 Binary file corsumo.cob matches
-corsumo.lua_old:    SetSignalMask(SIG_RESTORE)
+corsumo.lua_old:    SetSignalMask(SIGNAL_IDLE)
 corsy.bos:      set YARD_OPEN to 1;
 corsy.bos:              set BUGGER_OFF to 1;
 corsy.bos:              set YARD_OPEN to 1;
@@ -8963,7 +8963,7 @@ corvp.bos:              set YARD_OPEN to 0;
 corvp.bos:      set BUGGER_OFF to 0;
 corvp.bos:      set INBUILDSTANCE to 1;
 corvp.bos:      set INBUILDSTANCE to 0;
-corvroc.bos:    set-signal-mask SIG_RESTORE;
+corvroc.bos:    set-signal-mask SIGNAL_IDLE;
 Binary file corvroc.cob matches
 corwin.bos:                     set ACTIVATION to 100;
 corwin.bos:             set ACTIVATION to 0;

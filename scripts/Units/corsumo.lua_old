@@ -6,7 +6,7 @@ local rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot =  piece('rfleg
 
 local SIGNAL_MOVE = 1
 local SIGNAL_AIM1 = 2
-local SIG_RESTORE = 4
+local SIGNAL_IDLE = 4
 
 --------------------------------------------------------------------------------------
 local sfxNone=SFX.NONE
@@ -168,8 +168,8 @@ function script.AimFromWeapon(num)
 end
 
 local function RestoreAfterDelay()
-    Signal(SIG_RESTORE)
-    SetSignalMask(SIG_RESTORE)
+    Signal(SIGNAL_IDLE)
+    SetSignalMask(SIGNAL_IDLE)
     Sleep(6000)
     Turn(turret, y_axis, 0, math.rad(90))
 end

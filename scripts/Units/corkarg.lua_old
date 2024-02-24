@@ -29,7 +29,7 @@ local sfxExplode = SFX.EXPLODE
 --------------------------------------------------------------------------------
 -- Signal definitions
 local SIGNAL_MOVE = 1
-local SIG_RESTORE = 8
+local SIGNAL_IDLE = 8
 local SIGNAL_AIM1 = 2
 
 local TORSO_SPEED_YAW = math.rad(240)
@@ -166,8 +166,8 @@ function script.StopMoving()
 end
 
 local function RestoreAfterDelay()
-        Signal(SIG_RESTORE)
-        SetSignalMask(SIG_RESTORE)
+        Signal(SIGNAL_IDLE)
+        SetSignalMask(SIGNAL_IDLE)
         Sleep(RESTORE_DELAY)
         armsFree = true
         Turn(torso, y_axis, 0,  TORSO_SPEED_YAW)

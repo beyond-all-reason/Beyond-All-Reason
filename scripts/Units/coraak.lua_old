@@ -28,7 +28,7 @@ local pelvis_speed = 100
 local SIGNAL_MOVE = 1
 local SIGNAL_AIM11 = 2
 local SIGNAL_AIM2 = 4
-local SIG_RESTORE = 8
+local SIGNAL_IDLE = 8
 
 local SPEED = 1.9
 

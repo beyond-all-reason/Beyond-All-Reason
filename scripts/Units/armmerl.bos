@@ -7,7 +7,7 @@ static-var  OpenedState, restore_delay, statechg_DesiredState, statechg_StateCha
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_RESTORE			4
+#define SIGNAL_IDLE 8
 
 
 
@@ -111,8 +111,8 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }

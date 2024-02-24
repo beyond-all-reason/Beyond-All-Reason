@@ -7,7 +7,7 @@ static-var  Wobble_status;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_IDLE			2
+#define SIGNAL_IDLE 8
 
 WobbleUnit()
 {
@@ -73,8 +73,8 @@ BankControl()
 
 HoverIdle()
 {
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	while( TRUE )
 	{
 	    emit-sfx 1024 + 2 from wake;
@@ -87,7 +87,7 @@ StartMoving()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	signal SIG_IDLE;
+	signal SIGNAL_IDLE;
 	var waketime;
 	var bowtime;
 	while( TRUE )
@@ -104,7 +104,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	signal SIG_IDLE;
+	signal SIGNAL_IDLE;
 	start-script HoverIdle();
 	return (0);
 }
