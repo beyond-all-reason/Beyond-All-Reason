@@ -9,7 +9,7 @@ static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wp
 #define SIGNAL_AIM1 256
 
 #define SIGNAL_MOVE 1
-#define SIG_BUILD 16
+#define SIGNAL_BUILD 2
 
 #define FRONT_RIGHT_UP\
 	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
@@ -262,7 +262,7 @@ QueryNanoPiece(pieceIndex)
 
 
 BuildAnim(){
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 
 }
 
@@ -270,7 +270,7 @@ BuildAnim(){
 StartBuilding(heading, pitch)
 {
     show nanof;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	set INBUILDSTANCE to 1;
 	start-script BuildAnim();	
 }
@@ -278,8 +278,8 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
     hide nanof;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 
 }
 

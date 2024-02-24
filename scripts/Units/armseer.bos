@@ -5,7 +5,7 @@ piece  base, dish, turret, eye, fwheel, rwheel;
 
 static-var  Stunned;
 
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 
@@ -45,8 +45,8 @@ StopMoving()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	spin dish around y-axis speed <100.021978> accelerate <10>;
 	start-script Lights();
 	return (0);
@@ -54,8 +54,8 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	stop-spin dish around y-axis decelerate <10>;
 	wait-for-turn dish around y-axis;
 	return (0);

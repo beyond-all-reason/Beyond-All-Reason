@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 #define SIG_MOTION		8	
 piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 
@@ -137,7 +137,7 @@ StartBuilding(heading, pitch)
 {
 	show emit;
 	start-script RequestState(0);
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	move doorl to x-axis [-2.8] speed [10];
 	move doorr to x-axis [2.8] speed [10];
 	sleep 500;
@@ -150,12 +150,12 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide emit;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide nanolight;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 	set INBUILDSTANCE to 0;
 	hide nano;

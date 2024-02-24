@@ -5,7 +5,7 @@ piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n
 static-var  buildAnimPiece, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 activatescr()
@@ -250,14 +250,14 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
   sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);

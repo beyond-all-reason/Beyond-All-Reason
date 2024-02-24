@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
        lhindleg, lbeamcase, rbeamcase,  pelvis,
@@ -219,7 +219,7 @@ StartBuilding(heading, pitch)
 	show lnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
@@ -233,13 +233,13 @@ StopBuilding()
 {
 	hide rnano;
 	hide lnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	
 	turn aimy1 to y-axis <0> speed <160.000000>;
 	start-script RequestState(1);

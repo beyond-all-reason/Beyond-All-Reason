@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
 
@@ -171,7 +171,7 @@ Create()
 }
 
 BuildAnim(){
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	while (TRUE){
 		turn aimy1 to x-axis <-15> speed <10>;
 		wait-for-turn aimy1 around x-axis;
@@ -184,7 +184,7 @@ StartBuilding(torsoing, pitch)
 {
 	show flare2;
 	show flare1;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn aimy1 to y-axis torsoing speed <240.000000>;
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
@@ -197,8 +197,8 @@ StopBuilding()
 {
 	hide flare2;
 	hide flare1;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide corhexl_emit;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;
 	turn aimx1 to x-axis <0> speed <240.0>;

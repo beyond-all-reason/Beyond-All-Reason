@@ -9,7 +9,7 @@ static-var  gun_2, statechg_DesiredState, statechg_StateChanging,
 			oldHeading;
 
 #define SIGNAL_MOVE 1
-#define SIG_BUILD	4
+#define SIGNAL_BUILD 2
 
 Steering(heading, steer, currentSpeed)
 {
@@ -76,7 +76,7 @@ StartBuilding(heading, pitch)
 {
 	show rflare;
 	show lflare;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn lwheel to y-axis <90> speed <120.000000>;
 	turn rwheel to y-axis <90> speed <120.000000>;
 	spin lwheel around x-axis speed <120>;  //how to turn wheels in right direction?
@@ -99,11 +99,11 @@ StopBuilding()
 {
 	hide rflare;
 	hide lflare;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	set INBUILDSTANCE to 0;
 	turn lwheel to y-axis <90> speed <120.000000>;
 	turn rwheel to y-axis <90> speed <120.000000>;

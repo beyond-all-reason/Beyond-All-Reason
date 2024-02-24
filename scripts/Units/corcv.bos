@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD	4
+#define SIGNAL_BUILD 2
 
 piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
@@ -123,7 +123,7 @@ StartBuilding(heading, pitch)
 	show beam;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn upturret to y-axis heading speed <160.038462>;
 	wait-for-turn upturret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -134,13 +134,13 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide beam;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

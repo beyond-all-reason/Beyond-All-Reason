@@ -1,6 +1,6 @@
 #include "exptype.h"
 
-#define SIG_BUILD 4	
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
 piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
@@ -158,7 +158,7 @@ StartBuilding(heading, pitch)
 	show rnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn rturret to x-axis heading speed <160.038462>;
 	turn lturret to x-axis <0> - heading speed <160.038462>;
 	set INBUILDSTANCE to 1;
@@ -169,11 +169,11 @@ StopBuilding()
 {
 	hide lnano;
 	hide rnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

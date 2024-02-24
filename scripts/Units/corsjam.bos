@@ -9,7 +9,7 @@ static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 #define SIG_OFF 				8
 
 
@@ -71,8 +71,8 @@ Create()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
@@ -104,8 +104,8 @@ Deactivate()
 		//set desired state if deactivated and not recently damaged
 		desired_activation = 0;
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 
 	spin dish around z-axis speed <0.000000>;
 }

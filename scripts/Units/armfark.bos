@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
 piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
@@ -301,7 +301,7 @@ Create()
 }
 
 BuildAnim(){
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	while (TRUE){
 		turn aimx1 to x-axis <-40> speed <10>;
 		wait-for-turn aimx1 around x-axis;
@@ -315,7 +315,7 @@ StartBuilding(heading, pitch)
 {
     show lnano;
     show rnano;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn aimy1 to y-axis heading speed <240.000000>;
 	turn aimx1 to x-axis <-50> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
@@ -329,8 +329,8 @@ StopBuilding()
 {
     hide lnano;
     hide rnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide armhexl_emit;
 	hide armhexl2_emit;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;

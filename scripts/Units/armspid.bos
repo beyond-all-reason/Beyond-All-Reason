@@ -25,7 +25,7 @@ Deactivatescr()
 
 #define SIGNAL_AIM1 256
 #define SIG_FIRE1 4
-#define SIG_BUILD	5
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 #define SMOKEPIECE1 body
 
@@ -621,7 +621,7 @@ StartBuilding(heading, pitch)
 	show flare;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn turret to y-axis heading speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -630,11 +630,11 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide flare;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 1000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 }
 
 

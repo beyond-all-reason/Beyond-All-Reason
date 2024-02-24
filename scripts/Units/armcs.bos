@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 piece  base,doorlf, doorlb, doorrf, doorrb, nano, turret, ground, wake1, wake2;
 
@@ -210,7 +210,7 @@ StartBuilding(heading, pitch)
 	show nano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn turret to y-axis heading speed <160.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -219,11 +219,11 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide nano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

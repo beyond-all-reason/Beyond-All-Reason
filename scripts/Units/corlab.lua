@@ -2,7 +2,7 @@ local pad,base,door1,door2,crane1,crane2,turret1,turret2,nano1,nano2,cagelight,c
 
 local spray = 0;
 
-local SIG_ACTIVATE = 2;
+local SIGNAL_TURNON = 2;
 local SIG_OPENCLOSE = 4;
 local SIG_CRANE1=8;
 local SIG_CRANE2=16;
@@ -68,7 +68,7 @@ function script.QueryNanoPiece()
 end
 
 function Activate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
 	UnitScript.StartThread(open);
 
 end
@@ -78,8 +78,8 @@ function script.Activate()
 end
 
 function Deactivate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
-	UnitScript.SetSignalMask(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
+	UnitScript.SetSignalMask(SIGNAL_TURNON);
 	Sleep(5000)
 	UnitScript.StartThread(close);
 end

@@ -6,7 +6,7 @@ piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
 static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -142,15 +142,15 @@ Create()
 Activate() // activate first
 {
 	//get PRINT(get (GAME_FRAME), 3333);
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	//get PRINT(get (GAME_FRAME), 4444);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	start-script RequestState(1);
 }
 

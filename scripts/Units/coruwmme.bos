@@ -8,7 +8,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, statechg_Des
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 Go()
@@ -88,8 +88,8 @@ SetStunned(State)
 Activate()
 {
 	start-script RequestState(0);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 		if( Static_Var_4 )
@@ -103,7 +103,7 @@ Activate()
 Deactivate()
 {
 	start-script RequestState(1);
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 }
 
 

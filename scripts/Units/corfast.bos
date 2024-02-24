@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
 piece  torso, flare, Hip, RLLeg, LLLeg, LULeg, RULeg, LUArm,
@@ -319,7 +319,7 @@ UnitSpeed(){
 #include "unit_hitbyweaponid_and_smoke.h"
 
 BuildAnim(){
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	while (TRUE){
 		turn aimy1 to x-axis <-15> speed <10>;
 		wait-for-turn aimy1 around x-axis;
@@ -345,7 +345,7 @@ Create()
 StartBuilding(heading, pitch)
 {
 	show flare;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	building = 1;	
 	turn aimy1 to y-axis heading speed <250.000000>;
 	turn aimx1 to x-axis <-60> speed <150.000000>;
@@ -357,8 +357,8 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide flare;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;	
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;	
 	set INBUILDSTANCE to 0;
 	building = 0;	
 	turn aimy1 to y-axis <0.000000> speed <250.000000>;

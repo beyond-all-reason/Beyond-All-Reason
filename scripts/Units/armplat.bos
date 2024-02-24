@@ -6,7 +6,7 @@ static-var  activationState, spray, statechg_DesiredState, statechg_StateChangin
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 activatescr()
@@ -212,7 +212,7 @@ Activate()
 	}
 	show blink;
 	set ACTIVATION to 100;
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 	start-script RequestState(0);
 }
 
@@ -228,8 +228,8 @@ Deactivate()
 		activationState = 0;
 	}
 	hide blink;
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
   	sleep 1000;
 	set-signal-mask 0;
 	start-script RequestState(1);

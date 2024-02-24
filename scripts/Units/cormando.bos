@@ -7,7 +7,7 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -402,7 +402,7 @@ StartBuilding(torsoing, pitch)
 	show rnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn aimy1 to y-axis torsoing speed <240.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
@@ -412,11 +412,11 @@ StopBuilding()
 {
 	hide lnano;
 	hide rnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 3000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

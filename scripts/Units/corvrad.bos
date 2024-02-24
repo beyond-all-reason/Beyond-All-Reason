@@ -6,7 +6,7 @@ piece  base, dish, blink;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 #define BASEPIECE base
@@ -37,8 +37,8 @@ Create()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	start-script Lights();
 	spin dish around y-axis speed <100.021978>;
 	return (0);
@@ -46,8 +46,8 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	turn dish to y-axis <0.000000> speed <100.000000>;
 	wait-for-turn dish around y-axis;
 	return (0);

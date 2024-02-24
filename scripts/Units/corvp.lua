@@ -2,7 +2,7 @@ local pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf,cagelight,cag
 
 local spray = 0;
 
-local SIG_ACTIVATE = 2;
+local SIGNAL_TURNON = 2;
 local SIG_OPENCLOSE = 4;
 
 include("include/util.lua");
@@ -70,7 +70,7 @@ function script.QueryNanoPiece()
 end
 
 function Activate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
 	UnitScript.StartThread(open);
 
 end
@@ -80,8 +80,8 @@ function script.Activate()
 end
 
 function Deactivate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
-	UnitScript.SetSignalMask(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
+	UnitScript.SetSignalMask(SIGNAL_TURNON);
 	Sleep(5000);
 	UnitScript.StartThread(close);
 end

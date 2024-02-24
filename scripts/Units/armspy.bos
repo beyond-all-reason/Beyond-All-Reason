@@ -6,7 +6,7 @@ piece pelvis, lthigh, rthigh, rleg, rfoot, lleg, lfoot, body, lloarm, rloarm, ru
 static-var isMoving, Static_Var_3, Static_Var_4, Static_Var_5, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 #define SIGNAL_MOVE 1
@@ -237,8 +237,8 @@ Activate()
 		set ACTIVATION to 0;
 		return (0);
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	return (0);
 }
 
@@ -275,8 +275,8 @@ StopBuilding()
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	return (0);
 }
 
@@ -294,8 +294,8 @@ HitByWeapon(anglex, anglez)
 	}
 	if( Static_Var_5 )
 	{
-		signal SIG_ACTIVATE;
-		set-signal-mask SIG_ACTIVATE;
+		signal SIGNAL_TURNON;
+		set-signal-mask SIGNAL_TURNON;
 		set ACTIVATION to 0;
 		sleep 8000;
 		Static_Var_5 = 0;

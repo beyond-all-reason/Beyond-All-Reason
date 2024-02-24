@@ -5,7 +5,7 @@ piece  base, pad, main1, mid1, end1, nano1, main2, mid2, end2, nano2, main3, mid
 static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 activatescr()
@@ -208,15 +208,15 @@ StopBuilding()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
   sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);

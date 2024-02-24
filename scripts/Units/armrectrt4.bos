@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 //piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
 //       luparm, ruparm, rnano, lnano;
@@ -274,7 +274,7 @@ Go()
 Stop()
 
 {	
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	set INBUILDSTANCE to 0;
 	turn head to y-axis <0.000000> speed <160.000000>;
 //	turn luparm to x-axis <45.000000> speed <160.000000>;
@@ -339,7 +339,7 @@ StartBuilding(heading, pitch)
 {
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn head to y-axis heading speed <260.000000>;
 	wait-for-turn head around y-axis;
 	set INBUILDSTANCE to 1;
@@ -347,11 +347,11 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 1000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

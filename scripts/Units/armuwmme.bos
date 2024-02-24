@@ -7,7 +7,7 @@ static-var  resourceRate, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 #define SIG_WORK 4
 
 
@@ -99,8 +99,8 @@ Create()
 Activate()
 {
 	start-script RequestState(0);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 		emit-sfx 259 from claw1;
@@ -112,7 +112,7 @@ Activate()
 Deactivate()
 {
 	start-script RequestState(1);
-	signal SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
 }
 
 

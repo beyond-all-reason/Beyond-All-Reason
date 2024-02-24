@@ -7,7 +7,7 @@ static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, currentS
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 Propcontrol()
 {
@@ -139,7 +139,7 @@ StartBuilding(heading, pitch)
 	show nano2;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn gun to y-axis heading speed <160.038462>;
 	wait-for-turn gun around y-axis;
 	set INBUILDSTANCE to 1;
@@ -149,11 +149,11 @@ StopBuilding()
 {
 	hide nano1;
 	hide nano2;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

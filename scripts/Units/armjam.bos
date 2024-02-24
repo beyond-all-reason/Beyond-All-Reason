@@ -7,7 +7,7 @@ static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
 static-var recently_damaged, desired_activation;
 
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 #define SIG_OFF 				8
 
 TurnControl()
@@ -121,8 +121,8 @@ Create()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
@@ -162,8 +162,8 @@ Deactivate()
 		//set desired state if deactivated and not recently damaged
 		desired_activation = 0;
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 
 	turn base to z-axis <0> speed 400;
 	wait-for-turn base around z-axis;

@@ -7,7 +7,7 @@ static-var  terrain, notBuilding, statechg_DesiredState, statechg_StateChanging,
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 #define SIG_IDLE		8
 
 activatescr()
@@ -177,7 +177,7 @@ StartBuilding(heading, pitch)
 	show nano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn turret to y-axis heading speed <160.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -188,13 +188,13 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide nano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <-400>;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
 	start-script RequestState(1);
 }
 

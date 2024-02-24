@@ -9,7 +9,7 @@ armalab.bos:            set YARD_OPEN to 0;
 armalab.bos:    set BUGGER_OFF to 0;
 armalab.bos:    set INBUILDSTANCE to 1;
 armalab.bos:    set INBUILDSTANCE to 0;
-armalab.bos:    set-signal-mask SIG_ACTIVATE;
+armalab.bos:    set-signal-mask SIGNAL_TURNON;
 armalab.bos:    set-signal-mask 0;
 armalab.bos:Killed(severity, corpsetype)
 armalab.bos:            corpsetype = 1 ;
@@ -98,7 +98,7 @@ armamsub.bos:           set YARD_OPEN to 0;
 armamsub.bos:   set BUGGER_OFF to 0;
 armamsub.bos:   set INBUILDSTANCE to 1;
 armamsub.bos:   set INBUILDSTANCE to 0;
-armamsub.bos:   set-signal-mask SIG_ACTIVATE;
+armamsub.bos:   set-signal-mask SIGNAL_TURNON;
 armamsub.bos:   set-signal-mask 0;
 armamsub.bos:Killed(severity, corpsetype)
 armamsub.bos:           corpsetype = 1 ;
@@ -149,7 +149,7 @@ armap.bos:              set YARD_OPEN to 0;
 armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
-armap.bos:      set-signal-mask SIG_ACTIVATE;
+armap.bos:      set-signal-mask SIGNAL_TURNON;
 armap.bos:      set-signal-mask 0;
 armap.bos:Killed(severity, corpsetype)
 armap.bos:              corpsetype = 1 ;
@@ -185,8 +185,8 @@ Binary file armart.cob matches
 armaser.bos:SetStunned(State)
 armaser.bos:    //set-signal-mask SIGNAL_MOVE;
 armaser.bos:            set ACTIVATION to 0;
-armaser.bos:    set-signal-mask SIG_ACTIVATE;
-armaser.bos:    set-signal-mask SIG_ACTIVATE;
+armaser.bos:    set-signal-mask SIGNAL_TURNON;
+armaser.bos:    set-signal-mask SIGNAL_TURNON;
 armaser.bos:            set-signal-mask 4;
 armaser.bos:            set ACTIVATION to 0;
 armaser.bos:            set ACTIVATION to 100;
@@ -228,7 +228,7 @@ armasy.bos:             set YARD_OPEN to 0;
 armasy.bos:     set BUGGER_OFF to 0;
 armasy.bos:     set INBUILDSTANCE to 1;
 armasy.bos:     set INBUILDSTANCE to 0;
-armasy.bos:     set-signal-mask SIG_ACTIVATE;
+armasy.bos:     set-signal-mask SIGNAL_TURNON;
 armasy.bos:     set-signal-mask 0;
 armasy.bos:Killed(severity, corpsetype)
 armasy.bos:             corpsetype = 1 ;
@@ -271,7 +271,7 @@ armavp.bos:             set YARD_OPEN to 0;
 armavp.bos:     set BUGGER_OFF to 0;
 armavp.bos:     set INBUILDSTANCE to 1;
 armavp.bos:     set INBUILDSTANCE to 0;
-armavp.bos:     set-signal-mask SIG_ACTIVATE;
+armavp.bos:     set-signal-mask SIGNAL_TURNON;
 armavp.bos:     set-signal-mask 0;
 armavp.bos:Killed(severity, corpsetype)
 armavp.bos:             corpsetype = 1 ;
@@ -331,7 +331,7 @@ armbeamer.bos:  corpsetype = 3 ;
 armbeamer.bos:  return corpsetype;
 armbeaver.bos:  set INBUILDSTANCE to 0;
 armbeaver.bos:  set INBUILDSTANCE to 1;
-armbeaver.bos:  set-signal-mask SIG_BUILD;
+armbeaver.bos:  set-signal-mask SIGNAL_BUILD;
 armbeaver.bos:  set-signal-mask 0;
 armbeaver.bos:Killed(severity, corpsetype)
 armbeaver.bos:          corpsetype = 1 ;
@@ -392,7 +392,7 @@ armbull.bos:    corpsetype = 3 ;
 armbull.bos:    return corpsetype;
 Binary file armbull.cob matches
 armca.bos:      set INBUILDSTANCE to 1;
-armca.bos:      set-signal-mask SIG_BUILD;
+armca.bos:      set-signal-mask SIGNAL_BUILD;
 armca.bos:      set-signal-mask 0;
 armca.bos:      set INBUILDSTANCE to 0;
 armca.bos:Killed(severity, corpsetype)
@@ -424,7 +424,7 @@ armch.bos:      set INBUILDSTANCE to 0;
 armch.bos:      set-signal-mask SIGNAL_MOVE;
 armch.bos:setSFXoccupy(state)
 armch.bos:      set INBUILDSTANCE to 1;
-armch.bos:      set-signal-mask SIG_BUILD;
+armch.bos:      set-signal-mask SIGNAL_BUILD;
 armch.bos:      set-signal-mask 0;
 armch.bos:Killed(severity, corpsetype)
 armch.bos:              corpsetype = 1 ;
@@ -451,7 +451,7 @@ Binary file armcir.cob matches
 armck.bos:      set-signal-mask SIGNAL_MOVE;
 armck.bos:      set INBUILDSTANCE to 0;
 armck.bos:      set INBUILDSTANCE to 1;
-armck.bos:      set-signal-mask SIG_BUILD;
+armck.bos:      set-signal-mask SIGNAL_BUILD;
 armck.bos:      set-signal-mask 0;
 armck.bos:Killed(severity, corpsetype)
 armck.bos:              corpsetype = 1 ;
@@ -571,7 +571,7 @@ armcs.bos:      set INBUILDSTANCE to 0;
 armcs.bos:SetDirection(heading)
 armcs.bos:      set-signal-mask SIGNAL_MOVE;
 armcs.bos:      set INBUILDSTANCE to 1;
-armcs.bos:      set-signal-mask SIG_BUILD;
+armcs.bos:      set-signal-mask SIGNAL_BUILD;
 armcs.bos:      set-signal-mask 0;
 armcs.bos:Killed(severity, corpsetype)
 armcs.bos:              corpsetype = 1 ;
@@ -597,7 +597,7 @@ armcsa.bos:     corpsetype = 3 ;
 armcsa.bos:     return corpsetype;
 armcv.bos:      set INBUILDSTANCE to 0;
 armcv.bos:      set INBUILDSTANCE to 1;
-armcv.bos:      set-signal-mask SIG_BUILD;
+armcv.bos:      set-signal-mask SIGNAL_BUILD;
 armcv.bos:      set-signal-mask 0;
 armcv.bos:Killed(severity, corpsetype)
 armcv.bos:              corpsetype = 1 ;
@@ -715,9 +715,9 @@ armeyes.bos:            return(corpsetype);
 armeyes.bos:    corpsetype = 3 ;
 armeyes.bos:    return corpsetype;
 armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set-signal-mask SIG_BUILD;
+armfark.bos:    set-signal-mask SIGNAL_BUILD;
 armfark.bos:    set INBUILDSTANCE to 1;
-armfark.bos:    set-signal-mask SIG_BUILD;
+armfark.bos:    set-signal-mask SIGNAL_BUILD;
 armfark.bos:Killed(severity, corpsetype)
 armfark.bos:            corpsetype = 1 ;
 armfark.bos:            return(corpsetype);
@@ -835,7 +835,7 @@ armfhp.bos:             set YARD_OPEN to 0;
 armfhp.bos:     set BUGGER_OFF to 0;
 armfhp.bos:     set INBUILDSTANCE to 1;
 armfhp.bos:     set INBUILDSTANCE to 0;
-armfhp.bos:     set-signal-mask SIG_ACTIVATE;
+armfhp.bos:     set-signal-mask SIGNAL_TURNON;
 armfhp.bos:     set-signal-mask 0;
 armfhp.bos:Killed(severity, corpsetype)
 armfhp.bos:             corpsetype = 1 ;
@@ -1070,7 +1070,7 @@ armhp.bos:              set YARD_OPEN to 0;
 armhp.bos:      set BUGGER_OFF to 0;
 armhp.bos:      set INBUILDSTANCE to 1;
 armhp.bos:      set INBUILDSTANCE to 0;
-armhp.bos:      set-signal-mask SIG_ACTIVATE;
+armhp.bos:      set-signal-mask SIGNAL_TURNON;
 armhp.bos:      set-signal-mask 0;
 armhp.bos:Killed(severity, corpsetype)
 armhp.bos:              corpsetype = 1 ;
@@ -1176,7 +1176,7 @@ armlab.bos:             set YARD_OPEN to 0;
 armlab.bos:     set BUGGER_OFF to 0;
 armlab.bos:     set INBUILDSTANCE to 1;
 armlab.bos:     set INBUILDSTANCE to 0;
-armlab.bos:     set-signal-mask SIG_ACTIVATE;
+armlab.bos:     set-signal-mask SIGNAL_TURNON;
 armlab.bos:     set-signal-mask 0;
 armlab.bos:Killed(severity, corpsetype)
 armlab.bos:             corpsetype = 1 ;
@@ -1295,8 +1295,8 @@ armmar_lus.lua: InitialPiecesSetup()
 armmar_lus.lua: SetSignalMask(2)
 armmar_lus.lua: SetWantedAim(weaponID, heading, pitch)
 armmark.bos:    set-signal-mask SIGNAL_MOVE; //you might need this
-armmark.bos:    set-signal-mask SIG_ACTIVATE;
-armmark.bos:    set-signal-mask SIG_ACTIVATE;
+armmark.bos:    set-signal-mask SIGNAL_TURNON;
+armmark.bos:    set-signal-mask SIGNAL_TURNON;
 armmark.bos:SetStunned(State)
 armmark.bos:Killed(severity, corpsetype)
 armmark.bos:            corpsetype = 1 ;
@@ -1413,7 +1413,7 @@ armmls.bos:     return corpsetype;
 Binary file armmls.cob matches
 armmlv.bos:     set-signal-mask SIGNAL_MOVE;
 armmlv.bos:     set INBUILDSTANCE to 1;
-armmlv.bos:     set-signal-mask SIG_BUILD;
+armmlv.bos:     set-signal-mask SIGNAL_BUILD;
 armmlv.bos:     set-signal-mask 0;
 armmlv.bos:     set INBUILDSTANCE to 0;
 armmlv.bos:Killed(severity, corpsetype)
@@ -1562,7 +1562,7 @@ armplat.bos:    set BUGGER_OFF to 0;
 armplat.bos:    set INBUILDSTANCE to 1;
 armplat.bos:    set INBUILDSTANCE to 0;
 armplat.bos:    set ARMORED to 1;
-armplat.bos:    set-signal-mask SIG_ACTIVATE;
+armplat.bos:    set-signal-mask SIGNAL_TURNON;
 armplat.bos:    set-signal-mask 0;
 armplat.bos:Killed(severity, corpsetype)
 armplat.bos:            corpsetype = 1 ;
@@ -1674,10 +1674,10 @@ armrecl.bos:            return(corpsetype);
 armrecl.bos:    corpsetype = 3 ;
 armrecl.bos:    return corpsetype;
 armrectr.bos:   //set-signal-mask SIGNAL_MOVE;
-armrectr.bos:   set-signal-mask SIG_BUILD;
+armrectr.bos:   set-signal-mask SIGNAL_BUILD;
 armrectr.bos:   set INBUILDSTANCE to 0;
 armrectr.bos:   set INBUILDSTANCE to 1;
-armrectr.bos:   set-signal-mask SIG_BUILD;
+armrectr.bos:   set-signal-mask SIGNAL_BUILD;
 armrectr.bos:   set-signal-mask 0;
 armrectr.bos:Killed(severity, corpsetype)
 armrectr.bos:           corpsetype = 1 ;
@@ -1689,10 +1689,10 @@ armrectr.bos:           return(corpsetype);
 armrectr.bos:   corpsetype = 3 ;
 armrectr.bos:   return corpsetype;
 armrectrt4.bos: //set-signal-mask SIGNAL_MOVE;
-armrectrt4.bos: set-signal-mask SIG_BUILD;
+armrectrt4.bos: set-signal-mask SIGNAL_BUILD;
 armrectrt4.bos: set INBUILDSTANCE to 0;
 armrectrt4.bos: set INBUILDSTANCE to 1;
-armrectrt4.bos: set-signal-mask SIG_BUILD;
+armrectrt4.bos: set-signal-mask SIGNAL_BUILD;
 armrectrt4.bos: set-signal-mask 0;
 armrectrt4.bos:Killed(severity, corpsetype)
 armrectrt4.bos:         corpsetype = 1 ;
@@ -1816,8 +1816,8 @@ armseap.bos:            corpsetype = 3 ;
 armseap.bos:            return(corpsetype);
 armseap.bos:    corpsetype = 3 ;
 armseap.bos:    return corpsetype;
-armseer.bos:    set-signal-mask SIG_ACTIVATE;
-armseer.bos:    set-signal-mask SIG_ACTIVATE;
+armseer.bos:    set-signal-mask SIGNAL_TURNON;
+armseer.bos:    set-signal-mask SIGNAL_TURNON;
 armseer.bos:SetStunned(State)
 armseer.bos:Killed(severity, corpsetype)
 armseer.bos:            corpsetype = 1 ;
@@ -1893,7 +1893,7 @@ armshltx.bos:           set YARD_OPEN to 0;
 armshltx.bos:   set BUGGER_OFF to 0;
 armshltx.bos:   set INBUILDSTANCE to 1;
 armshltx.bos:   set INBUILDSTANCE to 0;
-armshltx.bos:   set-signal-mask SIG_ACTIVATE;
+armshltx.bos:   set-signal-mask SIGNAL_TURNON;
 armshltx.bos:   set-signal-mask 0;
 armshltx.bos:Killed(severity, corpsetype)
 armshltx.bos:           corpsetype = 1 ;
@@ -2021,10 +2021,10 @@ armsptk.bos:    return corpsetype;
 Binary file armsptk.cob matches
 armspy.bos:     //set-signal-mask SIGNAL_MOVE;
 armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set-signal-mask SIG_ACTIVATE;
+armspy.bos:     set-signal-mask SIGNAL_TURNON;
 armspy.bos:     set INBUILDSTANCE to 1;
 armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:     set-signal-mask SIG_ACTIVATE;
+armspy.bos:     set-signal-mask SIGNAL_TURNON;
 armspy.bos:             set-signal-mask 4;
 armspy.bos:             set ACTIVATION to 0;
 armspy.bos:             set ACTIVATION to 100;
@@ -2092,7 +2092,7 @@ armsy.bos:              set YARD_OPEN to 0;
 armsy.bos:      set BUGGER_OFF to 0;
 armsy.bos:      set INBUILDSTANCE to 1;
 armsy.bos:      set INBUILDSTANCE to 0;
-armsy.bos:      set-signal-mask SIG_ACTIVATE;
+armsy.bos:      set-signal-mask SIGNAL_TURNON;
 armsy.bos:      set-signal-mask 0;
 armsy.bos:Killed(severity, corpsetype)
 armsy.bos:              corpsetype = 1 ;
@@ -2222,7 +2222,7 @@ armuwfus.bos:           corpsetype = 3 ;
 armuwfus.bos:           return(corpsetype);
 armuwfus.bos:   corpsetype = 3 ;
 armuwfus.bos:   return corpsetype;
-armuwmex.bos:   set-signal-mask SIG_ACTIVATE;
+armuwmex.bos:   set-signal-mask SIGNAL_TURNON;
 armuwmex.bos:SetSpeed(Func_Var_1)
 armuwmex.bos:Killed(severity, corpsetype)
 armuwmex.bos:           corpsetype = 1 ;
@@ -2235,7 +2235,7 @@ armuwmex.bos:   corpsetype = 3 ;
 armuwmex.bos:   return corpsetype;
 Binary file armuwmex.cob matches
 armuwmme.bos:   set-signal-mask SIG_WORK;
-armuwmme.bos:   set-signal-mask SIG_ACTIVATE;
+armuwmme.bos:   set-signal-mask SIGNAL_TURNON;
 armuwmme.bos:SetSpeed(Func_Var_1)
 armuwmme.bos:Killed(severity, corpsetype)
 armuwmme.bos:           corpsetype = 1 ;
@@ -2310,7 +2310,7 @@ armvp.bos:      set BUGGER_OFF to 0;
 armvp.bos:      set INBUILDSTANCE to 1;
 armvp.bos:      set INBUILDSTANCE to 0;
 armvp.bos:      set ARMORED to 1;
-armvp.bos:      set-signal-mask SIG_ACTIVATE;
+armvp.bos:      set-signal-mask SIGNAL_TURNON;
 armvp.bos:      set-signal-mask 0;
 armvp.bos:Killed(severity, corpsetype)
 armvp.bos:              corpsetype = 1 ;
@@ -2477,7 +2477,7 @@ coraap.bos:             set YARD_OPEN to 0;
 coraap.bos:     set BUGGER_OFF to 0;
 coraap.bos:     set INBUILDSTANCE to 1;
 coraap.bos:     set INBUILDSTANCE to 0;
-coraap.bos:     set-signal-mask SIG_ACTIVATE;
+coraap.bos:     set-signal-mask SIGNAL_TURNON;
 coraap.bos:     set-signal-mask 0;
 coraap.bos:Killed(severity, corpsetype)
 coraap.bos:             corpsetype = 1 ;
@@ -2502,7 +2502,7 @@ coraca.bos:     return corpsetype;
 corack.bos:     set-signal-mask SIGNAL_MOVE;
 corack.bos:     set INBUILDSTANCE to 0;
 corack.bos:     set INBUILDSTANCE to 1;
-corack.bos:     set-signal-mask SIG_BUILD;
+corack.bos:     set-signal-mask SIGNAL_BUILD;
 corack.bos:     set-signal-mask 0;
 corack.bos:Killed(severity, corpsetype)
 corack.bos:             corpsetype = 1 ;
@@ -2516,7 +2516,7 @@ corack.bos:     return corpsetype;
 coracsub.bos:   set INBUILDSTANCE to 0;
 coracsub.bos:   set-signal-mask SIGNAL_MOVE;
 coracsub.bos:   set INBUILDSTANCE to 1;
-coracsub.bos:   set-signal-mask SIG_BUILD;
+coracsub.bos:   set-signal-mask SIGNAL_BUILD;
 coracsub.bos:   set-signal-mask 0;
 coracsub.bos:Killed(severity, corpsetype)
 coracsub.bos:           corpsetype = 1 ;
@@ -2530,7 +2530,7 @@ coracsub.bos:   return corpsetype;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:setSFXoccupy(state)
 coracv.bos:     set INBUILDSTANCE to 1;
-coracv.bos:     set-signal-mask SIG_BUILD;
+coracv.bos:     set-signal-mask SIGNAL_BUILD;
 coracv.bos:     set-signal-mask 0;
 coracv.bos:Killed(severity, corpsetype)
 coracv.bos:             corpsetype = 1 ;
@@ -2615,8 +2615,8 @@ coralab.lua:    UnitScript.SetSignalMask(SIG_OPENCLOSE);
 coralab.lua:    UnitScript.SetUnitValue(COB.INBUILDSTANCE, 1);
 coralab.lua:    UnitScript.SetSignalMask(SIG_OPENCLOSE);
 coralab.lua:    UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0);
-coralab.lua:    UnitScript.SetSignalMask(SIG_ACTIVATE);
-coralab.lua:    UnitScript.SetSignalMask(SIG_BUILD);
+coralab.lua:    UnitScript.SetSignalMask(SIGNAL_TURNON);
+coralab.lua:    UnitScript.SetSignalMask(SIGNAL_BUILD);
 coralab.lua:    local corpsetype;
 coralab.lua:            corpsetype = 1;
 coralab.lua:            return corpsetype;
@@ -2656,7 +2656,7 @@ coramsub.bos:/*    bb:*/                set YARD_OPEN to 0;
 coramsub.bos:/*    c2:*/        set BUGGER_OFF to 0;
 coramsub.bos:/*    d0:*/        set INBUILDSTANCE to 1;
 coramsub.bos:/*    d8:*/        set INBUILDSTANCE to 0;
-coramsub.bos:/*   176:*/        set-signal-mask SIG_ACTIVATE;
+coramsub.bos:/*   176:*/        set-signal-mask SIGNAL_TURNON;
 coramsub.bos:/*   181:*/        set-signal-mask 0;
 coramsub.bos:Killed(severity, corpsetype)
 coramsub.bos:           corpsetype = 1 ;
@@ -2683,7 +2683,7 @@ corap.bos:/*   1b2:*/           set YARD_OPEN to 0;
 corap.bos:/*   1b9:*/   set BUGGER_OFF to 0;
 corap.bos:/*   1d5:*/   set INBUILDSTANCE to 1;
 corap.bos:/*   1dd:*/   set INBUILDSTANCE to 0;
-corap.bos:/*   2af:*/   set-signal-mask SIG_ACTIVATE;
+corap.bos:/*   2af:*/   set-signal-mask SIGNAL_TURNON;
 corap.bos:/*   2ba:*/   set-signal-mask 0;
 corap.bos:Killed(severity, corpsetype)
 corap.bos:              corpsetype = 1 ;
@@ -2773,7 +2773,7 @@ corasy.bos:             set YARD_OPEN to 0;
 corasy.bos:     set BUGGER_OFF to 0;
 corasy.bos:     set INBUILDSTANCE to 1;
 corasy.bos:     set INBUILDSTANCE to 0;
-corasy.bos:     set-signal-mask SIG_ACTIVATE;
+corasy.bos:     set-signal-mask SIGNAL_TURNON;
 corasy.bos:     set-signal-mask 0;
 corasy.bos:Killed(severity, corpsetype)
 corasy.bos:             corpsetype = 1 ;
@@ -2794,7 +2794,7 @@ corasye.bos:            set YARD_OPEN to 0;
 corasye.bos:    set BUGGER_OFF to 0;
 corasye.bos:    set INBUILDSTANCE to 1;
 corasye.bos:    set INBUILDSTANCE to 0;
-corasye.bos:    set-signal-mask SIG_ACTIVATE;
+corasye.bos:    set-signal-mask SIGNAL_TURNON;
 corasye.bos:    set-signal-mask 0;
 corasye.bos:Killed(severity, corpsetype)
 corasye.bos:            corpsetype = 1;
@@ -2825,7 +2825,7 @@ coravp.bos:             set YARD_OPEN to 0;
 coravp.bos:     set BUGGER_OFF to 0;
 coravp.bos:     set INBUILDSTANCE to 1;
 coravp.bos:     set INBUILDSTANCE to 0;
-coravp.bos:     set-signal-mask SIG_ACTIVATE;
+coravp.bos:     set-signal-mask SIGNAL_TURNON;
 coravp.bos:     set-signal-mask 0;
 coravp.bos:Killed(severity, corpsetype)
 coravp.bos:             corpsetype = 1 ;
@@ -2992,7 +2992,7 @@ corch.bos:              // Set values for tilt
 corch.bos:      set-signal-mask SIGNAL_MOVE;
 corch.bos:setSFXoccupy(state)
 corch.bos:      set INBUILDSTANCE to 1;
-corch.bos:      set-signal-mask SIG_BUILD;
+corch.bos:      set-signal-mask SIGNAL_BUILD;
 corch.bos:      set-signal-mask 0;
 corch.bos:Killed(severity, corpsetype)
 corch.bos:              corpsetype = 1 ;
@@ -3007,7 +3007,7 @@ Binary file corch.cob matches
 corck.bos:      set-signal-mask SIGNAL_MOVE;
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corck.bos:      set-signal-mask SIG_BUILD;
+corck.bos:      set-signal-mask SIGNAL_BUILD;
 corck.bos:      set-signal-mask 0;
 corck.bos:Killed(severity, corpsetype)
 corck.bos:              corpsetype = 1 ;
@@ -3136,7 +3136,7 @@ corcut.bos:     return corpsetype;
 Binary file corcut.cob matches
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
-corcv.bos:      set-signal-mask SIG_BUILD;
+corcv.bos:      set-signal-mask SIGNAL_BUILD;
 corcv.bos:      set-signal-mask 0;
 corcv.bos:Killed(severity, corpsetype)
 corcv.bos:              corpsetype = 1 ;
@@ -3276,9 +3276,9 @@ Binary file corexp.cob matches
 coreyes.bos:Killed(severity, corpsetype)
 coreyes.bos:    corpsetype = 3;
 coreyes.bos:    return (corpsetype);
-corfast.bos:    set-signal-mask SIG_BUILD;
+corfast.bos:    set-signal-mask SIGNAL_BUILD;
 corfast.bos:    set INBUILDSTANCE to 1;
-corfast.bos:    set-signal-mask SIG_BUILD;
+corfast.bos:    set-signal-mask SIGNAL_BUILD;
 corfast.bos:    set INBUILDSTANCE to 0;
 corfast.bos:Killed(severity, corpsetype)
 corfast.bos:            corpsetype = 1 ;
@@ -3346,7 +3346,7 @@ corfhp.bos:/*   196:*/          set YARD_OPEN to 0;
 corfhp.bos:/*   19d:*/  set BUGGER_OFF to 0;
 corfhp.bos:/*   1bb:*/  set INBUILDSTANCE to 1;
 corfhp.bos:/*   1c3:*/  set INBUILDSTANCE to 0;
-corfhp.bos:/*   28c:*/  set-signal-mask SIG_ACTIVATE;
+corfhp.bos:/*   28c:*/  set-signal-mask SIGNAL_TURNON;
 corfhp.bos:/*   297:*/  set-signal-mask 0;
 corfhp.bos:Killed(severity, corpsetype)
 corfhp.bos:             corpsetype = 1 ;
@@ -3459,7 +3459,7 @@ corgant.bos:            set YARD_OPEN to 0;
 corgant.bos:    set BUGGER_OFF to 0;
 corgant.bos:    set INBUILDSTANCE to 1;
 corgant.bos:    set INBUILDSTANCE to 0;
-corgant.bos:    set-signal-mask SIG_ACTIVATE;
+corgant.bos:    set-signal-mask SIGNAL_TURNON;
 corgant.bos:    set-signal-mask 0;
 corgant.bos:Killed(severity, corpsetype)
 corgant.bos:            corpsetype = 1 ;
@@ -3587,7 +3587,7 @@ corhp.bos:/*   196:*/           set YARD_OPEN to 0;
 corhp.bos:/*   19d:*/   set BUGGER_OFF to 0;
 corhp.bos:/*   1bb:*/   set INBUILDSTANCE to 1;
 corhp.bos:/*   1c3:*/   set INBUILDSTANCE to 0;
-corhp.bos:/*   28c:*/   set-signal-mask SIG_ACTIVATE;
+corhp.bos:/*   28c:*/   set-signal-mask SIGNAL_TURNON;
 corhp.bos:/*   297:*/   set-signal-mask 0;
 corhp.bos:Killed(severity, corpsetype)
 corhp.bos:              corpsetype = 1 ;
@@ -3753,7 +3753,7 @@ corlab.lua:     UnitScript.SetSignalMask(SIG_OPENCLOSE);
 corlab.lua:     UnitScript.SetUnitValue(COB.INBUILDSTANCE, 1);
 corlab.lua:     UnitScript.SetSignalMask(SIG_OPENCLOSE);
 corlab.lua:     UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0);
-corlab.lua:     UnitScript.SetSignalMask(SIG_ACTIVATE);
+corlab.lua:     UnitScript.SetSignalMask(SIGNAL_TURNON);
 corlab.lua:    SetSignalMask(SIG_CRANE1);
 corlab.lua:    SetSignalMask(SIG_CRANE2);
 corlab.lua:     local corpsetype;
@@ -3819,7 +3819,7 @@ cormakr.bos:    return corpsetype;
 cormando.bos:   set-signal-mask SIGNAL_MOVE;
 cormando.bos:   set INBUILDSTANCE to 0;
 cormando.bos:   set INBUILDSTANCE to 1;
-cormando.bos:   set-signal-mask SIG_BUILD;
+cormando.bos:   set-signal-mask SIGNAL_BUILD;
 cormando.bos:   set-signal-mask 0;
 cormando.bos:Killed(severity, corpsetype)
 cormando.bos:           corpsetype = 1 ;
@@ -3940,7 +3940,7 @@ cormls.bos:     corpsetype = 3 ;
 cormls.bos:     return corpsetype;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
-cormlv.bos:     set-signal-mask SIG_BUILD;
+cormlv.bos:     set-signal-mask SIGNAL_BUILD;
 cormlv.bos:     set-signal-mask 0;
 cormlv.bos:Killed(severity, corpsetype)
 cormlv.bos:             corpsetype = 1 ;
@@ -4025,7 +4025,7 @@ cormstor.bos:   return corpsetype;
 cormuskrat.bos: set INBUILDSTANCE to 1;
 cormuskrat.bos: set INBUILDSTANCE to 0;
 cormuskrat.bos: set INBUILDSTANCE to 1;
-cormuskrat.bos: set-signal-mask SIG_BUILD;
+cormuskrat.bos: set-signal-mask SIGNAL_BUILD;
 cormuskrat.bos: set-signal-mask 0;
 cormuskrat.bos:Killed(severity, corpsetype)
 cormuskrat.bos:         corpsetype = 1 ;
@@ -4064,9 +4064,9 @@ cornanotcplat.bos:      return corpsetype;
 Binary file cornanotcplat.cob matches
 cornecro.bos:   set-signal-mask SIGNAL_MOVE;
 cornecro.bos:   set INBUILDSTANCE to 0;
-cornecro.bos:   set-signal-mask SIG_BUILD;
+cornecro.bos:   set-signal-mask SIGNAL_BUILD;
 cornecro.bos:   set INBUILDSTANCE to 1;
-cornecro.bos:   set-signal-mask SIG_BUILD;
+cornecro.bos:   set-signal-mask SIGNAL_BUILD;
 cornecro.bos:Killed(severity, corpsetype)
 cornecro.bos:           corpsetype = 1 ;
 cornecro.bos:           return(corpsetype);
@@ -4103,7 +4103,7 @@ corplat.bos:    set BUGGER_OFF to 0;
 corplat.bos:    set INBUILDSTANCE to 1;
 corplat.bos:    set INBUILDSTANCE to 0;
 corplat.bos:    set ARMORED to 1;
-corplat.bos:    set-signal-mask SIG_ACTIVATE;
+corplat.bos:    set-signal-mask SIGNAL_TURNON;
 corplat.bos:    set-signal-mask 0;
 corplat.bos:Killed(severity, corpsetype)
 corplat.bos:            corpsetype = 1 ;
@@ -4556,8 +4556,8 @@ corsonar.bos:   corpsetype = 3 ;
 corsonar.bos:   return corpsetype;
 corspec.bos:    set-signal-mask SIGNAL_MOVE;
 corspec.bos:            set ACTIVATION to 0;
-corspec.bos:    set-signal-mask SIG_ACTIVATE;
-corspec.bos:    set-signal-mask SIG_ACTIVATE;
+corspec.bos:    set-signal-mask SIGNAL_TURNON;
+corspec.bos:    set-signal-mask SIGNAL_TURNON;
 corspec.bos:            set-signal-mask 4;
 corspec.bos:            set ACTIVATION to 0;
 corspec.bos:            set ACTIVATION to 100;
@@ -4646,7 +4646,7 @@ corsy.bos:              set YARD_OPEN to 0;
 corsy.bos:      set BUGGER_OFF to 0;
 corsy.bos:      set INBUILDSTANCE to 1;
 corsy.bos:      set INBUILDSTANCE to 0;
-corsy.bos:      set-signal-mask SIG_ACTIVATE;
+corsy.bos:      set-signal-mask SIGNAL_TURNON;
 corsy.bos:      set-signal-mask 0;
 corsy.bos:Killed(severity, corpsetype)
 corsy.bos:              corpsetype = 1 ;
@@ -4880,7 +4880,7 @@ coruwfus.bos:           corpsetype = 3 ;
 coruwfus.bos:           return(corpsetype);
 coruwfus.bos:   corpsetype = 3 ;
 coruwfus.bos:   return corpsetype;
-coruwmex.bos:   set-signal-mask SIG_ACTIVATE;
+coruwmex.bos:   set-signal-mask SIGNAL_TURNON;
 coruwmex.bos:SetSpeed(Func_Var_1)
 coruwmex.bos:Killed(severity, corpsetype)
 coruwmex.bos:           corpsetype = 1 ;
@@ -4895,7 +4895,7 @@ Binary file coruwmex.cob matches
 coruwmme.bos:   set ARMORED to 0;
 coruwmme.bos:   set ARMORED to 1;
 coruwmme.bos:   set ARMORED to 1;
-coruwmme.bos:   set-signal-mask SIG_ACTIVATE;
+coruwmme.bos:   set-signal-mask SIGNAL_TURNON;
 coruwmme.bos:SetSpeed(Func_Var_1)
 coruwmme.bos:Killed(severity, corpsetype)
 coruwmme.bos:           corpsetype = 1 ;
@@ -4979,8 +4979,8 @@ corvipe.lua:            return corpsetype;
 corvipe.lua:    corpsetype = 3;
 corvipe.lua:    return corpsetype;
 corvoyr.bos:    set-signal-mask SIGNAL_MOVE;
-corvoyr.bos:    set-signal-mask SIG_ACTIVATE;
-corvoyr.bos:    set-signal-mask SIG_ACTIVATE;
+corvoyr.bos:    set-signal-mask SIGNAL_TURNON;
+corvoyr.bos:    set-signal-mask SIGNAL_TURNON;
 corvoyr.bos:SetStunned(State)
 corvoyr.bos:Killed(severity, corpsetype)
 corvoyr.bos:            corpsetype = 1 ;
@@ -5002,7 +5002,7 @@ corvp.bos:              set YARD_OPEN to 0;
 corvp.bos:      set BUGGER_OFF to 0;
 corvp.bos:      set INBUILDSTANCE to 1;
 corvp.bos:      set INBUILDSTANCE to 0;
-corvp.bos:      set-signal-mask SIG_ACTIVATE;
+corvp.bos:      set-signal-mask SIGNAL_TURNON;
 corvp.bos:      set-signal-mask 0;
 corvp.bos:Killed(severity, corpsetype)
 corvp.bos:              corpsetype = 1 ;
@@ -5017,7 +5017,7 @@ corvp.lua:      UnitScript.SetSignalMask(SIG_OPENCLOSE);
 corvp.lua:      UnitScript.SetUnitValue(COB.INBUILDSTANCE, 1);
 corvp.lua:      UnitScript.SetSignalMask(SIG_OPENCLOSE);
 corvp.lua:      UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0);
-corvp.lua:      UnitScript.SetSignalMask(SIG_ACTIVATE);
+corvp.lua:      UnitScript.SetSignalMask(SIGNAL_TURNON);
 corvp.lua:      local corpsetype;
 corvp.lua:              corpsetype = 1;
 corvp.lua:              return corpsetype;
@@ -5027,8 +5027,8 @@ corvp.lua:              corpsetype = 3;
 corvp.lua:              return corpsetype;
 corvp.lua:      corpsetype = 3;
 corvp.lua:      return corpsetype;
-corvrad.bos:    set-signal-mask SIG_ACTIVATE;
-corvrad.bos:    set-signal-mask SIG_ACTIVATE;
+corvrad.bos:    set-signal-mask SIGNAL_TURNON;
+corvrad.bos:    set-signal-mask SIGNAL_TURNON;
 corvrad.bos:SetStunned(State)
 corvrad.bos:Killed(severity, corpsetype)
 corvrad.bos:            corpsetype = 1 ;

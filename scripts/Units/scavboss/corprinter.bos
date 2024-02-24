@@ -8,7 +8,7 @@ static-var open_state;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_BUILD		4
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -34,12 +34,12 @@ Create()
 static-var  Stunned;
 Restore_Nano()
 {
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	sleep restore_delay;
 
 	set-signal-mask 0;
-	signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 
     if (Stunned) {
         return (1);
@@ -75,7 +75,7 @@ Restore_Nano()
 
 Deploy_Nano(heading)
 {
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	if ( (open_state == 0) OR (open_state == 1) )
 	{
 		open_state = 1;
@@ -120,16 +120,16 @@ SetStunned(State)
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	start-script Deploy_Nano(heading);
 	// set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	//signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	//signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	start-script Restore_Nano();
 	set INBUILDSTANCE to 0;
 }
