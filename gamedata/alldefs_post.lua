@@ -365,9 +365,9 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 		end
-		
+
 		--Drone Carriers
-		
+
 		if name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
@@ -376,7 +376,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
 		end
-		
+
 	end
 
 	-- Add scav units to normal factories and builders
@@ -866,13 +866,6 @@ function UnitDef_Post(name, uDef)
     --		uDef.speed = (uDef.speed + vehAdditionalVelocity) * vehVelocityMultiplier
     --	end
     --end
-
-	-- Unbacom
-
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
-	end
 
 
 if modOptions.emprework == true then
@@ -1545,6 +1538,12 @@ if modOptions.air_rework == true then
 	end
 end
 
+-- Skyshift: Air rework
+if Spring.GetModOptions().skyshift == true then
+	skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
+end
+
 --Lategame Rebalance
 if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armamb" then
@@ -1979,6 +1978,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- Skyshift: Air rework
+		if Spring.GetModOptions().skyshift == true then
+			skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
+		end
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields
@@ -2116,10 +2120,6 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
-	end
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
 
 	-- Multipliers

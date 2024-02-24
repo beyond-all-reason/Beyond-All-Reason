@@ -40,14 +40,17 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
-	local armcomDefID = UnitDefNames.armcom.id
-	local corcomDefID = UnitDefNames.corcom.id
-	local legcomDefID = UnitDefNames.legcom.id
-	local validStartUnits = {
-		[armcomDefID] = true,
-		[corcomDefID] = true,
-	}
-	if Spring.GetModOptions().experimentallegionfaction then
+	local validStartUnits = {}
+	local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+	if armcomDefID then
+		validStartUnits[armcomDefID] = true
+	end
+	local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+	if corcomDefID then
+		validStartUnits[corcomDefID] = true
+	end
+	local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+	if legcomDefID then
 		validStartUnits[legcomDefID] = true
 	end
 	local teams = {} -- teams[teamID] = allyID
@@ -183,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local startUnit = false
-		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then	 
+		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = Spring.GetPlayerInfo(playerID, false)

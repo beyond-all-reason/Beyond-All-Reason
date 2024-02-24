@@ -18,6 +18,10 @@ end
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_META = CMD.OPT_META
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -98,10 +102,9 @@ end
 ---@param spot table
 local function spotHasExtractor(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	local type = spot.isMex and mexBuildings or geoBuildings
 	for j=1, #units do
-		if mexBuildings[spGetUnitDefID(units[j])] or geoBuildings[spGetUnitDefID(units[j])] then
-			return units[j]
-		end
+		if type[spGetUnitDefID(units[j])] then return units[j] end
 	end
 	return false
 end
@@ -222,7 +225,7 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	for i = 1, #units do
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
-		local isExtractor = mexBuildings[uDefId] or geoBuildings[uDefId]
+		local isExtractor = spot.isMex and mexBuildings[uDefId] or geoBuildings[uDefId]
 		local canUpgrade = extractorCanBeUpgraded(uid, extractorId)
 		local isBeingBuilt, _ = spGetUnitIsBeingBuilt(uid)
 		if(isExtractor and (not canUpgrade or isBeingBuilt)) then
@@ -318,10 +321,11 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	for i, uid in pairs(secondaryBuilders) do
 		local mainBuilderId = mainBuilders[index]
 		if not shift then
-			spGiveOrderToUnit(uid, CMD_STOP, {}, { })
-			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { })
 			index = index + 1
 		end
+		-- if we give a guard order on a unit already guarded with shift, it will get cancelled
+		-- so do some queue analysis and avoid duplicate commands
 		if shift and not hasExistingGuardOrder(uid) then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
 			index = index + 1
@@ -339,7 +343,7 @@ end
 ---ApplyPreviewCmds to actually give the orders to units
 ---@param params table
 ---@param extractor table
----@param spot table can be a spot or a position, just needs to have { x, y, z } properties
+---@param spot table must be a full spot, not just position. isMex or isGeo field required for things to work.
 ---@return table format is { buildingId, x, y, z, facing, owner }
 local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
@@ -356,15 +360,16 @@ local function PreviewExtractorCommand(params, extractor, spot)
 
 	-- Construct the actual mex build orders
 	local facing = spGetBuildFacing() or 1
-	local finalCommand = {}
+	local finalCommand
 
 	local buildingId = -extractor
 	local targetPos, targetOwner
-	local occupiedMex = spotHasExtractor(command)
-	if occupiedMex then
-		local occupiedPos = { spGetUnitPosition(occupiedMex) }
+	local occupiedSpot = spotHasExtractor(spot)
+	if occupiedSpot then
+
+		local occupiedPos = { spGetUnitPosition(occupiedSpot) }
 		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
-		targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
+		targetOwner = Spring.GetUnitTeam(occupiedSpot)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
 		local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(spot, -buildingId, 0, true)
 		targetPos = math.getClosestPosition(cmdX, cmdZ, buildingPositions)
@@ -373,7 +378,6 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	if targetPos then
 		local newx, newz = targetPos.x, targetPos.z
 		finalCommand = { math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
-
 	end
 	return finalCommand
 end
@@ -391,48 +395,38 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		return
 	end
 
-	local checkDuplicateOrders = true
+	local _, _, meta, _ = Spring.GetModKeyState()
 
-	-- Shift key not used = give stop command first
-	if not shift then
-		checkDuplicateOrders = false -- no need to check for duplicate orders
-		for ct = 1, #mainBuilders do
-			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
-		end
+	local unitArray = {} -- make unit array to avoid extra work
+	for i = 1, #mainBuilders do
+		unitArray[#unitArray + 1] = mainBuilders[i]
 	end
 
-	local finalCommands = {}
-	for ct = 1, #mainBuilders do
-		local id = mainBuilders[ct]
-		local mexOrders = {}
+	for i = 1, #cmds do
+		local cmd = cmds[i]
+		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		for i = 1, #cmds do
-			local cmd = cmds[i]
-
-			local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
-
-			local duplicateFound = false
-
-			if checkDuplicateOrders then
-				for mI, mexOrder in pairs(mexOrders) do
-					if mexOrder["id"] == buildingId then
-						local mParams = mexOrder["params"]
-						if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
-							duplicateFound = true
-							mexOrders[mI] = nil
-							break
-						end
-					end
-				end
+		if meta then -- put at front of queue
+			-- cmd insert layout is really weird, it needs to be formatted like:
+			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
+			-- this an engine command so index starts at 0. Increment position by command count
+			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+		else
+			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
+			-- issuing any command without shift will clear the queue for us,
+			-- so we use the real shift value for the first command, then we force shift for all the others
+			-- since any commands passed to this function are intended to be queued, not discarded.
+			-- NEVER USE TERNARIES WITH OUTCOME VALUES THAT CAN BE FALSE
+			local fakeShift = false
+			if i == 1 then
+				fakeShift = shift
+			else
+				fakeShift = true
 			end
-
-			if not(checkDuplicateOrders and duplicateFound) then
-				finalCommands[#finalCommands + 1] = { id, math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
-				spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
-			end
+			local opt = fakeShift and { "shift" } or { }
+			Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 		end
 	end
-	return finalCommands
 end
 
 

@@ -639,8 +639,9 @@ function widget:Update(dt)
 	if lastCameraPanMode ~= cameraPanMode then
 		lastCameraPanMode = cameraPanMode
 		checkChanges()
+		doUpdate = true
 	end
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and  Spring.GetGameFrame() > 0 then
+	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and Spring.GetGameFrame() > 0 then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')

@@ -67,7 +67,7 @@ local vikings = {
 	--["[teh]Teddy"] = true,
 }
 local kings = {
-	["[teh]Teddy"] = true,
+	["[AFF]Chisato"] = true,
 }
 local goldMedals = {
 }

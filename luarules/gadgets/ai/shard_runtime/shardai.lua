@@ -5,18 +5,18 @@ local logRAM = true
 local function tracyZoneBeginMem() return end
 local function tracyZoneEndMem() return end
 
-if tracy then 
+if tracy then
 	Spring.Echo("Enabled Tracy support for STAI")
-	tracyZoneBeginMem = function(fname) 
-		if logRAM then lastGCinfo = gcinfo() end 
+	tracyZoneBeginMem = function(fname)
+		if logRAM then lastGCinfo = gcinfo() end
 		tracy.ZoneBeginN(fname)
 	end
-	
-	tracyZoneEndMem = function() 
-		if logRAM then 
-			local nowGCinfo = gcinfo() 
+
+	tracyZoneEndMem = function()
+		if logRAM then
+			local nowGCinfo = gcinfo()
 			local delta = nowGCinfo - lastGCinfo
-			if delta > 0 then 
+			if delta > 0 then
 				tracy.Message(tostring(nowGCinfo - lastGCinfo))
 			end
 			lastGCinfo = nowGCinfo
@@ -47,7 +47,7 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:DrawDisplay(false)
+	self.game:DrawDisplay(true)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -80,7 +80,7 @@ function ShardAI:Init()
 				self:Warn("Error! Shard tried to init a nil module!")
 			else
 				--local RAM = gcinfo()
-				
+
 				tracyZoneBeginMem(m:Name())
 				m:Init()
 				tracyZoneEndMem()
@@ -110,28 +110,28 @@ function ShardAI:Update()
 	if self.gameend == true then
 		return
 	end
-	
+
 	tracyZoneBeginMem("ShardAI:Update")
-	self.game:StartTimer('UPDATE')
+	--self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			self.game:StartTimer(m:Name() .. ' hst')
+ 			--self.game:StartTimer(m:Name() .. ' hst')
 			--local RAM = gcinfo()
-			
-			tracyZoneBeginMem(m:Name())
+
+			--tracyZoneBeginMem(m:Name())
 			m:Update()
-			tracyZoneEndMem()
- 			self.game:StopTimer(m:Name() .. ' hst')
+			--tracyZoneEndMem()
+ 			--self.game:StopTimer(m:Name() .. ' hst')
 			--RAM = gcinfo() - RAM
-			--if RAM > 100 and m:Name() ~= 'UnitHandler' then
-			--	print (m:Name(),RAM/1000)
+			--if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
+			--	print (m:Name(),RAM)
 			--end
 		end
 	end
-	tracyZoneEndMem()
-	self.game:StopTimer('UPDATE')
+	--tracyZoneEndMem()
+	--self.game:StopTimer('UPDATE')
 end
 
 function ShardAI:GameMessage(text)
@@ -161,11 +161,11 @@ function ShardAI:UnitCreated(unit, unitDefId, teamId, builderId)
 		self:Warn("No modules found in AI")
 		return
 	end
-	
+
 	tracyZoneBeginMem("ShardAI:UnitCreated")
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' C')
-		
+
 		tracyZoneBeginMem(m:Name())
 		m:UnitCreated(unit, unitDefId, teamId, builderId)
 		tracyZoneEndMem()
@@ -182,7 +182,7 @@ function ShardAI:UnitBuilt(engineunit, unitDefId, teamId)
 		self:Warn("shard-warning: unitbuilt engineunit nil ")
 		return
 	end
-	
+
 	tracyZoneBeginMem("ShardAI:UnitBuilt")
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' B')

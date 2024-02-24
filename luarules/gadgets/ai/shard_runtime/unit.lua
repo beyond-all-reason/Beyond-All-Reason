@@ -40,6 +40,7 @@ end
 
 function Unit:Update()
 	-- Handle activating a new behaviour if we switched
+	--local RAM = gcinfo()
 	if self.nextBehaviour ~= nil then
 		self.activeBehaviour = self.nextBehaviour
 		self.nextBehaviour = nil
@@ -49,11 +50,16 @@ function Unit:Update()
 
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
-		self.game:StartTimer(behaviour:Name() .. ' Unit')
-		behaviour:Update()
-		self.game:StopTimer(behaviour:Name() .. ' Unit')
-	end
+		--self.game:StartTimer(behaviour:Name() .. ' Unit')
 
+		behaviour:Update()
+
+		--self.game:StopTimer(behaviour:Name() .. ' Unit')
+	end
+--  		RAM = gcinfo() - RAM
+--  		if RAM > 0 then
+--  			Spring.Echo(--[[behaviour:Name(),]]self:Internal():Name(), RAM , 'RAM')
+-- 		end
 end
 
 function Unit:GameEnd()

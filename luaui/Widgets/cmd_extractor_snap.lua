@@ -11,6 +11,7 @@ function widget:GetInfo()
 	}
 end
 
+include("keysym.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
@@ -58,9 +59,7 @@ function widget:Initialize()
 
 	geoSpots = WG["resource_spot_finder"].geoSpotsList
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
 
 
@@ -253,6 +252,27 @@ function widget:Update()
 end
 
 
+-- Since mex snap bypasses normal building behavior, we have to hand hold gridmenu a little bit
+local endShift = false
+local function handleBuildMenu(shift)
+	local grid = WG["gridmenu"]
+	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		if not shift then
+			Spring.SetActiveCommand(0)
+		else
+			endShift = true
+		end
+		return
+	end
+
+	if(not shift and not grid.getAlwaysReturn()) then
+		grid.clearCategory()
+	elseif grid.getAlwaysReturn() then
+		grid.setCurrentCategory(nil)
+	end
+end
+
+
 function widget:MousePress(x, y, button)
 	if isPregame then
 		return
@@ -262,14 +282,22 @@ function widget:MousePress(x, y, button)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			handleBuildMenu(shift)
+			return true
 		end
 		if selectedGeo then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
-			if(not shift and WG["gridmenu"] and WG["gridmenu"].clearCategory) then
-				WG["gridmenu"].clearCategory()
-			end
+			handleBuildMenu(shift)
 			return true -- override other mouse presses and handle stuff manually
 		end
+	end
+end
+
+
+-- I really hate that I have to do this, but something is hardcoding shift behavior with mouse clicks, and I need to override it
+function widget:KeyRelease(code)
+	if endShift and (code == KEYSYMS.LSHIFT or code == KEYSYMS.RSHIFT) then
+		Spring.SetActiveCommand(0)
 	end
 end
 
