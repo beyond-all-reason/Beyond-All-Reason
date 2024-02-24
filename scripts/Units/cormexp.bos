@@ -232,9 +232,9 @@ QuerySecondary(piecenum)
   piecenum = flare3;
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	ExtractionSpeed = Func_Var_1 * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
+	ExtractionSpeed = windOrMetal * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
 }
 
 

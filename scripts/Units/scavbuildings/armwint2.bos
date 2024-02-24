@@ -67,9 +67,9 @@ Create()
 	start-script SmokeUnit();
 }
 
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = 0 - windSpd; //invert if desired
+	WindSpeed = 0 - windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{

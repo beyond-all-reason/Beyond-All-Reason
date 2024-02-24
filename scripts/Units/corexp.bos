@@ -116,11 +116,11 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_3 = Func_Var_1 * 45;
-	Static_Var_7 = Func_Var_1 * 400;
-	Static_Var_8 = Func_Var_1 * 400;
+	Static_Var_3 = windOrMetal * 45;
+	Static_Var_7 = windOrMetal * 400;
+	Static_Var_8 = windOrMetal * 400;
 }
 
 

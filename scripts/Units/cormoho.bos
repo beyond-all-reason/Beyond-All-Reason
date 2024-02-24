@@ -122,9 +122,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_1 = Func_Var_1 * 500;
+	Static_Var_1 = windOrMetal * 500;
 }
 
 

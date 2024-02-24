@@ -121,9 +121,9 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	meatspin = Func_Var_1 * 2;
+	meatspin = windOrMetal * 2;
 }
 
 

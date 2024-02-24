@@ -118,9 +118,9 @@ Deactivate()
 
 
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_1 = Func_Var_1 * 4;
+	Static_Var_1 = windOrMetal * 4;
 }
 
 Killed(severity, corpsetype)

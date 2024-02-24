@@ -48,9 +48,9 @@ Create()
 	start-script BuildMe();
 }
 
-SetSpeed(windSpd) //called every 15s (450 frames)
+SetSpeed(windOrMetal) //called every 15s (450 frames)
 {
-	WindSpeed = 0 - windSpd; //invert if desired
+	WindSpeed = 0 - windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{

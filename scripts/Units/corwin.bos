@@ -44,9 +44,9 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = windSpd; //invert if desired
+	WindSpeed = windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
