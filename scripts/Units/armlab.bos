@@ -127,7 +127,7 @@ QueryNanoPiece(piecenum)
 }
 
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show nano2;
 	show nano1;

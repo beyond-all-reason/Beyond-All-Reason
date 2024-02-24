@@ -3,7 +3,7 @@
 
 piece  base, wake1, wake2, nano1, nano2;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, nano;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging, nano;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -121,7 +121,7 @@ Create()
 	hide wake1;
 	hide wake2;
 	nano=0;
-	Static_Var_1 = 0;
+	buildHeading = 0;
 	call-script InitState();
 	return (0);
 }
@@ -138,11 +138,11 @@ Deactivate()
 	return (0);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show nano1;
 	show nano2;
-	Static_Var_1 = Func_Var_1;
+	buildHeading = heading;
 	start-script RequestState(0);
 	return (0);
 }

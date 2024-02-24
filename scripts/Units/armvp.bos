@@ -126,7 +126,7 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show nano;
 	show cagelight_emit;

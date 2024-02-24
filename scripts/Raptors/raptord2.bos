@@ -68,10 +68,6 @@ Killed( severity, corpsetype )
 	return( 0 );
 }
 
-StartBuilding(Func_Var_1, Func_Var_2)
-{
-}
-
 StopBuilding()
 {
 }

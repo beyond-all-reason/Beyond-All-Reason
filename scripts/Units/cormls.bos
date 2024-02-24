@@ -3,7 +3,7 @@
 
 piece  base, door1, door2, neck, boom, nano, wake;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -60,7 +60,7 @@ deactivatescr()
 Go()
 {
 	call-script activatescr();
-	turn boom to y-axis Static_Var_2 speed <160.000000>;
+	turn boom to y-axis buildHeading speed <160.000000>;
 	wait-for-turn boom around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -103,7 +103,7 @@ Create()
 {
 	hide nano;
 	hide wake;
-	Static_Var_2 = 0;
+	buildHeading = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
@@ -123,10 +123,10 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show nano;
-	Static_Var_2 = Func_Var_1;
+	buildHeading = heading;
 	start-script RequestState(0);
 }
 

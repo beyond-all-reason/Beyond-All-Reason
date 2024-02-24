@@ -3,7 +3,7 @@
 
 piece  base, rtracks, ltracks, larm1, larm2, larm3, rarm1,rarm2,rarm3,rturret,lturret,lnano,rnano;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging,nano;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging,nano;
 
 
 #define BASEPIECE base
@@ -26,8 +26,8 @@ Go()
 		sleep 60;
 		turn larm1 to x-axis <-90> speed <360>;
 		turn rarm1 to x-axis <-90> speed <360>;
-		turn lturret to x-axis <-90> - Static_Var_2 speed <360>;
-		turn rturret to x-axis <-90> + Static_Var_2 speed <360>;
+		turn lturret to x-axis <-90> - buildHeading speed <360>;
+		turn rturret to x-axis <-90> + buildHeading speed <360>;
 		sleep 100;
 		turn larm2 to y-axis <0> speed <180>;
 		turn rarm2 to y-axis <0> speed <180>;
@@ -99,7 +99,7 @@ Create()
 {
 	hide rnano;
 	hide lnano;
-	Static_Var_2 = 0;
+	buildHeading = 0;
 	nano=0;
 	call-script InitState();
 	return (0);
@@ -135,11 +135,11 @@ Deactivate()
 	return (0);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show rnano;
 	show lnano;
-	Static_Var_2 = Func_Var_1;
+	buildHeading = heading;
 	start-script RequestState(0);
 	return (0);
 }

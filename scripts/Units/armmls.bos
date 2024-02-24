@@ -3,7 +3,7 @@
 
 piece  ground, base, door1, door2, NanoTurret, Nanoemit;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, oldHead;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -79,7 +79,7 @@ deactivatescr()
 Go()
 {
 	call-script activatescr();
-	turn NanoTurret to y-axis <180>+Static_Var_2 speed <160.000000>;
+	turn NanoTurret to y-axis <180>+buildHeading speed <160.000000>;
 	wait-for-turn NanoTurret around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -124,7 +124,7 @@ Create()
 {
 	hide nanoemit;
 	hide ground;
-	Static_Var_2 = 0;
+	buildHeading = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
@@ -144,10 +144,10 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	show nanoemit;
-	Static_Var_2 = Func_Var_1;
+	buildHeading = heading;
 	start-script RequestState(0);
 }
 

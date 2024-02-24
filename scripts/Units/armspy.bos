@@ -257,7 +257,7 @@ Reload()
 
 
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
 	while( !Static_Var_3 )
 	{

@@ -3,7 +3,7 @@
 
 piece  base, aim, stand, emitnano;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
 
 Activatescr()
@@ -27,7 +27,7 @@ Deactivatescr()
 Go()
 {
 	call-script Activatescr();
-	turn aim to y-axis Static_Var_1 speed <320.000000>;
+	turn aim to y-axis buildHeading speed <320.000000>;
 	wait-for-turn aim around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -74,7 +74,7 @@ Create()
 {
 	hide emitnano;
 	call-script InitState();
-	Static_Var_1 = 0;
+	buildHeading = 0;
 	Static_Var_2 = 5000;
 }
 
@@ -110,10 +110,10 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
     show emitnano;
-	Static_Var_1 = Func_Var_1;
+	buildHeading = heading;
 	start-script RequestState(0);
 }
 
