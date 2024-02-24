@@ -7,7 +7,7 @@ piece  pelvis, lthigh, lshin, lcalf, lfoot, rthigh, rshin, rcalf, rfoot,
 	torso, ruparm, relbow, rloarm, rbarrel, rflare1, rflare2, luparm, 
 	lelbow, lloarm, lbarrel, lflare1, lflare2;
 
-static-var  Static_Var_1, gun_1, bMoving, isAiming, wpn1_lasthead;
+static-var  Static_Var_1, gun_1, isMoving, isAiming, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -172,7 +172,7 @@ Create()
 	hide rflare1;
 
 	gun_1 = 0;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_1 = 3500;
 	start-script SmokeUnit();
@@ -181,7 +181,7 @@ Create()
 StartMoving()
 {
 
-	bMoving = TRUE;
+	isMoving = TRUE;
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
 	if( !isAiming )
@@ -198,7 +198,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	signal SIG_MOVE;
 	start-script stopwalk();
 }

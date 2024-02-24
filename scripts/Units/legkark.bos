@@ -8,7 +8,7 @@ piece  torso, rflare, lflare, pelvis,
 	   shield, shldbot, shldout, shldin, shldtop, rhand, rheatray,
 	   backpack, neck, head;
 
-static-var  bMoving, isAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
+static-var  isMoving, isAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
 			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
 
 // Signal definitions
@@ -138,7 +138,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 #define WAIT_WALK\
 	sleep WALK_PERIOD;\
-	while(!bMoving)\
+	while(!isMoving)\
 	{\
 		sleep 111;\
 	}
@@ -184,7 +184,7 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		if (bMoving)
+		if (isMoving)
 		{
 			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
 			//if (currentSpeed>300) currentSpeed=300;
@@ -193,7 +193,7 @@ UnitSpeed()
 			WALK_PERIOD=120;
 		}
 		sleep 142;
-		//get PRINT(bMoving, currentSpeed,0,0);
+		//get PRINT(isMoving, currentSpeed,0,0);
 	}
 }
 
@@ -201,14 +201,14 @@ StartMoving()
 {
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 }
 
 StopMoving()
 {
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	sleep 20*(WALK_PERIOD);
 	
 	turn leg2a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);
@@ -393,7 +393,7 @@ Create()
 	turn leg3a to y-axis <30> now;//5
 	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=800;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	ReadyToAim = 0;
 	restore_delay = 10000;

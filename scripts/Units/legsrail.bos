@@ -7,7 +7,7 @@ piece  base, turret, flare, barrel1, barrel2, barrel3, barrel4, sleeve, rfhip, r
 		lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, 
 		rbleg, rbankle, aimy1;
 
-static-var  bMoving, isAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
+static-var  isMoving, isAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
 
 // Signal definitions
 #define SIG_WALK			2
@@ -22,7 +22,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armvang_anim_walk_2legs_v2.blend
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			move base to y-axis [-0.688000] speed [20.639999] / animSpeed; //delta=-0.69
 			turn base to x-axis <0.688000> speed <20.639998> / animSpeed; //delta=-0.69
 			turn base to y-axis <-1.675000> speed <50.249989> / animSpeed; //delta=-1.67
@@ -46,8 +46,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <1.675000> speed <50.249989> / animSpeed; //delta=1.67
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:9
+	while(isMoving) {
+		if (isMoving) { //Frame:9
 			move base to y-axis [0.056000] speed [22.319999] / animSpeed; //delta=0.74
 			turn base to x-axis <-0.056000> speed <22.320001> / animSpeed; //delta=0.74
 			turn base to y-axis <-1.274999> speed <12.000010> / animSpeed; //delta=0.40
@@ -71,7 +71,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <1.529005> speed <4.379849> / animSpeed; //delta=-0.15
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			move base to y-axis [0.944000] speed [26.640000] / animSpeed; //delta=0.89
 			turn base to x-axis <-0.944000> speed <26.639998> / animSpeed; //delta=0.89
 			turn base to y-axis <-0.537499> speed <22.125001> / animSpeed; //delta=0.74
@@ -95,7 +95,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <1.194753> speed <10.027555> / animSpeed; //delta=-0.33
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			move base to y-axis [1.688000] speed [22.320002] / animSpeed; //delta=0.74
 			turn base to x-axis <-1.688000> speed <22.319997> / animSpeed; //delta=0.74
 			turn base to y-axis <0.800000> speed <40.124991> / animSpeed; //delta=1.34
@@ -119,7 +119,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-0.306625> speed <45.041341> / animSpeed; //delta=-1.50
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			move base to y-axis [2.000000] speed [9.359998] / animSpeed; //delta=0.31
 			turn base to x-axis <-2.000000> speed <9.360002> / animSpeed; //delta=0.31
 			turn base to y-axis <3.000000> speed <65.999990> / animSpeed; //delta=2.20
@@ -141,7 +141,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-3.000000> speed <80.801246> / animSpeed; //delta=-2.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			move base to y-axis [0.500000] speed [45.000000] / animSpeed; //delta=-1.50
 			turn base to x-axis <-0.500000> speed <45.000000> / animSpeed; //delta=-1.50
 			turn base to y-axis <5.000000> speed <59.999993> / animSpeed; //delta=2.00
@@ -165,7 +165,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-5.000000> speed <59.999993> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			move base to y-axis [-0.500000] speed [30.000000] / animSpeed; //delta=-1.00
 			turn base to x-axis <0.500000> speed <30.000005> / animSpeed; //delta=-1.00
 			turn base to y-axis <3.000000> speed <59.999993> / animSpeed; //delta=-2.00
@@ -189,7 +189,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-3.000000> speed <59.999993> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:27
+		if (isMoving) { //Frame:27
 			move base to y-axis [-1.000000] speed [15.000000] / animSpeed; //delta=-0.50
 			turn base to x-axis <1.000000> speed <14.999995> / animSpeed; //delta=-0.50
 			turn base to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
@@ -213,7 +213,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-2.000000> speed <30.000003> / animSpeed; //delta=1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			move base to y-axis [-0.688000] speed [9.360001] / animSpeed; //delta=0.31
 			turn base to x-axis <0.688000> speed <9.360002> / animSpeed; //delta=0.31
 			turn base to y-axis <1.675000> speed <9.750011> / animSpeed; //delta=-0.33
@@ -237,7 +237,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-1.675000> speed <9.750011> / animSpeed; //delta=0.33
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:33
+		if (isMoving) { //Frame:33
 			move base to y-axis [0.056000] speed [22.319999] / animSpeed; //delta=0.74
 			turn base to x-axis <-0.056000> speed <22.320001> / animSpeed; //delta=0.74
 			turn base to y-axis <1.274999> speed <12.000010> / animSpeed; //delta=-0.40
@@ -261,7 +261,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-1.529005> speed <4.379849> / animSpeed; //delta=0.15
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			move base to y-axis [0.944000] speed [26.640000] / animSpeed; //delta=0.89
 			turn base to x-axis <-0.944000> speed <26.639998> / animSpeed; //delta=0.89
 			turn base to y-axis <0.537499> speed <22.125001> / animSpeed; //delta=-0.74
@@ -285,7 +285,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-1.194753> speed <10.027555> / animSpeed; //delta=0.33
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:39
+		if (isMoving) { //Frame:39
 			move base to y-axis [1.688000] speed [22.320002] / animSpeed; //delta=0.74
 			turn base to x-axis <-1.688000> speed <22.319997> / animSpeed; //delta=0.74
 			turn base to y-axis <-0.800000> speed <40.124991> / animSpeed; //delta=-1.34
@@ -309,7 +309,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <0.306625> speed <45.041328> / animSpeed; //delta=1.50
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			move base to y-axis [2.000000] speed [9.359998] / animSpeed; //delta=0.31
 			turn base to x-axis <-2.000000> speed <9.360002> / animSpeed; //delta=0.31
 			turn base to y-axis <-3.000000> speed <65.999990> / animSpeed; //delta=-2.20
@@ -332,7 +332,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <3.000000> speed <80.801258> / animSpeed; //delta=2.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			move base to y-axis [0.500000] speed [45.000000] / animSpeed; //delta=-1.50
 			turn base to x-axis <-0.500000> speed <45.000000> / animSpeed; //delta=-1.50
 			turn base to y-axis <-5.000000> speed <59.999993> / animSpeed; //delta=-2.00
@@ -356,7 +356,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <5.000000> speed <59.999993> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			move base to y-axis [-0.500000] speed [30.000000] / animSpeed; //delta=-1.00
 			turn base to x-axis <0.500000> speed <30.000005> / animSpeed; //delta=-1.00
 			turn base to y-axis <-3.000000> speed <59.999993> / animSpeed; //delta=2.00
@@ -380,7 +380,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <3.000000> speed <59.999993> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:51
+		if (isMoving) { //Frame:51
 			move base to y-axis [-1.000000] speed [15.000000] / animSpeed; //delta=-0.50
 			turn base to x-axis <1.000000> speed <14.999995> / animSpeed; //delta=-0.50
 			turn base to y-axis <-2.000000> speed <30.000003> / animSpeed; //delta=1.00
@@ -404,7 +404,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			move base to y-axis [-0.688000] speed [9.360001] / animSpeed; //delta=0.31
 			turn base to x-axis <0.688000> speed <9.360002> / animSpeed; //delta=0.31
 			turn base to y-axis <-1.675000> speed <9.750011> / animSpeed; //delta=0.33
@@ -470,7 +470,7 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	bMoving=TRUE;
+	isMoving=TRUE;
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
@@ -478,7 +478,7 @@ StartMoving(){
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 
@@ -516,7 +516,7 @@ Create()
 {
 	hide flare;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	bSteering = FALSE;
 	Static_Var_3 = 1;

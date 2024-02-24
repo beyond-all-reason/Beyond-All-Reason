@@ -8,8 +8,8 @@ UnitSpeed(){
 	var unitxz;
 	while(TRUE){
 		
-		//get PRINT ((GET UNIT_Y)/65000, bMoving, 2, 3);
-		if (bMoving == TRUE){
+		//get PRINT ((GET UNIT_Y)/65000, isMoving, 2, 3);
+		if (isMoving == TRUE){
 			unitxz = (get UNIT_XZ);
 			groundheight = 0;
 			if (unitxz > 0 ){
@@ -53,7 +53,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	if (isSwimming == TRUE) start-script Swim();
 	else start-script Walk();
@@ -61,7 +61,7 @@ StartMoving(){
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	if (!isDying){
 		if (isSwimming == TRUE ) call-script StopSwimming();
 		else call-script StopWalking();

@@ -2,11 +2,11 @@
 //#define MOVESCALE 100 //Higher values are bigger, 100 is default
 //static-var animAmplitude; //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-//static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+//static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 //#define SIG_WALK 4
 Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			turn head to x-axis ((<-6.375634> *animAmplitude)/100) speed ((<191.269023> *animAmplitude)/100) / animSpeed; //delta=6.38
 			turn head to z-axis ((<0.411281> *animAmplitude)/100) speed ((<12.338443> *animAmplitude)/100) / animSpeed; //delta=-0.41
 			turn head to y-axis ((<4.363053> *animAmplitude)/100) speed ((<130.891581> *animAmplitude)/100) / animSpeed; //delta=4.36
@@ -27,8 +27,8 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn rthigh to y-axis ((<-3.715490> *animAmplitude)/100) speed ((<111.464704> *animAmplitude)/100) / animSpeed; //delta=-3.72
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:12
+	while(isMoving) {
+		if (isMoving) { //Frame:12
 			move body to z-axis (((([-1.589830] *MOVESCALE)/100) *animAmplitude)/100) speed (((([47.694898] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.59
 			move body to y-axis (((([0.366884] *MOVESCALE)/100) *animAmplitude)/100) speed (((([11.006514] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.37
 			turn body to x-axis ((<7.081318> *animAmplitude)/100) speed ((<212.439545> *animAmplitude)/100) / animSpeed; //delta=-7.08
@@ -59,7 +59,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<-6.844830> *animAmplitude)/100) speed ((<205.344890> *animAmplitude)/100) / animSpeed; //delta=-6.84
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn body to x-axis ((<2.399009> *animAmplitude)/100) speed ((<140.469269> *animAmplitude)/100) / animSpeed; //delta=4.68
 			turn head to x-axis ((<-8.075413> *animAmplitude)/100) speed ((<209.851483> *animAmplitude)/100) / animSpeed; //delta=-7.00
 			turn head to z-axis ((<0.543087> *animAmplitude)/100) speed ((<16.578936> *animAmplitude)/100) / animSpeed; //delta=0.55
@@ -94,7 +94,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<205.344890> *animAmplitude)/100) / animSpeed; //delta=6.84
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			move body to z-axis (((([1.354689] *MOVESCALE)/100) *animAmplitude)/100) speed (((([88.335575] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.94
 			move body to y-axis (((([0.538738] *MOVESCALE)/100) *animAmplitude)/100) speed (((([5.155626] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.17
 			turn body to x-axis ((<-2.283299> *animAmplitude)/100) speed ((<140.469256> *animAmplitude)/100) / animSpeed; //delta=4.68
@@ -127,7 +127,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<7.533121> *animAmplitude)/100) speed ((<225.993619> *animAmplitude)/100) / animSpeed; //delta=7.53
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn body to x-axis ((<-1.826640> *animAmplitude)/100) speed ((<13.699795> *animAmplitude)/100) / animSpeed; //delta=-0.46
 			turn head to x-axis ((<2.781466> *animAmplitude)/100) speed ((<74.579499> *animAmplitude)/100) / animSpeed; //delta=-2.49
 			turn head to z-axis ((<-0.286258> *animAmplitude)/100) speed ((<5.700759> *animAmplitude)/100) / animSpeed; //delta=0.19
@@ -158,7 +158,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<225.993619> *animAmplitude)/100) / animSpeed; //delta=-7.53
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn body to x-axis ((<-1.369980> *animAmplitude)/100) speed ((<13.699798> *animAmplitude)/100) / animSpeed; //delta=-0.46
 			turn head to x-axis ((<5.267450> *animAmplitude)/100) speed ((<74.579499> *animAmplitude)/100) / animSpeed; //delta=-2.49
 			turn head to z-axis ((<-0.476283> *animAmplitude)/100) speed ((<5.700759> *animAmplitude)/100) / animSpeed; //delta=0.19
@@ -190,7 +190,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<-7.797609> *animAmplitude)/100) speed ((<233.928284> *animAmplitude)/100) / animSpeed; //delta=-7.80
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			turn body to x-axis ((<-0.913320> *animAmplitude)/100) speed ((<13.699795> *animAmplitude)/100) / animSpeed; //delta=-0.46
 			turn head to x-axis ((<7.753434> *animAmplitude)/100) speed ((<74.579519> *animAmplitude)/100) / animSpeed; //delta=-2.49
 			turn head to z-axis ((<-0.666309> *animAmplitude)/100) speed ((<5.700758> *animAmplitude)/100) / animSpeed; //delta=0.19
@@ -220,7 +220,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<233.928284> *animAmplitude)/100) / animSpeed; //delta=7.80
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			turn body to x-axis ((<-0.456660> *animAmplitude)/100) speed ((<13.699798> *animAmplitude)/100) / animSpeed; //delta=-0.46
 			turn head to x-axis ((<0.688899> *animAmplitude)/100) speed ((<211.936027> *animAmplitude)/100) / animSpeed; //delta=7.06
 			turn head to z-axis ((<-0.127514> *animAmplitude)/100) speed ((<16.163853> *animAmplitude)/100) / animSpeed; //delta=-0.54
@@ -243,7 +243,7 @@ Swim() {// For N:\animations\Raptors\raptor_2legged_swim.blend Created by https:
 			turn tail to y-axis ((<7.467435> *animAmplitude)/100) speed ((<224.023042> *animAmplitude)/100) / animSpeed; //delta=7.47
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([40.640677] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.35
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([16.162140] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.54
 			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<13.699795> *animAmplitude)/100) / animSpeed; //delta=-0.46

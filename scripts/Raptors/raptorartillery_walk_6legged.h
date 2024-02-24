@@ -1,7 +1,7 @@
 
 Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 1)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:2
+	if (isMoving) { //Frame:2
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<23.461623> *animAmplitude)/100) speed ((<669.069328> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-6.587734> *animAmplitude)/100) speed ((<14.171661> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-5.941185> *animAmplitude)/100) speed ((<45.436963> *animAmplitude)/100) / animSpeed; 
@@ -70,8 +70,8 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<11.470954> *animAmplitude)/100) speed ((<50.879001> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:4
+	while(isMoving) {
+		if (isMoving) { //Frame:4
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<24.997109> *animAmplitude)/100) speed ((<46.064589> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-2.511068> *animAmplitude)/100) speed ((<122.299976> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<2.154120> *animAmplitude)/100) speed ((<242.859130> *animAmplitude)/100) / animSpeed; 
@@ -147,7 +147,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<12.123821> *animAmplitude)/100) speed ((<19.586011> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:6
+		if (isMoving) { //Frame:6
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<-17.733447> *animAmplitude)/100) speed ((<1281.916695> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<1.711086> *animAmplitude)/100) speed ((<126.664620> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<2.777633> *animAmplitude)/100) speed ((<18.705391> *animAmplitude)/100) / animSpeed; 
@@ -227,7 +227,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<14.334247> *animAmplitude)/100) speed ((<66.312778> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:8
+		if (isMoving) { //Frame:8
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<-21.252318> *animAmplitude)/100) speed ((<105.566123> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-0.720081> *animAmplitude)/100) speed ((<72.934995> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<0.247498> *animAmplitude)/100) speed ((<75.904031> *animAmplitude)/100) / animSpeed; 
@@ -306,7 +306,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<16.071804> *animAmplitude)/100) speed ((<52.126723> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:10
+		if (isMoving) { //Frame:10
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<11.678611> *animAmplitude)/100) speed ((<987.927868> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-7.274415> *animAmplitude)/100) speed ((<196.630036> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-5.697559> *animAmplitude)/100) speed ((<178.351722> *animAmplitude)/100) / animSpeed; 
@@ -387,7 +387,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<16.349735> *animAmplitude)/100) speed ((<8.337919> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<25.519665> *animAmplitude)/100) speed ((<415.231618> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-8.369135> *animAmplitude)/100) speed ((<32.841590> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-10.391888> *animAmplitude)/100) speed ((<140.829865> *animAmplitude)/100) / animSpeed; 
@@ -456,7 +456,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to y-axis ((<2.248651> *animAmplitude)/100) speed ((<6.014014> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:14
+		if (isMoving) { //Frame:14
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<16.896973> *animAmplitude)/100) speed ((<258.680762> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-4.882244> *animAmplitude)/100) speed ((<104.606716> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-9.497562> *animAmplitude)/100) speed ((<26.829760> *animAmplitude)/100) / animSpeed; 
@@ -532,7 +532,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to x-axis ((<-21.958128> *animAmplitude)/100) speed ((<59.979938> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<-1.768809> *animAmplitude)/100) speed ((<559.973458> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-3.603165> *animAmplitude)/100) speed ((<38.372378> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-8.112296> *animAmplitude)/100) speed ((<41.557996> *animAmplitude)/100) / animSpeed; 
@@ -610,7 +610,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<16.273310> *animAmplitude)/100) speed ((<3.307485> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<-22.881950> *animAmplitude)/100) speed ((<633.394222> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-2.786079> *animAmplitude)/100) speed ((<24.512591> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-6.208683> *animAmplitude)/100) speed ((<57.108377> *animAmplitude)/100) / animSpeed; 
@@ -691,7 +691,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Wing_R to z-axis ((<15.378987> *animAmplitude)/100) speed ((<26.829683> *animAmplitude)/100) / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn rig_Raptor_Artillery_Leg_Back1_L to x-axis ((<1.159311> *animAmplitude)/100) speed ((<721.237823> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to y-axis ((<-6.115346> *animAmplitude)/100) speed ((<99.878012> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Back1_L to z-axis ((<-7.455747> *animAmplitude)/100) speed ((<37.411921> *animAmplitude)/100) / animSpeed; 

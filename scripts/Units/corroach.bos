@@ -6,10 +6,10 @@
 piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,
        lega1, lega4, legb1, legb4, base;
 
-static-var  bMoving;
+static-var  isMoving;
 
 movelegs(){
-	if (bMoving){
+	if (isMoving){
 		move lega6 to z-axis [-0.83] now;
 		move lega5 to z-axis [-0.83] now;
 		move legb6 to z-axis [-0.83] now;
@@ -66,8 +66,8 @@ movelegs(){
 
 walkscr()
 {
-	while (bMoving){
-		if (bMoving){ 
+	while (isMoving){
+		if (isMoving){ 
 			turn base to y-axis <-18> speed <60>;
 			move base to x-axis [0] speed [10];
 			
@@ -76,7 +76,7 @@ walkscr()
 			call-script movelegs();
 			}
 		
-		if (bMoving){ 
+		if (isMoving){ 
 			turn base to y-axis <0> speed <60>;
 			move base to x-axis [3] speed [10];
 			
@@ -85,7 +85,7 @@ walkscr()
 			call-script movelegs();
 			call-script movelegs();
 			}
-		if (bMoving){ 
+		if (isMoving){ 
 			turn base to y-axis <18> speed <60>;
 			move base to x-axis [0] speed [10];
 			
@@ -93,7 +93,7 @@ walkscr()
 			call-script movelegs();
 			call-script movelegs();
 		}
-		if (bMoving){ 
+		if (isMoving){ 
 			turn base to y-axis <0> speed <60>;
 			move base to x-axis [-3] speed [10];
 			
@@ -113,7 +113,7 @@ MotionControl(Func_Var_1)
 {
 	while( TRUE )
 	{
-		Func_Var_1 = bMoving;
+		Func_Var_1 = isMoving;
 		if( Func_Var_1 )
 		{
 			call-script walkscr();
@@ -127,7 +127,7 @@ MotionControl(Func_Var_1)
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	start-script MotionControl();
 }
 
@@ -136,12 +136,12 @@ Create()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 AimWeapon1()

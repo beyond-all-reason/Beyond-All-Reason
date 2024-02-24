@@ -5,7 +5,7 @@
 
 piece  flare1, flare2, turret, base, sleeve, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, ourheading;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, ourheading;
 static-var out_of_arc_count;
 
 // Signal definitions
@@ -27,7 +27,7 @@ Smoke()
 {
 	while( TRUE )
 	{
-		if ( bMoving )
+		if ( isMoving )
 		{
 			if( terrain == 4 )
 			{
@@ -66,7 +66,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide smoke1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	hide flare1;
@@ -88,7 +88,7 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
   start-script UnitSpeed();
@@ -98,7 +98,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
   signal SIG_MOVE;
 }
 

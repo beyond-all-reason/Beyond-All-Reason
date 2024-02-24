@@ -15,7 +15,7 @@
 
 Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			move body to x-axis (((([-2.055556] *MOVESCALE)/100) *animAmplitude)/100) speed (((([61.666667] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.06
 			move body to y-axis (((([3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([104.060361] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=3.47
 			turn body to x-axis ((<0.453704> *animAmplitude)/100) speed ((<13.611109> *animAmplitude)/100) / animSpeed; //delta=-0.45
@@ -45,8 +45,8 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<11.292191> *animAmplitude)/100) speed ((<338.765737> *animAmplitude)/100) / animSpeed; //delta=11.29
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:12
+	while(isMoving) {
+		if (isMoving) { //Frame:12
 			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			move body to x-axis (((([-4.111111] *MOVESCALE)/100) *animAmplitude)/100) speed (((([61.666667] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.06
 			move body to z-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -84,7 +84,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<16.544243> *animAmplitude)/100) speed ((<157.561553> *animAmplitude)/100) / animSpeed; //delta=5.25
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			move body to x-axis (((([-3.433333] *MOVESCALE)/100) *animAmplitude)/100) speed (((([20.333333] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.68
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to y-axis (((([-3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([167.001536] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-5.57
@@ -121,7 +121,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<11.292191> *animAmplitude)/100) speed ((<157.561553> *animAmplitude)/100) / animSpeed; //delta=-5.25
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			move body to x-axis (((([0.102778] *MOVESCALE)/100) *animAmplitude)/100) speed (((([106.083333] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=3.54
 			move body to z-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to y-axis (((([-1.775264] *MOVESCALE)/100) *animAmplitude)/100) speed (((([50.802444] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.69
@@ -153,7 +153,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<338.765737> *animAmplitude)/100) / animSpeed; //delta=-11.29
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			move body to x-axis (((([2.775000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([80.166671] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.67
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([157.318279] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=5.24
@@ -185,7 +185,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<-10.633881> *animAmplitude)/100) speed ((<319.016442> *animAmplitude)/100) / animSpeed; //delta=-10.63
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			//call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			move body to x-axis (((([4.111111] *MOVESCALE)/100) *animAmplitude)/100) speed (((([40.083332] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.34
 			move body to z-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -223,7 +223,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<-16.544243> *animAmplitude)/100) speed ((<177.310849> *animAmplitude)/100) / animSpeed; //delta=-5.91
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			move body to x-axis (((([2.877778] *MOVESCALE)/100) *animAmplitude)/100) speed (((([37.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.23
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to y-axis (((([-3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([162.159905] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-5.41
@@ -261,7 +261,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<-10.633881> *animAmplitude)/100) speed ((<177.310849> *animAmplitude)/100) / animSpeed; //delta=5.91
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			move body to x-axis (((([-0.205555] *MOVESCALE)/100) *animAmplitude)/100) speed (((([92.499998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-3.08
 			move body to z-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to y-axis (((([-2.259427] *MOVESCALE)/100) *animAmplitude)/100) speed (((([36.277556] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.21
@@ -293,7 +293,7 @@ Walk() {// For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by ht
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<319.016442> *animAmplitude)/100) / animSpeed; //delta=10.63
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			move body to x-axis (((([-2.466667] *MOVESCALE)/100) *animAmplitude)/100) speed (((([67.833338] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.26
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([3.468679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([171.843166] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=5.73

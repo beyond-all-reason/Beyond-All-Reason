@@ -5,7 +5,7 @@
 
 piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, wpn1_lasthead;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -27,7 +27,7 @@ Smoke()
 {
 	while( TRUE )
 	{
-		if ( bMoving )
+		if ( isMoving )
 		{
 			if( terrain == 4 )
 			{
@@ -62,7 +62,7 @@ Create()
 	hide smoke1;
 	hide flare;
 	hide smoke2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	restore_delay = 200;
@@ -80,7 +80,7 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	spin lwheel around x-axis speed <110> accelerate <5>;
 	spin rwheel around x-axis speed <110> accelerate <5>;
   
@@ -93,7 +93,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	signal SIG_MOVE;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;

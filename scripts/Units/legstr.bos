@@ -6,7 +6,7 @@
 piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve, lbarrel, luparm, ruparm, 
 	 rbarrel, lflare, rflare, aimx1, aimy1;
 
-static-var  bMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
+static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -193,7 +193,7 @@ MotionControl(moving, aiming, justmoved)
 	justmoved = TRUE;
 	while( TRUE )
 	{
-		moving = bMoving;
+		moving = isMoving;
 		aiming = isAiming;
 		if( moving )
 		{
@@ -244,7 +244,7 @@ Create()
 	hide rflare;
 	hide aimx1;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_3 = 1;
 	miniguncount = 0;
@@ -262,12 +262,12 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 static-var  Stunned;

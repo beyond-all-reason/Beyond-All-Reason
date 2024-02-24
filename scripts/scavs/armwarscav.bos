@@ -6,7 +6,7 @@
 piece  torso,rflare, lflare, pelvis, lthigh, rthigh, luparm,
        ruparm, rarm, larm, rleg, rfoot, lleg, lfoot;
 
-static-var  bMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
+static-var  isMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -29,7 +29,7 @@ walk()
 		//animspeed 36 elmos per cycle
 
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 0 
 	
@@ -50,7 +50,7 @@ walk()
 
 		sleep 130;
 		}
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 1
 	
@@ -72,7 +72,7 @@ walk()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 2
 	
@@ -94,7 +94,7 @@ walk()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 3
 	
@@ -116,7 +116,7 @@ walk()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 4
 	
@@ -138,7 +138,7 @@ walk()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 5
 	
@@ -166,7 +166,7 @@ walklegs()
 {
 
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 0 
 	
@@ -180,7 +180,7 @@ walklegs()
 
 		sleep 130;
 		}
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 1
 	
@@ -196,7 +196,7 @@ walklegs()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 2
 	
@@ -212,7 +212,7 @@ walklegs()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 3
 	
@@ -228,7 +228,7 @@ walklegs()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 4
 	
@@ -243,7 +243,7 @@ walklegs()
 		sleep 130;
 		}
 
-		if( bMoving )
+		if( isMoving )
 		{	
 		//step 5
 	
@@ -265,7 +265,7 @@ MotionControl(moving, aiming, justmoved)
 	justmoved = TRUE;
 	while( TRUE )
 	{
-		moving = bMoving;
+		moving = isMoving;
 		aiming = isAiming;
 		if( moving )
 		{
@@ -342,7 +342,7 @@ Create()
 {
 	hide rflare;
 	hide lflare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_3 = 1;
 	restore_delay = 3000;
@@ -357,12 +357,12 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 SweetSpot(piecenum)

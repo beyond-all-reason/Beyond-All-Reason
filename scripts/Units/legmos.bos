@@ -5,7 +5,7 @@
 
 piece  base, lflare, rflare, lwingd, lwingu, rwingd, rwingu, thrusta, thrustb, rlauncher, llauncher;
 
-static-var gun_1, speedwings, bMoving;
+static-var gun_1, speedwings, isMoving;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -13,7 +13,7 @@ static-var gun_1, speedwings, bMoving;
 IdleHover()
 {
 	while(TRUE){
-		if(bMoving == 1)
+		if(isMoving == 1)
 		{
 			turn lwingd to z-axis <20.000000> speed <800>;
 			turn lwingu to z-axis <0.000000> speed <800>;
@@ -48,7 +48,7 @@ Create()
 	hide thrustb;
 	gun_1=0;
 	speedwings=200;
-	bMoving = 0;
+	isMoving = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -119,7 +119,7 @@ FirePrimary()
 
 StartMoving()
 {
-	bMoving = 1;
+	isMoving = 1;
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
@@ -127,7 +127,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = 0;
+	isMoving = 0;
 	turn lwingd to z-axis <0.000000> speed <50.000000>;
 	turn lwingu to z-axis <0.000000> speed <50.000000>;
 	turn rwingd to z-axis <0.000000> speed <50.000000>;
@@ -139,7 +139,7 @@ StopMoving()
 
 MoveRate0()
 {
-	bMoving = 0;
+	isMoving = 0;
 	turn lwingd to z-axis <0.000000> speed <50.000000>;
 	turn lwingu to z-axis <0.000000> speed <50.000000>;
 	turn rwingd to z-axis <0.000000> speed <50.000000>;
@@ -155,7 +155,7 @@ MoveRate1()
 
 MoveRate2()
 {
-	bMoving = 1;
+	isMoving = 1;
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
@@ -163,7 +163,7 @@ MoveRate2()
 
 MoveRate3()
 {
-	bMoving = 1;
+	isMoving = 1;
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;

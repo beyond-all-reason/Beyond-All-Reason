@@ -13,7 +13,7 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 #define MOVESCALE 200
 #define MOVESPEED 5
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var  maxSpeed, animFramesPerKeyframe, bMoving, deltaSpeed;
+static-var  maxSpeed, animFramesPerKeyframe, isMoving, deltaSpeed;
 #define SIG_WALK 1
 
 #define BASEPIECE body //needed for HitByWeapon
@@ -55,12 +55,12 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 

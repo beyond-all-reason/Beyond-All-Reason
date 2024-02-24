@@ -11,7 +11,7 @@
 
 piece	flare;
 
-// static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+// static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIG_AIM 2
 //#define SIG_FIRE1 4

@@ -5,7 +5,7 @@ piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lf
 
 #define SIG_AIM				2
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
+static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {

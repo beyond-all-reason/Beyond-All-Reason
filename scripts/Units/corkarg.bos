@@ -8,7 +8,7 @@ piece  pelvis, rfhip, rfleg, rffoot, lmhip, lmleg, lmfoot, lbhip, lbleg,
 		turret, shoulder, rlauncher, rbarrel1, flare1, rbarrel2, flare3, llauncher,
 		lbarrel1, flare2, lbarrel2, flare4, aacover, aimy1, aimx1, aaflare1, aaflare2;
 
-static-var  bMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, gun_2, wpnheading;
+static-var  isMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, gun_2, wpnheading;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -18,7 +18,7 @@ static-var  bMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg.blend
 	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:3
+	if (isMoving) { //Frame:3
 			turn lbfoot to z-axis <-11.433307> speed <707.000778> / animSpeed;
 			turn lbhip to y-axis <-0.286453> speed <1358.593628> / animSpeed;
 			turn lbleg to z-axis <-9.263622> speed <517.908622> / animSpeed;
@@ -41,8 +41,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to z-axis <0.400000> speed <12.000000> / animSpeed;
 		sleep 65;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:5
+	while(isMoving) {
+		if (isMoving) { //Frame:5
 			turn lbfoot to z-axis <-19.620212> speed <245.607139> / animSpeed;
 			turn lbhip to y-axis <-3.589625> speed <99.095164> / animSpeed;
 			turn lbleg to z-axis <2.135972> speed <341.987802> / animSpeed;
@@ -68,7 +68,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <0.500000> speed <15.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:7
+		if (isMoving) { //Frame:7
 			turn lbfoot to z-axis <-23.720323> speed <123.003340> / animSpeed;
 			turn lbhip to y-axis <-2.043328> speed <46.388903> / animSpeed;
 			turn lbleg to z-axis <3.558429> speed <42.673707> / animSpeed;
@@ -95,7 +95,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <1.000000> speed <15.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:9
+		if (isMoving) { //Frame:9
 			turn lbfoot to z-axis <-16.492328> speed <216.839843> / animSpeed;
 			turn lbhip to y-axis <4.397770> speed <193.232954> / animSpeed;
 			turn lbleg to z-axis <-3.138384> speed <200.904367> / animSpeed;
@@ -123,7 +123,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to z-axis <1.600000> speed <12.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:11
+		if (isMoving) { //Frame:11
 			turn lbfoot to z-axis <-21.852251> speed <160.797679> / animSpeed;
 			turn lbhip to y-axis <9.133693> speed <142.077676> / animSpeed;
 			turn lbleg to z-axis <0.557655> speed <110.881171> / animSpeed;
@@ -151,7 +151,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to z-axis <2.000000> speed <12.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
+		if (isMoving) { //Frame:13
 			turn lbfoot to z-axis <-27.212181> speed <160.797884> / animSpeed;
 			turn lbhip to y-axis <13.869614> speed <142.077651> / animSpeed;
 			turn lbleg to z-axis <4.253695> speed <110.881171> / animSpeed;
@@ -180,7 +180,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <0.750000> speed <7.499999> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn lbfoot to z-axis <-32.231116> speed <150.568071> / animSpeed;
 			turn lbhip to y-axis <18.620540> speed <142.527777> / animSpeed;
 			turn lbleg to z-axis <7.895835> speed <109.264222> / animSpeed;
@@ -209,7 +209,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <0.500000> speed <7.499999> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:17
+		if (isMoving) { //Frame:17
 			turn lbfoot to z-axis <-37.250062> speed <150.568378> / animSpeed;
 			turn lbhip to y-axis <23.371466> speed <142.527777> / animSpeed;
 			turn lbleg to z-axis <11.537976> speed <109.264235> / animSpeed;
@@ -238,7 +238,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <0.250000> speed <7.500001> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:19
+		if (isMoving) { //Frame:19
 			turn lbfoot to z-axis <-55.477911> speed <546.835463> / animSpeed;
 			turn lbhip to y-axis <32.066164> speed <260.840929> / animSpeed;
 			turn lbleg to z-axis <21.041351> speed <285.101223> / animSpeed;
@@ -266,7 +266,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <0.000000> speed <7.500001> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			turn lbfoot to z-axis <-73.705760> speed <546.835463> / animSpeed;
 			turn lbhip to y-axis <40.760861> speed <260.840929> / animSpeed;
 			turn lbleg to z-axis <30.544722> speed <285.101146> / animSpeed;
@@ -292,7 +292,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-0.500000> speed <15.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:23
+		if (isMoving) { //Frame:23
 			turn lbfoot to z-axis <-62.879527> speed <324.786970> / animSpeed;
 			turn lbhip to y-axis <35.868021> speed <146.785205> / animSpeed;
 			turn lbleg to z-axis <20.962242> speed <287.474415> / animSpeed;
@@ -319,7 +319,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-1.000000> speed <15.000000> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn lbfoot to z-axis <-52.053292> speed <324.787072> / animSpeed;
 			turn lbhip to y-axis <30.975181> speed <146.785205> / animSpeed;
 			turn lbleg to z-axis <11.379754> speed <287.474620> / animSpeed;
@@ -347,7 +347,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-1.500000> speed <15.000001> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:27
+		if (isMoving) { //Frame:27
 			turn lbfoot to z-axis <-41.227066> speed <324.786765> / animSpeed;
 			turn lbhip to y-axis <26.082343> speed <146.785154> / animSpeed;
 			turn lbleg to z-axis <1.797270> speed <287.474543> / animSpeed;
@@ -375,7 +375,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-2.000000> speed <14.999998> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:29
+		if (isMoving) { //Frame:29
 			turn lbfoot to z-axis <-30.400834> speed <324.786970> / animSpeed;
 			turn lbhip to y-axis <21.189504> speed <146.785154> / animSpeed;
 			turn lbleg to z-axis <-7.785216> speed <287.474568> / animSpeed;
@@ -403,7 +403,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-1.500000> speed <14.999998> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:31
+		if (isMoving) { //Frame:31
 			turn lbfoot to z-axis <-19.574595> speed <324.787175> / animSpeed;
 			turn lbhip to y-axis <16.296667> speed <146.785102> / animSpeed;
 			turn lbleg to z-axis <-17.367701> speed <287.474543> / animSpeed;
@@ -431,7 +431,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-1.000000> speed <14.999998> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:33
+		if (isMoving) { //Frame:33
 			turn lbfoot to z-axis <-11.463393> speed <243.336042> / animSpeed;
 			turn lbhip to y-axis <7.359210> speed <268.123737> / animSpeed;
 			turn lbleg to z-axis <-22.712790> speed <160.352676> / animSpeed;
@@ -459,7 +459,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn turret to y-axis <-0.500000> speed <15.000001> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			turn lbhip to y-axis <-0.286453> speed <229.369876> / animSpeed;
 			turn lbleg to z-axis <-9.263622> speed <403.475052> / animSpeed;
 			turn lffoot to z-axis <-59.009843> speed <349.278935> / animSpeed;
@@ -546,13 +546,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
   call-script StopWalking();
 }
 
@@ -579,7 +579,7 @@ Create()
 	gun_2 = 1;
 	turn aaflare1 to x-axis <-30> now;
 	turn aaflare2 to x-axis <-30> now;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 4;
 	wpnheading  = 0;

@@ -5,7 +5,7 @@
 
 piece body, lthigh, rthigh, lleg, rleg, rfoot,lfoot, turret, flare, barrel, aimy1;
 
-static-var  bMoving, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  isMoving, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -19,7 +19,7 @@ lua_UnitScriptDecal(decalIndex, xpos,zpos, heading)
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armfboy_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:9
+	if (isMoving) { //Frame:9
 			move body to y-axis [0.500000] speed [15.000000] / animSpeed; //delta=0.50 
 			turn lfoot to x-axis <-13.787211> speed <413.616321> / animSpeed; //delta=13.79 
 			turn lfoot to z-axis <-0.155394> speed <4.661819> / animSpeed; //delta=0.16 
@@ -34,8 +34,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-46.447609> speed <1393.428259> / animSpeed; //delta=46.45 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:17
+	while(isMoving) {
+		if (isMoving) { //Frame:17
 			move body to y-axis [-2.500000] speed [90.000000] / animSpeed; //delta=-3.00 
 			turn body to x-axis <5.000000> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn body to z-axis <-3.000000> speed <90.000003> / animSpeed; //delta=3.00 
@@ -60,7 +60,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <10.000000> speed <299.999991> / animSpeed; //delta=-10.00 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			move body to y-axis [-1.625000] speed [26.250000] / animSpeed; //delta=0.88 
 			turn body to x-axis <3.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to z-axis <-2.250000> speed <22.500001> / animSpeed; //delta=-0.75 
@@ -85,7 +85,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <6.666667> speed <99.999989> / animSpeed; //delta=3.33 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:33
+		if (isMoving) { //Frame:33
 			move body to y-axis [-0.750000] speed [26.250000] / animSpeed; //delta=0.88 
 			turn body to x-axis <1.000000> speed <59.999996> / animSpeed; //delta=2.00 
 			turn body to z-axis <-1.500000> speed <22.500001> / animSpeed; //delta=-0.75 
@@ -110,7 +110,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <3.333333> speed <100.000001> / animSpeed; //delta=3.33 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:41
+		if (isMoving) { //Frame:41
 			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			move body to y-axis [0.500000] speed [37.500000] / animSpeed; //delta=1.25 
 			turn body to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
@@ -133,7 +133,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <-0.000000> speed <100.000001> / animSpeed; //delta=3.33 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:49
+		if (isMoving) { //Frame:49
 			move body to y-axis [-3.000000] speed [105.000000] / animSpeed; //delta=-3.50 
 			turn body to x-axis <5.000000> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn body to z-axis <3.000000> speed <90.000003> / animSpeed; //delta=-3.00 
@@ -158,7 +158,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <10.000000> speed <299.999991> / animSpeed; //delta=-10.00 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:57
+		if (isMoving) { //Frame:57
 			move body to y-axis [-1.875000] speed [33.750000] / animSpeed; //delta=1.12 
 			turn body to x-axis <3.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to z-axis <2.250000> speed <22.500001> / animSpeed; //delta=0.75 
@@ -183,7 +183,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <6.666667> speed <99.999989> / animSpeed; //delta=3.33 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:65
+		if (isMoving) { //Frame:65
 			move body to y-axis [-0.750000] speed [33.750000] / animSpeed; //delta=1.12 
 			turn body to x-axis <1.000000> speed <59.999996> / animSpeed; //delta=2.00 
 			turn body to z-axis <1.500000> speed <22.500001> / animSpeed; //delta=0.75 
@@ -208,7 +208,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn turret to x-axis <3.333333> speed <100.000001> / animSpeed; //delta=3.33 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:73
+		if (isMoving) { //Frame:73
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			move body to y-axis [0.500000] speed [37.500000] / animSpeed; //delta=1.25 
 			turn body to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
@@ -278,13 +278,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
   start-script UnitSpeed(); 
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -311,7 +311,7 @@ Create()
 {
 	hide flare;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	animspeed = 8;
 	hide flare;
 	restore_delay = 3000;

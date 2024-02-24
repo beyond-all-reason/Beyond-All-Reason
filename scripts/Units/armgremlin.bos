@@ -4,7 +4,7 @@
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay,
+static-var  Static_Var_1, isMoving, Static_Var_3, Static_Var_4, restore_delay,
             statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
@@ -130,7 +130,7 @@ MotionControl(moving, aiming, justmoved)
 	justmoved = TRUE;
 	while( TRUE )
 	{
-		moving = bMoving;
+		moving = isMoving;
 		aiming = Static_Var_3;
 		if( moving )
 		{
@@ -163,7 +163,7 @@ MotionControl(moving, aiming, justmoved)
 Create()
 {
 	hide flare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	Static_Var_3 = 0;
 	Static_Var_4 = 1;
 	Static_Var_1 = 0;
@@ -184,12 +184,12 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 static-var  Stunned;

@@ -7,7 +7,7 @@ piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe,
 	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail;
 	
 
-static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
+static-var  isMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
             Static_Var_6, Static_Var_7, mainturretheading;
 // Generated for N:\animations\corjugg_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
@@ -21,7 +21,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_WALK 2
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corjugg_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:10
+	if (isMoving) { //Frame:10
 			turn lbfoot to x-axis <-12.491154> speed <374.734623> / animSpeed; //delta=12.49 
 			turn lbfoot to z-axis <0.276222> speed <8.286674> / animSpeed; //delta=-0.28 
 			turn lbfoot to y-axis <-0.106660> speed <3.199785> / animSpeed; //delta=-0.11 
@@ -59,8 +59,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-3.500000> speed <104.999994> / animSpeed; //delta=-3.50 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:15
+	while(isMoving) {
+		if (isMoving) { //Frame:15
 			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rbfoot) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lffoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <-28.549668> speed <481.755423> / animSpeed; //delta=16.06 
@@ -90,7 +90,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-1.222969> speed <9.623437> / animSpeed; //delta=-0.32 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lbfoot to x-axis <-40.396259> speed <355.397726> / animSpeed; //delta=11.85 
 			turn lbfoot to z-axis <0.054497> speed <3.355363> / animSpeed; //delta=0.11 
 			turn lbleg to x-axis <-1.272532> speed <116.740392> / animSpeed; //delta=-3.89 
@@ -118,7 +118,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-3.200000> speed <6.685406> / animSpeed; //delta=0.22 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn lbfoot to x-axis <-38.214478> speed <65.453430> / animSpeed; //delta=-2.18 
 			turn lbleg to x-axis <2.913103> speed <125.569060> / animSpeed; //delta=-4.19 
 			turn lbleg to y-axis <-0.069229> speed <5.041008> / animSpeed; //delta=0.17 
@@ -144,7 +144,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-2.815453> speed <11.536414> / animSpeed; //delta=0.38 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn lbfoot to x-axis <-25.877256> speed <370.116664> / animSpeed; //delta=-12.34 
 			turn lbfoot to z-axis <-0.134749> speed <3.493917> / animSpeed; //delta=0.12 
 			turn lbleg to x-axis <4.181747> speed <38.059321> / animSpeed; //delta=-1.27 
@@ -170,7 +170,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-2.137499> speed <20.338598> / animSpeed; //delta=0.68 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			turn lbfoot to x-axis <-14.943303> speed <328.018588> / animSpeed; //delta=-10.93 
 			turn lbfoot to z-axis <-0.471268> speed <10.095570> / animSpeed; //delta=0.34 
 			turn lbfoot to y-axis <0.184838> speed <4.318883> / animSpeed; //delta=0.14 
@@ -198,7 +198,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-1.073153> speed <31.930394> / animSpeed; //delta=1.06 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			turn lbfoot to x-axis <-7.928367> speed <210.448066> / animSpeed; //delta=-7.01 
 			turn lbfoot to z-axis <-0.766917> speed <8.869465> / animSpeed; //delta=0.30 
 			turn lbfoot to y-axis <0.356247> speed <5.142271> / animSpeed; //delta=0.17 
@@ -228,7 +228,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <0.200000> speed <38.194597> / animSpeed; //delta=1.27 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			turn lbfoot to x-axis <-2.584850> speed <160.305528> / animSpeed; //delta=-5.34 
 			turn lbleg to x-axis <8.751655> speed <88.329458> / animSpeed; //delta=-2.94 
 			turn lbleg to z-axis <-1.084371> speed <6.712065> / animSpeed; //delta=0.22 
@@ -259,7 +259,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <1.454942> speed <37.648242> / animSpeed; //delta=1.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:50
+		if (isMoving) { //Frame:50
 			turn lbfoot to x-axis <8.082386> speed <320.017067> / animSpeed; //delta=-10.67 
 			turn lbfoot to z-axis <-0.979380> speed <3.399147> / animSpeed; //delta=0.11 
 			turn lbleg to x-axis <9.477148> speed <21.764799> / animSpeed; //delta=-0.73 
@@ -290,7 +290,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <2.537500> speed <32.476743> / animSpeed; //delta=1.08 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:55
+		if (isMoving) { //Frame:55
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rffoot) & 0x0000ffff),   get HEADING(0));
 			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lbfoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <25.002258> speed <507.596155> / animSpeed; //delta=-16.92 
@@ -324,7 +324,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <3.306511> speed <23.070343> / animSpeed; //delta=0.77 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:60
+		if (isMoving) { //Frame:60
 			turn lbfoot to x-axis <39.275179> speed <428.187650> / animSpeed; //delta=-14.27 
 			turn lbleg to x-axis <6.702107> speed <59.494619> / animSpeed; //delta=1.98 
 			turn lbleg to z-axis <-1.009790> speed <9.694171> / animSpeed; //delta=-0.32 
@@ -356,7 +356,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <3.600000> speed <8.804656> / animSpeed; //delta=0.29 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:65
+		if (isMoving) { //Frame:65
 			turn lbfoot to x-axis <39.119150> speed <4.680865> / animSpeed; //delta=0.16 
 			turn lbfoot to z-axis <-0.333592> speed <25.425057> / animSpeed; //delta=-0.85 
 			turn lbfoot to y-axis <0.140686> speed <11.121313> / animSpeed; //delta=-0.37 
@@ -390,7 +390,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <3.250546> speed <10.483602> / animSpeed; //delta=-0.35 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:70
+		if (isMoving) { //Frame:70
 			turn lbfoot to x-axis <29.032327> speed <302.604701> / animSpeed; //delta=10.09 
 			turn lbfoot to z-axis <0.120374> speed <13.618966> / animSpeed; //delta=-0.45 
 			turn lbfoot to y-axis <-0.060817> speed <6.045081> / animSpeed; //delta=-0.20 
@@ -420,7 +420,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <2.490625> speed <22.797652> / animSpeed; //delta=-0.76 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:75
+		if (isMoving) { //Frame:75
 			turn lbfoot to x-axis <20.997946> speed <241.031416> / animSpeed; //delta=8.03 
 			turn lbfoot to z-axis <0.371860> speed <7.544595> / animSpeed; //delta=-0.25 
 			turn lbleg to x-axis <-10.511676> speed <125.290920> / animSpeed; //delta=4.18 
@@ -451,7 +451,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <1.575390> speed <27.457031> / animSpeed; //delta=-0.92 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:80
+		if (isMoving) { //Frame:80
 			turn lbfoot to x-axis <12.686411> speed <249.346053> / animSpeed; //delta=8.31 
 			turn lbfoot to z-axis <0.485320> speed <3.403795> / animSpeed; //delta=-0.11 
 			turn lbleg to x-axis <-12.217482> speed <51.174193> / animSpeed; //delta=1.71 
@@ -482,7 +482,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <0.050000> speed <45.761722> / animSpeed; //delta=-1.53 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:85
+		if (isMoving) { //Frame:85
 			turn lbfoot to x-axis <-2.113223> speed <443.989021> / animSpeed; //delta=14.80 
 			turn lbfoot to z-axis <0.380795> speed <3.135759> / animSpeed; //delta=0.10 
 			turn lbleg to x-axis <-9.659873> speed <76.728288> / animSpeed; //delta=-2.56 
@@ -516,7 +516,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-2.235313> speed <68.559371> / animSpeed; //delta=-2.29 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:90
+		if (isMoving) { //Frame:90
 			turn lbfoot to x-axis <-12.491154> speed <311.337941> / animSpeed; //delta=10.38 
 			turn lbfoot to z-axis <0.276222> speed <3.137174> / animSpeed; //delta=0.10 
 			turn lbleg to x-axis <-6.905784> speed <82.622643> / animSpeed; //delta=-2.75 
@@ -610,12 +610,12 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
   start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	bMoving=FALSE;
+	isMoving=FALSE;
 	signal SIG_WALK;
 	call-script StopWalking();
 }
@@ -635,7 +635,7 @@ Create()
 	hide aimy1;
 	hide llaserflare;
 	hide rlaserflare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;
 	animSpeed = 5;

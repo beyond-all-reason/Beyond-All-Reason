@@ -6,7 +6,7 @@
 piece  flare1, flare2, turret, base, sleeve, barrel1, barrel2,
        wake1, wake2, exhaust1, exhaust2, exhaust3, aimpoint;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1, terrain;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1, terrain;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -20,7 +20,7 @@ Smoke()
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
 		if (currentSpeed<4) currentSpeed=4;
 		animSpeed = 1600 / currentSpeed;
-		if ( bMoving )
+		if ( isMoving )
 		{
 			if( terrain == 4 )
 			{
@@ -56,7 +56,7 @@ EmitSFX()
 {
 	while( TRUE )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 			if( terrain == 1 )
 			{
@@ -74,12 +74,12 @@ Create()
 	hide wake1;
 	hide flare2;
 	hide flare1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	hide flare1;
 	hide flare2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	gun_1 = 0;
 	restore_delay = 3000;
 	turn exhaust1 to x-axis <-45> now;
@@ -126,7 +126,7 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
 	start-script Smoke();
@@ -134,7 +134,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
   signal SIG_MOVE;
 }
 

@@ -9,11 +9,11 @@
 piece  torso, flare, Hip, RLLeg, LLLeg, LULeg, RULeg, LUArm,
        RUArm, RLArm, LLArm, Head,lfoot,rfoot, aimx1, aimy1;
 
-static-var  bMoving, building, moveSpeed, currentSpeed;
+static-var  isMoving, building, moveSpeed, currentSpeed;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corfast_anim_walk.blend 
-	if (bMoving) {
+	if (isMoving) {
 			turn lfoot to x-axis <-3.084971> speed <92.549144> / animSpeed; 
 			turn lfoot to z-axis <-0.120397> speed <3.611923> / animSpeed; 
 			turn llleg to z-axis <0.745866> speed <22.375988> / animSpeed; 
@@ -35,8 +35,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruleg to y-axis <7.586705> speed <227.601156> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) {
+	while(isMoving) {
+		if (isMoving) {
 			turn head to x-axis <-6.282207> speed <188.466195> / animSpeed; 
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <7.396719> speed <314.450721> / animSpeed; 
@@ -66,7 +66,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-5.000000> speed <149.999996> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <-0.000000> speed <188.466195> / animSpeed; 
 			move hip to y-axis [-2.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <11.817604> speed <132.626530> / animSpeed; 
@@ -93,7 +93,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-10.000000> speed <149.999996> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <4.660312> speed <139.809370> / animSpeed; 
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-0.639125> speed <373.701860> / animSpeed; 
@@ -122,7 +122,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-6.959375> speed <91.218743> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <-0.000000> speed <139.809370> / animSpeed; 
 			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-4.179501> speed <106.211269> / animSpeed; 
@@ -150,7 +150,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.000000> speed <208.781248> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <-6.282207> speed <188.466195> / animSpeed; 
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-5.695665> speed <45.484923> / animSpeed; 
@@ -179,7 +179,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <7.409375> speed <222.281241> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <-0.000000> speed <188.466195> / animSpeed; 
 			move hip to y-axis [-2.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-5.208236> speed <14.622876> / animSpeed; 
@@ -207,7 +207,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <10.899999> speed <104.718736> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <4.660312> speed <139.809370> / animSpeed; 
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-9.483077> speed <128.245250> / animSpeed; 
@@ -235,7 +235,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <5.449997> speed <163.500052> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn head to x-axis <-0.000000> speed <139.809370> / animSpeed; 
 			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
 			turn lfoot to x-axis <-3.084971> speed <191.943176> / animSpeed; 
@@ -337,7 +337,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	hide flare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	building = 0;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
@@ -373,7 +373,7 @@ StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-	bMoving = TRUE;
+	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
 }
@@ -381,7 +381,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 

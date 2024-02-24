@@ -10,7 +10,7 @@ piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull
 			Torso_turret_left_gun_flare, Torso_turret_right_gun_flare, Ref_Point, mis1, mis2, mis3, mis4;  
 
 static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
-            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, animSpeed, maxspeed, missile_count;
+            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, isMoving, animSpeed, maxspeed, missile_count;
 
 // Signal definitions
 #define SIG_AIM_1	2
@@ -29,7 +29,7 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
 
 walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 {
-	set-signal-mask SIG_WALK;	if (bMoving) { //Frame:4
+	set-signal-mask SIG_WALK;	if (isMoving) { //Frame:4
 			//turn lfoot to x-axis <-45.174461> speed <1339.883614> / animSpeed; 
 			//turn lfoot to z-axis <-8.711228> speed <587.665429> / animSpeed; 
 			//turn lfoot to y-axis <-2.849490> speed <76.187203> / animSpeed; 
@@ -57,8 +57,8 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <1.017> speed <71.8> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			//turn lfoot to x-axis <-39.050804> speed <183.709720> / animSpeed; 
 			//turn lfoot to z-axis <-3.901796> speed <144.282974> / animSpeed; 
 			//turn lfoot to y-axis <-0.770642> speed <62.365451> / animSpeed; 
@@ -88,7 +88,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <2.71> speed <50.75> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			//turn lfoot to x-axis <-41.708304> speed <79.725007> / animSpeed; 
 			//turn lfoot to z-axis <-0.001299> speed <117.014899> / animSpeed; 
 			//turn lfoot to y-axis <-0.002305> speed <23.050116> / animSpeed; 
@@ -118,7 +118,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.9> speed <53.8> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			//turn lfoot to x-axis <-3.910388> speed <1133.937479> / animSpeed; 
 			turn lknee to x-axis <25.256626> speed <395.785377> / animSpeed; 
 			turn lknee to z-axis <-1.943760> speed <74.640670> / animSpeed; 
@@ -146,7 +146,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.81> speed <3.14> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			//turn lfoot to x-axis <38.552084> speed <1273.874173> / animSpeed; 
 			turn lknee to x-axis <-3.971019> speed <876.829355> / animSpeed; 
 			turn lknee to z-axis <1.007743> speed <88.545099> / animSpeed; 
@@ -174,7 +174,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.525> speed <8.57> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			//turn lfoot to x-axis <5.205345> speed <1000.402167> / animSpeed; 
 			turn lknee to x-axis <-38.112097> speed <1024.232325> / animSpeed; 
 			turn lknee to z-axis <0.216327> speed <23.742493> / animSpeed; 
@@ -202,7 +202,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.0675> speed <13.77> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			//turn lfoot to x-axis <47.099178> speed <1256.814981> / animSpeed; 
 			//turn lfoot to z-axis <-8.698515> speed <260.859201> / animSpeed; 
 			//turn lfoot to y-axis <0.555569> speed <16.591946> / animSpeed; 
@@ -232,7 +232,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-0.975> speed <31.25> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			//turn lfoot to x-axis <3.635010> speed <1303.925050> / animSpeed; 
 			//turn lfoot to z-axis <-6.350171> speed <70.450323> / animSpeed; 
 			//turn lfoot to y-axis <-2.491368> speed <91.408108> / animSpeed; 
@@ -260,7 +260,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-0.791> speed <5.479> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			//turn lfoot to x-axis <-45.174461> speed <1464.284129> / animSpeed; 
 			//turn lfoot to z-axis <-8.711228> speed <70.831730> / animSpeed; 
 			//turn lfoot to y-axis <-2.849490> speed <10.743672> / animSpeed; 
@@ -349,7 +349,7 @@ StartMoving()
 {
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving = 1;
+	isMoving = 1;
 	start-script UnitSpeed();
 	start-script walk();
 }
@@ -357,7 +357,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_WALK;
-	bMoving = 0;
+	isMoving = 0;
 	start-script StopWalking();
 }
 
@@ -478,8 +478,8 @@ AimWeapon1(heading, pitch)
 	
 	var cauaim;
     var cauface;
-    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
-    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180ï¿½), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180ï¿½), positive or negative depending on direction
     
     //var torsoaim;
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull

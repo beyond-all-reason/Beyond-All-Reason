@@ -5,7 +5,7 @@
 
 piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh,head,dish,rotator;
 
-static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
+static-var  isMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
 
 static-var recently_damaged, desired_activation;
 
@@ -20,7 +20,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	//CC BY NC ND (c) Beherith
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <26.466910> speed <49.000477> / animSpeed; //delta=-1.63 
 			turn lleg to x-axis <-9.730538> speed <130.748442> / animSpeed; //delta=4.36 
 			turn lthigh to x-axis <-39.987742> speed <70.213388> / animSpeed; //delta=2.34 
@@ -37,8 +37,8 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-0.628582> speed <18.857449> / animSpeed; //delta=-0.63 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:10
+	while(isMoving) {
+		if (isMoving) { //Frame:10
 			turn lfoot to x-axis <70.181935> speed <1311.450774> / animSpeed; //delta=-43.72 
 			turn lfoot to z-axis <2.375184> speed <28.664216> / animSpeed; //delta=-0.96 
 			turn lfoot to y-axis <-3.729687> speed <126.793378> / animSpeed; //delta=-4.23 
@@ -58,7 +58,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-2.740744> speed <63.364872> / animSpeed; //delta=-2.11 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn lfoot to x-axis <46.418147> speed <712.913665> / animSpeed; //delta=23.76 
 			turn lfoot to z-axis <-0.001699> speed <71.306494> / animSpeed; //delta=2.38 
 			turn lfoot to y-axis <0.002671> speed <111.970736> / animSpeed; //delta=3.73 
@@ -78,7 +78,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <1.439518> speed <125.407860> / animSpeed; //delta=4.18 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lfoot to x-axis <13.179870> speed <997.148290> / animSpeed; //delta=33.24 
 			turn lfoot to z-axis <1.629828> speed <48.945820> / animSpeed; //delta=-1.63 
 			turn lfoot to y-axis <0.238299> speed <7.068858> / animSpeed; //delta=0.24 
@@ -97,7 +97,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-0.204136> speed <49.309610> / animSpeed; //delta=-1.64 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn lfoot to x-axis <-10.804440> speed <719.529300> / animSpeed; //delta=23.98 
 			turn lfoot to y-axis <-0.162885> speed <12.035521> / animSpeed; //delta=-0.40 
 			turn lleg to x-axis <1.993515> speed <69.081041> / animSpeed; //delta=-2.30 
@@ -116,7 +116,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-0.375551> speed <5.142446> / animSpeed; //delta=-0.17 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn lfoot to x-axis <-28.122044> speed <519.528120> / animSpeed; //delta=17.32 
 			turn lfoot to z-axis <1.259065> speed <12.084914> / animSpeed; //delta=0.40 
 			turn lfoot to y-axis <-0.693546> speed <15.919843> / animSpeed; //delta=-0.53 
@@ -136,7 +136,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-3.234256> speed <85.761148> / animSpeed; //delta=-2.86 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			turn lfoot to x-axis <-24.880019> speed <97.260733> / animSpeed; //delta=-3.24 
 			turn lfoot to z-axis <1.854115> speed <17.851494> / animSpeed; //delta=-0.60 
 			turn lfoot to y-axis <0.535930> speed <36.884280> / animSpeed; //delta=1.23 
@@ -156,7 +156,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-0.770711> speed <73.906346> / animSpeed; //delta=2.46 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			turn lfoot to x-axis <-0.295343> speed <737.540290> / animSpeed; //delta=-24.58 
 			turn lfoot to z-axis <1.544707> speed <9.282230> / animSpeed; //delta=0.31 
 			turn lfoot to y-axis <0.716862> speed <5.427956> / animSpeed; //delta=0.18 
@@ -175,7 +175,7 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn rthigh to z-axis <2.131224> speed <85.216390> / animSpeed; //delta=2.84 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			turn lfoot to x-axis <26.466910> speed <802.867578> / animSpeed; //delta=-26.76 
 			turn lfoot to z-axis <1.419711> speed <3.749902> / animSpeed; //delta=0.12 
 			turn lfoot to y-axis <0.496760> speed <6.603061> / animSpeed; //delta=-0.22 
@@ -232,13 +232,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -286,7 +286,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;
 	Static_Var_4 = 3000;

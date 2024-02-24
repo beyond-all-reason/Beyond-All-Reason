@@ -9,12 +9,12 @@
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
        rfoot, lfoot, beamcase, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging;
+static-var  notBuilding, isMoving, statechg_DesiredState, statechg_StateChanging;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-29.399999> speed <948.439919> / animSpeed; 
 			turn lfoot to y-axis <0.000000> speed <19.876628> / animSpeed; 
 			turn lleg to x-axis <9.399998> speed <281.999950> / animSpeed; 
@@ -24,8 +24,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to x-axis <-42.499998> speed <1274.999950> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn lfoot to x-axis <-48.099999> speed <560.999978> / animSpeed; 
 			turn lleg to x-axis <39.499995> speed <902.999895> / animSpeed; 
 			turn lthigh to x-axis <22.456250> speed <34.687508> / animSpeed; 
@@ -39,7 +39,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <2.666667> speed <80.000004> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn lfoot to x-axis <-28.600000> speed <584.999965> / animSpeed; 
 			turn lleg to x-axis <-37.499999> speed <2309.999825> / animSpeed; 
 			turn lthigh to x-axis <60.999996> speed <1156.312385> / animSpeed; 
@@ -53,7 +53,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <8.999999> speed <189.999978> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis <-0.300002> speed <848.999925> / animSpeed; 
 			turn lleg to x-axis <-36.800001> speed <20.999963> / animSpeed; 
 			turn lthigh to x-axis <26.599998> speed <1031.999954> / animSpeed; 
@@ -67,7 +67,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <5.000000> speed <119.999986> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lfoot to x-axis <26.099995> speed <791.999930> / animSpeed; 
 			turn lleg to x-axis <-4.600003> speed <965.999912> / animSpeed; 
 			turn lthigh to x-axis <-42.499998> speed <2072.999877> / animSpeed; 
@@ -80,7 +80,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <-0.000000> speed <149.999996> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn lfoot to x-axis <-11.900001> speed <1139.999895> / animSpeed; 
 			turn lleg to x-axis <41.299996> speed <1376.999972> / animSpeed; 
 			turn lthigh to x-axis <-76.899993> speed <1031.999851> / animSpeed; 
@@ -94,7 +94,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <2.666667> speed <80.000004> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn lfoot to x-axis <10.399998> speed <668.999971> / animSpeed; 
 			turn lleg to x-axis <-1.600002> speed <1286.999931> / animSpeed; 
 			turn lthigh to x-axis <-12.499999> speed <1931.999825> / animSpeed; 
@@ -108,7 +108,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <8.999999> speed <189.999978> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn lfoot to x-axis <-0.000000> speed <311.999934> / animSpeed; 
 			turn lleg to x-axis <-0.000000> speed <48.000064> / animSpeed; 
 			turn lthigh to x-axis <-0.000000> speed <374.999976> / animSpeed; 
@@ -122,7 +122,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <5.000000> speed <119.999986> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn lfoot to x-axis <-29.399999> speed <881.999984> / animSpeed; 
 			turn lleg to x-axis <9.399998> speed <281.999950> / animSpeed; 
 			turn lthigh to x-axis <21.300000> speed <638.999987> / animSpeed; 
@@ -237,7 +237,7 @@ Create()
 	hide nano;
 	hide aimy1;
 	hide cagelight_emit;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -284,7 +284,7 @@ StopBuilding()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
@@ -293,7 +293,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	signal SIG_WALK;
 	call-script StopWalking();
 }

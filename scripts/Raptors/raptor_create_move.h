@@ -18,14 +18,14 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
   start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		start-script Idle();

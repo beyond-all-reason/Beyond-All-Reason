@@ -6,7 +6,7 @@
 
 piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
 
 
 activatescr()
@@ -62,7 +62,7 @@ Smoke()
 {
 	while( TRUE )
 	{
-		if ( bMoving )
+		if ( isMoving )
 		{
 			if( terrain == 4 )
 			{
@@ -114,7 +114,7 @@ Create()
 	hide smoke2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	notBuilding = 1;
@@ -131,7 +131,7 @@ StartMoving()
 {
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
-	bMoving = TRUE;
+	isMoving = TRUE;
   start-script UnitSpeed();
 	start-script Smoke();
 }
@@ -140,7 +140,7 @@ StartMoving()
 StopMoving()
 {
   signal SIG_MOVE;
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 Activate()

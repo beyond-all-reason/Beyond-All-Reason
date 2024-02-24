@@ -2,7 +2,7 @@
 
 Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			move body to z-axis (((([-2.030000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.899999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.03
 			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -59,8 +59,8 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to z-axis ((<0.380573> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=-0.38
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:12
+	while(isMoving) {
+		if (isMoving) { //Frame:12
 			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.899999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.03
 			move body to y-axis (((([-1.060000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.06
@@ -123,7 +123,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			move body to x-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to z-axis (((([2.010000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.300000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.01
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.06
@@ -188,7 +188,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			move body to x-axis (((([1.650000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.499999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.65
 			move body to z-axis (((([3.620000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([48.299997] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.61
 			move body to y-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -251,7 +251,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			move body to x-axis (((([0.990000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.800001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.66
 			move body to z-axis (((([2.100000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([45.599999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.52
 			move body to y-axis (((([0.080000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([27.600000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.92
@@ -316,7 +316,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([29.699998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.99
 			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([62.999997] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.10
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.400000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.08
@@ -379,7 +379,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			move body to x-axis (((([-1.069000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.070000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.07
 			move body to z-axis (((([-1.940000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([58.199998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.94
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -442,7 +442,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<-13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			move body to x-axis (((([-1.478000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([12.270001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.41
 			move body to z-axis (((([-2.680000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([22.199997] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.74
 			move body to y-axis (((([1.090000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.09
@@ -503,7 +503,7 @@ Swim() {// For N:\animations\raptor_allterrain_swim.blend Created by https://git
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.340001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.48
 			move body to z-axis (((([-1.950000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([21.899997] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.73
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.09

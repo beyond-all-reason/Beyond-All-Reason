@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
-static-var  bMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
+static-var  isMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
 
 // Signal definitions
 #define SIG_AIM				2
@@ -19,7 +19,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 #define SIG_WALK 4
 Walk() {
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-7.199620> speed <215.988613> / animSpeed; 
 			turn lfoot to z-axis <-0.750735> speed <22.522041> / animSpeed; 
 			turn lfoot to y-axis <0.403230> speed <12.096901> / animSpeed; 
@@ -47,8 +47,8 @@ Walk() {
 			}
 		sleep 98;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:7
+	while(isMoving) {
+		if (isMoving) { //Frame:7
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-4.079282> speed <93.610146> / animSpeed; 
 			turn lleg to x-axis <-7.424414> speed <144.010039> / animSpeed; 
@@ -81,7 +81,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:10
+		if (isMoving) { //Frame:10
 			turn lfoot to x-axis <-14.208429> speed <303.874412> / animSpeed; 
 			turn lfoot to z-axis <4.170078> speed <147.502117> / animSpeed; 
 			turn lfoot to y-axis <-7.653428> speed <242.923822> / animSpeed; 
@@ -117,7 +117,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
+		if (isMoving) { //Frame:13
 			turn lfoot to x-axis <-7.861976> speed <190.393589> / animSpeed; 
 			turn lfoot to y-axis <-8.110533> speed <13.713159> / animSpeed; 
 			turn lleg to x-axis <74.686479> speed <1071.366022> / animSpeed; 
@@ -151,7 +151,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis <21.690702> speed <886.580343> / animSpeed; 
 			turn lfoot to z-axis <4.351855> speed <7.986288> / animSpeed; 
 			turn lfoot to y-axis <-10.283250> speed <65.181520> / animSpeed; 
@@ -183,7 +183,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:19
+		if (isMoving) { //Frame:19
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <52.965576> speed <938.246233> / animSpeed; 
 			turn lfoot to z-axis <-1.237152> speed <167.670216> / animSpeed; 
@@ -217,7 +217,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:22
+		if (isMoving) { //Frame:22
 			turn lfoot to x-axis <13.164725> speed <1194.025530> / animSpeed; 
 			turn lfoot to z-axis <-0.766866> speed <14.108585> / animSpeed; 
 			turn lfoot to y-axis <0.668069> speed <24.324133> / animSpeed; 
@@ -254,7 +254,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn lfoot to x-axis <-4.676950> speed <535.250263> / animSpeed; 
 			turn lfoot to y-axis <0.434839> speed <6.996926> / animSpeed; 
 			turn lleg to x-axis <12.861630> speed <489.757092> / animSpeed; 
@@ -289,7 +289,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn lfoot to x-axis <-7.199620> speed <75.680105> / animSpeed; 
 			turn lleg to x-axis <-12.224749> speed <752.591369> / animSpeed; 
 			turn lleg to z-axis <3.692376> speed <47.585604> / animSpeed; 
@@ -382,13 +382,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
   call-script StopWalking();
 }
 
@@ -561,7 +561,7 @@ Create()
 	isAiming = FALSE;
 	animspeed = 3;
 	wpnheading = 0;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	restore_delay = 7000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

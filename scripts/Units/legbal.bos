@@ -7,7 +7,7 @@ piece  aimx1, aimy1, turret, launcher, flare, pelvis, rfoot, lfoot, lthigh,
        rthigh, rleg, lleg, lknee, rknee;
 
 static-var  notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
-static-var  maxSpeed, animFramesPerKeyframe, bMoving;
+static-var  maxSpeed, animFramesPerKeyframe, isMoving;
 
 
 // Signal definitions
@@ -17,7 +17,7 @@ static-var  maxSpeed, animFramesPerKeyframe, bMoving;
 
 walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 {
-	set-signal-mask SIG_WALK;	if (bMoving) { //Frame:4
+	set-signal-mask SIG_WALK;	if (isMoving) { //Frame:4
 			turn launcher to x-axis <0.700000> speed <155.999983> / animSpeed; 
 			turn lfoot to x-axis <-45.174461> speed <1339.883614> / animSpeed; 
 			turn lfoot to z-axis <-8.711228> speed <587.665429> / animSpeed; 
@@ -46,8 +46,8 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <2.035195> speed <143.623734> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn launcher to x-axis <-2.450000> speed <94.499997> / animSpeed; 
 			turn lfoot to x-axis <-39.050804> speed <183.709720> / animSpeed; 
 			turn lfoot to z-axis <-3.901796> speed <144.282974> / animSpeed; 
@@ -78,7 +78,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <5.419124> speed <101.517866> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn launcher to x-axis <7.100000> speed <286.499986> / animSpeed; 
 			turn lfoot to x-axis <-41.708304> speed <79.725007> / animSpeed; 
 			turn lfoot to z-axis <-0.001299> speed <117.014899> / animSpeed; 
@@ -109,7 +109,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <1.835031> speed <107.522806> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn launcher to x-axis <3.400000> speed <110.999991> / animSpeed; 
 			turn lfoot to x-axis <-3.910388> speed <1133.937479> / animSpeed; 
 			turn lknee to x-axis <25.256626> speed <395.785377> / animSpeed; 
@@ -138,7 +138,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <1.625487> speed <6.286304> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn launcher to x-axis <0.100000> speed <98.999991> / animSpeed; 
 			turn lfoot to x-axis <38.552084> speed <1273.874173> / animSpeed; 
 			turn lknee to x-axis <-3.971019> speed <876.829355> / animSpeed; 
@@ -167,7 +167,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <1.053705> speed <17.153451> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn launcher to x-axis <-3.700000> speed <113.999996> / animSpeed; 
 			turn lfoot to x-axis <5.205345> speed <1000.402167> / animSpeed; 
 			turn lknee to x-axis <-38.112097> speed <1024.232325> / animSpeed; 
@@ -196,7 +196,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.135399> speed <27.549188> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn launcher to x-axis <7.299999> speed <329.999975> / animSpeed; 
 			turn lfoot to x-axis <47.099178> speed <1256.814981> / animSpeed; 
 			turn lfoot to z-axis <-8.698515> speed <260.859201> / animSpeed; 
@@ -227,7 +227,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-1.948095> speed <62.504826> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn launcher to x-axis <3.000000> speed <128.999994> / animSpeed; 
 			turn lfoot to x-axis <3.635010> speed <1303.925050> / animSpeed; 
 			turn lfoot to z-axis <-6.350171> speed <70.450323> / animSpeed; 
@@ -256,7 +256,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-1.582810> speed <10.958560> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn launcher to x-axis <-0.000000> speed <89.999990> / animSpeed; 
 			turn lfoot to x-axis <-45.174461> speed <1464.284129> / animSpeed; 
 			turn lfoot to z-axis <-8.711228> speed <70.831730> / animSpeed; 
@@ -347,7 +347,7 @@ StartMoving()
 {
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving = 1;
+	isMoving = 1;
 	start-script UnitSpeed();
 	start-script walk();
 }
@@ -355,7 +355,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_WALK;
-	bMoving = 0;
+	isMoving = 0;
 	start-script StopWalking();
 }
 

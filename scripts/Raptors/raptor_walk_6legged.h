@@ -7,10 +7,10 @@
 //#define MOVESCALE 100 //Higher values are bigger, 100 is default
 //static-var animAmplitude; //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-//static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+//static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			turn foot1l to z-axis ((<-0.971251> *animAmplitude)/100) speed ((<748.423405> *animAmplitude)/100) / animSpeed; //delta=24.95
 			turn foot1r to z-axis ((<-44.049437> *animAmplitude)/100) speed ((<609.039448> *animAmplitude)/100) / animSpeed; //delta=20.30
 			turn foot2l to z-axis ((<5.346900> *animAmplitude)/100) speed ((<160.406988> *animAmplitude)/100) / animSpeed; //delta=-5.35
@@ -36,8 +36,8 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<-2.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:12
+	while(isMoving) {
+		if (isMoving) { //Frame:12
 			turn foot1l to z-axis ((<23.805265> *animAmplitude)/100) speed ((<743.295487> *animAmplitude)/100) / animSpeed; //delta=-24.78
 			turn foot1r to z-axis ((<-28.886806> *animAmplitude)/100) speed ((<454.878919> *animAmplitude)/100) / animSpeed; //delta=-15.16
 			turn foot2l to z-axis ((<-22.001016> *animAmplitude)/100) speed ((<820.437469> *animAmplitude)/100) / animSpeed; //delta=27.35
@@ -66,7 +66,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<1.000000> *animAmplitude)/100) speed ((<89.999990> *animAmplitude)/100) / animSpeed; //delta=-3.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn foot1l to z-axis ((<39.391156> *animAmplitude)/100) speed ((<467.576719> *animAmplitude)/100) / animSpeed; //delta=-15.59
 			turn foot1r to z-axis ((<43.847588> *animAmplitude)/100) speed ((<2182.031826> *animAmplitude)/100) / animSpeed; //delta=-72.73
 			turn foot2l to z-axis ((<-5.048070> *animAmplitude)/100) speed ((<508.588372> *animAmplitude)/100) / animSpeed; //delta=-16.95
@@ -95,7 +95,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<-1.000000> *animAmplitude)/100) speed ((<59.999996> *animAmplitude)/100) / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn foot1l to z-axis ((<44.381015> *animAmplitude)/100) speed ((<149.695788> *animAmplitude)/100) / animSpeed; //delta=-4.99
 			turn foot1r to z-axis ((<1.041741> *animAmplitude)/100) speed ((<1284.175405> *animAmplitude)/100) / animSpeed; //delta=42.81
 			turn foot2l to z-axis ((<-0.503263> *animAmplitude)/100) speed ((<136.344230> *animAmplitude)/100) / animSpeed; //delta=-4.54
@@ -124,7 +124,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<2.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn foot1l to z-axis ((<29.245405> *animAmplitude)/100) speed ((<454.068312> *animAmplitude)/100) / animSpeed; //delta=15.14
 			turn foot1r to z-axis ((<-23.601836> *animAmplitude)/100) speed ((<739.307325> *animAmplitude)/100) / animSpeed; //delta=24.64
 			turn foot2l to z-axis ((<-5.048159> *animAmplitude)/100) speed ((<136.346894> *animAmplitude)/100) / animSpeed; //delta=4.54
@@ -153,7 +153,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<-1.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=3.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn foot1l to z-axis ((<-43.654860> *animAmplitude)/100) speed ((<2187.007960> *animAmplitude)/100) / animSpeed; //delta=72.90
 			turn foot1r to z-axis ((<-39.103502> *animAmplitude)/100) speed ((<465.049976> *animAmplitude)/100) / animSpeed; //delta=15.50
 			turn foot2l to z-axis ((<-21.993288> *animAmplitude)/100) speed ((<508.353857> *animAmplitude)/100) / animSpeed; //delta=16.95
@@ -182,7 +182,7 @@ Walk() {// For N:\animations\Raptors\Kremenchuk\kremenraptor_ik_walk.blend Creat
 			turn torso to z-axis ((<1.000000> *animAmplitude)/100) speed ((<60.000000> *animAmplitude)/100) / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			turn foot1l to z-axis ((<-0.971251> *animAmplitude)/100) speed ((<1280.508279> *animAmplitude)/100) / animSpeed; //delta=-42.68
 			turn foot1r to z-axis ((<-44.049437> *animAmplitude)/100) speed ((<148.378039> *animAmplitude)/100) / animSpeed; //delta=4.95
 			turn foot2l to z-axis ((<5.346900> *animAmplitude)/100) speed ((<820.205619> *animAmplitude)/100) / animSpeed; //delta=-27.34

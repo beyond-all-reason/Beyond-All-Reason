@@ -13,7 +13,7 @@
 
 Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<3.866804> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=-3.87
@@ -65,8 +65,8 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to z-axis ((<0.380573> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=-0.38
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([-1.060000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.06
 			turn body to x-axis ((<2.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
@@ -128,7 +128,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			move body to x-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.06
 			turn body to x-axis ((<1.000000> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -186,7 +186,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			move body to x-axis (((([1.650000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.499999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.65
 			move body to y-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<30.000003> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -246,7 +246,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			move body to x-axis (((([0.990000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.800001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.66
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -307,7 +307,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([29.699998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.99
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			turn body to x-axis ((<2.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
@@ -369,7 +369,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			move body to x-axis (((([-1.069000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.070000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.07
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to x-axis ((<1.000000> *animAmplitude)/100) speed ((<30.000003> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -428,7 +428,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<-13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			move body to x-axis (((([-1.478000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([12.270001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.41
 			move body to y-axis (((([1.090000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.09
 			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
@@ -490,7 +490,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.340001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.48
 			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.09
 			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00

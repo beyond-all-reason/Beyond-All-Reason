@@ -6,7 +6,7 @@
 piece  torso, Rthigh, Rleg, Rfoot, Lleg, Lfoot, Lthigh, rdish,
        ldish, pelvis,rarm, rshoulder,larm,lshoulder;
 
-static-var  bMoving, Static_Var_2;
+static-var  isMoving, Static_Var_2;
 static-var  Stunned;
 
 // Signal definitions
@@ -18,7 +18,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	//CC BY NC ND (c) Beherith
 	set-signal-mask SIG_WALK; //you might need this
-	if (bMoving) { //Frame:3
+	if (isMoving) { //Frame:3
 			turn lfoot to x-axis <-14.665784> speed <97.423633> / animSpeed; //delta=3.25 
 			turn lfoot to z-axis <-0.000362> speed <284.433819> / animSpeed; //delta=9.48 
 			turn lfoot to y-axis <-0.002426> speed <69.145571> / animSpeed; //delta=-2.30 
@@ -41,8 +41,8 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <14.152293> speed <424.568785> / animSpeed; //delta=14.15 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:6
+	while(isMoving) {
+		if (isMoving) { //Frame:6
 			turn lfoot to x-axis <-4.892843> speed <293.188235> / animSpeed; //delta=-9.77 
 			turn lleg to x-axis <4.294519> speed <1308.167430> / animSpeed; //delta=43.61 
 			turn lthigh to x-axis <-45.130984> speed <297.327560> / animSpeed; //delta=-9.91 
@@ -61,7 +61,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <21.228441> speed <212.284457> / animSpeed; //delta=7.08 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:9
+		if (isMoving) { //Frame:9
 			turn lfoot to x-axis <-3.048675> speed <55.325025> / animSpeed; //delta=-1.84 
 			turn lleg to x-axis <59.735544> speed <1663.230750> / animSpeed; //delta=-55.44 
 			turn lthigh to x-axis <-54.096615> speed <268.968922> / animSpeed; //delta=8.97 
@@ -82,7 +82,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <14.152293> speed <212.284457> / animSpeed; //delta=-7.08 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn lfoot to x-axis <-34.386529> speed <940.135623> / animSpeed; //delta=31.34 
 			turn lleg to x-axis <68.486505> speed <262.528839> / animSpeed; //delta=-8.75 
 			turn lthigh to x-axis <-33.820283> speed <608.289954> / animSpeed; //delta=-20.28 
@@ -103,7 +103,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <0.000000> speed <424.568785> / animSpeed; //delta=-14.15 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn lfoot to x-axis <-44.424298> speed <301.133068> / animSpeed; //delta=10.04 
 			turn lleg to x-axis <43.892462> speed <737.821281> / animSpeed; //delta=24.59 
 			turn lthigh to x-axis <1.444642> speed <1057.947739> / animSpeed; //delta=-35.26 
@@ -122,7 +122,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <-14.152293> speed <424.568785> / animSpeed; //delta=-14.15 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn lfoot to x-axis <-34.354656> speed <302.089261> / animSpeed; //delta=-10.07 
 			turn lleg to x-axis <8.150011> speed <1072.273549> / animSpeed; //delta=35.74 
 			turn lthigh to x-axis <41.643366> speed <1205.961731> / animSpeed; //delta=-40.20 
@@ -141,7 +141,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <-21.228441> speed <212.284457> / animSpeed; //delta=-7.08 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			turn lfoot to x-axis <-52.982112> speed <558.823675> / animSpeed; //delta=18.63 
 			turn lleg to x-axis <87.417884> speed <2378.036193> / animSpeed; //delta=-79.27 
 			turn lleg to z-axis <-0.237799> speed <7.128710> / animSpeed; //delta=0.24 
@@ -162,7 +162,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <-14.152293> speed <212.284457> / animSpeed; //delta=7.08 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn lfoot to x-axis <-34.679521> speed <549.077746> / animSpeed; //delta=-18.30 
 			turn lleg to x-axis <84.500450> speed <87.523000> / animSpeed; //delta=2.92 
 			turn lleg to z-axis <-0.010154> speed <6.829340> / animSpeed; //delta=-0.23 
@@ -183,7 +183,7 @@ Walk() {// For N:\animations\armmark_anim_walk.blend Created by https://github.c
 			turn torso to y-axis <0.000000> speed <424.568785> / animSpeed; //delta=14.15 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:27
+		if (isMoving) { //Frame:27
 			turn lfoot to x-axis <-14.665784> speed <600.412099> / animSpeed; //delta=-20.01 
 			turn lleg to x-axis <47.900100> speed <1098.010522> / animSpeed; //delta=36.60 
 			turn lthigh to x-axis <-55.041902> speed <379.051832> / animSpeed; //delta=12.64 
@@ -249,13 +249,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -276,7 +276,7 @@ stand()
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	Static_Var_2 = 1000;
 	animSpeed = 4;
 	return (0);

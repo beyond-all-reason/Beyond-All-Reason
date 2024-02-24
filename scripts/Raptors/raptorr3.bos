@@ -8,7 +8,7 @@ piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
 
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
+static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
 #define SIG_AIM				2

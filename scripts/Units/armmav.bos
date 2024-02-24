@@ -7,7 +7,7 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
        luparm, ruparm, lloarm, rloarm, lleg, lhipgun, rhipgun, lholster, rhandgun, lhandgun,
        rholster, rfoot, lfoot, aimy1, aimx1;
 
-static-var  ReadyToAim, gun_1, bMoving, isAiming, restore_delay, statechg_DesiredState,
+static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, statechg_DesiredState,
 			statechg_StateChanging, wpn1_lasthead, animSpeed, maxSpeed, 
 			animFramesPerKeyframe;
 
@@ -22,7 +22,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armmav_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <-2.530919> speed <75.927574> / animSpeed; //delta=2.53 
 			turn lfoot to y-axis <-0.860483> speed <25.814476> / animSpeed; //delta=-0.86 
 			turn lleg to x-axis <7.005865> speed <210.175939> / animSpeed; //delta=-7.01 
@@ -47,8 +47,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:9
+	while(isMoving) {
+		if (isMoving) { //Frame:9
 			turn body to x-axis <0.267404> speed <8.022119> / animSpeed; //delta=-0.27 
 			turn body to z-axis <-2.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to y-axis <-9.000000> speed <270.000008> / animSpeed; //delta=-9.00 
@@ -89,7 +89,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
+		if (isMoving) { //Frame:13
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn body to x-axis <0.534808> speed <8.022119> / animSpeed; //delta=-0.27 
 			turn body to z-axis <-4.000000> speed <60.000000> / animSpeed; //delta=2.00 
@@ -132,7 +132,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}		
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:17
+		if (isMoving) { //Frame:17
 			turn body to x-axis <0.267404> speed <8.022119> / animSpeed; //delta=0.27 
 			turn body to z-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn body to y-axis <-9.000000> speed <270.000008> / animSpeed; //delta=9.00 
@@ -177,7 +177,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}			
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			turn body to x-axis <-0.000000> speed <8.022119> / animSpeed; //delta=0.27 
 			turn body to z-axis <-0.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn body to y-axis <0.000000> speed <270.000008> / animSpeed; //delta=9.00 
@@ -216,7 +216,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn body to z-axis <2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn body to y-axis <9.000000> speed <270.000008> / animSpeed; //delta=9.00 
 			turn head to x-axis <2.500000> speed <74.999998> / animSpeed; //delta=-2.50 
@@ -256,7 +256,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:29
+		if (isMoving) { //Frame:29
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn body to z-axis <4.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn body to y-axis <18.000001> speed <270.000008> / animSpeed; //delta=9.00 
@@ -299,7 +299,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:33
+		if (isMoving) { //Frame:33
 			turn body to z-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to y-axis <9.000000> speed <270.000008> / animSpeed; //delta=-9.00 
 			turn head to x-axis <2.500000> speed <74.999998> / animSpeed; //delta=2.50 
@@ -342,7 +342,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:37
+		if (isMoving) { //Frame:37
 			turn body to z-axis <-0.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to y-axis <0.000000> speed <270.000008> / animSpeed; //delta=-9.00 
 			turn head to x-axis <-0.000000> speed <74.999998> / animSpeed; //delta=2.50 
@@ -448,13 +448,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -770,7 +770,7 @@ Create()
 	hide rflare;
 	hide aimx1;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	gun_1 = rflare;
 	ReadyToAim = 0;

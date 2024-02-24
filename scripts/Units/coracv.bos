@@ -8,7 +8,7 @@
 
 piece  base, gun, nano1, nano2, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  bMoving, moveSpeed, animSpeed, terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, nanob;
+static-var  isMoving, moveSpeed, animSpeed, terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, nanob;
 
 activatescr()
 {
@@ -88,7 +88,7 @@ Create()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	notBuilding = 1;

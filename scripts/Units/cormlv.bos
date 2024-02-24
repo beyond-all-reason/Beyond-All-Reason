@@ -7,7 +7,7 @@
 
 piece  base, turret, tracks, beamhinge, beamcase, flare;
 
-static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging;
+static-var  notBuilding, isMoving, statechg_DesiredState, statechg_StateChanging;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -76,7 +76,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide flare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

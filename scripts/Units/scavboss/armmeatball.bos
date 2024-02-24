@@ -5,7 +5,7 @@
 
 piece  pelvis, body, rthigh, lthigh , lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel, rbarrel, lflare, rflare;
 
-static-var  bMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
+static-var  isMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -262,7 +262,7 @@ MotionControl(moving, aiming, justmoved)
 	justmoved = TRUE;
 	while( TRUE )
 	{
-		moving = bMoving;
+		moving = isMoving;
 		aiming = isAiming;
 		if( moving )
 		{
@@ -316,7 +316,7 @@ Create()
 	hide rflare;
 	hide lflare;
 	hide misflare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = 1;
@@ -333,12 +333,12 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 RestoreAfterDelay()

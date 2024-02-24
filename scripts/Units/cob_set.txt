@@ -4596,7 +4596,7 @@ corssub.bos:            corpsetype = 3 ;
 corssub.bos:            return(corpsetype);
 corssub.bos:    corpsetype = 3 ;
 corssub.bos:    return corpsetype;
-corstorm.bos:   set-signal-mask SIG_WALK;       if (bMoving) { //Frame:4
+corstorm.bos:   set-signal-mask SIG_WALK;       if (isMoving) { //Frame:4
 corstorm.bos:   set-signal-mask SIG_MOVE;
 corstorm.bos:SetStunned(State)
 corstorm.bos:   set-signal-mask SIG_AIM;

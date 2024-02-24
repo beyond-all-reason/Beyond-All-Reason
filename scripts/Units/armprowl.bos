@@ -14,11 +14,11 @@ static-var  isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 // For N:\animations\armprowl_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 #define SIG_WALK 4
 Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn body to y-axis <-2.062500> speed <61.875008> / animSpeed; //delta=-2.06
 			turn lfoot to x-axis <-21.185328> speed <706.519846> / animSpeed; //delta=23.55
 			turn lfoot to z-axis <-0.893611> speed <193.023339> / animSpeed; //delta=6.43
@@ -52,8 +52,8 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.972000> speed <29.159999> / animSpeed; //delta=0.97
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn body to y-axis <-3.000000> speed <28.124994> / animSpeed; //delta=-0.94
 			turn lfoot to x-axis <-13.784591> speed <222.022086> / animSpeed; //delta=-7.40
 			turn lfoot to z-axis <2.378387> speed <98.159945> / animSpeed; //delta=-3.27
@@ -88,7 +88,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.594000> speed <11.339999> / animSpeed; //delta=-0.38
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn body to y-axis <-2.062500> speed <28.125001> / animSpeed; //delta=0.94
 			turn lfoot to x-axis <-47.462360> speed <1010.333048> / animSpeed; //delta=33.68
 			turn lfoot to z-axis <6.440486> speed <121.862969> / animSpeed; //delta=-4.06
@@ -124,7 +124,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.216000> speed <11.339999> / animSpeed; //delta=-0.38
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn body to y-axis <0.000000> speed <61.875002> / animSpeed; //delta=2.06
 			turn lfoot to x-axis <-21.077202> speed <791.554721> / animSpeed; //delta=-26.39
 			turn lfoot to z-axis <1.784901> speed <139.667569> / animSpeed; //delta=4.66
@@ -160,7 +160,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.352000> speed <4.079999> / animSpeed; //delta=0.14
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn body to y-axis <2.062500> speed <61.875002> / animSpeed; //delta=2.06
 			turn lfoot to x-axis <20.766294> speed <1255.304878> / animSpeed; //delta=-41.84
 			turn lfoot to z-axis <-3.513748> speed <158.959458> / animSpeed; //delta=5.30
@@ -197,7 +197,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.500000> speed <4.440000> / animSpeed; //delta=0.15
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn body to y-axis <3.000000> speed <28.125001> / animSpeed; //delta=0.94
 			turn lfoot to x-axis <50.042802> speed <878.295238> / animSpeed; //delta=-29.28
 			turn lfoot to z-axis <-9.779845> speed <187.982906> / animSpeed; //delta=6.27
@@ -234,7 +234,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.642000> speed <4.260000> / animSpeed; //delta=0.14
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn body to y-axis <2.062500> speed <28.124994> / animSpeed; //delta=-0.94
 			turn lfoot to x-axis <42.093182> speed <238.488588> / animSpeed; //delta=7.95
 			turn lfoot to z-axis <-4.828842> speed <148.530092> / animSpeed; //delta=-4.95
@@ -269,7 +269,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.784000> speed <4.260000> / animSpeed; //delta=0.14
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn body to y-axis <0.000000> speed <61.875008> / animSpeed; //delta=-2.06
 			turn lfoot to x-axis <-4.500590> speed <1397.813150> / animSpeed; //delta=46.59
 			turn lfoot to z-axis <0.439269> speed <158.043312> / animSpeed; //delta=-5.27
@@ -302,7 +302,7 @@ Walk() {// For N:\animations\armprowl_walk.blend Created by https://github.com/B
 			turn rturret to y-axis <0.896000> speed <3.360000> / animSpeed; //delta=0.11
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn body to y-axis <-2.062500> speed <61.875008> / animSpeed; //delta=-2.06
 			turn lfoot to x-axis <-21.185328> speed <500.542136> / animSpeed; //delta=16.68
 			turn lfoot to z-axis <-0.893611> speed <39.986385> / animSpeed; //delta=1.33
@@ -391,13 +391,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -419,7 +419,7 @@ Create()
 	hide aimx1;
 	hide misflare;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = 0;

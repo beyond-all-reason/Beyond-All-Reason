@@ -5,7 +5,7 @@
 
 piece  base, flare, turret, sleeve, barrel, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -18,7 +18,7 @@ Smoke()
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
 		if (currentSpeed<4) currentSpeed=4;
 		animSpeed = 1800 / currentSpeed;
-		if ( bMoving )
+		if ( isMoving )
 		{
 			emit-sfx 1024 + 1 from smoke1;
 			emit-sfx 1024 + 1 from smoke2;
@@ -52,7 +52,7 @@ Create()
 	hide flare;
 	hide smoke1;
 	hide smoke2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	hide flare;
@@ -63,7 +63,7 @@ StartMoving()
 {
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
-	bMoving = TRUE;
+	isMoving = TRUE;
 	start-script Smoke();
 }
 
@@ -71,7 +71,7 @@ StartMoving()
 StopMoving()
 {
   signal SIG_MOVE;
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 SetMaxReloadTime(Func_Var_1)

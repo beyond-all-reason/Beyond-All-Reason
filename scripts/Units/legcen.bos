@@ -6,7 +6,7 @@
 piece  lturret, lbarrel, lflare, rturret, rbarrel, rflare, uturret, ubarrel, uflare, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
        eyes, shoulder, ltooth, rtooth, aimx1;
 
-static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 // Signal definitions
 #define SIG_AIM		2
@@ -15,7 +15,7 @@ static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead,
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armfido_anim_walk2.blend 
 	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	if (isMoving) { //Frame:5
 			turn lhand to x-axis <-11.904617> speed <509.978555> / animSpeed; 
 			turn lleg to x-axis <51.319873> speed <1547.548193> / animSpeed; 
 			turn lloarm to x-axis <-7.847358> speed <332.011073> / animSpeed; 
@@ -30,8 +30,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <-3.172586> speed <95.177578> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:9
+	while(isMoving) {
+		if (isMoving) { //Frame:9
 			turn lfoot to x-axis <-55.425424> speed <447.881390> / animSpeed; 
 			turn lhand to x-axis <-17.772354> speed <176.032109> / animSpeed; 
 			turn lleg to x-axis <41.040657> speed <308.376484> / animSpeed; 
@@ -55,7 +55,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <-1.490819> speed <50.453009> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
+		if (isMoving) { //Frame:13
 			turn lfoot to x-axis <-43.868229> speed <346.715873> / animSpeed; 
 			turn lhand to x-axis <50.947453> speed <2061.594212> / animSpeed; 
 			turn lleg to x-axis <2.293790> speed <1162.406004> / animSpeed; 
@@ -80,7 +80,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <0.190948> speed <50.453006> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:17
+		if (isMoving) { //Frame:17
 			turn lfoot to x-axis <-38.088680> speed <173.386469> / animSpeed; 
 			turn lhand to x-axis <67.793978> speed <505.395750> / animSpeed; 
 			turn lleg to x-axis <7.177674> speed <146.516529> / animSpeed; 
@@ -105,7 +105,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <-1.490819> speed <50.453010> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			turn lfoot to x-axis <18.476638> speed <1696.959543> / animSpeed; 
 			turn lhand to x-axis <111.071976> speed <1298.339936> / animSpeed; 
 			turn lleg to x-axis <24.763254> speed <527.567389> / animSpeed; 
@@ -129,7 +129,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <-3.172586> speed <50.453006> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			move lfoot to z-axis [1.092890] speed [32.786690] / animSpeed; 
 			move lfoot to y-axis [1.821483] speed [54.644476] / animSpeed; 
 			turn lfoot to x-axis <-17.922510> speed <1091.974462> / animSpeed; 
@@ -156,7 +156,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <0.190948> speed <100.906015> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:29
+		if (isMoving) { //Frame:29
 			move lfoot to z-axis [-0.104085] speed [35.909232] / animSpeed; 
 			move lfoot to y-axis [1.353101] speed [14.051439] / animSpeed; 
 			turn lfoot to x-axis <7.066146> speed <749.659681> / animSpeed; 
@@ -185,7 +185,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn aimx1 to y-axis <0.186611> speed <8.691639> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:33
+		if (isMoving) { //Frame:33
 			move lfoot to z-axis [0.000000] speed [3.122542] / animSpeed; 
 			move lfoot to y-axis [0.000000] speed [40.593038] / animSpeed; 
 			turn lfoot to x-axis <0.441607> speed <198.736165> / animSpeed; 
@@ -215,7 +215,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ
 			turn torso to x-axis <-1.490819> speed <50.453010> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:37
+		if (isMoving) { //Frame:37
 			turn lfoot to x-axis <-40.496045> speed <1228.129549> / animSpeed; 
 			turn lhand to x-axis <-11.904617> speed <1148.921078> / animSpeed; 
 			turn lleg to x-axis <51.319873> speed <273.372038> / animSpeed; 
@@ -296,14 +296,14 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
   call-script StopWalking();
 }
 

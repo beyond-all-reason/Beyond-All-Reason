@@ -8,7 +8,7 @@ piece  pelvis, rfhip, rfleg, rffoot, lmhip, lmleg, lmfoot, lbhip, lbleg,
 		turret, shoulder, rlauncher, rbarrel1, flare1, rbarrel2, flare3, llauncher,
 		lbarrel1, flare2, lbarrel2, flare4, aacover, aimy1, aimx1; 
 
-static-var  bMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
+static-var  isMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -16,7 +16,7 @@ static-var  bMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1
 
 
 Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			turn lbfoot to z-axis <-11.433307> speed <707.000778> / animSpeed; //delta=-23.57 
 			turn lbhip to y-axis <-0.286453> speed <1358.593628> / animSpeed; //delta=-45.29 
 			turn lbleg to z-axis <-9.263622> speed <517.908622> / animSpeed; //delta=17.26 
@@ -40,8 +40,8 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to z-axis <0.400000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:11
+	while(isMoving) {
+		if (isMoving) { //Frame:11
 			turn lbfoot to z-axis <-19.620212> speed <245.607139> / animSpeed; //delta=8.19 
 			turn lbhip to y-axis <-3.589625> speed <99.095164> / animSpeed; //delta=-3.30 
 			turn lbleg to z-axis <2.135972> speed <341.987802> / animSpeed; //delta=-11.40 
@@ -67,7 +67,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.500000> speed <15.000000> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lbfoot to z-axis <-23.720323> speed <123.003340> / animSpeed; //delta=4.10 
 			turn lbhip to y-axis <-2.043328> speed <46.388903> / animSpeed; //delta=1.55 
 			turn lbleg to z-axis <3.558429> speed <42.673707> / animSpeed; //delta=-1.42 
@@ -94,7 +94,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <1.000000> speed <15.000000> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			turn lbfoot to z-axis <-16.492328> speed <216.839843> / animSpeed; //delta=-7.23 
 			turn lbhip to y-axis <4.397770> speed <193.232954> / animSpeed; //delta=6.44 
 			turn lbleg to z-axis <-3.138384> speed <200.904367> / animSpeed; //delta=6.70 
@@ -122,7 +122,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to z-axis <1.600000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:26
+		if (isMoving) { //Frame:26
 			turn lbfoot to z-axis <-21.852251> speed <160.797679> / animSpeed; //delta=5.36 
 			turn lbhip to y-axis <9.133693> speed <142.077676> / animSpeed; //delta=4.74 
 			turn lbleg to z-axis <0.557655> speed <110.881171> / animSpeed; //delta=-3.70 
@@ -150,7 +150,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to z-axis <2.000000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:31
+		if (isMoving) { //Frame:31
 			turn lbfoot to z-axis <-27.212181> speed <160.797884> / animSpeed; //delta=5.36 
 			turn lbhip to y-axis <13.869614> speed <142.077651> / animSpeed; //delta=4.74 
 			turn lbleg to z-axis <4.253695> speed <110.881171> / animSpeed; //delta=-3.70 
@@ -179,7 +179,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.750000> speed <7.499999> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn lbfoot to z-axis <-32.231116> speed <150.568071> / animSpeed; //delta=5.02 
 			turn lbhip to y-axis <18.620540> speed <142.527777> / animSpeed; //delta=4.75 
 			turn lbleg to z-axis <7.895835> speed <109.264222> / animSpeed; //delta=-3.64 
@@ -208,7 +208,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.500000> speed <7.499999> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:41
+		if (isMoving) { //Frame:41
 			turn lbfoot to z-axis <-37.250062> speed <150.568378> / animSpeed; //delta=5.02 
 			turn lbhip to y-axis <23.371466> speed <142.527777> / animSpeed; //delta=4.75 
 			turn lbleg to z-axis <11.537976> speed <109.264235> / animSpeed; //delta=-3.64 
@@ -237,7 +237,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.250000> speed <7.500001> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:46
+		if (isMoving) { //Frame:46
 			turn lbfoot to z-axis <-55.477911> speed <546.835463> / animSpeed; //delta=18.23 
 			turn lbhip to y-axis <32.066164> speed <260.840929> / animSpeed; //delta=8.69 
 			turn lbleg to z-axis <21.041351> speed <285.101223> / animSpeed; //delta=-9.50 
@@ -265,7 +265,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.000000> speed <7.500001> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:51
+		if (isMoving) { //Frame:51
 			turn lbfoot to z-axis <-73.705760> speed <546.835463> / animSpeed; //delta=18.23 
 			turn lbhip to y-axis <40.760861> speed <260.840929> / animSpeed; //delta=8.69 
 			turn lbleg to z-axis <30.544722> speed <285.101146> / animSpeed; //delta=-9.50 
@@ -291,7 +291,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-0.500000> speed <15.000000> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:56
+		if (isMoving) { //Frame:56
 			turn lbfoot to z-axis <-62.879527> speed <324.786970> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <35.868021> speed <146.785205> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <20.962242> speed <287.474415> / animSpeed; //delta=9.58 
@@ -318,7 +318,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-1.000000> speed <15.000000> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:61
+		if (isMoving) { //Frame:61
 			turn lbfoot to z-axis <-52.053292> speed <324.787072> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <30.975181> speed <146.785205> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <11.379754> speed <287.474620> / animSpeed; //delta=9.58 
@@ -346,7 +346,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-1.500000> speed <15.000001> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:66
+		if (isMoving) { //Frame:66
 			turn lbfoot to z-axis <-41.227066> speed <324.786765> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <26.082343> speed <146.785154> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <1.797270> speed <287.474543> / animSpeed; //delta=9.58 
@@ -374,7 +374,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-2.000000> speed <14.999998> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:71
+		if (isMoving) { //Frame:71
 			turn lbfoot to z-axis <-30.400834> speed <324.786970> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <21.189504> speed <146.785154> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <-7.785216> speed <287.474568> / animSpeed; //delta=9.58 
@@ -402,7 +402,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-1.500000> speed <14.999998> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:76
+		if (isMoving) { //Frame:76
 			turn lbfoot to z-axis <-19.574595> speed <324.787175> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <16.296667> speed <146.785102> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <-17.367701> speed <287.474543> / animSpeed; //delta=9.58 
@@ -430,7 +430,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-1.000000> speed <14.999998> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:81
+		if (isMoving) { //Frame:81
 			turn lbfoot to z-axis <-11.463393> speed <243.336042> / animSpeed; //delta=-8.11 
 			turn lbhip to y-axis <7.359210> speed <268.123737> / animSpeed; //delta=-8.94 
 			turn lbleg to z-axis <-22.712790> speed <160.352676> / animSpeed; //delta=5.35 
@@ -458,7 +458,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <-0.500000> speed <15.000001> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:86
+		if (isMoving) { //Frame:86
 			turn lbhip to y-axis <-0.286453> speed <229.369876> / animSpeed; //delta=-7.65 
 			turn lbleg to z-axis <-9.263622> speed <403.475052> / animSpeed; //delta=-13.45 
 			turn lffoot to z-axis <-59.009843> speed <349.278935> / animSpeed; //delta=11.64 
@@ -546,13 +546,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -625,7 +625,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	gun_1 = 1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 4;
 	wpnheading  = 0;

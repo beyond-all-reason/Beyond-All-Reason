@@ -13,7 +13,7 @@ static-var last_primary_heading, last_primary_pitch, last_secondary_heading, las
 #define SIG_AIM_2			8
 // For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 static-var walkCount;
 #define SIG_WALK 4
 
@@ -71,7 +71,7 @@ StopWalking() {
 Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIG_WALK;
 	walkCount = walkCount + 1;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			turn lfoot to x-axis <-33.421407> speed <1002.642225> / animSpeed; //delta=33.42
 			turn lfoot to z-axis <1.015298> speed <30.458947> / animSpeed; //delta=-1.02
 			turn lfoot to y-axis <0.359345> speed <10.780340> / animSpeed; //delta=0.36
@@ -90,10 +90,10 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
+	while(isMoving) {
 
 		//get PRINT (get GAME_FRAME, 666,calledfrom,walkCount);
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-32.878383> speed <16.290718> / animSpeed; //delta=-0.54
 			turn lfoot to z-axis <3.346333> speed <69.931035> / animSpeed; //delta=-2.33
@@ -127,7 +127,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <-3.000000> speed <29.999997> / animSpeed; //delta=-1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn lfoot to x-axis <-15.502255> speed <521.283828> / animSpeed; //delta=-17.38
 			turn lfoot to z-axis <4.957686> speed <48.340598> / animSpeed; //delta=-1.61
 			turn lleg to x-axis <-10.015493> speed <1557.664383> / animSpeed; //delta=51.92
@@ -159,7 +159,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <-2.000000> speed <29.999997> / animSpeed; //delta=1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn lfoot to x-axis <9.713428> speed <756.470490> / animSpeed; //delta=-25.22
 			turn lfoot to z-axis <0.880840> speed <122.305374> / animSpeed; //delta=4.08
 			turn lfoot to y-axis <-0.420355> speed <41.636547> / animSpeed; //delta=-1.39
@@ -191,7 +191,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn lfoot to x-axis <17.606484> speed <236.791688> / animSpeed; //delta=-7.89
 			turn lfoot to z-axis <-0.007676> speed <26.655475> / animSpeed; //delta=0.89
 			turn lfoot to y-axis <0.249674> speed <20.100876> / animSpeed; //delta=0.67
@@ -223,7 +223,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <5.121553> speed <374.547929> / animSpeed; //delta=12.48
 			turn lfoot to y-axis <0.017987> speed <6.950602> / animSpeed; //delta=-0.23
@@ -257,7 +257,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <3.000000> speed <30.000003> / animSpeed; //delta=1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			turn lfoot to x-axis <23.230132> speed <543.257375> / animSpeed; //delta=-18.11
 			turn lfoot to z-axis <-5.666423> speed <167.289647> / animSpeed; //delta=5.58
 			turn lfoot to y-axis <1.325835> speed <39.235429> / animSpeed; //delta=1.31
@@ -290,7 +290,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			turn lfoot to x-axis <0.897423> speed <669.981296> / animSpeed; //delta=22.33
 			turn lfoot to z-axis <-2.030338> speed <109.082554> / animSpeed; //delta=-3.64
 			turn lfoot to y-axis <0.017369> speed <39.253973> / animSpeed; //delta=-1.31
@@ -322,7 +322,7 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 			//turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			turn lfoot to x-axis <-33.421407> speed <1029.564874> / animSpeed; //delta=34.32
 			turn lfoot to z-axis <1.015298> speed <91.369073> / animSpeed; //delta=-3.05
 			turn lfoot to y-axis <0.359345> speed <10.259268> / animSpeed; //delta=0.34
@@ -362,9 +362,9 @@ Swim() {// For N:\animations\Raptors\armmar_enterwater_v2.blend Created by https
 	set-signal-mask SIG_WALK;
 
 	//get PRINT (get GAME_FRAME, 777);
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			spin lturbine around z-axis speed <-270>;
 			spin rturbine around z-axis speed <270>;
 
@@ -432,8 +432,8 @@ UnitSpeed(){
 	var unitxz;
 	while(TRUE){
 		//get PRINT(get GAME_FRAME, isSwimming);
-		//get PRINT ((GET UNIT_Y)/65000, bMoving, 2, 3);
-		if (bMoving == TRUE){
+		//get PRINT ((GET UNIT_Y)/65000, isMoving, 2, 3);
+		if (isMoving == TRUE){
 			unitxz = (get UNIT_XZ);
 			groundheight = 0;
 			if (unitxz > 0 ){
@@ -481,7 +481,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	//start-script UnitSpeed();
 	if (isSwimming == TRUE) {
 		start-script Swim();
@@ -493,7 +493,7 @@ StartMoving(){
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 		//if (isSwimming == TRUE ) call-script StopSwimming();
 		//else call-script StopWalking();
 
@@ -569,7 +569,7 @@ Create()
 	hide rflareaa;
 	hide lflareaa;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;

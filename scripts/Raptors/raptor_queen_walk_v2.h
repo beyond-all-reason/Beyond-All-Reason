@@ -8,7 +8,7 @@
 
 Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	if (isMoving) { //Frame:5
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
 			turn body to x-axis ((<-0.217126> *animAmplitude)/100) speed ((<9.134978> *animAmplitude)/100) / animSpeed; //delta=-0.30
 			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=-3.00
@@ -54,8 +54,8 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<-13.196538> *animAmplitude)/100) speed ((<395.896129> *animAmplitude)/100) / animSpeed; //delta=-13.20
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:10
+	while(isMoving) {
+		if (isMoving) { //Frame:10
 			move body to y-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.00
 			turn body to x-axis ((<-0.826125> *animAmplitude)/100) speed ((<18.269957> *animAmplitude)/100) / animSpeed; //delta=0.61
 			turn body to z-axis ((<5.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=-2.00
@@ -101,7 +101,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<-7.917922> *animAmplitude)/100) speed ((<158.358457> *animAmplitude)/100) / animSpeed; //delta=5.28
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			move body to y-axis (((([2.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to x-axis ((<-1.130624> *animAmplitude)/100) speed ((<9.134980> *animAmplitude)/100) / animSpeed; //delta=0.30
 			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=2.00
@@ -145,7 +145,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<237.537672> *animAmplitude)/100) / animSpeed; //delta=7.92
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			move body to y-axis (((([2.500000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([15.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.50
 			turn body to x-axis ((<-1.282874> *animAmplitude)/100) speed ((<4.567492> *animAmplitude)/100) / animSpeed; //delta=0.15
 			turn body to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=3.00
@@ -189,7 +189,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<6.598269> *animAmplitude)/100) speed ((<197.948064> *animAmplitude)/100) / animSpeed; //delta=6.60
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([105.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-3.50
 			turn body to x-axis ((<-0.217126> *animAmplitude)/100) speed ((<31.972433> *animAmplitude)/100) / animSpeed; //delta=-1.07
 			turn body to z-axis ((<-3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=3.00
@@ -235,7 +235,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<13.196538> *animAmplitude)/100) speed ((<197.948064> *animAmplitude)/100) / animSpeed; //delta=6.60
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			move body to y-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.00
 			turn body to x-axis ((<-0.826125> *animAmplitude)/100) speed ((<18.269961> *animAmplitude)/100) / animSpeed; //delta=0.61
 			turn body to z-axis ((<-5.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=2.00
@@ -281,7 +281,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<7.917922> *animAmplitude)/100) speed ((<158.358457> *animAmplitude)/100) / animSpeed; //delta=-5.28
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			move body to y-axis (((([2.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to x-axis ((<-1.130624> *animAmplitude)/100) speed ((<9.134980> *animAmplitude)/100) / animSpeed; //delta=0.30
 			turn body to z-axis ((<-3.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=-2.00
@@ -325,7 +325,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<237.537672> *animAmplitude)/100) / animSpeed; //delta=-7.92
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			move body to y-axis (((([2.500000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([15.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.50
 			turn body to x-axis ((<-1.282874> *animAmplitude)/100) speed ((<4.567492> *animAmplitude)/100) / animSpeed; //delta=0.15
 			turn body to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=-3.00
@@ -369,7 +369,7 @@ Walk() {// For N:\animations\raptor_queen_walk_anim_v2.blend Created by https://
 			turn tail to y-axis ((<-7.917922> *animAmplitude)/100) speed ((<237.537672> *animAmplitude)/100) / animSpeed; //delta=-7.92
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([105.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-3.50
 			turn body to x-axis ((<-0.217126> *animAmplitude)/100) speed ((<31.972433> *animAmplitude)/100) / animSpeed; //delta=-1.07
 			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=-3.00

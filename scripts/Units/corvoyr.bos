@@ -5,7 +5,7 @@
 
 piece  torso, rthigh, lthigh, lleg, lfoot, rleg, rfoot, dish1,belt,dish2,cover1,cover2,cover3,lens1,lens2,lens3, pelvis;
 
-static-var  bMoving, Static_Var_2;
+static-var  isMoving, Static_Var_2;
 static-var  Stunned;
 
 // Signal definitions
@@ -18,7 +18,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	//CC BY NC ND (c) Beherith
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <2.498132> speed <548.994061> / animSpeed; //delta=-18.30 
 			turn lfoot to z-axis <-0.004969> speed <321.525153> / animSpeed; //delta=10.72 
 			turn lfoot to y-axis <-0.003030> speed <88.669098> / animSpeed; //delta=-2.96 
@@ -39,8 +39,8 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <9.547723> speed <752.060125> / animSpeed; //delta=25.07 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn lfoot to x-axis <9.449029> speed <208.526903> / animSpeed; //delta=-6.95 
 			turn lleg to x-axis <35.862055> speed <1245.720671> / animSpeed; //delta=41.52 
 			turn lthigh to x-axis <-87.954805> speed <273.953765> / animSpeed; //delta=-9.13 
@@ -58,7 +58,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <9.866766> speed <9.571272> / animSpeed; //delta=0.32 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn lfoot to x-axis <23.034917> speed <407.576649> / animSpeed; //delta=-13.59 
 			turn lleg to x-axis <37.682413> speed <54.610743> / animSpeed; //delta=-1.82 
 			turn lthigh to x-axis <-63.158609> speed <743.885875> / animSpeed; //delta=-24.80 
@@ -75,7 +75,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <10.289436> speed <12.680101> / animSpeed; //delta=0.42 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis <-34.696374> speed <1731.938735> / animSpeed; //delta=57.73 
 			turn lleg to x-axis <69.133747> speed <943.540022> / animSpeed; //delta=-31.45 
 			turn lthigh to x-axis <-35.312420> speed <835.385684> / animSpeed; //delta=-27.85 
@@ -94,7 +94,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <4.301284> speed <179.644545> / animSpeed; //delta=-5.99 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lfoot to x-axis <-69.655888> speed <1048.785417> / animSpeed; //delta=34.96 
 			turn lleg to x-axis <54.424996> speed <441.262527> / animSpeed; //delta=14.71 
 			turn lthigh to x-axis <18.799694> speed <1623.363418> / animSpeed; //delta=-54.11 
@@ -114,7 +114,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn lfoot to x-axis <-36.865557> speed <983.709936> / animSpeed; //delta=-32.79 
 			turn lleg to x-axis <66.815253> speed <371.707706> / animSpeed; //delta=-12.39 
 			turn lthigh to x-axis <23.295088> speed <134.861795> / animSpeed; //delta=-4.50 
@@ -131,7 +131,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <13.589570> speed <942.241125> / animSpeed; //delta=-31.41 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn lfoot to x-axis <-71.956774> speed <1052.736510> / animSpeed; //delta=35.09 
 			turn lleg to x-axis <78.974445> speed <364.775747> / animSpeed; //delta=-12.16 
 			turn lthigh to x-axis <8.500066> speed <443.850640> / animSpeed; //delta=14.80 
@@ -147,7 +147,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-2.599492> speed <485.671849> / animSpeed; //delta=-16.19 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn lfoot to x-axis <-42.421489> speed <886.058550> / animSpeed; //delta=-29.54 
 			turn lleg to x-axis <90.027050> speed <331.578159> / animSpeed; //delta=-11.05 
 			turn lleg to z-axis <1.254578> speed <37.962064> / animSpeed; //delta=-1.27 
@@ -165,7 +165,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <3.391952> speed <179.743329> / animSpeed; //delta=5.99 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn lfoot to x-axis <2.498132> speed <1347.588624> / animSpeed; //delta=-44.92 
 			turn lleg to x-axis <77.386077> speed <379.229178> / animSpeed; //delta=12.64 
 			turn lleg to z-axis <0.014915> speed <37.189867> / animSpeed; //delta=1.24 
@@ -230,13 +230,13 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -264,7 +264,7 @@ Lights()
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	Static_Var_2 = 1000;
 	animSpeed = 4;
 	return (0);

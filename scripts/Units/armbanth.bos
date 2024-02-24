@@ -22,11 +22,11 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 // For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, moveHands;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, moveHands;
 #define SIG_WALK 1
 Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	if (isMoving) { //Frame:5
 			turn antenna to x-axis <0.777777> speed <53.333339> / animSpeed; //delta=1.78
 			turn head to x-axis <3.786915> speed <8.607460> / animSpeed; //delta=-0.29
 			turn lfoot to x-axis <-7.727963> speed <198.698877> / animSpeed; //delta=-6.62
@@ -67,8 +67,8 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:10
+	while(isMoving) {
+		if (isMoving) { //Frame:10
 			turn antenna to x-axis <-0.000000> speed <23.333323> / animSpeed; //delta=0.78
 			turn head to x-axis <3.561147> speed <6.773055> / animSpeed; //delta=0.23
 			turn head to y-axis <-5.005229> speed <148.268690> / animSpeed; //delta=-4.94
@@ -106,7 +106,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn antenna to x-axis <-1.444444> speed <43.333331> / animSpeed; //delta=1.44
 			turn head to y-axis <-6.735030> speed <51.894040> / animSpeed; //delta=-1.73
 			turn lfoot to x-axis <16.807289> speed <471.759891> / animSpeed; //delta=-15.73
@@ -137,7 +137,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn antenna to x-axis <-2.555555> speed <33.333332> / animSpeed; //delta=1.11
 			turn head to y-axis <-5.770232> speed <28.943938> / animSpeed; //delta=0.96
 			turn lfoot to x-axis <27.492893> speed <320.568116> / animSpeed; //delta=-10.69
@@ -171,7 +171,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			emit-sfx 4096 + 3 from ltoe;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(ltoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(ltoe) & 0x0000ffff),   get HEADING(0));
 			turn antenna to x-axis <-3.000000> speed <13.333334> / animSpeed; //delta=0.44
@@ -208,7 +208,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn antenna to x-axis <-2.555555> speed <13.333334> / animSpeed; //delta=-0.44
 			turn head to y-axis <-0.062939> speed <97.794250> / animSpeed; //delta=3.26
 			turn lfoot to x-axis <-38.989804> speed <680.895309> / animSpeed; //delta=22.70
@@ -243,7 +243,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			turn antenna to x-axis <-1.444444> speed <33.333335> / animSpeed; //delta=-1.11
 			turn head to y-axis <3.307282> speed <101.106639> / animSpeed; //delta=3.37
 			turn lfoot to x-axis <-43.892954> speed <147.094510> / animSpeed; //delta=4.90
@@ -278,7 +278,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			turn antenna to x-axis <0.000000> speed <43.333329> / animSpeed; //delta=-1.44
 			turn head to y-axis <5.959820> speed <79.576131> / animSpeed; //delta=2.65
 			turn lfoot to x-axis <-38.722033> speed <155.127632> / animSpeed; //delta=-5.17
@@ -313,7 +313,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			turn antenna to x-axis <1.444444> speed <43.333329> / animSpeed; //delta=-1.44
 			turn head to y-axis <7.035030> speed <32.256315> / animSpeed; //delta=1.08
 			turn lfoot to x-axis <-0.508901> speed <1146.393945> / animSpeed; //delta=-38.21
@@ -343,7 +343,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:50
+		if (isMoving) { //Frame:50
 			turn antenna to x-axis <2.555555> speed <33.333332> / animSpeed; //delta=-1.11
 			turn head to y-axis <5.194816> speed <55.206443> / animSpeed; //delta=-1.84
 			turn lfoot to x-axis <-42.872558> speed <1270.909693> / animSpeed; //delta=42.36
@@ -377,7 +377,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:55
+		if (isMoving) { //Frame:55
 			emit-sfx 4096 + 3 from rtoe;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rtoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rtoe) & 0x0000ffff),   get HEADING(0));
 			turn antenna to x-axis <3.000000> speed <13.333340> / animSpeed; //delta=-0.44
@@ -411,7 +411,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:60
+		if (isMoving) { //Frame:60
 			turn antenna to x-axis <2.222222> speed <23.333333> / animSpeed; //delta=0.78
 			turn head to y-axis <-0.062939> speed <55.206423> / animSpeed; //delta=-1.84
 			turn lfoot to x-axis <-41.607101> speed <606.743531> / animSpeed; //delta=-20.22
@@ -448,7 +448,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:65
+		if (isMoving) { //Frame:65
 			turn antenna to x-axis <0.777777> speed <43.333347> / animSpeed; //delta=1.44
 			turn lfoot to x-axis <-7.727963> speed <1016.374154> / animSpeed; //delta=-33.88
 			turn lleg to x-axis <82.919726> speed <620.844320> / animSpeed; //delta=20.69
@@ -559,7 +559,7 @@ UnitSpeed(){
 
 StartMoving(){
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
   set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
 	start-script Walk();
@@ -567,7 +567,7 @@ StartMoving(){
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -591,7 +591,7 @@ Create()
 	hide aimy1;
 	myHeading=0;
 	moveHands = TRUE;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_5 = 1;
 	animSpeed = 5;

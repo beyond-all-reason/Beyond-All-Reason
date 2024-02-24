@@ -6,7 +6,7 @@
 piece  base, L6, L5, L4, L3, L2, L1, J2,
        spot1, spot2, J1;
 
-static-var  bMoving, gun_1, waterSpeed;
+static-var  isMoving, gun_1, waterSpeed;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -51,9 +51,9 @@ AmphWalk()
 
 walk2()
 {
-	while( bMoving )
+	while( isMoving )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 			turn L6 to y-axis <43.00549> now;
 			turn L6 to y-axis <0.00000> speed <148.00000>;
@@ -84,7 +84,7 @@ walk2()
 			turn J1 to x-axis <-5.00000> speed <50.00000>;
 			sleep 200;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 			turn L6 to z-axis <31.00549> speed <158.00000>;
 			turn L5 to y-axis <34.00549> speed <163.00000>;
@@ -102,7 +102,7 @@ walk2()
 			turn J1 to x-axis <5.00000> speed <50.00000>;
 			sleep 200;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 			turn L6 to y-axis <55.00549> speed <269.00000>;
 			turn L6 to z-axis <31.00549> speed <3.00000>;
@@ -149,7 +149,7 @@ MotionControl(Func_Var_1)
 {
 	while( TRUE )
 	{
-		Func_Var_1 = bMoving;
+		Func_Var_1 = isMoving;
 		if( Func_Var_1 )
 		{
 			call-script walk2();
@@ -182,7 +182,7 @@ MotionControl(Func_Var_1)
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	gun_1 = base;
 	start-script MotionControl();
 	start-script AmphWalk();
@@ -192,13 +192,13 @@ Create()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	return (0);
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	return (0);
 }
 

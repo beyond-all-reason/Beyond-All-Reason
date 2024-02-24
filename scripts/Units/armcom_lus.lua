@@ -87,7 +87,7 @@ local function move(piece, axis, goal, speed)
 end
 
 function walk()
-	if (bMoving) then --Frame:4
+	if (isMoving) then --Frame:4
 				if (leftArm) then turn(biggun, 1, -48.215180, 113.735764/animSpeed) --delta=-3.79
 				turn(head, 1, -2.620635, 39.654598/animSpeed) --delta=1.32
 				turn(head, 2, -3.829846, 114.895376/animSpeed) --delta=-3.83
@@ -114,8 +114,8 @@ function walk()
 				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
 			Sleep( (33*animSpeed) -1)
 		end
-		while(bMoving) do
-			if (bMoving) then --Frame:8
+		while(isMoving) do
+			if (isMoving) then --Frame:8
 				if (leftArm) then turn(biggun, 1, -46.675856, 46.179694/animSpeed) end--delta=-1.54
 				turn(head, 1, -1.563179, 31.723679/animSpeed) --delta=-1.06
 				turn(head, 2, -6.127755, 68.937274/animSpeed) --delta=-2.30
@@ -142,7 +142,7 @@ function walk()
 				turn(torso, 2, 13.926961, 181.425790/animSpeed) --delta=6.05
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:12
+			if (isMoving) then --Frame:12
 				if (leftArm) then turn(biggun, 1, -46.110552, 16.959121/animSpeed) end--delta=-0.57
 				turn(head, 1, 0.023005, 47.585527/animSpeed) --delta=-1.59
 				turn(head, 2, -7.659692, 45.958102/animSpeed) --delta=-1.53
@@ -169,7 +169,7 @@ function walk()
 				turn(torso, 2, 15.758869, 54.957239/animSpeed) --delta=1.83
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:16
+			if (isMoving) then --Frame:16
 
 				if (leftArm) then turn(biggun, 1, -47.068049, 28.724907/animSpeed) end--delta=0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
@@ -198,7 +198,7 @@ function walk()
 				turn(torso, 2, 13.926961, 54.957239/animSpeed) --delta=-1.83
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:20
+			if (isMoving) then --Frame:20
 				if not Spring.GetUnitIsCloaked(unitID) then
 					UnitScript.EmitSfx(lfootstep, 1024 + 2)
 				end
@@ -229,7 +229,7 @@ function walk()
 				turn(torso, 2, 7.879434, 181.425790/animSpeed) --delta=-6.05
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:24
+			if (isMoving) then --Frame:24
 				if (leftArm) then turn(biggun, 1, -52.006372, 80.119348/animSpeed) end--delta=2.67
 				turn(head, 1, -3.149363, 31.723676/animSpeed) --delta=1.06
 				turn(head, 2, 0.000000, 114.895376/animSpeed) --delta=3.83
@@ -258,7 +258,7 @@ function walk()
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:28
+			if (isMoving) then --Frame:28
 				if (leftArm) then turn(biggun, 1, -53.142724, 34.090567/animSpeed) end--delta=1.14
 				turn(head, 1, -2.620635, 15.861851/animSpeed) --delta=-0.53
 				turn(head, 2, 3.829846, 114.895376/animSpeed) --delta=3.83
@@ -287,7 +287,7 @@ function walk()
 				turn(torso, 2, -7.879434, 236.383029/animSpeed) --delta=-7.88
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:32
+			if (isMoving) then --Frame:32
 				if (leftArm) then turn(biggun, 1, -55.253092, 63.311038/animSpeed) end--delta=2.11
 				turn(head, 1, -1.563179, 31.723670/animSpeed) --delta=-1.06
 				turn(head, 2, 6.127755, 68.937274/animSpeed) --delta=2.30
@@ -313,7 +313,7 @@ function walk()
 				turn(torso, 2, -13.926961, 181.425790/animSpeed) --delta=-6.05
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:36
+			if (isMoving) then --Frame:36
 
 				if (leftArm) then turn(biggun, 1, -56.389444, 34.090567/animSpeed) end--delta=1.14
 				turn(head, 1, 0.023005, 47.585536/animSpeed) --delta=-1.59
@@ -341,7 +341,7 @@ function walk()
 				turn(torso, 2, -15.758869, 54.957239/animSpeed) --delta=-1.83
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:40
+			if (isMoving) then --Frame:40
 
 				if (leftArm) then turn(biggun, 1, -55.431951, 28.724805/animSpeed) end--delta=-0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
@@ -371,7 +371,7 @@ function walk()
 				turn(torso, 2, -13.926961, 54.957239/animSpeed) --delta=1.83
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:44
+			if (isMoving) then --Frame:44
 				if not Spring.GetUnitIsCloaked(unitID) then
 					UnitScript.EmitSfx(rfootstep, 1024 + 2)
 				end
@@ -402,7 +402,7 @@ function walk()
 				turn(torso, 2, -7.879434, 181.425790/animSpeed) --delta=6.05
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:48
+			if (isMoving) then --Frame:48
 				if (leftArm) then turn(biggun, 1, -50.493628, 80.119348/animSpeed) end--delta=-2.67
 				turn(head, 1, -3.149363, 31.723676/animSpeed) --delta=1.06
 				turn(head, 2, 0.000000, 114.895376/animSpeed) --delta=-3.83
@@ -431,7 +431,7 @@ function walk()
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
 			Sleep( (33*animSpeed) -1)
 			end
-			if (bMoving) then --Frame:52
+			if (isMoving) then --Frame:52
 				if (leftArm) then turn(biggun, 1, -48.215180, 68.353460/animSpeed) end--delta=-2.28
 				turn(head, 1, -2.620635, 15.861851/animSpeed) --delta=-0.53
 				turn(head, 2, -3.829846, 114.895376/animSpeed) --delta=-3.83
@@ -832,7 +832,7 @@ end
 
 local boredTime = 0
 function AmIBored()
-	if bMoving == false and isAiming == false and isBuilding == false and isDancing == false then
+	if isMoving == false and isAiming == false and isBuilding == false and isDancing == false then
 		boredTime = boredTime + 1
 	end
 	if boredTime > (600 * (1000/131)) and not isDancing then
@@ -931,13 +931,13 @@ end
 
 function script.StartMoving()
 	if isDancing then StartThread(StopDance1) end
-	bMoving = true
+	isMoving = true
 	StartThread(walk)
 end
 
 function script.StopMoving()
 	Signal(SIG_WALK)
-	bMoving = false
+	isMoving = false
 	StartThread(StopWalking)
 end
 

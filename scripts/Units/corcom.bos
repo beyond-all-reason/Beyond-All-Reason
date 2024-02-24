@@ -6,7 +6,7 @@
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
     rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, hatpoint, crown, medalsilver, medalbronze, medalgold;
 
-static-var bMoving, isAiming, Busy, gun_3, gun_2, counter,
+static-var isMoving, isAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
 
 // for the AimPrimary script, to skip wait-for-turn if needed
@@ -27,7 +27,7 @@ static-var animFramesPerKeyframe;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	if (isMoving) { //Frame:6
 			turn biggun to x-axis <7.000000> speed <474.333919> / animSpeed; 
 			turn biggun to z-axis <-0.000000> speed <59.118463> / animSpeed; 
 			turn biggun to y-axis <0.000000> speed <4.555160> / animSpeed; 
@@ -65,8 +65,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-16.999999> speed <509.999980> / animSpeed; 
 		sleep 197;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:12
+	while(isMoving) {
+		if (isMoving) { //Frame:12
 			turn biggun to x-axis <-0.000000> speed <210.000014> / animSpeed; 
 			turn head to x-axis <-2.018726> speed <32.742739> / animSpeed; 
 			turn head to y-axis <6.502752> speed <88.673904> / animSpeed; 
@@ -100,7 +100,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-11.687500> speed <159.374994> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn biggun to x-axis <14.962093> speed <448.862786> / animSpeed; 
 			turn head to x-axis <6.002970> speed <240.650875> / animSpeed; 
 			turn head to y-axis <-0.000000> speed <195.082586> / animSpeed; 
@@ -136,7 +136,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.000001> speed <350.625002> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn biggun to x-axis <-1.500000> speed <493.862787> / animSpeed; 
 			turn head to x-axis <1.940259> speed <121.881321> / animSpeed; 
 			turn head to y-axis <-6.502753> speed <195.082587> / animSpeed; 
@@ -173,7 +173,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <11.687500> speed <350.624996> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn biggun to x-axis <-7.000000> speed <165.000000> / animSpeed; 
 			turn head to x-axis <-1.322678> speed <97.888103> / animSpeed; 
 			turn head to y-axis <-9.458549> speed <88.673879> / animSpeed; 
@@ -208,7 +208,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <16.999999> speed <159.374968> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn biggun to x-axis <-4.812500> speed <65.625000> / animSpeed; 
 			turn head to x-axis <-2.018726> speed <20.881451> / animSpeed; 
 			turn head to y-axis <-6.502752> speed <88.673904> / animSpeed; 
@@ -244,7 +244,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <11.687500> speed <159.374994> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			turn biggun to x-axis <0.000000> speed <144.375003> / animSpeed; 
 			turn head to x-axis <5.974242> speed <239.789054> / animSpeed; 
 			turn head to y-axis <0.000000> speed <195.082586> / animSpeed; 
@@ -280,7 +280,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-0.000001> speed <350.625002> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			turn biggun to x-axis <4.812500> speed <144.375000> / animSpeed; 
 			turn head to x-axis <1.854076> speed <123.605001> / animSpeed; 
 			turn head to y-axis <6.502753> speed <195.082587> / animSpeed; 
@@ -317,7 +317,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-11.687500> speed <350.624996> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			turn biggun to x-axis <7.000000> speed <65.625012> / animSpeed; 
 			turn head to x-axis <-0.920485> speed <83.236809> / animSpeed; 
 			turn head to y-axis <9.458549> speed <88.673879> / animSpeed; 
@@ -755,7 +755,7 @@ UnitSpeed(){
   if (animspeed>12) animSpeed = 12;
   //animSpeed = 1;
   sleep 197;
-  if ((bMoving == FALSE) && (isAiming == FALSE) && (bIsBuilding == FALSE)){
+  if ((isMoving == FALSE) && (isAiming == FALSE) && (bIsBuilding == FALSE)){
   	idleTime = idleTime + 200;
   }else{
   	idleTime = 0;
@@ -800,7 +800,7 @@ Create()
 
 	shotcount = 0;
 	idleTime = 0;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	bIsBuilding = FALSE;
 	bDancing = FALSE;
@@ -858,7 +858,7 @@ ShowMedalBronze()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	gun_3 = torso;
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
@@ -868,7 +868,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_WALK;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 

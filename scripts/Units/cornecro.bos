@@ -9,11 +9,11 @@
 
 piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1, corhexl, corhexl_emit;
 
-static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cornecro_anim_walk.blend 
 	set-signal-mask SIG_WALK;
-	if (bMoving) {
+	if (isMoving) {
 			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <-0.560101> speed <16.803019> / animSpeed; 
 			turn luparm to x-axis <0.242998> speed <7.289952> / animSpeed; 
@@ -21,8 +21,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to x-axis <-0.803352> speed <24.100567> / animSpeed; 
 		sleep 98;
 	}
-	while(bMoving) {
-		if (bMoving) {
+	while(isMoving) {
+		if (isMoving) {
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <9.597569> speed <304.730096> / animSpeed; 
@@ -36,7 +36,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <13.899999> speed <416.999979> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn hip to x-axis <-3.000000> speed <90.000003> / animSpeed; 
 			turn larm to x-axis <17.195968> speed <227.951954> / animSpeed; 
 			turn lfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
@@ -49,7 +49,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <6.300000> speed <227.999992> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
 			turn hip to x-axis <0.000000> speed <90.000003> / animSpeed; 
 			turn larm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
@@ -63,7 +63,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.000000> speed <188.999987> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
 			turn hip to x-axis <-3.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <-19.158424> speed <398.472280> / animSpeed; 
@@ -78,7 +78,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-14.599999> speed <437.999968> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <-27.321836> speed <244.902341> / animSpeed; 
 			turn lfoot to x-axis <60.958646> speed <1203.960331> / animSpeed; 
@@ -92,7 +92,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-8.300000> speed <188.999975> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
 			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
@@ -167,7 +167,7 @@ Create()
 	hide aimy1;
 	//hide corhexl;
 	hide corhexl_emit;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	animSpeed = 3;
 	spray = flare1;
 }
@@ -209,7 +209,7 @@ StopBuilding()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
@@ -218,7 +218,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	signal SIG_WALK;
 	call-script StopWalking();
 }

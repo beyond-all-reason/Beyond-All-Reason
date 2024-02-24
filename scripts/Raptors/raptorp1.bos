@@ -1,6 +1,6 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack, aimy1;
 
-static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
+static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
 #define SIG_AIM				2

@@ -5,7 +5,7 @@
 
 piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
 
-static-var  bMoving, isAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
+static-var  isMoving, isAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -46,7 +46,7 @@ MotionControl()
 		// for left feet, invert y and z axis, and flip front and back feet!
 		
 		// step 0 all centered
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		turn rfthigh to y-axis <0> speed <72.000000>;
@@ -92,7 +92,7 @@ MotionControl()
 		
 		sleep 140;
 		}
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		// step 1 foot back
@@ -140,7 +140,7 @@ MotionControl()
 		
 		sleep 140;
 		}
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		// step 2 foot lift heel
@@ -187,7 +187,7 @@ MotionControl()
 		
 		sleep 140;
 		}
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		// step 3 foot lifted up
@@ -234,7 +234,7 @@ MotionControl()
 		
 		sleep 140;
 		}
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		// step 4 foot forward
@@ -281,7 +281,7 @@ MotionControl()
 		
 		sleep 140;
 		}
-		if (bMoving | bSteering) 
+		if (isMoving | bSteering) 
 		{
 		
 		// step 5 put down foot up front
@@ -377,7 +377,7 @@ Create()
 {
 	hide flare;
 	hide flare;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	bSteering = FALSE;
 	Static_Var_3 = 1;
@@ -390,13 +390,13 @@ Create()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	//set-signal-mask SIG_MOVE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	//signal SIG_MOVE;
 	Static_Var_3 = 1;
 

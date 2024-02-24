@@ -5,7 +5,7 @@
 
 piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, misflare;
 
-static-var  restore_delay, Static_Var_2, bMoving, gun_2, corrected;
+static-var  restore_delay, Static_Var_2, isMoving, gun_2, corrected;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -37,7 +37,7 @@ EmitSFX()
 {
 	while( TRUE )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 			if( Static_Var_2 == 3 )//does ... anything ever trip this?
 			{
@@ -56,7 +56,7 @@ Create()
 //	turn aturret to y-axis <-180> speed <500>;
 	
 	Static_Var_2 = 4;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	restore_delay = 3000;
 	start-script EmitSFX();
 }
@@ -101,12 +101,12 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 AimPrimary(heading, pitch)

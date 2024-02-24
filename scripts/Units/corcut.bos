@@ -5,7 +5,7 @@
 
 piece  base, flare1, flare2, thrusta, thrustb, fan1, fan2, duct1, duct2;
 
-static-var  Static_Var_1, bMoving, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, isMoving, gun_1, statechg_DesiredState, statechg_StateChanging;
 
 
 Go()
@@ -81,7 +81,7 @@ Create()
 	hide flare2;
 	Static_Var_1 = 0;
 	gun_1 = base;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -139,13 +139,13 @@ setSFXoccupy(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 	return (0);
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	return (0);
 }
 

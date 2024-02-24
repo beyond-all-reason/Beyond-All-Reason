@@ -7,7 +7,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
-static-var  bMoving, isAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, wpnheading ;
+static-var  isMoving, isAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
 #include "weapon1control.h"
 
@@ -22,7 +22,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_WALK 8
 Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:2
+	if (isMoving) { //Frame:2
 			turn lfoot to x-axis ((<-40.243512> *animAmplitude)/100) speed ((<1273.943828> *animAmplitude)/100) / animSpeed; //delta=42.46
 			turn lfoot to z-axis ((<-7.440659> *animAmplitude)/100) speed ((<223.219252> *animAmplitude)/100) / animSpeed; //delta=7.44
 			turn lfoot to y-axis ((<-5.865953> *animAmplitude)/100) speed ((<727.995439> *animAmplitude)/100) / animSpeed; //delta=-24.27
@@ -59,8 +59,8 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<-6.060918> *animAmplitude)/100) speed ((<182.948716> *animAmplitude)/100) / animSpeed; //delta=-6.10
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:4
+	while(isMoving) {
+		if (isMoving) { //Frame:4
 			turn lfoot to x-axis ((<-30.657758> *animAmplitude)/100) speed ((<287.572616> *animAmplitude)/100) / animSpeed; //delta=-9.59
 			turn lfoot to z-axis ((<-1.578026> *animAmplitude)/100) speed ((<175.878977> *animAmplitude)/100) / animSpeed; //delta=-5.86
 			turn lfoot to y-axis ((<-3.384192> *animAmplitude)/100) speed ((<74.452829> *animAmplitude)/100) / animSpeed; //delta=2.48
@@ -97,7 +97,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<-8.679222> *animAmplitude)/100) speed ((<78.549118> *animAmplitude)/100) / animSpeed; //delta=-2.62
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:6
+		if (isMoving) { //Frame:6
 			turn lfoot to x-axis ((<-39.010424> *animAmplitude)/100) speed ((<250.579970> *animAmplitude)/100) / animSpeed; //delta=8.35
 			turn lfoot to z-axis ((<-0.002108> *animAmplitude)/100) speed ((<47.277535> *animAmplitude)/100) / animSpeed; //delta=-1.58
 			turn lfoot to y-axis ((<-0.006890> *animAmplitude)/100) speed ((<101.319038> *animAmplitude)/100) / animSpeed; //delta=3.38
@@ -135,7 +135,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<-5.940345> *animAmplitude)/100) speed ((<82.166318> *animAmplitude)/100) / animSpeed; //delta=2.74
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:8
+		if (isMoving) { //Frame:8
 			turn lfoot to x-axis ((<2.496757> *animAmplitude)/100) speed ((<1245.215437> *animAmplitude)/100) / animSpeed; //delta=-41.51
 			turn lknee to x-axis ((<23.683565> *animAmplitude)/100) speed ((<24.894810> *animAmplitude)/100) / animSpeed; //delta=-0.83
 			turn lknee to z-axis ((<-0.307654> *animAmplitude)/100) speed ((<26.354925> *animAmplitude)/100) / animSpeed; //delta=-0.88
@@ -172,7 +172,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<0.085185> *animAmplitude)/100) speed ((<180.765899> *animAmplitude)/100) / animSpeed; //delta=6.03
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:10
+		if (isMoving) { //Frame:10
 			turn lfoot to x-axis ((<38.743818> *animAmplitude)/100) speed ((<1087.411814> *animAmplitude)/100) / animSpeed; //delta=-36.25
 			turn lknee to x-axis ((<6.114390> *animAmplitude)/100) speed ((<527.075257> *animAmplitude)/100) / animSpeed; //delta=17.57
 			turn lknee to z-axis ((<-1.151940> *animAmplitude)/100) speed ((<25.328603> *animAmplitude)/100) / animSpeed; //delta=0.84
@@ -209,7 +209,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<6.110734> *animAmplitude)/100) speed ((<180.766460> *animAmplitude)/100) / animSpeed; //delta=6.03
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn lfoot to x-axis ((<25.040025> *animAmplitude)/100) speed ((<411.113782> *animAmplitude)/100) / animSpeed; //delta=13.70
 			turn lknee to x-axis ((<-25.275077> *animAmplitude)/100) speed ((<941.684012> *animAmplitude)/100) / animSpeed; //delta=31.39
 			turn lknee to z-axis ((<-1.282850> *animAmplitude)/100) speed ((<3.927293> *animAmplitude)/100) / animSpeed; //delta=0.13
@@ -245,7 +245,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<8.849594> *animAmplitude)/100) speed ((<82.165818> *animAmplitude)/100) / animSpeed; //delta=2.74
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:14
+		if (isMoving) { //Frame:14
 			turn lfoot to x-axis ((<37.387998> *animAmplitude)/100) speed ((<370.439186> *animAmplitude)/100) / animSpeed; //delta=-12.35
 			turn lfoot to z-axis ((<-8.962304> *animAmplitude)/100) speed ((<268.846559> *animAmplitude)/100) / animSpeed; //delta=8.96
 			turn lfoot to y-axis ((<12.859584> *animAmplitude)/100) speed ((<385.678150> *animAmplitude)/100) / animSpeed; //delta=12.86
@@ -283,7 +283,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<5.762510> *animAmplitude)/100) speed ((<92.612524> *animAmplitude)/100) / animSpeed; //delta=-3.09
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis ((<0.464192> *animAmplitude)/100) speed ((<1107.714192> *animAmplitude)/100) / animSpeed; //delta=36.92
 			turn lfoot to z-axis ((<-9.697005> *animAmplitude)/100) speed ((<22.041012> *animAmplitude)/100) / animSpeed; //delta=0.73
 			turn lfoot to y-axis ((<5.833231> *animAmplitude)/100) speed ((<210.790579> *animAmplitude)/100) / animSpeed; //delta=-7.03
@@ -320,7 +320,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn torso to y-axis ((<-0.411658> *animAmplitude)/100) speed ((<185.225044> *animAmplitude)/100) / animSpeed; //delta=-6.17
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			turn lfoot to x-axis ((<-40.243512> *animAmplitude)/100) speed ((<1221.231110> *animAmplitude)/100) / animSpeed; //delta=40.71
 			turn lfoot to z-axis ((<-7.440659> *animAmplitude)/100) speed ((<67.690385> *animAmplitude)/100) / animSpeed; //delta=-2.26
 			turn lfoot to y-axis ((<-5.865953> *animAmplitude)/100) speed ((<350.975516> *animAmplitude)/100) / animSpeed; //delta=-11.70
@@ -1017,7 +1017,7 @@ Create()
 	hide aimy1;
 	hide rfire;
 	hide lfire;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = torso;
@@ -1031,7 +1031,7 @@ Create()
 
 StartMoving(){
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	set-signal-mask SIG_WALK;
 	call-script StopAnimation();
 	start-script UnitSpeed();
@@ -1039,7 +1039,7 @@ StartMoving(){
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 	start-script Animate();
 }

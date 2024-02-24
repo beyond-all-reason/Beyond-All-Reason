@@ -1,6 +1,6 @@
 piece body,head,tail,lthighf,lkneef,lshinf,lfootf,rthighf,rkneef,rshinf,rfootf,lthighb,lkneeb,lshinb,lfootb,rthighb,rkneeb,rshinb,rfootb,lforearml,lbladel,rforearml,rbladel,lforearmu,lbladeu,rforearmu,rbladeu,spike1,spike2,spike3,spike1emit,spike2emit,spike3emit,firepoint,aimy1;
 
-static-var aMoving, bMoving, gun_1, shot5pitch, shot5heading;
+static-var aMoving, isMoving, gun_1, shot5pitch, shot5heading;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -36,12 +36,12 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 

@@ -5,7 +5,7 @@ piece base,torso, thigh1l, thigh1r, thigh2l, thigh2r, thigh3l, thigh3r, leg1l, l
 
 #define SIG_AIM				2
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying, gun_1;
+static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 200 // Higher values are bigger, 100 is default, for bigger/smaller units
@@ -139,14 +139,14 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		//start-script Idle();

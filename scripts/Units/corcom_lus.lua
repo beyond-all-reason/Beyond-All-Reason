@@ -82,7 +82,7 @@ end
 
 function walk()
 	SetSignalMask(SIG_WALK)
-		if (bMoving) then --Frame:6
+		if (isMoving) then --Frame:6
 			if (rightArm) then turn(biggun, 1, 7.000000, 474.333919 / animSpeed) end
 			if (rightArm) then turn(biggun, 3, -0.000000, 59.118463 / animSpeed)  end
 			if (rightArm) then turn(biggun, 2, 0.000000, 4.555160 / animSpeed)  end
@@ -120,8 +120,8 @@ function walk()
 			turn(torso, 2, -16.999999, 509.999980 / animSpeed)
 			Sleep(197)
 		end
-	while (bMoving) do
-		if (bMoving) then --Frame:12
+	while (isMoving) do
+		if (isMoving) then --Frame:12
 			if (rightArm) then turn(biggun, 1, -0.000000, 210.000014 / animSpeed)  end
 			turn(head, 1, -2.018726, 32.742739 / animSpeed)
 			turn(head, 2, 6.502752, 88.673904 / animSpeed)
@@ -155,7 +155,7 @@ function walk()
 			turn(torso, 2, -11.687500, 159.374994 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:18
+		if (isMoving) then --Frame:18
 
 			if (rightArm) then turn(biggun, 1, 14.962093, 448.862786 / animSpeed)  end
 			turn(head, 1, 6.002970, 240.650875 / animSpeed)
@@ -192,7 +192,7 @@ function walk()
 			turn(torso, 2, 0.000001, 350.625002 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:24
+		if (isMoving) then --Frame:24
 			if not Spring.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(r_foot, 1024 + 2)
 			end
@@ -232,7 +232,7 @@ function walk()
 			turn(torso, 2, 11.687500, 350.624996 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:30
+		if (isMoving) then --Frame:30
 			if (rightArm) then turn(biggun, 1, -7.000000, 165.000000 / animSpeed)  end
 			turn(head, 1, -1.322678, 97.888103 / animSpeed)
 			turn(head, 2, -9.458549, 88.673879 / animSpeed)
@@ -267,7 +267,7 @@ function walk()
 			turn(torso, 2, 16.999999, 159.374968 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:36
+		if (isMoving) then --Frame:36
 			if (rightArm) then turn(biggun, 1, -4.812500, 65.625000 / animSpeed)  end
 			turn(head, 1, -2.018726, 20.881451 / animSpeed)
 			turn(head, 2, -6.502752, 88.673904 / animSpeed)
@@ -303,7 +303,7 @@ function walk()
 			turn(torso, 2, 11.687500, 159.374994 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:42
+		if (isMoving) then --Frame:42
 			if (rightArm) then turn(biggun, 1, 0.000000, 144.375003 / animSpeed)  end
 			turn(head, 1, 5.974242, 239.789054 / animSpeed)
 			turn(head, 2, 0.000000, 195.082586 / animSpeed)
@@ -339,7 +339,7 @@ function walk()
 			turn(torso, 2, -0.000001, 350.625002 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:48
+		if (isMoving) then --Frame:48
 			if not Spring.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(l_foot, 1024 + 2)
 			end
@@ -379,7 +379,7 @@ function walk()
 			turn(torso, 2, -11.687500, 350.624996 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (bMoving) then --Frame:54
+		if (isMoving) then --Frame:54
 			if (rightArm) then turn(biggun, 1, 7.000000, 65.625012 / animSpeed)  end
 			turn(head, 1, -0.920485, 83.236809 / animSpeed)
 			turn(head, 2, 9.458549, 88.673879 / animSpeed)
@@ -468,7 +468,7 @@ function StopWalking()
 end
 
 function AmIBored()
-	if bMoving == false and isAiming == false and isBuilding == false then
+	if isMoving == false and isAiming == false and isBuilding == false then
 		return true
 	else
 		return false
@@ -549,13 +549,13 @@ function ShowMedalBronze()
 end
 
 function script.StartMoving()
-	bMoving = true
+	isMoving = true
 	StartThread(walk)
 end
 
 function script.StopMoving()
 	Signal(SIG_WALK)
-	bMoving = false
+	isMoving = false
 	StartThread(StopWalking)
 end
 

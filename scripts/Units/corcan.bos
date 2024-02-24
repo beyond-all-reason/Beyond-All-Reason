@@ -5,7 +5,7 @@
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
 
-static-var  restore_delay,bMoving, wpn1_lasthead;
+static-var  restore_delay,isMoving, wpn1_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -18,7 +18,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcan_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn head to x-axis <-2.988460> speed <266.653795> / animSpeed; 
 			turn head to z-axis <-1.299999> speed <38.999979> / animSpeed; 
 			turn head to y-axis <1.299999> speed <38.999979> / animSpeed; 
@@ -41,8 +41,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-11.599999> speed <347.999965> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <-5.814835> speed <84.791223> / animSpeed; 
 			turn lfoot to x-axis <-17.299998> speed <68.999937> / animSpeed; 
@@ -61,7 +61,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-16.199998> speed <137.999977> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn head to x-axis <9.399999> speed <456.445013> / animSpeed; 
 			turn lfoot to x-axis <-15.248437> speed <61.546852> / animSpeed; 
 			turn lfoot to z-axis <-17.528125> speed <50.156248> / animSpeed; 
@@ -81,7 +81,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-10.699998> speed <164.999988> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn head to x-axis <4.739835> speed <139.804927> / animSpeed; 
 			turn lfoot to x-axis <-10.112500> speed <154.078105> / animSpeed; 
 			turn lfoot to z-axis <-13.850001> speed <110.343729> / animSpeed; 
@@ -100,7 +100,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <0.000000> speed <320.999954> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn head to x-axis <-2.634065> speed <221.217012> / animSpeed; 
 			turn lfoot to x-axis <-3.420312> speed <200.765620> / animSpeed; 
 			turn lfoot to z-axis <-10.171875> speed <110.343755> / animSpeed; 
@@ -119,7 +119,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <10.599999> speed <317.999982> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <-5.924175> speed <98.703294> / animSpeed; 
 			turn lfoot to x-axis <3.300000> speed <201.609364> / animSpeed; 
@@ -137,7 +137,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <16.799999> speed <186.000002> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn head to x-axis <9.504121> speed <462.848892> / animSpeed; 
 			turn lfoot to x-axis <7.200000> speed <116.999994> / animSpeed; 
 			turn lfoot to z-axis <-9.200000> speed <21.000014> / animSpeed; 
@@ -156,7 +156,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <10.399999> speed <191.999999> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn head to x-axis <4.798352> speed <141.173069> / animSpeed; 
 			turn lfoot to x-axis <-4.400000> speed <347.999978> / animSpeed; 
 			turn lfoot to z-axis <-7.300000> speed <56.999995> / animSpeed; 
@@ -175,7 +175,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-0.500000> speed <326.999977> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn head to x-axis <-2.526372> speed <219.741736> / animSpeed; 
 			turn lfoot to x-axis <-15.000000> speed <318.000020> / animSpeed; 
 			turn lfoot to z-axis <-9.600000> speed <68.999988> / animSpeed; 
@@ -246,14 +246,14 @@ UnitSpeed(){
 
 StartMoving(){
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -262,7 +262,7 @@ Create()
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	hide flare;
 	restore_delay = 3000;
 	animSpeed = 4;

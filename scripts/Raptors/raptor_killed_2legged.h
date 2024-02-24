@@ -52,7 +52,7 @@ static-var isDying;
 
 StopMoving(){
 	signal SIG_WALK;
-	bMoving=FALSE;
+	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		start-script Idle();

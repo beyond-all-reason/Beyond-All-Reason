@@ -6,14 +6,14 @@
 piece  base, lbLeg, lbFoot, rbLeg, rbFoot, lfLeg, lfFoot, rfLeg,
        rfFoot;
 
-static-var  bMoving;
+static-var  isMoving;
 
 
 MotionControl()
 {
 	while( TRUE )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 		turn base to y-axis <-18> speed <60>;
 		move base to x-axis [0] speed [10];
@@ -38,7 +38,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		//step 1
 		turn base to y-axis <-12> speed <60>;
@@ -63,7 +63,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		turn base to y-axis <12> speed <60>;
 		move base to x-axis [2] speed [10];
@@ -87,7 +87,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		
 		turn base to y-axis <18> speed <60>;
@@ -113,7 +113,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 			
 		turn base to y-axis <12> speed <60>;
@@ -137,7 +137,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 	
 		turn base to y-axis <-12> speed <60>;
@@ -162,7 +162,7 @@ MotionControl()
 		
 		sleep 60;
 		}
-		if( !bMoving )
+		if( !isMoving )
 		{
 			sleep 100;
 		}
@@ -172,7 +172,7 @@ MotionControl()
 
 Create()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	start-script MotionControl();
 }
 
@@ -181,12 +181,12 @@ Create()
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	
 	turn rfleg to y-axis <0> speed <255.000000>;
 	turn rfleg to z-axis <0> speed <135.000000>;

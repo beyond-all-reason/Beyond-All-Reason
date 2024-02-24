@@ -7,7 +7,7 @@ piece  base, wake, bow, chrgflare, turret, sleeve, barrel1, barrel2,
        foreturret, foreflare, aftturret, aftflare, flare1,
        flare2 ;
 
-static-var  restore_delay, gun_2, gun_1, bMoving, oldHead;
+static-var  restore_delay, gun_2, gun_1, isMoving, oldHead;
 
 // Signal definitions
 #define SIG_AIM_2			2
@@ -57,7 +57,7 @@ Create()
 	hide aftflare;
 	gun_1 = base;
 	gun_2 = base;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{

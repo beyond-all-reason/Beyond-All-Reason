@@ -16,11 +16,11 @@ static-var isAiming, isAimingDgun, isBuilding, buildHeading, buildPitch, leftArm
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var maxSpeed, animFramesPerKeyframe, bMoving;
+static-var maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <113.735764> / animSpeed; //delta=-3.79
 			turn head to x-axis <-2.620635> speed <39.654598> / animSpeed; //delta=1.32
 			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
@@ -47,8 +47,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <7.879434> speed <236.383029> / animSpeed; //delta=7.88
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			if (leftArm) turn biggun to x-axis <-46.675856> speed <46.179694> / animSpeed; //delta=-1.54
 			turn head to x-axis <-1.563179> speed <31.723679> / animSpeed; //delta=-1.06
 			turn head to y-axis <-6.127755> speed <68.937274> / animSpeed; //delta=-2.30
@@ -75,7 +75,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <13.926961> speed <181.425790> / animSpeed; //delta=6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			if (leftArm) turn biggun to x-axis <-46.110552> speed <16.959121> / animSpeed; //delta=-0.57
 			turn head to x-axis <0.023005> speed <47.585527> / animSpeed; //delta=-1.59
 			turn head to y-axis <-7.659692> speed <45.958102> / animSpeed; //delta=-1.53
@@ -102,7 +102,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <15.758869> speed <54.957239> / animSpeed; //delta=1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			if (leftArm) turn biggun to x-axis <-47.068049> speed <28.724907> / animSpeed; //delta=0.96
 			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
 			turn head to y-axis <-6.127755> speed <45.958102> / animSpeed; //delta=1.53
@@ -130,7 +130,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <13.926961> speed <54.957239> / animSpeed; //delta=-1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			if (leftArm) turn biggun to x-axis <-49.335727> speed <68.030323> / animSpeed; //delta=2.27
 			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
 			turn head to y-axis <-3.829846> speed <68.937274> / animSpeed; //delta=2.30
@@ -158,7 +158,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <7.879434> speed <181.425790> / animSpeed; //delta=-6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			if (leftArm) turn biggun to x-axis <-52.006372> speed <80.119348> / animSpeed; //delta=2.67
 			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
 			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=3.83
@@ -187,7 +187,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=-7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			if (leftArm) turn biggun to x-axis <-53.142724> speed <34.090567> / animSpeed; //delta=1.14
 			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
 			turn head to y-axis <3.829846> speed <114.895376> / animSpeed; //delta=3.83
@@ -216,7 +216,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-7.879434> speed <236.383029> / animSpeed; //delta=-7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			if (leftArm) turn biggun to x-axis <-55.253092> speed <63.311038> / animSpeed; //delta=2.11
 			turn head to x-axis <-1.563179> speed <31.723670> / animSpeed; //delta=-1.06
 			turn head to y-axis <6.127755> speed <68.937274> / animSpeed; //delta=2.30
@@ -242,7 +242,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-13.926961> speed <181.425790> / animSpeed; //delta=-6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			if (leftArm) turn biggun to x-axis <-56.389444> speed <34.090567> / animSpeed; //delta=1.14
 			turn head to x-axis <0.023005> speed <47.585536> / animSpeed; //delta=-1.59
 			turn head to y-axis <7.659692> speed <45.958102> / animSpeed; //delta=1.53
@@ -269,7 +269,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-15.758869> speed <54.957239> / animSpeed; //delta=-1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			if (leftArm) turn biggun to x-axis <-55.431951> speed <28.724805> / animSpeed; //delta=-0.96
 			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
 			turn head to y-axis <6.127755> speed <45.958102> / animSpeed; //delta=-1.53
@@ -298,7 +298,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-13.926961> speed <54.957239> / animSpeed; //delta=1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:44
+		if (isMoving) { //Frame:44
 			if (leftArm) turn biggun to x-axis <-53.164273> speed <68.030323> / animSpeed; //delta=-2.27
 			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
 			turn head to y-axis <3.829846> speed <68.937274> / animSpeed; //delta=-2.30
@@ -326,7 +326,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-7.879434> speed <181.425790> / animSpeed; //delta=6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			if (leftArm) turn biggun to x-axis <-50.493628> speed <80.119348> / animSpeed; //delta=-2.67
 			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
 			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=-3.83
@@ -355,7 +355,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:52
+		if (isMoving) { //Frame:52
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <68.353460> / animSpeed; //delta=-2.28
 			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
 			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
@@ -438,13 +438,13 @@ UnitSpeed(){
 StartMoving(){
   signal SIG_WALK;
   set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIG_WALK;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 
@@ -455,7 +455,7 @@ AmIBored() {
 	//return isAiming == false and isBuilding == false and isMoving == false
 	if (isAiming == 0){
 		if (isBuilding == 0 ){
-			if (bMoving == 0){
+			if (isMoving == 0){
 				return (1);
 			}
 		}
@@ -484,7 +484,7 @@ Create(){
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
 	animSpeed = 4;
-	bMoving = 0;
+	isMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
 	isAimingDgun = 0;

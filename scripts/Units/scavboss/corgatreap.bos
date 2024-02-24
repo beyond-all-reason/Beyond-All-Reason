@@ -5,7 +5,7 @@
 
 piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
+static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -30,7 +30,7 @@ Smoke()
 {
 	while( TRUE )
 	{
-		if ( bMoving )
+		if ( isMoving )
 		{
 			if( terrain == 4 )
 			{
@@ -75,7 +75,7 @@ Create()
 	hide flare;
 	hide smoke1;
 	hide smoke2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	hide flare;
@@ -150,7 +150,7 @@ setSFXoccupy(state)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
 	start-script Smoke();
@@ -160,7 +160,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
   signal SIG_MOVE;
 }
 

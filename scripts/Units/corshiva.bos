@@ -6,7 +6,7 @@
 piece  pelvis, aimy1, torso, aimx1, rturret, rflare, rrecoil, lturret, lflare, lrecoil, rlauncher, rocketflare, 
 	ldoor, rdoor, lthigh, rleg, rankle, rfoot, rwake, rtoe1, rtoe2, rtoe3, rthigh, lleg, lankle, lfoot, lwake, ltoe1, ltoe2, ltoe3;
 
-static-var  bMoving, isAiming, restore_delay, gun_left, firststep;
+static-var  isMoving, isAiming, restore_delay, gun_left, firststep;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 
@@ -21,7 +21,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animSpeed which contains how many frames each keyframe takes
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corshiva_anim_walk_v6.blend 
-	if (bMoving) {
+	if (isMoving) {
 			turn lankle to x-axis <9.694950> speed <137.523174> / animSpeed; 
 			turn lankle to z-axis <-0.373805> speed <11.236899> / animSpeed; 
 			turn lankle to y-axis <-0.324764> speed <9.472937> / animSpeed; 
@@ -54,8 +54,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <-3.763759> speed <112.912760> / animSpeed; 
 		sleep 197;
 	}
-	while(bMoving) {
-		if (bMoving) {
+	while(isMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-36.575663> speed <1388.118384> / animSpeed; 
 			turn lankle to z-axis <-1.310726> speed <28.107630> / animSpeed; 
 			turn lankle to y-axis <-0.854192> speed <15.882829> / animSpeed; 
@@ -93,7 +93,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <-5.310977> speed <46.416540> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-3.998318> speed <977.320336> / animSpeed; 
 			turn lankle to z-axis <-0.186133> speed <33.737789> / animSpeed; 
 			turn lankle to y-axis <-0.508584> speed <10.368224> / animSpeed; 
@@ -132,7 +132,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to z-axis <2.264458> speed <67.933749> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-12.747822> speed <262.485092> / animSpeed; 
 			turn lankle to z-axis <1.038795> speed <36.747833> / animSpeed; 
 			turn lankle to y-axis <0.364484> speed <26.192033> / animSpeed; 
@@ -168,7 +168,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to z-axis <1.132229> speed <33.966874> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-6.514551> speed <186.998123> / animSpeed; 
 			turn lankle to z-axis <0.629472> speed <12.279695> / animSpeed; 
 			turn lankle to y-axis <0.043820> speed <9.619905> / animSpeed; 
@@ -204,7 +204,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to z-axis <-0.000000> speed <33.966874> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-5.727493> speed <23.611729> / animSpeed; 
 			turn lankle to z-axis <0.742267> speed <3.383836> / animSpeed; 
 			turn lfoot to x-axis <-2.167152> speed <241.825170> / animSpeed; 
@@ -242,7 +242,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to x-axis <-5.081074> speed <39.519466> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-25.823940> speed <602.893392> / animSpeed; 
 			turn lankle to z-axis <0.973663> speed <6.941907> / animSpeed; 
 			turn lankle to y-axis <1.154590> speed <30.696019> / animSpeed; 
@@ -280,7 +280,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.321296> speed <9.638873> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <-24.522093> speed <39.055380> / animSpeed; 
 			turn lankle to z-axis <-1.201320> speed <65.249513> / animSpeed; 
 			turn lankle to y-axis <-0.880721> speed <61.059343> / animSpeed; 
@@ -317,7 +317,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.160648> speed <4.819437> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lankle to x-axis <9.694950> speed <1026.511299> / animSpeed; 
 			turn lankle to z-axis <-0.373805> speed <24.825474> / animSpeed; 
 			turn lankle to y-axis <-0.324764> speed <16.678711> / animSpeed; 
@@ -535,8 +535,8 @@ MotionControl(moving, aiming, justmoved)
 	
 	while( TRUE )
 	{	
-		//get PRINT(bMoving, isAiming, justmoved);
-		moving = bMoving;
+		//get PRINT(isMoving, isAiming, justmoved);
+		moving = isMoving;
 		aiming = isAiming;
 		if( moving )
 		{
@@ -607,7 +607,7 @@ Create()
 	hide rflare;
 	hide aimx1;
 	hide aimy1;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	isAiming = FALSE;
 	doorOpen = FALSE;
 	gun_left = TRUE;
@@ -632,7 +632,7 @@ SetMaxReloadTime(maxtime_ms) //this is called by engine immediately after Create
 StartMoving()
 {
 	signal SIG_WALK;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
 	start-script Walk();
@@ -641,7 +641,7 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	signal SIG_WALK;
 	call-script StopWalking();
 	set ARMORED to 1;

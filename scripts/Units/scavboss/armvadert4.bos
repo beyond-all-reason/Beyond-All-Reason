@@ -5,14 +5,14 @@
 
 piece  leg1, leg2, leg3, leg4, base, body;
 
-static-var  bMoving;
+static-var  isMoving;
 
 #define SIG_MOVE 1
 walkscr()
 {
-	while( bMoving )
+	while( isMoving )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 			turn leg1 to z-axis <0.000000> now;
 			sleep 33;
@@ -25,7 +25,7 @@ MotionControl(Func_Var_1)
 {
 	while( TRUE )
 	{
-		Func_Var_1 = bMoving;
+		Func_Var_1 = isMoving;
 		if( Func_Var_1 )
 		{
 			call-script walkscr();
@@ -69,7 +69,7 @@ Create()
 {
 	hide base;
 
-	bMoving = FALSE;
+	isMoving = FALSE;
 	start-script SmokeUnit();
 }
 
@@ -85,7 +85,7 @@ StartMoving()
 	sleep 150;
 	move leg3 to y-axis [0] speed [28];
 	move leg4 to y-axis [0] speed [28];
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
@@ -101,7 +101,7 @@ StopMoving()
 	move base to y-axis [2.5] speed [18];
 
 	
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 AimWeapon1()
