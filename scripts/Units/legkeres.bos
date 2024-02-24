@@ -9,8 +9,8 @@ static-var  restore_delay, last_gun_heading;
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
-#define SIG_FIRE1 			16
-#define SIG_FIRE2 			32
+#define SIGNAL_SHOOT1 16
+#define SIGNAL_SHOOT2 32
 
 #define BASEPIECE base
 #define HITSPEED <85.0>
@@ -133,8 +133,8 @@ FireWeapon2()
 
 Shot2(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	emit-sfx 1024 + 1 from lflare;
 	return(1);
 }
@@ -168,8 +168,8 @@ FireWeapon3()
 
 Shot3(zero)
 {
-	signal SIG_FIRE2;
-	set-signal-mask SIG_FIRE2;
+	signal SIGNAL_SHOOT2;
+	set-signal-mask SIGNAL_SHOOT2;
 	emit-sfx 1024 + 1 from rflare;
 	return(1);
 }

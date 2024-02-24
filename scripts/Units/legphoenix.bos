@@ -14,7 +14,7 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#define SIG_STRAFE 2
+#define SIGNAL_STRAFE 2
 
 
 
@@ -74,8 +74,8 @@ Deactivate()
 
 StrafeFire() {
 
-	signal SIG_STRAFE;
-	set-signal-mask SIG_STRAFE;
+	signal SIGNAL_STRAFE;
+	set-signal-mask SIGNAL_STRAFE;
 	
 	
 	//emit-sfx 1024 + 0 from lineflare;
@@ -103,7 +103,7 @@ StrafeFire() {
 
 FireWeapon1() {
 
-	//signal SIG_STRAFE;
+	//signal SIGNAL_STRAFE;
 	isfiring = 1;
 	start-script StrafeFire();
 
@@ -142,7 +142,7 @@ AimWeapon2(h,p) {
 
 /*
 FireWeapon2() {
-	signal SIG_STRAFE;
+	signal SIGNAL_STRAFE;
 //deny reaiming during firing?
 //barrel roll?
 	isfiring = 1;

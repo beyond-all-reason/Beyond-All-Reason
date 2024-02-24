@@ -10,7 +10,6 @@ static-var  gun_1, gun_2, restore_delay, oldheading;
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
-#define SIG_STEER			16
 
 
 #define BASEPIECE base

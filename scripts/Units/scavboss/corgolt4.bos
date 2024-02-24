@@ -10,7 +10,7 @@ static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lb
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM4	1024
-#define SIG_TICKLE				32
+#define SIGNAL_TICKLE 32
 
 UnitSpeed()
 {
@@ -154,8 +154,8 @@ stopLaughing (){
 //tickled logic, rolling 10s reset every light damage, cancel the reset if more happens
 
 tickle() {
-	signal SIG_TICKLE;
-	set-signal-mask SIG_TICKLE;
+	signal SIGNAL_TICKLE;
+	set-signal-mask SIGNAL_TICKLE;
 	sleep 10000;
 	start-script stopLaughing();
 }

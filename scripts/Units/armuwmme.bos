@@ -8,7 +8,7 @@ static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
-#define SIG_WORK 4
+#define SIGNAL_WORK 8
 
 
 Go()
@@ -16,8 +16,8 @@ Go()
 	if (Stunned) {
 		return(0);
 	}
-	signal SIG_WORK;
-	set-signal-mask SIG_WORK;
+	signal SIGNAL_WORK;
+	set-signal-mask SIGNAL_WORK;
 	
 	spin claw1 around z-axis speed resourceRate accelerate resourceRate/100.0;
 	spin claw2 around z-axis speed -1*resourceRate accelerate resourceRate/100.0;
@@ -82,7 +82,7 @@ RequestState(requestedstate, currentstate)
 		}
 		if( statechg_DesiredState == 1 )
 		{
-			signal SIG_WORK;
+			signal SIGNAL_WORK;
 			start-script Stop();
 			currentstate = 1;
 		}

@@ -7,7 +7,7 @@ static-var  restore_delay, deploy_state, animate_speed, close_speed;
 static-var  barrel;
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_DEPLOY			4
+#define SIGNAL_TURNON 4
 
 static-var  Stunned;
 SetStunned(State)
@@ -21,8 +21,8 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	turn lid to z-axis <0> speed <1>*animate_speed;
 	move sleeve to y-axis [0] speed [0.133]*animate_speed;
 	deploy_state = 0;
@@ -56,8 +56,8 @@ Create()
 
 Deploy()
 {
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	set ARMORED to 0;
 	if (deploy_state==0 OR deploy_state==1)
 	{

@@ -603,7 +603,6 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
-	//signal SIG_HEAD;
 	//We can do this any time
 	tilt = heading;
 	tilt = get ABS(tilt)/10;

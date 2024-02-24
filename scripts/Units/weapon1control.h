@@ -51,14 +51,14 @@ RestoreAfterDelay()
 - if pitch = 1, head = 1 and wpnReady = 1 then the weapon can shoot: aim1 = 1 and aimweapon returns aim1
 - Restore animations go in RestoreAfterDelay, RestoreWeapon1() restores aimy and aimx pieces orientation, Weapon1Restored() waits for these pieces to be restored
 */
-#define SIG_WPN1CTRL 64
+#define SIGNAL_WPN1CTRL 64
 
 static-var curHead1, wtdHead1, head1, curPitch1, wtdPitch1, pitch1, aim1, wpnReady1;
 
 Weapon1Control()
 {
-	signal SIG_WPN1CTRL;
-	set-signal-mask SIG_WPN1CTRL;
+	signal SIGNAL_WPN1CTRL;
+	set-signal-mask SIGNAL_WPN1CTRL;
 	while (TRUE)
 	{
 		if (curHead1 > <180>)
@@ -163,7 +163,7 @@ Weapon1Restored()
 		sleep 25;
 	}
 	
-	signal SIG_WPN1CTRL;
+	signal SIGNAL_WPN1CTRL;
 	return (TRUE);
 	
 }

@@ -1,18 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     9
-// NumberOfPieces                      2
-// LengthOfScripts                     100
-// NumberOfStaticVars                  2
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        42c
-// OffsetToScriptNameOffsetArray       450
-// OffsetToPieceNameOffsetArray        474
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   47c
-
-// OffsetToFirstName                   47c
-
 
 #include "exptype.h"
 
@@ -22,69 +7,69 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 Go()
-/*     0:*/{
-/*     4:*/	spin dish around y-axis speed <60.010989>;
-/*     9:*/	return (0);
-/*     a:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    37:*/}
+{
+	spin dish around y-axis speed <60.010989>;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
 
 Stop()
-/*    2f:*/{
-/*    33:*/	spin dish around y-axis speed <0.000000>;
-/*    38:*/	return (0);
-/*    39:*/}
+{
+	spin dish around y-axis speed <0.000000>;
+	return (0);
+}
 
 InitState()
-/*    39:*/{
-/*    3b:*/	statechg_DesiredState = TRUE;
-/*    3f:*/	statechg_StateChanging = FALSE;
-/*    43:*/	return (0);
-/*    44:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*    46:*/{
-/*    48:*/	if( statechg_StateChanging )
-/*    4a:*/	{
-/*    4c:*/		statechg_DesiredState = requestedstate;
-/*    50:*/		return (0);
-/*    51:*/	}
-/*    53:*/	statechg_StateChanging = TRUE;
-/*    57:*/	currentstate = statechg_DesiredState;
-/*    5b:*/	statechg_DesiredState = requestedstate;
-/*    62:*/	while( statechg_DesiredState != currentstate )
-/*    64:*/	{
-/*    69:*/		if( statechg_DesiredState == 0 )
-/*    6b:*/		{
-/*    6b:*/			call-script Go();
-/*    70:*/			currentstate = 0;
-/*    72:*/		}
-/*    77:*/		if( statechg_DesiredState == 1 )
-/*    79:*/		{
-/*    79:*/			call-script Stop();
-/*    7e:*/			currentstate = 1;
-/*    80:*/		}
-/*    82:*/	}
-/*    84:*/	statechg_StateChanging = FALSE;
-/*    88:*/	return (0);
-/*    89:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*    89:*/{
-/*    8d:*/	call-script InitState();
-/*    92:*/	return (0);
-/*    93:*/}
+{
+	call-script InitState();
+	return (0);
+}
 
 Activate()
-/*    93:*/{
-/*    95:*/	start-script RequestState(0);
-/*    9a:*/	return (0);
-/*    9b:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*    9b:*/{
-/*    9d:*/	start-script RequestState(1);
-/*    a2:*/	return (0);
-/*    a3:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 
 

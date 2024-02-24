@@ -18,14 +18,14 @@ static-var fire_count_3, fire_count_4, restore_delay, animSpeed, maxSpeed, animF
 			oldHeading, speed2, speed3, speed4, speed5, speed6, steerstore, steerslow, turnslow;
 
 #define SIGNAL_AIM1 256
-#define SIG_FIRE3 4
+#define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 #define SIGNAL_AIM4 2048
 #define SIGNAL_AIM5 4096
 #define SIGNAL_AIM6 8192
-#define SIG_FIRE4 512
+#define SIGNAL_SHOOT2 32
 #define SMOKEPIECE1 base1
 
 Steering(heading, steery, currentSpeed)
@@ -1184,8 +1184,8 @@ FireWeapon3()
 
 Shot3(zero)
 {
-	signal SIG_FIRE3;
-	set-signal-mask SIG_FIRE3;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	if(fire_count_3==0)
 	{
 		emit-sfx 1024+0 from flare13;	
@@ -1246,8 +1246,8 @@ FireWeapon4()
 
 Shot4(zero)
 {
-	signal SIG_FIRE4;
-	set-signal-mask SIG_FIRE4;
+	signal SIGNAL_SHOOT2;
+	set-signal-mask SIGNAL_SHOOT2;
 	if(fire_count_4==0)
 	{
 		emit-sfx 1024+0 from flare14;	

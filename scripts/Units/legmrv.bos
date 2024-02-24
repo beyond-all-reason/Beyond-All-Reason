@@ -10,7 +10,7 @@ static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, statechg_Desired
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-#define SIG_FIRE1			8
+#define SIGNAL_SHOOT1 16
 
 RockUnit(anglex, anglez)
 {
@@ -139,8 +139,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	if (gun_1 == 0){
 		move barrelr to z-axis [-3] now;
 		move barrelr to z-axis [0] speed [1];

@@ -15,10 +15,10 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 #define SIGNAL_AIM4 2048
-#define SIG_FIRE1 	32
+#define SIGNAL_SHOOT1 16
 #define SIGNAL_AIM5 4096
 #define SIGNAL_MOVE 1
-#define SIG_FIRE2 	64
+#define SIGNAL_SHOOT2 32
 
 // REMEMBER TO animspeed = 4 in Create() !!
 //--------------------------------------------------------
@@ -495,8 +495,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	sleep 32;
 	++missile_count;
 	if(missile_count>=4)
@@ -624,8 +624,8 @@ FireWeapon4()
 
 Shot4(zero)
 {
-	signal SIG_FIRE2;
-	set-signal-mask SIG_FIRE2;
+	signal SIGNAL_SHOOT2;
+	set-signal-mask SIGNAL_SHOOT2;
 	
 	if(miniguncount == 0)
 	{

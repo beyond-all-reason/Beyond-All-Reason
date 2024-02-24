@@ -8,7 +8,7 @@ static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, miniguncount, anim
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_FIRE1 			4
+#define SIGNAL_SHOOT1 16
 
 
 walk()
@@ -319,8 +319,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	
 	if(miniguncount == 0)
 	{

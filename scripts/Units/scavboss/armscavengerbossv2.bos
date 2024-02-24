@@ -13,7 +13,7 @@ static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
-#define SIG_FIRE1 16
+#define SIGNAL_SHOOT1 16
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -648,8 +648,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	emit-sfx 1024 + 3 from flare;
 	return(1);
 }

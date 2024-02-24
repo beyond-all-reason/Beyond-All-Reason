@@ -14,7 +14,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_FIRE1 			8
+#define SIGNAL_SHOOT1 16
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corthud_anim_walk.blend 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
@@ -440,8 +440,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	
 	if (gun_1 == 0)
 	{

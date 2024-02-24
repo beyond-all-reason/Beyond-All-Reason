@@ -3,7 +3,7 @@
 
 
 #define SIGNAL_BUILD 2
-#define SIG_FOLD		8	
+#define SIGNAL_TURNON 4	
 
 piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doorbr, doortl, doortr, thrust, nanolight;
 
@@ -12,8 +12,8 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	signal SIG_FOLD;
-	set-signal-mask SIG_FOLD;
+	signal SIGNAL_TURNON ;
+	set-signal-mask SIGNAL_TURNON ;
 
 	show thrust;
 	if( TRUE )
@@ -30,8 +30,8 @@ activatescr()
 
 deactivatescr()
 {
-	signal SIG_FOLD;
-	set-signal-mask SIG_FOLD;
+	signal SIGNAL_TURNON ;
+	set-signal-mask SIGNAL_TURNON ;
 
 	hide thrust;
 	hide nanolight;

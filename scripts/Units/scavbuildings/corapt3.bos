@@ -1,18 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     19
-// NumberOfPieces                      9
-// LengthOfScripts                     471
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        11f0
-// OffsetToScriptNameOffsetArray       123c
-// OffsetToPieceNameOffsetArray        1288
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   12ac
-
-// OffsetToFirstName                   12ac
-
 
 #include "exptype.h"
 

@@ -9,7 +9,7 @@ static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead,
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_FIRE1 	8
+#define SIGNAL_SHOOT1 16
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armfido_anim_walk2.blend 
 	//set-signal-mask SIGNAL_MOVE;
@@ -402,8 +402,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	
 	if (gun_1 == 0)
 	{

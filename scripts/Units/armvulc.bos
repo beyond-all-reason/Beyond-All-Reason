@@ -8,7 +8,7 @@ static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging,
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_FIRE			4
+#define SIGNAL_SHOOT1 16
 
 activatescr()
 {
@@ -215,8 +215,8 @@ FireWeapon1()
 	}
 
 	// After 1 second, last_primary_heading and last_primary_pitch should be reset
-	signal SIG_FIRE;
-	set-signal-mask SIG_FIRE;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	sleep 1000;
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;

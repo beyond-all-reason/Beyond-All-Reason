@@ -13,7 +13,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
-#define SIG_FIRE1 		16
+#define SIGNAL_SHOOT1 16
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
@@ -1129,9 +1129,9 @@ AimWeapon2(heading, pitch)
 
 Shot1()
 {
-	signal SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
 	
-	set-signal-mask SIG_FIRE1;
+	set-signal-mask SIGNAL_SHOOT1;
 	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from lfflare2;
 	emit-sfx 1024 + 0 from rfflare1;

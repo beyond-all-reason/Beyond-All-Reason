@@ -10,7 +10,7 @@ static-var recently_damaged, desired_activation;
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_TURNON 4
-#define SIG_OFF 				8
+#define SIGNAL_OFF 8
 
 
 
@@ -123,8 +123,8 @@ SetStunned(State)
 
 OffOnHit()
 {
-signal SIG_OFF;
-set-signal-mask SIG_OFF;
+signal SIGNAL_OFF;
+set-signal-mask SIGNAL_OFF;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit

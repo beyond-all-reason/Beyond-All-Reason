@@ -7,7 +7,7 @@ static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_FIRE			4
+#define SIGNAL_SHOOT1 16
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
@@ -104,8 +104,8 @@ FireWeapon1() {
 	// FireWeapon1 controls animation right after firing
 	// but after 1 second, AimWeapon1 should regain control over spindle animation
 	// and last_primary_heading and last_primary_pitch should be reset
-	signal SIG_FIRE;
-	set-signal-mask SIG_FIRE;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	sleep 1000;
 	fire_rotation = FALSE;
 	last_primary_heading = -1000000;

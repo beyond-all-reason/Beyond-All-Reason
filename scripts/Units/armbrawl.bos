@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 #define SIGNAL_AIM1 256
-#define SIG_FIRE1 			4
+#define SIGNAL_SHOOT1 16
 piece  flare1, flare2, base, wingl, wingr, finl, finr, fan, flare3, flare4,pivot;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
@@ -159,8 +159,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	if( gun_1 == 0 )
 	{
 		emit-sfx 1024 + 0 from flare2;

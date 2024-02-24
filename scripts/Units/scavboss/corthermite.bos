@@ -10,7 +10,8 @@ static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wp
 #define SIGNAL_AIM2 512
 
 #define SIGNAL_MOVE 1
-#define SIG_SIG_CHILL 16
+#define SIGNAL_CHILL 16
+#define SIGNAL_PUFF 32
 
 
 #define FRONT_RIGHT_UP\
@@ -275,8 +276,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 
 chilltime(current) {
-		signal SIG_CHILL;
-		set-signal-mask SIG_CHILL;
+		signal SIGNAL_CHILL;
+		set-signal-mask SIGNAL_CHILL;
 
 		if (moving==FALSE AND isreset) {
 			
@@ -299,7 +300,7 @@ chilltime(current) {
 puff() {
 
 		if(isreset) {
-			set-signal-mask SIG_PUFF;
+			set-signal-mask SIGNAL_PUFF;
 			emit-sfx 1024 + 1 from flameflarer;
 			sleep 5000;
 			rand = Rand( 3, 5 );

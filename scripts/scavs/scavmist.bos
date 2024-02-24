@@ -12,7 +12,7 @@ piece	flare;
 // static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIGNAL_AIM1 256
-//#define SIG_FIRE1 4
+//#define SIGNAL_SHOOT1 16
 //#define SIGNAL_MOVE 1
 //#define SMOKEPIECE1 body
 

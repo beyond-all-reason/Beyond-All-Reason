@@ -7,7 +7,7 @@ static-var  restore_delay, deploy_state, animate_speed;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIG_DEPLOY			4
+#define SIGNAL_TURNON 4
 
 static-var  Stunned;
 SetStunned(State)
@@ -21,7 +21,7 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	signal SIG_DEPLOY;
+	signal SIGNAL_TURNON;
 	move spike1 to x-axis [12.32] speed animate_speed;
 	move spike4 to z-axis [12.32] speed animate_speed;
 	move spike7 to x-axis [-12.32] speed animate_speed;
@@ -63,8 +63,8 @@ Create()
 
 Deploy()
 {
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	set ARMORED to 0;
 	if (deploy_state==0 OR deploy_state==1)
 	{

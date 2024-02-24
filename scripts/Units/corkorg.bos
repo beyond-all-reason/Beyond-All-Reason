@@ -13,10 +13,10 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 
-#define SIG_FOOTSTOMP_L 8
-#define SIG_FOOTSTOMP_R 16
-#define SIG_HEAD 2
-#define SIG_BODY 4
+#define SIGNAL_FOOTSTOMP_L 8
+#define SIGNAL_FOOTSTOMP_R 16
+#define SIGNAL_HEAD 2
+#define SIGNAL_BODY 4
 
 //LICENSED CC BY NC ND to Beherith mysterme@gmail.com
 
@@ -664,8 +664,8 @@ setSFXoccupy(Func_Var_1)
 
 RestoreHead()
 {
-	signal SIG_HEAD; //kills all sleeping threads that overlap the bitmask. 
-	set-signal-mask SIG_HEAD; //sets what signals kill the current thread
+	signal SIGNAL_HEAD; //kills all sleeping threads that overlap the bitmask. 
+	set-signal-mask SIGNAL_HEAD; //sets what signals kill the current thread
 	sleep 3000;
 	turn aimy2 to y-axis <0.000000> speed <110.000000>;
 	turn aimy2 to x-axis <0.000000> speed <110.000000>;
@@ -696,14 +696,14 @@ AimWeapon1(heading, pitch)
 {
 
 	start-script RequestState(0);
-	signal SIG_BODY;
+	signal SIGNAL_BODY;
 	
 	//get PRINT(HandsUp, heading,wpn1_lasthead,wpn2_lasthead);
 	if( !HandsUp )
 	{
 		return (0);
 	}
-	signal SIG_HEAD;
+	signal SIGNAL_HEAD;
 	turn aimy1 to y-axis heading speed <50.000000>;
 	turn lshoulder to x-axis <0.0> - pitch speed <150>;
 	turn rshoulder to x-axis <0.0> - pitch speed <150>;
@@ -770,14 +770,14 @@ AimWeapon1(heading, pitch)
 {
 
 	start-script RequestState(0);
-	signal SIG_BODY;
-	set-signal-mask SIG_BODY;
+	signal SIGNAL_BODY;
+	set-signal-mask SIGNAL_BODY;
 	
 	if( !HandsUp )
 	{
 		return (0);
 	}
-	//signal SIG_HEAD;
+	//signal SIGNAL_HEAD;
 	//We can do this any time
 	turn lshoulder to x-axis <0.0> - pitch speed <150>;
 	turn rshoulder to x-axis <0.0> - pitch speed <150>;	
@@ -901,7 +901,7 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch) //headlazor
 {
-	signal SIG_HEAD;
+	signal SIGNAL_HEAD;
 	//get PRINT(2, heading,wpn1_lasthead,wpn2_lasthead);
 	turn aimy2 to x-axis <0> - (get MAX(<-12>,pitch)) speed <50>;
 	turn aimy2 to y-axis heading - aimy1position speed <100.000000>;
@@ -935,8 +935,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_FOOTSTOMP_L;
-	set-signal-mask SIG_FOOTSTOMP_L;
+	signal SIGNAL_FOOTSTOMP_L;
+	set-signal-mask SIGNAL_FOOTSTOMP_L;
 	while(NotReadytoStomp OR !WhichFootStompsBool) sleep 65;
 	return (0);
 }
@@ -953,8 +953,8 @@ QueryWeapon4(pieceIndex)
 
 AimWeapon5(heading, pitch)
 {
-	signal SIG_FOOTSTOMP_R;
-	set-signal-mask SIG_FOOTSTOMP_R;
+	signal SIGNAL_FOOTSTOMP_R;
+	set-signal-mask SIGNAL_FOOTSTOMP_R;
 	while(NotReadytoStomp OR WhichFootStompsBool) sleep 65;
 	return (0);
 }

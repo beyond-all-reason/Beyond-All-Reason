@@ -12,7 +12,7 @@ piece	flare1, flare2, flare3 ,base, turret, leg1a, leg1b, leg1c, leg2a, leg2b, l
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIGNAL_AIM1 256
-#define SIG_FIRE1 4
+#define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
 #define SMOKEPIECE1 body
 
@@ -446,8 +446,8 @@ SetMaxReloadTime(t)
 
 FireWeapon1()
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	++fire_count;
 	if(fire_count>=3)
 	{

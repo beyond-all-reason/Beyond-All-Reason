@@ -9,7 +9,7 @@ static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
-#define SIG_OFF 				8
+#define SIGNAL_OFF 				8
 
 // For N:\animations\corspec_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -340,8 +340,8 @@ Deactivate()
 
 OffOnHit()
 {
-signal SIG_OFF;
-set-signal-mask SIG_OFF;
+signal SIGNAL_OFF;
+set-signal-mask SIGNAL_OFF;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit

@@ -1,8 +1,4 @@
-
 #include "exptype.h"
-#include "StateChg.h"
-
-#define SIG_ANIM 2
 
 piece  base, cover, converter, light;
 

@@ -8,7 +8,7 @@ static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIG_FIRE1 			8
+#define SIGNAL_SHOOT1 16
 
 UnitSpeed()
 {
@@ -153,8 +153,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	emit-sfx 1024 + 0 from flare;
 	return(1);
 }

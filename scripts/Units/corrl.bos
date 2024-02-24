@@ -1,19 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     8
-// NumberOfPieces                      8
-// LengthOfScripts                     268
-// NumberOfStaticVars                  1
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        9cc
-// OffsetToScriptNameOffsetArray       9ec
-// OffsetToPieceNameOffsetArray        a0c
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   a2c
-
-// OffsetToFirstName                   a2c
-
-
 #include "exptype.h"
 
 piece  base, flare1, flare2, flare3, turret;
