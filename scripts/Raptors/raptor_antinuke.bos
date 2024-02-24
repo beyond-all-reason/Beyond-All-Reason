@@ -5,7 +5,7 @@
 
 piece  base, dbl, dbr, dtr, dtl, dummy;
 
-static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -51,13 +51,11 @@ deactivatescr()
 Go()
 {
 	call-script activatescr();
-	Static_Var_1 = 1;
 	return (0);
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
 	call-script deactivatescr();
 	return (0);
 }
@@ -99,7 +97,6 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide dummy;
-	Static_Var_1 = 0;
 	restore_delay = 3000;
 	call-script InitState();
 	return (0);

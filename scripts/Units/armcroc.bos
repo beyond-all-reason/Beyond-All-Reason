@@ -3,7 +3,7 @@
 
 piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, misflare;
 
-static-var  restore_delay, Static_Var_2, isMoving, gun_2, corrected;
+static-var  restore_delay, isMoving, gun_2, corrected;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -31,20 +31,6 @@ RockUnit(anglex, anglez)
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-EmitSFX()
-{
-	while( TRUE )
-	{
-		if( isMoving )
-		{
-			if( Static_Var_2 == 3 )//does ... anything ever trip this?
-			{
-				emit-sfx 259 from base;
-			}
-		}
-		sleep 250;
-	}
-}
 
 Create()
 {
@@ -52,11 +38,8 @@ Create()
 	hide misflare;
 	//turn turretmis to x-axis <-25> now;
 //	turn aturret to y-axis <-180> speed <500>;
-	
-	Static_Var_2 = 4;
 	isMoving = FALSE;
 	restore_delay = 3000;
-	start-script EmitSFX();
 }
 
 SetMaxReloadTime(Func_Var_1)

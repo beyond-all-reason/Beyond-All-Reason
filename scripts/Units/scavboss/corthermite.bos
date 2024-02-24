@@ -3,7 +3,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, turretr, borer, barrelr, flameflarer;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
+static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -332,7 +332,6 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn head around y-axis;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
-	Static_Var_2 = 0;
 }
 SetStunned(State)
 {

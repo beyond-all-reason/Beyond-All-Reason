@@ -4,7 +4,7 @@
 piece  torso,rflare, lflare, pelvis, lthigh, rthigh, luparm,
        ruparm, rarm, larm, rleg, rfoot, lleg, lfoot;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
+static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -269,19 +269,16 @@ Movement(moving, aiming, justmoved)
 		{
 			if( aiming )
 			{
-				Static_Var_3 = 1;
 				call-script walklegs();
 			}
 			else
 			{
-				Static_Var_3 = 0;
 				call-script walk();
 			}
 			justmoved = TRUE;
 		}
 		else
 		{
-			Static_Var_3 = 1;
 			if( justmoved )
 			{
 				turn rthigh to x-axis <0> speed <277.500000>;
@@ -342,7 +339,6 @@ Create()
 	hide lflare;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_3 = 1;
 	restore_delay = 3000;
 	gun_1 = rflare;
 	start-script SmokeUnit();
@@ -428,10 +424,6 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
 	turn torso to y-axis heading speed <200.000000>;
 	turn ruparm to x-axis <0.000000> - pitch speed <200.000000>;
 	turn rarm to x-axis <0.000000> speed <200.000000>;

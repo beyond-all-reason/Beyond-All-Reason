@@ -3,7 +3,7 @@
 
 piece  base, aim, emitnano;
 
-static-var  buildHeading, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 
 Activatescr()
@@ -129,7 +129,6 @@ Create()
 	call-script InitState();
 	start-script SmokeUnit();
 	buildHeading = 0;
-	Static_Var_2 = 5000;
 	return (0);
 }
 
@@ -151,7 +150,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 

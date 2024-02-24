@@ -4,7 +4,7 @@
 
 piece  base, post, turret, flare, aimpoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -43,14 +43,14 @@ Go()
 	// move barrel to z-axis [0.000000] speed [90.000000];
 	wait-for-move post along y-axis;
 	// wait-for-move barrel along z-axis;
-	Static_Var_1 = 1;
+	isOpen = 1;
 	set ARMORED to 0;
 }
 
 Stop()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	turn turret to x-axis <0.000000> speed <300.000000>;
 	turn post to y-axis <0.000000> speed <300.000000>;
 	// move barrel to z-axis [-8.000000] speed [20.000000];
@@ -120,7 +120,7 @@ Create()
 	hide flare;
 
 	restore_delay = 2000;
-	Static_Var_1 = 0;
+	isOpen = 0;
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script RequestState(0);
@@ -153,7 +153,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
