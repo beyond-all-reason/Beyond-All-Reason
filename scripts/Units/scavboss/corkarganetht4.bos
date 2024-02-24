@@ -637,7 +637,7 @@ Create()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{
@@ -658,7 +658,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimy1;
 	return (0);
@@ -677,7 +677,7 @@ RestoreAfterDelay()
 }
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	if (isAiming == 1) return;
@@ -695,7 +695,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{

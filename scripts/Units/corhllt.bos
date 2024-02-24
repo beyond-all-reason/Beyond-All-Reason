@@ -52,17 +52,17 @@ SetMaxReloadTime(Func_Var_1)
 
 
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flare1;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = turret1;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -72,24 +72,24 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	show flare1;
 	sleep 140;
 	hide flare1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare2;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -100,7 +100,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	show flare2;
 	sleep 150;

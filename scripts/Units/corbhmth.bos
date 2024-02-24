@@ -264,7 +264,7 @@ FireWeapon3()
 
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = sleeve;
 }

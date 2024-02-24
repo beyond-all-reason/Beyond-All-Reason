@@ -69,7 +69,7 @@ Create()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=head; }
 
 RestoreAfterDelay()
@@ -77,7 +77,7 @@ RestoreAfterDelay()
 	sleep 1000;
 	}
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

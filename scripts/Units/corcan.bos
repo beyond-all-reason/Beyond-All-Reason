@@ -277,13 +277,13 @@ SetMaxReloadTime(Func_Var_1)
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = head;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 	return (0);
@@ -314,7 +314,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	turn turret to y-axis heading speed <270.000000>;
@@ -330,7 +330,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	move barrel to z-axis [-2] speed [62.500000];
 	show flare;

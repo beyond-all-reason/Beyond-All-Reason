@@ -442,7 +442,7 @@ RestoreAfterDelay()
 	wpn1_lasthead = 1000000;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -458,7 +458,7 @@ AimPrimary(heading, pitch)
 
 
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -471,7 +471,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{
@@ -492,23 +492,23 @@ FirePrimary()
 	
 }
 
-FireSecondary()
+FireWeapon2()
 {
 
 }
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimx1;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = misturret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{
@@ -520,7 +520,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = misflare;
 }

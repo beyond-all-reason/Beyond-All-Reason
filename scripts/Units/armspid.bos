@@ -597,7 +597,7 @@ SetMaxReloadTime(t)
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum=flare;
 }
@@ -609,7 +609,7 @@ FireEmp()
 	hide emplight;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	start-script FireEmp();
@@ -686,7 +686,7 @@ Deactivate()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	turn turret to y-axis heading speed <150.000000>;
@@ -703,7 +703,7 @@ AimPrimary(heading, pitch)
 }
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }

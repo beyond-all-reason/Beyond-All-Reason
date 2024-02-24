@@ -46,19 +46,19 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = head;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = head;
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

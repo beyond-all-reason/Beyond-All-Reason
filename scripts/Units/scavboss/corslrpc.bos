@@ -184,7 +184,7 @@ StopMoving()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -196,7 +196,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script RockZ(-3,aimDir);
 	move barrel to z-axis [-7.500000] speed [500.000000];
@@ -218,12 +218,12 @@ TargetCleared(Func_Var_1)
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = gun;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

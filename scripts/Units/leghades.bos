@@ -50,7 +50,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -63,19 +63,19 @@ AimPrimary(heading, pitch)
 }
 
 
-FirePrimary()
+FireWeapon1()
 {
     emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-2.5] now;
 	move barrel to z-axis [0.000000] speed [2.5];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

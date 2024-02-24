@@ -143,7 +143,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -154,7 +154,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -166,38 +166,38 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024+0 from lflare;
 	sleep 100;
 	return (0);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = emit_spark;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = mbarrel;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = lflare;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = mflare;
 	return (0);

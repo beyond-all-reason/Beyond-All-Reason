@@ -95,7 +95,7 @@ RestoreAfterDelay()
 	turn turret to y-axis <0.000000> speed <20.0>;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -105,7 +105,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-10.400000] speed [500.000000];
@@ -113,12 +113,12 @@ FirePrimary()
 	move barrel to z-axis [0.000000] speed [7.500000];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

@@ -37,17 +37,17 @@ Deactivate()
 	hide thrust;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
     signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -75,7 +75,7 @@ PostFire()
 	hide flare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script PostFire();
 	return (1);

@@ -83,12 +83,12 @@ StopMoving()
 	set-signal-mask SIG_MOVE;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_1 = !gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }
@@ -119,7 +119,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -131,7 +131,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = lturret;
 }

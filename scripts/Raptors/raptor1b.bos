@@ -52,11 +52,11 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=head; }
 
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;	

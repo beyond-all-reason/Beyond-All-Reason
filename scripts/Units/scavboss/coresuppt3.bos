@@ -155,7 +155,7 @@ StopMoving()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -167,7 +167,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
@@ -195,13 +195,13 @@ FirePrimary()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret1;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -213,7 +213,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( gun_2 == 0 )
 	{
@@ -241,13 +241,13 @@ FireSecondary()
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = turret2;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -260,7 +260,7 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( gun_2 == 0 )
 	{

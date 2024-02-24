@@ -17,7 +17,7 @@ Create()
 	lastpitch=-1000000;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -51,17 +51,17 @@ AimPrimary(heading, pitch)
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-FirePrimary()
+FireWeapon1()
 {
-	//sleep 150; // this sleep should not be necessary, no return is expected from FirePrimary and nothing is being done before or after the sleep
+	//sleep 150; // this sleep should not be necessary, no return is expected from FireWeapon1 and nothing is being done before or after the sleep
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

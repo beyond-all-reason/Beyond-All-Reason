@@ -99,12 +99,12 @@ AimWeaponX(heading, pitch)
 		return 1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = drop;
 }
 
-FireWeaponPrimary()
+FireWeaponWeapon1()
 {
 	turn circle to y-axis  <240> speed <300>;
 	wait-for-turn circle around y-axis;

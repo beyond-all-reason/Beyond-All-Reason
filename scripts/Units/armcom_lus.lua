@@ -53,7 +53,7 @@ local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
--- for the AimPrimary script, to skip wait-for-turn if needed
+-- for the AimWeapon1 script, to skip wait-for-turn if needed
 local last_primary_heading = -1000000
 
 local function BelowWater(piecename)
@@ -1091,7 +1091,7 @@ function Restore()
 	turn(ruparm, 1, 0, 95.0000)
 	rightArm = true
 	leftArm = true
-	-- for the AimPrimary script, to ensure wait-for-turn is called at least on the first aim
+	-- for the AimWeapon1 script, to ensure wait-for-turn is called at least on the first aim
 	last_primary_heading = -1000000
 end
 

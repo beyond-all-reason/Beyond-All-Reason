@@ -417,7 +417,7 @@ RestoreAfterDelay()
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
         start-script RequestState(0);
         signal SIG_AIM;
@@ -437,17 +437,17 @@ AimPrimary(heading, pitch)
     	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = lflare + gun_1;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{

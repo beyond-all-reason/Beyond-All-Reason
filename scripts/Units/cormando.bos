@@ -425,17 +425,17 @@ StopBuilding()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal 2;
 	move turret to y-axis [5.5] speed [10];
@@ -453,7 +453,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
     move barrel to y-axis [-0.5] speed [3.750000];
@@ -461,10 +461,10 @@ FirePrimary()
 	move barrel to y-axis [0] now;
 }
 
-FireSecondary() {}
-AimSecondary(heading, pitch) { return(1); }
-AimFromSecondary(piecenum) { piecenum = torso; }
-QuerySecondary(piecenum) { piecenum = flare; }
+FireWeapon2() {}
+AimWeapon2(heading, pitch) { return(1); }
+AimFromWeapon2(piecenum) { piecenum = torso; }
+QueryWeapon2(piecenum) { piecenum = flare; }
 
 
 QueryNanoPiece(piecenum)

@@ -839,7 +839,7 @@ RestoreAfterDelay()
 	sleep (restore_delay - laser_persist);
 	start-script ExecuteRestoreAfterDelay();
 }
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;
@@ -866,7 +866,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	hide laser;
 	shotcount = shotcount + 1;
@@ -877,12 +877,12 @@ FirePrimary()
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimy1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( GunOpen )
 	{

@@ -82,17 +82,17 @@ RestoreAfterDelay()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (gun_1==0)
 	{
@@ -106,7 +106,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;

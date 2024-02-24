@@ -50,20 +50,20 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 	{	piecenum=head;	}
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=head; }
 	
 		
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 	{	piecenum=head;	}
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 	{	piecenum=head; }
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;	
@@ -81,7 +81,7 @@ AimPrimary(heading,pitch)
 	return(TRUE);
 	}
 	
-AimSecondary(heading,pitch)
+AimWeapon2(heading,pitch)
 	{
 	if ( get IN_WATER(0) == 0 )
     {

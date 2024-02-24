@@ -99,10 +99,10 @@ Create()
 	start-script UnitSpeed();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 	{	piecenum=head;	}
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=head; }
 
 RestoreAfterDelay()
@@ -111,7 +111,7 @@ RestoreAfterDelay()
 	turn head to x-axis <0> speed <200>;
 	}
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

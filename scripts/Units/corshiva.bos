@@ -746,7 +746,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 /*
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	
 	signal SIG_AIM;
@@ -761,7 +761,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }*/
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	
 	signal SIG_AIM_3;
@@ -778,7 +778,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_left )
 	{
@@ -808,7 +808,7 @@ FirePrimary()
 }
 
 
-FireSecondary()
+FireWeapon2()
 {
 	turn aimy1 to x-axis <-2> now;
 	turn rdoor to z-axis <-125> now; 
@@ -820,7 +820,7 @@ FireSecondary()
 
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	if( gun_left )
 	{
@@ -832,12 +832,12 @@ AimFromPrimary(piecenum)
 	}
 }
 
-AimFromSecondary(piecenum) //not needed?
+AimFromWeapon2(piecenum) //not needed?
 {
 	piecenum = rlauncher;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_left )
 	{
@@ -850,7 +850,7 @@ QueryPrimary(piecenum)
 }
 
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	
 	piecenum = rocketflare; // not sure what should go here 

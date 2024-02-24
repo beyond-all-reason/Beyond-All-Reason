@@ -368,12 +368,12 @@ StopMoving()
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
@@ -406,7 +406,7 @@ RestoreAfterDelay()
 }
 
 static-var aimy1target, aimy2target, scaled;
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
@@ -448,7 +448,7 @@ AimPrimary(heading, pitch)
 
 
 
-FirePrimary()
+FireWeapon1()
 {
 
 	move barrel to z-axis [-2.000000] speed [60.000000];

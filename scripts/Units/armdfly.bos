@@ -123,24 +123,24 @@ EndTransport()
 
 
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 {
 	turn barrel to x-axis -1 * pitch speed <100>;
 	wait-for-turn barrel around x-axis;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = flare;
 }

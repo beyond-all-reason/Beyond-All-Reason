@@ -109,13 +109,13 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	turn doorl to z-axis <-60> speed <120>;
 	turn doorr to z-axis <60> speed <120>;
@@ -123,7 +123,7 @@ AimPrimary(heading, pitch)
 
 
 
-FirePrimary()
+FireWeapon1()
 {
  	sleep 11;
 }

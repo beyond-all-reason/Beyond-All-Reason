@@ -61,22 +61,22 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_1 = !gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }

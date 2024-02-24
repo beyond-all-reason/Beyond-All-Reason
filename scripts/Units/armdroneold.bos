@@ -154,22 +154,22 @@ MoveRate3()
 	turn base to z-axis <0.000000> speed <120.000000>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;

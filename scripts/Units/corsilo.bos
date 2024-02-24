@@ -102,7 +102,7 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -115,7 +115,7 @@ AimPrimary(heading, pitch)
 	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -124,7 +124,7 @@ FirePrimary()
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 	return (0);

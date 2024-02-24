@@ -141,7 +141,7 @@ StopMoving()
 	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	turn base to x-axis <10.000000> speed <50.000000>;
 	if( gun_1 == 0 )
@@ -160,12 +160,12 @@ FirePrimary()
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -178,7 +178,7 @@ AimFromPrimary(piecenum)
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{

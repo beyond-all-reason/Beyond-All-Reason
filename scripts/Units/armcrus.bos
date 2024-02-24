@@ -190,7 +190,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.25];
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -214,7 +214,7 @@ AimSecondary(heading, pitch)
 	}
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( gun_2 )
 	{
@@ -231,7 +231,7 @@ FireSecondary()
 	gun_2 = !gun_2;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	if( gun_2 )
 	{
@@ -243,7 +243,7 @@ AimFromSecondary(piecenum)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( gun_2 )
 	{
@@ -255,27 +255,27 @@ QuerySecondary(piecenum)
 	}
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	return (1);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	sleep 150;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = base;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -288,7 +288,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script RockZ(-7, aimDir);
 	if( gun_1 ==0)
@@ -314,12 +314,12 @@ FirePrimary()
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 ==0)
 	{

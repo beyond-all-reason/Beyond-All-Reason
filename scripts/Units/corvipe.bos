@@ -84,7 +84,7 @@ Create()
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -103,12 +103,12 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from exhaust;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (is_open == 1)
 	{
@@ -122,7 +122,7 @@ QueryPrimary(piecenum)
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

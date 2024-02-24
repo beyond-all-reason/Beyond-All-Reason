@@ -76,7 +76,7 @@ aimCommon(heading, pitch)
 	start-script restoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if( trajectoryMode != LOW_TRAJECTORY )
 	{
@@ -98,7 +98,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if( trajectoryMode != HIGH_TRAJECTORY )
 	{
@@ -111,12 +111,12 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = sleeves;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = sleeves;
 }
@@ -140,17 +140,17 @@ fireCommon()
 	nextBarrel = !nextBarrel;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	call-script fireCommon();
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( nextBarrel == 0 )
 	{
@@ -162,7 +162,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( nextBarrel == 0 )
 	{

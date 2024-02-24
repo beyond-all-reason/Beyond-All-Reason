@@ -432,12 +432,12 @@ RestoreAfterDelay(Func_Var_1)
 	wpnheading  = 0;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -458,7 +458,7 @@ QueryPrimary(piecenum)
 
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
@@ -482,7 +482,7 @@ AimPrimary(heading, pitch)
 }
 
 
-FirePrimary()
+FireWeapon1()
 {
 	turn aimy1 to x-axis <-1> now;
 	turn aimy1 to x-axis <0> speed <5>;

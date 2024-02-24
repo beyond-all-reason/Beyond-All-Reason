@@ -150,7 +150,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -172,18 +172,18 @@ Shot1()
 	return (TRUE);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

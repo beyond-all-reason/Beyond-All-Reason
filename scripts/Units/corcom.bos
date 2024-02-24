@@ -7,7 +7,7 @@ piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
 static-var isMoving, isAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
 
-// for the AimPrimary script, to skip wait-for-turn if needed
+// for the AimWeapon1 script, to skip wait-for-turn if needed
 static-var last_primary_heading,last_primary_pitch;
 
 // Signal definitions
@@ -905,19 +905,19 @@ ResumeBuilding()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if( gun_3 == 1 )
 	{
@@ -949,7 +949,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 	sleep 400;
@@ -957,19 +957,19 @@ FirePrimary()
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = biggun;
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = rbigflash;
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -983,7 +983,7 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	//shotcount = shotcount + 1;
 	emit-sfx 1024 + 0 from rbigflash;
@@ -993,19 +993,19 @@ FireTertiary()
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if( get PIECE_Y(head) > 0 )
 	{
@@ -1035,7 +1035,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 100;

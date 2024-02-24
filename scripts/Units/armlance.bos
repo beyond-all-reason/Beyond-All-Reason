@@ -111,7 +111,7 @@ Deactivate()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = bombdrop;
 }

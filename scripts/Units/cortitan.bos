@@ -92,7 +92,7 @@ Deactivate()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare1;
 }

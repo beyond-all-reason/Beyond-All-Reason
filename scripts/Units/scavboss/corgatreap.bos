@@ -258,7 +258,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	++gun_1;
 	if( gun_1 >= 3 )
@@ -270,14 +270,14 @@ FirePrimary()
 	//start-script PositionSpindle();
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

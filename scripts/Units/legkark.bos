@@ -442,33 +442,33 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = rflare;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = lflare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = rflare;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = lflare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	show rflare;
 	sleep 100;
 	hide rflare;
 }
-FireSecondary()
+FireWeapon2()
 {
 	show lflare;
 	emit-sfx 1024 + 0 from lflare;
@@ -484,7 +484,7 @@ FireSecondary()
 	hide lflare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	start-script RequestState(0);
@@ -505,7 +505,7 @@ AimPrimary(heading, pitch)
 	wpn1_lasthead = heading;
 	return (1);
 }
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;

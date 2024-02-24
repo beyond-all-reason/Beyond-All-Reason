@@ -158,7 +158,7 @@ StopMoving()
 
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -166,24 +166,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 150;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = radar;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = radar;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -195,7 +195,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	++gun_1;
 	if( gun_1 == 4 )
@@ -205,13 +205,13 @@ FireSecondary()
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = launcher;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( gun_1 == 1 )
 	{

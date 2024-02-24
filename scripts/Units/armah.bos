@@ -148,17 +148,17 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 
 	turn turret to y-axis heading speed <370.000000>;
@@ -171,13 +171,13 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = sleeve;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flare;
 	return (0);

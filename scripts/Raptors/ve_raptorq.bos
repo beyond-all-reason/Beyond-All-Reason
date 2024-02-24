@@ -56,7 +56,7 @@ Create()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=firepoint; }
 
 AimFromWeapon2(piecenum)
@@ -84,7 +84,7 @@ QueryWeapon5(piecenum)
 	{	piecenum=firepoint; }
 
 	
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	//get PRINT(1, heading,pitch);
 	signal SIG_AIM;

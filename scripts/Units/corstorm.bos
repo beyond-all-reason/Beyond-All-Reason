@@ -380,12 +380,12 @@ Create()
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = rfirept + gun_1;
 }
@@ -414,7 +414,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	turn aimy1 to y-axis heading speed <90.021978>;
@@ -430,7 +430,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{
@@ -455,7 +455,7 @@ FirePrimary()
 	// WHY DO WE NEED TO SLEEP A FRAME HERE? well simple!
 	// the order of the calls is 
 	//1. AimFromWeapon
-	//2. FirePrimary
+	//2. FireWeapon1
 	//3. QueryWeapon
 	// If we swap guns on fireprimary, then we would shoot from other barrel that we aimed from, so we delay swapping barrels by one frame
 	gun_1 = !gun_1;

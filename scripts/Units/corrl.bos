@@ -71,7 +71,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	turn turret to y-axis heading speed <450.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <450.000000>;
@@ -81,7 +81,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	++gun_1;
 	if( gun_1 == 4 )
@@ -91,13 +91,13 @@ FirePrimary()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{

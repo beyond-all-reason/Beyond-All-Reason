@@ -548,19 +548,19 @@ ResumeBuilding()
 
 
 /////////// pew pew laser
-QueryPrimary(piecenum) //pew laser
+QueryWeapon1(piecenum) //pew laser
 {
 	piecenum = flare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = ruparm;
 	return (0);
 }
 
-AimPrimary(heading, pitch) //pew pew
+AimWeapon1(heading, pitch) //pew pew
 {
 	if (isAimingDgun){
 		return (0);
@@ -637,7 +637,7 @@ AimPrimary(heading, pitch) //pew pew
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin barrelr around y-axis speed <900.000000>;
 	return (1);
@@ -653,19 +653,19 @@ Shot1(zero)
 
 /////////// uw weapon
 
-QuerySecondary(piecenum) //uw weapon
+QueryWeapon2(piecenum) //uw weapon
 {
 	piecenum = laserflare;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = laserflare;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if( get PIECE_Y(head) > 0 )
 	{
@@ -698,25 +698,25 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
 	return (0);
 }
 
-QueryTertiary(piecenum) //dgun
+QueryWeapon3(piecenum) //dgun
 {
 	piecenum = lflare;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = biggun;
 	return (0);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	//emit-sfx 1024 + 0 from lflare;
 	isAimingDgun = 0;
@@ -732,7 +732,7 @@ FireTertiary()
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

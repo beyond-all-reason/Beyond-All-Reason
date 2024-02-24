@@ -136,7 +136,7 @@ StopMoving()
   signal SIG_MOVE;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -184,7 +184,7 @@ FlameLight()
 
 }
 
-FirePrimary()
+FireWeapon1()
 {
 
 	if( gun_1 == 0 )
@@ -210,12 +210,12 @@ FirePrimary()
 
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

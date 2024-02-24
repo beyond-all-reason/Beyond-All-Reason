@@ -52,13 +52,13 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, gun_1, isDying;
 
 #include "raptor_killed_allterrain.h"
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 	{	piecenum=head;	}
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=head; }
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

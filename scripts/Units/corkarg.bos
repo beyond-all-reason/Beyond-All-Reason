@@ -586,7 +586,7 @@ Create()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	//get PRINT(GET GAME_FRAME, 1111,gun_1);
 	if( gun_1 == 1 )
@@ -609,7 +609,7 @@ QueryPrimary(piecenum)
 	return(piecenum);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 	return (0);
@@ -630,7 +630,7 @@ RestoreAfterDelay()
 }
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	if (isAiming == 1) return;
@@ -648,7 +648,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_1 = gun_1 + 1;
 	if (gun_1 > 4) gun_1 = 1;
@@ -688,10 +688,10 @@ FirePrimary()
 	return (1);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 	{	piecenum=aimx1;	}
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if (gun_2 == 1)
 	{
@@ -703,22 +703,22 @@ QuerySecondary(piecenum)
 	}
 }
 
-RestoreAfterDelay_Secondary()
+RestoreAfterDelay_Weapon2()
 {
 	set-signal-mask SIG_AIM_2;
 	sleep 3000;
 	turn aacover to x-axis <0> speed <300>;
 }
 
-AimSecondary(heading,pitch)
+AimWeapon2(heading,pitch)
 	{
 	signal SIG_AIM_2;
 	turn aacover to x-axis <-150> speed <300>;
-	start-script RestoreAfterDelay_Secondary();
+	start-script RestoreAfterDelay_Weapon2();
 	return(TRUE);
 	}
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 150;
 	if (gun_2 == 1)

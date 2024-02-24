@@ -39,7 +39,7 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -92,7 +92,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary() {
+FireWeapon1() {
 	guncount = 0;
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -101,8 +101,8 @@ FirePrimary() {
 
 
 
-	// FirePrimary controls animation right after firing
-	// but after 1 second, AimPrimary should regain control over spindle animation
+	// FireWeapon1 controls animation right after firing
+	// but after 1 second, AimWeapon1 should regain control over spindle animation
 	// and last_primary_heading and last_primary_pitch should be reset
 	signal SIG_FIRE;
 	set-signal-mask SIG_FIRE;
@@ -123,14 +123,14 @@ Shot1(heading,pitch) {
 
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 
 		piecenum = guncount+7;
 
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = stand;
 }

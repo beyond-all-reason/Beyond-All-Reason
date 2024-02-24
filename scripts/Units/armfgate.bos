@@ -72,44 +72,44 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	sleep 100;
 	return (shieldEnabled);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = emit;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	sleep 100;
 	return (shieldEnabled);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = base;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = base;
 }

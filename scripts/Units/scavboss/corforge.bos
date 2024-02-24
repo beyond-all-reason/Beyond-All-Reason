@@ -56,7 +56,7 @@ ExecuteRestoreAfterDelay()
 	turn nano to y-axis <0.000000> speed <50>;
 }
 
-Restore_Primary()
+Restore_Weapon1()
 {
 	sleep restore_delay;
 	if (Stunned) {
@@ -79,12 +79,12 @@ SetStunned(State)
 {
   Stunned = State;
 	if (!Stunned) {
-	    start-script Restore_Primary();
+	    start-script Restore_Weapon1();
 			start-script Restore_Nano();
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -101,11 +101,11 @@ AimPrimary(heading, pitch)
 	}
 	last_primary_heading = heading;
 
-	start-script Restore_Primary();
+	start-script Restore_Weapon1();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 
 }
@@ -116,13 +116,13 @@ Shot1(zero)
 	emit-sfx 1024 + 1 from flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 	return (0);

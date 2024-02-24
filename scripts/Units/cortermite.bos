@@ -290,7 +290,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	turn head to y-axis heading speed <180.000000>;
@@ -306,7 +306,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 0 AND firing == 0)
 	{
@@ -333,7 +333,7 @@ FirePrimary()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -347,7 +347,7 @@ AimFromPrimary(piecenum)
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{

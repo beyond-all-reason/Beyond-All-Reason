@@ -131,7 +131,7 @@ StopMoving()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -149,7 +149,7 @@ FireWeapon1()
 	sleep 100;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -162,7 +162,7 @@ FireWeapon2()
 	sleep 100;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (gun_1 == 0)
 	{
@@ -174,7 +174,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if (gun_2 == 0)
 	{

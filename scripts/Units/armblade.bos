@@ -113,7 +113,7 @@ StartMoving()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -125,19 +125,19 @@ QueryPrimary(piecenum)
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{

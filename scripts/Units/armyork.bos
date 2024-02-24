@@ -80,7 +80,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -93,7 +93,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( gun_3 == 0 )
 	{
@@ -131,22 +131,22 @@ FireSecondary()
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = turret;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if (gun_3 == 0) piecenum = flare1;
 	if (gun_3 == 1) piecenum = flare2;

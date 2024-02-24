@@ -90,13 +90,13 @@ Deactivate()
 
 
 //flamer
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flaref;
 }
 //aa
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( aa_gun == 1 ) piecenum = flareaa1;
 	if( aa_gun == 2 ) piecenum = flareaa2; 
@@ -149,7 +149,7 @@ AimFromWeapon6(piecenum)
 //flamer
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -165,7 +165,7 @@ AimPrimary(heading, pitch)
 }
 
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 }
@@ -176,7 +176,7 @@ FirePrimary()
 //aa
 
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -190,7 +190,7 @@ AimSecondary(heading, pitch)
 }
 
 
-FireSecondary()
+FireWeapon2()
 {
 	++aa_gun;
 	if( aa_gun == 9 )

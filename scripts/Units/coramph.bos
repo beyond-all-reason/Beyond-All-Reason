@@ -415,7 +415,7 @@ RestoreAfterDelayGun()
 	turn head to x-axis <0.000000> speed <50.000000>;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -444,7 +444,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( !gun_1 )
 	{
@@ -457,12 +457,12 @@ FireSecondary()
 	gun_1 = !gun_1;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = head;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	if( !gun_1 )
 	{
@@ -488,7 +488,7 @@ RestoreAfterDelayTorp()
 	move lancher to y-axis [0] speed [25];
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if ( get IN_WATER(0) == 0 )
     {
@@ -527,16 +527,16 @@ AimPrimary(heading, pitch)
 
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = head;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	
 	piecenum = tflare;

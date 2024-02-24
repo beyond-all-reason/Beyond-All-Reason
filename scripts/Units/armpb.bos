@@ -132,7 +132,7 @@ SetMaxReloadTime(Func_Var_1)
 	//restore_delay = Func_Var_1 * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -149,7 +149,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-2.600000] speed [500.000000];
@@ -157,7 +157,7 @@ FirePrimary()
 	move barrel to z-axis [0.000000] speed [6.000000];
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (OpenClosed == 1)
 	{
@@ -171,7 +171,7 @@ QueryPrimary(piecenum)
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

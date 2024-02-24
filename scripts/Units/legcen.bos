@@ -368,7 +368,7 @@ SetMaxReloadTime(Func_Var_1)
 
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	turn aimx1 to y-axis heading speed <200.000000>;
@@ -390,12 +390,12 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimx1;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return(1);
 }
@@ -438,7 +438,7 @@ Shot1(zero)
 	return(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (gun_1 == 0)
 	{

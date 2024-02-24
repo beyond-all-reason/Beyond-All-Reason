@@ -395,7 +395,7 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -409,7 +409,7 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script RockZ(-27,aimDir);
 	emit-sfx 1024 + 0 from flareb;
@@ -420,12 +420,12 @@ FirePrimary()
 	move barrelb to z-axis [0.000000] speed [3.000000];
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 150;
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	if( gun_3 == 0 )
 	{
@@ -440,32 +440,32 @@ FireTertiary()
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = body1;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = turretr;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flareb;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flareg;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	if( gun_3 == 0 )
 	{

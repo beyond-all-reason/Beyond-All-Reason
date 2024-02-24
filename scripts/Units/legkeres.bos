@@ -72,7 +72,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -95,7 +95,7 @@ Rock_Main_Cannon()
 	turn base to x-axis <0.000000> speed <20.000000>;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	start-script Rock_Main_Cannon();
@@ -104,17 +104,17 @@ FirePrimary()
 	move sleeve to z-axis [0.000000] speed [3.000000];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = gun;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -125,7 +125,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	spin lgatling around z-axis speed <900.000000>;
 	return (1);
@@ -139,17 +139,17 @@ Shot2(zero)
 	return(1);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = lgun;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = lflare;
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -160,7 +160,7 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	spin rgatling around z-axis speed <-900.000000>;
 	return (1);
@@ -174,12 +174,12 @@ Shot3(zero)
 	return(1);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = rgun;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = rflare;
 }

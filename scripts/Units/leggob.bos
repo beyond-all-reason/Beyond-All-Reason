@@ -365,12 +365,12 @@ StopMoving()
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = gun;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -410,7 +410,7 @@ RestoreAfterDelay()
 }
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
@@ -433,7 +433,7 @@ AimPrimary(heading, pitch)
 
 
 
-FirePrimary()
+FireWeapon1()
 {
 	return(1);
 }

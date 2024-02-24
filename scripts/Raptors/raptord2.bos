@@ -16,7 +16,7 @@ Create()
 	move body to y-axis [0] speed [8];
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -24,7 +24,7 @@ AimPrimary(heading, pitch)
 	return (TRUE);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_LASER;
 	set-signal-mask SIG_AIM_LASER;
@@ -32,22 +32,22 @@ AimSecondary(heading, pitch)
 	return (TRUE);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = firepoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = firepoint;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = firepoint;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = firepoint;
 }

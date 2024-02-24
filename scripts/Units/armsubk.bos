@@ -56,17 +56,17 @@ StopMoving()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 	return (0);

@@ -1017,17 +1017,17 @@ RestoreAfterDelay()
 
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimy1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = rfire + gun_1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {	
 
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
@@ -1045,7 +1045,7 @@ AimPrimary(heading, pitch)
 
 
 
-FirePrimary()
+FireWeapon1()
 {
 	//gun_1 == 0 means right!	
 	if (gun_1 == 0 ){

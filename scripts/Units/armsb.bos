@@ -106,12 +106,12 @@ StopMoving()
 	isMoving = FALSE;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = drop;
 }
 
-AimPrimary()
+AimWeapon1()
 {
 	turn doorl to z-axis <-90.000000> speed <25.000000>;
 	turn doorr to z-axis <90.000000> speed <25.000000>;

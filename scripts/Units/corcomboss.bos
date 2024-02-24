@@ -494,19 +494,19 @@ ResumeBuilding()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if( gun_3 == 1 )
 	{
@@ -528,26 +528,26 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 400;
 	gun_2 = torso;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = biggun;
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = rbigflash;
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -561,7 +561,7 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	emit-sfx 1024 + 0 from rbigflash;
 	gun_3 = torso;
@@ -569,19 +569,19 @@ FireTertiary()
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = lfirept;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if( get PIECE_Y(head) > 0 )
 	{
@@ -611,7 +611,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 100;

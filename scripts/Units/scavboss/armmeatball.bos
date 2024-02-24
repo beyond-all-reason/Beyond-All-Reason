@@ -349,7 +349,7 @@ RestoreAfterDelay()
 	wpn3_lasthead = 1000000;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;
@@ -368,7 +368,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM;
 	turn misturret to y-axis heading speed <180.000000>;
@@ -382,7 +382,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{
@@ -404,25 +404,25 @@ FirePrimary()
 	}
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	show misflare;
 	sleep 150;
 	hide misflare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = body;
 }
 
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = misturret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{
@@ -435,7 +435,7 @@ QueryPrimary(piecenum)
 }
 
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = misflare;
 }

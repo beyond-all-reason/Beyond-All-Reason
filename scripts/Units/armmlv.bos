@@ -140,7 +140,7 @@ QueryNanoPiece(piecenum)
 
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	while( !gun_2 )
 	{
@@ -149,26 +149,26 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_2 = base;
 	sleep 3000;
 	gun_2 = nanosleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = turret;
 	piecenum = lnano;
 	piecenum = rnano;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	while( !gun_2 )
 	{
@@ -177,19 +177,19 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	gun_2 = base;
 	sleep 3000;
 	gun_2 = nanosleeve;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = base;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = base;
 }

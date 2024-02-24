@@ -122,7 +122,7 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -137,13 +137,13 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	
 	piecenum = flare1 + gun1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

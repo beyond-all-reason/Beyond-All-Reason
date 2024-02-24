@@ -128,7 +128,7 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{
@@ -142,7 +142,7 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
-AimPrimary()
+AimWeapon1()
 {
 	if( gun_1 )
 	{
@@ -156,7 +156,7 @@ AimPrimary()
 	
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }

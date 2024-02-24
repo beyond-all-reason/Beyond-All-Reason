@@ -124,13 +124,13 @@ StopMoving()
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = base;
 	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return (0);
 }

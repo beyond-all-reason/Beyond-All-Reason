@@ -101,7 +101,7 @@ StrafeFire() {
 
 
 
-FirePrimary() {
+FireWeapon1() {
 
 	//signal SIG_STRAFE;
 	isfiring = 1;
@@ -124,24 +124,24 @@ Shot1(){
 	return 0;
 }
 
-AimPrimary() {
+AimWeapon1() {
 	return 0;
 }
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = fireline;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = fireline;
 }
-AimSecondary(h,p) {
+AimWeapon2(h,p) {
 	return (0);
 }
 
 /*
-FireSecondary() {
+FireWeapon2() {
 	signal SIG_STRAFE;
 //deny reaiming during firing?
 //barrel roll?
@@ -167,7 +167,7 @@ Shot2() {
 	//start-script StrafeFire();
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if (isfiring==0 OR TRUE) {
 
@@ -181,7 +181,7 @@ AimSecondary(heading, pitch)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = firecone;
 }

@@ -198,11 +198,11 @@ RestoreAfterDelay()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 	{	piecenum=flare; }
 
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

@@ -359,17 +359,17 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimx1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = rflare + gun_1;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{
@@ -386,7 +386,7 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	isAiming = TRUE;

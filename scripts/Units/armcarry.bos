@@ -220,7 +220,7 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 	Func_Var_2 = pad0;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 
 	signal SIG_AIM_2;
@@ -232,17 +232,17 @@ AimPrimary(heading, pitch)
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 150;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = antiflare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = antiflare;
 }

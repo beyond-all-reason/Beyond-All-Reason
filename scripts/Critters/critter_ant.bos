@@ -200,14 +200,14 @@ StopMoving()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	move base to z-axis [5.00000] speed [50.00000];
 	if( gun_1 == 0 )
@@ -235,13 +235,13 @@ FirePrimary()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{

@@ -49,7 +49,7 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -57,7 +57,7 @@ AimPrimary(heading, pitch)
 	turn turret to y-axis heading speed <15.000000>;
 	if (fire_rotation == FALSE)
 	{
-		// if corbuzz has not fired recently, AimPrimary should turn the spindle
+		// if corbuzz has not fired recently, AimWeapon1 should turn the spindle
 		turn spindle to x-axis <60> * (gun_1 - 1) - pitch speed <1>*spin_speed;
 	}
 
@@ -76,7 +76,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	// make spindle turn faster as unit gains XP and decreases reload time
 	// GET WEAPON_RELOADSTATE is in frames, we need seconds (factor of 30)
@@ -164,8 +164,8 @@ FirePrimary()
 		gun_1 = 1;
 	}
 
-	// FirePrimary controls animation right after firing
-	// but after 1 second, AimPrimary should regain control over spindle animation
+	// FireWeapon1 controls animation right after firing
+	// but after 1 second, AimWeapon1 should regain control over spindle animation
 	// and last_primary_heading and last_primary_pitch should be reset
 	signal SIG_FIRE;
 	set-signal-mask SIG_FIRE;
@@ -176,7 +176,7 @@ FirePrimary()
 
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{
@@ -204,7 +204,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = spindle;
 }

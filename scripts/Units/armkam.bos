@@ -107,17 +107,17 @@ MoveRate3()
 	turn engines to x-axis <90> speed <90>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (gun_1==0)
 	{
@@ -131,7 +131,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;

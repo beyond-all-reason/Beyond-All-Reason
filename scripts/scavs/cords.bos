@@ -105,20 +105,20 @@ Reload(){
 	}
 }
 
-QueryPrimary(piecenum) // called third, and all the fucking time
+QueryWeapon1(piecenum) // called third, and all the fucking time
 {
 	//get PRINT(3, currbomb);
 	piecenum = bay3l + currbomb - 1;
 	//piecenum = bomb3l;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
 
-AimPrimary(heading,pitch){
+AimWeapon1(heading,pitch){
 	//turn bay3l to y-axis <90> now;
 	//turn bomb3l to y-axis <90> now;
 	return 1;
@@ -137,7 +137,7 @@ Shot1(){ // called second, and after each bomb
 	currbomb = currbomb + 1;
 }
 
-FirePrimary(){ //called first and once only
+FireWeapon1(){ //called first and once only
 	//get PRINT(1, currbomb);
 	currbomb = 0;
 	signal 32;

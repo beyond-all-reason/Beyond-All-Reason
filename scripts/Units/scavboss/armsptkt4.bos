@@ -444,7 +444,7 @@ SetMaxReloadTime(t)
 }
 
 
-FirePrimary()
+FireWeapon1()
 {
 	signal SIG_FIRE1;
 	set-signal-mask SIG_FIRE1;
@@ -474,7 +474,7 @@ Shot1()
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if(fire_count==0)
 	{
@@ -543,7 +543,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -556,7 +556,7 @@ AimPrimary(heading, pitch)
 }
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }

@@ -101,11 +101,11 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 1 )
 	{
@@ -116,7 +116,7 @@ QueryPrimary(piecenum)
 		piecenum = missileb;
 	}
 }
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{

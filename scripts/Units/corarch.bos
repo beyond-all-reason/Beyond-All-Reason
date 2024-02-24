@@ -130,7 +130,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.23];
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -152,7 +152,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -164,12 +164,12 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	gun_2 = !gun_2;
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	if( gun_3 )
 	{
@@ -190,32 +190,32 @@ FireTertiary()
 	gun_3 = !gun_3;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = turreta + gun_2;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = base;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flarea + gun_2;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = gun_3;
 }

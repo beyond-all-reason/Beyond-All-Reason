@@ -58,12 +58,12 @@ Deactivate()
 }
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = fan;
 }
 
-FirePrimary(Func_Var_1)
+FireWeapon1(Func_Var_1)
 {
 	sleep 5;
 	sleep 1000;

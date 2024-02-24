@@ -445,20 +445,20 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
-FirePrimary()
+FireWeapon1()
 {
 	//segtarget = segtarget + get RAND(0, 10000);
 
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = head;
 }

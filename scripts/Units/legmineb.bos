@@ -91,7 +91,7 @@ StopMoving()
 	isMoving = FALSE;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

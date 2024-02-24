@@ -77,7 +77,7 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = firepoint;
 }

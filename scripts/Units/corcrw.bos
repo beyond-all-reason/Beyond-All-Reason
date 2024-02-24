@@ -63,17 +63,17 @@ Deactivate()
 
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flaref;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flarel;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = flarer;
 }
@@ -154,7 +154,7 @@ MoveRate3()
 	turn thrustfl to x-axis <0.000000> speed <70.000000>;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -177,7 +177,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -195,7 +195,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -213,17 +213,17 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	sleep 100;
 }

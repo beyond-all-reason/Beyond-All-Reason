@@ -162,7 +162,7 @@ aimCommon(heading, pitch)
 	wait-for-turn turret around x-axis;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script Go();
 
@@ -188,7 +188,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	start-script Go();
 
@@ -213,32 +213,32 @@ fireCommon()
 	move barrel to z-axis [0.000000] speed [7.500000];
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	call-script fireCommon();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = aimpoint;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = flare;
 }

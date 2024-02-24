@@ -23,7 +23,7 @@ lua_UnitScriptLight(lightIndex, count)
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -34,7 +34,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	shotcount = shotcount + 1;
 	move barrel to z-axis [-8.000000] speed [500.000000];
@@ -57,12 +57,12 @@ TargetCleared(Func_Var_1)
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = sleeve;
 }

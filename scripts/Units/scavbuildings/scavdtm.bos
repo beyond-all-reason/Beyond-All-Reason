@@ -155,7 +155,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -176,13 +176,13 @@ Shot1()
 	return (TRUE);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	firepoint = firepoint + 1;
 	if (firepoint >= 3) firepoint = 0;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if (firepoint == 0 ) piecenum = flare1;
 	if (firepoint == 1 ) piecenum = flare2;
@@ -191,7 +191,7 @@ QueryPrimary(piecenum)
 
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = aimpoint;
 }

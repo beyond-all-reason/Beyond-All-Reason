@@ -584,7 +584,7 @@ AimFromWeapon1(piecenum)
 	piecenum = aimy1;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	move barrel to z-axis [-5.000000] speed [60.000000];
 	move sleeve to z-axis [-5.000000] speed [60.000000];
@@ -618,7 +618,7 @@ AimWeapon1(heading, pitch)
 }
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }

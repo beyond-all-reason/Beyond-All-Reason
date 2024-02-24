@@ -152,7 +152,7 @@ Deactivate()
 
 
 
-FirePrimary()
+FireWeapon1()
 {
 	return(1);
 }
@@ -186,7 +186,7 @@ Shot1(zero)
 	return(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	if( gun_1 == 0 )
 	{
@@ -206,7 +206,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -215,7 +215,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }

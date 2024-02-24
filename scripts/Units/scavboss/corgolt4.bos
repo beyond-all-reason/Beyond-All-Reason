@@ -259,7 +259,7 @@ RestoreAfterDelay_rspon()
 
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -271,7 +271,7 @@ AimPrimary(heading, pitch)
 	return (1);//*/
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	lastfired = 1;
 
@@ -285,12 +285,12 @@ FirePrimary()
 
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
@@ -299,7 +299,7 @@ QueryPrimary(piecenum)
 
 
 //left
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 
 
@@ -335,7 +335,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	lastfired = 2;
 	move lbarrel to z-axis [-1] speed [62.500000];
@@ -343,12 +343,12 @@ FireSecondary()
 	move lbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = lball;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = lflare;
 }
@@ -357,7 +357,7 @@ QuerySecondary(piecenum)
 
 
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 
 //get PRINT(heading);
@@ -396,7 +396,7 @@ AimTertiary(heading, pitch)
 	
 
 
-FireTertiary()
+FireWeapon3()
 {
 	lastfired=3;
 	move rbarrel to z-axis [-1] speed [62.500000];
@@ -404,12 +404,12 @@ FireTertiary()
 	move rbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = rball;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = rflare;
 }

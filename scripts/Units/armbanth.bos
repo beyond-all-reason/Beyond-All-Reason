@@ -655,7 +655,7 @@ AimHands() {
 	turn ruparm to z-axis <0> speed <473.333441> / animSpeed;
 }
 
-AimPrimary(heading, pitch) //hand cannons
+AimWeapon1(heading, pitch) //hand cannons
 {
 	signal SIG_AIM;
 	call-script AimHands();
@@ -676,7 +676,7 @@ AimPrimary(heading, pitch) //hand cannons
 	return (1);
 }
 
-AimSecondary(heading, pitch) //HEAD LASER
+AimWeapon2(heading, pitch) //HEAD LASER
 {
 	signal SIG_AIM;
 	isAiming = TRUE;
@@ -691,13 +691,13 @@ AimSecondary(heading, pitch) //HEAD LASER
 	return (1);
 }
 
-AimTertiary(heading, pitch) //MISSILE WEAPON
+AimWeapon3(heading, pitch) //MISSILE WEAPON
 {
 	isAiming = TRUE;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{
@@ -716,46 +716,46 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	show laserflare;
 	sleep 150;
 	hide laserflare;
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	//show missleflare;
 	//sleep 100;
 	//hide missleflare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = torso;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = turret;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = missleflare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = rflare + gun_1;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = laserflare;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(piecenum)
 {
 	piecenum = missleflare;
 }
