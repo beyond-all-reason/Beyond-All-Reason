@@ -1,3 +1,7 @@
+if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+	return false
+end
+
 function gadget:GetInfo()
     return {
         name = "PvE Boss Drones",
@@ -16,9 +20,9 @@ end
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
-local unitList = {
+local unitListNames = {
     -- Brood Raptors
-    [UnitDefNames["raptor_land_swarmer_brood_t4_v1"].id] = {
+    ["raptor_land_swarmer_brood_t4_v1"] = {
         [1] = {
             name = "raptor_land_swarmer_brood_t3_v1",
             type = "ground",
@@ -38,7 +42,7 @@ local unitList = {
             spawnTimer = 60,
         },
     },
-    [UnitDefNames["raptor_land_swarmer_brood_t3_v1"].id] = {
+    ["raptor_land_swarmer_brood_t3_v1"] = {
         [1] = {
             name = "raptor_land_swarmer_brood_t2_v1",
             type = "ground",
@@ -51,7 +55,7 @@ local unitList = {
     },
 
     -- Miniqueens
-    [UnitDefNames["raptor_matriarch_basic"].id] = {
+    ["raptor_matriarch_basic"] = {
         [1] = {
             name = "raptor_land_swarmer_basic_t3_v1",
             type = "ground",
@@ -98,7 +102,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_matriarch_healer"].id] = {
+    ["raptor_matriarch_healer"] = {
         [1] = {
             name = "raptor_land_swarmer_heal_t1_v1",
             type = "ground",
@@ -136,7 +140,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_matriarch_acid"].id] = {
+    ["raptor_matriarch_acid"] = {
         [1] = {
             name = "raptor_land_swarmer_acids_t2_v1",
             type = "ground",
@@ -165,7 +169,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_matriarch_electric"].id] = {
+    ["raptor_matriarch_electric"] = {
         [1] = {
             name = "raptor_land_swarmer_emp_t2_v1",
             type = "ground",
@@ -194,7 +198,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_matriarch_fire"].id] = {
+    ["raptor_matriarch_fire"] = {
         [1] = {
             name = "raptor_land_swarmer_fire_t2_v1",
             type = "ground",
@@ -214,7 +218,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_matriarch_spectre"].id] = {
+    ["raptor_matriarch_spectre"] = {
         [1] = {
             name = "raptor_land_swarmer_spectre_t3_v1",
             type = "ground",
@@ -245,7 +249,7 @@ local unitList = {
     },
 
     -- Queens
-    [UnitDefNames["raptor_queen_veryeasy"].id] = {
+    ["raptor_queen_veryeasy"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -283,7 +287,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_easy"].id] = {
+    ["raptor_queen_easy"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -321,7 +325,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_normal"].id] = {
+    ["raptor_queen_normal"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -359,7 +363,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_hard"].id] = {
+    ["raptor_queen_hard"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t2_v1",
             type = "air",
@@ -406,7 +410,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_veryhard"].id] = {
+    ["raptor_queen_veryhard"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t2_v1",
             type = "air",
@@ -453,7 +457,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_epic"].id] = {
+    ["raptor_queen_epic"] = {
         [1] = {
             name = "raptor_air_fighter_basic_t4_v1",
             type = "air",
@@ -501,6 +505,15 @@ local unitList = {
         },
     },
 }
+-- convert unitname -> unitDefID
+local unitList = {}
+for name, params in pairs(unitListNames) do
+	if UnitDefNames[name] then
+		unitList[UnitDefNames[name].id] = params
+	end
+end
+unitListNames = nil
+
 
 local aliveCarriers = {}
 local aliveDrones = {}

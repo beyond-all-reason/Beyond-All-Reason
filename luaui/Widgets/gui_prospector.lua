@@ -195,10 +195,7 @@ function widget:Initialize()
 	SetupMexDefInfos()
 	myTeamID = Spring.GetMyTeamID()
 	once = true
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
 
 
@@ -241,6 +238,7 @@ function widget:DrawScreen()
 	end
 	if not metalMap then
 		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
+		if not pos then return end
 		coords[1] = pos.x
 		coords[3] = pos.z
 	end

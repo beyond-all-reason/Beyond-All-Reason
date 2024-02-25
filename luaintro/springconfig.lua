@@ -64,13 +64,6 @@ if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
 	Spring.SetConfigInt("LuaShaders", 1)
 end
 
--- Disable PBO for intel GFX
-if Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
-	Spring.SetConfigInt("UsePBO", 0)
-else
-	Spring.SetConfigInt("UsePBO", 1)
-end
-
 -- Disable dynamic model lights
 Spring.SetConfigInt("MaxDynamicModelLights", 0)
 

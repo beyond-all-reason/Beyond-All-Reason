@@ -10,6 +10,7 @@ bind          Any+pause  pause
 bind                esc  teamstatus_close
 bind                esc  customgameinfo_close
 bind                esc  buildmenu_pregame_deselect
+bind      Alt+backspace  fullscreen
 
 // common selectbox keys
 bind           Any+sc_z  selectbox_same     // select only units that share type with current selection modifier | Smart Select Widget

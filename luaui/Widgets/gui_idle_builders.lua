@@ -19,6 +19,7 @@ local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
 local maxGroups = 9
+local showRez = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -72,20 +73,26 @@ local existingGroups = {}
 local clicks = {}
 
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
-local qCount = {}
 local idleList = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
 local isBuilder = {}
 local isFactory = {}
+local isResurrector = {}
 local unitHumanName = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 		isBuilder[unitDefID] = true
 	end
+
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
+	end
+
+	if unitDef.canResurrect then
+		isResurrector[unitDefID] = true
 	end
 
 	if unitDef.translatedHumanName then
@@ -95,8 +102,9 @@ end
 
 local function isIdleBuilder(unitID)
 	local udef = spGetUnitDefID(unitID)
-	local qCount = 0
-	if isBuilder[udef] then
+
+	if isBuilder[udef] or (showRez and isResurrector[udef]) then
+
 		--- can build
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
@@ -113,13 +121,13 @@ local function isIdleBuilder(unitID)
 				end
 			end
 		elseif isFactory[udef] then
+			local qCount = 0
 			for _, thing in ipairs(buildQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count
 				end
 			end
 			if qCount <= nearIdle then
-				qCount[unitID] = qCount
 				return true
 			end
 		end
@@ -169,7 +177,6 @@ local function updateList()
 	end
 
 	idleList = {}
-	qCount = {}
 	local myUnits = spGetTeamUnitsSorted(myTeamID)
 	for unitDefID, units in pairs(myUnits) do
 		if type(units) == 'table' then

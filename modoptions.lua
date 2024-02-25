@@ -1002,6 +1002,16 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
+	
+	{
+		key = 'skyshift',
+		name = 'Skyshift: Air Rework',
+		desc = 'A complete overhaul of air units and mechanics',
+		type = 'bool',
+		def = false,
+		section = 'options_experimental',
+		hidden = true,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1054,26 +1064,6 @@ local options={
 		section = 'options_extra',
 		def  = false,
 	},
-
-	{
-		key		= "unba",
-		name	= "UnbaCom",
-		desc	= "Commanders gaining upgrades with experience! Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "unbatech",
-		name	= "UnbaTech",
-		desc	= "(Requires UnbaCom) Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-		hidden = true,
-	},
-
 	{
 		key     = 'teamcolors_anonymous_mode',
 		name    = 'Anonymous Mode',

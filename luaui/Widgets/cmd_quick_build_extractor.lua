@@ -157,9 +157,11 @@ function widget:Update(dt)
 			if unitIsMex then
 				selectedPos = { x = x, y = y, z = z }
 				selectedMex = bestMex
+				selectedSpot = WG['resource_spot_finder'].GetClosestMexSpot(x, z)
 			else
 				selectedPos = { x = x, y = y, z = z }
 				selectedGeo = bestGeo
+				selectedSpot = WG['resource_spot_finder'].GetClosestGeoSpot(x, z)
 			end
 		else
 			clearGhostBuild()
@@ -167,7 +169,7 @@ function widget:Update(dt)
 		end
 	elseif not metalMap then
 		-- If no valid units, check cursor position against extractor spots
-		local _, groundPos = Spring.TraceScreenRay(mx, my, true)
+		local _, groundPos = Spring.TraceScreenRay(mx, my, true, false, false, true)
 		if not groundPos or not groundPos[1] then
 			clearGhostBuild()
 			return
@@ -190,7 +192,6 @@ function widget:Update(dt)
 			selectedMex = bestMex
 			extractor = bestMex
 			selectedSpot = nearestMex
-
 		elseif geoDist < math.huge and geoDist < mexDist and geoDist < geoPlacementRadius then
 			selectedGeo = bestGeo
 			extractor = bestGeo
@@ -209,11 +210,10 @@ function widget:Update(dt)
 
 
 	-- Set up ghost
-	if extractor and (selectedSpot or selectedPos) then
+	if extractor and selectedSpot then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
 		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
-		local spotPos = selectedPos and selectedPos or selectedSpot -- When a specific mex is moused over, we use that position instead of the spot for previewing the command
-		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, spotPos)
+		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot)
 		if not cmd then
 			clearGhostBuild()
 			return
@@ -260,11 +260,12 @@ function widget:MousePress(x, y, button)
 	if (button == 3) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
-			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
-
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			return true
 		end
 		if selectedGeo then
-			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			return true
 		end
 	end
 end
