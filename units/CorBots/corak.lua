@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		health = 270,
 		maxslope = 17,
-		speed = 84.0,
+		speed = 81.0,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",

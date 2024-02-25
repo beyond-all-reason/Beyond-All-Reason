@@ -1,4 +1,8 @@
 ﻿# February 2024
+• [Grunt] Speed reduced from 84->81
+• [Pawn] Speed increased from 84->87
+• [Demon] Buildtime cost increased from 90000->120000
+• [Thug/Mace] movement footprint increased to prevent them blocking each other's turrets when attacking
 • [New Units] Demon (T3 cortex flamethrower mech), Salamander (T2 cortex amphibious tank, replacing Alligator) moved from release candidate modoption into the base game.  Dragon rework (new model, flamethrower, light aa) moved to the base game.  Flamethrower ship and Lightning ship moved from expandedT2sea modoption into the base game
 • [Dragon] Fire rate of anti-air weapon reduced by half
 • [Demon] DPS reduced from 2000->1600, unit no longer has amphibious
