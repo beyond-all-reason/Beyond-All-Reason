@@ -772,7 +772,7 @@
 
 
 		//Mobile Builders 	
-		"armck": {
+		"armada_constructionbot": {
 			"role": ["builder"],
 			"limit": 12,
 			"build_speed": 4.0  //bp 80
@@ -933,21 +933,21 @@
 
 		// t1 botlab
 
-		"armpw": {
+		"armada_pawn": {
 			"role": ["raider"],
 			"attribute": ["scout"],
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"artillery":3.0, "anti_air": 2.0, "riot":0.5, "anti_heavy": 3.0, "anti_heavy_ass":3.0}	
 			}
 		},
-		"armrectr": {
+		"armada_lazarus": {
 			"role": ["support"],		//["builder"],	["raider", "support"]	//["skirmish", "support"],
 			//"attribute": ["support"],
 			"retreat": 0.6,
 			//"buildspeed": 0.1,
 			"limit":60
 		},
-		"armrock": {
+		"armada_rocketeer": {
 			"role": ["assault"],
 			"attribute": ["siege"],
 			"retreat": 0.6,
@@ -956,25 +956,25 @@
 				"vs": {"artillery": 1.8, "anti_air": 1.8, "raiders":0.5}
 			}
 		},
-		"armham": {
+		"armada_mace": {
 			"role": ["skirmish"],
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
-		"armjeth": {
+		"armada_crossbow": {
 			"role": ["anti_air"],
 			"limit": 10,
 			"threat": {"air": 2.0, "water": 0.0, "surf":0.0}
 		},
-		"armwar": {
+		"armada_centurion": {
 			"role": ["riot"],
 			"attribute": ["melee"],
 			"threat":{"air": 0.1, "water": 0.0,
 					"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
-		"armflea": {
+		"armada_tick": {
 			"role": ["scout"],
 			"threat":{"air": 0.0, "water": 0.0,
 					"vs":{"artillery": 2.0, "anti_air": 2.0}

@@ -63,11 +63,11 @@ return {
 		workertime = 300,
 		buildoptions = {
 			-- rezzers
-			"armrectr",
+			"armada_lazarus",
 			-- builders
 			"armca",
 			--"armaca",
-			"armck",
+			"armada_constructionbot",
 			--"armack",
 			"armch",
 			"armcsa",

@@ -20,16 +20,16 @@ local function transport1(currentFrame)
 	if currentFrame > scavconfig.gracePeriod*2 then
 		local transportsT1 = {"armatlas_scav", "corvalk_scav",}
 		local unitsT1 = {
-			"armpw_scav",
+			"armada_pawn_scav",
 			"armart_scav",
 			"armmh_scav",
 			"armanac_scav",
 			"armsh_scav",
 			"armjanus_scav",
 			"armsam_scav",
-			"armrock_scav",
-			"armwar_scav",
-			"armham_scav",
+			"armada_rocketeer_scav",
+			"armada_centurion_scav",
+			"armada_mace_scav",
 			"armflash_scav",
 			"armpincer_scav",
 			"armstump_scav",

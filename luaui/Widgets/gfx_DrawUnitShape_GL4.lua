@@ -452,7 +452,7 @@ function widget:Initialize()
 	local featuresIDs = Spring.GetAllFeatures()
 
 	local communitdefid = UnitDefNames["armcom"].id
-	local pwdefid = UnitDefNames["armpw"].id
+	local pwdefid = UnitDefNames["armada_pawn"].id
 	local corcomunitdefid = UnitDefNames["corcom"].id
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()

@@ -21,7 +21,7 @@ local scenariodata = {
 	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
-	/luarules armcv armck 11000 1 12000
+	/luarules armcv armada_constructionbot 11000 1 12000
 
 	]],
 
@@ -33,10 +33,10 @@ local scenariodata = {
 	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "3 unit spawn rate", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-		{name = "1 unit spawn rate", playerhandicap = "armcv armck 11000 1 12000" , enemyhandicap = 0},
-		{name = "3 unit spawn rate", playerhandicap = "armcv armck 11000 3 12000" , enemyhandicap = 0},
-		{name = "10 unit spawn rate", playerhandicap = "armcv armck 11000 10 12000" , enemyhandicap = 0},
-		{name = "15 unit spawn rate", playerhandicap = "armcv armck 11000 15 12000" , enemyhandicap = 0},
+		{name = "1 unit spawn rate", playerhandicap = "armcv armada_constructionbot 11000 1 12000" , enemyhandicap = 0},
+		{name = "3 unit spawn rate", playerhandicap = "armcv armada_constructionbot 11000 3 12000" , enemyhandicap = 0},
+		{name = "10 unit spawn rate", playerhandicap = "armcv armada_constructionbot 11000 10 12000" , enemyhandicap = 0},
+		{name = "15 unit spawn rate", playerhandicap = "armcv armada_constructionbot 11000 15 12000" , enemyhandicap = 0},
     },
     allowedsides     = {""}, --these are the permitted factions for this mission
 	victorycondition= "None", -- This is plaintext, but should be reflected in startscript
@@ -46,7 +46,7 @@ local scenariodata = {
         --myoption = "dostuff",
         scenarioid = "benchmark_pathfinding", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest armcv armck 11000 1 12000", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkcommand = "luarules fightertest armcv armada_constructionbot 11000 1 12000", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	

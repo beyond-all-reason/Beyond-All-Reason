@@ -658,42 +658,42 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T1 BOTS
 
-	armflea = {
+	armada_tick = {
 		BaseSoundSelectType = "arm-bot-tiny-sel",
 		BaseSoundMovementType = "arm-bot-tiny-ok",
 		BaseSoundWeaponType = "laser-tiny",
 	},
-	armpw = {
+	armada_pawn = {
 		BaseSoundSelectType = "arm-bot-tiny-sel",
 		BaseSoundMovementType = "arm-bot-tiny-ok",
 		BaseSoundWeaponType = "fastemgalt-small",
 	},
-	armham = {
+	armada_mace = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	armrock = {
+	armada_rocketeer = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "rocketalt-small",
 	},
-	armjeth = {
+	armada_crossbow = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	armwar = {
+	armada_centurion = {
 		BaseSoundSelectType = "arm-bot-medium-sel",
 		BaseSoundMovementType = "arm-bot-medium-alt-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
-	armck = {
+	armada_constructionbot = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armrectr = {
+	armada_lazarus = {
 		BaseSoundSelectType = "arm-bot-tiny-sel",
 		BaseSoundMovementType = "arm-bot-tiny-ok",
 		BaseSoundWeaponType = "rez-small",

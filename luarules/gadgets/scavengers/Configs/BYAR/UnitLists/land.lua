@@ -1,6 +1,6 @@
 return {
 	T0 = {
-		"armpw_scav",
+		"armada_pawn_scav",
 		"corak_scav",
 		"armsh_scav",
 		"corsh_scav",
@@ -12,12 +12,12 @@ return {
 
 	T1 = {
 		-- Bots
-		"armpw_scav",
-		"armrock_scav",
-		"armham_scav",
-		"armjeth_scav",
-		"armwar_scav",
-		"armrectr_scav",
+		"armada_pawn_scav",
+		"armada_rocketeer_scav",
+		"armada_mace_scav",
+		"armada_crossbow_scav",
+		"armada_centurion_scav",
+		"armada_lazarus_scav",
 		"corak_scav",
 		"cornecro_scav",
 		"corthud_scav",
@@ -55,7 +55,7 @@ return {
 		"corsnap_scav",
 
 		-- Constructors
-		"armck_scav",
+		"armada_constructionbot_scav",
 		"armcv_scav",
 		"armbeaver_scav",
 		"armch_scav",
@@ -66,7 +66,7 @@ return {
 
 	T2 = {
 		-- Bots
-		"armrectr_scav",
+		"armada_lazarus_scav",
 		"armvader_scav",
 		"armspid_scav",
 		"armsptk_scav",
@@ -170,7 +170,7 @@ return {
 		"armthor_scav",
 
 		-- Superboss
-		"armpwt4_scav",
+		"armpw_scav",
 		"armrattet4_scav",
 		"armvadert4_scav",
 		"corakt4_scav",

@@ -13,7 +13,7 @@ local function t1ResurrectorGroup1()
 	local unitID
 	local r = math.random(0,1)
 	if r == 0 then
-		unitID = UDN.armrectr_scav.id
+		unitID = UDN.armada_lazarus_scav.id
 	else
 		unitID =  UDN.cornecro_scav.id
 	end
@@ -36,7 +36,7 @@ local function t1ResurrectorGroup2()
 	local unitID
 	local r = math.random(0,1)
 	if r == 0 then
-		unitID = UDN.armrectr_scav.id
+		unitID = UDN.armada_lazarus_scav.id
 	else
 		unitID =  UDN.cornecro_scav.id
 	end

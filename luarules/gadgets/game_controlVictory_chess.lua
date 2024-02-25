@@ -140,7 +140,7 @@ local starterLandUnitsList = {
     [1] = {
         table = {
             --bots
-            "armpw",
+            "armada_pawn",
             "corak",
             --vehicles
             "armflash",
@@ -150,7 +150,7 @@ local starterLandUnitsList = {
     },
     [2] = {
         table = {
-            "armflea",
+            "armada_tick",
             "armfav",
             "corfav" ,
         },
@@ -165,7 +165,7 @@ local starterLandUnitsList = {
     -- },
     [3] = {
         table = {
-            "armrectr",
+            "armada_lazarus",
             "cornecro",
         },
         quantity = 4,
@@ -179,7 +179,7 @@ local starterLandUnitsList = {
     },
     [5] = {
         table = {
-            -- "armjeth",
+            -- "armada_crossbow",
             -- "corcrash",
             -- "armah",
             -- "corah",
@@ -197,11 +197,11 @@ local landUnitsList = {
         [1] = {
             table = {
                 -- Bots
-                "armpw",
-                "armrock",
-                "armham",
-                --"armjeth",
-                "armwar",
+                "armada_pawn",
+                "armada_rocketeer",
+                "armada_mace",
+                --"armada_crossbow",
+                "armada_centurion",
                 "corak",
                 "corthud",
                 "corstorm",
@@ -240,14 +240,14 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armrectr",
+                "armada_lazarus",
                 "cornecro",
             },
             quantity = 4,
         },
         -- [2] = {
         --     table = {
-        --         "armck",
+        --         "armada_constructionbot",
         --         "armcv",
         --         "armbeaver",
         --         "armch",
@@ -312,7 +312,7 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armrectr",
+                "armada_lazarus",
                 "cornecro",
             },
             quantity = 3,
@@ -366,7 +366,7 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armrectr",
+                "armada_lazarus",
                 "cornecro",
             },
             quantity = 2,
@@ -395,7 +395,7 @@ local landUnitsList = {
                 "armthor",
 
                 -- Superboss
-                "armpwt4",
+                "armada_pawnt4",
                 "armrattet4",
                 "armvadert4",
                 "corakt4",
@@ -407,7 +407,7 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armrectr",
+                "armada_lazarus",
                 "cornecro",
             },
             quantity = 1,

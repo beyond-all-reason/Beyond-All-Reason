@@ -26,10 +26,10 @@ for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'corak') then
 		isStompedUnit[udid] = true
 	end
-	if string.find(ud.name, 'armpw') then
+	if string.find(ud.name, 'armada_pawn') then
 		isStompedUnit[udid] = true
 	end
-	if string.find(ud.name, 'armflea') then
+	if string.find(ud.name, 'armada_tick') then
 		isStompedUnit[udid] = true
 	end
 end

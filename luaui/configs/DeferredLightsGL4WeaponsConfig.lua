@@ -865,12 +865,12 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 -- 											lifetime = 0, sustain = 0})
 
 --[[
---armpw
-explosionLights[WeaponDefNames["armpw_emg"].id] =
+--armada_pawn
+explosionLights[WeaponDefNames["armada_pawn_emg"].id] =
 GetLightClass("Explosion", nil, "Micro", {r = 2.4, g = 1.8, b = 1.0, a = 0.12, colortime = 2.4,
 											sustain = 8, lifetime = 14,
 											modelfactor = 0.2, specular = 0.2, scattering = 0.4})
-projectileDefLights[WeaponDefNames["armpw_emg"].id] =
+projectileDefLights[WeaponDefNames["armada_pawn_emg"].id] =
 GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
@@ -983,7 +983,7 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 ]]
 
 -- hue hue turning these on will completely break the game...
---projectileDefLights[WeaponDefNames["armrock_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
+--projectileDefLights[WeaponDefNames["armada_rocketeer_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
 --projectileDefLights[WeaponDefNames["corstorm_cor_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
 
 

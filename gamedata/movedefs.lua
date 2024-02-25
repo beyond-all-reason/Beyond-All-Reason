@@ -53,7 +53,7 @@ local moveDatas = {
 	},
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
+	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armada_crossbow coramph coraak
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -393,7 +393,7 @@ local moveDatas = {
 		}
 	},
 
-	--armflea critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
+	--armada_tick critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
 	-- make a suggestion thread critterh
 	BOT1 = {
 		crushstrength = 5,
@@ -421,10 +421,10 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe
-	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
+	--armmark corspec corck corvoyr armzues corcan armada_mace armada_constructionbot corack legck corstorm legbart corthud legbal legack armsnipe
+	--corpyro armack armada_rocketeer armmav cormort armaser armada_centurion legcen legshot
 	--
-	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
+	--cornecro leggob legkark armada_pawn armfark armada_lazarus corak corfast corspy leglob armspy armfast
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
+	-- armada_pawnt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,

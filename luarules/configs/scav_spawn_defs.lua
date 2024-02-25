@@ -169,8 +169,8 @@ local LandUnitsList = {
 	Raid = {
 		[1] = {
 			--Armada
-			["armflea_scav"] = 1,
-			["armpw_scav"] = 1,
+			["armada_tick_scav"] = 1,
+			["armada_pawn_scav"] = 1,
 			["armfav_scav"] = 1,
 			["armsh_scav"] = 1,
 			--Cortex
@@ -215,7 +215,7 @@ local LandUnitsList = {
 		},
 		[5] = {
 			--Armada
-			["armpwt4_scav"] = 1,
+			["armada_pawnt4_scav"] = 1,
 			["armmar_scav"] = 1,
 			--Cortex
 			["corakt4_scav"] = 1,
@@ -234,7 +234,7 @@ local LandUnitsList = {
 	Assault = {
 		[1] = {
 			--Armada
-			["armham_scav"] = 1,
+			["armada_mace_scav"] = 1,
 			["armpincer_scav"] = 1,
 			--Cortex
 			["corthud_scav"] = 1,
@@ -245,7 +245,7 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armwar_scav"] = 1,
+			["armada_centurion_scav"] = 1,
 			["armstump_scav"] = 1,
 			["armjanus_scav"] = 1,
 			["armanac_scav"] = 1,
@@ -320,8 +320,8 @@ local LandUnitsList = {
 	Support = {
 		[1] = {
 			--Armada
-			["armrock_scav"] = 1,
-			["armjeth_scav"] = 1,
+			["armada_rocketeer_scav"] = 1,
+			["armada_crossbow_scav"] = 1,
 			["armah_scav"] = 1,
 			--Cortex
 			["corstorm_scav"] = 1,
@@ -404,8 +404,8 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
+			["armada_constructionbot_scav"] = 1,
+			["armada_lazarus_scav"] = 20,
 			["armcv_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
@@ -888,7 +888,7 @@ scavBehaviours = {
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
-		[UnitDefNames["armrectr_scav"].id] = true,--Armada Rezzer
+		[UnitDefNames["armada_lazarus_scav"].id] = true,--Armada Rezzer
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
@@ -1050,7 +1050,7 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Airland)
-addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armada_lazarus_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid

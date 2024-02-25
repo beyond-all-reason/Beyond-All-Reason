@@ -138,7 +138,7 @@ return {
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 96,
-				model = "armpw_anim_projectile.s3o",
+				model = "armada_pawn_anim_projectile.s3o",
 				mygravity = 0.22,
 				name = "Long range bot cannon",
 				noselfdamage = true,
@@ -159,7 +159,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				customparams = {
-					spawns_name = "armpw",
+					spawns_name = "armada_pawn",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {

@@ -1,12 +1,12 @@
 return {
 	T1 = {
 		-- Bots
-		"armpw",
-		"armrock",
-		"armham",
-		"armjeth",
-		"armwar",
-		"armrectr",
+		"armada_pawn",
+		"armada_rocketeer",
+		"armada_mace",
+		"armada_crossbow",
+		"armada_centurion",
+		"armada_lazarus",
 		"corak",
 		"cornecro",
 		"corthud",
@@ -66,7 +66,7 @@ return {
 
 	T2 = {
 		-- Bots
-		"armrectr",
+		"armada_lazarus",
 		"armvader",
 		"armspid",
 		"armsptk",
@@ -224,7 +224,7 @@ return {
 		"leegmech",
 
 		-- Superboss
-		"armpwt4",
+		"armada_pawnt4",
 		"armrattet4",
 		"armvadert4",
 		"armfepocht4",

@@ -1,11 +1,11 @@
 return {
-	armjeth = {
+	armada_crossbow = {
 		maxacc = 0.138,
 		airsightdistance = 800,
 		maxdec = 0.6486,
 		energycost = 1100,
 		metalcost = 125,
-		buildpic = "ARMJETH.DDS",
+		buildpic = "armada_crossbow.DDS",
 		buildtime = 1830,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -23,8 +23,8 @@ return {
 		speed = 56.25,
 		movementclass = "ABOT2",
 		nochasecategory = "NOTAIR",
-		objectname = "Units/ARMJETH.s3o",
-		script = "Units/ARMJETH.cob",
+		objectname = "Units/armada_crossbow.s3o",
+		script = "Units/armada_crossbow.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 377,
@@ -55,7 +55,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 75,
-				object = "Units/armjeth_dead.s3o",
+				object = "Units/armada_crossbow_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

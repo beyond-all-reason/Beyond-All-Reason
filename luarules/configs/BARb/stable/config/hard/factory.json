@@ -32,7 +32,7 @@
 		// If income*ecoFactor < income_tier[N] then 'tierN' probability will be used
 		"income_tier": [2, 25,  35, 50, 100],
 
-		"unit":      ["armck", "armpw", "armrectr", "armrock", "armham", "armjeth", "armwar", "armflea"],
+		"unit":      ["armada_constructionbot", "armada_pawn", "armada_lazarus", "armada_rocketeer", "armada_mace", "armada_crossbow", "armada_centurion", "armada_tick"],
 
 		"land": {
 			"tier0": [ 0.25,    0.70,    0.05,       0.00,      0.20,     0.00,      0.00,     0.30],

@@ -37,7 +37,7 @@ function ArmyHST:Init()
 		corcs = true,
 		armcs = true,
 		corck = true,
-		armck = true,
+		armada_constructionbot = true,
 
 
 
@@ -58,7 +58,7 @@ function ArmyHST:Init()
 
 		} --decoy etc
 	self.rezs = {
-		armrectr = true,
+		armada_lazarus = true,
 		cornecro = true,
 		armrecl = true,
 		correcl = true,
@@ -119,7 +119,7 @@ function ArmyHST:Init()
 	self.scouts = {
 		armfav = true,
 		corfav = true,
-		armflea = true,
+		armada_tick = true,
 		armfast = true,
 		armdecade = true,
 		coresupp = true,
@@ -131,7 +131,7 @@ function ArmyHST:Init()
 		armflash = true,
 		corgator = true,
 		corak = true,
-		armpw = true,
+		armada_pawn = true,
 		armlatnk = true,
 		corseal = true,
 		corpyro = true,
@@ -147,7 +147,7 @@ function ArmyHST:Init()
 
 		}
 	self.artillerys = {
-		armrock = true,
+		armada_rocketeer = true,
 		corstorm = true,
 		armart = true,
 		corwolv = true,
@@ -176,7 +176,7 @@ function ArmyHST:Init()
 		}
 
 	self.battles = {
-		armham = true,
+		armada_mace = true,
 		corthud = true,
 		armstump = true,
 		corraid = true,
@@ -202,7 +202,7 @@ function ArmyHST:Init()
 
 		}
 	self.breaks = {
-		armwar = true,
+		armada_centurion = true,
 		armjanus = true,
 		corlevlr = true,
 		armfboy = true,
@@ -302,7 +302,7 @@ function ArmyHST:Init()
 		armyork = true,
 		cormist = true,
 		corcrash = true,
-		armjeth = true,
+		armada_crossbow = true,
 		coraak = true,
 		corarch = true,
 		armpt = true, --aa+scout
@@ -888,7 +888,7 @@ ArmyHST.mobUnitNames = {
 -- tests move orders of these units to determine mobility there
 ArmyHST.mobUnitExampleName = {
 	veh = "armcv",
-	bot = "armck",
+	bot = "armada_constructionbot",
 	amp = "armbeaver",
 	hov = "armch",
 	shp = "armcs",

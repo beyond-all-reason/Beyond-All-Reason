@@ -1,7 +1,7 @@
 local unitOrderTable = {
 -- UNITS
 	--CONSTRUCTORS
-	['armck']          = 001100, --BOTS
+	['armada_constructionbot']          = 001100, --BOTS
 	['corck']          = 001110,
 	['legck']          = 001115,
 
@@ -28,7 +28,7 @@ local unitOrderTable = {
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
 
-	['armrectr']       = 002100, --REZ BOTS
+	['armada_lazarus']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
 
 	['armmlv']         = 002200, --MINELAYERS
@@ -136,7 +136,7 @@ local unitOrderTable = {
 	['armstil']        = 004390,
 
 	-- SCOUTS LAND ARMED
-	['armflea']        = 004400, --BOTS
+	['armada_tick']        = 004400, --BOTS
 
 	['armfav']         = 004410, --VEH
 	['corfav']         = 004420,
@@ -149,7 +149,7 @@ local unitOrderTable = {
 	['armspid']        = 004810, --EMP
 
 	-- T1 LAND ATTACK
-	['armpw']          = 005000, --FAST
+	['armada_pawn']          = 005000, --FAST
 	['corak']          = 005010,
 	['leggob']		   = 005015,
 	['leglob']         = 005016,
@@ -167,11 +167,11 @@ local unitOrderTable = {
 	['leghelios']	   = 005251,
 	['leggat']		   = 005252,
 
-	['armrock']        = 005300, --ROCKETS
+	['armada_rocketeer']        = 005300, --ROCKETS
 	['corstorm']       = 005310,
 	['legbal']		   = 005311,
 
-	['armham']         = 005400, --ARTILLERY
+	['armada_mace']         = 005400, --ARTILLERY
 	['corthud']        = 005410,
 	['armart']         = 005420,
 	['corwolv']        = 005430,
@@ -179,7 +179,7 @@ local unitOrderTable = {
 	['cormh']          = 005430,
 	['legbar']         = 005440,
 
-	['armwar']         = 005600, --STRONK
+	['armada_centurion']         = 005600, --STRONK
 	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
@@ -275,7 +275,7 @@ local unitOrderTable = {
 	['armlunchbox']    = 007210,
 	['armassimilator'] = 007220,
 
-	['armpwt4']        = 007300,
+	['armada_pawnt4']        = 007300,
    ['corakt4']        = 007310,
 	['armsptkt4']      = 007320,
 	['cordemon']     = 007330,
@@ -292,7 +292,7 @@ local unitOrderTable = {
 	['corcrwt4']       = 007530,
 
 	-- LAND AA
-	['armjeth']        = 008000,
+	['armada_crossbow']        = 008000,
 	['corcrash']       = 008010,
 	['armaak']         = 008020,
 	['coraak']         = 008030,

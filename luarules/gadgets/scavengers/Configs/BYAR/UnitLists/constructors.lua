@@ -78,17 +78,17 @@ local assisters = {
 }
 
 local resurrectors = {
-	"armrectr_scav",
+	"armada_lazarus_scav",
 	"cornecro_scav",
 }
 
 local resurrectorsSea = {
-	"armrectr_scav",
+	"armada_lazarus_scav",
 	"cornecro_scav",
 }
 
 local collectors = {
-	"armck_scav",
+	"armada_constructionbot_scav",
 	"armack_scav",
 	"armdecom_scav",
 	"armcv_scav",

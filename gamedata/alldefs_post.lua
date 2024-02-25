@@ -386,7 +386,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armsptkt4"
-			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
+			uDef.buildoptions[numBuildoptions+3] = "armada_pawnt4"
 			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
@@ -395,7 +395,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
-			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
+			uDef.buildoptions[numBuildoptions+2] = "armada_pawnt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgantuw" then
@@ -434,7 +434,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+3] = "corakt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
-		elseif name == "armca" or name == "armck" or name == "armcv" then
+		elseif name == "armca" or name == "armada_constructionbot" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -1428,7 +1428,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cor_erad.weaponvelocity = 1050
 		uDef.weapondefs.cor_erad.flighttime = 2.7
 	end
-	if name == "armjeth" then
+	if name == "armada_crossbow" then
 		uDef.weapondefs.armbot_missile.startvelocity = 130
 		uDef.weapondefs.armbot_missile.weaponacceleration = 230
 		uDef.weapondefs.armbot_missile.flighttime = 2.4

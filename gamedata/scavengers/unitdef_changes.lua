@@ -144,14 +144,14 @@ customDefs.corscavdtl = {
 
 -- local scavConstructorsList = {
 -- 	-- rezzers
--- 	"armrectr",
+-- 	"armada_lazarus",
 -- 	"cornecro",
 -- 	-- builders
 -- 	"armca",
 -- 	"corca",
 -- 	"armaca",
 -- 	"coraca",
--- 	"armck",
+-- 	"armada_constructionbot",
 -- 	"corck",
 -- 	"armack",
 -- 	"corack",
@@ -507,7 +507,7 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Faster rockets with Accel - Lower DMG - higher pitched sound
--- customDefs.armrock = {
+-- customDefs.armada_rocketeer = {
 -- 	weapondefs = {
 -- 		arm_bot_rocket = {
 -- 			soundstart = "rocklit1scav",
@@ -545,12 +545,12 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Heavy Slow Fire Warrior + Cloak
--- customDefs.armwar = {
+-- customDefs.armada_centurion = {
 -- 	--cloakcost = 3,
 -- 	--mincloakdistance = 144,
--- 	script = "scavs/ARMWARSCAV.cob",
+-- 	script = "scavs/armada_centurionSCAV.cob",
 -- 	weapondefs = {
--- 		armwar_laser = {
+-- 		armada_centurion_laser = {
 -- 			beamtime = 0.23,
 -- 			energypershot = 60,
 -- 			laserflaresize = 9.2,
@@ -574,7 +574,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
 -- 		[numBuildoptions+2] = "armsptkt4",
--- 		[numBuildoptions+3] = "armpwt4",
+-- 		[numBuildoptions+3] = "armada_pawnt4",
 -- 		[numBuildoptions+4] = "armvadert4",
 -- 		[numBuildoptions+5] = "armlunchbox",
 -- 		[numBuildoptions+6] = "armmeatball",
@@ -586,7 +586,7 @@ customDefs.corscavdtl = {
 -- customDefs.armshltxuw = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
--- 		[numBuildoptions+2] = "armpwt4",
+-- 		[numBuildoptions+2] = "armada_pawnt4",
 -- 		[numBuildoptions+3] = "armvadert4",
 -- 		[numBuildoptions+4] = "armmeatball",
 -- 	},
@@ -663,8 +663,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armck.buildoptions
--- customDefs.armck = {
+-- numBuildoptions = #UnitDefs.armada_constructionbot.buildoptions
+-- customDefs.armada_constructionbot = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -1080,7 +1080,7 @@ customDefs.corscavdtl = {
 -- -- 	mincloakdistance = 288,
 -- -- }
 
--- customDefs.armrectr = {
+-- customDefs.armada_lazarus = {
 -- 	-- cancloak = true,
 -- 	-- cloakcost = 10,
 -- 	--cloakcostmoving = 100,
@@ -1166,7 +1166,7 @@ customDefs.armbotrail = {
 	weapondefs = {
 		arm_botrail = {
 			customparams = {
-				spawns_name = "armpw_scav",
+				spawns_name = "armada_pawn_scav",
 			},
 		},
 	},

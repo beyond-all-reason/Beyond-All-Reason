@@ -51,12 +51,12 @@ Tips:
         armhp=0,
         armshltx=0,
         armvp=0,
-        armflea=0,
-        armham=0,
-        armjeth=0,
-        armpw=0,
-        armrock=0,
-        armwar=0,
+        armada_tick=0,
+        armada_mace=0,
+        armada_crossbow=0,
+        armada_pawn=0,
+        armada_rocketeer=0,
+        armada_centurion=0,
     } ,
 
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game

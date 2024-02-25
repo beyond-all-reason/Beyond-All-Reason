@@ -364,35 +364,35 @@
 //	},
 
 	// bot - armlab
-	"armck": {
+	"armada_constructionbot": {
 		"role": ["builder"],
 		"limit": 20,
 		"build_speed": 5.0
 	},
-	"armpw": {
+	"armada_pawn": {
 		"role": ["raider"],
 		"attribute": ["scout"]
 	},
-	"armrectr": {
+	"armada_lazarus": {
 		"role": ["raider"],
 		"limit": 10,
 		"since": 200
 	},
-	"armrock": {
+	"armada_rocketeer": {
 		"role": ["skirmish"]
 	},
-	"armham": {
+	"armada_mace": {
 		"role": ["assault"]
 	},
-	"armjeth": {
+	"armada_crossbow": {
 		"role": ["anti_air"],
 		"limit": 30
 	},
-	"armwar": {
+	"armada_centurion": {
 		"role": ["riot"],
 		"attribute": ["skirmish"]
 	},
-	"armflea": {
+	"armada_tick": {
 		"role": ["scout"]
 	},
 

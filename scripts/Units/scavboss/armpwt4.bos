@@ -13,12 +13,12 @@ static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, cur
 #define SIG_AIM				2
 
 
-// Generated for N:\animations\armpw_anim_walk.blend
+// Generated for N:\animations\armada_pawn_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_MOVE 4
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_walk.blend
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armada_pawn_anim_walk.blend
 	// (c) CC BY NC ND Beherith mysterme@gmail.com 
 	set-signal-mask SIG_MOVE;
 	if (bMoving) { //Frame:2
@@ -389,7 +389,7 @@ ExecuteRestoreAfterDelay()
 }
 
 static-var bAnimate;
-Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_idle_pushup.blend 
+Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armada_pawn_anim_idle_pushup.blend 
 		set-signal-mask (SIG_AIM | SIG_MOVE);
 		sleep 10000 + 100*RAND(1,200); // 10-30 secs
 		

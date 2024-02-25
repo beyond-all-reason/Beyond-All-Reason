@@ -17,7 +17,7 @@ static-var  bMoving, notBuilding, nanoNozzle, currentSpeed,	statechg_DesiredStat
 static-var animAmplitude; //Higher values are bigger, 100 is default
 
 #define SIG_WALK 4
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armada_lazarus_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4
 			turn head to x-axis ((<-3.000000> *animAmplitude)/100) speed ((<90.000009> *animAmplitude)/100) / animSpeed; //delta=3.00

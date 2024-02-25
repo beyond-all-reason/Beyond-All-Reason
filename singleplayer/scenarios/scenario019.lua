@@ -52,7 +52,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 	losscondition	= "Loss of all your units",  -- This is plaintext, but should be reflected in startscript
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
-        armck = 0,
+        armada_constructionbot = 0,
 		armcv = 0,
 		armmlv = 0,
 		armbeaver = 0,
@@ -61,7 +61,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 		armap = 0,
 		armhp = 0,
 		armfhp = 0,
-		armrectr = 0,
+		armada_lazarus = 0,
     } ,
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
         --myoption = "dostuff",
@@ -494,13 +494,13 @@ The difficulty modifier will change the amount of resources you and the enemy re
 		},
 			
 		featureloadout = {
-			{name = 'armrectr_dead', x = 5000, y = 815, z = 2444, rot = 0 , scale = 1.0, resurrectas = "armrectr"},
-			{name = 'armflea_dead', x = 4982, y = 834, z = 2413, rot = 0 , scale = 1.0, resurrectas = "armflea"},
+			{name = 'armada_lazarus_dead', x = 5000, y = 815, z = 2444, rot = 0 , scale = 1.0, resurrectas = "armada_lazarus"},
+			{name = 'armada_tick_dead', x = 4982, y = 834, z = 2413, rot = 0 , scale = 1.0, resurrectas = "armada_tick"},
 			{name = 'armpb_dead', x = 4133, y = 1013, z = 1214, rot = 0 , scale = 1.0, resurrectas = "armpb"},
-			{name = 'armflea_dead', x = 4925, y = 902, z = 2418, rot = 0 , scale = 1.0, resurrectas = "armflea"},
-			{name = 'armflea_dead', x = 4914, y = 910, z = 2491, rot = 0 , scale = 1.0, resurrectas = "armflea"},
-			{name = 'armrectr_dead', x = 5042, y = 631, z = 183, rot = 0 , scale = 1.0, resurrectas = "armrectr"},
-			{name = 'armrectr_dead', x = 4948, y = 650, z = 194, rot = 0 , scale = 1.0, resurrectas = "armrectr"},
+			{name = 'armada_tick_dead', x = 4925, y = 902, z = 2418, rot = 0 , scale = 1.0, resurrectas = "armada_tick"},
+			{name = 'armada_tick_dead', x = 4914, y = 910, z = 2491, rot = 0 , scale = 1.0, resurrectas = "armada_tick"},
+			{name = 'armada_lazarus_dead', x = 5042, y = 631, z = 183, rot = 0 , scale = 1.0, resurrectas = "armada_lazarus"},
+			{name = 'armada_lazarus_dead', x = 4948, y = 650, z = 194, rot = 0 , scale = 1.0, resurrectas = "armada_lazarus"},
 			{name = 'armrad_dead', x = 4257, y = 1066, z = 1710, rot = 0 , scale = 1.0, resurrectas = "armrad"},
 			{name = 'armpb_dead', x = 3744, y = 994, z = 1784, rot = 0 , scale = 1.0, resurrectas = "armpb"},
 			{name = 'corgeo_dead', x = 2767, y = 1156, z = 3027, rot = 0 , scale = 1.0, resurrectas = "corgeo"},

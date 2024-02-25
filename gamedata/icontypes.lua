@@ -199,7 +199,7 @@ local icontypes = {
 		bitmap = "icons/aa_t1_long.png",
 		size = 1.29999995
 	},
-	armck = {
+	armada_constructionbot = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
@@ -375,7 +375,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_raid.png",
 		size = 0.89249998
 	},
-	armflea = {
+	armada_tick = {
 		bitmap = "icons/bot_t1_flea.png",
 		size = 0.53549999
 	},
@@ -431,7 +431,7 @@ local icontypes = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
 	},
-	armham = {
+	armada_mace = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
 	},
@@ -459,7 +459,7 @@ local icontypes = {
 		bitmap = "icons/armjanus_1.2.png",
 		size = 1.25999999
 	},
-	armjeth = {
+	armada_crossbow = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
@@ -655,12 +655,12 @@ local icontypes = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
 	},
-	armpw = {
+	armada_pawn = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.73499995
 	},
-	armpwt4 = {
-		bitmap = "icons/armpwt4.png",
+	armada_pawnt4 = {
+		bitmap = "icons/armada_pawnt4.png",
 		size = 2.30999994
 	},
 	armrad = {
@@ -679,7 +679,7 @@ local icontypes = {
 		bitmap = "icons/sub_rez.png",
 		size = 1.64299989
 	},
-	armrectr = {
+	armada_lazarus = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
 	},
@@ -691,7 +691,7 @@ local icontypes = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	armrock = {
+	armada_rocketeer = {
 		bitmap = "icons/bot_rocket.png",
 		size = 1.04999995
 	},
@@ -943,8 +943,8 @@ local icontypes = {
 		bitmap = "icons/armvulc.png",
 		size = 3.25499964
 	},
-	armwar = {
-		bitmap = "icons/armwar_1.15.png",
+	armada_centurion = {
+		bitmap = "icons/armada_centurion_1.15.png",
 		size = 1.20749986
 	},
 	armwin = {

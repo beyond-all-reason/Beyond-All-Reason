@@ -4,10 +4,10 @@ Attackers!
 
 attackerlist = {
 	"corak",
-	"armpw",
+	"armada_pawn",
 	"corgator",
 	"corthud",
 	"corkorg",
-	"armham",
+	"armada_mace",
 	"corraid",
 }

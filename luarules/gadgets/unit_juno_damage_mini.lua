@@ -49,7 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		[UnitDefNames.corfav.id] = true,
 		[UnitDefNames.armfav.id] = true,
-		[UnitDefNames.armflea.id] = true,
+		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_emp_t2_v1.id] = true,
@@ -59,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 	local todenyUnits = {
 		[UnitDefNames.corfav.id] = true,
 		[UnitDefNames.armfav.id] = true,
-		[UnitDefNames.armflea.id] = true,
+		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_emp_t2_v1.id] = true,

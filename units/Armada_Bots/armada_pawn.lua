@@ -1,10 +1,10 @@
 return {
-	armpw = {
+	armada_pawn = {
 		maxacc = 0.414,
 		maxdec = 0.69,
 		energycost = 960,
 		metalcost = 48,
-		buildpic = "ARMPW.DDS",
+		buildpic = "armada_pawn.DDS",
 		buildtime = 1420,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMPW.s3o",
-		script = "Units/ARMPW.cob",
+		objectname = "Units/armada_pawn.s3o",
+		script = "Units/armada_pawn.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 429,
@@ -57,7 +57,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 29,
-				object = "Units/armpw_dead.s3o",
+				object = "Units/armada_pawn_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

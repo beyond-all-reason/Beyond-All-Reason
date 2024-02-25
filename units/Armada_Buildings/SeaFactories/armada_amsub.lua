@@ -34,7 +34,7 @@ return {
 			[1] = "armbeaver",
 			[2] = "armpincer",
 			[3] = "armcroc",
-			[4] = "armjeth",
+			[4] = "armada_crossbow",
 			[5] = "armaak",
 			[6] = "armdecom",
 		},

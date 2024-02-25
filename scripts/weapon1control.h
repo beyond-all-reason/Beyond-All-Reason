@@ -35,7 +35,7 @@ RestoreAfterDelay()
 - Weapon1Drawn allows unit to fire by setting wpnReady1 = 1
 - if pitch = 1, head = 1 and wpnReady = 1 then the weapon can shoot: aim1 = 1 and aimweapon returns aim1
 - Restore animations go in RestoreAfterDelay, RestoreWeapon1() restores aimy and aimx pieces orientation, Weapon1Restored() waits for these pieces to be restored
-- Avoid wait-for-turn in AimWeapon and/or Weapon1Control as much as possible. If you have to (ie DrawWeapon1 of armpw, make sure you don't have multiple turns stacking with different goals
+- Avoid wait-for-turn in AimWeapon and/or Weapon1Control as much as possible. If you have to (ie DrawWeapon1 of armada_pawn, make sure you don't have multiple turns stacking with different goals
 */
 
 static-var curHead1, wtdHead1, head1, curPitch1, wtdPitch1, pitch1, aim1, wpnReady1;

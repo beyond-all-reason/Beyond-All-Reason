@@ -1,10 +1,10 @@
 return {
-	armflea = {
+	armada_tick = {
 		maxacc = 0.575,
 		maxdec = 1.725,
 		energycost = 340,
 		metalcost = 17,
-		buildpic = "ARMFLEA.DDS",
+		buildpic = "armada_tick.DDS",
 		buildtime = 800,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 16,
 		movementclass = "BOT1",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMFLEA.s3o",
-		script = "Units/ARMFLEA.cob",
+		objectname = "Units/armada_tick.s3o",
+		script = "Units/armada_tick.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyexplosiongenericSelfd",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 9,
-				object = "Units/armflea_dead.s3o",
+				object = "Units/armada_tick_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

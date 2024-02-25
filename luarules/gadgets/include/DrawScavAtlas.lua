@@ -237,12 +237,12 @@ function DrawScavAtlas:Initialize()
 	}
 
 	self.armTextures = {
-		[0] = string.format("%%%d:0", UnitDefNames["armpw"].id),
-		[1] = string.format("%%%d:1", UnitDefNames["armpw"].id),
-		[2] = GetNormal(UnitDefNames["armpw"], nil),
-		[3] = string.format("%%-%d:0", FeatureDefNames["armpw_dead"].id),
-		[4] = string.format("%%-%d:1", FeatureDefNames["armpw_dead"].id),
-		[5] = GetNormal(nil, FeatureDefNames["armpw_dead"]),
+		[0] = string.format("%%%d:0", UnitDefNames["armada_pawn"].id),
+		[1] = string.format("%%%d:1", UnitDefNames["armada_pawn"].id),
+		[2] = GetNormal(UnitDefNames["armada_pawn"], nil),
+		[3] = string.format("%%-%d:0", FeatureDefNames["armada_pawn_dead"].id),
+		[4] = string.format("%%-%d:1", FeatureDefNames["armada_pawn_dead"].id),
+		[5] = GetNormal(nil, FeatureDefNames["armada_pawn_dead"]),
 	}
 
 	self.coreTextures = {

@@ -19,7 +19,7 @@ local unitNames = {
   --comms added below separately
 
   --aa units
-  "armjeth",
+  "armada_crossbow",
   "armaak",
   "corcrash",
   "coraak",
@@ -38,7 +38,7 @@ local unitNames = {
 
   --arty
   "armart",
-  "armham",
+  "armada_mace",
   "corwolv",
 
   "armmart",
@@ -69,7 +69,7 @@ local unitNames = {
 
   --skirmishers/fire support
   "armjanus",
-  "armrock",
+  "armada_rocketeer",
   "corstorm",
 
   "corban",
@@ -77,7 +77,7 @@ local unitNames = {
   "cormort",
 
   --scouts
-  "armflea",
+  "armada_tick",
   "armfav",
   "corfav",
   "armspy",

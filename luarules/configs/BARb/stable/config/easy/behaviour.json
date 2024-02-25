@@ -387,34 +387,34 @@
 
 
 	// bot - armlab
-	"armck": {
+	"armada_constructionbot": {
 		"role": ["builder"],
 		"limit": 25,
 		"build_speed": 5.0
 	},
-	"armpw": {
+	"armada_pawn": {
 		"role": ["skirmish"]
 	},
-	"armrectr": {
+	"armada_lazarus": {
 		"role": ["raider"],
 		"limit": 5,
 		"since": 200
 	},
-	"armrock": {
+	"armada_rocketeer": {
 		"role": ["assault"]
 	},
-	"armham": {
+	"armada_mace": {
 		"role": ["assault"]
 	},
-	"armjeth": {
+	"armada_crossbow": {
 		"role": ["anti_air"],
 		"limit": 30
 	},
-	"armwar": {
+	"armada_centurion": {
 		"role": ["riot"],
 		"attribute": ["skirmish"]
 	},
-	"armflea": {
+	"armada_tick": {
 		"role": ["scout"],
 		"limit": 0
 	},

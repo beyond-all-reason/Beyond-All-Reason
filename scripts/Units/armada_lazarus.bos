@@ -13,7 +13,7 @@ static-var  bMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, m
 static-var animAmplitude; //Higher values are bigger, 100 is default
 
 #define SIG_WALK 4
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armada_lazarus_anim_walk.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4
 			turn head to x-axis ((<-3.000000> *animAmplitude)/100) speed ((<90.000009> *animAmplitude)/100) / animSpeed; //delta=3.00
@@ -326,9 +326,9 @@ QueryNanoPiece(piecenum)
 	piecenum = nano;
 }
 
-// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armrectr_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
+// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armada_lazarus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armrectr_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
+DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armada_lazarus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
 	call-script StopWalking();
 		if (TRUE) { //Frame:7
 		sleep 197;

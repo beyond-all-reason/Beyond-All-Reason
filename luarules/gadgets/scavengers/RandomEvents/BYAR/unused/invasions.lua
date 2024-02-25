@@ -1,7 +1,7 @@
 
 local function invasion(currentFrame)
 ScavSendNotification("scav_eventswarm")
-local invasionUnitsLand = {"armflea_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
+local invasionUnitsLand = {"armada_tick_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
 local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 local groupsize = groupsize*((scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.airmultiplier)*0.33)*scavconfig.unitSpawnerModuleConfig.t0multiplier*4

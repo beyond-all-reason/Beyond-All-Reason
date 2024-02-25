@@ -4,7 +4,7 @@
 // AA condition for 3v3: (enemy_air_metal*0.75 > (aa_metal+aa_cost)*2.6) and (aa_metal+aa_cost < army_metal*0.5)
 //
 // Probability of UnitDef for AA role depends on income tier: (tierN[UnitDef]+_weight_)*enemy_air_metal/aa_metal*importance
-// armjeth probability for tier 1: (0.00+30.00)*enemy_air_metal*150.0
+// armada_crossbow probability for tier 1: (0.00+30.00)*enemy_air_metal*150.0
 //
 //
 //ratio: 100% (ratio=1.0): means AI will invest the same amount of metal into response as enemy did in specific role. (=build until?). 

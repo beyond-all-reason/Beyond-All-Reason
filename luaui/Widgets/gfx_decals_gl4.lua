@@ -1231,9 +1231,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			}
 		},
-	['armwar'] = {
+	['armada_centurion'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armwar_a.png',
+			texture = footprintsPath..'f_armada_centurion_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.2, -- in radians
@@ -1250,7 +1250,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_armwar_a.png',
+			texture = footprintsPath..'f_armada_centurion_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = -0.2, -- in radians
@@ -1268,9 +1268,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armck'] = {
+	['armada_constructionbot'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armck_a.png',
+			texture = footprintsPath..'f_armada_constructionbot_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 7, --
 			offsetrot = 0.0, -- in radians
@@ -1288,9 +1288,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armrock'] = {
+	['armada_rocketeer'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armrock_a.png',
+			texture = footprintsPath..'f_armada_rocketeer_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -3, --
 			offsetrot = 0.0, -- in radians
@@ -1307,9 +1307,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			},
 		},
-	['armham'] = {
+	['armada_mace'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armham_a.png',
+			texture = footprintsPath..'f_armada_mace_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -1, --
 			offsetrot = 0.0, -- in radians

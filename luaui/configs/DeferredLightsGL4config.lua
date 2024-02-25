@@ -33,7 +33,7 @@ local exampleLight = {
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
 local unitLights = {
-	['armpw'] = {
+	['armada_pawn'] = {
 		-- headlightpw = { -- this is the lightname
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
@@ -71,7 +71,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armwar'] = {
+	['armada_centurion'] = {
 		arm1 = {	-- looks like arm movement is different and light isnt fixed in place :/
 			lightType = 'point',
 			pieceName = 'luparm',
@@ -2216,7 +2216,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armham'] = {
+	['armada_mace'] = {
 		body = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -7223,7 +7223,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armck'] = {
+	['armada_constructionbot'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -7675,7 +7675,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armrectr'] = {
+	['armada_lazarus'] = {
 		armbuildlight = {
 			lightType = 'point',
 			pieceName = 'armhexl_emit',
@@ -13070,7 +13070,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armjeth'] = {
+	['armada_crossbow'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13282,7 +13282,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armrock'] = {
+	['armada_rocketeer'] = {
 		barrel = {
 			lightType = 'point',
 			pieceName = 'lmisspod',
@@ -13391,7 +13391,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armflea'] = {
+	['armada_tick'] = {
 		body = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -19027,7 +19027,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armck'] = {
+		['armada_constructionbot'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',

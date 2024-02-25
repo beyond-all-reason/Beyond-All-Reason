@@ -1,9 +1,9 @@
 local labGrids = {
 	-- T1 bot
 	armlab = {
-		"armck", "armrectr", "armpw", "armflea",                -- T1 con, rez bot, peewee, flea
-		"armrock", "armham", "armwar", "",                     -- rocko, hammer, warrior
-		"", "", "armjeth",                                         -- aa bot
+		"armada_constructionbot", "armada_lazarus", "armada_pawn", "armada_tick",                -- T1 con, rez bot, peewee, flea
+		"armada_rocketeer", "armada_mace", "armada_centurion", "",                     -- rocko, hammer, warrior
+		"", "", "armada_crossbow",                                         -- aa bot
 	},
 
 	corlab = {
@@ -135,7 +135,7 @@ local labGrids = {
 	armamsub = {
 		"armbeaver", "armdecom", "armpincer", "",
 		"armcroc", "", "", "",
-		"", "armjeth", "armaak",
+		"", "armada_crossbow", "armaak",
 	},
 
 	coramsub = {
@@ -456,7 +456,7 @@ local unitGrids = {
 		}
 	},
 	-- T1 bot con
-	armck = {
+	armada_constructionbot = {
 		{
 			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
@@ -1252,7 +1252,7 @@ local unitGrids = {
 		},
 		{
 			{ "armbeamer", "armfast", "armamb", "armmav", },          -- beamer, sprinter, ambusher, maverick
-			{ "armflak", "armferret", "armjeth", "armpw", },          -- flak, ferret, T1 aa bot, peewee
+			{ "armflak", "armferret", "armada_crossbow", "armada_pawn", },          -- flak, ferret, T1 aa bot, peewee
 			{ "armdl", "armroy", "armspid", "armamph", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
