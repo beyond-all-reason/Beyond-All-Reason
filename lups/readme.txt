@@ -102,7 +102,7 @@ will find a table like this:
 The table contains all options and their default values.
 So an example fx placed in LuaUI/Widgets/gfx_lups_manager.lua
 could look like this:
-  [UnitDefNames["armcom"].id] = {
+  [UnitDefNames["armada_commander"].id] = {
     {class='ShieldSphere',options={ life=3000, repeatEffect=true, size=300, colormap1={1,0,0,0.5}, colormap2={0,1,0,0.5} } }
   },
 

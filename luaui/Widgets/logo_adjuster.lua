@@ -32,7 +32,7 @@ local initialized = false
 local gameover = false
 
 local faction = '_a'
-if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'cortex_commander' then
 	faction = '_c'
 end
 
@@ -51,7 +51,7 @@ end
 
 function widget:GameStart()
 	local prevFaction = faction
-	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'cortex_commander' then
 		faction = '_c'
 	else
 		faction = '_a'
@@ -104,7 +104,7 @@ function widget:Update(dt)
 			end
 		else
 			local prevFaction = faction
-			if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+			if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'cortex_commander' then
 				faction = '_c'
 			else
 				faction = '_a'

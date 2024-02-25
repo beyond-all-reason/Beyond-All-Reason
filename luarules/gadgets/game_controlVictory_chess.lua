@@ -320,11 +320,11 @@ local landUnitsList = {
         -- [2] = {
         --     table = {
         --         "armada_advancedconstructionbot",
-        --         "armdecom",
+        --         "armada_decoycommander",
         --         "armacv",
         --         --"armconsul",
         --         "corack",
-        --         "cordecom",
+        --         "cortex_decoycommander",
         --         "coracv",
         --     },
         --     quantity = 1,
@@ -374,11 +374,11 @@ local landUnitsList = {
         -- [2] = {
         --     table = {
         --         "armada_advancedconstructionbot",
-        --         "armdecom",
+        --         "armada_decoycommander",
         --         "armacv",
         --         --"armconsul",
         --         "corack",
-        --         "cordecom",
+        --         "cortex_decoycommander",
         --         "coracv",
         --     },
         --     quantity = 1,
@@ -415,11 +415,11 @@ local landUnitsList = {
         -- [2] = {
         --     table = {
         --         "armada_advancedconstructionbot",
-        --         "armdecom",
+        --         "armada_decoycommander",
         --         "armacv",
         --         --"armconsul",
         --         "corack",
-        --         "cordecom",
+        --         "cortex_decoycommander",
         --         "coracv",
         --     },
         --     quantity = 1,

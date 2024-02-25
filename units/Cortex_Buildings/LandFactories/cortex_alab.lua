@@ -46,7 +46,7 @@ return {
 			[10] = "coraak",
 			[11] = "corroach",
 			[12] = "corsktl",
-			[13] = "cordecom",
+			[13] = "cortex_decoycommander",
 			[14] = "corvoyr",
 			[15] = "corspy",
 			[16] = "corspec",

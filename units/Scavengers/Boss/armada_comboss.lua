@@ -1,5 +1,5 @@
 return {
-	armcomboss = {
+	armada_commanderboss = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 2000,
@@ -8,7 +8,7 @@ return {
 		metalcost = 10000000,
 		builddistance = 750,
 		builder = true,
-		buildpic = "scavengers/ARMCOMBOSS.DDS",
+		buildpic = "scavengers/armada_commanderBOSS.DDS",
 		buildtime = 750000000000,
 		cancapture = true,
 		--cancloak = true,
@@ -40,12 +40,12 @@ return {
 		--mincloakdistance = 120,
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/scavboss/ARMCOMBOSS.s3o",
+		objectname = "Units/scavboss/armada_commanderBOSS.s3o",
 		pushresistant = true,
 		radardistance = 2000,
 		radaremitheight = 100,
 		reclaimable = false,
-		script = "Units/ARMCOMBOSS.cob",
+		script = "Units/armada_commanderBOSS.cob",
 		seismicsignature = 0,
 		selfdestructas = "ScavComBossExplo",
 		selfdestructcountdown = 5,
@@ -87,7 +87,7 @@ return {
 				height = 55,
 				hitdensity = 100,
 				metal = "2500",
-				object = "Units/scavboss/armcomboss_dead.s3o",
+				object = "Units/scavboss/armada_commanderboss_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
@@ -150,7 +150,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armcomlaserboss = {
+			armada_commanderlaserboss = {
 				areaofeffect = 25,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -189,7 +189,7 @@ return {
 					vtol = 4000,
 				},
 			},
-			armcomsealaserboss = {
+			armada_commandersealaserboss = {
 				areaofeffect = 35,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -277,10 +277,10 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMCOMLASERBOSS",
+				def = "armada_commanderLASERBOSS",
 			},
 			[2] = {
-				def = "ARMCOMSEALASERBOSS",
+				def = "armada_commanderSEALASERBOSS",
 			},
 			[3] = {
 				def = "DISINTEGRATORXL",

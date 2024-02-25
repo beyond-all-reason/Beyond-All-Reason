@@ -46,7 +46,7 @@ return {
 			[11] = "armada_webber",
 			[12] = "armada_archangel",
 			[13] = "armada_tumbleweed",
-			[14] = "armdecom",
+			[14] = "armada_decoycommander",
 			[15] = "armada_umbrella",
 			[16] = "armada_radarjammerbot",
 			[17] = "armada_ghost",

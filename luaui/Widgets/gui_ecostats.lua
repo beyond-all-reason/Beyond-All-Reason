@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local armcomDefID = UnitDefNames.armcom.id	-- To determine faction at start
+local armada_commanderDefID = UnitDefNames.armada_commander.id	-- To determine faction at start
 
 local cfgResText = true
 local cfgSticktotopbar = true
@@ -348,7 +348,7 @@ local function setTeamTable(teamID)
 	local teamside
 	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
 		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
-		if startunit == armcomDefID then
+		if startunit == armada_commanderDefID then
 			teamside = "armada"
 		else
 			teamside = "cortex"

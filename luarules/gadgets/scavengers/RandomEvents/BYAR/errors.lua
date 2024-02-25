@@ -6,7 +6,7 @@ local function rebellion1(currentFrame)
 		local unitID = scavUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
-		if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then
+		if unitName ~= "armada_commander_scav" and unitName ~= "cortex_commander_scav" and unitName ~= "armada_commanderboss_scav" and unitName ~= "cortex_commanderboss_scav" and unitName ~= "armada_commander" and unitName ~= "cortex_commander" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then
 			for _,teamID in ipairs(Spring.GetTeamList()) do
 				if teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() then
 					local i = teamID
@@ -42,7 +42,7 @@ local function rebellion2(currentFrame)
 			local unitName = UnitDefs[unitDefID].name
 			--local unitTeam = Spring.GetUnitTeam(unitID)
 			if not ignoreDefs[unitDefID] then
-				if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then
+				if unitName ~= "armada_commander_scav" and unitName ~= "cortex_commander_scav" and unitName ~= "armada_commanderboss_scav" and unitName ~= "cortex_commanderboss_scav" and unitName ~= "armada_commander" and unitName ~= "cortex_commander" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then
 					for _,teamID in ipairs(Spring.GetTeamList()) do
 						if teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() then
 							local i = teamID
@@ -67,7 +67,7 @@ local function blueScreenOfDeath(currentFrame)
 		local unitID = scavUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
-		if unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" then
+		if unitName ~= "armada_commanderboss_scav" and unitName ~= "cortex_commanderboss_scav" then
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
 			local paralyzemult = (math.random(10,120))*0.025
 			if uparalyze <= umaxhealth then

@@ -420,13 +420,13 @@ local LandUnitsList = {
 			["armada_advancedconstructionbot_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armada_butler_scav"] = 1,
-			["armdecom_scav"] = 1,
+			["armada_decoycommander_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["cordecom_scav"] = 1,
+			["cortex_decoycommander_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion

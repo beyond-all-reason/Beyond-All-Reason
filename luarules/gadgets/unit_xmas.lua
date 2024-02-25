@@ -61,7 +61,7 @@ end
 local isComWreck = {}
 local xmasComwreckDefID
 for fdefID,def in ipairs(FeatureDefs) do
-	if def.name == "armcom_dead" or def.name == "corcom_dead" or def.name == "legcom_dead" or def.name == "legcomlvl2_dead" or def.name == "legcomlvl3_dead" or def.name == "legcomlvl4_dead" then
+	if def.name == "armada_commander_dead" or def.name == "cortex_commander_dead" or def.name == "legcom_dead" or def.name == "legcomlvl2_dead" or def.name == "legcomlvl3_dead" or def.name == "legcomlvl4_dead" then
 		isComWreck[fdefID] = true
 	end
 	if def.name == "xmascomwreck" then
@@ -291,9 +291,9 @@ function gadget:FeatureCreated(featureID, allyTeam)
 		if xmasFeatureID then
 			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
 			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-			local comtype = 'armcom'
-			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
-				comtype = 'corcom'
+			local comtype = 'armada_commander'
+			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'cortex_commander', nil, true) then
+				comtype = 'cortex_commander'
 			end
 			Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
 		end

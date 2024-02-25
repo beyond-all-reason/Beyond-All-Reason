@@ -121,11 +121,11 @@ return {
 
 		-- Constructors
 		"armada_advancedconstructionbot_scav",
-		"armdecom_scav",
+		"armada_decoycommander_scav",
 		"armacv_scav",
 		"armconsul_scav",
 		"corack_scav",
-		"cordecom_scav",
+		"cortex_decoycommander_scav",
 		"coracv_scav",
 		"corprinter_scav",
 		"corvac_scav",

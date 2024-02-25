@@ -51,8 +51,8 @@ function ArmyHST:Init()
 
 		}
 	self.wartechs = {
-		armdecom = true,
-		cordecom = true,
+		armada_decoycommander = true,
+		cortex_decoycommander = true,
 		cormando = true,
 
 
@@ -774,8 +774,8 @@ ArmyHST.leadsToExpFactories = {
 	}
 
 ArmyHST.commanderList = {
-	armcom = 1,
-	corcom = 1,
+	armada_commander = 1,
+	cortex_commander = 1,
 	}
 
 ArmyHST.groundFacList = {
@@ -906,8 +906,8 @@ ArmyHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
 local unitsLevels = {}
 local armTechLv ={}
 local corTechLv ={}
-corTechLv.corcom = false
-armTechLv.armcom = false
+corTechLv.cortex_commander = false
+armTechLv.armada_commander = false
 local parent = 0
 local continue = false
 

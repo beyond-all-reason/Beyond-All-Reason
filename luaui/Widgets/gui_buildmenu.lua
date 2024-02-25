@@ -1107,9 +1107,9 @@ local function bindBuildUnits(widget)
 
 	unbindBuildUnits()
 
-	comBuildOptions = { armcom = {}, corcom = {} }
+	comBuildOptions = { armada_commander = {}, cortex_commander = {} }
 
-	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+	for _, comDefName in ipairs({ "armada_commander", "cortex_commander" }) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
 				local unitDefName = unitName[buildOption]

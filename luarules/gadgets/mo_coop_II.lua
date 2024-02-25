@@ -24,8 +24,8 @@ if gadgetHandler:IsSyncedCode() then
 	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
 	GG.coopStartPoints = coopStartPoints -- Share to other gadgets
 
-	local armcomDefID = UnitDefNames.armcom.id
-	local corcomDefID = UnitDefNames.corcom.id
+	local armada_commanderDefID = UnitDefNames.armada_commander.id
+	local cortex_commanderDefID = UnitDefNames.cortex_commander.id
 	local legcomDefID = UnitDefNames.legcom.id
 
 	----------------------------------------------------------------
@@ -122,9 +122,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		if startUnit == nil then
 			if math.random() > 0.5 then
-				startUnit = corcomDefID
+				startUnit = cortex_commanderDefID
 			else
-				startUnit = armcomDefID
+				startUnit = armada_commanderDefID
 			end
 			if Spring.GetModOptions().experimentallegionfaction and math.random() > 0.33 then
 				startUnit = legcomDefID

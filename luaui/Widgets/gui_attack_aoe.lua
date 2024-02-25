@@ -744,12 +744,12 @@ end
 local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unitName)
 	local angle = atan2(fx - tx, fz - tz) + (math.pi / 2.1)
 	local dx, dz, offset_x, offset_z = fx, fz, 0, 0
-	if unitName == 'armcom' then
+	if unitName == 'armada_commander' then
 		offset_x = (sin(angle) * 10)
 		offset_z = (cos(angle) * 10)
 		dx = fx - offset_x
 		dz = fz - offset_z
-	elseif unitName == 'corcom' then
+	elseif unitName == 'cortex_commander' then
 		offset_x = (sin(angle) * 14)
 		offset_z = (cos(angle) * 14)
 		dx = fx + offset_x

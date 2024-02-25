@@ -43,7 +43,7 @@ return {
 		upright = true,
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
-		-- 	"armcom",
+		-- 	"armada_commander",
 		-- 	"armassistdrone",
 		-- },
 		customparams = {

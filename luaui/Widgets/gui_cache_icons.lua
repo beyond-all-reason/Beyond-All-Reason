@@ -10,7 +10,7 @@ function widget:GetInfo()
   }
 end
 
-local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
+local startUnits = { UnitDefNames.armada_commander.id, UnitDefNames.cortex_commander.id }
 if Spring.GetModOptions().experimentallegionfaction then
     startUnits[#startUnits+1] = UnitDefNames.legcom.id
 end

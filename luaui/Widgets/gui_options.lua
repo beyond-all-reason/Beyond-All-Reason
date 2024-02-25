@@ -5804,8 +5804,8 @@ function init()
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
 		[UnitDefNames["armjamt"].id] = true,
-		[UnitDefNames["armdecom"].id] = false,
-		[UnitDefNames["cordecom"].id] = false,
+		[UnitDefNames["armada_decoycommander"].id] = false,
+		[UnitDefNames["cortex_decoycommander"].id] = false,
 		[UnitDefNames["armferret"].id] = false,
 		[UnitDefNames["armamb"].id] = false,
 		[UnitDefNames["armpb"].id] = false,

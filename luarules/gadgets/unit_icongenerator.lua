@@ -15,12 +15,12 @@
 --[[
 example usage (need cheats):
 /luarules buildicons all
-/luarules buildicon armcom
+/luarules buildicon armada_commander
 ]]--
 --TODO:
 --1. make blue water drop 256
 --2. fix the culling of floating structures
---3. make units get their default stance (e.g. armcom)
+--3. make units get their default stance (e.g. armada_commander)
 
 function gadget:GetInfo()
 	return {

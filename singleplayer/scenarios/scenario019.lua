@@ -68,8 +68,8 @@ The difficulty modifier will change the amount of resources you and the enemy re
         scenarioid = "glaciergoliath018", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		unitloadout = {
-			-- {name = 'corcom', x = 872, y = 1103, z = 1443, rot = 25860 , team = 1},
-			-- {name = 'armcom', x = 4062, y = 1064, z = 3609, rot = 0 , team = 0},
+			-- {name = 'cortex_commander', x = 872, y = 1103, z = 1443, rot = 25860 , team = 1},
+			-- {name = 'armada_commander', x = 4062, y = 1064, z = 3609, rot = 0 , team = 0},
 			-- {name = 'corca', x = 4400, y = 1108, z = 4251, rot = 10273 , team = 0},
 			{name = 'coradvsol', x = 4160, y = 1121, z = 4192, rot = -16384 , team = 0},
 			{name = 'coradvsol', x = 4224, y = 1116, z = 4192, rot = -16384 , team = 0},
@@ -156,7 +156,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'armmex', x = 744, y = 1104, z = 1496, rot = -16384 , team = 1},
 			{name = 'armmex', x = 760, y = 1101, z = 1864, rot = -16384 , team = 1},
 			{name = 'corvroc', x = 3977, y = 1108, z = 4094, rot = 26479 , team = 0},
-			{name = 'armcom', x = 597, y = 1109, z = 777, rot = 25306 , team = 1},
+			{name = 'armada_commander', x = 597, y = 1109, z = 777, rot = 25306 , team = 1},
 			{name = 'armfort', x = 544, y = 1112, z = 656, rot = -16384 , team = 1},
 			{name = 'armfort', x = 512, y = 1107, z = 656, rot = -16384 , team = 1},
 			{name = 'armfort', x = 512, y = 1110, z = 688, rot = -16384 , team = 1},

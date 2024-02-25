@@ -69,7 +69,7 @@
 
 
 	"behaviour": {
-		"armcom": {
+		"armada_commander": {
 			"role": ["builder"],
 			"attribute": ["commander"],
 			"build_speed": 10.0, //bp 200?
@@ -83,7 +83,7 @@
 			"power": 0.8,
 			"retreat": 0.6
 		},
-		"corcom": {
+		"cortex_commander": {
 			"role": ["builder"],
 			"attribute": ["commander"],
 			"build_speed": 10.0,  //bp 200?
@@ -1480,7 +1480,7 @@
 			"buildpeed": 6.0,
 			"limit": 3
 		},
-		"cordecom": {
+		"cortex_decoycommander": {
 			"role": ["builder"],
 			"buildspeed": 6.0, 
 			"limit": 2

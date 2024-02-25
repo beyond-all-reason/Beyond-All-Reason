@@ -131,13 +131,13 @@
 //		"build_speed": 10.0
 //	},
 
-	"armcom": {
+	"armada_commander": {
 		"role": ["builder"],
 		"attribute": ["commander"],
 		"power": 0.4,
 		"build_speed": 5.0
 	},
-	"corcom": {
+	"cortex_commander": {
 		"role": ["builder"],
 		"attribute": ["commander"],
 		"power": 0.4,

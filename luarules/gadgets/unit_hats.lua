@@ -56,10 +56,10 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local unitDefCanWearHats = {
-	[UnitDefNames.corcom.id] = true,
-	[UnitDefNames.cordecom.id] = true,
-	[UnitDefNames.armcom.id] = true,
-	[UnitDefNames.armdecom.id] = true,
+	[UnitDefNames.cortex_commander.id] = true,
+	[UnitDefNames.cortex_decoycommander.id] = true,
+	[UnitDefNames.armada_commander.id] = true,
+	[UnitDefNames.armada_decoycommander.id] = true,
 }
 
 local vikings = {

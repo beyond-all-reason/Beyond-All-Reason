@@ -37,7 +37,7 @@ return {
 			[4] = "corparrow",
 			[5] = "corcrash",
 			[6] = "coraak",
-			[7] = "cordecom",
+			[7] = "cortex_decoycommander",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

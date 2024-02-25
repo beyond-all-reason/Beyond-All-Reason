@@ -303,7 +303,7 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
+				elseif unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
 					unitExempt = true
 					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)

@@ -489,41 +489,41 @@ armclaw.bos:            return(corpsetype);
 armclaw.bos:    corpsetype = 3 ;
 armclaw.bos:    return corpsetype;
 Binary file armclaw.cob matches
-armcom.bos:     set-signal-mask SIG_WALK;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     //set-signal-mask SIG_AIM;
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcom.bos:     set-signal-mask SIG_AIM;
-armcom.bos:Killed( severity, corpsetype )
-armcom.bos:     corpsetype = 1;
-armcom.bos:     return(corpsetype);
-armcom_lus.lua: SetSignalMask(SIG_AIM)
-armcom_lus.lua:                 SetSignalMask(SIG_AIM)
-armcom_lus.lua:                 SetSignalMask(SIG_AIM)
-armcom_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
-armcom_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
-armcom_lus.lua: SetSignalMask(SIG_AIM)
-armcom_lus.lua: SetSignalMask(SIG_AIM)
-armcomboss.bos: set-signal-mask SIG_WALK;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: //set-signal-mask SIG_AIM;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos: set INBUILDSTANCE to 0;
-armcomboss.bos: set-signal-mask SIG_AIM;
-armcomboss.bos:Killed( severity, corpsetype )
-armcomboss.bos: corpsetype = 1;
-armcomboss.bos: return(corpsetype);
+armada_commander.bos:     set-signal-mask SIG_WALK;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     //set-signal-mask SIG_AIM;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commander.bos:     set-signal-mask SIG_AIM;
+armada_commander.bos:Killed( severity, corpsetype )
+armada_commander.bos:     corpsetype = 1;
+armada_commander.bos:     return(corpsetype);
+armada_commander_lus.lua: SetSignalMask(SIG_AIM)
+armada_commander_lus.lua:                 SetSignalMask(SIG_AIM)
+armada_commander_lus.lua:                 SetSignalMask(SIG_AIM)
+armada_commander_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+armada_commander_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
+armada_commander_lus.lua: SetSignalMask(SIG_AIM)
+armada_commander_lus.lua: SetSignalMask(SIG_AIM)
+armada_commanderboss.bos: set-signal-mask SIG_WALK;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: //set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set-signal-mask SIG_AIM;
+armada_commanderboss.bos:Killed( severity, corpsetype )
+armada_commanderboss.bos: corpsetype = 1;
+armada_commanderboss.bos: return(corpsetype);
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 armconsul.bos:Killed(severity, corpsetype)
@@ -624,12 +624,12 @@ armdecade.bos:          return(corpsetype);
 armdecade.bos:  corpsetype = 3 ;
 armdecade.bos:  return corpsetype;
 Binary file armdecade.cob matches
-armdecom.lua:   Spring.SetUnitNanoPieces( unitID, {nano} )
-armdecom.lua:   SetSignalMask(SIG_AIM)
-armdecom.lua:Spring.SetUnitNanoPieces( unitID, {nano} )
-armdecom.lua:   SetUnitValue(COB.INBUILDSTANCE, 1)
-armdecom.lua:   SetUnitValue(COB.INBUILDSTANCE, 0)
-armdecom.lua:   -- reset parts
+armada_decoycommander.lua:   Spring.SetUnitNanoPieces( unitID, {nano} )
+armada_decoycommander.lua:   SetSignalMask(SIG_AIM)
+armada_decoycommander.lua:Spring.SetUnitNanoPieces( unitID, {nano} )
+armada_decoycommander.lua:   SetUnitValue(COB.INBUILDSTANCE, 1)
+armada_decoycommander.lua:   SetUnitValue(COB.INBUILDSTANCE, 0)
+armada_decoycommander.lua:   -- reset parts
 armdf.bos:      set ARMORED to 1;
 armdf.bos:      set ARMORED to 0;
 armdf.bos:Killed(severity, corpsetype)
@@ -3018,40 +3018,40 @@ corck.bos:              corpsetype = 3 ;
 corck.bos:              return(corpsetype);
 corck.bos:      corpsetype = 3 ;
 corck.bos:      return corpsetype;
-corcom.bos:     set-signal-mask SIG_WALK;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:     //set-signal-mask SIG_AIM;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcom.bos:     set-signal-mask SIG_AIM;
-corcom.bos:Killed( severity, corpsetype )
-corcom.bos:     corpsetype = 1;
-corcom.bos:     return(corpsetype);
-corcom_lus.lua: SetSignalMask(SIG_WALK)
-corcom_lus.lua: SetSignalMask(SIG_AIM)
-corcom_lus.lua:                 SetSignalMask(SIG_AIM)
-corcom_lus.lua:                 SetSignalMask(SIG_AIM)
-corcom_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
-corcom_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
-corcom_lus.lua: SetSignalMask(SIG_AIM)
-corcom_lus.lua: SetSignalMask(SIG_AIM)
-corcomboss.bos: set-signal-mask SIG_WALK;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos: //set-signal-mask SIG_AIM;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos: set INBUILDSTANCE to 0;
-corcomboss.bos: set-signal-mask SIG_AIM;
-corcomboss.bos:Killed( severity, corpsetype )
-corcomboss.bos: corpsetype = 1;
-corcomboss.bos: return(corpsetype);
+cortex_commander.bos:     set-signal-mask SIG_WALK;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:     //set-signal-mask SIG_AIM;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commander.bos:     set-signal-mask SIG_AIM;
+cortex_commander.bos:Killed( severity, corpsetype )
+cortex_commander.bos:     corpsetype = 1;
+cortex_commander.bos:     return(corpsetype);
+cortex_commander_lus.lua: SetSignalMask(SIG_WALK)
+cortex_commander_lus.lua: SetSignalMask(SIG_AIM)
+cortex_commander_lus.lua:                 SetSignalMask(SIG_AIM)
+cortex_commander_lus.lua:                 SetSignalMask(SIG_AIM)
+cortex_commander_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+cortex_commander_lus.lua: Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
+cortex_commander_lus.lua: SetSignalMask(SIG_AIM)
+cortex_commander_lus.lua: SetSignalMask(SIG_AIM)
+cortex_commanderboss.bos: set-signal-mask SIG_WALK;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: //set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set-signal-mask SIG_AIM;
+cortex_commanderboss.bos:Killed( severity, corpsetype )
+cortex_commanderboss.bos: corpsetype = 1;
+cortex_commanderboss.bos: return(corpsetype);
 corcrash.bos:   set-signal-mask SIG_WALK;
 corcrash.bos:SetMaxReloadTime(Func_Var_1)
 corcrash.bos:SetStunned(State)
@@ -5413,10 +5413,10 @@ armckfus.bos:   set ARMORED to 1;
 armckfus.bos:   set ARMORED to 0;
 armclaw.bos:    set ARMORED to 0;
 armclaw.bos:    set ARMORED to 1;
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set INBUILDSTANCE to 0;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 armcs.bos:      set INBUILDSTANCE to 0;
@@ -5425,7 +5425,7 @@ armcsa.bos:     set INBUILDSTANCE to 1;
 armcsa.bos:     set INBUILDSTANCE to 0;
 armcv.bos:      set INBUILDSTANCE to 0;
 armcv.bos:      set INBUILDSTANCE to 1;
-armdecom.lua:   -- reset parts
+armada_decoycommander.lua:   -- reset parts
 armdf.bos:      set ARMORED to 1;
 armdf.bos:      set ARMORED to 0;
 armepoch.bos:   set ARMORED to 1;
@@ -5713,10 +5713,10 @@ corch.bos:              // Set values for tilt
 corch.bos:      set INBUILDSTANCE to 1;
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set INBUILDSTANCE to 0;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 corcs.bos:      set INBUILDSTANCE to 1;
 corcs.bos:      set INBUILDSTANCE to 0;
 corcsa.bos:     set INBUILDSTANCE to 1;
@@ -6173,10 +6173,10 @@ armckfus.bos:   set ARMORED to 0;
 armclaw.bos:    set ARMORED to 0;
 armclaw.bos:    set ARMORED to 1;
 Binary file armclaw.cob matches
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set INBUILDSTANCE to 0;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 Binary file armcroc.cob matches
@@ -6555,10 +6555,10 @@ corch.bos:      set INBUILDSTANCE to 1;
 Binary file corch.cob matches
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set INBUILDSTANCE to 0;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file corcrash.cob matches
 Binary file corcrus.cob matches
 Binary file corcrw.cob matches
@@ -7050,10 +7050,10 @@ armckfus.bos:   set ARMORED to 1;
 armckfus.bos:   set ARMORED to 0;
 armclaw.bos:    set ARMORED to 0;
 armclaw.bos:    set ARMORED to 1;
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set INBUILDSTANCE to 0;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 armcs.bos:      set INBUILDSTANCE to 0;
@@ -7304,10 +7304,10 @@ corch.bos:      set INBUILDSTANCE to 0;
 corch.bos:      set INBUILDSTANCE to 1;
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set INBUILDSTANCE to 0;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 corcs.bos:      set INBUILDSTANCE to 1;
 corcs.bos:      set INBUILDSTANCE to 0;
 corcsa.bos:     set INBUILDSTANCE to 1;
@@ -7611,10 +7611,10 @@ armckfus.bos:   set ARMORED to 0;
 armclaw.bos:    set ARMORED to 0;
 armclaw.bos:    set ARMORED to 1;
 Binary file armclaw.cob matches
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set INBUILDSTANCE to 0;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 Binary file armcroc.cob matches
@@ -7951,10 +7951,10 @@ corch.bos:      set INBUILDSTANCE to 1;
 Binary file corch.cob matches
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set INBUILDSTANCE to 0;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file corcrash.cob matches
 Binary file corcrus.cob matches
 Binary file corcrw.cob matches
@@ -8387,10 +8387,10 @@ armckfus.bos:   set ARMORED to 0;
 armclaw.bos:    set ARMORED to 0;
 armclaw.bos:    set ARMORED to 1;
 Binary file armclaw.cob matches
-armcom.bos:     set INBUILDSTANCE to 1;
-armcom.bos:     set INBUILDSTANCE to 0;
-armcomboss.bos: set INBUILDSTANCE to 1;
-armcomboss.bos: set INBUILDSTANCE to 0;
+armada_commander.bos:     set INBUILDSTANCE to 1;
+armada_commander.bos:     set INBUILDSTANCE to 0;
+armada_commanderboss.bos: set INBUILDSTANCE to 1;
+armada_commanderboss.bos: set INBUILDSTANCE to 0;
 armconsul.bos:  set INBUILDSTANCE to 1;
 armconsul.bos:  set INBUILDSTANCE to 0;
 Binary file armcroc.cob matches
@@ -8727,10 +8727,10 @@ corch.bos:      set INBUILDSTANCE to 1;
 Binary file corch.cob matches
 corck.bos:      set INBUILDSTANCE to 0;
 corck.bos:      set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 1;
-corcom.bos:     set INBUILDSTANCE to 0;
-corcomboss.bos: set INBUILDSTANCE to 1;
-corcomboss.bos: set INBUILDSTANCE to 0;
+cortex_commander.bos:     set INBUILDSTANCE to 1;
+cortex_commander.bos:     set INBUILDSTANCE to 0;
+cortex_commanderboss.bos: set INBUILDSTANCE to 1;
+cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file corcrash.cob matches
 Binary file corcrus.cob matches
 Binary file corcrw.cob matches

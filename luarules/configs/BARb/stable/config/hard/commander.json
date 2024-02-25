@@ -5,7 +5,7 @@
 	"prefix": "",
 	"suffix": "",
 	"unit": {
-		"armcom": {
+		"armada_commander": {
 			// Choice importance, 0 by default
 			"importance": 0.5,
 
@@ -26,7 +26,7 @@
 			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
 			"side": "armada"
 		},
-		"corcom": {
+		"cortex_commander": {
 			// Choice importance, 0 by default
 			"importance": 0.5,
 

@@ -43,7 +43,7 @@ return {
 		upright = true,
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
-		-- 	"corcom",
+		-- 	"cortex_commander",
 		-- 	"corassistdrone",
 		-- },
 		customparams = {

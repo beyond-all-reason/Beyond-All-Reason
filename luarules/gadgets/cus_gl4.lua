@@ -128,7 +128,7 @@ end
 	-- TODO: fix flashlights to be piece-unique
 
 	-- DONE: AVOID DISCARD in FS AT ALL COST!
-		-- 500 armcom fullview is 82 vs 108 fps with nodiscard!
+		-- 500 armada_commander fullview is 82 vs 108 fps with nodiscard!
 		-- Even if discard is in a never-called dynamically uniform!
 		-- only transparent features need discard
 

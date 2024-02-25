@@ -15,17 +15,17 @@ static-var last_primary_heading,last_primary_pitch;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_WALK            4
-//corcom travels at 40 elmos per  sec (30 frames)
+//cortex_commander travels at 40 elmos per  sec (30 frames)
 //if his animation loops in 8*8 = 64 frames
 //then he has to travel 85 elmos in a loop
 // e.g. 10.5 elmos per keyframe
-// Generated for D:\spring\animation\corcom_anim_walk_v4.blend
+// Generated for D:\spring\animation\cortex_commander_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animFramesPerKeyframe;
 
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_commander_anim_walk_stance_v7.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:6
 			turn biggun to x-axis <7.000000> speed <474.333919> / animSpeed; 
@@ -397,10 +397,10 @@ StopWalking() {
 	turn torso to z-axis <0.000000> speed <13.020986>;
 }
 
-// For N:\animations\corcom_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
+// For N:\animations\cortex_commander_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var danceSpeed, bDancing;
-Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
+Dance() {// For N:\animations\cortex_commander_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
 	while(bDancing) {
 		if (bDancing) { //Frame:12

@@ -70,8 +70,8 @@ The difficulty modifier will change the amount of resources you and the enemy re
         scenarioid = "pinewoodfatboy018", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		unitloadout = {
-			--{name = 'armcom', x = 5500, y = 198, z = 2500, rot = 0 , team = 1},
-			--{name = 'armcom', x = 576, y = 198, z = 381, rot = 25658 , team = 0},
+			--{name = 'armada_commander', x = 5500, y = 198, z = 2500, rot = 0 , team = 1},
+			--{name = 'armada_commander', x = 576, y = 198, z = 381, rot = 25658 , team = 0},
 			{name = 'corllt', x = 944, y = 169, z = 2128, rot = 16384 , team = 1},
 			{name = 'corllt', x = 1376, y = 83, z = 2016, rot = 16384 , team = 1},
 			{name = 'corllt', x = 1312, y = 79, z = 2144, rot = 16384 , team = 1},
@@ -137,7 +137,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'corfort', x = 5520, y = 199, z = 2400, rot = 16384 , team = 1},
 			{name = 'corfort', x = 5488, y = 199, z = 2400, rot = 16384 , team = 1},
 			--{name = 'corca', x = 5493, y = 116, z = 689, rot = 18785 , team = 1},
-			{name = 'corcom', x = 5500, y = 199, z = 2500, rot = 18785 , team = 1},
+			{name = 'cortex_commander', x = 5500, y = 199, z = 2500, rot = 18785 , team = 1},
 			{name = 'corfort', x = 5456, y = 199, z = 2400, rot = 16384 , team = 1},
 			{name = 'cordrag', x = 5360, y = 198, z = 2592, rot = 16384 , team = 1},
 			{name = 'cordrag', x = 5328, y = 198, z = 2592, rot = 16384 , team = 1},

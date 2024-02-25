@@ -1,5 +1,5 @@
 return {
-	armcomcon = {
+	armada_commandercon = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -8,7 +8,7 @@ return {
 		metalcost = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMCOM.DDS",
+		buildpic = "armada_commander.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,
@@ -42,13 +42,13 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM.s3o",
+		objectname = "Units/armada_commander.s3o",
 		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
    		releaseheld  = true,
-		script = "Units/ARMCOM_lus.lua",
+		script = "Units/armada_commander_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
@@ -86,7 +86,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			i18nfromunit = 'armcom'
+			i18nfromunit = 'armada_commander'
 		},
 		featuredefs = {
 			dead = {
@@ -104,7 +104,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/armada_commander_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
@@ -146,7 +146,7 @@ return {
 			repair = "repair1",
 			uncloak = "kloak1un",
 			underattack = "warning2",
-			unitcomplete = "armcomsel",
+			unitcomplete = "armada_commandersel",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -160,17 +160,17 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "armcom1",
-				[2] = "armcom2",
-				[3] = "armcom3",
-				[4] = "armcom4",
+				[1] = "armada_commander1",
+				[2] = "armada_commander2",
+				[3] = "armada_commander3",
+				[4] = "armada_commander4",
 			},
 			select = {
-				[1] = "armcomsel",
+				[1] = "armada_commandersel",
 			},
 		},
 		weapondefs = {
-			armcomlaser = {
+			armada_commanderlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -206,7 +206,7 @@ return {
 					subs = 5,
 				},
 			},
-			armcomsealaser = {
+			armada_commandersealaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -330,12 +330,12 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMCOMLASER",
+				def = "armada_commanderLASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "ARMCOMSEALASER",
+				def = "armada_commanderSEALASER",
 				onlytargetcategory = "NOTAIR"
 			},
 			[3] = {

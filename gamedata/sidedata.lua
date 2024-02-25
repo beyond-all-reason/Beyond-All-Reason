@@ -4,14 +4,14 @@
 return {
     {
         name = "Armada",
-        startunit = 'armcom',
+        startunit = 'armada_commander',
     },
     {
         name = "Cortex",
-        startunit = 'corcom',
+        startunit = 'cortex_commander',
     },
     {
         name = "Random",
-        startunit = 'armcom',
+        startunit = 'armada_commander',
     },
 }

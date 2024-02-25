@@ -40,12 +40,12 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
-	local armcomDefID = UnitDefNames.armcom.id
-	local corcomDefID = UnitDefNames.corcom.id
+	local armada_commanderDefID = UnitDefNames.armada_commander.id
+	local cortex_commanderDefID = UnitDefNames.cortex_commander.id
 	local legcomDefID = UnitDefNames.legcom.id
 	local validStartUnits = {
-		[armcomDefID] = true,
-		[corcomDefID] = true,
+		[armada_commanderDefID] = true,
+		[cortex_commanderDefID] = true,
 	}
 	if Spring.GetModOptions().experimentallegionfaction then
 		validStartUnits[legcomDefID] = true
@@ -124,16 +124,16 @@ if gadgetHandler:IsSyncedCode() then
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				local comDefID = armcomDefID
+				local comDefID = armada_commanderDefID
 				-- we try to give you your faction, if we can't, we find the first available faction, loops around if the list isn't long enough to include current team
 				if faction_limiter_valid then
-					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
-						comDefID = corcomDefID
+					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][cortex_commanderDefID] then
+						comDefID = cortex_commanderDefID
 					elseif teamSide == 'legion' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][legcomDefID] then
 						comDefID = legcomDefID
-					elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][armcomDefID] ~= true then
-						if faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
-							comDefID = corcomDefID
+					elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][armada_commanderDefID] ~= true then
+						if faction_limited_options[ teamAllyID % #faction_limited_options + 1][cortex_commanderDefID] then
+							comDefID = cortex_commanderDefID
 						elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][legcomDefID] then
 							comDefID = legcomDefID
 						else
@@ -143,7 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- otherwise default behaviour
 				else
 					if teamSide == 'cortex' then
-						comDefID = corcomDefID
+						comDefID = cortex_commanderDefID
 					elseif teamSide == 'legion' then
 						comDefID = legcomDefID
 					end
@@ -353,9 +353,9 @@ if gadgetHandler:IsSyncedCode() then
 		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
 		if sideName == "random" then
 			if math.random() > 0.5 then
-				startUnit = corcomDefID
+				startUnit = cortex_commanderDefID
 			else
-				startUnit = armcomDefID
+				startUnit = armada_commanderDefID
 			end
 		end
 

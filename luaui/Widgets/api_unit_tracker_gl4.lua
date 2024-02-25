@@ -434,8 +434,8 @@ end
 [t=00:04:53.909535][f=0004349] g:UnitLeftRadar, 14177, 1
 [t=00:04:53.909549][f=0004349] g:UnitLeftLos, 24007, 1
 [t=00:04:53.909562][f=0004349] g:UnitLeftRadar, 24007, 1
-[t=00:04:54.109905][f=0004355] g:UnitCmdDone, 14177, corcom, 1, 130, <table>, <table>, 16
-[t=00:04:54.109951][f=0004355] g:UnitIdle, 14177, corcom, 1
+[t=00:04:54.109905][f=0004355] g:UnitCmdDone, 14177, cortex_commander, 1, 130, <table>, <table>, 16
+[t=00:04:54.109951][f=0004355] g:UnitIdle, 14177, cortex_commander, 1
 ]]--
 
 

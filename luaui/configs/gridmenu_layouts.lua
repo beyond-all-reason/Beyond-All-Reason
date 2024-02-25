@@ -133,13 +133,13 @@ local labGrids = {
 	},
 	-- amphibious labs
 	armamsub = {
-		"armbeaver", "armdecom", "armpincer", "",
+		"armbeaver", "armada_decoycommander", "armpincer", "",
 		"armcroc", "", "", "",
 		"", "armada_crossbow", "armada_archangel",
 	},
 
 	coramsub = {
-		"cormuskrat", "cordecom", "corgarp", "",
+		"cormuskrat", "cortex_decoycommander", "corgarp", "",
 		"corseal", "corparrow", "", "",
 		"", "corcrash", "coraak",
 	},
@@ -321,7 +321,7 @@ local unitGrids = {
 		}
 	},
 	-- Commanders
-	armcom = {
+	armada_commander = {
 		{
 			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
 			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
@@ -344,7 +344,7 @@ local unitGrids = {
 		}
 	},
 
-	corcom = {
+	cortex_commander = {
 		{
 			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
@@ -1149,7 +1149,7 @@ local unitGrids = {
 	},
 
 	--Decoy commanders
-	armdecom = {
+	armada_decoycommander = {
 		{
 			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
 			{ "armmakr", "", "armuwms", "armtide"},              -- T1 converter, uw ms storage, tidal
@@ -1172,7 +1172,7 @@ local unitGrids = {
 		}
 	},
 
-	cordecom = {
+	cortex_decoycommander = {
 		{
 			{ "cormex", "corsolar", "corwin", },               -- mex, solar, wind
 			{ "cormakr", "", "coruwms", cortide},              -- T1 converter, uw ms storage, tidal

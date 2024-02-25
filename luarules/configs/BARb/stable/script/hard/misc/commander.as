@@ -3,8 +3,8 @@
 
 namespace Commander {
 
-string armcom("armcom");
-string corcom("corcom");
+string armada_commander("armada_commander");
+string cortex_commander("cortex_commander");
 
 }
 
@@ -43,7 +43,7 @@ class SOpener {
 dictionary@ GetOpenInfo()
 {
 	return dictionary = {
-		{Commander::armcom, SOpener({
+		{Commander::armada_commander, SOpener({
 			{Factory::armlab, array<SQueue> = {
 				//raider
 				SQueue(0.4f, {SO(RT::BUILDER), SO(RT::SCOUT, 2), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 5), SO(RT::BUILDER), SO(RT::RAIDER)}),
@@ -77,7 +77,7 @@ dictionary@ GetOpenInfo()
 			}}
 			}, {SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER)})
 		},
-		{Commander::corcom, SOpener({
+		{Commander::cortex_commander, SOpener({
 			{Factory::corlab, array<SQueue> = {
 				SQueue(0.3f, {SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 4), SO(RT::BUILDER), SO(RT::RAIDER, 2)}),
 				SQueue(0.3f, {SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::RIOT), SO(RT::BUILDER), SO(RT::RAIDER, 2)}),

@@ -1,5 +1,5 @@
 return {
-	corcom = {
+	cortex_commander = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -8,7 +8,7 @@ return {
 		metalcost = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORCOM.DDS",
+		buildpic = "cortex_commander.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,
@@ -42,12 +42,12 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/cortex_commander"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
 		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-		script = "Units/CORCOM.cob",
+		script = "Units/cortex_commander.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		selfdestructcountdown = 5,
@@ -117,7 +117,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 1250,
-				object = "Units/corcom_dead.s3o",
+				object = "Units/cortex_commander_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -161,7 +161,7 @@ return {
 			repair = "repair2",
 			uncloak = "kloak2un",
 			underattack = "warning2",
-			unitcomplete = "corcomsel",
+			unitcomplete = "cortex_commandersel",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -175,18 +175,18 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "corcom1",
-				[2] = "corcom2",
-				[3] = "corcom3",
-				[4] = "corcom4",
-				[5] = "corcom5",
+				[1] = "cortex_commander1",
+				[2] = "cortex_commander2",
+				[3] = "cortex_commander3",
+				[4] = "cortex_commander4",
+				[5] = "cortex_commander5",
 			},
 			select = {
-				[1] = "corcomsel",
+				[1] = "cortex_commandersel",
 			},
 		},
 		weapondefs = {
-			corcomlaser = {
+			cortex_commanderlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -222,7 +222,7 @@ return {
 					subs = 5,
 				},
 			},
-			corcomsealaser = {
+			cortex_commandersealaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -347,13 +347,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORCOMLASER",
+				def = "cortex_commanderLASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "CORCOMSEALASER",
+				def = "cortex_commanderSEALASER",
 				onlytargetcategory = "NOTAIR"
 			},
 			[3] = {

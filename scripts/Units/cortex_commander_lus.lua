@@ -53,7 +53,7 @@ local ValidID = Spring.ValidUnitID
 
 local function BelowWater(piecename)
 	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename)
-  -- this returns unit space, so why does it work for corcom?
+  -- this returns unit space, so why does it work for cortex_commander?
   local _, py, _ = Spring.GetUnitPosition(unitID)
 	if (y+ py) <= 0 then
 		return true

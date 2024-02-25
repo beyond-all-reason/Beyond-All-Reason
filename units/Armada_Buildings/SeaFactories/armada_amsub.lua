@@ -36,7 +36,7 @@ return {
 			[3] = "armcroc",
 			[4] = "armada_crossbow",
 			[5] = "armada_archangel",
-			[6] = "armdecom",
+			[6] = "armada_decoycommander",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

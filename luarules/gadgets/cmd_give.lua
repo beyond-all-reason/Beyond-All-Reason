@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 
--- usage: /luarules give 1 armcom 0
+-- usage: /luarules give 1 armada_commander 0
 
 local cmdname = 'give'
 local PACKET_HEADER = "$g$"

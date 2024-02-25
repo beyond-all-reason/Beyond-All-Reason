@@ -136,7 +136,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				height = 20,
 				hitdensity = 100,
 				metal = 3500,
-				object = "Units/scavboss/armcomboss_dead.s3o",
+				object = "Units/scavboss/armada_commanderboss_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
@@ -180,7 +180,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			repair = "repair1",
 			uncloak = "kloak1un",
 			underattack = "warning2",
-			unitcomplete = "armcomsel",
+			unitcomplete = "armada_commandersel",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -194,13 +194,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "armcom1",
-				[2] = "armcom2",
-				[3] = "armcom3",
-				[4] = "armcom4",
+				[1] = "armada_commander1",
+				[2] = "armada_commander2",
+				[3] = "armada_commander3",
+				[4] = "armada_commander4",
 			},
 			select = {
-				[1] = "armcomsel",
+				[1] = "armada_commandersel",
 			},
 		},
 		weapondefs = {

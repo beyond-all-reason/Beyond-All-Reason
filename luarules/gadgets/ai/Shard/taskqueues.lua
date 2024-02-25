@@ -63,7 +63,7 @@ local coreconstructionbot = {
 	CoreWindSolar,
 }
 
-local armcommander = {
+local armada_commandermander = {
 	"armsolar",
 	"armmex",
 	"armsolar",
@@ -160,11 +160,11 @@ local armbotlab = {
 }
 taskqueues = {
 	-- unittype = tasklist,
-	corcom = corecommanderlist,
+	cortex_commander = corecommanderlist,
 	-- we can assign 1 list, to multiple unit types, here a construction bot (corck) gets the construction bot tasklist, but then we assign it to the construction vehicle too (corcv))
 	corck = coreconstructionbot,
 	corcv = coreconstructionbot,
-	armcom = armcommander,
+	armada_commander = armada_commandermander,
 	armada_constructionbot = armconstructionbot,
 	corlab = corebotlab,
 	armlab = armbotlab,

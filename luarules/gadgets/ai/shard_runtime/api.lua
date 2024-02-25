@@ -95,7 +95,7 @@ IUnit/ engine unit objects
 	void ExecuteCustomCommand(int cmdId, std::vector<float> params_list, short options = 0, int timeOut = INT_MAX)
 
 	UnitType{
-		function Name() -- returns a string e.g. 'corcom'
+		function Name() -- returns a string e.g. 'cortex_commander'
 
 		function CanDeploy() -- returns boolean
 		function CanMoveWhenDeployed() -- returns boolean

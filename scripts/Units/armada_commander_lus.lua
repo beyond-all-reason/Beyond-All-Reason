@@ -58,7 +58,7 @@ local last_primary_heading = -1000000
 
 local function BelowWater(piecename)
 	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename)
-  -- this returns unit space, so why does it work for corcom?
+  -- this returns unit space, so why does it work for cortex_commander?
   local _, py, _ = Spring.GetUnitPosition(unitID)
   --Spring.Echo(piecename, 'ypos', y, py)
 	if (y+ py) <= 0 then
@@ -952,7 +952,7 @@ function script.AimFromWeapon(weapon)
 end
 
 function script.AimWeapon(weapon, heading, pitch)
-  --Spring.Echo("Armcom aiming:",weapons[weapon])
+  --Spring.Echo("armada_commander aiming:",weapons[weapon])
 	if weapons[weapon] == "laser" then
 		if isAimingDgun == true then
 			return false

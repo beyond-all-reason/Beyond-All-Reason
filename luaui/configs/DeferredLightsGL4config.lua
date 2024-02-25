@@ -8058,8 +8058,8 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armcom'] = {
-		headlightarmcom = {
+	['armada_commander'] = {
+		headlightarmada_commander = {
 			lightType = 'cone',
 			pieceName = 'head',
 			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 420,
@@ -8258,8 +8258,8 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armcomboss'] = {
-		--headlightarmcom = {
+	['armada_commanderboss'] = {
+		--headlightarmada_commander = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
 		--	lightConfig = { posx = 0, posy = 0, posz = 40, radius = 420,
@@ -8368,8 +8368,8 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcom'] = {
-		headlightcorcom = {
+	['cortex_commander'] = {
+		headlightcortex_commander = {
 			lightType = 'cone',
 			pieceName = 'head',
 			lightConfig = { posx = 0, posy = 1, posz = 9, radius = 420,
@@ -8579,8 +8579,8 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcomboss'] = {
-		--headlightcorcom = {
+	['cortex_commanderboss'] = {
+		--headlightcortex_commander = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
 		--	lightConfig = { posx = 0, posy = 10, posz = 90, radius = 420,
@@ -18598,10 +18598,10 @@ unitLights['armuwgeo'] = unitLights['armgeo']
 unitLights['armuwageo'] = unitLights['armageo']
 unitLights['armshltxuw'] = unitLights['armshltx']
 unitLights['corgantuw'] = unitLights['corgant']
-unitLights['armdecom'] = unitLights['armcom']
-unitLights['cordecom'] = unitLights['corcom']
-unitLights['armcomcon'] = unitLights['armcom']
-unitLights['corcomcon'] = unitLights['corcom']
+unitLights['armada_decoycommander'] = unitLights['armada_commander']
+unitLights['cortex_decoycommander'] = unitLights['cortex_commander']
+unitLights['armada_commandercon'] = unitLights['armada_commander']
+unitLights['cortex_commandercon'] = unitLights['cortex_commander']
 unitLights['armdf'] = table.copy(unitLights['armfus'])
 unitLights['armuwfus'] = table.copy(unitLights['armfus'])
 unitLights['armckfus'] = table.copy(unitLights['armfus'])
@@ -18640,7 +18640,7 @@ local unitEventLights = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptLights = {
-		['armcom'] = {
+		['armada_commander'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lflare',
@@ -18654,7 +18654,7 @@ local unitEventLights = {
 			},
 		},
 
-		['armdecom'] = {
+		['armada_decoycommander'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lflare',
@@ -18668,11 +18668,11 @@ local unitEventLights = {
 			},
 		},
 
-		['corcom'] = {
+		['cortex_commander'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'biggun',
-				lightName = 'corcombarrelglow',
+				lightName = 'cortex_commanderbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 0, posz = 22, radius = 16,
 					color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 400,
@@ -18682,11 +18682,11 @@ local unitEventLights = {
 			},
 		},
 
-		['cordecom'] = {
+		['cortex_decoycommander'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'biggun',
-				lightName = 'corcombarrelglow',
+				lightName = 'cortex_commanderbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 0, posz = 22, radius = 16,
 					color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 400,
@@ -19005,7 +19005,7 @@ local unitEventLights = {
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
-		['armcom'] = {
+		['armada_commander'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'head',
@@ -19016,7 +19016,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['corcom'] = {
+		['cortex_commander'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'head',
@@ -19239,7 +19239,7 @@ local unitEventLights = {
 	},
 
 	UnitCloaked = {
-		['armcom'] = {
+		['armada_commander'] = {
 			cloakBlink = {
 				lightType = 'point',
 				pieceName = 'head',
@@ -19274,7 +19274,7 @@ local unitEventLights = {
 	},
 
 	UnitDecloaked = {
-		['armcom'] = {
+		['armada_commander'] = {
 			cloakBlink = {
 				lightType = 'point',
 				pieceName = 'head',

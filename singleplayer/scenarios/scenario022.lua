@@ -94,8 +94,8 @@ Scoring:
 			-- Note: If you have ANY units in loadout, then there will be no initial units spawned for anyone, so you have to take care of that
 			-- so you must spawn the initial commanders then!
 
-			--{name = 'corcom', x = 5444, y = 34, z = 4403, rot = 0 , team = 1},
-			--{name = 'armcom', x = 700, y = 34, z = 716, rot = 0 , team = 0},
+			--{name = 'cortex_commander', x = 5444, y = 34, z = 4403, rot = 0 , team = 1},
+			--{name = 'armada_commander', x = 700, y = 34, z = 716, rot = 0 , team = 0},
 			{name = 'armsolar', x = 1112, y = 99, z = 1224, rot = -16384 , team = 0},
 			{name = 'armsolar', x = 1272, y = 93, z = 1224, rot = -16384 , team = 0},
 			{name = 'armsolar', x = 1350, y = 34, z = 218, rot = -16384 , team = 0},
@@ -380,8 +380,8 @@ Scoring:
 		},
 		featureloadout = {
 			-- Similarly to units, but these can also be resurrectable!
-            -- You can /give corcom_dead with cheats when making your scenario, but it might not contain the 'resurrectas' tag, so be careful to add it if needed
-			 -- {name = 'corcom_dead', x = 1125,y = 237, z = 734, rot = "0" , scale = 1.0, resurrectas = "corcom"}, -- there is no need for this dead comm here, just an example
+            -- You can /give cortex_commander_dead with cheats when making your scenario, but it might not contain the 'resurrectas' tag, so be careful to add it if needed
+			 -- {name = 'cortex_commander_dead', x = 1125,y = 237, z = 734, rot = "0" , scale = 1.0, resurrectas = "cortex_commander"}, -- there is no need for this dead comm here, just an example
 			{name = 'armada_lazarus_dead', x = 114, y = 34, z = 149, rot = 0 , scale = 1.0, resurrectas = "armada_lazarus"},
 			{name = 'armjamt_dead', x = 1424, y = 34, z = 631, rot = 0 , scale = 1.0, resurrectas = "armjamt"},
 			{name = 'armadvsol_dead', x = 58, y = 34, z = 947, rot = 0 , scale = 1.0, resurrectas = "armadvsol"},

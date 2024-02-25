@@ -414,7 +414,7 @@
 
 		"income_tier": [30, 60],
 
-		"unit":      ["corack",  "corpyro", "corsumo", "corcan", "corfast", "cormort", "corhrk", "coraak", 	"coramph", "cormando", 	"cordecom", "corroach",	"corsktl", "corvoyr", "corspec", "corspy",	"cortermite"],
+		"unit":      ["corack",  "corpyro", "corsumo", "corcan", "corfast", "cormort", "corhrk", "coraak", 	"coramph", "cormando", 	"cortex_decoycommander", "corroach",	"corsktl", "corvoyr", "corspec", "corspy",	"cortermite"],
                                                                                                                                                         
 		"land": {                                                                                                                                       
 			"tier0": [ 0.30,      0.50,      0.00,      0.00,     0.00,      0.20,      0.00,     0.01,     0.00,		0.00,       0.00,		0.00,		0.00,      0.00,		0.00,   	0.00,		0.00],   

@@ -45,7 +45,7 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
 local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
-local comTexture = ":n:Icons/corcom.png"
+local comTexture = ":n:Icons/cortex_commander.png"
 if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
 	comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
 end

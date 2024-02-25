@@ -3,8 +3,8 @@
 
 namespace Commander {
 
-string armcom("armcom");
-string corcom("corcom");
+string armada_commander("armada_commander");
+string cortex_commander("cortex_commander");
 
 }
 
@@ -43,7 +43,7 @@ class SOpener {
 dictionary@ GetOpenInfo()
 {
 	return dictionary = {
-		{Commander::armcom, SOpener({
+		{Commander::armada_commander, SOpener({
 			{Factory::armlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::SKIRM), SO(RT::BUILDER), SO(RT::SKIRM), SO(RT::BUILDER)})
 			}},
@@ -61,7 +61,7 @@ dictionary@ GetOpenInfo()
 			}}
 			}, {SO(RT::RAIDER), SO(RT::BUILDER)})
 		},
-		{Commander::corcom, SOpener({
+		{Commander::cortex_commander, SOpener({
 			{Factory::corlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::SKIRM), SO(RT::BUILDER)})
 			}},

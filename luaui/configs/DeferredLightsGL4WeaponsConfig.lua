@@ -922,8 +922,8 @@ GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
---armcom
-muzzleFlashLights[WeaponDefNames["armcom_disintegrator"].id] =
+--armada_commander
+muzzleFlashLights[WeaponDefNames["armada_commander_disintegrator"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
 											r = 1.2, g = 1.1, b = 1.0, a = 0.6,

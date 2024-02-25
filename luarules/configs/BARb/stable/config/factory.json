@@ -220,7 +220,7 @@
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["armbeaver", "armpincer", "armcroc", "armada_crossbow", "armada_archangel", "armdecom"],
+		"unit":      ["armbeaver", "armpincer", "armcroc", "armada_crossbow", "armada_archangel", "armada_decoycommander"],
 		"land": {
 			"tier0": [ 0.17,        0.17,        0.17,      0.17,      0.16,     0.16],
 			"tier1": [ 0.01,        0.01,        0.95,      0.01,      0.01,     0.01]
@@ -455,7 +455,7 @@
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "corcrash", "coraak", "cordecom", "corintr"],
+		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "corcrash", "coraak", "cortex_decoycommander", "corintr"],
 		"land": {
 			"tier0": [ 0.13,         0.13,      0.13,      0.13,        0.12,       0.12,     0.12,       0.12],
 			"tier1": [ 0.01,         0.01,      0.93,      0.01,        0.01,       0.01,     0.01,       0.01]

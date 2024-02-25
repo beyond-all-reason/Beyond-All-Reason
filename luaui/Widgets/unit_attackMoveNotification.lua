@@ -72,7 +72,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if localTeamID ~= unitTeam or damage < 10 then
 		return
 	end
-	--Spring.Echo(corcomID, unitID)
+	--Spring.Echo(cortex_commanderID, unitID)
 	local now = spGetTimer()
 	if isCommander[unitDefID] then
 		--commander under attack must always be played! (10 sec retrigger alert though)
@@ -96,7 +96,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		if unitUnderattackSounds[unitDefID] then
 			local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
 			local soundFile = unitUnderattackSounds[unitDefID][id].name
-			--if not udef.decoyfor or (udef.decoyfor ~= 'armcom' and udef.decoyfor ~= 'corcom') then
+			--if not udef.decoyfor or (udef.decoyfor ~= 'armada_commander' and udef.decoyfor ~= 'cortex_commander') then
 			spPlaySoundFile(soundFile, unitUnderattackSounds[unitDefID][id].volume, nil, "sfx")
 			--end
 		end

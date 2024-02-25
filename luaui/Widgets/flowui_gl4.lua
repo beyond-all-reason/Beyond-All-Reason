@@ -709,7 +709,7 @@ function metaElement:NewUiUnit(o)
 			--Draw.Unit(rectRoundVBO, nil, 0.5, x,y,w,y+2*s, 20,
 			--1,1,1,1,
 			--1, nil, 0.8, -- zoom, bordersize, borderOpacity
-			--"unitpics/corcom.dds",
+			--"unitpics/cortex_commander.dds",
 			--"icons/bantha.png",
 			--"luaui/images/flowui_gl4/metal.png", --grouptexture
 			--500, 7)
@@ -1145,7 +1145,7 @@ local function makeunitbuttonarray()
 			right = vsx,
 			})
 	-- what can my boy build?
-	local unitDef = UnitDefs[UnitDefNames['armcom'].id]
+	local unitDef = UnitDefs[UnitDefNames['armada_commander'].id]
 	for k,v in pairs(unitDef.buildOptions) do
 		Spring.Echo(k,v)
 	end
@@ -2503,7 +2503,7 @@ function widget:DrawScreen()
 	if atlasID == nil then
 		atlasID = WG['flowui_atlas']
 		atlassedImages = WG['flowui_atlassedImages']
-		--Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
+		--Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armada_commander.dds")})
 	end
 	if elems < 0  then
 		elems = elems+1
@@ -2543,7 +2543,7 @@ function widget:DrawScreen()
 			Draw.Unit(rectRoundVBO, nil, 0.5, x,y,w,y+2*s, 20,
 			1,1,1,1,
 			1, nil, 0.8, -- zoom, bordersize, borderOpacity
-			"unitpics/corcom.dds",
+			"unitpics/cortex_commander.dds",
 			"icons/bantha.png",
 			"luaui/images/flowui_gl4/metal.png", --grouptexture
 			500, 7)

@@ -1,5 +1,5 @@
 return {
-	armdecom = {
+	armada_decoycommander = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 0,
@@ -8,7 +8,7 @@ return {
 		metalcost = 770,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMDECOM.DDS",
+		buildpic = "armada_decoycommander.DDS",
 		buildtime = 24000,
 		cancapture = true,
 		candgun = true,
@@ -20,7 +20,7 @@ return {
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
-		decoyfor = "armcom",
+		decoyfor = "armada_commander",
 		energymake = 15,
 		energystorage = 50,
 		explodeas = "decoycommander",
@@ -38,12 +38,12 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/armada_commander"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
     	releaseheld  = true,
-		script = "Units/ARMCOM_lus.lua",
+		script = "Units/armada_commander_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
@@ -76,7 +76,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert2',
-			decoyfor = "armcom",
+			decoyfor = "armada_commander",
 			area_mex_def = "armmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -125,7 +125,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armcomlaser = {
+			armada_commanderlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -161,7 +161,7 @@ return {
 					subs = 5,
 				},
 			},
-			armcomsealaser = {
+			armada_commandersealaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -241,13 +241,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMCOMLASER",
+				def = "armada_commanderLASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "ARMCOMSEALASER",
+				def = "armada_commanderSEALASER",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

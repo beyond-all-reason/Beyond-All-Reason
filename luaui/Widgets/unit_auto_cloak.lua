@@ -13,8 +13,8 @@ end
 -- defaults
 local unitdefConfigNames = {
 	['armjamt'] = true,
-	['armdecom'] = false,
-	['cordecom'] = false,
+	['armada_decoycommander'] = false,
+	['cortex_decoycommander'] = false,
 	['armferret'] = false,
 	['armamb'] = false,
 	['armpb'] = false,

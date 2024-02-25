@@ -25,8 +25,8 @@ end
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
 local spawnpads = {
-    [UDN.armcom.id] = "armrespawn",
-    [UDN.corcom.id] = "correspawn",
+    [UDN.armada_commander.id] = "armrespawn",
+    [UDN.cortex_commander.id] = "correspawn",
 	[UDN.legcom.id] = "correspawn",
 }
 

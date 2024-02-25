@@ -699,7 +699,7 @@ local moveDatas = {
 	-- 	speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
 	-- },
 
-	-- armcomboss corcomboss
+	-- armada_commanderboss cortex_commanderboss
 	SCAVCOMMANDERBOT = {
 		crushstrength = 50,
 		depthModParams = {

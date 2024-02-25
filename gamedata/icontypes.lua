@@ -211,16 +211,16 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armcom = {
-		bitmap = "icons/armcom.png",
+	armada_commander = {
+		bitmap = "icons/armada_commander.png",
 		size = 1.83749986
 	},
-	armcomboss = {
-		bitmap = "icons/armcomboss.png",
+	armada_commanderboss = {
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armcomcon = {
-		bitmap = "icons/armcom.png",
+	armada_commandercon = {
+		bitmap = "icons/armada_commander.png",
 		size = 1.83749986
 	},
 	armconsul = {
@@ -255,8 +255,8 @@ local icontypes = {
 		bitmap = "icons/ship_t4_decade.png",
 		size = 2.70000005
 	},
-	armdecom = {
-		bitmap = "icons/armcom.png",
+	armada_decoycommander = {
+		bitmap = "icons/armada_commander.png",
 		size = 1.83749986
 	},
 	armdf = {
@@ -716,27 +716,27 @@ local icontypes = {
 		size = 1.46999991
 	},
 	armscavengerbossv2_easy = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armscavengerbossv2_epic = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armscavengerbossv2_hard = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armscavengerbossv2_normal = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armscavengerbossv2_veryeasy = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armscavengerbossv2_veryhard = {
-		bitmap = "icons/armcomboss.png",
+		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
 	armsd = {
@@ -1143,16 +1143,16 @@ local icontypes = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
-	corcom = {
-		bitmap = "icons/corcom.png",
+	cortex_commander = {
+		bitmap = "icons/cortex_commander.png",
 		size = 1.83749986
 	},
-	corcomboss = {
-		bitmap = "icons/corcomboss.png",
+	cortex_commanderboss = {
+		bitmap = "icons/cortex_commanderboss.png",
 		size = 4.19999981
 	},
-	corcomcon = {
-		bitmap = "icons/corcom.png",
+	cortex_commandercon = {
+		bitmap = "icons/cortex_commander.png",
 		size = 1.83749986
 	},
 	corcrash = {
@@ -1191,8 +1191,8 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
-	cordecom = {
-		bitmap = "icons/corcom.png",
+	cortex_decoycommander = {
+		bitmap = "icons/cortex_commander.png",
 		size = 1.83749986
 	},
 	cordemon = {

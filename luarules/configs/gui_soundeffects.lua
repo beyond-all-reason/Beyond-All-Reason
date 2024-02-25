@@ -12,13 +12,13 @@ local LootboxNanoSoundEffects = {
 
 GUIUnitSoundEffects = {
 	-- ARMADA COMMANDER
-	armcom = {
+	armada_commander = {
 		BaseSoundSelectType = "arm-com-sel",
 		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 
-	armdecom = {
+	armada_decoycommander = {
 		BaseSoundSelectType = "arm-com-sel",
 		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
 		BaseSoundWeaponType = "laser-tiny",
@@ -1143,13 +1143,13 @@ GUIUnitSoundEffects = {
 	},
 
 	-- CORTEX COMMANDER
-	corcom = {
+	cortex_commander = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 
-	cordecom = {
+	cortex_decoycommander = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "laser-tiny",

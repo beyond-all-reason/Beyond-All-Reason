@@ -413,12 +413,12 @@ function widget:DrawWorld()
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 		local buildDataId = buildData[1]
-		if startDefID == UnitDefNames["armcom"].id then
+		if startDefID == UnitDefNames["armada_commander"].id then
 			if corToArm[buildDataId] ~= nil then
 				buildData[1] = corToArm[buildDataId]
 				buildQueue[b] = buildData
 			end
-		elseif startDefID == UnitDefNames["corcom"].id then
+		elseif startDefID == UnitDefNames["cortex_commander"].id then
 			if armToCor[buildDataId] ~= nil then
 				buildData[1] = armToCor[buildDataId]
 				buildQueue[b] = buildData

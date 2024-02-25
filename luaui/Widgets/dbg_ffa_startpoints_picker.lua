@@ -29,7 +29,7 @@ end
 
 local startPoints
 local byAllyTeamCount
-local startPointUnitName = "armcom"
+local startPointUnitName = "armada_commander"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

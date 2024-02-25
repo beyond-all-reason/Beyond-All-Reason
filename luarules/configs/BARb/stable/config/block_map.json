@@ -1,7 +1,7 @@
 // Mono-space font required
 {
 "terrain": {
-	"analyze": "armcom",
+	"analyze": "armada_commander",
 
 	// These constants control how to decide between Seas and Lakes.
 	"lake_tiles": 100,  // 300,

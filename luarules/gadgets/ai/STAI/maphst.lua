@@ -570,8 +570,8 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 	self:EchoDebug('mobility commander rank START')
 	local counter = 0
 	local utable = self.ai.armyhst.unitTable
-	local className = UnitDefNames['armcom'].moveDef.name
-	local classID = utable.armcom.defId--UnitDefNames['armcom'].id
+	local className = UnitDefNames['armada_commander'].moveDef.name
+	local classID = utable.armada_commander.defId--UnitDefNames['armada_commander'].id
 	local layer = 'amp'
 	local doing = {}
 	self.ttt={trampled = 0}

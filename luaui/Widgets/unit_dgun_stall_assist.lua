@@ -27,7 +27,7 @@ local isFactory = {} -- isFactory[uDefID] = true / nil
 
 local gameStarted
 
-local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id}
+local stallIds = {UnitDefNames['armada_commander'].id, UnitDefNames['cortex_commander'].id}
 
 ----------------------------------------------------------------
 -- Speedups

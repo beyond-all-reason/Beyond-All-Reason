@@ -109,12 +109,12 @@ customDefs.corjuno = {
 
 
 
-customDefs.armdecom = {
-	decoyfor = "armcom_scav",
+customDefs.armada_decoycommander = {
+	decoyfor = "armada_commander_scav",
 }
 
-customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
+customDefs.cortex_decoycommander = {
+	decoyfor = "cortex_decoycommander_scav",
 }
 
 customDefs.armclaw = {
@@ -179,7 +179,7 @@ customDefs.corscavdtl = {
 
 -- -- Scav Commanders
 
--- customDefs.corcom = {
+-- customDefs.cortex_commander = {
 -- 	autoheal = 15,
 -- 	--blocking = false,
 -- 	buildoptions = scavUnit,
@@ -201,8 +201,8 @@ customDefs.corscavdtl = {
 -- 	showplayername = false,
 -- 	stealth = false,
 
--- 	--objectname = "Units/CORCOM.s3o",
--- 	--script = "Units/CORCOM.cob",
+-- 	--objectname = "Units/cortex_commander.s3o",
+-- 	--script = "Units/cortex_commander.cob",
 -- 	--workertime = 200,				-- can get multiplied in unitdef_post
 -- 	customparams = {
 -- 		iscommander = 'nil',
@@ -230,7 +230,7 @@ customDefs.corscavdtl = {
 -- 	-- 	},
 -- }
 
--- customDefs.corcomcon = {
+-- customDefs.cortex_commandercon = {
 -- 	autoheal = 15,
 -- 	--blocking = false,
 -- 	--buildoptions = scavConstructorsList,
@@ -278,7 +278,7 @@ customDefs.corscavdtl = {
 -- 	-- 	},
 -- }
 
--- customDefs.armcom = {
+-- customDefs.armada_commander = {
 -- 	autoheal = 15,
 -- 	buildoptions = scavUnit,
 -- 	builddistance = 250,
@@ -300,8 +300,8 @@ customDefs.corscavdtl = {
 -- 	stealth = false,
 -- 	--workertime = 200,				-- can get multiplied in unitdef_post
 
--- 	--objectname = "Units/ARMCOM.s3o",
--- 	--script = "Units/ARMCOM_lus.lua",
+-- 	--objectname = "Units/armada_commander.s3o",
+-- 	--script = "Units/armada_commander_lus.lua",
 -- 	customparams = {
 -- 		iscommander = 'nil',
 -- 	},
@@ -328,7 +328,7 @@ customDefs.corscavdtl = {
 -- 	--	},
 -- }
 
--- customDefs.armcomcon = {
+-- customDefs.armada_commandercon = {
 -- 	autoheal = 15,
 -- 	--buildoptions = scavConstructorsList,
 -- 	builddistance = 175,

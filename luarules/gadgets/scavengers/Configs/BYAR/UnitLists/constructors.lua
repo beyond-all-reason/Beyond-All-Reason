@@ -9,8 +9,8 @@ local function getUnitIDList(unitNameList)
 end
 
 local constructors = {
-	"armcom_scav",
-	"corcom_scav",
+	"armada_commander_scav",
+	"cortex_commander_scav",
 	"legcom_scav",
 	"legcomoff_scav",
 	"legcomt2def_scav",
@@ -18,14 +18,14 @@ local constructors = {
 }
 
 local constructorsT1 = {
-	"armcom_scav",
-	"corcom_scav",
+	"armada_commander_scav",
+	"cortex_commander_scav",
 	"legcom_scav",
 }
 
 local constructorsT2 = {
-	"armcom_scav",
-	"corcom_scav",
+	"armada_commander_scav",
+	"cortex_commander_scav",
 	"legcom_scav",
 	"legcomoff_scav",
 }
@@ -43,27 +43,27 @@ local constructorsT4 = {
 }
 
 local swapUnitsToScav = {
-	[UnitDefNames["armcomcon_scav"].id] = "corcom_scav",
-	[UnitDefNames["corcomcon_scav"].id] = "armcom_scav",
+	[UnitDefNames["armada_commandercon_scav"].id] = "cortex_commander_scav",
+	[UnitDefNames["cortex_commandercon_scav"].id] = "armada_commander_scav",
 }
 
 local swapUnitsFromScav = {
-	[UnitDefNames["armcom_scav"].id] = "armcomcon_scav",
-	[UnitDefNames["corcom_scav"].id] = "corcomcon_scav",
+	[UnitDefNames["armada_commander_scav"].id] = "armada_commandercon_scav",
+	[UnitDefNames["cortex_commander_scav"].id] = "cortex_commandercon_scav",
 }
 
 
 local playerCommanders = {
-	"armcom",
-	"corcom",
-	"armdecom",
-	"cordecom",
-	"armcomcon",
-	"corcomcon",
-	"armdecom_scav",
-	"cordecom_scav",
-	"armcomcon_scav",
-	"corcomcon_scav",
+	"armada_commander",
+	"cortex_commander",
+	"armada_decoycommander",
+	"cortex_decoycommander",
+	"armada_commandercon",
+	"cortex_commandercon",
+	"armada_decoycommander_scav",
+	"cortex_decoycommander_scav",
+	"armada_commandercon_scav",
+	"cortex_commandercon_scav",
 	"armrespawn",
 	"correspawn",
 }
@@ -90,7 +90,7 @@ local resurrectorsSea = {
 local collectors = {
 	"armada_constructionbot_scav",
 	"armada_advancedconstructionbot_scav",
-	"armdecom_scav",
+	"armada_decoycommander_scav",
 	"armcv_scav",
 	"armbeaver_scav",
 	"armacv_scav",
@@ -102,7 +102,7 @@ local collectors = {
 	"armch_scav",
 	"corck_scav",
 	"corack_scav",
-	"cordecom_scav",
+	"cortex_decoycommander_scav",
 	"corcv_scav",
 	"cormuskrat_scav",
 	"coracv_scav",

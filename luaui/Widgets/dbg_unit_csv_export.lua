@@ -96,7 +96,7 @@ function widget:Initialize()
     end
 
     for udid, unitDef in pairs(UnitDefs) do
-        if inBuildoptions[udid] or unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'legcom' then
+        if inBuildoptions[udid] or unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'legcom' then
             local faction = ''
             if string.sub(unitDef.name, 1, 3) == 'arm' then
                 faction = 'ARM'

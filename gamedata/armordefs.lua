@@ -1,19 +1,19 @@
 local armorDefs = {
 	commanders = {
-		"armcom",
-		"armdecom",
-		"armcomcon",
-		"corcom",
-		"cordecom",
-		"corcomcon",
+		"armada_commander",
+		"armada_decoycommander",
+		"armada_commandercon",
+		"cortex_commander",
+		"cortex_decoycommander",
+		"cortex_commandercon",
 		"legcom",
 		"legcomlvl2",
 		"legcomlvl3",
 		"legcomlvl4",
 	},
 	scavboss = {
-		"armcomboss",
-		"corcomboss",
+		"armada_commanderboss",
+		"cortex_commanderboss",
 	},
 	indestructable = {
 		"xmasball1_1",

@@ -1,5 +1,5 @@
 return {
-	corcomboss = {
+	cortex_commanderboss = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 0,
@@ -8,7 +8,7 @@ return {
 		metalcost = 300000,
 		builddistance = 750,
 		builder = true,
-		buildpic = "scavengers/CORCOMBOSS.DDS",
+		buildpic = "scavengers/cortex_commanderBOSS.DDS",
 		buildtime = 300000,
 		cancapture = true,
 		--cancloak = true,
@@ -40,12 +40,12 @@ return {
 		--mincloakdistance = 120,
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/scavboss/CORCOMBOSS.s3o",
+		objectname = "Units/scavboss/cortex_commanderBOSS.s3o",
 		pushresistant = true,
 		radardistance = 2000,
 		radaremitheight = 100,
 		reclaimable = false,
-		script = "Units/CORCOMBOSS.cob",
+		script = "Units/cortex_commanderBOSS.cob",
 		seismicsignature = 0,
 		selfdestructas = "ScavComBossExplo",
 		selfdestructcountdown = 5,
@@ -87,7 +87,7 @@ return {
 				height = 55,
 				hitdensity = 100,
 				metal = 150000,
-				object = "Units/scavboss/corcomboss_dead.s3o",
+				object = "Units/scavboss/cortex_commanderboss_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -151,7 +151,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corcomlaserboss = {
+			cortex_commanderlaserboss = {
 				areaofeffect = 35,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -186,7 +186,7 @@ return {
 					default = 200,
 				},
 			},
-			corcomsealaserboss = {
+			cortex_commandersealaserboss = {
 				areaofeffect = 25,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -272,11 +272,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORCOMLASERBOSS",
+				def = "cortex_commanderLASERBOSS",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {
-				def = "CORCOMSEALASERBOSS",
+				def = "cortex_commanderSEALASERBOSS",
 				onlytargetcategory = "VTOL",
 			},
 			[3] = {

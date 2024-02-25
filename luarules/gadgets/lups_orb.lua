@@ -142,7 +142,7 @@ local UnitEffects = {
 }
 
 local scavEffects = {}
-if UnitDefNames['armcom_scav'] then
+if UnitDefNames['armada_commander_scav'] then
 	for k, effect in pairs(UnitEffects) do
 		if UnitDefNames[k .. '_scav'] then 
 			scavEffects[k .. '_scav'] = effect

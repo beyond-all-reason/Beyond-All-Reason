@@ -42,7 +42,7 @@ Commander...intel report that it is cortex ba... ,it is...functio...,seek and de
 		corack = 3,
 		cornecro = 10,
 		corfast = 10,
-		cordecom = 0,
+		cortex_decoycommander = 0,
 		cormando = 0,
 		corvp = 2,
 		coravp = 1,
@@ -94,7 +94,7 @@ Commander...intel report that it is cortex ba... ,it is...functio...,seek and de
 			-- Note: If you have ANY units in loadout, then there will be no initial units spawned for anyone, so you have to take care of that
 			-- so you must spawn the initial commanders then!
 
-			{name = 'armcom', x = 552, y = 8, z = 6767, rot = 0 , team = 0, neutral = false},
+			{name = 'armada_commander', x = 552, y = 8, z = 6767, rot = 0 , team = 0, neutral = false},
 			{name = 'cormex', x = 3680, y = 6, z = 720, rot = 0 , team = 1, neutral = false},
 			{name = 'cormex', x = 3344, y = 6, z = 528, rot = 0 , team = 1, neutral = false},
 			{name = 'cormex', x = 3440, y = 6, z = 1072, rot = 0 , team = 1, neutral = false},
@@ -656,8 +656,8 @@ Commander...intel report that it is cortex ba... ,it is...functio...,seek and de
 		},
 		featureloadout = {
 			-- Similarly to units, but these can also be resurrectable!
-            -- You can /give corcom_dead with cheats when making your scenario, but it might not contain the 'resurrectas' tag, so be careful to add it if needed
-			 -- {name = 'corcom_dead', x = 1125,y = 237, z = 734, rot = "0" , scale = 1.0, resurrectas = "corcom"}, -- there is no need for this dead comm here, just an example
+            -- You can /give cortex_commander_dead with cheats when making your scenario, but it might not contain the 'resurrectas' tag, so be careful to add it if needed
+			 -- {name = 'cortex_commander_dead', x = 1125,y = 237, z = 734, rot = "0" , scale = 1.0, resurrectas = "cortex_commander"}, -- there is no need for this dead comm here, just an example
 		}
     },
     -- Full Documentation for start script here:

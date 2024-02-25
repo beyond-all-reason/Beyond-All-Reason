@@ -103,7 +103,7 @@ function widget:Initialize()
 	buildPicList = VFS.DirList("unitpics") 
 	
 	MyAtlasOnDemand:AddImage('luaui/images/aliasing_test_grid_128.tga', 256, 256)
-	MyAtlasOnDemand:AddImage('unitpics/armcom.dds', 256, 256)
+	MyAtlasOnDemand:AddImage('unitpics/armada_commander.dds', 256, 256)
 end
 
 function widget:ShutDown()

@@ -35,8 +35,8 @@ local drones = {}
 --local UDN = UnitDefNames
 if Spring.GetModOptions().assistdronesair == true then
 	--drones = {
-	--	[UDN.armcom.id] = "armassistdrone",
-	--	[UDN.corcom.id] = "corassistdrone",
+	--	[UDN.armada_commander.id] = "armassistdrone",
+	--	[UDN.cortex_commander.id] = "corassistdrone",
 	--	[UDN.legcom.id] = "legassistdrone",
 	--}
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -46,8 +46,8 @@ if Spring.GetModOptions().assistdronesair == true then
 	end
 else
 	--drones = {
-	--	[UDN.armcom.id] = "armassistdrone_land",
-	--	[UDN.corcom.id] = "corassistdrone_land",
+	--	[UDN.armada_commander.id] = "armassistdrone_land",
+	--	[UDN.cortex_commander.id] = "corassistdrone_land",
 	--	[UDN.legcom.id] = "legassistdrone_land",
 	--}
 	for unitDefID, unitDef in pairs(UnitDefs) do

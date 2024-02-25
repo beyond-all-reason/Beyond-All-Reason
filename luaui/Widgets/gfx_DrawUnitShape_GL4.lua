@@ -200,10 +200,10 @@ void main() {
 }
 ]]
 
-local udefID = UnitDefNames["armcom"].id
+local udefID = UnitDefNames["armada_commander"].id
 
-local corcomUnitDefID = UnitDefNames["corcom"].id
-local armcomUnitDefID = UnitDefNames["armcom"].id
+local cortex_commanderUnitDefID = UnitDefNames["cortex_commander"].id
+local armada_commanderUnitDefID = UnitDefNames["armada_commander"].id
 
 local corDrawUnitVBOTable, corDrawUnitShapeVBOTable
 local armDrawUnitVBOTable, armDrawUnitShapeVBOTable
@@ -451,9 +451,9 @@ function widget:Initialize()
 	local unitIDs = Spring.GetAllUnits()
 	local featuresIDs = Spring.GetAllFeatures()
 
-	local communitdefid = UnitDefNames["armcom"].id
+	local communitdefid = UnitDefNames["armada_commander"].id
 	local pwdefid = UnitDefNames["armada_pawn"].id
-	local corcomunitdefid = UnitDefNames["corcom"].id
+	local cortex_commanderunitdefid = UnitDefNames["cortex_commander"].id
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -548,12 +548,12 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 		unitShapeShader:Activate()
 		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitShapeVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(corcomUnitDefID, true)
+			gl.UnitShapeTextures(cortex_commanderUnitDefID, true)
 			corDrawUnitShapeVBOTable.VAO:Submit()
 		end
 
 		if (armDrawUnitShapeVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(armcomUnitDefID, true)
+			gl.UnitShapeTextures(armada_commanderUnitDefID, true)
 			armDrawUnitShapeVBOTable.VAO:Submit()
 		end
 
@@ -573,12 +573,12 @@ function widget:DrawWorld()
 		unitShader:Activate()
 		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(corcomUnitDefID, true)
+			gl.UnitShapeTextures(cortex_commanderUnitDefID, true)
 			corDrawUnitVBOTable.VAO:Submit()
 		end
 
 		if (armDrawUnitVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(armcomUnitDefID, true)
+			gl.UnitShapeTextures(armada_commanderUnitDefID, true)
 			armDrawUnitVBOTable.VAO:Submit()
 		end
 		unitShader:Deactivate()
