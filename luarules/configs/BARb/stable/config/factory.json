@@ -56,8 +56,8 @@
 		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [40],
-		"unit":      ["armack", "armfast", "armzeus", "armfboy", "armfark", "armmav", "armfido", "armaak", "armmark", "armspid",
-					  "armsptk", "armsnipe", "armvader", "armamph", "armspy"],
+		"unit":      ["armada_advancedconstructionbot", "armada_sprinter", "armada_welder", "armada_fatboy", "armada_butler", "armada_gunslinger", "armada_hound", "armada_archangel", "armada_compass", "armada_webber",
+					  "armada_recluse", "armada_sharpshooter", "armada_tumbleweed", "armada_amphibiousbot", "armada_ghost"],
 		"land": {
 			"tier0": [ 0.44,     0.25,      0.08,      0.03,      0.02,      0.03,     0.04,      0.01,     0.01,      0.02,
 					   0.02,      0.02,       0.01,       0.01,      0.01],
@@ -220,7 +220,7 @@
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["armbeaver", "armpincer", "armcroc", "armada_crossbow", "armaak", "armdecom"],
+		"unit":      ["armbeaver", "armpincer", "armcroc", "armada_crossbow", "armada_archangel", "armdecom"],
 		"land": {
 			"tier0": [ 0.17,        0.17,        0.17,      0.17,      0.16,     0.16],
 			"tier1": [ 0.01,        0.01,        0.95,      0.01,      0.01,     0.01]

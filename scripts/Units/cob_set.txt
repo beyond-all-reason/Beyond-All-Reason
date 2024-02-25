@@ -72,22 +72,22 @@ armamex.bos:            return(corpsetype);
 armamex.bos:    corpsetype = 3 ;
 armamex.bos:    return corpsetype;
 Binary file armamex.cob matches
-armamph.bos:    set-signal-mask SIG_MOVE;
-armamph.bos:setSFXoccupy(Func_Var_1)
-armamph.bos:SetMaxReloadTime(Func_Var_1)
-armamph.bos:    set-signal-mask 0;
-armamph.bos:SetStunned(State)
-armamph.bos:    set-signal-mask SIG_AIM;
-armamph.bos:Killed(severity, corpsetype)
-armamph.bos:            corpsetype = 1 ;
-armamph.bos:            return(corpsetype);
-armamph.bos:            corpsetype = 2 ;
-armamph.bos:            return(corpsetype);
-armamph.bos:            corpsetype = 3 ;
-armamph.bos:            return(corpsetype);
-armamph.bos:    corpsetype = 3 ;
-armamph.bos:    return corpsetype;
-Binary file armamph.cob matches
+armada_amphibiousbot.bos:    set-signal-mask SIG_MOVE;
+armada_amphibiousbot.bos:setSFXoccupy(Func_Var_1)
+armada_amphibiousbot.bos:SetMaxReloadTime(Func_Var_1)
+armada_amphibiousbot.bos:    set-signal-mask 0;
+armada_amphibiousbot.bos:SetStunned(State)
+armada_amphibiousbot.bos:    set-signal-mask SIG_AIM;
+armada_amphibiousbot.bos:Killed(severity, corpsetype)
+armada_amphibiousbot.bos:            corpsetype = 1 ;
+armada_amphibiousbot.bos:            return(corpsetype);
+armada_amphibiousbot.bos:            corpsetype = 2 ;
+armada_amphibiousbot.bos:            return(corpsetype);
+armada_amphibiousbot.bos:            corpsetype = 3 ;
+armada_amphibiousbot.bos:            return(corpsetype);
+armada_amphibiousbot.bos:    corpsetype = 3 ;
+armada_amphibiousbot.bos:    return corpsetype;
+Binary file armada_amphibiousbot.cob matches
 armamsub.bos:   set YARD_OPEN to 1;
 armamsub.bos:           set BUGGER_OFF to 1;
 armamsub.bos:           set YARD_OPEN to 1;
@@ -182,24 +182,24 @@ armart.bos:             return(corpsetype);
 armart.bos:     corpsetype = 3 ;
 armart.bos:     return corpsetype;
 Binary file armart.cob matches
-armaser.bos:SetStunned(State)
-armaser.bos:    //set-signal-mask SIG_WALK;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:    set-signal-mask SIG_ACTIVATE;
-armaser.bos:    set-signal-mask SIG_ACTIVATE;
-armaser.bos:            set-signal-mask 4;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
-armaser.bos:Killed(severity, corpsetype)
-armaser.bos:            corpsetype = 1 ;
-armaser.bos:            return(corpsetype);
-armaser.bos:            corpsetype = 2 ;
-armaser.bos:            return(corpsetype);
-armaser.bos:            corpsetype = 3 ;
-armaser.bos:            return(corpsetype);
-armaser.bos:    corpsetype = 3 ;
-armaser.bos:    return corpsetype;
-Binary file armaser.cob matches
+armada_radarjammerbot.bos:SetStunned(State)
+armada_radarjammerbot.bos:    //set-signal-mask SIG_WALK;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:    set-signal-mask SIG_ACTIVATE;
+armada_radarjammerbot.bos:    set-signal-mask SIG_ACTIVATE;
+armada_radarjammerbot.bos:            set-signal-mask 4;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
+armada_radarjammerbot.bos:Killed(severity, corpsetype)
+armada_radarjammerbot.bos:            corpsetype = 1 ;
+armada_radarjammerbot.bos:            return(corpsetype);
+armada_radarjammerbot.bos:            corpsetype = 2 ;
+armada_radarjammerbot.bos:            return(corpsetype);
+armada_radarjammerbot.bos:            corpsetype = 3 ;
+armada_radarjammerbot.bos:            return(corpsetype);
+armada_radarjammerbot.bos:    corpsetype = 3 ;
+armada_radarjammerbot.bos:    return corpsetype;
+Binary file armada_radarjammerbot.cob matches
 armason.bos:Killed(severity, corpsetype)
 armason.bos:            corpsetype = 1 ;
 armason.bos:            return(corpsetype);
@@ -714,32 +714,32 @@ armeyes.bos:            corpsetype = 3 ;
 armeyes.bos:            return(corpsetype);
 armeyes.bos:    corpsetype = 3 ;
 armeyes.bos:    return corpsetype;
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set-signal-mask SIG_BUILD;
-armfark.bos:    set INBUILDSTANCE to 1;
-armfark.bos:    set-signal-mask SIG_BUILD;
-armfark.bos:Killed(severity, corpsetype)
-armfark.bos:            corpsetype = 1 ;
-armfark.bos:            return(corpsetype);
-armfark.bos:            corpsetype = 2 ;
-armfark.bos:            return(corpsetype);
-armfark.bos:            corpsetype = 3 ;
-armfark.bos:            return(corpsetype);
-armfark.bos:    corpsetype = 3 ;
-armfark.bos:    return corpsetype;
-armfast.bos:SetMaxReloadTime(Func_Var_1)
-armfast.bos:SetStunned(State)
-armfast.bos:    set-signal-mask SIG_AIM;
-armfast.bos:Killed(severity, corpsetype)
-armfast.bos:            corpsetype = 1 ;
-armfast.bos:            return(corpsetype);
-armfast.bos:            corpsetype = 2 ;
-armfast.bos:            return(corpsetype);
-armfast.bos:            corpsetype = 3 ;
-armfast.bos:            return(corpsetype);
-armfast.bos:    corpsetype = 3 ;
-armfast.bos:    return corpsetype;
-Binary file armfast.cob matches
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set-signal-mask SIG_BUILD;
+armada_butler.bos:    set INBUILDSTANCE to 1;
+armada_butler.bos:    set-signal-mask SIG_BUILD;
+armada_butler.bos:Killed(severity, corpsetype)
+armada_butler.bos:            corpsetype = 1 ;
+armada_butler.bos:            return(corpsetype);
+armada_butler.bos:            corpsetype = 2 ;
+armada_butler.bos:            return(corpsetype);
+armada_butler.bos:            corpsetype = 3 ;
+armada_butler.bos:            return(corpsetype);
+armada_butler.bos:    corpsetype = 3 ;
+armada_butler.bos:    return corpsetype;
+armada_sprinter.bos:SetMaxReloadTime(Func_Var_1)
+armada_sprinter.bos:SetStunned(State)
+armada_sprinter.bos:    set-signal-mask SIG_AIM;
+armada_sprinter.bos:Killed(severity, corpsetype)
+armada_sprinter.bos:            corpsetype = 1 ;
+armada_sprinter.bos:            return(corpsetype);
+armada_sprinter.bos:            corpsetype = 2 ;
+armada_sprinter.bos:            return(corpsetype);
+armada_sprinter.bos:            corpsetype = 3 ;
+armada_sprinter.bos:            return(corpsetype);
+armada_sprinter.bos:    corpsetype = 3 ;
+armada_sprinter.bos:    return corpsetype;
+Binary file armada_sprinter.cob matches
 armfatf.bos:Killed(severity, corpsetype)
 armfatf.bos:            corpsetype = 1 ;
 armfatf.bos:            return(corpsetype);
@@ -763,20 +763,20 @@ armfav.bos:             return(corpsetype);
 armfav.bos:     corpsetype = 3 ;
 armfav.bos:     return corpsetype;
 Binary file armfav.cob matches
-armfboy.bos:    //set-signal-mask SIG_WALK;
-armfboy.bos:SetMaxReloadTime(Func_Var_1)
-armfboy.bos:SetStunned(State)
-armfboy.bos:    set-signal-mask SIG_AIM;
-armfboy.bos:Killed(severity, corpsetype)
-armfboy.bos:            corpsetype = 1 ;
-armfboy.bos:            return(corpsetype);
-armfboy.bos:            corpsetype = 2 ;
-armfboy.bos:            return(corpsetype);
-armfboy.bos:            corpsetype = 3 ;
-armfboy.bos:            return(corpsetype);
-armfboy.bos:    corpsetype = 3 ;
-armfboy.bos:    return corpsetype;
-Binary file armfboy.cob matches
+armada_fatboy.bos:    //set-signal-mask SIG_WALK;
+armada_fatboy.bos:SetMaxReloadTime(Func_Var_1)
+armada_fatboy.bos:SetStunned(State)
+armada_fatboy.bos:    set-signal-mask SIG_AIM;
+armada_fatboy.bos:Killed(severity, corpsetype)
+armada_fatboy.bos:            corpsetype = 1 ;
+armada_fatboy.bos:            return(corpsetype);
+armada_fatboy.bos:            corpsetype = 2 ;
+armada_fatboy.bos:            return(corpsetype);
+armada_fatboy.bos:            corpsetype = 3 ;
+armada_fatboy.bos:            return(corpsetype);
+armada_fatboy.bos:    corpsetype = 3 ;
+armada_fatboy.bos:    return corpsetype;
+Binary file armada_fatboy.cob matches
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 armferret.bos:  set-signal-mask 0;
@@ -846,21 +846,21 @@ armfhp.bos:             corpsetype = 3 ;
 armfhp.bos:             return(corpsetype);
 armfhp.bos:     corpsetype = 3 ;
 armfhp.bos:     return corpsetype;
-armfido.bos:    //set-signal-mask SIG_WALK;
-armfido.bos:    set-signal-mask 0;
-armfido.bos:SetStunned(State)
-armfido.bos:    set-signal-mask SIG_AIM;
-armfido.bos:SetMaxReloadTime(Func_Var_1)
-armfido.bos:Killed(severity, corpsetype)
-armfido.bos:            corpsetype = 1;
-armfido.bos:            return (corpsetype);
-armfido.bos:            corpsetype = 2;
-armfido.bos:            return (corpsetype);
-armfido.bos:            corpsetype = 3;
-armfido.bos:            return (corpsetype);
-armfido.bos:    corpsetype = 3;
-armfido.bos:    return corpsetype;
-Binary file armfido.cob matches
+armada_hound.bos:    //set-signal-mask SIG_WALK;
+armada_hound.bos:    set-signal-mask 0;
+armada_hound.bos:SetStunned(State)
+armada_hound.bos:    set-signal-mask SIG_AIM;
+armada_hound.bos:SetMaxReloadTime(Func_Var_1)
+armada_hound.bos:Killed(severity, corpsetype)
+armada_hound.bos:            corpsetype = 1;
+armada_hound.bos:            return (corpsetype);
+armada_hound.bos:            corpsetype = 2;
+armada_hound.bos:            return (corpsetype);
+armada_hound.bos:            corpsetype = 3;
+armada_hound.bos:            return (corpsetype);
+armada_hound.bos:    corpsetype = 3;
+armada_hound.bos:    return corpsetype;
+Binary file armada_hound.cob matches
 armfig.bos:Killed(severity, corpsetype)
 armfig.bos:             corpsetype = 1 ;
 armfig.bos:             return(corpsetype);
@@ -1294,20 +1294,20 @@ armmar_lus.lua:include("units/"..unitName.."_lus/setup.lua")
 armmar_lus.lua: InitialPiecesSetup()
 armmar_lus.lua: SetSignalMask(2)
 armmar_lus.lua: SetWantedAim(weaponID, heading, pitch)
-armmark.bos:    set-signal-mask SIG_WALK; //you might need this
-armmark.bos:    set-signal-mask SIG_ACTIVATE;
-armmark.bos:    set-signal-mask SIG_ACTIVATE;
-armmark.bos:SetStunned(State)
-armmark.bos:Killed(severity, corpsetype)
-armmark.bos:            corpsetype = 1 ;
-armmark.bos:            return(corpsetype);
-armmark.bos:            corpsetype = 2 ;
-armmark.bos:            return(corpsetype);
-armmark.bos:            corpsetype = 3 ;
-armmark.bos:            return(corpsetype);
-armmark.bos:    corpsetype = 3 ;
-armmark.bos:    return corpsetype;
-Binary file armmark.cob matches
+armada_compass.bos:    set-signal-mask SIG_WALK; //you might need this
+armada_compass.bos:    set-signal-mask SIG_ACTIVATE;
+armada_compass.bos:    set-signal-mask SIG_ACTIVATE;
+armada_compass.bos:SetStunned(State)
+armada_compass.bos:Killed(severity, corpsetype)
+armada_compass.bos:            corpsetype = 1 ;
+armada_compass.bos:            return(corpsetype);
+armada_compass.bos:            corpsetype = 2 ;
+armada_compass.bos:            return(corpsetype);
+armada_compass.bos:            corpsetype = 3 ;
+armada_compass.bos:            return(corpsetype);
+armada_compass.bos:    corpsetype = 3 ;
+armada_compass.bos:    return corpsetype;
+Binary file armada_compass.cob matches
 armmart.bos:SetMaxReloadTime(Func_Var_1)
 armmart.bos:SetStunned(State)
 armmart.bos:    set-signal-mask SIG_AIM;
@@ -1321,21 +1321,21 @@ armmart.bos:            return(corpsetype);
 armmart.bos:    corpsetype = 3 ;
 armmart.bos:    return corpsetype;
 Binary file armmart.cob matches
-armmav.bos:     //set-signal-mask SIG_WALK;
-armmav.bos:SetMaxReloadTime(Func_Var_1)
-armmav.bos:     set-signal-mask 0;
-armmav.bos:SetStunned(State)
-armmav.bos:     set-signal-mask SIG_AIM;
-armmav.bos:Killed(severity, corpsetype)
-armmav.bos:             corpsetype = 1 ;
-armmav.bos:             return(corpsetype);
-armmav.bos:             corpsetype = 2 ;
-armmav.bos:             return(corpsetype);
-armmav.bos:             corpsetype = 3 ;
-armmav.bos:             return(corpsetype);
-armmav.bos:     corpsetype = 3 ;
-armmav.bos:     return corpsetype;
-Binary file armmav.cob matches
+armada_gunslinger.bos:     //set-signal-mask SIG_WALK;
+armada_gunslinger.bos:SetMaxReloadTime(Func_Var_1)
+armada_gunslinger.bos:     set-signal-mask 0;
+armada_gunslinger.bos:SetStunned(State)
+armada_gunslinger.bos:     set-signal-mask SIG_AIM;
+armada_gunslinger.bos:Killed(severity, corpsetype)
+armada_gunslinger.bos:             corpsetype = 1 ;
+armada_gunslinger.bos:             return(corpsetype);
+armada_gunslinger.bos:             corpsetype = 2 ;
+armada_gunslinger.bos:             return(corpsetype);
+armada_gunslinger.bos:             corpsetype = 3 ;
+armada_gunslinger.bos:             return(corpsetype);
+armada_gunslinger.bos:     corpsetype = 3 ;
+armada_gunslinger.bos:     return corpsetype;
+Binary file armada_gunslinger.cob matches
 armmercury.bos:SetStunned(State)
 armmercury.bos: set-signal-mask SIG_AIM;
 armmercury.bos: set DELAY_UNIT_VAR to 0;
@@ -1783,20 +1783,20 @@ armsb.bos:              return(corpsetype);
 armsb.bos:      corpsetype = 3 ;
 armsb.bos:      return corpsetype;
 Binary file armsb.cob matches
-armscab.bos:    //set-signal-mask SIG_WALK;
-armscab.bos:    set-signal-mask 0;
-armscab.bos:SetStunned(State)
-armscab.bos:    set-signal-mask SIG_AIM;
-armscab.bos:Killed(severity, corpsetype)
-armscab.bos:            corpsetype = 1 ;
-armscab.bos:            return(corpsetype);
-armscab.bos:            corpsetype = 2 ;
-armscab.bos:            return(corpsetype);
-armscab.bos:            corpsetype = 3 ;
-armscab.bos:            return(corpsetype);
-armscab.bos:    corpsetype = 3 ;
-armscab.bos:    return corpsetype;
-Binary file armscab.cob matches
+armada_umbrella.bos:    //set-signal-mask SIG_WALK;
+armada_umbrella.bos:    set-signal-mask 0;
+armada_umbrella.bos:SetStunned(State)
+armada_umbrella.bos:    set-signal-mask SIG_AIM;
+armada_umbrella.bos:Killed(severity, corpsetype)
+armada_umbrella.bos:            corpsetype = 1 ;
+armada_umbrella.bos:            return(corpsetype);
+armada_umbrella.bos:            corpsetype = 2 ;
+armada_umbrella.bos:            return(corpsetype);
+armada_umbrella.bos:            corpsetype = 3 ;
+armada_umbrella.bos:            return(corpsetype);
+armada_umbrella.bos:    corpsetype = 3 ;
+armada_umbrella.bos:    return corpsetype;
+Binary file armada_umbrella.cob matches
 armsd.bos:Killed(severity, corpsetype)
 armsd.bos:              corpsetype = 1 ;
 armsd.bos:              return(corpsetype);
@@ -1939,21 +1939,21 @@ armsjam.bos:            return(corpsetype);
 armsjam.bos:    corpsetype = 3 ;
 armsjam.bos:    return corpsetype;
 Binary file armsjam.cob matches
-armsnipe.bos:   //set-signal-mask SIG_WALK;
-armsnipe.bos:SetMaxReloadTime(Func_Var_1)
-armsnipe.bos:   set-signal-mask 0;
-armsnipe.bos:SetStunned(State)
-armsnipe.bos:   set-signal-mask SIG_AIM;
-armsnipe.bos:Killed(severity, corpsetype)
-armsnipe.bos:           corpsetype = 1 ;
-armsnipe.bos:           return(corpsetype);
-armsnipe.bos:           corpsetype = 2 ;
-armsnipe.bos:           return(corpsetype);
-armsnipe.bos:           corpsetype = 3 ;
-armsnipe.bos:           return(corpsetype);
-armsnipe.bos:   corpsetype = 3 ;
-armsnipe.bos:   return corpsetype;
-Binary file armsnipe.cob matches
+armada_sharpshooter.bos:   //set-signal-mask SIG_WALK;
+armada_sharpshooter.bos:SetMaxReloadTime(Func_Var_1)
+armada_sharpshooter.bos:   set-signal-mask 0;
+armada_sharpshooter.bos:SetStunned(State)
+armada_sharpshooter.bos:   set-signal-mask SIG_AIM;
+armada_sharpshooter.bos:Killed(severity, corpsetype)
+armada_sharpshooter.bos:           corpsetype = 1 ;
+armada_sharpshooter.bos:           return(corpsetype);
+armada_sharpshooter.bos:           corpsetype = 2 ;
+armada_sharpshooter.bos:           return(corpsetype);
+armada_sharpshooter.bos:           corpsetype = 3 ;
+armada_sharpshooter.bos:           return(corpsetype);
+armada_sharpshooter.bos:   corpsetype = 3 ;
+armada_sharpshooter.bos:   return corpsetype;
+Binary file armada_sharpshooter.cob matches
 armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set BUGGER_OFF to 1;
 armsolar.bos:           set YARD_OPEN to 1;
@@ -1989,54 +1989,54 @@ armsonar.bos:           corpsetype = 3 ;
 armsonar.bos:           return(corpsetype);
 armsonar.bos:   corpsetype = 3 ;
 armsonar.bos:   return corpsetype;
-armspid.bos:    //set-signal-mask SIG_WALK;
-armspid.bos:SetMaxReloadTime(t)
-armspid.bos:SetStunned(State)
-armspid.bos:    set-signal-mask SIG_AIM;
-armspid.bos:Killed(severity, corpsetype)
-armspid.bos:            corpsetype = 1 ;
-armspid.bos:            return(corpsetype);
-armspid.bos:            corpsetype = 2 ;
-armspid.bos:            return(corpsetype);
-armspid.bos:            corpsetype = 3 ;
-armspid.bos:            return(corpsetype);
-armspid.bos:    corpsetype = 3 ;
-armspid.bos:    return corpsetype;
-Binary file armspid.cob matches
-armsptk.bos:    //set-signal-mask SIG_WALK;
-armsptk.bos:SetMaxReloadTime(t)
-armsptk.bos:    set-signal-mask SIG_FIRE1;
-armsptk.bos:    set-signal-mask 0;
-armsptk.bos:SetStunned(State)
-armsptk.bos:    set-signal-mask SIG_AIM;
-armsptk.bos:Killed(severity, corpsetype)
-armsptk.bos:            corpsetype = 1 ;
-armsptk.bos:            return(corpsetype);
-armsptk.bos:            corpsetype = 2 ;
-armsptk.bos:            return(corpsetype);
-armsptk.bos:            corpsetype = 3 ;
-armsptk.bos:            return(corpsetype);
-armsptk.bos:    corpsetype = 3 ;
-armsptk.bos:    return corpsetype;
-Binary file armsptk.cob matches
-armspy.bos:     //set-signal-mask SIG_WALK;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set-signal-mask SIG_ACTIVATE;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:     set-signal-mask SIG_ACTIVATE;
-armspy.bos:             set-signal-mask 4;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
-armspy.bos:Killed(severity, corpsetype)
-armspy.bos:             corpsetype = 1 ;
-armspy.bos:             return(corpsetype);
-armspy.bos:             corpsetype = 2 ;
-armspy.bos:             return(corpsetype);
-armspy.bos:             corpsetype = 3 ;
-armspy.bos:             return(corpsetype);
-armspy.bos:     corpsetype = 3 ;
-armspy.bos:     return corpsetype;
+armada_webber.bos:    //set-signal-mask SIG_WALK;
+armada_webber.bos:SetMaxReloadTime(t)
+armada_webber.bos:SetStunned(State)
+armada_webber.bos:    set-signal-mask SIG_AIM;
+armada_webber.bos:Killed(severity, corpsetype)
+armada_webber.bos:            corpsetype = 1 ;
+armada_webber.bos:            return(corpsetype);
+armada_webber.bos:            corpsetype = 2 ;
+armada_webber.bos:            return(corpsetype);
+armada_webber.bos:            corpsetype = 3 ;
+armada_webber.bos:            return(corpsetype);
+armada_webber.bos:    corpsetype = 3 ;
+armada_webber.bos:    return corpsetype;
+Binary file armada_webber.cob matches
+armada_recluse.bos:    //set-signal-mask SIG_WALK;
+armada_recluse.bos:SetMaxReloadTime(t)
+armada_recluse.bos:    set-signal-mask SIG_FIRE1;
+armada_recluse.bos:    set-signal-mask 0;
+armada_recluse.bos:SetStunned(State)
+armada_recluse.bos:    set-signal-mask SIG_AIM;
+armada_recluse.bos:Killed(severity, corpsetype)
+armada_recluse.bos:            corpsetype = 1 ;
+armada_recluse.bos:            return(corpsetype);
+armada_recluse.bos:            corpsetype = 2 ;
+armada_recluse.bos:            return(corpsetype);
+armada_recluse.bos:            corpsetype = 3 ;
+armada_recluse.bos:            return(corpsetype);
+armada_recluse.bos:    corpsetype = 3 ;
+armada_recluse.bos:    return corpsetype;
+Binary file armada_recluse.cob matches
+armada_ghost.bos:     //set-signal-mask SIG_WALK;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set-signal-mask SIG_ACTIVATE;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:     set-signal-mask SIG_ACTIVATE;
+armada_ghost.bos:             set-signal-mask 4;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
+armada_ghost.bos:Killed(severity, corpsetype)
+armada_ghost.bos:             corpsetype = 1 ;
+armada_ghost.bos:             return(corpsetype);
+armada_ghost.bos:             corpsetype = 2 ;
+armada_ghost.bos:             return(corpsetype);
+armada_ghost.bos:             corpsetype = 3 ;
+armada_ghost.bos:             return(corpsetype);
+armada_ghost.bos:     corpsetype = 3 ;
+armada_ghost.bos:     return corpsetype;
 armstil.bos:Killed(severity, corpsetype)
 armstil.bos:            corpsetype = 1 ;
 armstil.bos:            return(corpsetype);
@@ -2265,16 +2265,16 @@ armuwms.bos:            corpsetype = 3 ;
 armuwms.bos:            return(corpsetype);
 armuwms.bos:    corpsetype = 3 ;
 armuwms.bos:    return corpsetype;
-armvader.bos:   set-signal-mask SIG_MOVE;
-armvader.bos:Killed(severity, corpsetype)
-armvader.bos:           corpsetype = 1 ;
-armvader.bos:           return(corpsetype);
-armvader.bos:           corpsetype = 2 ;
-armvader.bos:           return(corpsetype);
-armvader.bos:           corpsetype = 3 ;
-armvader.bos:           return(corpsetype);
-armvader.bos:   corpsetype = 3 ;
-armvader.bos:   return corpsetype;
+armada_tumbleweed.bos:   set-signal-mask SIG_MOVE;
+armada_tumbleweed.bos:Killed(severity, corpsetype)
+armada_tumbleweed.bos:           corpsetype = 1 ;
+armada_tumbleweed.bos:           return(corpsetype);
+armada_tumbleweed.bos:           corpsetype = 2 ;
+armada_tumbleweed.bos:           return(corpsetype);
+armada_tumbleweed.bos:           corpsetype = 3 ;
+armada_tumbleweed.bos:           return(corpsetype);
+armada_tumbleweed.bos:   corpsetype = 3 ;
+armada_tumbleweed.bos:   return corpsetype;
 armvang.bos:    set-signal-mask SIG_WALK;
 armvang.bos:SetStunned(State)
 armvang.bos:    set-signal-mask SIG_AIM;
@@ -2375,18 +2375,18 @@ armyork.bos:            return(corpsetype);
 armyork.bos:    corpsetype = 3 ;
 armyork.bos:    return corpsetype;
 Binary file armyork.cob matches
-armzeus.bos:SetStunned(State)
-armzeus.bos:    set-signal-mask SIG_AIM;
-armzeus.bos:Killed(severity, corpsetype)
-armzeus.bos:            corpsetype = 1 ;
-armzeus.bos:            return(corpsetype);
-armzeus.bos:            corpsetype = 2 ;
-armzeus.bos:            return(corpsetype);
-armzeus.bos:            corpsetype = 3 ;
-armzeus.bos:            return(corpsetype);
-armzeus.bos:    corpsetype = 3 ;
-armzeus.bos:    return corpsetype;
-Binary file armzeus.cob matches
+armada_welder.bos:SetStunned(State)
+armada_welder.bos:    set-signal-mask SIG_AIM;
+armada_welder.bos:Killed(severity, corpsetype)
+armada_welder.bos:            corpsetype = 1 ;
+armada_welder.bos:            return(corpsetype);
+armada_welder.bos:            corpsetype = 2 ;
+armada_welder.bos:            return(corpsetype);
+armada_welder.bos:            corpsetype = 3 ;
+armada_welder.bos:            return(corpsetype);
+armada_welder.bos:    corpsetype = 3 ;
+armada_welder.bos:    return corpsetype;
+Binary file armada_welder.cob matches
 Binary file cob_file.pyc matches
 constants.h:** EXPtype.h -- Explosion Type information and GET/SET constants for
  scripts
@@ -5327,8 +5327,8 @@ armaap.bos:     set INBUILDSTANCE to 1;
 armaap.bos:     set INBUILDSTANCE to 0;
 armaca.bos:     set INBUILDSTANCE to 1;
 armaca.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 1;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
 armacsub.bos:   set INBUILDSTANCE to 0;
 armacsub.bos:   set INBUILDSTANCE to 1;
 armacv.bos:     set INBUILDSTANCE to 0;
@@ -5377,9 +5377,9 @@ armap.bos:              set YARD_OPEN to 0;
 armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
 armasy.bos:     set YARD_OPEN to 1;
 armasy.bos:             set BUGGER_OFF to 1;
 armasy.bos:             set YARD_OPEN to 1;
@@ -5429,8 +5429,8 @@ armdecom.lua:   -- reset parts
 armdf.bos:      set ARMORED to 1;
 armdf.bos:      set ARMORED to 0;
 armepoch.bos:   set ARMORED to 1;
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set INBUILDSTANCE to 1;
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set INBUILDSTANCE to 1;
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 armfhp.bos:     set YARD_OPEN to 1;
@@ -5541,11 +5541,11 @@ armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 100;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
 armsy.bos:      set YARD_OPEN to 1;
 armsy.bos:              set BUGGER_OFF to 1;
 armsy.bos:              set YARD_OPEN to 1;
@@ -6054,7 +6054,7 @@ fgrep: scavbuildings: Is a directory
 
 C:\Users\Peti\Documents\my games\Spring\games\Beyond-All-Reason.sdd\scripts\Unit
 s>fgrep -i -E set.*to *
-Binary file armaak.cob matches
+Binary file armada_archangel.cob matches
 armaap.bos:     set YARD_OPEN to 1;
 armaap.bos:             set BUGGER_OFF to 1;
 armaap.bos:             set YARD_OPEN to 1;
@@ -6068,8 +6068,8 @@ armaap.bos:     set INBUILDSTANCE to 0;
 Binary file armaas.cob matches
 armaca.bos:     set INBUILDSTANCE to 1;
 armaca.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 1;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
 armacsub.bos:   set INBUILDSTANCE to 0;
 armacsub.bos:   set INBUILDSTANCE to 1;
 armacv.bos:     set INBUILDSTANCE to 0;
@@ -6103,7 +6103,7 @@ armamex.bos:    set ARMORED to 0;
 armamex.bos:    set ARMORED to 1;
 armamex.bos:    set ACTIVATION to 0;
 armamex.bos:    set ACTIVATION to 100;
-Binary file armamph.cob matches
+Binary file armada_amphibiousbot.cob matches
 armamsub.bos:   set YARD_OPEN to 1;
 armamsub.bos:           set BUGGER_OFF to 1;
 armamsub.bos:           set YARD_OPEN to 1;
@@ -6128,10 +6128,10 @@ armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
 Binary file armart.cob matches
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
-Binary file armaser.cob matches
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
+Binary file armada_radarjammerbot.cob matches
 armasy.bos:     set YARD_OPEN to 1;
 armasy.bos:             set BUGGER_OFF to 1;
 armasy.bos:             set YARD_OPEN to 1;
@@ -6194,11 +6194,11 @@ armdf.bos:      set ARMORED to 0;
 Binary file armemp.cob matches
 armepoch.bos:   set ARMORED to 1;
 Binary file armepoch.cob matches
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set INBUILDSTANCE to 1;
-Binary file armfast.cob matches
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set INBUILDSTANCE to 1;
+Binary file armada_sprinter.cob matches
 Binary file armfav.cob matches
-Binary file armfboy.cob matches
+Binary file armada_fatboy.cob matches
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 Binary file armferret.cob matches
@@ -6213,7 +6213,7 @@ armfhp.bos:             set YARD_OPEN to 0;
 armfhp.bos:     set BUGGER_OFF to 0;
 armfhp.bos:     set INBUILDSTANCE to 1;
 armfhp.bos:     set INBUILDSTANCE to 0;
-Binary file armfido.cob matches
+Binary file armada_hound.cob matches
 Binary file armflak.cob matches
 Binary file armflash.cob matches
 Binary file armada_tick.cob matches
@@ -6257,9 +6257,9 @@ Binary file armlun.cob matches
 Binary file armmanni.cob matches
 Binary file armmar.cob matches
 fgrep: armmar_lus: Is a directory
-Binary file armmark.cob matches
+Binary file armada_compass.cob matches
 Binary file armmart.cob matches
-Binary file armmav.cob matches
+Binary file armada_gunslinger.cob matches
 armmercury.bos: set DELAY_UNIT_VAR to 0;
 Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
@@ -6320,7 +6320,7 @@ Binary file armroy.cob matches
 Binary file armsaber.cob matches
 Binary file armsam.cob matches
 Binary file armsb.cob matches
-Binary file armscab.cob matches
+Binary file armada_umbrella.cob matches
 Binary file armserp.cob matches
 Binary file armsh.cob matches
 armshltx.bos:   set YARD_OPEN to 1;
@@ -6344,7 +6344,7 @@ armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 100;
 Binary file armsjam.cob matches
-Binary file armsnipe.cob matches
+Binary file armada_sharpshooter.cob matches
 armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set BUGGER_OFF to 1;
 armsolar.bos:           set YARD_OPEN to 1;
@@ -6361,13 +6361,13 @@ armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 100;
-Binary file armspid.cob matches
-Binary file armsptk.cob matches
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
+Binary file armada_webber.cob matches
+Binary file armada_recluse.cob matches
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
 Binary file armstump.cob matches
 Binary file armsub.cob matches
 armsy.bos:      set YARD_OPEN to 1;
@@ -6414,7 +6414,7 @@ armwin.bos:             set ACTIVATION to 0;
 armwin.bos:             set ACTIVATION to 100;
 Binary file armwin.cob matches
 Binary file armyork.cob matches
-Binary file armzeus.cob matches
+Binary file armada_welder.cob matches
 Binary file cob_file.pyc matches
 constants.h:#define BUGGER_OFF          19  // set or get (ask other units to cl
 ear the area)
@@ -6967,8 +6967,8 @@ armaap.bos:     set INBUILDSTANCE to 1;
 armaap.bos:     set INBUILDSTANCE to 0;
 armaca.bos:     set INBUILDSTANCE to 1;
 armaca.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 1;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
 armacsub.bos:   set INBUILDSTANCE to 0;
 armacsub.bos:   set INBUILDSTANCE to 1;
 armacv.bos:     set INBUILDSTANCE to 0;
@@ -7015,9 +7015,9 @@ armap.bos:              set YARD_OPEN to 0;
 armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
 armasy.bos:     set YARD_OPEN to 1;
 armasy.bos:             set BUGGER_OFF to 1;
 armasy.bos:             set YARD_OPEN to 1;
@@ -7065,8 +7065,8 @@ armcv.bos:      set INBUILDSTANCE to 1;
 armdf.bos:      set ARMORED to 1;
 armdf.bos:      set ARMORED to 0;
 armepoch.bos:   set ARMORED to 1;
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set INBUILDSTANCE to 1;
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set INBUILDSTANCE to 1;
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 armfhp.bos:     set YARD_OPEN to 1;
@@ -7175,11 +7175,11 @@ armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 100;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
 armsy.bos:      set YARD_OPEN to 1;
 armsy.bos:              set BUGGER_OFF to 1;
 armsy.bos:              set YARD_OPEN to 1;
@@ -7498,7 +7498,7 @@ yard.h: set BUGGER_OFF to FALSE;
 
 C:\Users\Peti\Documents\my games\Spring\games\Beyond-All-Reason.sdd\scripts\Unit
 s>fgrep -i -E set.+to *
-Binary file armaak.cob matches
+Binary file armada_archangel.cob matches
 armaap.bos:     set YARD_OPEN to 1;
 armaap.bos:             set BUGGER_OFF to 1;
 armaap.bos:             set YARD_OPEN to 1;
@@ -7512,8 +7512,8 @@ armaap.bos:     set INBUILDSTANCE to 0;
 Binary file armaas.cob matches
 armaca.bos:     set INBUILDSTANCE to 1;
 armaca.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 1;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
 armacsub.bos:   set INBUILDSTANCE to 0;
 armacsub.bos:   set INBUILDSTANCE to 1;
 armacv.bos:     set INBUILDSTANCE to 0;
@@ -7541,7 +7541,7 @@ armamex.bos:    set ARMORED to 0;
 armamex.bos:    set ARMORED to 1;
 armamex.bos:    set ACTIVATION to 0;
 armamex.bos:    set ACTIVATION to 100;
-Binary file armamph.cob matches
+Binary file armada_amphibiousbot.cob matches
 armamsub.bos:   set YARD_OPEN to 1;
 armamsub.bos:           set BUGGER_OFF to 1;
 armamsub.bos:           set YARD_OPEN to 1;
@@ -7566,10 +7566,10 @@ armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
 Binary file armart.cob matches
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
-Binary file armaser.cob matches
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
+Binary file armada_radarjammerbot.cob matches
 armasy.bos:     set YARD_OPEN to 1;
 armasy.bos:             set BUGGER_OFF to 1;
 armasy.bos:             set YARD_OPEN to 1;
@@ -7632,11 +7632,11 @@ armdf.bos:      set ARMORED to 0;
 Binary file armemp.cob matches
 armepoch.bos:   set ARMORED to 1;
 Binary file armepoch.cob matches
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set INBUILDSTANCE to 1;
-Binary file armfast.cob matches
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set INBUILDSTANCE to 1;
+Binary file armada_sprinter.cob matches
 Binary file armfav.cob matches
-Binary file armfboy.cob matches
+Binary file armada_fatboy.cob matches
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 Binary file armferret.cob matches
@@ -7651,7 +7651,7 @@ armfhp.bos:             set YARD_OPEN to 0;
 armfhp.bos:     set BUGGER_OFF to 0;
 armfhp.bos:     set INBUILDSTANCE to 1;
 armfhp.bos:     set INBUILDSTANCE to 0;
-Binary file armfido.cob matches
+Binary file armada_hound.cob matches
 Binary file armflak.cob matches
 Binary file armflash.cob matches
 Binary file armada_tick.cob matches
@@ -7695,9 +7695,9 @@ Binary file armlun.cob matches
 Binary file armmanni.cob matches
 Binary file armmar.cob matches
 fgrep: armmar_lus: Is a directory
-Binary file armmark.cob matches
+Binary file armada_compass.cob matches
 Binary file armmart.cob matches
-Binary file armmav.cob matches
+Binary file armada_gunslinger.cob matches
 armmercury.bos: set DELAY_UNIT_VAR to 0;
 Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
@@ -7758,7 +7758,7 @@ Binary file armroy.cob matches
 Binary file armsaber.cob matches
 Binary file armsam.cob matches
 Binary file armsb.cob matches
-Binary file armscab.cob matches
+Binary file armada_umbrella.cob matches
 Binary file armserp.cob matches
 Binary file armsh.cob matches
 armshltx.bos:   set YARD_OPEN to 1;
@@ -7776,7 +7776,7 @@ armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 100;
 Binary file armsjam.cob matches
-Binary file armsnipe.cob matches
+Binary file armada_sharpshooter.cob matches
 armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set BUGGER_OFF to 1;
 armsolar.bos:           set YARD_OPEN to 1;
@@ -7793,13 +7793,13 @@ armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 100;
-Binary file armspid.cob matches
-Binary file armsptk.cob matches
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
+Binary file armada_webber.cob matches
+Binary file armada_recluse.cob matches
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
 Binary file armstump.cob matches
 Binary file armsub.cob matches
 armsy.bos:      set YARD_OPEN to 1;
@@ -7846,7 +7846,7 @@ armwin.bos:             set ACTIVATION to 0;
 armwin.bos:             set ACTIVATION to 100;
 Binary file armwin.cob matches
 Binary file armyork.cob matches
-Binary file armzeus.cob matches
+Binary file armada_welder.cob matches
 Binary file cob_file.pyc matches
 constants.h:#define BUGGER_OFF          19  // set or get (ask other units to cl
 ear the area)
@@ -8274,7 +8274,7 @@ Report bugs to <bug-gnu-utils@gnu.org>.
 
 C:\Users\Peti\Documents\my games\Spring\games\Beyond-All-Reason.sdd\scripts\Unit
 s>fgrep -i -E set.+to *
-Binary file armaak.cob matches
+Binary file armada_archangel.cob matches
 armaap.bos:     set YARD_OPEN to 1;
 armaap.bos:             set BUGGER_OFF to 1;
 armaap.bos:             set YARD_OPEN to 1;
@@ -8288,8 +8288,8 @@ armaap.bos:     set INBUILDSTANCE to 0;
 Binary file armaas.cob matches
 armaca.bos:     set INBUILDSTANCE to 1;
 armaca.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 0;
-armack.bos:     set INBUILDSTANCE to 1;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
+armada_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
 armacsub.bos:   set INBUILDSTANCE to 0;
 armacsub.bos:   set INBUILDSTANCE to 1;
 armacv.bos:     set INBUILDSTANCE to 0;
@@ -8317,7 +8317,7 @@ armamex.bos:    set ARMORED to 0;
 armamex.bos:    set ARMORED to 1;
 armamex.bos:    set ACTIVATION to 0;
 armamex.bos:    set ACTIVATION to 100;
-Binary file armamph.cob matches
+Binary file armada_amphibiousbot.cob matches
 armamsub.bos:   set YARD_OPEN to 1;
 armamsub.bos:           set BUGGER_OFF to 1;
 armamsub.bos:           set YARD_OPEN to 1;
@@ -8342,10 +8342,10 @@ armap.bos:      set BUGGER_OFF to 0;
 armap.bos:      set INBUILDSTANCE to 1;
 armap.bos:      set INBUILDSTANCE to 0;
 Binary file armart.cob matches
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 0;
-armaser.bos:            set ACTIVATION to 100;
-Binary file armaser.cob matches
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 0;
+armada_radarjammerbot.bos:            set ACTIVATION to 100;
+Binary file armada_radarjammerbot.cob matches
 armasy.bos:     set YARD_OPEN to 1;
 armasy.bos:             set BUGGER_OFF to 1;
 armasy.bos:             set YARD_OPEN to 1;
@@ -8408,11 +8408,11 @@ armdf.bos:      set ARMORED to 0;
 Binary file armemp.cob matches
 armepoch.bos:   set ARMORED to 1;
 Binary file armepoch.cob matches
-armfark.bos:    set INBUILDSTANCE to 0;
-armfark.bos:    set INBUILDSTANCE to 1;
-Binary file armfast.cob matches
+armada_butler.bos:    set INBUILDSTANCE to 0;
+armada_butler.bos:    set INBUILDSTANCE to 1;
+Binary file armada_sprinter.cob matches
 Binary file armfav.cob matches
-Binary file armfboy.cob matches
+Binary file armada_fatboy.cob matches
 armferret.bos:  set ARMORED to 0;
 armferret.bos:  set ARMORED to 1;
 Binary file armferret.cob matches
@@ -8427,7 +8427,7 @@ armfhp.bos:             set YARD_OPEN to 0;
 armfhp.bos:     set BUGGER_OFF to 0;
 armfhp.bos:     set INBUILDSTANCE to 1;
 armfhp.bos:     set INBUILDSTANCE to 0;
-Binary file armfido.cob matches
+Binary file armada_hound.cob matches
 Binary file armflak.cob matches
 Binary file armflash.cob matches
 Binary file armada_tick.cob matches
@@ -8471,9 +8471,9 @@ Binary file armlun.cob matches
 Binary file armmanni.cob matches
 Binary file armmar.cob matches
 fgrep: armmar_lus: Is a directory
-Binary file armmark.cob matches
+Binary file armada_compass.cob matches
 Binary file armmart.cob matches
-Binary file armmav.cob matches
+Binary file armada_gunslinger.cob matches
 armmercury.bos: set DELAY_UNIT_VAR to 0;
 Binary file armmercury.cob matches
 armmerl.bos:    set ARMORED to 1;
@@ -8534,7 +8534,7 @@ Binary file armroy.cob matches
 Binary file armsaber.cob matches
 Binary file armsam.cob matches
 Binary file armsb.cob matches
-Binary file armscab.cob matches
+Binary file armada_umbrella.cob matches
 Binary file armserp.cob matches
 Binary file armsh.cob matches
 armshltx.bos:   set YARD_OPEN to 1;
@@ -8552,7 +8552,7 @@ armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 0;
 armsjam.bos:            set ACTIVATION to 100;
 Binary file armsjam.cob matches
-Binary file armsnipe.cob matches
+Binary file armada_sharpshooter.cob matches
 armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set BUGGER_OFF to 1;
 armsolar.bos:           set YARD_OPEN to 1;
@@ -8569,13 +8569,13 @@ armsolar.bos:   set YARD_OPEN to 1;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 0;
 armsolar.bos:           set ACTIVATION to 100;
-Binary file armspid.cob matches
-Binary file armsptk.cob matches
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:     set INBUILDSTANCE to 1;
-armspy.bos:     set INBUILDSTANCE to 0;
-armspy.bos:             set ACTIVATION to 0;
-armspy.bos:             set ACTIVATION to 100;
+Binary file armada_webber.cob matches
+Binary file armada_recluse.cob matches
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:     set INBUILDSTANCE to 1;
+armada_ghost.bos:     set INBUILDSTANCE to 0;
+armada_ghost.bos:             set ACTIVATION to 0;
+armada_ghost.bos:             set ACTIVATION to 100;
 Binary file armstump.cob matches
 Binary file armsub.cob matches
 armsy.bos:      set YARD_OPEN to 1;
@@ -8622,7 +8622,7 @@ armwin.bos:             set ACTIVATION to 0;
 armwin.bos:             set ACTIVATION to 100;
 Binary file armwin.cob matches
 Binary file armyork.cob matches
-Binary file armzeus.cob matches
+Binary file armada_welder.cob matches
 Binary file cob_file.pyc matches
 constants.h:#define BUGGER_OFF          19  // set or get (ask other units to cl
 ear the area)

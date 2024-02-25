@@ -693,7 +693,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armmark'] = {
+	['armada_compass'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -1896,7 +1896,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armaser'] = {
+	['armada_radarjammerbot'] = {
 		cloaklightred = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -2093,7 +2093,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armack'] = {
+	['armada_advancedconstructionbot'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'beacon1',
@@ -2158,7 +2158,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfark'] = {
+	['armada_butler'] = {
 		armbuildlight = {
 			lightType = 'point',
 			pieceName = 'armhexl_emit',
@@ -2205,7 +2205,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfido'] = {
+	['armada_hound'] = {
 		body = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -12775,7 +12775,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armzeus'] = {
+	['armada_welder'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -12929,7 +12929,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armsptk'] = {
+	['armada_recluse'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -12976,7 +12976,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armsptkt4'] = {
+	['armada_recluset4'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -13023,7 +13023,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armspid'] = {
+	['armada_webber'] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'flare',
@@ -13117,7 +13117,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfboy'] = {
+	['armada_fatboy'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -13173,7 +13173,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfast'] = {
+	['armada_sprinter'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -13202,7 +13202,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armscab'] = {
+	['armada_umbrella'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'body',
@@ -13253,7 +13253,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armmav'] = {
+	['armada_gunslinger'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -13349,7 +13349,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armamph'] = {
+	['armada_amphibiousbot'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'pelvis',
@@ -13360,7 +13360,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armaak'] = {
+	['armada_archangel'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13804,7 +13804,7 @@ local unitLights = {
 	},
 
 
-	['armvader'] = {
+	['armada_tumbleweed'] = {
 		-- redlight = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'body',
@@ -14018,7 +14018,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armsnipe'] = {
+	['armada_sharpshooter'] = {
 		sniperreddot = {
 			lightType = 'cone',
 			pieceName = 'laser',
@@ -18808,11 +18808,11 @@ local unitEventLights = {
 			},
 		},
 
-		['armsnipe'] = {
+		['armada_sharpshooter'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrel2',
-				lightName = 'armsnipebarrelglow',
+				lightName = 'armada_sharpshooterbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = -5, radius = 24,
 					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
@@ -18940,7 +18940,7 @@ local unitEventLights = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrel',
-				lightName = 'armsnipebarrelglow',
+				lightName = 'armada_sharpshooterbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 15, posz = -8, radius = 23,
 					color2r = 0.7, color2g = 0.5, color2b = 0, colortime = 400,
@@ -19160,7 +19160,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armack'] = {
+		['armada_advancedconstructionbot'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',

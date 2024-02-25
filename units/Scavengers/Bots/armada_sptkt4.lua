@@ -1,10 +1,10 @@
 return {
-	armsptkt4 = {
+	armada_recluset4 = {
 		maxacc = 0.207,
 		maxdec = 0.6486,
 		energycost = 75000,
 		metalcost = 7500,
-		buildpic = "scavengers/armsptkt4.DDS",
+		buildpic = "scavengers/armada_recluset4.DDS",
 		buildtime = 75000,
 		canmove = true,
 		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		movementclass = "EPICALLTERRAIN",
 		mygravity = 10000,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armsptkt4.s3o",
-		script = "Units/scavboss/armsptkt4.cob",
+		objectname = "Units/scavboss/armada_recluset4.s3o",
+		script = "Units/scavboss/armada_recluset4.cob",
 		seismicsignature = 0,
 		selfdestructas = "empblast",
 		sightdistance = 600,
@@ -57,7 +57,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 3750,
-				object = "Units/scavboss/armsptkt4_dead.s3o",
+				object = "Units/scavboss/armada_recluset4_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

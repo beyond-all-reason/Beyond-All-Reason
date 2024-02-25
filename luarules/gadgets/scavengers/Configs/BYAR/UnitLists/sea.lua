@@ -93,7 +93,7 @@ return {
 		"armserpt3_scav",
 		"armepoch_scav",
 		"corblackhy_scav",
-		"armvadert4_scav",
+		"armada_tumbleweedt4_scav",
 		"corkorg_scav",
 		"armbanth_scav",
 		"coresuppt3_scav",

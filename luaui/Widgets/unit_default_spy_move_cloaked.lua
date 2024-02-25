@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local spies  = {
-	[UnitDefNames.armspy.id] = true,
+	[UnitDefNames.armada_ghost.id] = true,
 	[UnitDefNames.corspy.id] = true,
 }
 

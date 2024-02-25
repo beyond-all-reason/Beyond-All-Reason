@@ -5,7 +5,7 @@ return {
 		maxdec = 0.6486,
 		energycost = 3400,
 		metalcost = 175,
-		buildpic = "ARMSPID.DDS",
+		buildpic = "armada_webber.DDS",
 		buildtime = 5090,
 		canmove = true,
 		capturable = false,

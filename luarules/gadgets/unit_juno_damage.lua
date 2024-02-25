@@ -21,13 +21,13 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local tokillUnits = {
 		[UnitDefNames.armarad.id] = true,
-		[UnitDefNames.armaser.id] = true,
+		[UnitDefNames.armada_radarjammerbot.id] = true,
 		[UnitDefNames.armason.id] = true,
 		[UnitDefNames.armeyes.id] = true,
 		[UnitDefNames.armfrad.id] = true,
 		[UnitDefNames.armjam.id] = true,
 		[UnitDefNames.armjamt.id] = true,
-		[UnitDefNames.armmark.id] = true,
+		[UnitDefNames.armada_compass.id] = true,
 		[UnitDefNames.armrad.id] = true,
 		[UnitDefNames.armseer.id] = true,
 		[UnitDefNames.armsjam.id] = true,

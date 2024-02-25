@@ -20,7 +20,7 @@ local unitNames = {
 
   --aa units
   "armada_crossbow",
-  "armaak",
+  "armada_archangel",
   "corcrash",
   "coraak",
 
@@ -46,7 +46,7 @@ local unitNames = {
   "cormart",
   "corvroc",
   "cortrem",
-  "armsnipe",
+  "armada_sharpshooter",
   "corhrk",
 
   "armmh",
@@ -80,24 +80,24 @@ local unitNames = {
   "armada_tick",
   "armfav",
   "corfav",
-  "armspy",
+  "armada_ghost",
   "armgremlin",
 
   "armpt",
   "corpt",
 
   --shields/jammers/radars
-  "armaser",
+  "armada_radarjammerbot",
   "armjam",
   "corspec",
 
   "armseer",
-  "armmark",
+  "armada_compass",
   "corvrad",
   "corvoyr",
 
   --antinukes
-  "armscab",
+  "armada_umbrella",
   "cormabm",
   "armcarry",
   "corcarry",

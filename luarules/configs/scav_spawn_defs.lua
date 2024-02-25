@@ -192,8 +192,8 @@ local LandUnitsList = {
 		[3] = {
 			--Armada
 			["armlatnk_scav"] = 1,
-			["armamph_scav"] = 1,
-			["armfast_scav"] = 1,
+			["armada_amphibiousbot_scav"] = 1,
+			["armada_sprinter_scav"] = 1,
 			--Cortex
 			["cortorch_scav"] = 1,
 			["corsala_scav"] = 1,
@@ -260,7 +260,7 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
-			["armzeus_scav"] = 1,
+			["armada_welder_scav"] = 1,
 			--Cortex
 			["corcan_scav"] = 1,
 			--Legion
@@ -269,9 +269,9 @@ local LandUnitsList = {
 		},
 		[4] = {
 			--Armada
-			["armsnipe_scav"] = 1,
-			["armvader_scav"] = 1,
-			["armsptk_scav"] = 1,
+			["armada_sharpshooter_scav"] = 1,
+			["armada_tumbleweed_scav"] = 1,
+			["armada_recluse_scav"] = 1,
 			["armbull_scav"] = 1,
 			["armcroc_scav"] = 1,
 			--Cortex
@@ -306,8 +306,8 @@ local LandUnitsList = {
 			["armthor_scav"] = 1,
 			["armbanth_scav"] = 1,
 			["armrattet4_scav"] = 1,
-			["armvadert4_scav"] = 1,
-			["armsptkt4_scav"] = 1,
+			["armada_tumbleweedt4_scav"] = 1,
+			["armada_recluset4_scav"] = 1,
 			--Cortex
 			["corjugg_scav"] = 1,
 			["corkorg_scav"] = 1,
@@ -346,9 +346,9 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
-			["armfido_scav"] = 1,
-			["armaak_scav"] = 1,
-			["armmav_scav"] = 1,
+			["armada_hound_scav"] = 1,
+			["armada_archangel_scav"] = 1,
+			["armada_gunslinger_scav"] = 1,
 			["armyork_scav"] = 1,
 			["armmart_scav"] = 1,
 			--Cortex
@@ -363,7 +363,7 @@ local LandUnitsList = {
 		},
 		[4] = {
 			--Armada
-			["armfboy_scav"] = 1,
+			["armada_fatboy_scav"] = 1,
 			["armmanni_scav"] = 1,
 			["armmerl_scav"] = 1,
 			--Cortex
@@ -379,7 +379,7 @@ local LandUnitsList = {
 			--Armada
 			["armvang_scav"] = 1,
 			["armdronecarryland_scav"] = 1,
-			["armscab_scav"] = 1,
+			["armada_umbrella_scav"] = 1,
 			--Cortex
 			["corcat_scav"] = 1,
 			["cormabm_scav"] = 1,
@@ -417,9 +417,9 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
-			["armack_scav"] = 1,
+			["armada_advancedconstructionbot_scav"] = 1,
 			["armacv_scav"] = 1,
-			["armfark_scav"] = 1,
+			["armada_butler_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex

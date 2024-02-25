@@ -156,7 +156,7 @@ return {
 					default = 45,
 				},
 			},
-			armamph_missile = {
+			armada_amphibiousbot_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burnblow = true,
@@ -212,7 +212,7 @@ return {
 				maxangledif = 330,
 			},
 			[2] = {
-				def = "ARMAMPH_MISSILE",
+				def = "armada_amphibiousbot_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

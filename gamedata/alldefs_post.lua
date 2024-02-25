@@ -135,7 +135,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.experimentalrebalancet2energy == true then
-		if name == "armaca" or name == "armack" or name == "armacv" then
+		if name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armwint2"
 		end
@@ -294,13 +294,13 @@ function UnitDef_Post(name, uDef)
 			local Nukes = {
 				armamd = true,
 				armsilo = true,
-				armscab = true,
+				armada_umbrella = true,
 				corfmd = true,
 				corsilo = true,
 				cormabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
-				armscab_scav = true,
+				armada_umbrella_scav = true,
 				corfmd_scav = true,
 				corsilo_scav = true,
 				cormabm_scav = true,
@@ -347,7 +347,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.releasecandidates then
 
 		--Shockwave mex
-		if name == "armaca" or name == "armack" or name == "armacv" then
+		if name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
 		end
@@ -385,9 +385,9 @@ function UnitDef_Post(name, uDef)
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
-			uDef.buildoptions[numBuildoptions+2] = "armsptkt4"
+			uDef.buildoptions[numBuildoptions+2] = "armada_recluset4"
 			uDef.buildoptions[numBuildoptions+3] = "armada_pawnt4"
-			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
+			uDef.buildoptions[numBuildoptions+4] = "armada_tumbleweedt4"
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
@@ -396,7 +396,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armada_pawnt4"
-			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
+			uDef.buildoptions[numBuildoptions+3] = "armada_tumbleweedt4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
@@ -454,7 +454,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armfgate"
-		elseif name == "armaca" or name == "armack" or name == "armacv" then
+		elseif name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
@@ -879,7 +879,7 @@ if modOptions.emprework == true then
 			uDef.weapondefs.stiletto_bomb.paralyzetime = 5
 		end
 
-		if name == "armspid" then
+		if name == "armada_webber" then
 			uDef.weapondefs.spider.paralyzetime = 5
 			--uDef.weapondefs.spider.damage.default = 1500
 		end
@@ -1438,7 +1438,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.corbot_missile.weaponacceleration = 230
 		uDef.weapondefs.corbot_missile.flighttime = 2.4
 	end
-	if name == "armaak" then
+	if name == "armada_archangel" then
 		uDef.health = uDef.health * 2
 		uDef.weapondefs.armaabot_missile1.range = 1300
 		uDef.weapondefs.armaabot_missile1.reloadtime = 1.5
@@ -1510,19 +1510,19 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
 	end
 	if name == "armlatnk" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
+		uDef.weapondefs.armada_amphibiousbot_missile.startvelocity = 150
+		uDef.weapondefs.armada_amphibiousbot_missile.weaponacceleration = 250
+		uDef.weapondefs.armada_amphibiousbot_missile.flighttime = 2
 	end
-	if name == "armamph" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
+	if name == "armada_amphibiousbot" then
+		uDef.weapondefs.armada_amphibiousbot_missile.startvelocity = 150
+		uDef.weapondefs.armada_amphibiousbot_missile.weaponacceleration = 250
+		uDef.weapondefs.armada_amphibiousbot_missile.flighttime = 2
 	end
 	if name == "armmar" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
+		uDef.weapondefs.armada_amphibiousbot_missile.startvelocity = 150
+		uDef.weapondefs.armada_amphibiousbot_missile.weaponacceleration = 250
+		uDef.weapondefs.armada_amphibiousbot_missile.flighttime = 2
 	end
 	if name == "armaas" then
 		uDef.weapondefs.ga2.startvelocity = 150

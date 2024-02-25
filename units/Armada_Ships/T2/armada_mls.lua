@@ -49,7 +49,7 @@ return {
 			[11] = "armpt",
 			[12] = "armdecade",
 			[13] = "armroy",
-			[14] = "armamph",
+			[14] = "armada_amphibiousbot",
 			[15] = "armfmine3",
 			[16] = "armamb",
 			[17] = "armkraken",

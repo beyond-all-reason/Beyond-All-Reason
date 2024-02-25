@@ -67,17 +67,17 @@ return {
 	T2 = {
 		-- Bots
 		"armada_lazarus_scav",
-		"armvader_scav",
-		"armspid_scav",
-		"armsptk_scav",
-		"armfast_scav",
-		"armamph_scav",
-		"armfido_scav",
-		"armzeus_scav",
-		"armspy_scav",
-		"armaak_scav",
-		"armsnipe_scav",
-		"armmav_scav",
+		"armada_tumbleweed_scav",
+		"armada_webber_scav",
+		"armada_recluse_scav",
+		"armada_sprinter_scav",
+		"armada_amphibiousbot_scav",
+		"armada_hound_scav",
+		"armada_welder_scav",
+		"armada_ghost_scav",
+		"armada_archangel_scav",
+		"armada_sharpshooter_scav",
+		"armada_gunslinger_scav",
 		"cornecro_scav",
 		"corroach_scav",
 		"corpyro_scav",
@@ -120,7 +120,7 @@ return {
 		"corhal_scav",
 
 		-- Constructors
-		"armack_scav",
+		"armada_advancedconstructionbot_scav",
 		"armdecom_scav",
 		"armacv_scav",
 		"armconsul_scav",
@@ -135,7 +135,7 @@ return {
 		-- Heavy T2s
 		"corgol_scav",
 		"corsumo_scav",
-		"armfboy_scav",
+		"armada_fatboy_scav",
 		"armmanni_scav",
 		"cortrem_scav",
 		"corhrk_scav",
@@ -160,7 +160,7 @@ return {
 		-- Hovercraft
 		"armlun_scav",
 		"corsok_scav",
-		"armsptkt4_scav",
+		"armada_recluset4_scav",
 	},
 
 	T4 = {
@@ -172,7 +172,7 @@ return {
 		-- Superboss
 		"armpw_scav",
 		"armrattet4_scav",
-		"armvadert4_scav",
+		"armada_tumbleweedt4_scav",
 		"corakt4_scav",
 		"cordemon_scav",
 		"corkarganetht4_scav",

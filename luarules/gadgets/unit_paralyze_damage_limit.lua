@@ -23,7 +23,7 @@ local maxTime = modOptions.emprework==true and 10 or 20 --- bug fixed
 
 local excluded = {
     -- mobile units that are excluded from the maxTime limit
-    [UnitDefNames.armscab.id] = true,
+    [UnitDefNames.armada_umbrella.id] = true,
     [UnitDefNames.cormabm.id] = true,
     [UnitDefNames.corcarry.id] = true,
     [UnitDefNames.armcarry.id] = true,

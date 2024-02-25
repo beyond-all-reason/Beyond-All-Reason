@@ -68,7 +68,7 @@ return {
 			"armca",
 			--"armaca",
 			"armada_constructionbot",
-			--"armack",
+			--"armada_advancedconstructionbot",
 			"armch",
 			"armcsa",
 			"armcs",

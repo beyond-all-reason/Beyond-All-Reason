@@ -264,17 +264,17 @@ local landUnitsList = {
         [1] = {
             table = {
                 -- Bots
-                "armvader",
-                "armspid",
-                "armsptk",
-                "armfast",
-                "armamph",
-                "armfido",
-                "armzeus",
-                "armspy",
-                --"armaak",
-                "armsnipe",
-                "armmav",
+                "armada_tumbleweed",
+                "armada_webber",
+                "armada_recluse",
+                "armada_sprinter",
+                "armada_amphibiousbot",
+                "armada_hound",
+                "armada_welder",
+                "armada_ghost",
+                --"armada_archangel",
+                "armada_sharpshooter",
+                "armada_gunslinger",
                 "corroach",
                 "corpyro",
                 --"corfast",
@@ -319,7 +319,7 @@ local landUnitsList = {
         },
         -- [2] = {
         --     table = {
-        --         "armack",
+        --         "armada_advancedconstructionbot",
         --         "armdecom",
         --         "armacv",
         --         --"armconsul",
@@ -338,7 +338,7 @@ local landUnitsList = {
                 -- Heavy T2s
                 "corgol",
                 "corsumo",
-                "armfboy",
+                "armada_fatboy",
                 "armmanni",
                 "cortrem",
                 "corhrk",
@@ -360,7 +360,7 @@ local landUnitsList = {
                 -- Hovercraft
                 "armlun",
                 "corsok",
-                "armsptkt4",
+                "armada_recluset4",
             },
             quantity = 3,
         },
@@ -373,7 +373,7 @@ local landUnitsList = {
         },
         -- [2] = {
         --     table = {
-        --         "armack",
+        --         "armada_advancedconstructionbot",
         --         "armdecom",
         --         "armacv",
         --         --"armconsul",
@@ -397,7 +397,7 @@ local landUnitsList = {
                 -- Superboss
                 "armada_pawnt4",
                 "armrattet4",
-                "armvadert4",
+                "armada_tumbleweedt4",
                 "corakt4",
                 "cordemon",
                 "corkarganetht4",
@@ -414,7 +414,7 @@ local landUnitsList = {
         },
         -- [2] = {
         --     table = {
-        --         "armack",
+        --         "armada_advancedconstructionbot",
         --         "armdecom",
         --         "armacv",
         --         --"armconsul",
@@ -586,7 +586,7 @@ local seaUnitsList = {
                 "armserpt3",
                 "armepoch",
                 "corblackhy",
-                "armvadert4",
+                "armada_tumbleweedt4",
                 "corkorg",
                 "armbanth",
                 "coresuppt3",

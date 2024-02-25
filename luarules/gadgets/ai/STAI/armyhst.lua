@@ -30,7 +30,7 @@ function ArmyHST:Init()
 		coracv = true,
 		coraca = true,
 		armacv = true,
-		armack = true,
+		armada_advancedconstructionbot = true,
 		corack = true,
 		corcv = true,
 		armaca = true,
@@ -44,7 +44,7 @@ function ArmyHST:Init()
 		}
 	self.engineers = {
 		armmls = true,
-		armfark = true,
+		armada_butler = true,
 		armconsul = true,
 		corfast = true,
 		cormls = true,
@@ -78,7 +78,7 @@ function ArmyHST:Init()
 	self.jammers = {
 		armsjam = true,
 		coreter = true,
-		armaser = true,
+		armada_radarjammerbot = true,
 		armjam = true,
 		corsjam = true,
 		corspec = true,
@@ -89,7 +89,7 @@ function ArmyHST:Init()
 		corfink = true,--is a scout but is better used as radar cause no weapon
 		armpeep = true,--is a scout but is better used as radar cause no weapon
 		corvrad = true,
-		armmark = true,
+		armada_compass = true,
 		armseer = true,
 		corvoyr = true,
 		corawac = true,
@@ -100,7 +100,7 @@ function ArmyHST:Init()
 
 		}
 	self.spys = {
-		armspy = true,
+		armada_ghost = true,
 		corspy = true,
 		}
 	self.transports = {
@@ -120,7 +120,7 @@ function ArmyHST:Init()
 		armfav = true,
 		corfav = true,
 		armada_tick = true,
-		armfast = true,
+		armada_sprinter = true,
 		armdecade = true,
 		coresupp = true,
 
@@ -135,7 +135,7 @@ function ArmyHST:Init()
 		armlatnk = true,
 		corseal = true,
 		corpyro = true,
-		armzeus = true,
+		armada_welder = true,
 		armsh = true,
 		corsh = true,
 		corsub = true,
@@ -151,7 +151,7 @@ function ArmyHST:Init()
 		corstorm = true,
 		armart = true,
 		corwolv = true,
-		armfido = true,
+		armada_hound = true,
 		cormort = true,
 		armmart = true,
 		cormart = true,
@@ -180,7 +180,7 @@ function ArmyHST:Init()
 		corthud = true,
 		armstump = true,
 		corraid = true,
-		armmav = true,
+		armada_gunslinger = true,
 		corcan = true,
 		armbull = true,
 		correap = true,
@@ -205,7 +205,7 @@ function ArmyHST:Init()
 		armada_centurion = true,
 		armjanus = true,
 		corlevlr = true,
-		armfboy = true,
+		armada_fatboy = true,
 		corsumo = true,
 		corgol = true,
 		armmanni = true,
@@ -226,7 +226,7 @@ function ArmyHST:Init()
 		armpincer = true,
 		corparrow = true,
 		armcroc = true,
-		armamph = true,
+		armada_amphibiousbot = true,
 		corgarp = true,
 		coramph = true,
 		armmar = true,
@@ -236,12 +236,12 @@ function ArmyHST:Init()
 
 	self.spiders = {
 		cortermite = true,
-		armsptk = true,
+		armada_recluse = true,
 
 		}
 	self.paralyzers = {
 		corbw = true,
-		armspid = true,
+		armada_webber = true,
 		armstil = true,
 
 		}
@@ -298,7 +298,7 @@ function ArmyHST:Init()
 		armaas = true,
 		armsam = true,
 		corsent = true,
-		armaak = true,
+		armada_archangel = true,
 		armyork = true,
 		cormist = true,
 		corcrash = true,
@@ -313,17 +313,17 @@ function ArmyHST:Init()
 		armcarry = true,
 		corcarry = true,
 		cormabm = true,
-		armscab = true,
+		armada_umbrella = true,
 		}
 
 	self.crawlings = {
-		armvader = true,
+		armada_tumbleweed = true,
 		corroach = true,
 		corsktl = true,
 		}
 
 	self.cloakables = {
-		armsnipe = true,
+		armada_sharpshooter = true,
 		armgremlin = true,
 		}
 
@@ -797,7 +797,7 @@ ArmyHST.groundFacList = {
 	armshltx = 1,
 	corfast = 1,
 	armconsul = 1,
-	armfark = 1,
+	armada_butler = 1,
 	}
 
 -- if any of these is found among enemy units, AA units and fighters will be built

@@ -117,7 +117,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armamph_missile = {
+			armada_amphibiousbot_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
@@ -199,7 +199,7 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ARMAMPH_MISSILE",
+				def = "armada_amphibiousbot_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

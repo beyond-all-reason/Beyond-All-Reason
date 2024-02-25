@@ -89,7 +89,7 @@ local resurrectorsSea = {
 
 local collectors = {
 	"armada_constructionbot_scav",
-	"armack_scav",
+	"armada_advancedconstructionbot_scav",
 	"armdecom_scav",
 	"armcv_scav",
 	"armbeaver_scav",

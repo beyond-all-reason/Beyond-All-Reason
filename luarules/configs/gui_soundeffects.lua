@@ -701,87 +701,87 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T2 BOTS
 
-	armvader = {
+	armada_tumbleweed = {
 		BaseSoundSelectType = "arm-bot-tiny-sel",
 		BaseSoundMovementType = "arm-bot-tiny-ok",
 		BaseSoundWeaponType = "bomb",
 	},
-	armaser = {
+	armada_radarjammerbot = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	armmark = {
+	armada_compass = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "radar-t2",
 	},
-	armspy = {
+	armada_ghost = {
 		BaseSoundSelectType = "arm-bot-small-sel",
 		BaseSoundMovementType = "arm-bot-small-ok",
 		BaseSoundWeaponType = "cloak",
 	},
-	armspid = {
+	armada_webber = {
 		BaseSoundSelectType = "arm-bot-at-sel",
 		BaseSoundMovementType = "arm-bot-at-ok",
 		BaseSoundWeaponType = "emp-laser",
 	},
-	armfast = {
+	armada_sprinter = {
 		BaseSoundSelectType = "arm-bot-medium-sel",
 		BaseSoundMovementType = "arm-bot-medium-ok",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
-	armfark = {
+	armada_butler = {
 		BaseSoundSelectType = "arm-bot-medium-sel",
 		BaseSoundMovementType = "arm-bot-medium-alt-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
-	armamph = {
+	armada_amphibiousbot = {
 		BaseSoundSelectType = "arm-bot-medium-amph-sel",
 		BaseSoundMovementType = "arm-bot-medium-amph-ok",
 		BaseSoundWeaponType = "laser-small",
 	},
-	armfido = {
+	armada_hound = {
 		BaseSoundSelectType = "arm-bot-medium-sel",
 		BaseSoundMovementType = "arm-bot-medium-alt-ok",
 		BaseSoundWeaponType = "plasma-medium-alt",
 	},
-	armzeus = {
+	armada_welder = {
 		BaseSoundSelectType = "arm-bot-large-ok",
 		BaseSoundMovementType = "arm-bot-large-sel",
 		BaseSoundWeaponType = "lightning",
 	},
-	armack = {
+	armada_advancedconstructionbot = {
 		BaseSoundSelectType = "arm-bot-medium-sel",
 		BaseSoundMovementType = "arm-bot-medium-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
-	armsptk = {
+	armada_recluse = {
 		BaseSoundSelectType = "arm-bot-at-sel",
 		BaseSoundMovementType = "arm-bot-at-ok",
 		BaseSoundWeaponType = "rocket-large",
 	},
-	armaak = {
+	armada_archangel = {
 		BaseSoundSelectType = "arm-bot-large-ok",
 		BaseSoundMovementType = "arm-bot-large-sel",
 		BaseSoundWeaponType = "aarocket-medium-flak",
 	},
-	armsnipe = {
+	armada_sharpshooter = {
 		BaseSoundSelectType = "arm-bot-medium-stealth-sel",
 		BaseSoundMovementType = "arm-bot-medium-stealth-ok",
 		BaseSoundWeaponType = "sniper",
 	},
-	armmav = {
+	armada_gunslinger = {
 		BaseSoundSelectType = "arm-bot-large-sel",
 		BaseSoundMovementType = "arm-bot-large-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	armscab = {
+	armada_umbrella = {
 		BaseSoundSelectType = "arm-bot-at-sel",
 		BaseSoundMovementType = "arm-bot-at-ok",
 		BaseSoundWeaponType = "nuke-anti",
 	},
-	armfboy = {
+	armada_fatboy = {
 		BaseSoundSelectType = "arm-bot-huge-sel",
 		BaseSoundMovementType = "arm-bot-huge-ok",
 		BaseSoundWeaponType = "plasma-large",

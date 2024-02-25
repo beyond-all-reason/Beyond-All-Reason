@@ -21,7 +21,7 @@ local CMD_WAIT = CMD.WAIT
 local isFido = {}
 local Ranges = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if string.sub(unitDef.name, 1,7) == 'armfido' then
+	if string.sub(unitDef.name, 1,7) == 'armada_hound' then
 		local hplasmarange = ((WeaponDefs[unitDef.weapons[1].weaponDef].projectilespeed*30) ^2 ) / Game.gravity
 		if hplasmarange >= WeaponDefs[unitDef.weapons[1].weaponDef].range then
 			hplasmarange = WeaponDefs[unitDef.weapons[1].weaponDef].range

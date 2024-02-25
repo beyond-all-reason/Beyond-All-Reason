@@ -35,7 +35,7 @@ return {
 			[2] = "armpincer",
 			[3] = "armcroc",
 			[4] = "armada_crossbow",
-			[5] = "armaak",
+			[5] = "armada_archangel",
 			[6] = "armdecom",
 		},
 		customparams = {

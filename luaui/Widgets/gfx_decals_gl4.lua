@@ -819,7 +819,7 @@ for weaponDefID=1, #WeaponDefs do
 			end
 
 		elseif weaponDef.type == 'Cannon' then
-			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
+			if string.find(weaponDef.name, 'old_armada_sharpshooter_weapon') then
 				textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 				radius = 50
 				heatstart = 6000
@@ -965,7 +965,7 @@ for weaponDefID=1, #WeaponDefs do
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
 			radius = (radius * 4)
 
-		elseif string.find(weaponDef.name, 'armmav_weapon') then -- armmav has very tiny AoE
+		elseif string.find(weaponDef.name, 'armada_gunslinger_weapon') then -- armada_gunslinger has very tiny AoE
 			radius = (radius * 6)
 
 		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
@@ -1195,9 +1195,9 @@ local UnitScriptDecalsNames = {
 			}
 		},
 
-	['armfboy'] = {
+	['armada_fatboy'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armfboy_a.png',
+			texture = footprintsPath..'f_armada_fatboy_a.png',
 			offsetx = -1, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0, -- in radians
@@ -1214,7 +1214,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_armfboy_a.png',
+			texture = footprintsPath..'f_armada_fatboy_a.png',
 			offsetx = 1, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0, -- in radians
@@ -1327,9 +1327,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armack'] = {
+	['armada_advancedconstructionbot'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armack_a.png',
+			texture = footprintsPath..'f_armada_advancedconstructionbot_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 1, --
 			offsetrot = 0.0, -- in radians
@@ -1347,9 +1347,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armzeus'] = {
+	['armada_welder'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armzeus_a.png',
+			texture = footprintsPath..'f_armada_welder_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1367,9 +1367,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armmav'] = {
+	['armada_gunslinger'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armmav_a.png',
+			texture = footprintsPath..'f_armada_gunslinger_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians

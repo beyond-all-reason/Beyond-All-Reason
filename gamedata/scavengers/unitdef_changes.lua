@@ -153,7 +153,7 @@ customDefs.corscavdtl = {
 -- 	"coraca",
 -- 	"armada_constructionbot",
 -- 	"corck",
--- 	"armack",
+-- 	"armada_advancedconstructionbot",
 -- 	"corack",
 -- 	"armch",
 -- 	"corch",
@@ -573,9 +573,9 @@ customDefs.corscavdtl = {
 -- customDefs.armshltx = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
--- 		[numBuildoptions+2] = "armsptkt4",
+-- 		[numBuildoptions+2] = "armada_recluset4",
 -- 		[numBuildoptions+3] = "armada_pawnt4",
--- 		[numBuildoptions+4] = "armvadert4",
+-- 		[numBuildoptions+4] = "armada_tumbleweedt4",
 -- 		[numBuildoptions+5] = "armlunchbox",
 -- 		[numBuildoptions+6] = "armmeatball",
 -- 		[numBuildoptions+7] = "armassimilator",
@@ -587,7 +587,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
 -- 		[numBuildoptions+2] = "armada_pawnt4",
--- 		[numBuildoptions+3] = "armvadert4",
+-- 		[numBuildoptions+3] = "armada_tumbleweedt4",
 -- 		[numBuildoptions+4] = "armmeatball",
 -- 	},
 -- }
@@ -727,8 +727,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armack.buildoptions
--- customDefs.armack = {
+-- numBuildoptions = #UnitDefs.armada_advancedconstructionbot.buildoptions
+-- customDefs.armada_advancedconstructionbot = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armapt3",
 -- 		[numBuildoptions+2] = "armminivulc",
@@ -881,7 +881,7 @@ customDefs.corscavdtl = {
 -- 	maxvelocity = 2.1,
 -- }
 
--- customDefs.armzeus = {
+-- customDefs.armada_welder = {
 -- 	cloakcost = 12,
 -- 	mincloakdistance = 144,
 -- }
@@ -891,7 +891,7 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.armvader = {
+-- customDefs.armada_tumbleweed = {
 -- 	cloakcost = 3,
 -- 	mincloakdistance = 144,
 -- }
@@ -904,7 +904,7 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 64,
 -- }
 
--- customDefs.armspy = {
+-- customDefs.armada_ghost = {
 -- 	explodeas = "spybombxscav",
 -- 	selfdestructas = "spybombxscav",
 -- 	mincloakdistance = 64,

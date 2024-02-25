@@ -18,12 +18,12 @@ local unitdefConfigNames = {
 	['armferret'] = false,
 	['armamb'] = false,
 	['armpb'] = false,
-	['armsnipe'] = false,
+	['armada_sharpshooter'] = false,
 	['corsktl'] = false,
 	['armgremlin'] = false,
 	['armamex'] = true,
 	['armckfus'] = true,
-	['armspy'] = true,
+	['armada_ghost'] = true,
 	['corspy'] = true,
 }
 -- convert unitname -> unitDefID

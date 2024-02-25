@@ -37,7 +37,7 @@ local unitOrderTable = {
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,
 
-	['armack']         = 002400,
+	['armada_advancedconstructionbot']         = 002400,
 	['corack']         = 002450,
 	['legack']         = 002455,
 
@@ -53,7 +53,7 @@ local unitOrderTable = {
 	['coracsub']       = 002750,
 
 	--NANO SUPPORT
-	['armfark']        = 003100, --BOTS
+	['armada_butler']        = 003100, --BOTS
 	['corfast']        = 003200,
 
 	['armconsul']      = 003300, --VEH
@@ -70,7 +70,7 @@ local unitOrderTable = {
 
 	['cormando']       = 003800, --COMMANDO
 
-	['armspy']         = 003900, --SPIES
+	['armada_ghost']         = 003900, --SPIES
 	['corspy']         = 004000,
 
 	-- AIR SCOUTS LAND UNARMED
@@ -82,9 +82,9 @@ local unitOrderTable = {
 	['corawac']        = 004060,
 
 	-- SCOUTS/UTILITY LAND
-	['armmark']        = 004100,
+	['armada_compass']        = 004100,
 	['corvoyr']        = 004110,
-	['armaser']        = 004120,
+	['armada_radarjammerbot']        = 004120,
 	['corspec']        = 004130,
 
 	['armseer']        = 004200,
@@ -146,7 +146,7 @@ local unitOrderTable = {
 
 	-- EMP
 	['corbw']          = 004800, --EMP
-	['armspid']        = 004810, --EMP
+	['armada_webber']        = 004810, --EMP
 
 	-- T1 LAND ATTACK
 	['armada_pawn']          = 005000, --FAST
@@ -192,15 +192,15 @@ local unitOrderTable = {
 	-- T2 LAND ATTACK
 	['armgremlin']     = 006005,
 
-	['armfast']        = 006100, --FAST
+	['armada_sprinter']        = 006100, --FAST
 	['legstr']         = 006105,
 	['corpyro']        = 006110,
 	['armlatnk']       = 006120,
 	['cortorch']       = 006125,
 	['legmrv']         = 006130,
 
-	['armzeus']        = 006300, --MAIN BATTLE
-	['armmav']         = 006310,
+	['armada_welder']        = 006300, --MAIN BATTLE
+	['armada_gunslinger']         = 006310,
 	['armbull']        = 006320,
 	['corftiger']      = 006325,
 	['correap']        = 006330,
@@ -214,7 +214,7 @@ local unitOrderTable = {
 	['armmerl']        = 006430,
 	['corban']         = 006440,
 
-	['armfido']        = 006500, --ARTILLERY
+	['armada_hound']        = 006500, --ARTILLERY
 	['cormort']        = 006510,
 	['legbart']        = 006515,
 	['legvcarry']      = 006516,
@@ -223,24 +223,24 @@ local unitOrderTable = {
 	['cortrem']        = 006540,
 	['leginf']         = 006550,
 
-	['armsptk']        = 006600, --ALL-TERRAIN
+	['armada_recluse']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
 	['leginfestor']   = 006614,
 	['legsrail']       = 006615,
 
-	['armfboy']        = 006700, --STRONK
+	['armada_fatboy']        = 006700, --STRONK
 	['corcan']         = 006710,
 	['legshot']        = 006715,
-	['armsnipe']       = 006720,
+	['armada_sharpshooter']       = 006720,
 	['corsumo']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,
 
-	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
+	['armada_tumbleweed']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
 	['corsktl']        = 006830,
 
-	['armamph']        = 006900, --LAND + AMPHIBIOUS
+	['armada_amphibiousbot']        = 006900, --LAND + AMPHIBIOUS
 	['coramph']        = 006910,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
@@ -277,12 +277,12 @@ local unitOrderTable = {
 
 	['armada_pawnt4']        = 007300,
    ['corakt4']        = 007310,
-	['armsptkt4']      = 007320,
+	['armada_recluset4']      = 007320,
 	['cordemon']     = 007330,
 	['corkarganetht4'] = 007340,
 	['corthermite'] = 007341,
 
-	['armvadert4']     = 007400,
+	['armada_tumbleweedt4']     = 007400,
 	['armrattet4']     = 007410,
 	['corgolt4']       = 007420,
 
@@ -294,7 +294,7 @@ local unitOrderTable = {
 	-- LAND AA
 	['armada_crossbow']        = 008000,
 	['corcrash']       = 008010,
-	['armaak']         = 008020,
+	['armada_archangel']         = 008020,
 	['coraak']         = 008030,
 
 	['armyork']        = 008200,
@@ -304,7 +304,7 @@ local unitOrderTable = {
 	['corah']          = 008310,
 
 	-- -- T2 AA
-	-- ['armaak']         = 008500,
+	-- ['armada_archangel']         = 008500,
 	-- ['coraak']         = 008510,
 
 	-- ['armyork']        = 008520,
@@ -390,7 +390,7 @@ local unitOrderTable = {
 	['corseah']        = 010620,
 
 	-- ANTINUKES
-	['armscab']        = 020000,
+	['armada_umbrella']        = 020000,
 	['cormabm']        = 020010,
 
 	['armcarry']       = 020100,

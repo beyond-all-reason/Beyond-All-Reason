@@ -290,7 +290,7 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
 			end
 			if weaponDef.damages then
-				if unitDef.name == 'armfido' then
+				if unitDef.name == 'armada_hound' then
 					unitExempt = true
 					if i==2 then                                --Calculating using second weapon only
 						local defDmg = weaponDef.damages[0]      		--Damage to default armor category

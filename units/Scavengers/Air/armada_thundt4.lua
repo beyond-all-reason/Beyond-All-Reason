@@ -98,7 +98,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 2.5,
 				impulsefactor = 2.5,
-				model = "units/armvader.s3o",
+				model = "units/armada_tumbleweed.s3o",
 				name = "Ultra Heavy Bombs",
 				noselfdamage = true,
 				range = 2480,

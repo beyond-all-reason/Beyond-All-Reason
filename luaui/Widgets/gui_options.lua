@@ -5809,12 +5809,12 @@ function init()
 		[UnitDefNames["armferret"].id] = false,
 		[UnitDefNames["armamb"].id] = false,
 		[UnitDefNames["armpb"].id] = false,
-		[UnitDefNames["armsnipe"].id] = false,
+		[UnitDefNames["armada_sharpshooter"].id] = false,
 		[UnitDefNames["corsktl"].id] = false,
 		[UnitDefNames["armgremlin"].id] = false,
 		[UnitDefNames["armamex"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
-		[UnitDefNames["armspy"].id] = true,
+		[UnitDefNames["armada_ghost"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
 	}
 	local unitdefConfig = {}

@@ -13,7 +13,7 @@ static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead,
 #define SIG_WALK 	4
 #define SIG_FIRE1 	8
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armfido_anim_walk2.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armada_hound_anim_walk2.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:5
 			turn lhand to x-axis <-11.904617> speed <509.978555> / animSpeed; 

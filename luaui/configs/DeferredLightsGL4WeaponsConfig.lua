@@ -876,11 +876,11 @@ GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 3, sustain = 0})
 
---armfast
-explosionLights[WeaponDefNames["armfast_arm_fast"].id] =
+--armada_sprinter
+explosionLights[WeaponDefNames["armada_sprinter_arm_fast"].id] =
 GetLightClass("Explosion", nil, "Micro", {r = 2.8, g = 2.2, b = 1.2, a = 0.14, colortime = 2.8,
 											sustain = 8, lifetime = 22, scattering = 0.7})
-projectileDefLights[WeaponDefNames["armfast_arm_fast"].id] =
+projectileDefLights[WeaponDefNames["armada_sprinter_arm_fast"].id] =
 GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,

@@ -420,61 +420,61 @@
 	},
 
 	// adv bot - armalab
-	"armack": {
+	"armada_advancedconstructionbot": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
 		"limit": 3,
 		"build_speed": 10.0
 	},
-	"armfark": {
+	"armada_butler": {
 		"role": ["builder"],
 		"limit": 2,
 		"build_speed": 10.0
 	},
-	"armfast": {
+	"armada_sprinter": {
 		"role": ["raider"]
 	},
-	"armzeus": {
+	"armada_welder": {
 		"role": ["assault"]
 	},
-	"armfboy": {
+	"armada_fatboy": {
 		"role": ["assault", "heavy"]
 	},
-	"armmav": {
+	"armada_gunslinger": {
 		"role": ["riot"],
 		"attribute": ["skirmish"]
 	},
-	"armfido": {
+	"armada_hound": {
 		"role": ["skirmish"],
 		"slow_target": true
 	},
-	"armvader": {
+	"armada_tumbleweed": {
 		"role": ["raider"],
 		"attribute": ["melee"],
 		"retreat": 0
 	},
-	"armaak": {
+	"armada_archangel": {
 		"role": ["anti_air"]
 	},
-	"armmark": {
+	"armada_compass": {
 		"role": ["assault"],
 		"attribute": ["support"],
 		"limit": 1
 	},
-	"armspid": {
+	"armada_webber": {
 		"role": ["support"]
 	},
-	"armsptk": {
+	"armada_recluse": {
 		"role": ["raider"],
 		"attribute": ["siege"]
 	},
-	"armsnipe": {
+	"armada_sharpshooter": {
 		"role": ["anti_heavy"]
 	},
-	"armamph": {
+	"armada_amphibiousbot": {
 		"role": ["raider", "anti_air"]
 	},
-	"armspy": {
+	"armada_ghost": {
 		"role": ["scout"]
 	},
 

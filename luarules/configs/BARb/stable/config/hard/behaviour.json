@@ -783,7 +783,7 @@
 			"limit": 12,
 			"build_speed": 4.0  
 		},
-		"armack": {
+		"armada_advancedconstructionbot": {
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 10,
@@ -795,7 +795,7 @@
 			"limit": 10,
 			"build_speed": 9.0  
 		},
-		"armfark": {
+		"armada_butler": {
 			"role": ["builder"], //support,mine
 			//"attribute": ["support"], //without attribute
 			"build_speed": 1.0,  //bp 140 											test!!!!!
@@ -987,31 +987,31 @@
 
 		// adv bot - armalab
 
-		"armfast": {
+		"armada_sprinter": {
 			"role": ["raider"],
 			"threat":{"air": 0.0, "water": 0.0,
 				"vs":{"artillery": 3.0, "anti_air": 2.0, "vy": 2.0}
 			}
 		},
-		"armamph": {
+		"armada_amphibiousbot": {
 				"role": ["raider", "anti_air"],
 				"threat": {"air": 1.0, "water": 0.0, "surf": 1.0},
                 "limit": 10	
 		},
-		"armzeus": {
+		"armada_welder": {
 			"role": ["skirmish"],  //is it more skirmish or riot?
 			"attribute": ["melee"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.2, 
 				"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
-		"armfboy": {
+		"armada_fatboy": {
 			"role": ["heavy"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.5,
 				"vs":{"artillery": 2.0, "anti_air": 2.0, "vy": 0.7}
 			}
 		},
-		"armmav": {
+		"armada_gunslinger": {
 			"role": ["riot"], //riot
 			//"attribute": ["siege"],
 			"retreat": 0.8,
@@ -1019,7 +1019,7 @@
 				"vs":{"artillery": 2.0, "anti_air": 2.0, "heavy": 0.7}
 			}
 		},
-		"armfido": {
+		"armada_hound": {
 			"role": ["assault"],
 			"attribute": ["siege"],
 			"slow_target": true,
@@ -1027,51 +1027,51 @@
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.0},
 			"power": 1.0
 		},
-		"armvader": {
+		"armada_tumbleweed": {
 			"role": ["raider"],
 			"attribute": ["melee"],
 			"retreat": 0,
 			"threat":{"air": 0.0, "water": 0.1, "surf":0.1},
 			"power":10.0 //how to manage that mine is attacking and not retreating and not making own groups too op in eyes of own ai?
 		},
-		"armaak": {
+		"armada_archangel": {
 			"role": ["anti_air"],
 			"threat":{"air": 2.0, "water": 0.0, "surf":0.0},
 			"limit": 10
 
 		},
-		"armmark": {
+		"armada_compass": {
 			"role": ["support"], //support
 			"limit": 2,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0}
 		},
-		"armaser": {
+		"armada_radarjammerbot": {
 			"role": ["support"],
 			"limit": 2,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0}
 		},
-		"armspid": {
+		"armada_webber": {
 			"role": ["raider"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.2},
 			"power": 0.2	
 		},
-		"armsptk": {
+		"armada_recluse": {
 			"role": ["support"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.0}	
 			
 		},
-		"armsnipe": {
+		"armada_sharpshooter": {
 			"role": ["anti_heavy_ass"],
 			"attribute": ["siege"],
 			"threat": {"air": 0.0, "water": 0.0,"vs": {"scout":0.5, "raider":0.5}},
             "retreat": 0.6
 		},
-		"armscab": {
+		"armada_umbrella": {
 			"role": ["support"],
 			"limit": 1,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0} 
 		},
-		"armspy": {
+		"armada_ghost": {
 			"role": ["scout"],
 			"limit": 2,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0} 

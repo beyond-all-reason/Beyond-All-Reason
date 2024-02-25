@@ -18,9 +18,9 @@ local labGrids = {
 	},
 	-- T2 bot
 	armalab = {
-		"armack", "armfark", "armfast", "armspy",             -- T2 con, fark, zipper, spy
-		"armmark", "armaser", "armzeus", "armmav",             -- radar bot, jammer bot, zeus, maverick
-		"armfido", "armsnipe", "armaak", "armfboy",            -- fido, sniper, AA bot, fatboi
+		"armada_advancedconstructionbot", "armada_butler", "armada_sprinter", "armada_ghost",             -- T2 con, fark, zipper, spy
+		"armada_compass", "armada_radarjammerbot", "armada_welder", "armada_gunslinger",             -- radar bot, jammer bot, zeus, maverick
+		"armada_hound", "armada_sharpshooter", "armada_archangel", "armada_fatboy",            -- fido, sniper, AA bot, fatboi
 	},
 
 	coralab = {
@@ -135,7 +135,7 @@ local labGrids = {
 	armamsub = {
 		"armbeaver", "armdecom", "armpincer", "",
 		"armcroc", "", "", "",
-		"", "armada_crossbow", "armaak",
+		"", "armada_crossbow", "armada_archangel",
 	},
 
 	coramsub = {
@@ -847,7 +847,7 @@ local unitGrids = {
 	},
 
 	--T2 bot cons
-	armack = {
+	armada_advancedconstructionbot = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
@@ -1196,7 +1196,7 @@ local unitGrids = {
 	},
 
 	--fark
-	armfark = {
+	armada_butler = {
 		{
 			{ "armmex", "armsolar", "armwin", },   -- mex, solar, wind
 			{ "armmakr", },                        -- T1 converter
@@ -1208,7 +1208,7 @@ local unitGrids = {
 			{ },                                   --
 		},
 		{
-			{ "armmark", "armeyes", "armaser", },  -- radar bot, perimeter camera, jammer bot
+			{ "armada_compass", "armeyes", "armada_radarjammerbot", },  -- radar bot, perimeter camera, jammer bot
 			{ },                                   --
 			{ },                                   --
 		},
@@ -1251,9 +1251,9 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "armbeamer", "armfast", "armamb", "armmav", },          -- beamer, sprinter, ambusher, maverick
+			{ "armbeamer", "armada_sprinter", "armamb", "armada_gunslinger", },          -- beamer, sprinter, ambusher, maverick
 			{ "armflak", "armferret", "armada_crossbow", "armada_pawn", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armspid", "armamph", },             -- coastal torp launcher, destroyer, emp spider, platypus
+			{ "armdl", "armroy", "armada_webber", "armada_amphibiousbot", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer
@@ -1324,7 +1324,7 @@ local unitGrids = {
 		},
 		{
 			{ "armtl", "armkraken", "armamb", "armfhlt", },         -- torp launcher, kraken, ambusher, fHLT
-			{ "armfflak", "armpt", "armamph", },                    -- fl flak, PT boat, pelican
+			{ "armfflak", "armpt", "armada_amphibiousbot", },                    -- fl flak, PT boat, pelican
 			{ "armdecade", "armroy", },                             -- decade, destroyer
 		},
 		{

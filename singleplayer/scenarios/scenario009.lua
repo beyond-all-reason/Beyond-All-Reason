@@ -92,7 +92,7 @@ Scoring:
 			-- Similarly to units, but these can also be resurrectable!
             -- You can /give corcom_dead with cheats when making your scenario, but it might not contain the 'resurrectas' tag, so be careful to add it if needed
 			 -- {name = 'corcom_dead', x = 1125,y = 237, z = 734, rot = "0" , scale = 1.0, resurrectas = "corcom"}, -- there is no need for this dead comm here, just an example
-             {name = 'armack_dead',  x = 1320,  y = 89,  z = 460,  rot = -928 , resurrectas = 'armack',  team = 0},
+             {name = 'armada_advancedconstructionbot_dead',  x = 1320,  y = 89,  z = 460,  rot = -928 , resurrectas = 'armada_advancedconstructionbot',  team = 0},
 {name = 'armadvsol_dead',  x = 6768,  y = 90,  z = 7248,  rot = -16384 , resurrectas = 'armadvsol',  team = 1},
 {name = 'armadvsol_dead',  x = 6768,  y = 90,  z = 7312,  rot = -16384 , resurrectas = 'armadvsol',  team = 1},
 {name = 'armadvsol_dead',  x = 6768,  y = 90,  z = 7376,  rot = -16384 , resurrectas = 'armadvsol',  team = 1},

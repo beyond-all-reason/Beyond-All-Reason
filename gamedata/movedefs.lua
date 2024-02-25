@@ -38,7 +38,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 
-	--corroach corsktl armvader
+	--corroach corsktl armada_tumbleweed
 	ABOTBOMB2 = {
 	 	crushstrength = 50,
 	 	depthmod = 0,
@@ -53,7 +53,7 @@ local moveDatas = {
 	},
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armada_crossbow coramph coraak
+	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armada_archangel corcrash raptorems2_spectre armada_crossbow coramph coraak
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -263,9 +263,9 @@ local moveDatas = {
 	-- 	slopeMod = 18,
 	-- 	maxwaterslope = 255,
 	-- },
-	-- armamph
+	-- armada_amphibiousbot
 	-- review this
-	-- armamph
+	-- armada_amphibiousbot
 	HOVER5 = {
 		badslope = 36,
 		badwaterslope = 255,
@@ -421,10 +421,10 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armmark corspec corck corvoyr armzues corcan armada_mace armada_constructionbot corack legck corstorm legbart corthud legbal legack armsnipe
-	--corpyro armack armada_rocketeer armmav cormort armaser armada_centurion legcen legshot
+	--armada_compass corspec corck corvoyr armzues corcan armada_mace armada_constructionbot corack legck corstorm legbart corthud legbal legack armada_sharpshooter
+	--corpyro armada_advancedconstructionbot armada_rocketeer armada_gunslinger cormort armada_radarjammerbot armada_centurion legcen legshot
 	--
-	--cornecro leggob legkark armada_pawn armfark armada_lazarus corak corfast corspy leglob armspy armfast
+	--cornecro leggob legkark armada_pawn armada_butler armada_lazarus corak corfast corspy leglob armada_ghost armada_sprinter
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -437,7 +437,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr
+	-- corhrk armada_hound leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
+	-- armraz legpede corcat leginc armada_fatboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -563,7 +563,7 @@ local moveDatas = {
 	-- },
 	--break line
 	--
-	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
+	-- legsrail armada_umbrella armada_recluse cortermite armada_webber pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,
@@ -790,7 +790,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 3,
 	},
-	-- armvadert4 armsptkt4 corkargenetht4
+	-- armada_tumbleweedt4 armada_recluset4 corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = 9999,
 		depthmod = 0,

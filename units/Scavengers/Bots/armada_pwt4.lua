@@ -1,10 +1,10 @@
 return {
-	armpwt4 = {
+	armada_pawnt4 = {
 		maxacc = 0.414,
 		maxdec = 0.69,
 		energycost = 150000,
 		metalcost = 8000,
-		buildpic = "scavengers/armpwt4.DDS",
+		buildpic = "scavengers/armada_pawnt4.DDS",
 		buildtime = 150000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 25,
 		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armpwt4.s3o",
-		script = "Units/scavboss/armpwt4.cob",
+		objectname = "Units/scavboss/armada_pawnt4.s3o",
+		script = "Units/scavboss/armada_pawnt4.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 500,
@@ -58,7 +58,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 4000,
-				object = "Units/scavboss/armpwt4_dead.s3o",
+				object = "Units/scavboss/armada_pawnt4_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
