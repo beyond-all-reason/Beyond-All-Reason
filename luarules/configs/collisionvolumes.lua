@@ -78,31 +78,31 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 
 
 
-unitCollisionVolume['armanni'] = {
+unitCollisionVolume['armada_pulsar'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
 }
-unitCollisionVolume['armannit3'] = {
+unitCollisionVolume['armada_pulsart3'] = {
 	on={81,121,81,0,-3,0,3,1,0},
 	off={81,84,81,0,-22,0,3,1,0},
 }
-unitCollisionVolume['armlab'] = {
+unitCollisionVolume['armada_botlab'] = {
 	on={95,28,95,0,2,0,2,1,0},
 	off={95,22,95,0,-1,0,1,1,1},
 }
-unitCollisionVolume['armpb'] = {
+unitCollisionVolume['armada_pitbull'] = {
 	on={32,88,32,0,-8,0,1,1,1},
 	off={40,40,40,0,-8,0,3,1,1},
 }
-unitCollisionVolume['armplat'] = {
+unitCollisionVolume['armada_seaplaneplatform'] = {
 	on={105,66,105,0,33,0,2,1,0},
 	off={105,44,105,0,0,0,2,1,0},
 }
-unitCollisionVolume['armsolar'] = {
+unitCollisionVolume['armada_solarcollector'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
-unitCollisionVolume['armvp'] = {
+unitCollisionVolume['armada_vehicleplant'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
 }
@@ -142,11 +142,11 @@ pieceCollisionVolume['legsrail'] = {
 	['0']={55,20,55,0,-2,0,1,1},
 	['19']={15,15,60,0,5,12,1,2},
 }
-pieceCollisionVolume['armrad'] = {
+pieceCollisionVolume['armada_radartower'] = {
 	['1']={22,58,22,0,30,0,1,1},
 	['3']={60,13,13,11,0,0,1,0},
 }
-pieceCollisionVolume['armamb'] = {
+pieceCollisionVolume['armada_rattlesnake'] = {
 	['3']={22,22,22,0,0,-10,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
 }
@@ -154,11 +154,11 @@ pieceCollisionVolume['cortoast'] = {
 	['3']={22,22,22,0,10,0,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
 }
-pieceCollisionVolume['armveil'] = {
+pieceCollisionVolume['armada_veil'] = {
 	['1']={25,75,25,0,-15,0,1,1},
 	['3']={76,16,16,6,0,0,1,0},
 }
-pieceCollisionVolume['armbrtha'] = {
+pieceCollisionVolume['armada_basilica'] = {
 	['1']={32,84,32,0,-20,0,1,1},
 	['3']={13,0,75,0,0,20,1,2},
 	['4']={8,8,42,0,1,70,1,2},
@@ -167,7 +167,7 @@ pieceCollisionVolume['corint'] = {
 	['1']={72,84,72,0,28,0,1,1},
 	['3']={13,13,34,0,1,28,1,2},
 }
-pieceCollisionVolume['armvulc'] = {
+pieceCollisionVolume['armada_ragnarok'] = {
 	['0']={98,140,98,0,40,0,1,1},
 	['5']={55,55,174,0,18,0,1,2},
 }
@@ -180,7 +180,7 @@ pieceCollisionVolume['corsala'] = {
 	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }
 
-pieceCollisionVolume['armshockwave'] = {
+pieceCollisionVolume['armada_shockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
     ['0']={60,65,60,0,20,0,1,1,0},
 }

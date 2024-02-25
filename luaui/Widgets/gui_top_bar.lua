@@ -509,7 +509,7 @@ local function checkTidalRelevant()
 		mapMinHeight = select(3,Spring.GetGroundExtremes())
 	end
 	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
-	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
+	return mapMinHeight <= -20	-- armada_tidalgenerator/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
 local function updateTidal()

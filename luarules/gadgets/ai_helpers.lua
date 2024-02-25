@@ -158,25 +158,25 @@ end
 -----------------------
 
 local Interest = {
-	armfus = true,
-	armafus = true,
-	armckfus = true,
-	armmmkr = true,
-	armlab = true,
-	armvp = true,
-	armap = true,
-	armalab = true,
-	armaap = true,
-	armavp = true,
-	armamd = true,
-	armbrtha = true,
-	armemp = true,
-	armsilo = true,
-	armvulc = true,
-	armanni = true,
-	armshltx = true,
-	-- armnanotc = true,
-	armgate = true,
+	armada_fusionreactor = true,
+	armada_advancedfusionreactor = true,
+	armada_cloakablefusionreactor = true,
+	armada_advancedenergyconverter = true,
+	armada_botlab = true,
+	armada_vehicleplant = true,
+	armada_aircraftplant = true,
+	armada_advancedbotlab = true,
+	armada_advancedaircraftplant = true,
+	armada_advancedvehicleplant = true,
+	armada_citadel = true,
+	armada_basilica = true,
+	armada_paralyzer = true,
+	armada_armageddon = true,
+	armada_ragnarok = true,
+	armada_pulsar = true,
+	armada_experimentalgantry = true,
+	-- armada_constructionturret = true,
+	armada_keeper = true,
 	corfus = true,
 	corafus = true,
 	cormmkr = true,
@@ -208,7 +208,7 @@ local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
 	for ct=1,#unitsNear do
 		local id = unitsNear[ct]
-		if (unitNames[Spring.GetUnitDefID(id)] == "armamd" or unitNames[Spring.GetUnitDefID(id)] == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
+		if (unitNames[Spring.GetUnitDefID(id)] == "armada_citadel" or unitNames[Spring.GetUnitDefID(id)] == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
 			if SeenBuildings[attackerTeamID][unitID] then
 				return true
 			end

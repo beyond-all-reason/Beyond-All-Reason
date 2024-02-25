@@ -3,7 +3,7 @@ local icontypes = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
 	},
-	armaap = {
+	armada_advancedaircraftplant = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
 	},
@@ -27,15 +27,15 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
-	armadvsol = {
+	armada_advancedsolarcollector = {
 		bitmap = "icons/energy2_1.18.png",
 		size = 1.23899984
 	},
-	armafus = {
+	armada_advancedfusionreactor = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
-	armageo = {
+	armada_advancedgeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
@@ -43,19 +43,19 @@ local icontypes = {
 		bitmap = "icons/hover_aa.png",
 		size = 1.15499997
 	},
-	armalab = {
+	armada_advancedbotlab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
 	},
-	armamb = {
+	armada_rattlesnake = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
-	armamd = {
+	armada_citadel = {
 		bitmap = "icons/antinuke.png",
 		size = 1.67999995
 	},
-	armamex = {
+	armada_twilight = {
 		bitmap = "icons/mex_t1_emp.png",
 		size = 1.02999997
 	},
@@ -63,7 +63,7 @@ local icontypes = {
 		bitmap = "icons/amph_t2_aa.png",
 		size = 1.5
 	},
-	armamsub = {
+	armada_amphibiouscomplex = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
@@ -71,11 +71,11 @@ local icontypes = {
 		bitmap = "icons/hover_gun.png",
 		size = 1.10249984
 	},
-	armanni = {
-		bitmap = "icons/armanni.png",
+	armada_pulsar = {
+		bitmap = "icons/armada_pulsar.png",
 		size = 2.0474999
 	},
-	armannit3 = {
+	armada_pulsart3 = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
@@ -83,15 +83,15 @@ local icontypes = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	armap = {
+	armada_aircraftplant = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	armapt3 = {
+	armada_aircraftplantt3 = {
 		bitmap = "icons/factory_air_t3.png",
 		size = 1.52250004
 	},
-	armarad = {
+	armada_advancedradartower = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
@@ -103,7 +103,7 @@ local icontypes = {
 		bitmap = "icons/bot_t2_jammer.png",
 		size = 1.34399986
 	},
-	armason = {
+	armada_advancedsonarstation = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
@@ -123,11 +123,11 @@ local icontypes = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
-	armasy = {
+	armada_advancedshipyard = {
 		bitmap = "icons/factory_ship_t2.png",
 		size = 1.9425
 	},
-	armatl = {
+	armada_moray = {
 		bitmap = "icons/defence_2_naval.png",
 		size = 1.46999991
 	},
@@ -135,7 +135,7 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
-	armavp = {
+	armada_advancedvehicleplant = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
 	},
@@ -151,7 +151,7 @@ local icontypes = {
 		bitmap = "icons/ship_t2_battleship.png",
 		size = 2.67749977
 	},
-	armbeamer = {
+	armada_beamer = {
 		bitmap = "icons/def_beamer.png",
 		size = 1.10699987
 	},
@@ -171,8 +171,8 @@ local icontypes = {
 		bitmap = "icons/air_t2_hover.png",
 		size = 1.46999991
 	},
-	armbrtha = {
-		bitmap = "icons/armbrtha.png",
+	armada_basilica = {
+		bitmap = "icons/armada_basilica.png",
 		size = 2.625
 	},
 	armbull = {
@@ -195,7 +195,7 @@ local icontypes = {
 		bitmap = "icons/hover_worker.png",
 		size = 1.25999999
 	},
-	armcir = {
+	armada_chainsaw = {
 		bitmap = "icons/aa_t1_long.png",
 		size = 1.29999995
 	},
@@ -203,11 +203,11 @@ local icontypes = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
-	armckfus = {
+	armada_cloakablefusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	armclaw = {
+	armada_dragonsclaw = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -259,7 +259,7 @@ local icontypes = {
 		bitmap = "icons/armada_commander.png",
 		size = 1.83749986
 	},
-	armdf = {
+	armada_decoyfusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
@@ -267,11 +267,11 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
-	armdl = {
+	armada_anemone = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	armdrag = {
+	armada_dragonsteeth = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -291,7 +291,7 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
 	},
-	armemp = {
+	armada_paralyzer = {
 		bitmap = "icons/emp.png",
 		size = 1.88999987
 	},
@@ -299,11 +299,11 @@ local icontypes = {
 		bitmap = "icons/ship_t2_flagship.png",
 		size = 3.46499968
 	},
-	armestor = {
+	armada_energystorage = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
-	armeyes = {
+	armada_beholder = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
 	},
@@ -311,7 +311,7 @@ local icontypes = {
 		bitmap = "icons/engineer_small.png",
 		size = 0.94499993
 	},
-	armfasp = {
+	armada_airrepairpad = {
 		bitmap = "icons/armasp_2.4.png",
 		size = 2.51999998
 	},
@@ -319,7 +319,7 @@ local icontypes = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.15499997
 	},
-	armfatf = {
+	armada_navalpinpointer = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
@@ -331,7 +331,7 @@ local icontypes = {
 		bitmap = "icons/bot_t2_plasma_aoe.png",
 		size = 1.67999995
 	},
-	armfdrag = {
+	armada_sharksteeth = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -339,23 +339,23 @@ local icontypes = {
 		bitmap = "icons/air_t4_flagship.png",
 		size = 3.3599999
 	},
-	armferret = {
+	armada_ferret = {
 		bitmap = "icons/aa_t15.png",
 		size = 1.15499997
 	},
-	armfflak = {
+	armada_navalarbalest = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.46999991
 	},
-	armfgate = {
+	armada_aurora = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
-	armfhlt = {
+	armada_manta = {
 		bitmap = "icons/defence_1_laser.png",
 		size = 1.10249984
 	},
-	armfhp = {
+	armada_navalhovercraftplatform = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
@@ -367,7 +367,7 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
-	armflak = {
+	armada_arbalest = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
 	},
@@ -379,47 +379,47 @@ local icontypes = {
 		bitmap = "icons/bot_t1_flea.png",
 		size = 0.53549999
 	},
-	armfmine3 = {
+	armada_heavymine = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	armfmkr = {
+	armada_navalenergyconverter = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
-	armfort = {
+	armada_fortificationwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armfrad = {
+	armada_navalradar = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
-	armfrock = {
+	armada_scumbag = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	armfrt = {
+	armada_navalnettle = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	armfus = {
+	armada_fusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	armgate = {
+	armada_keeper = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
-	armgeo = {
+	armada_geothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	armgmm = {
+	armada_prude = {
 		bitmap = "icons/energy_geo_safe.png",
 		size = 1.56999993
 	},
-	armgplat = {
+	armada_gunplatform = {
 		bitmap = "icons/defence_0_0.8.png",
 		size = 0.83999997
 	},
@@ -427,7 +427,7 @@ local icontypes = {
 		bitmap = "icons/armst_1.25.png",
 		size = 1.2889998
 	},
-	armguard = {
+	armada_gauntlet = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
 	},
@@ -439,11 +439,11 @@ local icontypes = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
 	},
-	armhlt = {
+	armada_overwatch = {
 		bitmap = "icons/defence_1.5_laser.png",
 		size = 1.30249989
 	},
-	armhp = {
+	armada_hovercraftplatform = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
@@ -451,7 +451,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_jammer.png",
 		size = 1.36499989
 	},
-	armjamt = {
+	armada_sneakypete = {
 		bitmap = "icons/jammer.png",
 		size = 0.94499993
 	},
@@ -463,7 +463,7 @@ local icontypes = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
-	armjuno = {
+	armada_juno = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
@@ -471,11 +471,11 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 1.25999999
 	},
-	armkraken = {
+	armada_gorgon = {
 		bitmap = "icons/def_t2_cannon.png",
 		size = 1.46999991
 	},
-	armlab = {
+	armada_botlab = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
@@ -495,7 +495,7 @@ local icontypes = {
 		bitmap = "icons/air_liche.png",
 		size = 4.19999981
 	},
-	armllt = {
+	armada_sentry = {
 		bitmap = "icons/defence_0_laser.png",
 		size = 0.83999997
 	},
@@ -515,7 +515,7 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armmakr = {
+	armada_energyconverter = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
@@ -543,7 +543,7 @@ local icontypes = {
 		bitmap = "icons/amphib_t3.png",
 		size = 2.20499969
 	},
-	armmercury = {
+	armada_mercury = {
 		bitmap = "icons/aa_longrange_t2.png",
 		size = 1.88999987
 	},
@@ -551,7 +551,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_vroc.png",
 		size = 1.62749982
 	},
-	armmex = {
+	armada_metalextractor = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
 	},
@@ -559,20 +559,20 @@ local icontypes = {
 		bitmap = "icons/hover_t1_missile.png",
 		size = 1.41750002
 	},
-	armmine1 = {
+	armada_lightmine = {
 		bitmap = "icons/mine.png",
 		size = 0.37799999
 	},
-	armmine2 = {
+	armada_mediummine = {
 		bitmap = "icons/mine.png",
 		size = 0.46199998
 	},
-	armmine3 = {
+	armada_heavymine = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
 	armminivulc = {
-		bitmap = "icons/armvulc.png",
+		bitmap = "icons/armada_ragnarok.png",
 		size = 1.88999987
 	},
 	armmls = {
@@ -583,11 +583,11 @@ local icontypes = {
 		bitmap = "icons/armmlv_1.0.png",
 		size = 1.04999995
 	},
-	armmmkr = {
+	armada_advancedenergyconverter = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
-	armmoho = {
+	armada_advancedmetalextractor = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
@@ -595,23 +595,23 @@ local icontypes = {
 		bitmap = "icons/ship_t2_missile.png",
 		size = 2.0999999
 	},
-	armmstor = {
+	armada_metalstorage = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
-	armnanotc = {
+	armada_constructionturret = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
-	armnanotcplat = {
+	armada_constructionturretplat = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
-	armnanotct2 = {
+	armada_advancedconstructionturret = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	armpb = {
+	armada_pitbull = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
 	},
@@ -623,7 +623,7 @@ local icontypes = {
 		bitmap = "icons/amphib_tank.png",
 		size = 1.35000002
 	},
-	armplat = {
+	armada_seaplaneplatform = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
 	},
@@ -647,7 +647,7 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1
 	},
-	armptl = {
+	armada_harpoon2 = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
@@ -663,7 +663,7 @@ local icontypes = {
 		bitmap = "icons/armada_pawnt4.png",
 		size = 2.30999994
 	},
-	armrad = {
+	armada_radartower = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
@@ -687,7 +687,7 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	armrl = {
+	armada_nettle = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
@@ -739,7 +739,7 @@ local icontypes = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armsd = {
+	armada_tracer = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
 	},
@@ -775,19 +775,19 @@ local icontypes = {
 		bitmap = "icons/hover_raid.png",
 		size = 1.10249984
 	},
-	armshltx = {
+	armada_experimentalgantry = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998
 	},
-	armshltxuw = {
+	armada_experimentalgantryuw = {
 		bitmap = "icons/factory_gantry_uw.png",
 		size = 2.51999998
 	},
-	armshockwave = {
+	armada_shockwave = {
 		bitmap = "icons/mex_t2_emp.png",
 		size = 1.20749986
 	},
-	armsilo = {
+	armada_armageddon = {
 		bitmap = "icons/nuke.png",
 		size = 2.51999998
 	},
@@ -799,11 +799,11 @@ local icontypes = {
 		bitmap = "icons/armada_sharpshooter_1.3.png",
 		size = 1.36499989
 	},
-	armsolar = {
+	armada_solarcollector = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
-	armsonar = {
+	armada_sonarstation = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
@@ -839,11 +839,11 @@ local icontypes = {
 		bitmap = "icons/sub_t2.png",
 		size = 1.78499997
 	},
-	armsy = {
+	armada_shipyard = {
 		bitmap = "icons/factory_ship.png",
 		size = 1.52250004
 	},
-	armtarg = {
+	armada_pinpointer = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
@@ -863,11 +863,11 @@ local icontypes = {
 		bitmap = "icons/armada_stormbringert4.png",
 		size = 3.3599999
 	},
-	armtide = {
+	armada_tidalgenerator = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
-	armtl = {
+	armada_harpoon = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
@@ -879,43 +879,43 @@ local icontypes = {
 		bitmap = "icons/shiptrans.png",
 		size = 2.0999999
 	},
-	armuwadves = {
+	armada_hardenedenergystorage = {
 		bitmap = "icons/energystorage_t2.png",
 		size = 1.3125
 	},
-	armuwadvms = {
+	armada_hardenedmetalstorage = {
 		bitmap = "icons/metalstorage_t2.png",
 		size = 1.3125
 	},
-	armuwageo = {
+	armada_advancedgeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
-	armuwes = {
+	armada_navalenergystorage = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
-	armuwfus = {
+	armada_navalfusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	armuwgeo = {
+	armada_geothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	armuwmex = {
+	armada_navalmetalextractor = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
 	},
-	armuwmme = {
+	armada_navaladvancedmetalextractor = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
-	armuwmmm = {
+	armada_navaladvancedenergyconverter = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
-	armuwms = {
+	armada_navalmetalstorage = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
@@ -931,27 +931,27 @@ local icontypes = {
 		bitmap = "icons/allterrain_t3_arty.png",
 		size = 2.51999998
 	},
-	armveil = {
+	armada_veil = {
 		bitmap = "icons/jammer_t2.png",
 		size = 1.25999999
 	},
-	armvp = {
+	armada_vehicleplant = {
 		bitmap = "icons/factory_vehicle.png",
 		size = 1.52250004
 	},
-	armvulc = {
-		bitmap = "icons/armvulc.png",
+	armada_ragnarok = {
+		bitmap = "icons/armada_ragnarok.png",
 		size = 3.25499964
 	},
 	armada_centurion = {
 		bitmap = "icons/armada_centurion_1.15.png",
 		size = 1.20749986
 	},
-	armwin = {
+	armada_windturbine = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
 	},
-	armwint2 = {
+	armada_windturbinet2 = {
 		bitmap = "icons/wind.png",
 		size = 1.64999998
 	},
@@ -2184,7 +2184,7 @@ local icontypes = {
 		size = 1.39999998
 	},
 	legministarfall = {
-		bitmap = "icons/armvulc.png",
+		bitmap = "icons/armada_ragnarok.png",
 		size = 1.88999987
 	},
 	legmos = {
@@ -2224,7 +2224,7 @@ local icontypes = {
 		size = 1.85000002
 	},
 	legstarfall = {
-		bitmap = "icons/armvulc.png",
+		bitmap = "icons/armada_ragnarok.png",
 		size = 3.25499964
 	},
 	legstr = {

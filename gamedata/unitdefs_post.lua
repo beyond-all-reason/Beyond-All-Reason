@@ -237,7 +237,7 @@ local function preProcessTweakOptions()
 	--modOptions.tweakunits = 'ewphcm1sYWIgPSB7YnVpbGRDb3N0TWV0YWwgPSAxMCB9Cn0='
 	--=>
 	--{
-	--armlab = {buildCostMetal = 10 }
+	--armada_botlab = {buildCostMetal = 10 }
 	--}
 
 	do

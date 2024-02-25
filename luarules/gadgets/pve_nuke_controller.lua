@@ -24,7 +24,7 @@ else
 end
 
 local nukeDefs = {}
-for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav","corjuno_scav", "armjuno_scav"}) do 
+for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armada_armageddon_scav","corjuno_scav", "armada_juno_scav"}) do 
 	if UnitDefNames[unitDefName] then 
 		nukeDefs[UnitDefNames[unitDefName].id] = true
 	end

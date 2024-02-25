@@ -36,7 +36,7 @@ local math_max = math.max
 local math_cos = math.cos
 local math_sin = math.sin
 
--- A fun unit test is: /luarules fightertest armclaw armclaw 200 10 1000
+-- A fun unit test is: /luarules fightertest armada_dragonsclaw armada_dragonsclaw 200 10 1000
 
 -- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink. 
 local projTablePoolSize = 0 

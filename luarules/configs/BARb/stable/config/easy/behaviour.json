@@ -145,54 +145,54 @@
 	},
 
 	// ARMADA defenses
-	"armllt": {
+	"armada_sentry": {
 		"role": ["static"]
 	},
-	"armbeamer": {
+	"armada_beamer": {
 		"role": ["static"]
 	},
-	"armhlt": {
+	"armada_overwatch": {
 		"role": ["static"]
 	},
-	"armguard": {
+	"armada_gauntlet": {
 		"role": ["static"],
 		"attribute": ["artillery"],
 		"threat": 0.3
 	},
-	"armclaw": {
+	"armada_dragonsclaw": {
 		"role": ["static"]
 	},
-	"armrl": {
+	"armada_nettle": {
 		"role": ["anti_air"],
 		"attribute": ["anti_air"]
 	},
-	"armcir": {
+	"armada_chainsaw": {
 		"role": ["anti_air"]
 	},
-	"armferret": {
+	"armada_ferret": {
 		"role": ["anti_air"]
 	},
-	"armflak": {
+	"armada_arbalest": {
 		"role": ["anti_air"]
 	},
-	"armmercury": {
+	"armada_mercury": {
 		"role": ["anti_air"]
 	},
-	"armtl": {
+	"armada_harpoon": {
 		"role": ["static"]
 	},
-	"armatl": {
+	"armada_moray": {
 		"role": ["static"],
 		"attribute": ["heavy"]
 	},
-	"armpb": {
+	"armada_pitbull": {
 		"role": ["static"]
 	},
-	"armamb": {
+	"armada_rattlesnake": {
 		"role": ["static"],
 		"attribute": ["artillery"]
 	},
-	"armanni": {
+	"armada_pulsar": {
 		"role": ["static"],
 		"attribute": ["heavy", "anti_heavy"]
 	},
@@ -251,7 +251,7 @@
 	},
 
 	// Factories - that should stay near main base
-	"armalab": {
+	"armada_advancedbotlab": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -263,7 +263,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"armavp": {
+	"armada_advancedvehicleplant": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -275,7 +275,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"armap": {
+	"armada_aircraftplant": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 5.0
@@ -285,7 +285,7 @@
 		"attribute": ["support"],
 		"build_speed": 5.0
 	},
-	"armaap": {
+	"armada_advancedaircraftplant": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -297,7 +297,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"armshltx": {
+	"armada_experimentalgantry": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -310,7 +310,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"armnanotc": {
+	"armada_constructionturret": {
 		"role": ["support"],
 		"build_speed": 8.0
 	},
@@ -318,7 +318,7 @@
 		"role": ["support"],
 		"build_speed": 8.0
 	},
-	"armnanotcplat": {
+	"armada_constructionturretplat": {
 		"role": ["support"],
 		"build_speed": 8.0
 	},
@@ -326,7 +326,7 @@
 		"role": ["support"],
 		"build_speed": 8.0
 	},
-	"armmakr": {
+	"armada_energyconverter": {
 		"role": ["static"],
 		"since": 30
 	},
@@ -334,7 +334,7 @@
 		"role": ["static"],
 		"since": 30
 	},
-	"armmstor" : {
+	"armada_metalstorage" : {
 		"role": ["static"],
 		"since": 120,
 		"cooldown": 0,
@@ -346,7 +346,7 @@
 		"cooldown": 0,
 		"limit": 5
 	},
-	"armestor" : {
+	"armada_energystorage" : {
 		"role": ["static"],
 		"since": 120,
 		"cooldown": 0,
@@ -358,7 +358,7 @@
 		"cooldown": 0,
 		"limit": 5
 	},
-	"armuwadvms" : {
+	"armada_hardenedmetalstorage" : {
 		"role": ["static"],
 		"cooldown": 10,
 		"limit": 2
@@ -368,7 +368,7 @@
 		"cooldown": 10,
 		"limit": 2
 	},
-	"armrad": {
+	"armada_radartower": {
 		"role": ["static"],
 		"since": 120
 	},
@@ -376,7 +376,7 @@
 		"role": ["static"],
 		"since": 120
 	},
-	"armgeo": {
+	"armada_geothermalpowerplant": {
 		"role": ["static"],
 		"midposoffset": [0, 0, -2]
 	},
@@ -386,7 +386,7 @@
 //	},
 
 
-	// bot - armlab
+	// bot - armada_botlab
 	"armada_constructionbot": {
 		"role": ["builder"],
 		"limit": 25,
@@ -419,7 +419,7 @@
 		"limit": 0
 	},
 
-	// adv bot - armalab
+	// adv bot - armada_advancedbotlab
 	"armada_advancedconstructionbot": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
@@ -478,7 +478,7 @@
 		"role": ["scout"]
 	},
 
-	// T3 bot - armshltx
+	// T3 bot - armada_experimentalgantry
 	"armmar": {
 		"role": ["raider", "heavy"]
 	},
@@ -497,7 +497,7 @@
 	},
 
 
-	// vehicles - armvp
+	// vehicles - armada_vehicleplant
 	"armcv": {
 		"role": ["builder"],
 		"limit": 20,
@@ -537,7 +537,7 @@
 		"attribute": ["siege"]
 	},
 
-	// adv vehicles - armavp
+	// adv vehicles - armada_advancedvehicleplant
 	"armacv": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
@@ -578,7 +578,7 @@
 		"role": ["assault"]
 	},
 
-	// aircraft - armap
+	// aircraft - armada_aircraftplant
 	"armada_constructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -602,7 +602,7 @@
 		"retreat": 0.6
 	},
 
-	// adv aircraft - armaap
+	// adv aircraft - armada_advancedaircraftplant
 	"armada_advancedconstructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -636,7 +636,7 @@
 		"retreat": 0.5
 	},
 
-	// ships - armsy
+	// ships - armada_shipyard
 	"armcs": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -662,7 +662,7 @@
 		"retreat": 0.5
 	},
 
-	// adv shipyard - armasy
+	// adv shipyard - armada_advancedshipyard
 	"armacsub": {
 		"role": ["builderT2", "sub"],
 		"attribute": ["solo"],
@@ -1041,7 +1041,7 @@
 	},
 
 	// ignore
-	"armdrag": {
+	"armada_dragonsteeth": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1049,7 +1049,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"armfort": {
+	"armada_fortificationwall": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1057,7 +1057,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"armdrag_scav": {
+	"armada_dragonsteeth_scav": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1065,7 +1065,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"armfort_scav": {
+	"armada_fortificationwall_scav": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1075,41 +1075,41 @@
 	},
 
 	// FIXME: temporary factory buildSpeed
-	"armlab": {
+	"armada_botlab": {
 		"role": ["builder"],
 		"build_speed": 4.0
 	},
-	"armvp": {
+	"armada_vehicleplant": {
 		"role": ["builder"],
 		"build_speed": 5.0
 	},
-	"armsy": {
+	"armada_shipyard": {
 		"role": ["builder"],
 		"build_speed": 5.0
 	},
-	"armasy": {
+	"armada_advancedshipyard": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 10.0
 	},
-	"armhp": {
+	"armada_hovercraftplatform": {
 		"role": ["builder"],
 		"build_speed": 6.0
 	},
-	"armfhp": {
+	"armada_navalhovercraftplatform": {
 		"role": ["builder"],
 		"build_speed": 6.0
 	},
-	"armamsub": {
+	"armada_amphibiouscomplex": {
 		"role": ["builder"],
 		"build_speed": 8.0
 	},
-	"armplat": {
+	"armada_seaplaneplatform": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 8.0
 	},
-	"armshltxuw": {
+	"armada_experimentalgantryuw": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,

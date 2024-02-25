@@ -25,7 +25,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORPUN.s3o",
 		onoffable = true,
-		script = "Units/armguard.cob",
+		script = "Units/armada_gauntlet.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 455,

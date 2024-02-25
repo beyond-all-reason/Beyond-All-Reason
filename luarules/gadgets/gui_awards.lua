@@ -22,30 +22,30 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isEcon = {
 		--land t1
-		[UnitDefNames.armsolar.id] = true,
+		[UnitDefNames.armada_solarcollector.id] = true,
 		[UnitDefNames.corsolar.id] = true,
-		[UnitDefNames.armadvsol.id] = true,
+		[UnitDefNames.armada_advancedsolarcollector.id] = true,
 		[UnitDefNames.coradvsol.id] = true,
-		[UnitDefNames.armwin.id] = true,
+		[UnitDefNames.armada_windturbine.id] = true,
 		[UnitDefNames.corwin.id] = true,
-		[UnitDefNames.armmakr.id] = true,
+		[UnitDefNames.armada_energyconverter.id] = true,
 		[UnitDefNames.cormakr.id] = true,
 		--sea t1
-		[UnitDefNames.armtide.id] = true,
+		[UnitDefNames.armada_tidalgenerator.id] = true,
 		[UnitDefNames.cortide.id] = true,
-		[UnitDefNames.armfmkr.id] = true,
+		[UnitDefNames.armada_navalenergyconverter.id] = true,
 		[UnitDefNames.corfmkr.id] = true,
 		--land t2
-		[UnitDefNames.armmmkr.id] = true,
+		[UnitDefNames.armada_advancedenergyconverter.id] = true,
 		[UnitDefNames.cormmkr.id] = true,
 		[UnitDefNames.corfus.id] = true,
-		[UnitDefNames.armfus.id] = true,
-		[UnitDefNames.armafus.id] = true,
+		[UnitDefNames.armada_fusionreactor.id] = true,
+		[UnitDefNames.armada_advancedfusionreactor.id] = true,
 		[UnitDefNames.corafus.id] = true,
 		--sea t2
-		[UnitDefNames.armuwfus.id] = true,
+		[UnitDefNames.armada_navalfusionreactor.id] = true,
 		[UnitDefNames.coruwfus.id] = true,
-		[UnitDefNames.armuwmmm.id] = true,
+		[UnitDefNames.armada_navaladvancedenergyconverter.id] = true,
 		[UnitDefNames.coruwmmm.id] = true,
 	}
 	for udid, ud in pairs(UnitDefs) do

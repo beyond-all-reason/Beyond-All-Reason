@@ -569,26 +569,26 @@ GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime 
 
 
 
---armbrtha
-muzzleFlashLights[WeaponDefNames["armbrtha_lrpc"].id] =
+--armada_basilica
+muzzleFlashLights[WeaponDefNames["armada_basilica_lrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.6,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											 lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armbrtha_lrpc"].id].yOffset = 8
-explosionLights[WeaponDefNames["armbrtha_lrpc"].id] =
+muzzleFlashLights[WeaponDefNames["armada_basilica_lrpc"].id].yOffset = 8
+explosionLights[WeaponDefNames["armada_basilica_lrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
---armvulc
-muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id] =
+--armada_ragnarok
+muzzleFlashLights[WeaponDefNames["armada_ragnarok_rflrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
 											 lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id].yOffset = 4
-explosionLights[WeaponDefNames["armvulc_rflrpc"].id] =
+muzzleFlashLights[WeaponDefNames["armada_ragnarok_rflrpc"].id].yOffset = 4
+explosionLights[WeaponDefNames["armada_ragnarok_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 --corbuzz
@@ -628,27 +628,27 @@ GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
---armsilo
-explosionLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
+--armada_armageddon
+explosionLights[WeaponDefNames["armada_armageddon_nuclear_missile"].id] =
 GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
 										 sustain = 25, lifetime = 180,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---armsilo engine
-projectileDefLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
+--armada_armageddon engine
+projectileDefLights[WeaponDefNames["armada_armageddon_nuclear_missile"].id] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
---armsilo SCAV
-explosionLights[WeaponDefNames["armsilo_scav_nuclear_missile"].id] =
+--armada_armageddon SCAV
+explosionLights[WeaponDefNames["armada_armageddon_scav_nuclear_missile"].id] =
 GetLightClass("Explosion", nil, "Giga", {r = 2, g = 1, b = 3, a = 0.18,
 										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 110,
 										 sustain = 25, lifetime = 180,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---armsilo engine SCAV
-projectileDefLights[WeaponDefNames["armsilo_scav_nuclear_missile"].id] =
+--armada_armageddon engine SCAV
+projectileDefLights[WeaponDefNames["armada_armageddon_scav_nuclear_missile"].id] =
 GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
@@ -787,14 +787,14 @@ GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---armjuno
-projectileDefLights[WeaponDefNames["armjuno_juno_pulse"].id] =
+--armada_juno
+projectileDefLights[WeaponDefNames["armada_juno_juno_pulse"].id] =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
 											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
-explosionLights[WeaponDefNames["armjuno_juno_pulse"].id] =
+explosionLights[WeaponDefNames["armada_juno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.9, g = 1.1, b = 0.45,
@@ -802,12 +802,12 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 15, lifetime = 500,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
---armjuno SCAV
-projectileDefLights[WeaponDefNames["armjuno_scav_juno_pulse"].id] =
+--armada_juno SCAV
+projectileDefLights[WeaponDefNames["armada_juno_scav_juno_pulse"].id] =
 GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
 											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
-explosionLights[WeaponDefNames["armjuno_scav_juno_pulse"].id] =
+explosionLights[WeaponDefNames["armada_juno_scav_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.75, g = 0.6, b = 1.0,
@@ -843,22 +843,22 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 10, lifetime = 400,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
--- --armanni
--- projectileDefLights[WeaponDefNames["armanni_ata"].id] =
+-- --armada_pulsar
+-- projectileDefLights[WeaponDefNames["armada_pulsar_ata"].id] =
 -- GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
 -- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 -- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 -- 											lifetime = 0, sustain = 0})
 
--- --armannit3
--- projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
+-- --armada_pulsart3
+-- projectileDefLights[WeaponDefNames["armada_pulsart3_ata"].id] =
 -- GetLightClass("LaserProjectile", "Blue", "Mediumer", {a = 0.09,
 -- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 -- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
 -- 											lifetime = 0, sustain = 0})
 
--- --armannit3_scav
--- projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
+-- --armada_pulsart3_scav
+-- projectileDefLights[WeaponDefNames["armada_pulsart3_scav_ata"].id] =
 -- GetLightClass("LaserProjectile", "Purple", "Mediumer", {a = 0.09,
 -- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 -- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
@@ -886,9 +886,9 @@ GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 3, sustain = 0})
 
---armanni_scav
+--armada_pulsar_scav
 -- could use a custom script that replaces color for all _scav units with "purple"
-projectileDefLights[WeaponDefNames["armanni_scav_ata"].id] =
+projectileDefLights[WeaponDefNames["armada_pulsar_scav_ata"].id] =
 GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
@@ -965,8 +965,8 @@ GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										sustain = 10, lifetime = 38,
 										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---armrl engine
-projectileDefLights[WeaponDefNames["armrl_armrl_missile"].id] =
+--armada_nettle engine
+projectileDefLights[WeaponDefNames["armada_nettle_armada_nettle_missile"].id] =
 GetLightClass("MissileProjectile", "Purple", "Tiny", {a = 0.7,
 										color2r = 0.5, color2g = 0.2, color2b = 0.8, colortime = 1.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 2})

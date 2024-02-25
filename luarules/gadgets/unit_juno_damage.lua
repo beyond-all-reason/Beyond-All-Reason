@@ -20,19 +20,19 @@ if gadgetHandler:IsSyncedCode() then
 	-- Config
 	----------------------------------------------------------------
 	local tokillUnits = {
-		[UnitDefNames.armarad.id] = true,
+		[UnitDefNames.armada_advancedradartower.id] = true,
 		[UnitDefNames.armada_radarjammerbot.id] = true,
-		[UnitDefNames.armason.id] = true,
-		[UnitDefNames.armeyes.id] = true,
-		[UnitDefNames.armfrad.id] = true,
+		[UnitDefNames.armada_advancedsonarstation.id] = true,
+		[UnitDefNames.armada_beholder.id] = true,
+		[UnitDefNames.armada_navalradar.id] = true,
 		[UnitDefNames.armjam.id] = true,
-		[UnitDefNames.armjamt.id] = true,
+		[UnitDefNames.armada_sneakypete.id] = true,
 		[UnitDefNames.armada_compass.id] = true,
-		[UnitDefNames.armrad.id] = true,
+		[UnitDefNames.armada_radartower.id] = true,
 		[UnitDefNames.armseer.id] = true,
 		[UnitDefNames.armsjam.id] = true,
-		[UnitDefNames.armsonar.id] = true,
-		[UnitDefNames.armveil.id] = true,
+		[UnitDefNames.armada_sonarstation.id] = true,
+		[UnitDefNames.armada_veil.id] = true,
 		[UnitDefNames.corarad.id] = true,
 		[UnitDefNames.corason.id] = true,
 		[UnitDefNames.coreter.id] = true,
@@ -102,9 +102,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeapons = {
-		[WeaponDefNames.armjuno_juno_pulse.id] = true,
+		[WeaponDefNames.armada_juno_juno_pulse.id] = true,
 		[WeaponDefNames.corjuno_juno_pulse.id] = true,
-		[WeaponDefNames.armjuno_scav_juno_pulse.id] = true,
+		[WeaponDefNames.armada_juno_scav_juno_pulse.id] = true,
 		[WeaponDefNames.corjuno_scav_juno_pulse.id] = true,
 	}
 
@@ -129,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 	local counter = 1 --index each explosion of juno missile with this counter
 
 	function gadget:Initialize()
-		Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
+		Script.SetWatchExplosion(WeaponDefNames.armada_juno_juno_pulse.id, true)
 		Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)
 	end
 

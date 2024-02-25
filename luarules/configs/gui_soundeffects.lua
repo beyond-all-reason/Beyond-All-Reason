@@ -26,7 +26,7 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T1 BUILDINGS
 
-	armrad = {
+	armada_radartower = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
@@ -34,13 +34,13 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armfrad = {
+	armada_navalradar = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
 	},
 
-	armsonar = {
+	armada_sonarstation = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
@@ -48,13 +48,13 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armjamt = {
+	armada_sneakypete = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "jammer",
 	},
 
-	armmex = {
+	armada_metalextractor = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
@@ -62,7 +62,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mexoff",
 	},
 
-	armamex = {
+	armada_twilight = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
@@ -70,7 +70,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mexoff",
 	},
 
-	armmakr = {
+	armada_energyconverter = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
@@ -78,7 +78,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	armfmkr = {
+	armada_navalenergyconverter = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
@@ -86,19 +86,19 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	armwin = {
+	armada_windturbine = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-windgen",
 	},
 
-	armtide = {
+	armada_tidalgenerator = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrghum",
 	},
 
-	armsolar = {
+	armada_solarcollector = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt",
@@ -106,157 +106,157 @@ GUIUnitSoundEffects = {
 		BaseSoundDeactivate = "arm-bld-solar-deactivate",
 	},
 
-	armadvsol = {
+	armada_advancedsolarcollector = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt-adv",
 	},
 
-	armgeo = {
+	armada_geothermalpowerplant = {
 		BaseSoundSelectType = "arm-bld-select-medium",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo",
 	},
 
-	armmstor = {
+	armada_metalstorage = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage",
 	},
 
-	armuwms = {
+	armada_navalmetalstorage = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
 
-	armestor = {
+	armada_energystorage = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage",
 	},
 
-	armuwes = {
+	armada_navalenergystorage = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-nrg",
 	},
 
-	armnanotc = {
+	armada_constructionturret = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	armnanotcplat = {
+	armada_constructionturretplat = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	armfdrag = {
+	armada_sharksteeth = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-water",
 	},
 
-	armdrag = {
+	armada_dragonsteeth = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall",
 	},
 
-	armeyes = {
+	armada_beholder = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
 	},
 
-	armllt = {
+	armada_sentry = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-small",
 	},
 
-	armhlt = {
+	armada_overwatch = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-medium",
 	},
 
-	armfhlt = {
+	armada_manta = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-medium",
 	},
 
-	armbeamer = {
+	armada_beamer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "beamer",
 	},
 
-	armrl = {
+	armada_nettle = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-small",
 	},
 
-	armfrt = {
+	armada_navalnettle = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-small",
 	},
 
-	armtl = {
+	armada_harpoon = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	armptl = {
+	armada_harpoon2 = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	armdl = {
+	armada_anemone = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	armclaw = {
+	armada_dragonsclaw = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "lightning",
 	},
 
-	armferret = {
+	armada_ferret = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	armfrock = {
+	armada_scumbag = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	armcir = {
+	armada_chainsaw = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	armguard = {
+	armada_gauntlet = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arty-medium",
 	},
 
-	armjuno = {
+	armada_juno = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "bld-juno",
@@ -264,7 +264,7 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T2 BUILDINGS
 
-	armarad = {
+	armada_advancedradartower = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
@@ -272,19 +272,19 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armveil = {
+	armada_veil = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "jammer-t2",
 	},
 
-	armason = {
+	armada_advancedsonarstation = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sonar-t2",
 	},
 
-	armtarg = {
+	armada_pinpointer = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
@@ -292,7 +292,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armfatf = {
+	armada_navalpinpointer = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
@@ -300,7 +300,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armmoho = {
+	armada_advancedmetalextractor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
@@ -308,7 +308,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mohooff1",
 	},
 
-	armshockwave = {
+	armada_shockwave = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "emp-rocket",
@@ -316,7 +316,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mohooff1",
 	},
 
-	armuwmme = {
+	armada_navaladvancedmetalextractor = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
@@ -324,7 +324,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mohooff1",
 	},
 
-	armmmkr = {
+	armada_advancedenergyconverter = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
@@ -332,7 +332,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	armuwmmm = {
+	armada_navaladvancedenergyconverter = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
@@ -340,121 +340,121 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	armuwadvms = {
+	armada_hardenedmetalstorage = {
 		BaseSoundSelectType = "arm-bld-metal-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
 
-	armuwadves = {
+	armada_hardenedenergystorage = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-nrg",
 	},
 
-	armgmm = {
+	armada_prude = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-safe",
 	},
 
-	armageo = {
+	armada_advancedgeothermalpowerplant = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
 	},
 
-	armfus = {
+	armada_fusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion",
 	},
 
-	armckfus = {
+	armada_cloakablefusionreactor = {
 		BaseSoundSelectType = "cloak",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion",
 	},
 
-	armdf = {
+	armada_decoyfusionreactor = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-decoy",
 	},
 
-	armafus = {
+	armada_advancedfusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
 	},
 
-	armuwfus = {
+	armada_navalfusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-uw",
 	},
 
-	armfort = {
+	armada_fortificationwall = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
-	armflak = {
+	armada_arbalest = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flak",
 	},
 
-	armfflak = {
+	armada_navalarbalest = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flak",
 	},
 
-	armkraken = {
+	armada_gorgon = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "plasma-large",
 	},
 
-	armmercury = {
+	armada_mercury = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-large",
 	},
 
-	armpb = {
+	armada_pitbull = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "plasma-large-alt",
 	},
 
-	armamb = {
+	armada_rattlesnake = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arty-large",
 	},
 
-	armatl = {
+	armada_moray = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
 
-	armamd = {
+	armada_citadel = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "nuke-anti",
 	},
 
-	armemp = {
+	armada_paralyzer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "emp-rocket",
 	},
 
-	armsd = {
+	armada_tracer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
@@ -462,37 +462,37 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armgate = {
+	armada_keeper = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
-	armfgate = {
+	armada_aurora = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
-	armsilo = {
+	armada_armageddon = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "nuke",
 	},
 
-	armanni = {
+	armada_pulsar = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",
 	},
 
-	armbrtha = {
+	armada_basilica = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "lrpc",
 	},
 
-	armvulc = {
+	armada_ragnarok = {
 		BaseSoundSelectType = "lrpc",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
@@ -501,73 +501,73 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA FACTORIES
 
-	armlab = {
+	armada_botlab = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab",
 	},
 
-	armalab = {
+	armada_advancedbotlab = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
 	},
 
-	armvp = {
+	armada_vehicleplant = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-vp",
 	},
 
-	armavp = {
+	armada_advancedvehicleplant = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-vp-t2",
 	},
 
-	armap = {
+	armada_aircraftplant = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ap",
 	},
 
-	armplat = {
+	armada_seaplaneplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sp",
 	},
 
-	armaap = {
+	armada_advancedaircraftplant = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ap-t2",
 	},
 
-	armsy = {
+	armada_shipyard = {
 		BaseSoundSelectType   = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-water",
 	},
 
-	armasy = {
+	armada_advancedshipyard = {
 		BaseSoundSelectType   = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
 	},
 
-	armamsub = {
+	armada_amphibiouscomplex = {
 		BaseSoundSelectType   = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
 	},
 
-	armhp = {
+	armada_hovercraftplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-factory-hover",
 	},
 
-	armfhp = {
+	armada_navalhovercraftplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
@@ -579,13 +579,13 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-repairpad",
 	},
 
-	armshltx = {
+	armada_experimentalgantry = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
 	},
 
-	armshltxuw = {
+	armada_experimentalgantryuw = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
@@ -593,25 +593,25 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA MINES
 
-	armmine1 = {
+	armada_lightmine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-small",
 	},
 
-	armmine2 = {
+	armada_mediummine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-medium",
 	},
 
-	armmine3 = {
+	armada_heavymine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large",
 	},
 
-	armfmine3 = {
+	armada_heavymine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large-water",
@@ -2681,9 +2681,9 @@ GUIUnitSoundEffects = {
 
 
 
-	armuwmex = {},
+	armada_navalmetalextractor = {},
 	coruwmex = {},
-	armgplat = {},
+	armada_gunplatform = {},
 	corgplat = {},
 	dbg_sphere = {},
 	dbg_sphere_fullmetal = {},
@@ -2744,8 +2744,8 @@ GUIUnitSoundEffects = {
 
 	coruwgeo = corgeo,
 	coruwageo = corageo,
-	armuwgeo = armgeo,
-	armuwageo = armageo,
+	armada_geothermalpowerplant = armada_geothermalpowerplant,
+	armada_advancedgeothermalpowerplant = armada_advancedgeothermalpowerplant,
 
 }
 

@@ -1245,8 +1245,8 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 
 	local WALLS = {
-		"armdrag",
-		"armfort",
+		"armada_dragonsteeth",
+		"armada_fortificationwall",
 		"cordrag",
 		"corfort",
 		"scavdrag",
@@ -1300,7 +1300,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			-- Decoy fusion support
-			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
+			if unitDef.customParams and unitDef.customParams.decoyfor == "armada_fusionreactor" then
 				ecoValue = ecoValue + 1000
 			end
 

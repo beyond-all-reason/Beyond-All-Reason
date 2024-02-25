@@ -81,7 +81,7 @@ local sounds = {
 	toggleOffClick = 'LuaUI/Sounds/switchoff.wav',
 }
 
-local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearmada_aircraftplantmarks", 0) == 1
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 --local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -992,7 +992,7 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
 		sec2 = 0
-		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearmada_aircraftplantmarks", 0) == 1
 
 		-- make sure widget is enabled
 		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
@@ -3598,11 +3598,11 @@ function init()
 		  end,
 		},
 
-		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = Spring.I18N('ui.settings.option.continuouslyclearmapmarks'), type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = Spring.I18N('ui.settings.option.continuouslyclearmapmarks_descr'),
+		{ id = "continuouslyclearmada_aircraftplantmarks", group = "ui", category = types.dev, name = Spring.I18N('ui.settings.option.continuouslyclearmada_aircraftplantmarks'), type = "bool", value = Spring.GetConfigInt("ContinuouslyClearmada_aircraftplantmarks", 0) == 1, description = Spring.I18N('ui.settings.option.continuouslyclearmada_aircraftplantmarks_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
+			  Spring.SetConfigInt("ContinuouslyClearmada_aircraftplantmarks", (value and 1 or 0))
 			  if value then
-				  Spring.SendCommands({"clearmapmarks"})
+				  Spring.SendCommands({"clearmada_aircraftplantmarks"})
 			  end
 		  end,
 		},
@@ -5803,17 +5803,17 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armjamt"].id] = true,
+		[UnitDefNames["armada_sneakypete"].id] = true,
 		[UnitDefNames["armada_decoycommander"].id] = false,
 		[UnitDefNames["cortex_decoycommander"].id] = false,
-		[UnitDefNames["armferret"].id] = false,
-		[UnitDefNames["armamb"].id] = false,
-		[UnitDefNames["armpb"].id] = false,
+		[UnitDefNames["armada_ferret"].id] = false,
+		[UnitDefNames["armada_rattlesnake"].id] = false,
+		[UnitDefNames["armada_pitbull"].id] = false,
 		[UnitDefNames["armada_sharpshooter"].id] = false,
 		[UnitDefNames["corsktl"].id] = false,
 		[UnitDefNames["armgremlin"].id] = false,
-		[UnitDefNames["armamex"].id] = true,
-		[UnitDefNames["armckfus"].id] = true,
+		[UnitDefNames["armada_twilight"].id] = true,
+		[UnitDefNames["armada_cloakablefusionreactor"].id] = true,
 		[UnitDefNames["armada_ghost"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
 	}

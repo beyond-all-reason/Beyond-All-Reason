@@ -38,7 +38,7 @@
           "prospector":{
             "metalExtraction":"可提炼金属: %{amount}"
           },
-          "clearMapmarks":{
+          "clearmada_aircraftplantmarks":{
             "tooltipctrl":"按CTRL键连续清除",
             "tooltip":"清晰的地图标记/图画"
           },
@@ -314,7 +314,7 @@
             },
             "console":{
               "pause":"暂停",
-              "eraseKey":"/clearmapmarks",
+              "eraseKey":"/clearmada_aircraftplantmarks",
               "erase":"清除所有涂鸦(标记)",
               "title":"控制台",
               "pauseKey":"/pause"

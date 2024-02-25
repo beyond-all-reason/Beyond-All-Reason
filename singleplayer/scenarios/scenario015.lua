@@ -57,7 +57,7 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 	losscondition	= "Loss of your Commander",  -- This is plaintext, but should be reflected in startscript
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
-        --armavp = 0,
+        --armada_advancedvehicleplant = 0,
         --coravp = 0,
     } ,
 	

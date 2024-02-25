@@ -11,9 +11,9 @@ function BPWallOrPopup(faction, tier)
 		if tier == 1 then
 			if faction == "arm" then
 				if r == 15 then
-					return UDN.armclaw_scav.id
+					return UDN.armada_dragonsclaw_scav.id
 				else
-					return UDN.armdrag_scav.id
+					return UDN.armada_dragonsteeth_scav.id
 				end
 			elseif faction == "cor" then
 				if r == 15 then
@@ -38,9 +38,9 @@ function BPWallOrPopup(faction, tier)
 		elseif tier == 2 then
 			if faction == "arm" then
 				if r == 15 then
-					return UDN.armclaw_scav.id
+					return UDN.armada_dragonsclaw_scav.id
 				else
-					return UDN.armfort_scav.id
+					return UDN.armada_fortificationwall_scav.id
 				end
 			elseif faction == "cor" then
 				if r == 15 then

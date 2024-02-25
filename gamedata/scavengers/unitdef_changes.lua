@@ -36,7 +36,7 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
-customDefs.armsilo = {
+customDefs.armada_armageddon = {
 	weapondefs = {
 		nuclear_missile = {
 			stockpile = false,
@@ -64,7 +64,7 @@ customDefs.corsilo = {
 	},
 }
 
-customDefs.armjuno = {
+customDefs.armada_juno = {
 	weapondefs = {
 		juno_pulse = {
 			stockpile = false,
@@ -117,16 +117,16 @@ customDefs.cortex_decoycommander = {
 	decoyfor = "cortex_decoycommander_scav",
 }
 
-customDefs.armclaw = {
-	decoyfor = "armdrag_scav",
+customDefs.armada_dragonsclaw = {
+	decoyfor = "armada_dragonsteeth_scav",
 }
 
 customDefs.cormaw = {
 	decoyfor = "cordrag_scav",
 }
 
-customDefs.armdf = {
-	decoyfor = "armfus_scav",
+customDefs.armada_decoyfusionreactor = {
+	decoyfor = "armada_fusionreactor_scav",
 }
 
 customDefs.corscavdtf = {
@@ -569,8 +569,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- local numBuildoptions = #UnitDefs.armshltx.buildoptions
--- customDefs.armshltx = {
+-- local numBuildoptions = #UnitDefs.armada_experimentalgantry.buildoptions
+-- customDefs.armada_experimentalgantry = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
 -- 		[numBuildoptions+2] = "armada_recluset4",
@@ -582,8 +582,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armshltxuw.buildoptions
--- customDefs.armshltxuw = {
+-- numBuildoptions = #UnitDefs.armada_experimentalgantryuw.buildoptions
+-- customDefs.armada_experimentalgantryuw = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armrattet4",
 -- 		[numBuildoptions+2] = "armada_pawnt4",
@@ -629,8 +629,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armasy.buildoptions
--- customDefs.armasy = {
+-- numBuildoptions = #UnitDefs.armada_advancedshipyard.buildoptions
+-- customDefs.armada_advancedshipyard = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armptt2",
 -- 		[numBuildoptions+2] = "armdecadet3",
@@ -645,8 +645,8 @@ customDefs.corscavdtl = {
 -- -- 	},
 -- -- }
 
--- -- numBuildoptions = #UnitDefs.armap.buildoptions
--- -- customDefs.armap = {
+-- -- numBuildoptions = #UnitDefs.armada_aircraftplant.buildoptions
+-- -- customDefs.armada_aircraftplant = {
 -- -- 	buildoptions = {
 -- -- 		[numBuildoptions+1] = "armassistdrone",
 -- -- 	},
@@ -718,36 +718,36 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_advancedconstructionaircraft.buildoptions
 -- customDefs.armada_advancedconstructionaircraft = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armapt3",
+-- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armminivulc",
--- 		[numBuildoptions+3] = "armwint2",
+-- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armbotrail",
--- 		[numBuildoptions+6] = "armannit3",
+-- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armada_advancedconstructionbot.buildoptions
 -- customDefs.armada_advancedconstructionbot = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armapt3",
+-- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armminivulc",
--- 		[numBuildoptions+3] = "armwint2",
+-- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armbotrail",
--- 		[numBuildoptions+6] = "armannit3",
+-- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armacv.buildoptions
 -- customDefs.armacv = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armapt3",
+-- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armminivulc",
--- 		[numBuildoptions+3] = "armwint2",
+-- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armbotrail",
--- 		[numBuildoptions+6] = "armannit3",
+-- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
 
@@ -790,12 +790,12 @@ customDefs.corscavdtl = {
 -- --[[
 -- -- Cloaked Radar
 
--- customDefs.armrad = {
+-- customDefs.armada_radartower = {
 -- 	cloakcost = 6,
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.armarad = {
+-- customDefs.armada_advancedradartower = {
 -- 	cloakcost = 12,
 -- 	mincloakdistance = 144,
 -- }
@@ -813,14 +813,14 @@ customDefs.corscavdtl = {
 
 -- -- Cloaked Jammers
 
--- customDefs.armjamt = {
+-- customDefs.armada_sneakypete = {
 -- 	cloakcost = 10,
 -- 	mincloakdistance = 144,
 -- --	radardistancejam = 700,
 -- 	sightdistance = 250,
 -- }
 
--- customDefs.armveil = {
+-- customDefs.armada_veil = {
 -- 	cloakcost = 25,
 -- 	mincloakdistance = 288,
 -- --	radardistancejam = 900,
@@ -951,11 +951,11 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Custom ARM ambusher - NO cloak since looks weird/ugly atm
--- customDefs.armamb = {
+-- customDefs.armada_rattlesnake = {
 -- 	-- cancloak = false,
 -- 	-- stealth = true,
 -- 	weapondefs = {
--- 		armamb_gun = {
+-- 		armada_rattlesnake_gun = {
 -- 			impulseboost = 0.5,
 -- 			impulsefactor = 2,
 -- 		},
@@ -1009,9 +1009,9 @@ customDefs.corscavdtl = {
 -- 	},
 --  }
 
--- -- customDefs.armemp = {
+-- -- customDefs.armada_paralyzer = {
 -- -- 	weapondefs = {
--- -- 		armemp_weapon = {
+-- -- 		armada_paralyzer_weapon = {
 -- -- 			--range = 1800,
 -- -- 			stockpiletime = 120, --25,
 -- -- 		}
@@ -1027,7 +1027,7 @@ customDefs.corscavdtl = {
 -- -- 	}
 -- -- }
 
--- customDefs.armmercury = {
+-- customDefs.armada_mercury = {
 -- 	weapondefs = {
 -- 		arm_advsam = {
 -- 			range = 1800,
@@ -1049,7 +1049,7 @@ customDefs.corscavdtl = {
 
 
 -- -- Faster LLT - unique sound - shorter beamtime
--- customDefs.armllt = {
+-- customDefs.armada_sentry = {
 -- 	-- cloakcost = 6,
 -- 	-- mincloakdistance = 144,
 -- 	weapondefs = {

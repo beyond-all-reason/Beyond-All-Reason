@@ -409,7 +409,7 @@ for id = 1, #FeatureDefs do
 
 				local wreckNormalTex = featureDef.model.textures.tex1  and
 					((lowercasetex1:find("arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasetex1:find("arm_color") and "unittextures/Arm_normal.dds") or -- for things like dead dragons claw armclaw
+					(lowercasetex1:find("arm_color") and "unittextures/Arm_normal.dds") or -- for things like dead dragons claw armada_dragonsclaw
 					(lowercasetex1:find("cor_color.dds",1,true) and "unittextures/cor_normal.dds") or -- for things like dead dragons maw cormaw
 					(lowercasetex1:find("cor_color_wreck") and "unittextures/cor_color_wreck_normal.dds"))
 

@@ -10,29 +10,29 @@
 					// limit = random(<lower limit>..<upper limit>)
 					//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
 					//higer value => more efficient | e-output * e-output / mcost*x*y
-					"armwin": [30, 60],
-					"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
-					"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
-					//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
-					"armgmm":[4, 8, 25, 600, 2.2],
-					//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
-					"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
-					"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
-					"armafus": [50,100, 70, 4000, 6.44],
-                    "armuwfus": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
+					"armada_windturbine": [30, 60],
+					"armada_solarcollector": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
+					"armada_advancedsolarcollector": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
+					//"armada_geothermalpowerplant": [4, 8, 16, 300, 0.6], //eff 0.6
+					"armada_prude":[4, 8, 25, 600, 2.2],
+					//"armada_advancedgeothermalpowerplant":[0, 1, 35, 1000, 3.0], //eff 3.0
+					"armada_fusionreactor": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
+					"armada_cloakablefusionreactor": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
+					"armada_advancedfusionreactor": [50,100, 70, 4000, 6.44],
+                    "armada_navalfusionreactor": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
 				},
 				"water": {
-					"armtide": [45, 60],
-					"armwin": [30, 60],
-                    "armsolar": [12, 14, 0, 0, 0.030],
-                    "armadvsol": [16, 20, 12, 220, 0.200],
-                    //"armgeo": [4, 8, 16, 300, 0.6], //0.6
-                    "armgmm":[4,8, 25, 600, 2.2], 
-                    //"armageo": [0, 1, 35, 1000, 3.0], //3.0
-                    "armfus": [4, 6, 30, 900, 2.0],	
-					"armckfus": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
-					"armafus": [50,100, 70, 4000, 6.44],  // efficiency=6.443299					
-					"armuwfus": [50, 100, 35, 600, 2.8]
+					"armada_tidalgenerator": [45, 60],
+					"armada_windturbine": [30, 60],
+                    "armada_solarcollector": [12, 14, 0, 0, 0.030],
+                    "armada_advancedsolarcollector": [16, 20, 12, 220, 0.200],
+                    //"armada_geothermalpowerplant": [4, 8, 16, 300, 0.6], //0.6
+                    "armada_prude":[4,8, 25, 600, 2.2], 
+                    //"armada_advancedgeothermalpowerplant": [0, 1, 35, 1000, 3.0], //3.0
+                    "armada_fusionreactor": [4, 6, 30, 900, 2.0],	
+					"armada_cloakablefusionreactor": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
+					"armada_advancedfusionreactor": [50,100, 70, 4000, 6.44],  // efficiency=6.443299					
+					"armada_navalfusionreactor": [50, 100, 35, 600, 2.8]
 				}
 			},
 			"cortex": {
@@ -70,8 +70,8 @@
 
 		"cost_ratio": 0.040, //0.43
 		// min. limit for energy to cost ratio to have access to next energy tier 
-		// (e.g. armfusion ecost (21000*0.04=1260 => 840e income neccessary to start building fusion)
-		// ratio 0.4 => armadvsol 200e, armfus 840e, armafus 2760e
+		// (e.g. armada_fusionreactorion ecost (21000*0.04=1260 => 840e income neccessary to start building fusion)
+		// ratio 0.4 => armada_advancedsolarcollector 200e, armada_fusionreactor 840e, armada_advancedfusionreactor 2760e
 
         "em_ratio": 0.08,  // energy to metal ratio, used with UnitDef.build_speed
 	
@@ -82,11 +82,11 @@
 	//size of mex cluster between two points
 
 	"geo": {
-		"armada": "armgeo",
+		"armada": "armada_geothermalpowerplant",
 		"cortex": "corgeo"
 	},
 	"mex": {
-		"armada": "armmex",
+		"armada": "armada_metalextractor",
 		"cortex": "cormex"
 	},
 // buildpower -  Mobile buildpower to metal income ratio,
@@ -129,15 +129,15 @@
 	// [3] - multiplier for total factory energy-expenditure, used as condition for new factory or assistant
 	"production": [0.8, 0.8, 1.0, 0.8],
 
-	//"terra": "armsy",
+	//"terra": "armada_shipyard",
 	"assist": {
-		"armada": "armnanotc",
+		"armada": "armada_constructionturret",
 		"cortex": "cornanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
-		"armada": "armwin",
+		"armada": "armada_windturbine",
 		"cortex": "corwin"
 	}
 }

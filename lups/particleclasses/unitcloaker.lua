@@ -181,7 +181,7 @@ function UnitCloaker.Initialize()
       uniform sampler2D texture1;
       uniform sampler2D texture2;
       uniform sampler2D noiseMap;
-      uniform samplerCube specularMap;
+      uniform samplerCube specularmada_aircraftplant;
       uniform samplerCube reflectMap;
       uniform float     life;
 
@@ -205,7 +205,7 @@ function UnitCloaker.Initialize()
 
           vec3 reflectDir = reflect(viewdir, normalize(normal));
 
-          //vec3 spec = textureCube(specularMap, reflectDir).rgb * 4.0 * extraColor.g; // disable spec while it is broken in engine 941 cause of the 3dtextures shenanigans
+          //vec3 spec = textureCube(specularmada_aircraftplant, reflectDir).rgb * 4.0 * extraColor.g; // disable spec while it is broken in engine 941 cause of the 3dtextures shenanigans
           vec3 refl = textureCube(reflectMap,  reflectDir).rgb;
           refl  = mix(gl_SecondaryColor.rgb, refl, extraColor.g); 
           refl += extraColor.r;
@@ -227,7 +227,7 @@ function UnitCloaker.Initialize()
       texture1    = 0,
       texture2    = 1,
       noiseMap    = 2,
-      specularMap = 3,
+      specularmada_aircraftplant = 3,
       reflectMap  = 4,
     },
     uniformFloat = {

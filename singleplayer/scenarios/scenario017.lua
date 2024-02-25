@@ -47,7 +47,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 	losscondition	= "Loss of all allied Commanders",  -- This is plaintext, but should be reflected in startscript
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
-        --armavp = 0,
+        --armada_advancedvehicleplant = 0,
         --coravp = 0,
     } ,
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game

@@ -107,10 +107,10 @@ end
 local function SetupMexDefInfos()
 	local minExtractsMetal
 
-	local armMexDef = UnitDefNames["armmex"]
+	local armada_metalextractorDef = UnitDefNames["armada_metalextractor"]
 
-	if armMexDef and armMexDef.extractsMetal > 0 then
-		defaultDefID = UnitDefNames["armmex"].id
+	if armada_metalextractorDef and armada_metalextractorDef.extractsMetal > 0 then
+		defaultDefID = UnitDefNames["armada_metalextractor"].id
 		minExtractsMetal = 0
 	end
 

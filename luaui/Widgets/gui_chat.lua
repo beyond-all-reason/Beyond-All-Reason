@@ -173,7 +173,7 @@ local autocompleteCommands = {
 	'chatally',
 	'chatspec',
 	'cheat',
-	'clearmapmarks',
+	'clearmada_aircraftplantmarks',
 	--'clock',
 	'cmdcolors',
 	'commandhelp',

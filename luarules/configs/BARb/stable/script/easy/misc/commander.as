@@ -44,19 +44,19 @@ dictionary@ GetOpenInfo()
 {
 	return dictionary = {
 		{Commander::armada_commander, SOpener({
-			{Factory::armlab, array<SQueue> = {
+			{Factory::armada_botlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::SKIRM), SO(RT::BUILDER), SO(RT::SKIRM), SO(RT::BUILDER)})
 			}},
-			{Factory::armalab, array<SQueue> = {
+			{Factory::armada_advancedbotlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 3), SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::AA), SO(RT::BUILDER2)})
 			}},
-			{Factory::armavp, array<SQueue> = {
+			{Factory::armada_advancedvehicleplant, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
 			}},
-			{Factory::armasy, array<SQueue> = {
+			{Factory::armada_advancedshipyard, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
 			}},
-			{Factory::armap, array<SQueue> = {
+			{Factory::armada_aircraftplant, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::AA), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::BOMBER), SO(RT::SCOUT)})
 			}}
 			}, {SO(RT::RAIDER), SO(RT::BUILDER)})

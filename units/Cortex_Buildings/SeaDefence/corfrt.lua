@@ -86,7 +86,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armrl_missile = {
+			armada_nettle_missile = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				burnblow = true,
@@ -137,7 +137,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "ARMRL_MISSILE",
+				def = "armada_nettle_MISSILE",
 				onlytargetcategory = "VTOL",
 				fastautoretargeting = true,
 			},

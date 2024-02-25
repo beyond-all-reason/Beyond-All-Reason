@@ -52,11 +52,11 @@ return {
 		turnrate = 629,
 		workertime = 40,
 		buildoptions = {
-			[1] = "armmine1",
-			[2] = "armmine2",
-			[3] = "armmine3",
-			[4] = "armdrag",
-			[5] = "armeyes",
+			[1] = "armada_lightmine",
+			[2] = "armada_mediummine",
+			[3] = "armada_heavymine",
+			[4] = "armada_dragonsteeth",
+			[5] = "armada_beholder",
 		},
 		customparams = {
 			unitgroup = 'builder',

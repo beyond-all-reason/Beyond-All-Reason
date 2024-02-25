@@ -6,14 +6,14 @@
 
 namespace Factory {
 
-string armlab  ("armlab");
-string armalab ("armalab");
-string armvp   ("armvp");
-string armavp  ("armavp");
-string armsy   ("armsy");
-string armasy  ("armasy");
-string armap   ("armap");
-string armshltx("armshltx");
+string armada_botlab  ("armada_botlab");
+string armada_advancedbotlab ("armada_advancedbotlab");
+string armada_vehicleplant   ("armada_vehicleplant");
+string armada_advancedvehicleplant  ("armada_advancedvehicleplant");
+string armada_shipyard   ("armada_shipyard");
+string armada_advancedshipyard  ("armada_advancedshipyard");
+string armada_aircraftplant   ("armada_aircraftplant");
+string armada_experimentalgantry("armada_experimentalgantry");
 string corlab  ("corlab");
 string coralab ("coralab");
 string corvp   ("corvp");

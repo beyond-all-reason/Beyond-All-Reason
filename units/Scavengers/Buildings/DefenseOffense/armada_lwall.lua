@@ -1,10 +1,10 @@
 return {
 	armlwall = {
 		maxacc = 0,
-		energycost = 4800, --3x armclaw
-		metalcost = 1020, --3x armclaw
+		energycost = 4800, --3x armada_dragonsclaw
+		metalcost = 1020, --3x armada_dragonsclaw
 		buildpic = "ARMLWALL.DDS",
-		buildtime = 14000, --3x armclaw
+		buildtime = 14000, --3x armada_dragonsclaw
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
@@ -13,7 +13,7 @@ return {
 		corpse = "DEAD",
 		crushresistance = 1000,
 		damagemodifier = 0.25,
-		decoyfor = "armfort",
+		decoyfor = "armada_fortificationwall",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -22,7 +22,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		health = 5320, --4x armclaw
+		health = 5320, --4x armada_dragonsclaw
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -38,12 +38,12 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armfort_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_fortificationwall_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			decoyfor = "armfort",
+			decoyfor = "armada_fortificationwall",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
@@ -67,7 +67,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 205,
-				object = "Units/armfort.s3o",
+				object = "Units/armada_fortificationwall.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -159,11 +159,11 @@ return {
 				customparams = {
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.3", --was 0.5
-					spark_maxunits = "3", --2x armclaw
-					spark_range = "80", --66% more than armclaw
+					spark_maxunits = "3", --2x armada_dragonsclaw
+					spark_range = "80", --66% more than armada_dragonsclaw
 				},
 				damage = {
-					default = 64, --1/2 of armthor | 2.66x armclaw
+					default = 64, --1/2 of armthor | 2.66x armada_dragonsclaw
 				},
 			},
 			-- banisher = {

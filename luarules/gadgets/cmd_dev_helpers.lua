@@ -1283,7 +1283,7 @@ else	-- UNSYNCED
 		for _, uDID in ipairs(UnitDefNames["corgant"].buildOptions) do
 			t3Units[uDID] = true
 		end
-		for _, uDID in ipairs(UnitDefNames["armshltx"].buildOptions) do
+		for _, uDID in ipairs(UnitDefNames["armada_experimentalgantry"].buildOptions) do
 			t3Units[uDID] = true
 		end
 		techLevels['t3'] = t3Units

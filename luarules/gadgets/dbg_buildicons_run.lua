@@ -150,7 +150,7 @@ local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. beca
 	[UnitDefNames.corsolar.id] = {
 		wait = 80,
 	},
-	[UnitDefNames.armrad.id] = {
+	[UnitDefNames.armada_radartower.id] = {
 		wait = 360,
 	},
 	[UnitDefNames.corgant.id] = {
@@ -162,7 +162,7 @@ local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. beca
 	[UnitDefNames.cortoast.id] = {
 		wait = 1,
 	},
-	[UnitDefNames.armplat.id] = {
+	[UnitDefNames.armada_seaplaneplatform.id] = {
 		wait = 65,
 	},
 

@@ -3,9 +3,9 @@
 	"porcupine": {
 		"unit": {
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
-			"armada":  ["armllt",		"armtl",   		"armrl",  		"armbeamer", 	"armhlt",  		"armclaw",		"armferret",	"armcir", 		"armpb",   		"armatl",
-						"armflak",   	"armamb",  		"armanni", 		"armguard", 	"armamd", 		"armrad",		"armjamt",		"armestor", 	"armmstor", 	"armadvsol",
-						"armnanotc",	"armarad",		"armtarg",		"armuwadves",  	"armemp",		"armveil",		"armckfus",     "armsolar",     "armgate",      "armfhlt"],
+			"armada":  ["armada_sentry",		"armada_harpoon",   		"armada_nettle",  		"armada_beamer", 	"armada_overwatch",  		"armada_dragonsclaw",		"armada_ferret",	"armada_chainsaw", 		"armada_pitbull",   		"armada_moray",
+						"armada_arbalest",   	"armada_rattlesnake",  		"armada_pulsar", 		"armada_gauntlet", 	"armada_citadel", 		"armada_radartower",		"armada_sneakypete",		"armada_energystorage", 	"armada_metalstorage", 	"armada_advancedsolarcollector",
+						"armada_constructionturret",	"armada_advancedradartower",		"armada_pinpointer",		"armada_hardenedenergystorage",  	"armada_paralyzer",		"armada_veil",		"armada_cloakablefusionreactor",     "armada_solarcollector",     "armada_keeper",      "armada_manta"],
 		//	
 		//              0          		1          		2          		3            	4           	5          		6				7				8				9
 			"cortex":  ["corllt",		"cortl",   		"corrl",  		"corhllt",   	"corhlt",   	"cormaw",  		"cormadsam",  	"corerad",		"corvipe", 		"coratl", 
@@ -33,7 +33,7 @@
 	//superweapons get only build when there is nothing else to do
 	"superweapon": {
 		"unit": {
-			"armada": [ "armbrtha",  "armvulc"], //"armmercury", "armamd", "armemp", "armsilo"
+			"armada": [ "armada_basilica",  "armada_ragnarok"], //"armada_mercury", "armada_citadel", "armada_paralyzer", "armada_armageddon"
 			"cortex": [ "corint",  "corbuzz" ] //"corscreamer", "corfmd", "cortron", "corsilo"
 		},
 		"weight":     [    0.5,      0.1  ],
@@ -43,7 +43,7 @@
 
 	// Fallback defence
 	"default": {
-		"armada": "armllt",
+		"armada": "armada_sentry",
 		"cortex": "corllt"
 	}
 },
@@ -56,7 +56,7 @@
 	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
 	"energy": {
 		// <UnitDef>: {<elements>}
-		"armadvsol": {
+		"armada_advancedsolarcollector": {
 			// Available elements:
 			// "energy": [max energy income, <"mex"|true>]
 			// "pylon": <boolean>
@@ -82,51 +82,51 @@
 			// Build chain of units
 			"hub": [
 				[  // chain1
-					{"unit": "armbeamer", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+					{"unit": "armada_beamer", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
 //				],
 //				[  // chain2
-//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "armada_energyconverter", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 				]
 			]
 		},
-//		"armsolar": {
+//		"armada_solarcollector": {
 //			"hub": [
 //				[  // chain1
-//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "armada_energyconverter", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 //				]
 //			]
 //		},
-		"armfus": {
+		"armada_fusionreactor": {
 			"hub": [
 				[ 
-					//{"unit": "armpb", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
-					{"unit": "armnanotc", "category": "defence", "offset": {"front": 100}},
-					{"unit": "armsilo", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
+					//{"unit": "armada_pitbull", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "armada_ferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
+					{"unit": "armada_constructionturret", "category": "defence", "offset": {"front": 100}},
+					{"unit": "armada_armageddon", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
 				]
 			]
 		},
-		"armckfus": {
+		"armada_cloakablefusionreactor": {
 			"hub": [
 				[  
 					
-					{"unit": "armpb", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
+					{"unit": "armada_pitbull", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
+					{"unit": "armada_ferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
 				]
 			]
 		},
-		"armafus": {
+		"armada_advancedfusionreactor": {
 			"hub": [
 				[  // chain1
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, 120]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [150, 120]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, 150]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, -120]},
+//					{"unit": "armada_advancedenergyconverter", "category": "convert", "offset": [120, 120]},
+//					{"unit": "armada_advancedenergyconverter", "category": "convert", "offset": [150, 120]},
+//					{"unit": "armada_advancedenergyconverter", "category": "convert", "offset": [120, 150]},
+//					{"unit": "armada_advancedenergyconverter", "category": "convert", "offset": [150, 150]},
+//					{"unit": "armada_advancedenergyconverter", "category": "convert", "offset": [120, -120]},
 		
 					
 	
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "armada_ferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		},
@@ -160,8 +160,8 @@
 
 
 	"geo": {
-		"armgeo": {
-			"hub": [[{"unit": "armbeamer", "category": "defence", "offset": {"front": 64}}]]
+		"armada_geothermalpowerplant": {
+			"hub": [[{"unit": "armada_beamer", "category": "defence", "offset": {"front": 64}}]]
 		},
 		"corgeo": {
 			"hub": [[{"unit": "corhllt", "category": "defence", "offset": {"front": 64}}]]
@@ -172,11 +172,11 @@
 
 
 	"factory": {
-		"armlab": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"armada_botlab": {
+			"hub": [[{"unit": "armada_sentry", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"armvp": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"armada_vehicleplant": {
+			"hub": [[{"unit": "armada_sentry", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
 		"corlab": {
 			"hub": [
@@ -189,15 +189,15 @@
 		},
 
 
-		"armalab": {
+		"armada_advancedbotlab": {
 			"hub": [
-					//[{"unit": "armarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
-					[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+					//[{"unit": "armada_advancedradartower", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
+					[{"unit": "armada_rattlesnake", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 		]
 		},
-		"armavp": {
+		"armada_advancedvehicleplant": {
 			"hub": [
-				[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+				[{"unit": "armada_rattlesnake", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 			]
 		},
 		"coralab": {
@@ -212,8 +212,8 @@
 
 
 
-		"armap": {
-			//"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		"armada_aircraftplant": {
+			//"hub": [[{"unit": "armada_sentry", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		},
 		"corap": {
 			//"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
@@ -221,19 +221,19 @@
 
 
 
-		"armsy": {
+		"armada_shipyard": {
 			"hub": [
 				[
-				{"unit": "armfhlt", "category": "defence", "offset": {"front": 150}, "priority": "now"},
-				{"unit": "armasy", "category": "factory", "offset": [100, 100]}
+				{"unit": "armada_manta", "category": "defence", "offset": {"front": 150}, "priority": "now"},
+				{"unit": "armada_advancedshipyard", "category": "factory", "offset": [100, 100]}
 			]
 		]
 		},
-		"armasy": {
+		"armada_advancedshipyard": {
 			"hub": [
 				[
-					{"unit": "armuwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "armatl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
+					{"unit": "armada_navalfusionreactor", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
+					{"unit": "armada_moray", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
 				]
 		    ]
 		},
@@ -277,7 +277,7 @@
 
 
 	"mex": {
-		"armmex": {
+		"armada_metalextractor": {
 //			"terra": true,
 //			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
 			"porc": true
@@ -293,23 +293,23 @@
 
 
 	"radar":{
-		"armrad": {
+		"armada_radartower": {
 			"hub": [
-				[{"unit": "armllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
-				[{"unit": "armrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
-				[{"unit": "armguard", "category": "defence", "offset": [120, 100], "priority": "normal"}],
+				[{"unit": "armada_sentry", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "armada_nettle", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
+				[{"unit": "armada_gauntlet", "category": "defence", "offset": [120, 100], "priority": "normal"}],
 				[
-					{"unit": "armamb", "category": "defence", "offset": [120, -100], "priority": "high"},
-					{"unit": "armpb", "category": "defence", "offset": [140, 100], "priority": "normal"}
+					{"unit": "armada_rattlesnake", "category": "defence", "offset": [120, -100], "priority": "high"},
+					{"unit": "armada_pitbull", "category": "defence", "offset": [140, 100], "priority": "normal"}
 				],
 				[
-					//{"unit": "armanni", "category": "defence", "offset": [70, -100], "priority": "normal"},
-					{"unit": "armanni", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}
+					//{"unit": "armada_pulsar", "category": "defence", "offset": [70, -100], "priority": "normal"},
+					{"unit": "armada_pulsar", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}
 				],
 				[
-					{"unit": "armjamt", "category": "defence", "offset": [-60, 0], "priority": "low"},
-					{"unit": "armarad", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
-					{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.3}, "priority": "low"}
+					{"unit": "armada_sneakypete", "category": "defence", "offset": [-60, 0], "priority": "low"},
+					{"unit": "armada_advancedradartower", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
+					{"unit": "armada_basilica", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.3}, "priority": "low"}
 				]
 			]
 		},
@@ -330,24 +330,24 @@
 				]
 		]
 		},
-		"armfrad":{
+		"armada_navalradar":{
 			"hub":[
-				[{"unit": "armsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance":1.0}, "priority": "now"}],
+				[{"unit": "armada_shipyard", "category": "factory", "offset": {"front": 100}, "condition": {"chance":1.0}, "priority": "now"}],
 
 				[
 					{"unit": "cortl", "category": "defence", "offset": {"front":100},  "priority": "now"},
 					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
 				],
 
-				[{"unit": "armkraken", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armatl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armfrt", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
-				[{"unit": "armanni", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
+				[{"unit": "armada_gorgon", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+				[{"unit": "armada_moray", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+				[{"unit": "armada_navalnettle", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+				[{"unit": "armada_basilica", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
+				[{"unit": "armada_pulsar", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
 
 				[
-					{"unit": "armamd", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
-					{"unit": "armjamt", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
+					{"unit": "armada_citadel", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
+					{"unit": "armada_sneakypete", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
 				]
 			]
 		},

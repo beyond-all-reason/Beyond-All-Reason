@@ -7,7 +7,7 @@ return {
 		metalcost = 1,
 		builddistance = range,
 		builder = true,
-		buildpic = "ARMNANOTCPLAT.DDS",
+		buildpic = "armada_constructionturretPLAT.DDS",
 		buildtime = 20000,
 		canassist = true,
 		canfight = true,
@@ -48,7 +48,7 @@ return {
 		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_constructionturret_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

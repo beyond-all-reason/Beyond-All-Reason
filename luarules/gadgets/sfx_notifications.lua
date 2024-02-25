@@ -60,9 +60,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local nukes = {
-		[WeaponDefNames["armsilo_nuclear_missile"].id] = true,
+		[WeaponDefNames["armada_armageddon_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_crblmssl"].id] = true,
-		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
+		[WeaponDefNames["armada_armageddon_scav_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
 		[WeaponDefNames["raptor_turret_meteor_t4_v1_weapon"].id] = true,
 		--WeaponDefNames["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"].id] = true,
@@ -197,7 +197,7 @@ else
 			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
 				isCommander[unitDefID] = true
 			end
-			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
+			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armada_basilica') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armada_ragnarok') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
 			if unitDef.isBuilding and unitDef.radarDistance > 1900 then

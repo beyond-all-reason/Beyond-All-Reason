@@ -210,22 +210,22 @@ unitConfigs = {
 		unfold = true,
 	},
 
-	[UnitDefNames.armamd.id] = {
+	[UnitDefNames.armada_citadel.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armclaw.id] = {
+	[UnitDefNames.armada_dragonsclaw.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armmmkr.id] = {
+	[UnitDefNames.armada_advancedenergyconverter.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armpb.id] = {
+	[UnitDefNames.armada_pitbull.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armferret.id] = {
+	[UnitDefNames.armada_ferret.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armptl.id] = {
+	[UnitDefNames.armada_harpoon2.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.corcs.id] = {
@@ -243,7 +243,7 @@ unitConfigs = {
 	[UnitDefNames.corvipe.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armsilo.id] = {
+	[UnitDefNames.armada_armageddon.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.cortron.id] = {
@@ -261,7 +261,7 @@ unitConfigs = {
 		unfold = true,
 		wait = 80,
 	},
-	[UnitDefNames.armrad.id] = {
+	[UnitDefNames.armada_radartower.id] = {
 		wait = 360,
 	},
 	[UnitDefNames.corgant.id] = {
@@ -273,7 +273,7 @@ unitConfigs = {
 	[UnitDefNames.cortoast.id] = {
 		wait = 1,
 	},
-	[UnitDefNames.armplat.id] = {
+	[UnitDefNames.armada_seaplaneplatform.id] = {
 		wait = 65,
 	},
 

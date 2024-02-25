@@ -129,7 +129,7 @@
 		"mapinfo": {
 			"author": "Ersteller"
 		},
-		"clearMapmarks": {
+		"clearmada_aircraftplantmarks": {
 			"tooltip": "Kartenmarkierungen/-zeichnungen löschen",
 			"tooltipctrl": "CTRL-Klicken um fortlaufend zu löschen"
 		},
@@ -408,7 +408,7 @@
 			},
 			"console": {
 				"title": "Konsolenbefehle",
-				"eraseKey": "/clearmapmarks",
+				"eraseKey": "/clearmada_aircraftplantmarks",
 				"erase": "Alle Zeichnungen und Marker wegradieren",
 				"pauseKey": "/pause",
 				"pause": "Pause"
@@ -1170,8 +1170,8 @@
 				"console_inputbutton_descr": "Texteingabemodus-Schalter aktivieren",
 				"topbar": "Obere Leiste",
 				"topbar_hidebuttons": "Knöpfe automatisch verstecken",
-				"continuouslyclearmapmarks": "Alle Kartenmarkierungen und -zeichnungen verstecken",
-				"continuouslyclearmapmarks_descr": "Kontinuierlich alle Kartenmarkierungen und -zeichnungen löschen",
+				"continuouslyclearmada_aircraftplantmarks": "Alle Kartenmarkierungen und -zeichnungen verstecken",
+				"continuouslyclearmada_aircraftplantmarks_descr": "Kontinuierlich alle Kartenmarkierungen und -zeichnungen löschen",
 				"autoeraser": "Automatisch Kartenmarkierungen löschen",
 				"autoeraser_descr": "Automatische Löschung von Kartenmarkierungen und -zeichnungen aktivieren",
 				"autoeraser_erasetime": "Verzögerung in Sekunden",

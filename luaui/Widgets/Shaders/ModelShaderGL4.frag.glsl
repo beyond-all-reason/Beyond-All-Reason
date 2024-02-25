@@ -26,7 +26,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 sunDiffuseModel;
 	vec4 sunDiffuseMap;
 	vec4 sunSpecularModel;
-	vec4 sunSpecularMap;
+	vec4 sunSpecularmada_aircraftplant;
 
 	vec4 shadowDensity; // {ground, units, 0.0, 0.0}
 

@@ -46,7 +46,7 @@ local function transport1(currentFrame)
 			"corsh_scav",
 			"corstorm_scav",
 			"corgarp_scav",
-			"armnanotc_scav",
+			"armada_constructionturret_scav",
 			"cornanotc_scav",
 		}
 		local transportsT2 = {"armada_abductor_scav", "corseah_scav",}
@@ -82,12 +82,12 @@ local function transport1(currentFrame)
 			"cortermite_scav",
 			"cormart_scav",
 			"corllt_scav",
-			"armllt_scav",
+			"armada_sentry_scav",
 			"corrl_scav",
-			"armrl_scav",
+			"armada_nettle_scav",
 			"corhllt_scav",
-			"armbeamer_scav",
-			"armnanotc_scav",
+			"armada_beamer_scav",
+			"armada_constructionturret_scav",
 			"cornanotc_scav",
 		}
 

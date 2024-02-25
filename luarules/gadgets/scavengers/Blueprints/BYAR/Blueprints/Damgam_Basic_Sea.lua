@@ -16,10 +16,10 @@ local function t1SeaBase1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armfmkr_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armfmkr_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armfmkr_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armfmkr_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergyconverter_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergyconverter_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergyconverter_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergyconverter_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
 		}
 	end
 
@@ -43,10 +43,10 @@ local function t1SeaBase2()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwms_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.armuwms_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.armuwms_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.armuwms_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.armada_navalmetalstorage_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.armada_navalmetalstorage_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.armada_navalmetalstorage_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.armada_navalmetalstorage_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
 		}
 	end
 
@@ -70,10 +70,10 @@ local function t1SeaBase3()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armtide_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armtide_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armtide_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armtide_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_tidalgenerator_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_tidalgenerator_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_tidalgenerator_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_tidalgenerator_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
 		}
 	end
 
@@ -97,10 +97,10 @@ local function t1SeaBase4()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwes_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.armuwes_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.armuwes_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.armuwes_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergystorage_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergystorage_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergystorage_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.armada_navalenergystorage_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
 		}
 	end
 
@@ -124,10 +124,10 @@ local function t1SeaBase5()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
 		}
 	end
 
@@ -160,19 +160,19 @@ local function t1seaBase6()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armfrt_scav.id,   xOffset =   0,  zOffset =   0, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  16,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  48,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  48,  zOffset = -16, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  48,  zOffset =  16, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -48,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -48,  zOffset =  16, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -48,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  16,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset =  48,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -48,  zOffset = -16, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -16,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.armfdrag_scav.id, xOffset = -16,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.armada_navalnettle_scav.id,   xOffset =   0,  zOffset =   0, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  16,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  48,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  48,  zOffset = -16, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  48,  zOffset =  16, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -48,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -48,  zOffset =  16, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -48,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  16,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset =  48,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -48,  zOffset = -16, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -16,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.armada_sharksteeth_scav.id, xOffset = -16,  zOffset =  48, direction = 1 },
 		}
 	end
 
@@ -195,9 +195,9 @@ local function t1SeaBase7()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armfrad_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
-			{ unitDefID = UDN.armtl_scav.id,   xOffset = -48,  zOffset = 0, direction = 1 },
-			{ unitDefID = UDN.armtl_scav.id,   xOffset =  48,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.armada_navalradar_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset = -48,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset =  48,  zOffset = 0, direction = 1 },
 		}
 	end
 
@@ -220,9 +220,9 @@ local function t1SeaBase8()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armtl_scav.id,   xOffset =  8,  zOffset =  56, direction = 1 },
-			{ unitDefID = UDN.armtl_scav.id,   xOffset = -8,  zOffset = -56, direction = 1 },
-			{ unitDefID = UDN.armfhlt_scav.id, xOffset =  0,  zOffset =   0, direction = 1 },
+			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset =  8,  zOffset =  56, direction = 1 },
+			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset = -8,  zOffset = -56, direction = 1 },
+			{ unitDefID = UDN.armada_manta_scav.id, xOffset =  0,  zOffset =   0, direction = 1 },
 		}
 	end
 
@@ -247,10 +247,10 @@ local function t2SeaBase1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwmmm_scav.id, xOffset = -40,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwmmm_scav.id, xOffset = -40,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.armuwmmm_scav.id, xOffset =  40,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.armuwmmm_scav.id, xOffset =  40,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_navaladvancedenergyconverter_scav.id, xOffset = -40,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_navaladvancedenergyconverter_scav.id, xOffset = -40,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_navaladvancedenergyconverter_scav.id, xOffset =  40,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_navaladvancedenergyconverter_scav.id, xOffset =  40,  zOffset =  32, direction = 0 },
 		}
 	end
 
@@ -274,10 +274,10 @@ local function t2SeaBase2()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwadvms_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwadvms_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.armuwadvms_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwadvms_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedmetalstorage_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedmetalstorage_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedmetalstorage_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedmetalstorage_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
 		}
 	end
 
@@ -301,10 +301,10 @@ local function t2SeaBase3()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwfus_scav.id, xOffset =  48,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.armuwfus_scav.id, xOffset = -48,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwfus_scav.id, xOffset =  48,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwfus_scav.id, xOffset = -48,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_navalfusionreactor_scav.id, xOffset =  48,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_navalfusionreactor_scav.id, xOffset = -48,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_navalfusionreactor_scav.id, xOffset =  48,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_navalfusionreactor_scav.id, xOffset = -48,  zOffset = -32, direction = 0 },
 		}
 	end
 
@@ -329,10 +329,10 @@ local function t2SeaBase4()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armuwadves_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwadves_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.armuwadves_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.armuwadves_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedenergystorage_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedenergystorage_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedenergystorage_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.armada_hardenedenergystorage_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
 		}
 	end
 
@@ -358,10 +358,10 @@ local function t2SeaBase5()
 	else
 		buildings = {
 			{ unitDefID = UDN.corfdoom_scav.id, xOffset =   0,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armatl_scav.id,   xOffset = -80,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armfflak_scav.id, xOffset =  -8,  zOffset = -72, direction = 0 },
-			{ unitDefID = UDN.armatl_scav.id,   xOffset =  80,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armfflak_scav.id, xOffset =   8,  zOffset =  72, direction = 0 },
+			{ unitDefID = UDN.armada_moray_scav.id,   xOffset = -80,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_navalarbalest_scav.id, xOffset =  -8,  zOffset = -72, direction = 0 },
+			{ unitDefID = UDN.armada_moray_scav.id,   xOffset =  80,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_navalarbalest_scav.id, xOffset =   8,  zOffset =  72, direction = 0 },
 		}
 	end
 
@@ -384,9 +384,9 @@ local function t2SeaFactory1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armsy_scav.id,         xOffset =    0,  zOffset =  6, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.armada_shipyard_scav.id,         xOffset =    0,  zOffset =  6, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
 		}
 	end
 
@@ -409,9 +409,9 @@ local function t2SeaFactory2()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armfhp_scav.id,        xOffset =    0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_navalhovercraftplatform_scav.id,        xOffset =    0,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
 		}
 	end
 
@@ -434,9 +434,9 @@ local function t2SeaFactory3()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armamsub_scav.id,      xOffset =   6,  zOffset = -16, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  94,  zOffset =   8, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -98,  zOffset =   8, direction = 0 },
+			{ unitDefID = UDN.armada_amphibiouscomplex_scav.id,      xOffset =   6,  zOffset = -16, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  94,  zOffset =   8, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -98,  zOffset =   8, direction = 0 },
 		}
 	end
 
@@ -459,9 +459,9 @@ local function t2SeaFactory4()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armplat_scav.id,       xOffset =   0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_seaplaneplatform_scav.id,       xOffset =   0,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
 		}
 	end
 
@@ -484,9 +484,9 @@ local function t2SeaFactory5()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armasy_scav.id,        xOffset =    0,  zOffset = -5, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.armada_advancedshipyard_scav.id,        xOffset =    0,  zOffset = -5, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
 		}
 	end
 
@@ -514,13 +514,13 @@ local function t3SeaFactory1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armshltxuw_scav.id,    xOffset =    0,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armnanotcplat_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_experimentalgantryuw_scav.id,    xOffset =    0,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
 		}
 	end
 

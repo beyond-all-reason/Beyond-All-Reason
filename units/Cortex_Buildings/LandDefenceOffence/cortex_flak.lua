@@ -117,7 +117,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armflak_gun = {
+			armada_arbalest_gun = {
 				accuracy = 1000,
 				areaofeffect = 172,
 				avoidfeature = false,
@@ -167,7 +167,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMFLAK_GUN",
+				def = "armada_arbalest_GUN",
 				onlytargetcategory = "VTOL",
 			},
 		},

@@ -46,7 +46,7 @@ local fadeStartDistance			= 3500
 -- Speedups
 --------------------------------------------------------------------------------
 
-local arm_anti					= UnitDefNames.armamd.id
+local arm_anti					= UnitDefNames.armada_citadel.id
 local arm_mobile_anti			= UnitDefNames.armada_umbrella.id
 local arm_mobile_anti_water		= UnitDefNames.armada_haven.id
 local arm_mobile_anti_water_2	= UnitDefNames.armantiship.id
@@ -71,7 +71,7 @@ local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 local antiInLos					= {}
 local antiOutLos				= {}
 
-local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armamd.weapons[1].weaponDef].coverageRange
+local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armada_citadel.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreStatic	= WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
 local coverageRangeArm			= WeaponDefs[UnitDefNames.armada_umbrella.weapons[1].weaponDef].coverageRange
 local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef].coverageRange

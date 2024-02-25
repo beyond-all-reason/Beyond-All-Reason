@@ -49,20 +49,20 @@ local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) *
 local SpawnAsNeutral
 
 local landMexesList = {
-	"armmex",
+	"armada_metalextractor",
 	"cormex",
-	--"armamex_scav",
+	--"armada_twilight_scav",
 	"corexp",
-	"armmoho",
+	"armada_advancedmetalextractor",
 	"cormoho",
 	"cormexp",
 }
 local seaMexesList = {
-	"armmex",
+	"armada_metalextractor",
 	"cormex",
-	"armuwmex",
+	"armada_navalmetalextractor",
 	"coruwmex",
-	"armuwmme",
+	"armada_navaladvancedmetalextractor",
 	"coruwmme",
 }
 

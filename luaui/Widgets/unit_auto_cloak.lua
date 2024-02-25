@@ -12,17 +12,17 @@ end
 
 -- defaults
 local unitdefConfigNames = {
-	['armjamt'] = true,
+	['armada_sneakypete'] = true,
 	['armada_decoycommander'] = false,
 	['cortex_decoycommander'] = false,
-	['armferret'] = false,
-	['armamb'] = false,
-	['armpb'] = false,
+	['armada_ferret'] = false,
+	['armada_rattlesnake'] = false,
+	['armada_pitbull'] = false,
 	['armada_sharpshooter'] = false,
 	['corsktl'] = false,
 	['armgremlin'] = false,
-	['armamex'] = true,
-	['armckfus'] = true,
+	['armada_twilight'] = true,
+	['armada_cloakablefusionreactor'] = true,
 	['armada_ghost'] = true,
 	['corspy'] = true,
 }

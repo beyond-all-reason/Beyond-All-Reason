@@ -1,6 +1,6 @@
 
 unitDeaths = {
-    raptor_empdeath_small = {    -- for armamex
+    raptor_empdeath_small = {    -- for armada_twilight
 		areaofeffect = 150,
 		commandfire = 1,
 		craterboost = 0,
@@ -22,7 +22,7 @@ unitDeaths = {
 		}
 	},
 
-    raptor_empdeath_big = {    -- for armamex
+    raptor_empdeath_big = {    -- for armada_twilight
 		areaofeffect = 300,
 		commandfire = 1,
 		craterboost = 0,

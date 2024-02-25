@@ -112,7 +112,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 sunDiffuseModel;
 	vec4 sunDiffuseMap;
 	vec4 sunSpecularModel; // float4{ sunLighting->modelSpecularColor.xyz, sunLighting->specularExponent };
-	vec4 sunSpecularMap; //  float4{ sunLighting->groundSpecularColor.xyz, sunLighting->specularExponent };
+	vec4 sunSpecularmada_aircraftplant; //  float4{ sunLighting->groundSpecularColor.xyz, sunLighting->specularExponent };
 
 	vec4 shadowDensity; //  float4{ sunLighting->groundShadowDensity, sunLighting->modelShadowDensity, 0.0, 0.0 };
 

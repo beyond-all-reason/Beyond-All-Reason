@@ -25,15 +25,15 @@ local function Nikuksis_land0()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -168, zOffset = -24, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -24, zOffset = -168, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -136, zOffset = 24, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = -48, zOffset = 48, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = 48, zOffset = -48, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = 48, zOffset = 48, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = -48, zOffset = -48, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = 8, zOffset = 136, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = -136, zOffset = -8, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = 136, zOffset = 8, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = -8, zOffset = -136, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = -48, zOffset = 48, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = 48, zOffset = -48, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = 48, zOffset = 48, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = -48, zOffset = -48, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = 8, zOffset = 136, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = -136, zOffset = -8, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = 136, zOffset = 8, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = -8, zOffset = -136, direction = 1},
 		},
 	}
 end
@@ -44,13 +44,13 @@ local function Nikuksis_land1()
 		tiers = { tiers.T0, tiers.T1 },
 		radius = 72,
 		buildings = {
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = 72, zOffset = 27, direction = 1},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = -72, zOffset = -37, direction = 1},
-			{ unitDefID = UnitDefNames.armestor_scav.id, xOffset = -8, zOffset = 59, direction = 1},
-			{ unitDefID = UnitDefNames.armestor_scav.id, xOffset = 8, zOffset = -53, direction = 1},
-			{ unitDefID = UnitDefNames.armadvsol_scav.id, xOffset = -64, zOffset = 67, direction = 1},
-			{ unitDefID = UnitDefNames.armadvsol_scav.id, xOffset = 0, zOffset = 3, direction = 1},
-			{ unitDefID = UnitDefNames.armadvsol_scav.id, xOffset = 64, zOffset = -61, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = 72, zOffset = 27, direction = 1},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = -72, zOffset = -37, direction = 1},
+			{ unitDefID = UnitDefNames.armada_energystorage_scav.id, xOffset = -8, zOffset = 59, direction = 1},
+			{ unitDefID = UnitDefNames.armada_energystorage_scav.id, xOffset = 8, zOffset = -53, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedsolarcollector_scav.id, xOffset = -64, zOffset = 67, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedsolarcollector_scav.id, xOffset = 0, zOffset = 3, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedsolarcollector_scav.id, xOffset = 64, zOffset = -61, direction = 1},
 		},
 	}
 end
@@ -69,9 +69,9 @@ local function Nikuksis_land2()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -32, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = 32, zOffset = 32, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = -32, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = 32, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = -32, zOffset = -32, direction = 1},
 		},
 	}
 end
@@ -82,11 +82,11 @@ local function Nikuksis_land3()
 		tiers = { tiers.T1, tiers.T2 },
 		radius = 96,
 		buildings = {
-			{ unitDefID = UnitDefNames.armmine3_scav.id, xOffset = 0, zOffset = -92, direction = 1},
-			{ unitDefID = UnitDefNames.armmine3_scav.id, xOffset = 96, zOffset = 4, direction = 1},
-			{ unitDefID = UnitDefNames.armmine3_scav.id, xOffset = 0, zOffset = 4, direction = 1},
-			{ unitDefID = UnitDefNames.armmine3_scav.id, xOffset = -96, zOffset = 4, direction = 1},
-			{ unitDefID = UnitDefNames.armmine3_scav.id, xOffset = 0, zOffset = 84, direction = 1},
+			{ unitDefID = UnitDefNames.armada_heavymine_scav.id, xOffset = 0, zOffset = -92, direction = 1},
+			{ unitDefID = UnitDefNames.armada_heavymine_scav.id, xOffset = 96, zOffset = 4, direction = 1},
+			{ unitDefID = UnitDefNames.armada_heavymine_scav.id, xOffset = 0, zOffset = 4, direction = 1},
+			{ unitDefID = UnitDefNames.armada_heavymine_scav.id, xOffset = -96, zOffset = 4, direction = 1},
+			{ unitDefID = UnitDefNames.armada_heavymine_scav.id, xOffset = 0, zOffset = 84, direction = 1},
 		},
 	}
 end
@@ -99,10 +99,10 @@ local function Nikuksis_land4()
 		radius = 104,
 		buildings = {
 			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 4, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 92, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 92, zOffset = 72, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = -84, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.armamd_scav.id, xOffset = -100, zOffset = 104, direction = 1},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 92, zOffset = -88, direction = 1},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 92, zOffset = 72, direction = 1},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = -84, zOffset = -88, direction = 1},
+			{ unitDefID = UnitDefNames.armada_citadel_scav.id, xOffset = -100, zOffset = 104, direction = 1},
 		},
 	}
 end
@@ -113,11 +113,11 @@ local function Nikuksis_land5()
 		tiers = { tiers.T2 },
 		radius = 32,
 		buildings = {
-			{ unitDefID = UnitDefNames.armarad_scav.id, xOffset = 0, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 32, zOffset = 32, direction = 0},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 32, zOffset = -32, direction = 0},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = -32, zOffset = 32, direction = 0},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = -32, zOffset = -32, direction = 0},
+			{ unitDefID = UnitDefNames.armada_advancedradartower_scav.id, xOffset = 0, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 32, zOffset = 32, direction = 0},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 32, zOffset = -32, direction = 0},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = -32, zOffset = 32, direction = 0},
+			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = -32, zOffset = -32, direction = 0},
 		},
 	}
 end
@@ -138,7 +138,7 @@ local function Nikuksis_land6()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = -48, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 48, zOffset = -16, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 48, zOffset = 48, direction = 1},
-			{ unitDefID = UnitDefNames.armamd_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_citadel_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -169,7 +169,7 @@ local function Nikuksis_land7()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = 16, direction = 0},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -16, zOffset = 64, direction = 0},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -16, zOffset = -64, direction = 0},
-			{ unitDefID = UnitDefNames.armmercury_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_mercury_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -203,10 +203,10 @@ local function Nikuksis_land8()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 96, zOffset = 0, direction = 0},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -144, zOffset = 48, direction = 0},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 144, zOffset = 48, direction = 0},
-			{ unitDefID = UnitDefNames.armmercury_scav.id, xOffset = -144, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armmercury_scav.id, xOffset = -48, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armmercury_scav.id, xOffset = 144, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armmercury_scav.id, xOffset = 48, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_mercury_scav.id, xOffset = -144, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_mercury_scav.id, xOffset = -48, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_mercury_scav.id, xOffset = 144, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_mercury_scav.id, xOffset = 48, zOffset = 0, direction = 0},
 		},
 	}
 end
@@ -217,11 +217,11 @@ local function Nikuksis_land9()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 80,
 		buildings = {
-			{ unitDefID = UnitDefNames.armmmkr_scav.id, xOffset = 0, zOffset = 80, direction = 1},
-			{ unitDefID = UnitDefNames.armmmkr_scav.id, xOffset = 80, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armmmkr_scav.id, xOffset = -80, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armmmkr_scav.id, xOffset = 0, zOffset = -80, direction = 1},
-			{ unitDefID = UnitDefNames.armafus_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedenergyconverter_scav.id, xOffset = 0, zOffset = 80, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedenergyconverter_scav.id, xOffset = 80, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_advancedenergyconverter_scav.id, xOffset = -80, zOffset = 0, direction = 0},
+			{ unitDefID = UnitDefNames.armada_advancedenergyconverter_scav.id, xOffset = 0, zOffset = -80, direction = 1},
+			{ unitDefID = UnitDefNames.armada_advancedfusionreactor_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end

@@ -35,7 +35,7 @@ return {
 		--yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_constructionturret_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

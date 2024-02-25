@@ -17,7 +17,7 @@
 // Define factories
 "factory": {
 	// ARMADA factories
-	"armlab": {
+	"armada_botlab": {
 		// Adjusts the priority of factory choice (factories with map_percent < 20 are ignored)
 		// map_percent is [20..100]
 		// On start:
@@ -51,7 +51,7 @@
 		"caretaker": 1
 	},
 
-	"armalab": {
+	"armada_advancedbotlab": {
 		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [40],
@@ -72,7 +72,7 @@
 		"caretaker": 2
 	},
 
-	"armvp": {
+	"armada_vehicleplant": {
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [20, 40],
@@ -95,7 +95,7 @@
 		"caretaker": 1
 	},
 
-	"armavp": {
+	"armada_advancedvehicleplant": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [40],
@@ -112,7 +112,7 @@
 	},
 
 	//T3 factory
-	"armshltx": {
+	"armada_experimentalgantry": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
@@ -125,7 +125,7 @@
 	},
 
 	// ARMADA Aircraft
-	"armap": {
+	"armada_aircraftplant": {
 		"importance": [0.5, 0.5],
 		"require_energy": false,
 		"income_tier": [30],
@@ -141,7 +141,7 @@
 		"caretaker": 1
 	},
 	
-	"armaap": {
+	"armada_advancedaircraftplant": {
 		"importance": [0.0, 0.8],
 		"require_energy": true,
 		"income_tier": [50],
@@ -158,7 +158,7 @@
 	},
 
 	// ARMADA Ships
-	"armsy": {
+	"armada_shipyard": {
 		"importance": [2.0, 2.0],
 		"require_energy": false,
 		"income_tier": [20],
@@ -174,7 +174,7 @@
 		"caretaker": 0
 	},
 
-	"armasy": {
+	"armada_advancedshipyard": {
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
@@ -191,7 +191,7 @@
 	},
 
 	// ARMADA hovers
-	"armhp": {
+	"armada_hovercraftplatform": {
 		"importance": [0.4, 0.4],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
@@ -212,7 +212,7 @@
 	},
 
 	// ARMADA sea factories
-	"armamsub": {
+	"armada_amphibiouscomplex": {
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
@@ -224,7 +224,7 @@
 		"caretaker": 1
 	},
 
-	"armfhp": {
+	"armada_navalhovercraftplatform": {
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
@@ -244,7 +244,7 @@
 		"caretaker": 1
 	},
 
-	"armplat": {
+	"armada_seaplaneplatform": {
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [40],
@@ -256,7 +256,7 @@
 		"caretaker": 1
 	},
 
-	"armshltxuw": {
+	"armada_experimentalgantryuw": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],

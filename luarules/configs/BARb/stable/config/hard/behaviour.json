@@ -104,30 +104,30 @@
 
 
 // FACTORIES - Ground (Surface)
-		"armlab": {
+		"armada_botlab": {
 			"role": ["static"],
 			"build_speed": 5.0, //bp 100
             "limit": 1
 		},
-		"armalab": {
+		"armada_advancedbotlab": {
 			"role": ["static"],
 			"attribute": ["support"], //facory with support is build only in base
 			"limit": 1,
 			"build_speed": 15.0 //bp 300
 		},
-		"armshltx": {
+		"armada_experimentalgantry": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"midposoffset": [0, 0, 21],
 			"limit": 1,
 			"build_speed": 1.0 // bp 600
 		},
-		"armvp": {
+		"armada_vehicleplant": {
 			"role": ["static"],
 			"build_speed": 5.0, // bp 100
             "limit": 1
 		},
-		"armavp": {
+		"armada_advancedvehicleplant": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
@@ -167,13 +167,13 @@
 		},
 
 // FACTORIES - air
-		"armap": {
+		"armada_aircraftplant": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
 			"build_speed": 5 //bp 100
 		},
-		"armaap": {
+		"armada_advancedaircraftplant": {
 			"role": ["static"],
 			"attribute": ["support"],
             "since": 420,
@@ -195,39 +195,39 @@
 		},
 
 // FACTORIES - water
-		"armsy": {
+		"armada_shipyard": {
 			"role": ["static"],
 			"build_speed": 8.0, // bp 165
 			"limit": 1
 		},
-		"armasy": {
+		"armada_advancedshipyard": {
 			"role": ["static"],
 			"build_speed": 15.0, //bp 300
             //"since": 540,
 			"limit": 1
 		},
-		"armhp": {
+		"armada_hovercraftplatform": {
 			"role": ["static"],
 			"build_speed": 10.0, //bp 200
 			"limit": 1
 		},
-		"armfhp": {
+		"armada_navalhovercraftplatform": {
 			"role": ["static"],
 			"build_speed": 10.0,
 			"limit": 1
 		},
-        "armamsub": {
+        "armada_amphibiouscomplex": {
 			"role": ["static"],
 			"build_speed": 7.5, //bp 150
 			"limit": 1
         },
-        "armplat": {
+        "armada_seaplaneplatform": {
 			"role": ["static"],
 			"build_speed": 10.0, //200
 			"since": 420,
 			"limit": 1
         },
-		"armshltxuw": {
+		"armada_experimentalgantryuw": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"midposoffset": [0, 0, 21],
@@ -270,11 +270,11 @@
 
 
 // FACTORIES - Nanos
-		"armnanotc": {
+		"armada_constructionturret": {
 			"role": ["support"],		// nanos with role "support" are considered "low priority"
 			"build_speed": 10.0  // bp 200, lower values => more and earlier nanos (workaround) 
 		},
-		"armnanotcplat": {
+		"armada_constructionturretplat": {
 			"role": ["support"],
 			"build_speed": 10.0  //lower values => more and earlier nanos (workaround) 
 		},
@@ -288,7 +288,7 @@
 		},
 
 // DEFENSE - Armada
-		"armllt": {
+		"armada_sentry": {
 		"role": ["static"],
 		"since": 70,
         "threat": {
@@ -301,7 +301,7 @@
             "power": 1.0,
 			"build_mod": 400		
 		},
-		"armbeamer": {
+		"armada_beamer": {
 			"role": ["static"],
 			"since": 360,
 			"threat": {
@@ -313,7 +313,7 @@
 			},
 			"power": 1.0	
 		},
-		"armhlt": {
+		"armada_overwatch": {
 			"role": ["static"],
 			"threat": {
 				"air": 0.2, 
@@ -321,12 +321,12 @@
 				"vs": {"artillery": 0.5}
 			}
 		},
-        "armfhlt": {
+        "armada_manta": {
 			"role": ["static"],
             "since": 360,
             "limit": 3	
 		},
-		"armguard": {
+		"armada_gauntlet": {
 			"role": ["static"],
 			"on": false,
 			"threat":{
@@ -335,7 +335,7 @@
             "since": 600,
 			"limit": 3
 		},
-		"armclaw": {
+		"armada_dragonsclaw": {
 			"role": ["static"],
 			"since": 420,
 			"threat": {
@@ -345,64 +345,64 @@
 				"vs": {"assault": 0.7}
 			}
 		},
-		"armpb": {
+		"armada_pitbull": {
 			"role": ["static"],
 			"threat": {"air":0.1, "surf":1.5, "water":1.0, 
 				"vs": {"artillery":0.5, "assault": 0.8}
 			}
 		},
-		"armamb": {
+		"armada_rattlesnake": {
 			"role": ["static"],
 			"on": false,
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, 
 				"vs": {"artillery":0.6, "assault": 0.8, "raiders":0.8}
 			}
 		},
-		"armanni": {
+		"armada_pulsar": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":0.5, "water":0.1, 
 				"vs": {"scout":0.1, "raider":0.1, "heavy": 2.0, "super":2.0}
 			}
 		},
-		"armbrtha": {
+		"armada_basilica": {
 			"role": ["static"]
 		},
-        "armsilo":{
+        "armada_armageddon":{
 			"role":	["super", "static"],
             "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
 			"limit": 1
         },
 
-		"armrl": {
+		"armada_nettle": {
 			"role": ["anti_air"],
 			"threat":{"air":3.0, "surf":0.0, "water":0.0}
 		},
-		"armferret": {
+		"armada_ferret": {
 			"role": ["anti_air"],
 			"threat": {"air":3.0, "surf":0.0, "water":0.0}
 		},
-		"armcir": {
+		"armada_chainsaw": {
 			"role": ["anti_air"],
 			"threat": {"air":3.0, "surf":0.0, "water":0.0}
 		},
-		"armflak": {
+		"armada_arbalest": {
 			"role": ["anti_air"],
 			"threat": {"air":4.0, "surf":0.0, "water":0.0}
 		},
-		"armmercury": {
+		"armada_mercury": {
 			"role": ["anti_air"],
 			"threat": {"air":2.0, "surf":0.0, "water":0.0}
 		},
 
-		"armtl": {
+		"armada_harpoon": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, "vs": {"comm": 10}}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
 		},
-		"armatl": {
+		"armada_moray": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0}
 		},
-		"armkraken": {
+		"armada_gorgon": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0}
 		},
@@ -520,7 +520,7 @@
 
 
 // BUILDINGS
-		"armtarg": {
+		"armada_pinpointer": {
 			"role": ["static"],
 			"limit": 3
 		},
@@ -528,20 +528,20 @@
 			"role": ["static"],
 			"limit": 3
 		},
-		"armemp":{
+		"armada_paralyzer":{
 			"role":	["super", "static"] //without "super" it does not shoot
 		},
 		"cortron":{
 			"role":	["super", "static"],
 			"limit":1
 		},
-		"armveil":{
+		"armada_veil":{
 			"role": ["static"]
 		},
 		"corshroud":{
 			"role":["static"]
 		},
-		"armrad": {
+		"armada_radartower": {
 			"role": ["static"],
 			"since": 120
 		},
@@ -549,7 +549,7 @@
 			"role":["static"],
 			"since": 120
 		},
-		"armjamt":{
+		"armada_sneakypete":{
 			"role":["static"],
 			"since": 600
 		},
@@ -557,12 +557,12 @@
 			"role":["static"],
 			"since": 600
 		},
-		"armjuno":{
+		"armada_juno":{
 			"role":["super", "static"],
 			"since": 900
 		},
 
-		"armmakr": {
+		"armada_energyconverter": {
 			"role": ["static"],
 			"since": 300
 		},
@@ -570,7 +570,7 @@
 			"role": ["static"],
 			"since": 300
 		},
-		"armdrag": {
+		"armada_dragonsteeth": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -581,51 +581,51 @@
 
 	                  
 // ECO (energy & metal)
-		"armmex" : {
+		"armada_metalextractor" : {
 			"role": ["static"],
 			"build_mod": 300
 		},
-		"armmoho" : {
+		"armada_advancedmetalextractor" : {
 			"role": ["static"],
 			"build_mod": 200
 		},
-		"armsolar" : {
+		"armada_solarcollector" : {
             "role": ["static"],
             "build_mod": 300
         },
-		"armgeo": {
+		"armada_geothermalpowerplant": {
 			"role": ["static"],
 			"midposoffset": [0, 0, -2]
 		},
-        "armfus" : {
+        "armada_fusionreactor" : {
             "role": ["static"],
             "build_mod": 2000,
 			"cooldown": 3
         },
-        "armafus" : {
+        "armada_advancedfusionreactor" : {
             "role": ["static"],
             "build_mod": 4000
         },
-		"armuwfus" : {
+		"armada_navalfusionreactor" : {
             "role": ["static"],
             "build_mod": 4000
         },
-		"armestor" : {
+		"armada_energystorage" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
 		},
-		"armuwes" : {
+		"armada_navalenergystorage" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
 		},
-		"armmstor" : {
+		"armada_metalstorage" : {
 			"role": ["static"],
 			"since": 500,
 			"limit": 1
 		},
-		"armuwadvms" : {
+		"armada_hardenedmetalstorage" : {
 			"role": ["static"],
 			"limit": 1
 		},
@@ -678,7 +678,7 @@
 
 
 // ignore
-		"armfort": {
+		"armada_fortificationwall": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -686,7 +686,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"armdrag_scav": {
+		"armada_dragonsteeth_scav": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -694,7 +694,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"armfort_scav": {
+		"armada_fortificationwall_scav": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -985,7 +985,7 @@
 
 
 
-		// adv bot - armalab
+		// adv bot - armada_advancedbotlab
 
 		"armada_sprinter": {
 			"role": ["raider"],
@@ -1080,7 +1080,7 @@
 
 
 
-		// T3 bot - armshltx
+		// T3 bot - armada_experimentalgantry
 
 		"armmar": {
 			"role": ["raider", "heavy"],
@@ -1119,7 +1119,7 @@
 
 
 
-		// vehicles - armvp
+		// vehicles - armada_vehicleplant
 
 		"armmlv": {
 			"role": ["support"],
@@ -1176,7 +1176,7 @@
 
 
 
-		// adv vehicles - armavp
+		// adv vehicles - armada_advancedvehicleplant
 
 		"armlatnk": {
 			"role": ["raider"],
@@ -1229,7 +1229,7 @@
 
 
 
-		// aircraft - armap
+		// aircraft - armada_aircraftplant
 
 		"armada_blink": {
 			"role": ["scout", "air"],
@@ -1255,7 +1255,7 @@
 
 
 
-		// adv aircraft - armaap
+		// adv aircraft - armada_advancedaircraftplant
 
 		"armada_oracle": {
 			"role": ["scout", "air"],
@@ -1305,7 +1305,7 @@
 
 
 
-		// ships - armsy
+		// ships - armada_shipyard
 
         "armrecl": {
 			"role": ["support"],
@@ -1340,7 +1340,7 @@
 
 
 
-		// adv shipyard - armasy
+		// adv shipyard - armada_advancedshipyard
 
 		"armsubk": {
 			"role": ["anti_sub", "sub"]	

@@ -69,9 +69,9 @@ local playerCommanders = {
 }
 
 local assisters = {
-	"armnanotc_scav",
+	"armada_constructionturret_scav",
 	"cornanotc_scav",
-	"armnanotcplat_scav",
+	"armada_constructionturretplat_scav",
 	"cornanotcplat_scav",
 	"armrespawn",
 	"correspawn",

@@ -16,7 +16,7 @@
 
 // Define factories
 "factory": {
-	"armlab": {
+	"armada_botlab": {
 		// Adjusts the priority of factory choice (factories with map_percent < 20 are ignored)
 		// map_percent is [20..100]
 		// On start:
@@ -54,7 +54,7 @@
 		"caretaker": 3
 	},
 
-	"armalab": {
+	"armada_advancedbotlab": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -81,7 +81,7 @@
 		"caretaker": 6  // maxiumum amount of nanos: #caretake x #factories | actual max total amount gets limited by income/nanobuilspeed (behaviour.json)| e.g. 3rd factory 4 caretaker => 3x4=12
 	},
 
-	"armvp": {
+	"armada_vehicleplant": {
 		"importance": [1.0, 0.2],
 
 		"require_energy": false,
@@ -118,7 +118,7 @@
 		"caretaker": 4
 	},
 
-	"armavp": {
+	"armada_advancedvehicleplant": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -149,7 +149,7 @@
 	},
 
 	//T3 factory
-	"armshltx": {
+	"armada_experimentalgantry": {
 		"importance": [0.0, 3.0],
 
 		"require_energy": true,
@@ -175,7 +175,7 @@
 	},
 
 	// ARMADA Aircraft
-	"armap": {
+	"armada_aircraftplant": {
 		"importance": [0.5, 0.5],
 
 		"require_energy": false,
@@ -201,7 +201,7 @@
 		"caretaker": 2
 	},
 	
-	"armaap": {
+	"armada_advancedaircraftplant": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -225,7 +225,7 @@
 	// ARMADA Ships
    
 
-	"armsy": {
+	"armada_shipyard": {
 		"importance": [2.0, 2.0],
 
 		"require_energy": false,
@@ -243,7 +243,7 @@
 		"caretaker": 2
 	},
 	
-	"armasy": {
+	"armada_advancedshipyard": {
 		"importance": [0.0, 6.0],
 
 		"require_energy": false,
@@ -263,7 +263,7 @@
 	},
 	// ARMADA HOVERS
 
-	"armhp": {
+	"armada_hovercraftplatform": {
 		"importance": [0.0, 0.0],
 
 		"require_energy": false,
@@ -288,7 +288,7 @@
 		"caretaker": 2
 	},
 
-	"armfhp": {
+	"armada_navalhovercraftplatform": {
 		"importance": [1.5, 1.0],
 
 		"require_energy": false,
@@ -315,7 +315,7 @@
 
 		// ARMADA Naval Underwater Factory
 
-		"armamsub": {
+		"armada_amphibiouscomplex": {
 			"importance": [0.0, 0.5],
 	
 			"require_energy": false,
@@ -347,7 +347,7 @@
 
 		// ARMADA Seaplane Factory
 
-		"armplat": {
+		"armada_seaplaneplatform": {
 			"importance": [0.0, 1.0],
 	
 			"require_energy": false,

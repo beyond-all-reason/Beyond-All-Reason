@@ -44,7 +44,7 @@ dictionary@ GetOpenInfo()
 {
 	return dictionary = {
 		{Commander::armada_commander, SOpener({
-			{Factory::armlab, array<SQueue> = {
+			{Factory::armada_botlab, array<SQueue> = {
 				//raider
 				SQueue(0.4f, {SO(RT::BUILDER), SO(RT::SCOUT, 2), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 5), SO(RT::BUILDER), SO(RT::RAIDER)}),
 				//builder
@@ -52,27 +52,27 @@ dictionary@ GetOpenInfo()
 				//standard
 				SQueue(0.3f, {SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::BUILDER)})
 			}},
-			{Factory::armvp, array<SQueue> = {
+			{Factory::armada_vehicleplant, array<SQueue> = {
 				//standard
 				SQueue(0.4f, {SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER)}),
 				//early scout push
 				SQueue(0.3f, {SO(RT::SCOUT, 2), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER)}),
 				SQueue(0.3f, {SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER)})
 			}},
-			{Factory::armalab, array<SQueue> = {
+			{Factory::armada_advancedbotlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::RIOT), SO(RT::ASSAULT, 2), SO(RT::BUILDER2), SO(RT::ASSAULT), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::AHA, 2), SO(RT::BUILDER2), SO(RT::HEAVY), SO(RT::BUILDER2)})
 			}},
-			{Factory::armavp, array<SQueue> = {
+			{Factory::armada_advancedvehicleplant, array<SQueue> = {
 				SQueue(0.4f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::AHA), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::AHA), SO(RT::BUILDER2)}),
 				SQueue(0.6f, {SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::SKIRM, 2)})
 			}},
-			{Factory::armshltx, array<SQueue> = {
+			{Factory::armada_experimentalgantry, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::RAIDER), SO(RT::RIOT, 2), SO(RT::ARTY, 2), SO(RT::SUPER)})
 			}},
-			{Factory::armsy, array<SQueue> = {
+			{Factory::armada_shipyard, array<SQueue> = {
 				SQueue(0.3f, {SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::SUB), SO(RT::SKIRM)})
 			}},
-			{Factory::armasy, array<SQueue> = {
+			{Factory::armada_advancedshipyard, array<SQueue> = {
 				SQueue(0.5f, {SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2, 2)})
 			}}
 			}, {SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER)})

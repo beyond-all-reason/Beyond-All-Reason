@@ -18,9 +18,9 @@ local friendlySpawnEffectUnitID = UnitDefNames[friendlySpawnEffectUnit].id
 
 local noSelfDestruct = {
 	"cormaw_scav",
-	"armclaw_scav",
+	"armada_dragonsclaw_scav",
 	"corfmd_scav",
-	"armamd_scav",
+	"armada_citadel_scav",
 	"lootboxgold_scav",
 	"lootboxplatinum_scav",
 	"lootboxsilver_scav",
@@ -33,11 +33,11 @@ local noSelfDestruct = {
 }
 
 local walls = {
-	"armdrag_scav",
-	"armfdrag_scav",
+	"armada_dragonsteeth_scav",
+	"armada_sharksteeth_scav",
 	"cordrag_scav",
 	"corfdrag_scav",
-	"armfort_scav",
+	"armada_fortificationwall_scav",
 	"corfort_scav",
 	"corscavdrag_scav",
 	"corscavfort_scav",
@@ -45,15 +45,15 @@ local walls = {
 
 local stockpilers = {
 	"corsilo_scav",
-	"armsilo_scav",
+	"armada_armageddon_scav",
 	"cortron_scav",
-	"armemp_scav",
-	"armamd_scav",
+	"armada_paralyzer_scav",
+	"armada_citadel_scav",
 	"corfmd_scav",
 	"corscreamer_scav",
-	"armmercury_scav",
+	"armada_mercury_scav",
 	"corjuno_scav",
-	"armjuno_scav",
+	"armada_juno_scav",
 	"armthor_scav",
 	"armada_umbrella_scav",
 	"cormabm_scav",
@@ -64,51 +64,51 @@ local stockpilers = {
 
 local nukes = {
 	"corsilo_scav",
-	"armsilo_scav",
+	"armada_armageddon_scav",
 	"cortron_scav",
-	"armemp_scav",
+	"armada_paralyzer_scav",
 	"corjuno_scav",
-	"armjuno_scav",
+	"armada_juno_scav",
 }
 
 local beaconCaptureExclusions = {
-	"armdrag",
-	"armfdrag",
+	"armada_dragonsteeth",
+	"armada_sharksteeth",
 	"cordrag",
 	"corfdrag",
-	"armfort",
+	"armada_fortificationwall",
 	"corfort",
 }
 
 local beaconDefencesLand = {
 	T0 = {
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T0
-		"armllt_scav",
-		"armrl_scav",
+		"armada_sentry_scav",
+		"armada_nettle_scav",
 		"corllt_scav",
 		"corrl_scav",
 	},
 
 	T1 = {
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T1
-		"armrad_scav",
-		"armjamt_scav",
-		"armbeamer_scav",
-		"armhlt_scav",
-		"armguard_scav",
+		"armada_radartower_scav",
+		"armada_sneakypete_scav",
+		"armada_beamer_scav",
+		"armada_overwatch_scav",
+		"armada_gauntlet_scav",
 		"legmg_scav",
-		"armrl_scav",
-		"armferret_scav",
-		"armcir_scav",
-		"armdl_scav",
+		"armada_nettle_scav",
+		"armada_ferret_scav",
+		"armada_chainsaw_scav",
+		"armada_anemone_scav",
 		"corrad_scav",
 		"corjamt_scav",
 		"corhllt_scav",
@@ -124,20 +124,20 @@ local beaconDefencesLand = {
 
 	T2 = {
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T1
-		"armrad_scav",
-		"armjamt_scav",
-		"armbeamer_scav",
-		"armhlt_scav",
-		"armguard_scav",
+		"armada_radartower_scav",
+		"armada_sneakypete_scav",
+		"armada_beamer_scav",
+		"armada_overwatch_scav",
+		"armada_gauntlet_scav",
 		"legmg_scav",
-		"armrl_scav",
-		"armferret_scav",
-		"armcir_scav",
-		"armdl_scav",
+		"armada_nettle_scav",
+		"armada_ferret_scav",
+		"armada_chainsaw_scav",
+		"armada_anemone_scav",
 		"corrad_scav",
 		"corjamt_scav",
 		"corhllt_scav",
@@ -151,18 +151,18 @@ local beaconDefencesLand = {
 		"corscavdtm_scav",
 		
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T2
-		"armarad_scav",
-		"armveil_scav",
-		"armsd_scav",
-		"armtarg_scav",
-		"armgate_scav",
-		"armpb_scav",
-		"armamb_scav",
-		"armflak_scav",
+		"armada_advancedradartower_scav",
+		"armada_veil_scav",
+		"armada_tracer_scav",
+		"armada_pinpointer_scav",
+		"armada_keeper_scav",
+		"armada_pitbull_scav",
+		"armada_rattlesnake_scav",
+		"armada_arbalest_scav",
 		"corarad_scav",
 		"corshroud_scav",
 		"corsd_scav",
@@ -176,18 +176,18 @@ local beaconDefencesLand = {
 
 	T3 = {
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T2
-		"armarad_scav",
-		"armveil_scav",
-		"armsd_scav",
-		"armtarg_scav",
-		"armgate_scav",
-		"armpb_scav",
-		"armamb_scav",
-		"armflak_scav",
+		"armada_advancedradartower_scav",
+		"armada_veil_scav",
+		"armada_tracer_scav",
+		"armada_pinpointer_scav",
+		"armada_keeper_scav",
+		"armada_pitbull_scav",
+		"armada_rattlesnake_scav",
+		"armada_arbalest_scav",
 		"corarad_scav",
 		"corshroud_scav",
 		"corsd_scav",
@@ -199,16 +199,16 @@ local beaconDefencesLand = {
 		"corflak_scav",
 
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T3
-		"armanni_scav",
-		"armbrtha_scav",
+		"armada_pulsar_scav",
+		"armada_basilica_scav",
 		"armminivulc_scav",
-		"armmercury_scav",
-		"armemp_scav",
-		"armamd_scav",
+		"armada_mercury_scav",
+		"armada_paralyzer_scav",
+		"armada_citadel_scav",
 		"cordoom_scav",
 		"corint_scav",
 		"corminibuzz_scav",
@@ -219,18 +219,18 @@ local beaconDefencesLand = {
 
 	T4 = {
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T2
-		"armarad_scav",
-		"armveil_scav",
-		"armsd_scav",
-		"armtarg_scav",
-		"armgate_scav",
-		"armpb_scav",
-		"armamb_scav",
-		"armflak_scav",
+		"armada_advancedradartower_scav",
+		"armada_veil_scav",
+		"armada_tracer_scav",
+		"armada_pinpointer_scav",
+		"armada_keeper_scav",
+		"armada_pitbull_scav",
+		"armada_rattlesnake_scav",
+		"armada_arbalest_scav",
 		"corarad_scav",
 		"corshroud_scav",
 		"corsd_scav",
@@ -242,16 +242,16 @@ local beaconDefencesLand = {
 		"corflak_scav",
 
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T3
-		"armanni_scav",
-		"armbrtha_scav",
+		"armada_pulsar_scav",
+		"armada_basilica_scav",
 		"armminivulc_scav",
-		"armmercury_scav",
-		"armemp_scav",
-		"armamd_scav",
+		"armada_mercury_scav",
+		"armada_paralyzer_scav",
+		"armada_citadel_scav",
 		"cordoom_scav",
 		"corint_scav",
 		"corminibuzz_scav",
@@ -260,14 +260,14 @@ local beaconDefencesLand = {
 		"corfmd_scav",
 		
 		-- Nanos
-		"armnanotc_scav",
+		"armada_constructionturret_scav",
 		"cornanotc_scav",
 
 		-- T4
-		"armannit3_scav",
-		"armvulc_scav",
+		"armada_pulsart3_scav",
+		"armada_ragnarok_scav",
 		"armbotrail_scav",
-		"armsilo_scav",
+		"armada_armageddon_scav",
 		"cordoomt3_scav",
 		"corbuzz_scav",
 		"corsilo_scav",
@@ -277,38 +277,38 @@ local beaconDefencesLand = {
 local beaconDefencesSea = {
 	T0 = {
 		-- Nanos
-		"armnanotcplat_scav",
+		"armada_constructionturretplat_scav",
 		"cornanotcplat_scav",
 		
 		-- T0
-		"armtl_scav",
-		"armfrt_scav",
+		"armada_harpoon_scav",
+		"armada_navalnettle_scav",
 		"cortl_scav",
 		"corfrt_scav",
 	},
 
 	T1 = {
 		-- Nanos
-		"armnanotcplat_scav",
+		"armada_constructionturretplat_scav",
 		"cornanotcplat_scav",
 		
 		-- T1
-		"armfrad_scav",
-		"armfhlt_scav",
+		"armada_navalradar_scav",
+		"armada_manta_scav",
 		"corfrad_scav",
 		"corfhlt_scav",
 	},
 
 	T2 = {
 		-- Nanos
-		"armnanotcplat_scav",
+		"armada_constructionturretplat_scav",
 		"cornanotcplat_scav",
 		
 		-- T2
-		"armkraken_scav",
-		"armfflak_scav",
-		"armatl_scav",
-		"armfatf_scav",
+		"armada_gorgon_scav",
+		"armada_navalarbalest_scav",
+		"armada_moray_scav",
+		"armada_navalpinpointer_scav",
 		"corfdoom_scav",
 		"corenaa_scav",
 		"coratl_scav",
@@ -317,14 +317,14 @@ local beaconDefencesSea = {
   
 	T3 = {
 		-- Nanos
-		"armnanotcplat_scav",
+		"armada_constructionturretplat_scav",
 		"cornanotcplat_scav",
 		
 		-- T2 -- There's nothing to put in T3 :(
-		"armkraken_scav",
-		"armfflak_scav",
-		"armatl_scav",
-		"armfatf_scav",
+		"armada_gorgon_scav",
+		"armada_navalarbalest_scav",
+		"armada_moray_scav",
+		"armada_navalpinpointer_scav",
 		"corfdoom_scav",
 		"corenaa_scav",
 		"coratl_scav",
@@ -333,14 +333,14 @@ local beaconDefencesSea = {
 
 	T4 = {
 		-- Nanos
-		"armnanotcplat_scav",
+		"armada_constructionturretplat_scav",
 		"cornanotcplat_scav",
 		
 		-- T2 -- There's nothing to put in T4 either :(
-		"armkraken_scav",
-		"armfflak_scav",
-		"armatl_scav",
-		"armfatf_scav",
+		"armada_gorgon_scav",
+		"armada_navalarbalest_scav",
+		"armada_moray_scav",
+		"armada_navalpinpointer_scav",
 		"corfdoom_scav",
 		"corenaa_scav",
 		"coratl_scav",

@@ -168,7 +168,7 @@ end
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
-	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
+	if WG.clearmada_aircraftplantmarks and WG.clearmada_aircraftplantmarks.continuous then return end
 
 	local osClock = os.clock()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

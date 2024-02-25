@@ -188,32 +188,32 @@ end
 local function initUnitList()
 	local unitDefRingsNames = {
 		-- ARMADA
-		['armclaw'] = { weapons = { 1 } },
-		['armllt'] = { weapons = { 1 } },
-		['armbeamer'] = { weapons = { 1 } },
-		['armhlt'] = { weapons = { 1 } },
-		['armguard'] = { weapons = { 4} },
-		['armrl'] = { weapons = { 2 } }, --light aa
-		['armferret'] = { weapons = { 2 } },
-		['armcir'] = { weapons = { 2 } }, --chainsaw
-		['armdl'] = { weapons = { 1 } }, --depthcharge
-		['armjuno'] = { weapons = { 1 } },
-		['armtl'] = { weapons = { 1 } }, --torp launcher
-		['armfhlt'] = { weapons = { 1 } },  --floating hlt
-		['armfrt'] = { weapons = { 2 } },  --floating rocket laucher
-		['armfflak'] = { weapons = { 2 } },  --floating flak AA
-		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
+		['armada_dragonsclaw'] = { weapons = { 1 } },
+		['armada_sentry'] = { weapons = { 1 } },
+		['armada_beamer'] = { weapons = { 1 } },
+		['armada_overwatch'] = { weapons = { 1 } },
+		['armada_gauntlet'] = { weapons = { 4} },
+		['armada_nettle'] = { weapons = { 2 } }, --light aa
+		['armada_ferret'] = { weapons = { 2 } },
+		['armada_chainsaw'] = { weapons = { 2 } }, --chainsaw
+		['armada_anemone'] = { weapons = { 1 } }, --depthcharge
+		['armada_juno'] = { weapons = { 1 } },
+		['armada_harpoon'] = { weapons = { 1 } }, --torp launcher
+		['armada_manta'] = { weapons = { 1 } },  --floating hlt
+		['armada_navalnettle'] = { weapons = { 2 } },  --floating rocket laucher
+		['armada_navalarbalest'] = { weapons = { 2 } },  --floating flak AA
+		['armada_moray'] = { weapons = { 1 } },  --adv torpedo launcher
 
-		['armamb'] = { weapons = { 4 } }, --ambusher
-		['armpb'] = { weapons = { 4 } }, --pitbull
-		['armanni'] = { weapons = { 1 } },
-		['armflak'] = { weapons = { 2 } },
-		['armmercury'] = { weapons = { 2 } },
-		['armemp'] = { weapons = { 1 } },
-		['armamd'] = { weapons = { 3 } }, --antinuke
+		['armada_rattlesnake'] = { weapons = { 4 } }, --ambusher
+		['armada_pitbull'] = { weapons = { 4 } }, --pitbull
+		['armada_pulsar'] = { weapons = { 1 } },
+		['armada_arbalest'] = { weapons = { 2 } },
+		['armada_mercury'] = { weapons = { 2 } },
+		['armada_paralyzer'] = { weapons = { 1 } },
+		['armada_citadel'] = { weapons = { 3 } }, --antinuke
 
-		['armbrtha'] = { weapons = { 4 } },
-		['armvulc'] = { weapons = { 4 } },
+		['armada_basilica'] = { weapons = { 4 } },
+		['armada_ragnarok'] = { weapons = { 4 } },
 
 		-- CORTEX
 		['cormaw'] = { weapons = { 1 } },
@@ -255,7 +255,7 @@ local function initUnitList()
 		-- SCAVENGERS
 		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
 
-		['armannit3'] = { weapons = { 1 } },
+		['armada_pulsart3'] = { weapons = { 1 } },
 		['armminivulc'] = { weapons = { 1 } },
 
 		['cordoomt3'] = { weapons = { 1 } },

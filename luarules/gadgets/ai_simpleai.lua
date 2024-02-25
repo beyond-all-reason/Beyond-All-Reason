@@ -67,9 +67,9 @@ if gameShortName == "BYAR" then
 		"corint",
 
 		-- stockpilers
-		"armemp",
-		"armjuno",
-		"armsilo",
+		"armada_paralyzer",
+		"armada_juno",
+		"armada_armageddon",
 		"corjuno",
 		"corsilo",
 		"cortron",
@@ -79,11 +79,11 @@ if gameShortName == "BYAR" then
 		"cormlv",
 
 		-- depth charge launchers
-		"armdl",
+		"armada_anemone",
 		"cordl",
 
 		-- walls
-		"armdrag",
+		"armada_dragonsteeth",
 		"cordrag",
 	}
 end

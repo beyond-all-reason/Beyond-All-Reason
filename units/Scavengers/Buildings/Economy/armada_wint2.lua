@@ -1,11 +1,11 @@
 return {
-	armwint2 = {
+	armada_windturbinet2 = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 1750,
 		metalcost = 370,
-		buildpic = "ARMWINT2.DDS",
+		buildpic = "armada_windturbineT2.DDS",
 		buildtime = 16000,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -22,8 +22,8 @@ return {
 		health = 1960,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		objectname = "Units/scavbuildings/ARMWINT2.s3o",
-		script = "Units/scavbuildings/ARMWINT2.cob",
+		objectname = "Units/scavbuildings/armada_windturbineT2.s3o",
+		script = "Units/scavbuildings/armada_windturbineT2.cob",
 		seismicsignature = 0,
 		selfdestructas = "windboom",
 		sightdistance = 273,
@@ -31,7 +31,7 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armwint2_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_windturbinet2_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
@@ -59,7 +59,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 222,
-				object = "Units/scavbuildings/armwint2_dead.s3o",
+				object = "Units/scavbuildings/armada_windturbinet2_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

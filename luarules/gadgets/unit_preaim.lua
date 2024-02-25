@@ -33,9 +33,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local exludedUnits = {    -- exclude auto target range boost for popup units
-	[UnitDefNames.armclaw.id] = true,
-	[UnitDefNames.armpb.id] = true,
-	[UnitDefNames.armamb.id] = true,
+	[UnitDefNames.armada_dragonsclaw.id] = true,
+	[UnitDefNames.armada_pitbull.id] = true,
+	[UnitDefNames.armada_rattlesnake.id] = true,
 	[UnitDefNames.cormaw.id] = true,
 	[UnitDefNames.corvipe.id] = true,
 	[UnitDefNames.corpun.id] = true,
@@ -43,7 +43,7 @@ local exludedUnits = {    -- exclude auto target range boost for popup units
 
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.corhllt.id] = true,
-	[UnitDefNames.armllt.id] = true,
+	[UnitDefNames.armada_sentry.id] = true,
 	[UnitDefNames.leginc.id] = true,
 }
 local scavengerPopups = {}

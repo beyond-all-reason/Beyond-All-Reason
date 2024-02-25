@@ -100,16 +100,16 @@ function UnitDef_Post(name, uDef)
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
-		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
+		if name == "coralab" or name == "coravp" or name == "armada_advancedbotlab" or name == "armada_advancedvehicleplant" then
 			uDef.metalcost = 1800 --2900
 		end
-		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
+		if name == "coraap" or name == "corasy" or name == "armada_advancedaircraftplant" or name == "armada_advancedshipyard" then
 			uDef.metalcost = 2100 --3200
 		end
 	end
 
 	if modOptions.experimentalrebalancet2metalextractors == true then
-		if name == "armmoho" or name == "armuwmme" then
+		if name == "armada_advancedmetalextractor" or name == "armada_navaladvancedmetalextractor" then
 			uDef.extractsmetal = 0.002 --0.004
 			uDef.metalcost = 240 --620
 			uDef.energycost = 3000 --7700
@@ -137,7 +137,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.experimentalrebalancet2energy == true then
 		if name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armwint2"
+			uDef.buildoptions[numBuildoptions+1] = "armada_windturbinet2"
 		end
 		if name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
@@ -152,20 +152,20 @@ function UnitDef_Post(name, uDef)
 			uDef.corpse = nil
 			-- Disable Bad Units
 			local factories = {
-				armaap = true,
-				armalab = true,
-				armap = true,
-				armavp = true,
-				armhp = true,
-				armlab = true,
-				armshltx = true,
-				armvp = true,
-				armamsub = true,
-				armasy = true,
-				armfhp = true,
-				armplat = true,
-				armshltxuw = true,
-				armsy = true,
+				armada_advancedaircraftplant = true,
+				armada_advancedbotlab = true,
+				armada_aircraftplant = true,
+				armada_advancedvehicleplant = true,
+				armada_hovercraftplatform = true,
+				armada_botlab = true,
+				armada_experimentalgantry = true,
+				armada_vehicleplant = true,
+				armada_amphibiouscomplex = true,
+				armada_advancedshipyard = true,
+				armada_navalhovercraftplatform = true,
+				armada_seaplaneplatform = true,
+				armada_experimentalgantryuw = true,
+				armada_shipyard = true,
 				coraap = true,
 				coralab = true,
 				corap = true,
@@ -180,10 +180,10 @@ function UnitDef_Post(name, uDef)
 				corplat = true,
 				corgantuw = true,
 				corsy = true,
-				armapt3 = true,	-- scav T3 air factory
+				armada_aircraftplantt3 = true,	-- scav T3 air factory
 				corapt3 = true,	-- scav T3 air factory
-				armnanotc = true,
-				armnanotcplat = true,
+				armada_constructionturret = true,
+				armada_constructionturretplat = true,
 				cornanotc = true,
 				cornanotcplat = true,
 				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
@@ -251,24 +251,24 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			end
 			local AircraftFactories = {
-				armap = true,
-				armaap = true,
-				armplat = true,
+				armada_aircraftplant = true,
+				armada_advancedaircraftplant = true,
+				armada_seaplaneplatform = true,
 				corap = true,
 				coraap = true,
 				corplat = true,
 				corapt3 = true,
-				armapt3 = true,
+				armada_aircraftplantt3 = true,
 				legap = true,
 				legaap = true,
-				armap_scav = true,
-				armaap_scav = true,
-				armplat_scav = true,
+				armada_aircraftplant_scav = true,
+				armada_advancedaircraftplant_scav = true,
+				armada_seaplaneplatform_scav = true,
 				corap_scav = true,
 				coraap_scav = true,
 				corplat_scav = true,
 				corapt3_scav = true,
-				armapt3_scav = true,
+				armada_aircraftplantt3_scav = true,
 				legap_scav = true,
 				legaap_scav = true,
 
@@ -292,14 +292,14 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
-				armamd = true,
-				armsilo = true,
+				armada_citadel = true,
+				armada_armageddon = true,
 				armada_umbrella = true,
 				corfmd = true,
 				corsilo = true,
 				cormabm = true,
-				armamd_scav = true,
-				armsilo_scav = true,
+				armada_citadel_scav = true,
+				armada_armageddon_scav = true,
 				armada_umbrella_scav = true,
 				corfmd_scav = true,
 				corsilo_scav = true,
@@ -312,9 +312,9 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
-				armemp = true,
+				armada_paralyzer = true,
 				cortron = true,
-				armemp_scav = true,
+				armada_paralyzer_scav = true,
 				cortron_scav = true,
 			}
 			if TacNukes[name] then
@@ -325,14 +325,14 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unit_restrictions_nolrpc then
 			local LRPCs = {
 				armbotrail = true,
-				armbrtha = true,
-				armvulc = true,
+				armada_basilica = true,
+				armada_ragnarok = true,
 				corint = true,
 				corbuzz = true,
 				legstarfall = true,
 				armbotrail_scav = true,
-				armbrtha_scav = true,
-				armvulc_scav = true,
+				armada_basilica_scav = true,
+				armada_ragnarok_scav = true,
 				corint_scav = true,
 				corbuzz_scav = true,
 				legstarfall_scav = true,
@@ -349,7 +349,7 @@ function UnitDef_Post(name, uDef)
 		--Shockwave mex
 		if name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
+			uDef.buildoptions[numBuildoptions+1] = "armada_shockwave"
 		end
 
 		--Printer
@@ -368,7 +368,7 @@ function UnitDef_Post(name, uDef)
 		
 		--Drone Carriers
 		
-		if name == "armasy" then
+		if name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_dronecarrier"
 		end
@@ -382,7 +382,7 @@ function UnitDef_Post(name, uDef)
 	-- Add scav units to normal factories and builders
 	if modOptions.experimentalextraunits then
 
-		if name == "armshltx" then
+		if name == "armada_experimentalgantry" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armada_recluset4"
@@ -392,7 +392,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 			uDef.buildoptions[numBuildoptions+8] = "armada_dronecarrierland"
-		elseif name == "armshltxuw" then
+		elseif name == "armada_experimentalgantryuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armada_pawnt4"
@@ -402,7 +402,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+2] = "corakt4"
-		elseif name == "armvp" then
+		elseif name == "armada_vehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
 		elseif name == "legavp" then
@@ -446,22 +446,22 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corfrock"
 		elseif name == "armcs" or name == "armcsa" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armgplat"
-			uDef.buildoptions[numBuildoptions+2] = "armfrock"
+			uDef.buildoptions[numBuildoptions+1] = "armada_gunplatform"
+			uDef.buildoptions[numBuildoptions+2] = "armada_scumbag"
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corfgate"
 		elseif name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armfgate"
+			uDef.buildoptions[numBuildoptions+1] = "armada_aurora"
 		elseif name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armapt3"
+			uDef.buildoptions[numBuildoptions+1] = "armada_aircraftplantt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
-			uDef.buildoptions[numBuildoptions+3] = "armwint2"
+			uDef.buildoptions[numBuildoptions+3] = "armada_windturbinet2"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
-			uDef.buildoptions[numBuildoptions+6] = "armannit3"
-			uDef.buildoptions[numBuildoptions+7] = "armnanotct2"
+			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
+			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armlwall"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
@@ -480,7 +480,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
-		elseif name == "armasy" then
+		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
 			uDef.buildoptions[numBuildoptions+2] = "armdecadet3"
@@ -889,15 +889,15 @@ if modOptions.emprework == true then
 		end
 
 
-		if name == "armemp" then
-			uDef.weapondefs.armemp_weapon.areaofeffect = 512
-			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
-			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
-			uDef.weapondefs.armemp_weapon.paralyzetime = 15
-			uDef.weapondefs.armemp_weapon.damage.default = 60000
+		if name == "armada_paralyzer" then
+			uDef.weapondefs.armada_paralyzer_weapon.areaofeffect = 512
+			uDef.weapondefs.armada_paralyzer_weapon.burstrate = 0.3333
+			uDef.weapondefs.armada_paralyzer_weapon.edgeeffectiveness = -0.10
+			uDef.weapondefs.armada_paralyzer_weapon.paralyzetime = 15
+			uDef.weapondefs.armada_paralyzer_weapon.damage.default = 60000
 
 		end
-		if name == "armshockwave" then
+		if name == "armada_shockwave" then
 			uDef.weapondefs.hllt_bottom.areaofeffect = 150
 			uDef.weapondefs.hllt_bottom.edgeeffectiveness = 0.15
 			uDef.weapondefs.hllt_bottom.reloadtime = 1.4
@@ -1350,7 +1350,7 @@ if modOptions.air_rework == true then
 		uDef.sightdistance = 720
 		uDef.cruisealtitude = 120
 	end
-	if name == "armaap" then
+	if name == "armada_advancedaircraftplant" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions+1] = "armsb"
 		uDef.buildoptions[numBuildoptions+2] = "armsfig2"
@@ -1367,28 +1367,28 @@ if modOptions.air_rework == true then
 	if name == "corplat" then
 		uDef.buildoptions[5] = "corsfig2"
 	end
-	if name == "armplat" then
+	if name == "armada_seaplaneplatform" then
 		uDef.buildoptions[5] = "armsfig2"
 	end
-	if name == "armrl" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
+	if name == "armada_nettle" then
+		uDef.weapondefs.armada_nettle_missile.startvelocity = 111
+		uDef.weapondefs.armada_nettle_missile.flighttime = 2.6
 	end
-	if name == "armfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
+	if name == "armada_navalnettle" then
+		uDef.weapondefs.armada_nettle_missile.startvelocity = 111
+		uDef.weapondefs.armada_nettle_missile.flighttime = 2.6
+		uDef.weapondefs.armada_nettle_missile.weaponacceleration = 200
 	end
 	if name == "corfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
+		uDef.weapondefs.armada_nettle_missile.startvelocity = 111
+		uDef.weapondefs.armada_nettle_missile.flighttime = 2.6
+		uDef.weapondefs.armada_nettle_missile.weaponacceleration = 200
 	end
 	if name == "corrl" then
 		uDef.weapondefs.corrl_missile.startvelocity = 111
 		uDef.weapondefs.corrl_missile.flighttime = 2.6
 	end
-	if name == "armferret" then
+	if name == "armada_ferret" then
 		uDef.weapondefs.ferret_missile.areaofeffect = 48
 		uDef.weapondefs.ferret_missile.startvelocity = 120
 		uDef.weapondefs.ferret_missile.weaponacceleration = 210
@@ -1400,7 +1400,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.madsam_missile.weaponacceleration = 210
 		uDef.weapondefs.madsam_missile.weaponvelocity = 1100
 	end
-	if name == "armmercury" then
+	if name == "armada_mercury" then
 		uDef.weapondefs.arm_advsam.startvelocity = 140
 		uDef.weapondefs.arm_advsam.stockpile = false
 		uDef.weapondefs.arm_advsam.reloadtime = 25
@@ -1418,7 +1418,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cor_advsam.flighttime = 2.5
 		uDef.weapondefs.cor_advsam.damage.vtol = 1500
 	end
-	if name == "armcir" then
+	if name == "armada_chainsaw" then
 		uDef.weapondefs.arm_cir.startvelocity = 100
 		uDef.weapondefs.arm_cir.weaponvelocity = 1050
 		uDef.weapondefs.arm_cir.flighttime = 2.7
@@ -1477,11 +1477,11 @@ if modOptions.air_rework == true then
 	if name == "corsent" then
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
-	if name == "armflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+	if name == "armada_arbalest" then
+		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
 	if name == "corflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
 	if name == "armsam" then
 		uDef.weapondefs.armtruck_missile.startvelocity = 135
@@ -1504,10 +1504,10 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.aamissile.flighttime = 2.1
 	end
 	if name == "corenaa" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
-	if name == "armfflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+	if name == "armada_navalarbalest" then
+		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
 	if name == "armlatnk" then
 		uDef.weapondefs.armada_amphibiousbot_missile.startvelocity = 150
@@ -1546,23 +1546,23 @@ end
 
 --Lategame Rebalance
 if Spring.GetModOptions().lategame_rebalance == true then
-	if name == "armamb" then
-		uDef.weapondefs.armamb_gun.reloadtime = 2
-		uDef.weapondefs.armamb_gun_high.reloadtime = 7.7
+	if name == "armada_rattlesnake" then
+		uDef.weapondefs.armada_rattlesnake_gun.reloadtime = 2
+		uDef.weapondefs.armada_rattlesnake_gun_high.reloadtime = 7.7
 	end
 	if name == "cortoast" then
 		uDef.weapondefs.cortoast_gun.reloadtime = 2.35
 		uDef.weapondefs.cortoast_gun_high.reloadtime = 8.8
 	end
-	if name == "armpb" then
-		uDef.weapondefs.armpb_weapon.reloadtime = 1.7
-		uDef.weapondefs.armpb_weapon.range = 700
+	if name == "armada_pitbull" then
+		uDef.weapondefs.armada_pitbull_weapon.reloadtime = 1.7
+		uDef.weapondefs.armada_pitbull_weapon.range = 700
 	end
 	if name == "corvipe" then
 		uDef.weapondefs.vipersabot.reloadtime = 2.1
 		uDef.weapondefs.vipersabot.range = 700
 	end
-	if name == "armanni" then
+	if name == "armada_pulsar" then
 		uDef.metalcost = 4000
 		uDef.energycost = 85000
 		uDef.buildtime = 59000
@@ -1572,7 +1572,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 40000
 		uDef.buildtime = 70000
 	end
-	if name == "armbrtha" then
+	if name == "armada_basilica" then
 		uDef.metalcost = 5000
 		uDef.energycost = 71000
 		uDef.buildtime = 94000
@@ -1582,7 +1582,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 74000
 		uDef.buildtime = 103000
 	end
-	if name == "armvulc" then
+	if name == "armada_ragnarok" then
 		uDef.metalcost = 75600
 		uDef.energycost = 902400
 		uDef.buildtime = 1680000
@@ -1651,13 +1651,13 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "corarch" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
-	if name == "armflak" then
-		uDef.weapondefs.armflak_gun.reloadtime = 0.6
+	if name == "armada_arbalest" then
+		uDef.weapondefs.armada_arbalest_gun.reloadtime = 0.6
 	end
 	if name == "corflak" then
-		uDef.weapondefs.armflak_gun.reloadtime = 0.6
+		uDef.weapondefs.armada_arbalest_gun.reloadtime = 0.6
 	end
-	if name == "armmercury" then
+	if name == "armada_mercury" then
 		uDef.weapondefs.arm_advsam.reloadtime = 11
 		uDef.weapondefs.arm_advsam.stockpile = false
 	end
@@ -1818,7 +1818,7 @@ end
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" then -- special case
+	if name == "armada_solarcollector" or name == "corsolar" then -- special case
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then

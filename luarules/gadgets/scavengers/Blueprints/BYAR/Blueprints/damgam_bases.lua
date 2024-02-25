@@ -62,14 +62,14 @@ local function redBase1()
 end
 
 local function blueBase1()
-	local randomturrets = {UDN.armllt_scav.id, UDN.armllt_scav.id, UDN.armhlt_scav.id, BPWallOrPopup('scav', 1), UDN.armrl_scav.id, UDN.armnanotc_scav.id,}
+	local randomturrets = {UDN.armada_sentry_scav.id, UDN.armada_sentry_scav.id, UDN.armada_overwatch_scav.id, BPWallOrPopup('scav', 1), UDN.armada_nettle_scav.id, UDN.armada_constructionturret_scav.id,}
 	local factoryID
 
 	local r = math.random(0,1)
 	if r == 0 then
-		factoryID = UDN.armlab_scav.id
+		factoryID = UDN.armada_botlab_scav.id
 	else
-		factoryID = UDN.armvp_scav.id
+		factoryID = UDN.armada_vehicleplant_scav.id
 	end
 
 	return {
@@ -120,32 +120,32 @@ local function blueBase2()
 		radius = 192,
 		buildings = {
 			-- Nanos
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
 
 			-- Defences
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  -64,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.armferret_scav.id, xOffset =   72,  zOffset =   72, direction = 3 },
-			{ unitDefID = UDN.armbeamer_scav.id, xOffset = -160,  zOffset = -128, direction = 3 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  128,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160,  zOffset =   64, direction = 1 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =   64,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armferret_scav.id, xOffset =   72,  zOffset =  -72, direction = 3 },
-			{ unitDefID = UDN.armbeamer_scav.id, xOffset =  128,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.armferret_scav.id, xOffset =  -72,  zOffset =   72, direction = 3 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160,  zOffset =  128, direction = 3 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160,  zOffset =  -64, direction = 3 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -128,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =   64,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.armbeamer_scav.id, xOffset =  160,  zOffset =  128, direction = 1 },
-			{ unitDefID = UDN.armbeamer_scav.id, xOffset = -128,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  -64,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armferret_scav.id, xOffset =  -72,  zOffset =  -72, direction = 3 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160,  zOffset =  -64, direction = 1 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160,  zOffset = -128, direction = 1 },
-			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160,  zOffset =   64, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  -64,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armada_ferret_scav.id, xOffset =   72,  zOffset =   72, direction = 3 },
+			{ unitDefID = UDN.armada_beamer_scav.id, xOffset = -160,  zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  128,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  160,  zOffset =   64, direction = 1 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =   64,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_ferret_scav.id, xOffset =   72,  zOffset =  -72, direction = 3 },
+			{ unitDefID = UDN.armada_beamer_scav.id, xOffset =  128,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armada_ferret_scav.id, xOffset =  -72,  zOffset =   72, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset = -160,  zOffset =  128, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset = -160,  zOffset =  -64, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset = -128,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =   64,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armada_beamer_scav.id, xOffset =  160,  zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.armada_beamer_scav.id, xOffset = -128,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  -64,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_ferret_scav.id, xOffset =  -72,  zOffset =  -72, direction = 3 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  160,  zOffset =  -64, direction = 1 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset =  160,  zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.armada_sentry_scav.id,	 xOffset = -160,  zOffset =   64, direction = 3 },
 
 			-- Walls
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  160,  zOffset =  192, direction = 1 },

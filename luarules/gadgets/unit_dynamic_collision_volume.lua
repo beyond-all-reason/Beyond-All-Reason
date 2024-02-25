@@ -74,7 +74,7 @@ if gadgetHandler:IsSyncedCode() then
 			canFly[unitDefID] = def.canFly
 		end
 	end
-	--unitDefMidAndAimPos[UnitDefNames['armllt'].id] = { midx = -5, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
+	--unitDefMidAndAimPos[UnitDefNames['armada_sentry'].id] = { midx = -5, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
 	--unitDefMidAndAimPos[UnitDefNames['corak'].id] = { midx = 0, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
 	--Process all initial map features
 	function gadget:Initialize()

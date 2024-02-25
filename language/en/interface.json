@@ -130,7 +130,7 @@
 		"mapinfo": {
 			"author": "Author"
 		},
-		"clearMapmarks": {
+		"clearmada_aircraftplantmarks": {
 			"tooltip": "Clear mapmarks/drawings",
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
@@ -417,7 +417,7 @@
 			},
 			"console": {
 				"title": "Console commands",
-				"eraseKey": "/clearmapmarks",
+				"eraseKey": "/clearmada_aircraftplantmarks",
 				"erase": "Erase all drawings and markes",
 				"pauseKey": "/pause",
 				"pause": "Pause"
@@ -1248,8 +1248,8 @@
 				"console_inputbutton_descr": "Enable text input mode toggle button",
 				"topbar": "Top bar",
 				"topbar_hidebuttons": "auto hide buttons",
-				"continuouslyclearmapmarks": "Hide all map drawings/marks",
-				"continuouslyclearmapmarks_descr": "Continuously clear all map marks: drawings and points",
+				"continuouslyclearmada_aircraftplantmarks": "Hide all map drawings/marks",
+				"continuouslyclearmada_aircraftplantmarks_descr": "Continuously clear all map marks: drawings and points",
 				"autoeraser": "Auto erase map marks",
 				"autoeraser_descr": "Enable auto erasing of map markers and drawings",
 				"autoeraser_erasetime": "delay in seconds",

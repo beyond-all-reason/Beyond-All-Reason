@@ -1,19 +1,19 @@
 local nonCapturingUnits = {
-"armdrag",
+"armada_dragonsteeth",
 "cordrag",
-"armfort",
+"armada_fortificationwall",
 "corfort",
-"armfdrag",
+"armada_sharksteeth",
 "corfdrag",
-"armeyes",
+"armada_beholder",
 "coreyes",
 "cormine1",
 "cormine2",
 "cormine3",
 "cormine4",
-"armmine1",
-"armmine2",
-"armmine3",
+"armada_lightmine",
+"armada_mediummine",
+"armada_heavymine",
 }
 
 -- for name, uDef in pairs(UnitDefs) do

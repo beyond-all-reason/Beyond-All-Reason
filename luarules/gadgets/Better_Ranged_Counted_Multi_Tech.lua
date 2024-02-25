@@ -182,7 +182,7 @@ Other synced gadgets may access the four following functions:
 
 		Exemple:
 		-- Make nuclear missile launchers need nuclear power plant closeby:
-		GG.TechAddDependency({"ArmFus","CorFus"},{UnitDefNames.armsilo.id,UnitDefNames.corsilo.id},"plutonium",200)
+		GG.TechAddDependency({"armada_fusionreactor","CorFus"},{UnitDefNames.armada_armageddon.id,UnitDefNames.corsilo.id},"plutonium",200)
 		-- Make factories need 3 mexxes:
 		GG.TechAddDependency(
 			function (ud) return UnitDefs[ud].isMetalExtractor end,

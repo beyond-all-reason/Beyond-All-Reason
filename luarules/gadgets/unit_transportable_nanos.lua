@@ -47,7 +47,7 @@ local AirTrans = {
 }
 local Nanos = {
 	[UnitDefNames.cornanotc.id] = true,
-	[UnitDefNames.armnanotc.id] = true,
+	[UnitDefNames.armada_constructionturret.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
     for id, v in pairs(AirTrans) do

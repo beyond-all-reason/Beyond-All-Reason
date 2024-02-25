@@ -24,7 +24,7 @@ return {
 		maxwaterdepth = 0,
 		mincloakdistance = 250,
 		objectname = "scavs/scavsafeareabeacon.s3o",
-		script = "Units/ARMEYES.cob",
+		script = "Units/armada_beholder.cob",
 		seismicsignature = 0,
 		sightdistance = 1560,
 		stealth = true,

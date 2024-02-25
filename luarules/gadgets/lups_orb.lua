@@ -29,7 +29,7 @@ local corafusShieldSphere = table.merge(defaults, {
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
 
-local armafusShieldSphere = table.merge(defaults, {
+local armada_advancedfusionreactorShieldSphere = table.merge(defaults, {
 	pos = { 0, 60, 0 },
 	size = 28,
 	light = 4.25,
@@ -52,7 +52,7 @@ local corgateShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
 })
 
-local armjunoShieldSphere = table.merge(defaults, {
+local armada_junoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
@@ -66,7 +66,7 @@ local corjunoShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
-local armgateShieldSphere = table.merge(defaults, {
+local armada_keeperShieldSphere = table.merge(defaults, {
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
@@ -74,8 +74,8 @@ local armgateShieldSphere = table.merge(defaults, {
 })
 
 local UnitEffects = {
-	["armjuno"] = {
-		{ class = 'ShieldSphere', options = armjunoShieldSphere },
+	["armada_juno"] = {
+		{ class = 'ShieldSphere', options = armada_junoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
@@ -92,12 +92,12 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = corfusShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
 	},
-	["armafus"] = {
-		{ class = 'ShieldSphere', options = armafusShieldSphere },
+	["armada_advancedfusionreactor"] = {
+		{ class = 'ShieldSphere', options = armada_advancedfusionreactorShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
 	["resourcecheat"] = {
-		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldSphere', options = armada_advancedfusionreactorShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
 	["corgate"] = {
@@ -112,14 +112,14 @@ local UnitEffects = {
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
-	["armgate"] = {
+	["armada_keeper"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 15, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = armgateShieldSphere },
+		{ class = 'ShieldSphere', options = armada_keeperShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
-	["armfgate"] = {
+	["armada_aurora"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		{ class = 'ShieldSphere', options = table.merge(armada_keeperShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
 	["lootboxbronze"] = {

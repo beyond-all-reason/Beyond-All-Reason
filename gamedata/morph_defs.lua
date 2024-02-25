@@ -25,13 +25,13 @@ local morphDefs = {		--beginning of morphDefs
 local morphDefs = {
 	-- Metal Extractors
 	-- T1 Mex
-	armmex = {
+	armada_metalextractor = {
 		{
-			into = "armmoho",
-			time = math.floor(UnitDefNames["armmoho"].buildTime /200),
+			into = "armada_advancedmetalextractor",
+			time = math.floor(UnitDefNames["armada_advancedmetalextractor"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["armmoho"].metalCost,
-			energy = UnitDefNames["armmoho"].energyCost,
+			metal = UnitDefNames["armada_advancedmetalextractor"].metalCost,
+			energy = UnitDefNames["armada_advancedmetalextractor"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -48,13 +48,13 @@ local morphDefs = {
 	},
 
 	-- Stealth Mex
-	armamex = {
+	armada_twilight = {
 		{
-			into = "armmoho",
-			time = math.floor(UnitDefNames["armmoho"].buildTime /200),
+			into = "armada_advancedmetalextractor",
+			time = math.floor(UnitDefNames["armada_advancedmetalextractor"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["armmoho"].metalCost,
-			energy = UnitDefNames["armmoho"].energyCost,
+			metal = UnitDefNames["armada_advancedmetalextractor"].metalCost,
+			energy = UnitDefNames["armada_advancedmetalextractor"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -74,13 +74,13 @@ local morphDefs = {
 
 local scavMorphdefs ={
 	-- Scav copies (until i can do that automagically)
-	armmex_scav = {
+	armada_metalextractor_scav = {
 		{
-			into = "armmoho_scav",
-			time = math.floor(UnitDefNames["armmoho_scav"].buildTime /200),
+			into = "armada_advancedmetalextractor_scav",
+			time = math.floor(UnitDefNames["armada_advancedmetalextractor_scav"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["armmoho_scav"].metalCost,
-			energy = UnitDefNames["armmoho_scav"].energyCost,
+			metal = UnitDefNames["armada_advancedmetalextractor_scav"].metalCost,
+			energy = UnitDefNames["armada_advancedmetalextractor_scav"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -97,13 +97,13 @@ local scavMorphdefs ={
 	},
 
 	-- Stealth Mex
-	armamex_scav = {
+	armada_twilight_scav = {
 		{
-			into = "armmoho_scav",
-			time = math.floor(UnitDefNames["armmoho_scav"].buildTime /200),
+			into = "armada_advancedmetalextractor_scav",
+			time = math.floor(UnitDefNames["armada_advancedmetalextractor_scav"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["armmoho_scav"].metalCost,
-			energy = UnitDefNames["armmoho_scav"].energyCost,
+			metal = UnitDefNames["armada_advancedmetalextractor_scav"].metalCost,
+			energy = UnitDefNames["armada_advancedmetalextractor_scav"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -121,7 +121,7 @@ local scavMorphdefs ={
 	},
 }
 
-if UnitDefNames['armmoho_scav'] then
+if UnitDefNames['armada_advancedmetalextractor_scav'] then
 	table.merge(morphDefs, scavMorphdefs)
 end
 

@@ -42,7 +42,7 @@ return {
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			decoyfor = "armfort",
+			decoyfor = "armada_fortificationwall",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

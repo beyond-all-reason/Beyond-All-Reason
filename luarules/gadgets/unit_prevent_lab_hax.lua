@@ -48,7 +48,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		canFly[unitDefID] = true
 	end
-	if unitDef.isFactory and not (string.find(unitDef.name, 'armap') or string.find(unitDef.name, 'armaap') or string.find(unitDef.name, 'corap') or string.find(unitDef.name, 'coraap')) then
+	if unitDef.isFactory and not (string.find(unitDef.name, 'armada_aircraftplant') or string.find(unitDef.name, 'armada_advancedaircraftplant') or string.find(unitDef.name, 'corap') or string.find(unitDef.name, 'coraap')) then
 		isFactory[unitDefID] = true
 		unitXsize[unitDefID] = unitDef.xsize
 		unitYsize[unitDefID] = unitDef.ysize

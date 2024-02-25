@@ -31,7 +31,7 @@ There are multiple approaches to the base, with some more defended than others.]
 	losscondition	= "Loss of all your builders and factories",  -- This is plaintext, but should be reflected in startscript
     unitlimits   = { -- table of unitdefname : maxnumberofthese units, 0 means disable it
         -- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
-        --armavp = 0,
+        --armada_advancedvehicleplant = 0,
         --coravp = 0,
     } ,
 

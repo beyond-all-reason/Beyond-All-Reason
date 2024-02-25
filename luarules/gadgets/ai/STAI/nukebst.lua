@@ -7,7 +7,7 @@ end
 function NukeBST:Init()
 	self.DebugEnabled = false
 	local uname = self.unit:Internal():Name()
-	if uname == "armemp" then
+	if uname == "armada_paralyzer" then
 		self.stunning = true
 	elseif uname == "cortron" then
 		self.tactical = true

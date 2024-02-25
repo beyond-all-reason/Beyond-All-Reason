@@ -19,7 +19,7 @@ local function tinyDefences0()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 1},
-			{ unitDefID = UnitDefNames.armllt_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.armada_sentry_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end
@@ -47,7 +47,7 @@ local function tinyDefences2()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 3},
-			{ unitDefID = UnitDefNames.armbeamer_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.armada_beamer_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end
@@ -75,7 +75,7 @@ local function tinyDefences4()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 3},
-			{ unitDefID = UnitDefNames.armhlt_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.armada_overwatch_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end
@@ -103,7 +103,7 @@ local function tinyDefences6()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = 12, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 12, zOffset = -20, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = -20, direction = 3},
-			{ unitDefID = UnitDefNames.armguard_scav.id, xOffset = 28, zOffset = 28, direction = 3},
+			{ unitDefID = UnitDefNames.armada_gauntlet_scav.id, xOffset = 28, zOffset = 28, direction = 3},
 		},
 	}
 end
@@ -131,7 +131,7 @@ local function tinyDefences8()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = 14, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = -18, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 14, zOffset = -18, direction = 3},
-			{ unitDefID = UnitDefNames.armrl_scav.id, xOffset = 22, zOffset = 22, direction = 3},
+			{ unitDefID = UnitDefNames.armada_nettle_scav.id, xOffset = 22, zOffset = 22, direction = 3},
 		},
 	}
 end
@@ -159,7 +159,7 @@ local function tinyDefences10()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 14, zOffset = -18, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = -18, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = 14, direction = 3},
-			{ unitDefID = UnitDefNames.armferret_scav.id, xOffset = 22, zOffset = 22, direction = 3},
+			{ unitDefID = UnitDefNames.armada_ferret_scav.id, xOffset = 22, zOffset = 22, direction = 3},
 		},
 	}
 end
@@ -187,7 +187,7 @@ local function tinyDefences12()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 12, zOffset = -20, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = -20, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = 12, direction = 3},
-			{ unitDefID = UnitDefNames.armcir_scav.id, xOffset = 28, zOffset = 28, direction = 3},
+			{ unitDefID = UnitDefNames.armada_chainsaw_scav.id, xOffset = 28, zOffset = 28, direction = 3},
 		},
 	}
 end
@@ -243,7 +243,7 @@ local function tinyDefences16()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 3},
-			{ unitDefID = UnitDefNames.armrad_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.armada_radartower_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end
@@ -271,7 +271,7 @@ local function tinyDefences18()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 3},
-			{ unitDefID = UnitDefNames.armjamt_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.armada_sneakypete_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end
@@ -299,7 +299,7 @@ local function tinyDefences20()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = -20, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -20, zOffset = 12, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 12, zOffset = -20, direction = 3},
-			{ unitDefID = UnitDefNames.armjuno_scav.id, xOffset = 28, zOffset = 28, direction = 3},
+			{ unitDefID = UnitDefNames.armada_juno_scav.id, xOffset = 28, zOffset = 28, direction = 3},
 		},
 	}
 end
@@ -327,7 +327,7 @@ local function tinyDefences22()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 14, zOffset = -18, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = -18, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -18, zOffset = 14, direction = 3},
-			{ unitDefID = UnitDefNames.armnanotc_scav.id, xOffset = 22, zOffset = 22, direction = 3},
+			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 22, zOffset = 22, direction = 3},
 		},
 	}
 end

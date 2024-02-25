@@ -118,15 +118,15 @@ end
 
 
 local unitsOfInterestNames = {
-	['armemp'] = 'EMPmissilesiloDetected',
-	['armemp'] = 'EMPmissilesiloDetected',
+	['armada_paralyzer'] = 'EMPmissilesiloDetected',
+	['armada_paralyzer'] = 'EMPmissilesiloDetected',
 	['cortron'] = 'TacticalNukeSiloDetected',
-	['armsilo'] = 'NuclearSiloDetected',
+	['armada_armageddon'] = 'NuclearSiloDetected',
 	['corsilo'] = 'NuclearSiloDetected',
 	['corint'] = 'LrpcDetected',
-	['armbrtha'] = 'LrpcDetected',
+	['armada_basilica'] = 'LrpcDetected',
 	['corbuzz'] = 'LrpcDetected',
-	['armvulc'] = 'LrpcDetected',
+	['armada_ragnarok'] = 'LrpcDetected',
 	['armada_liche'] = 'NuclearBomberDetected',
 	['corjugg'] = 'JuggernautDetected',
 	['corkorg'] = 'KorgothDetected',
@@ -203,15 +203,15 @@ local doTutorialMode = tutorialMode
 local tutorialPlayed = {}		-- store the number of times a tutorial event has played across games
 local tutorialPlayedThisGame = {}	-- log that a tutorial event has played this game
 
-local vulcanDefID = UnitDefNames['armvulc'].id
+local vulcanDefID = UnitDefNames['armada_ragnarok'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
 
-local isFactoryAir = {[UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true}
-local isFactoryAirSea = {[UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true}
-local isFactoryVeh = {[UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true}
-local isFactoryBot = {[UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true}
-local isFactoryHover = {[UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true}
-local isFactoryShip = {[UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true}
+local isFactoryAir = {[UnitDefNames['armada_aircraftplant'].id] = true, [UnitDefNames['corap'].id] = true}
+local isFactoryAirSea = {[UnitDefNames['armada_seaplaneplatform'].id] = true, [UnitDefNames['corplat'].id] = true}
+local isFactoryVeh = {[UnitDefNames['armada_vehicleplant'].id] = true, [UnitDefNames['corvp'].id] = true}
+local isFactoryBot = {[UnitDefNames['armada_botlab'].id] = true, [UnitDefNames['corlab'].id] = true}
+local isFactoryHover = {[UnitDefNames['armada_hovercraftplatform'].id] = true, [UnitDefNames['corhp'].id] = true}
+local isFactoryShip = {[UnitDefNames['armada_shipyard'].id] = true, [UnitDefNames['corsy'].id] = true}
 local numFactoryAir = 0
 local numFactoryAirSea = 0
 local numFactoryVeh = 0

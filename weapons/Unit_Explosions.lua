@@ -15,7 +15,7 @@ local unitDeaths = {
 		},
 	},
 
-	empblast = {    -- for armamex
+	empblast = {    -- for armada_twilight
 		areaofeffect = 400,
 		commandfire = 1,
 		craterboost = 0,

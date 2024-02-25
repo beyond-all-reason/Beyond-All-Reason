@@ -78,7 +78,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "armmex",
+			area_mex_def = "armada_metalextractor",
 			iscommander = true,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,

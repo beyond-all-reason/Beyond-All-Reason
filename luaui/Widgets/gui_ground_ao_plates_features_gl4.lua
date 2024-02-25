@@ -94,7 +94,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then return end -- these cant have plates
 	local decalInfo = featureDefIDtoDecalInfo[featureDefID]
 	
-	--local texname = "unittextures/decals/".. UnitDefs[featureDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
+	--local texname = "unittextures/decals/".. UnitDefs[featureDefID].name .. "_aoplane.dds" --unittextures/decals/armada_sentry_aoplane.dds
 
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0

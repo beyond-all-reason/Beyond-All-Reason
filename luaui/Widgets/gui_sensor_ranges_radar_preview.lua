@@ -15,8 +15,8 @@ end
 
 local SHADERRESOLUTION = 16 -- THIS SHOULD MATCH RADARMIPLEVEL!
 
-local smallradarrange = 2100	-- updates to 'armrad' value
-local largeradarrange = 3500	-- updates to 'armarad' value
+local smallradarrange = 2100	-- updates to 'armada_radartower' value
+local largeradarrange = 3500	-- updates to 'armada_advancedradartower' value
 
 local cmdidtoradarsize = {}
 local radaremitheight = {}
@@ -37,14 +37,14 @@ local largeradVAO = nil
 local selectedRadarUnitID = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.name == 'armarad' then
+	if unitDef.name == 'armada_advancedradartower' then
 		largeradarrange = unitDef.radarDistance
 	end
-	if unitDef.name == 'armrad' then
+	if unitDef.name == 'armada_radartower' then
 		smallradarrange = unitDef.radarDistance
 	end
 
-	if unitDef.name == 'armrad' then
+	if unitDef.name == 'armada_radartower' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 66
 		--[[Spring.Echo(unitDef.radarHeight) -- DOES NOT WORK NEITHER OF THEM
@@ -55,7 +55,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			Spring.Echo(k,v)
 		end]]--
 	end
-	if unitDef.name == 'armfrad' then
+	if unitDef.name == 'armada_navalradar' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 52
 	end
@@ -71,7 +71,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		cmdidtoradarsize[-1 * unitDefID] = "large"
 		radaremitheight[-1 * unitDefID] = 87
 	end
-	if unitDef.name == 'armarad' then
+	if unitDef.name == 'armada_advancedradartower' then
 		cmdidtoradarsize[-1 * unitDefID] = "large"
 		radaremitheight[-1 * unitDefID] = 66
 	end

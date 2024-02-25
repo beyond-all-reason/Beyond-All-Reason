@@ -8,18 +8,18 @@
 				"land": {
 					// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
 					// limit = random(<lower limit>..<upper limit>)
-					"armwin": [10, 20],
-					"armsolar": [8, 12],
-					"armadvsol": [8, 12],
-					"armfus": [3, 4],
-					"armafus": [4, 5]
+					"armada_windturbine": [10, 20],
+					"armada_solarcollector": [8, 12],
+					"armada_advancedsolarcollector": [8, 12],
+					"armada_fusionreactor": [3, 4],
+					"armada_advancedfusionreactor": [4, 5]
 				},
 				"water": {
-					"armtide": [14, 25],
-					"armwin": [10, 20],
-					"armsolar": [1],
-					"armadvsol": [12, 16],
-					"armuwfus": [1, 2]
+					"armada_tidalgenerator": [14, 25],
+					"armada_windturbine": [10, 20],
+					"armada_solarcollector": [1],
+					"armada_advancedsolarcollector": [12, 16],
+					"armada_navalfusionreactor": [1, 2]
 				}
 			},
 			"cortex": {
@@ -57,11 +57,11 @@
 	"cluster_range": 950.0,  // maximum distance between 2 points in hierarchical cluster
 
 	"geo": {
-		"armada": "armgeo",
+		"armada": "armada_geothermalpowerplant",
 		"cortex": "corgeo"
 	},
 	"mex": {
-		"armada": "armmex",
+		"armada": "armada_metalextractor",
 		"cortex": "cormex"
 	},
 	"mex_up": 2,  // maximum number of simultaneous mex upgrades
@@ -99,15 +99,15 @@
 	// [3] - multiplier for total factory energy-expenditure, used as condition for new factory or assistant
 	"production": [0.9, 0.7, 0.8, 0.8],
 
-	//"terra": "armsy",
+	//"terra": "armada_shipyard",
 	"assist": {
-		"armada": "armnanotc",
+		"armada": "armada_constructionturret",
 		"cortex": "cornanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
-		"armada": "armwin",
+		"armada": "armada_windturbine",
 		"cortex": "corwin"
 	}
 }

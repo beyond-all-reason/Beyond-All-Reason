@@ -36,19 +36,19 @@ local myTeam = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local exceptionList = { --add exempt units here
-	"armmine1",
-	"armmine2",
-	"armmine3",
-	"armfmine3",
+	"armada_lightmine",
+	"armada_mediummine",
+	"armada_heavymine",
+	"armada_heavymine",
 	"cormine1",
 	"cormine2",
 	"cormine3",
 	"cormine4",
 	"corfmine3",
 	"corsktl",
-	"armpb",
-	"armamb",
-	"armferret",
+	"armada_pitbull",
+	"armada_rattlesnake",
+	"armada_ferret",
 	"armada_sharpshooter",
 }
 

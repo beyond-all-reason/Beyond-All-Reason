@@ -1,6 +1,6 @@
 local labGrids = {
 	-- T1 bot
-	armlab = {
+	armada_botlab = {
 		"armada_constructionbot", "armada_lazarus", "armada_pawn", "armada_tick",                -- T1 con, rez bot, peewee, flea
 		"armada_rocketeer", "armada_mace", "armada_centurion", "",                     -- rocko, hammer, warrior
 		"", "", "armada_crossbow",                                         -- aa bot
@@ -17,7 +17,7 @@ local labGrids = {
 		"", "", "corcrash",                                        -- aa bot
 	},
 	-- T2 bot
-	armalab = {
+	armada_advancedbotlab = {
 		"armada_advancedconstructionbot", "armada_butler", "armada_sprinter", "armada_ghost",             -- T2 con, fark, zipper, spy
 		"armada_compass", "armada_radarjammerbot", "armada_welder", "armada_gunslinger",             -- radar bot, jammer bot, zeus, maverick
 		"armada_hound", "armada_sharpshooter", "armada_archangel", "armada_fatboy",            -- fido, sniper, AA bot, fatboi
@@ -34,7 +34,7 @@ local labGrids = {
 		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
 	},
 	-- T1 vehicle
-	armvp = {
+	armada_vehicleplant = {
 		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
 		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
@@ -51,7 +51,7 @@ local labGrids = {
 		"", "", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
-	armavp = {
+	armada_advancedvehicleplant = {
 		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
 		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
 		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
@@ -68,7 +68,7 @@ local labGrids = {
 		"legfloat", "corban", "corsent", "corvroc",           -- croc, poison arrow, AA, diplomat
 	},
 	-- T1 air
-	armap = {
+	armada_aircraftplant = {
 		"armada_constructionaircraft", "armada_falcon", "armada_banshee", "armada_stormbringer",           -- T1 con, fig, gunship, bomber
 		"armada_blink", "armada_stork",                             -- radar, transport,
 	},
@@ -81,7 +81,7 @@ local labGrids = {
 		"legcib", "corvalk",                                -- radar, transport
 	},
 	-- T2 air
-	armaap = {
+	armada_advancedaircraftplant = {
 		"armada_advancedconstructionaircraft", "armada_highwind", "armada_roughneck", "armada_blizzard",           -- T2 con, fig, gunship, bomber
 		"armada_oracle", "armada_abductor", "armada_cormorant", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
 		"armada_liche", "armada_hornet", "armada_stiletto",                    -- liche, blade, stiletto
@@ -98,7 +98,7 @@ local labGrids = {
 	"legfort","legstronghold","legwhisper",	""			--knockoff krow, (well armed)transport, radar
 	},
 	-- seaplanes
-	armplat = {
+	armada_seaplaneplatform = {
 		"armcsa", "armsfig", "armsaber", "armsb",           -- seaplane con, fig, gunship, bomber
 		"armsehak", "armseap",                              -- radar, torpedo
 	},
@@ -108,7 +108,7 @@ local labGrids = {
 		"corhunt", "corseap",                                -- radar, torpedo
 	},
 	-- T1 boats
-	armsy = {
+	armada_shipyard = {
 		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
 		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
 		"armsub", "", "armpt",                            -- sub, PT boat
@@ -120,7 +120,7 @@ local labGrids = {
 		"corsub", "", "corpt",                            -- sub, missile boat
 	},
 	-- T2 boats
-	armasy = {
+	armada_advancedshipyard = {
 		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
 		"armada_haven", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
 		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
@@ -132,7 +132,7 @@ local labGrids = {
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
 	},
 	-- amphibious labs
-	armamsub = {
+	armada_amphibiouscomplex = {
 		"armbeaver", "armada_decoycommander", "armpincer", "",
 		"armcroc", "", "", "",
 		"", "armada_crossbow", "armada_archangel",
@@ -144,7 +144,7 @@ local labGrids = {
 		"", "corcrash", "coraak",
 	},
 	-- hover labs
-	armhp = {
+	armada_hovercraftplatform = {
 		"armch", "", "armsh", "",
 		"armanac", "armmh", "", "",
 		"", "", "armah",
@@ -155,7 +155,7 @@ local labGrids = {
 		"corsnap", "cormh", "corhal", "",
 		"", "", "corah",
 	},
-	armfhp = {
+	armada_navalhovercraftplatform = {
 		"armch", "", "armsh", "",
 		"armanac", "armmh", "", "",
 		"", "", "armah",
@@ -168,7 +168,7 @@ local labGrids = {
 	},
 
 	-- T3 labs
-	armshltx = {
+	armada_experimentalgantry = {
 		"armmar", "armraz", "armvang", "armthor",
 		"armbanth", "armlun"
 	},
@@ -187,24 +187,24 @@ local unitGrids = {
 	-- Air assist drones
 	armassistdrone = {
 		{
-			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},             -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },              -- mex, solar, wind
+			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},             -- T1 converter, uw m storage, tidal
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
+			{ "armada_sentry", "armada_harpoon", },                          -- LLT, offshore torp launcher
+			{ "armada_nettle", "armada_navalnettle", },                          -- basic AA, floating AA
+			{ "armada_anemone", },                                    -- coastal torp launcher
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 
@@ -255,24 +255,24 @@ local unitGrids = {
 	-- Land assist drones (mini amphibs)
 	armassistdrone_land = {
 		{
-			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},            -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },               -- mex, solar, wind
+			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},            -- T1 converter, uw m storage, tidal
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
+			{ "armada_sentry", "armada_harpoon", },                          -- LLT, offshore torp launcher
+			{ "armada_nettle", "armada_navalnettle", },                          -- basic AA, floating AA
+			{ "armada_anemone", },                                    -- coastal torp launcher
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 
@@ -323,24 +323,24 @@ local unitGrids = {
 	-- Commanders
 	armada_commander = {
 		{
-			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },              -- mex, solar, wind
+			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},           -- T1 converter, uw m storage, tidal
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
+			{ "armada_sentry", "armada_harpoon", },                          -- LLT, offshore torp launcher
+			{ "armada_nettle", "armada_navalnettle", },                          -- basic AA, floating AA
+			{ "armada_anemone", },                                    -- coastal torp launcher
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 
@@ -458,24 +458,24 @@ local unitGrids = {
 	-- T1 bot con
 	armada_constructionbot = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", },              -- basic AA, ferret, chainsaw
+			{ "armada_anemone", "armada_gauntlet", },                         -- coastal torp launcher, guardian
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "armjuno", },                                   -- juno
+			{ "armada_juno", },                                   -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armalab", },                      -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_advancedbotlab", },                      -- nano, T2 lab
+			{ "armada_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -527,24 +527,24 @@ local unitGrids = {
 	-- T1 vehicle con
 	armcv = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", },              -- basic AA, ferret, chainsaw
+			{ "armada_anemone", "armada_gauntlet", },                         -- coastal torp launcher, guardian
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "armjuno", },                                   -- juno
+			{ "armada_juno", },                                   -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", },                       -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_advancedvehicleplant", },                       -- nano, T2 lab
+			{ "armada_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -595,24 +595,24 @@ local unitGrids = {
 	-- T1 air con
 	armada_constructionaircraft = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", },              -- basic AA, ferret, chainsaw
+			{ "armada_anemone", "armada_gauntlet", },                         -- coastal torp launcher, guardian
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "armasp", "armfasp" },                  -- air repair pad, floating air repair pad
-			{ "armjuno", }									  -- juno
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "armasp", "armada_airrepairpad" },                  -- air repair pad, floating air repair pad
+			{ "armada_juno", }									  -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armaap", },                       -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_advancedaircraftplant", },                       -- nano, T2 lab
+			{ "armada_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -663,23 +663,23 @@ local unitGrids = {
 	-- T1 sea con
 	armcs = {
 		{
-			{ "armmex", "armtide", },                         -- mex, tidal
-			{ "armfmkr", "armgeo", },                         -- floating T1 converter, geo
-			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
+			{ "armada_metalextractor", "armada_tidalgenerator", },                         -- mex, tidal
+			{ "armada_navalenergyconverter", "armada_geothermalpowerplant", },                         -- floating T1 converter, geo
+			{ "armada_navalenergystorage", "armada_navalmetalstorage", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "armfhlt", "", "armclaw", },           -- offshore torp launcher, floating HLT
-			{ "armfrt", },                                    -- floating AA
-			{ "armdl", "armguard", },              			  -- coastal torp launcher, guardian, lightning turret
+			{ "armada_harpoon", "armada_manta", "", "armada_dragonsclaw", },           -- offshore torp launcher, floating HLT
+			{ "armada_navalnettle", },                                    -- floating AA
+			{ "armada_anemone", "armada_gauntlet", },              			  -- coastal torp launcher, guardian, lightning turret
 		},
 		{
-			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armdrag", "armasp", "armfasp"},                        	      -- dragon's teeth
+			{ "armada_navalradar", "armada_beholder","armada_sharksteeth", },             -- floating radar, perimeter camera, shark's teeth
+			{ "", "armada_dragonsteeth", "armasp", "armada_airrepairpad"},                        	      -- dragon's teeth
 		},
 		{
-			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
-			{ "armnanotcplat", "armasy", },                   -- floating nano, T2 shipyard
-			{ "armfhp", "", "armamsub", "armplat", },         -- floating hover lab, amphibious lab, seaplane lab
+			{ "armada_shipyard", "armada_vehicleplant", "armada_aircraftplant", "armada_botlab", },         -- shipyard, veh lab, air lab, bot lab
+			{ "armada_constructionturretplat", "armada_advancedshipyard", },                   -- floating nano, T2 shipyard
+			{ "armada_navalhovercraftplatform", "", "armada_amphibiouscomplex", "armada_seaplaneplatform", },         -- floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -708,24 +708,24 @@ local unitGrids = {
 	-- Hover cons
 	armch = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", "armada_navalnettle",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armada_anemone", "armada_gauntlet", "armada_harpoon", "armada_manta", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armada_navalradar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "armada_juno", },                                   -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", "armnanotcplat", "armasy",  },    -- nano, T2 veh lab, floating nano, T2 shipyard
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_constructionturretplat", "armada_advancedshipyard",  },    -- nano, T2 veh lab, floating nano, T2 shipyard
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -755,24 +755,24 @@ local unitGrids = {
 	-- Seaplane cons
 	armcsa = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", "armada_navalnettle",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armada_anemone", "armada_gauntlet", "armada_harpoon", "armada_manta", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", "armasp", "armfasp" },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armada_navalradar", "armada_sharksteeth", "armasp", "armada_airrepairpad" },                       -- floating radar, shark's teeth
+			{ "armada_juno", },                                   -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_constructionturretplat", },                -- nano, floating nano
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -802,24 +802,24 @@ local unitGrids = {
 	-- Amphibious vehicle cons
 	armbeaver = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
+			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armptl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armada_sentry", "armada_beamer", "armada_overwatch", "armada_dragonsclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armada_nettle", "armada_ferret", "armada_chainsaw", "armada_navalnettle",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armada_anemone", "armada_gauntlet", "armada_harpoon2", "armada_manta", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armada_navalradar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "armada_juno", },                                   -- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", "armnanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_constructionturretplat", },      -- nano, T2 veh lab, floating nano
+			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -849,23 +849,23 @@ local unitGrids = {
 	--T2 bot cons
 	armada_advancedconstructionbot = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armada_advancedmetalextractor", "armada_fusionreactor", "armada_advancedfusionreactor", "armada_prude", },             -- moho, fusion, afus, safe geo
+			{ "armada_advancedenergyconverter", "armada_advancedgeothermalpowerplant", "armada_cloakablefusionreactor", "armada_shockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armada_hardenedenergystorage", "armada_hardenedmetalstorage", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armada_pitbull", "armada_pulsar", "armada_rattlesnake", "armada_paralyzer", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armada_arbalest", "armada_mercury", "armada_citadel", },             -- flak, long-range AA, anti-nuke
+			{ "armada_basilica", "armada_ragnarok", "armada_armageddon", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armada_advancedradartower", "armada_pinpointer", "armada_fortificationwall", "armada_veil" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "armada_tracer", "armada_decoyfusionreactor", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armada_keeper", },                                     -- shield
 		},
 		{
-			{ "armlab", },                                      -- T1 lab,
-			{ "armshltx", "armalab", },                         -- T3 lab, T2 lab
+			{ "armada_botlab", },                                      -- T1 lab,
+			{ "armada_experimentalgantry", "armada_advancedbotlab", },                         -- T3 lab, T2 lab
 			{ },                                                --
 		}
 	},
@@ -919,23 +919,23 @@ local unitGrids = {
 	--T2 vehicle cons
 	armacv = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armada_advancedmetalextractor", "armada_fusionreactor", "armada_advancedfusionreactor", "armada_prude", },             -- moho, fusion, afus, safe geo
+			{ "armada_advancedenergyconverter", "armada_advancedgeothermalpowerplant", "armada_cloakablefusionreactor", "armada_shockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armada_hardenedenergystorage", "armada_hardenedmetalstorage", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armada_pitbull", "armada_pulsar", "armada_rattlesnake", "armada_paralyzer", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armada_arbalest", "armada_mercury", "armada_citadel", },             -- flak, long-range AA, anti-nuke
+			{ "armada_basilica", "armada_ragnarok", "armada_armageddon", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armada_advancedradartower", "armada_pinpointer", "armada_fortificationwall", "armada_veil",  },   -- adv radar, targeting facility, wall, adv jammer
+			{ "armada_tracer", "armada_decoyfusionreactor", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armada_keeper", },                                     -- shield
 		},
 		{
-			{ "armvp", },                                       -- T1 lab,
-			{ "armshltx", "armavp", },                          -- T3 lab, T2 lab
+			{ "armada_vehicleplant", },                                       -- T1 lab,
+			{ "armada_experimentalgantry", "armada_advancedvehicleplant", },                          -- T3 lab, T2 lab
 			{ },                                                --
 		}
 	},
@@ -989,24 +989,24 @@ local unitGrids = {
 	--T2 air cons
 	armada_advancedconstructionaircraft = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armada_advancedmetalextractor", "armada_fusionreactor", "armada_advancedfusionreactor", "armada_prude", },             -- moho, fusion, afus, safe geo
+			{ "armada_advancedenergyconverter", "armada_advancedgeothermalpowerplant", "armada_cloakablefusionreactor", "armada_shockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armada_hardenedenergystorage", "armada_hardenedmetalstorage", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armada_pitbull", "armada_pulsar", "armada_rattlesnake", "armada_paralyzer", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armada_arbalest", "armada_mercury", "armada_citadel", },             -- flak, long-range AA, anti-nuke
+			{ "armada_basilica", "armada_ragnarok", "armada_armageddon", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
-			{ "armgate", },                                      -- shield
+			{ "armada_advancedradartower", "armada_pinpointer", "armada_fortificationwall", "armada_veil",  },    -- adv radar, targeting facility, wall, adv jammer
+			{ "armada_tracer", "armada_decoyfusionreactor", "armasp", "armada_airrepairpad" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armada_keeper", },                                      -- shield
 		},
 		{
-			{ "armap", },                                       -- T1 lab,
-			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
-			{ "armplat", },                                     -- seaplane lab (aircon only)
+			{ "armada_aircraftplant", },                                       -- T1 lab,
+			{ "armada_experimentalgantry", "armada_advancedaircraftplant", },                          -- T3 lab, T2 lab
+			{ "armada_seaplaneplatform", },                                     -- seaplane lab (aircon only)
 		}
 	},
 
@@ -1058,23 +1058,23 @@ local unitGrids = {
 	--T2 sub cons
 	armacsub = {
 		{
-			{ "armuwmme", "armuwfus", },                       -- uw moho, uw fusion,
-			{ "armuwmmm", "armuwageo" },                       -- floating T2 converter, adv geo powerplant
-			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
+			{ "armada_navaladvancedmetalextractor", "armada_navalfusionreactor", },                       -- uw moho, uw fusion,
+			{ "armada_navaladvancedenergyconverter", "armada_advancedgeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
+			{ "armada_hardenedenergystorage", "armada_hardenedmetalstorage", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{ "armatl", "armkraken", },                        -- adv torp launcher, floating heavy platform
-			{ "armfflak", },                                   -- floating flak
+			{ "armada_moray", "armada_gorgon", },                        -- adv torp launcher, floating heavy platform
+			{ "armada_navalarbalest", },                                   -- floating flak
 			{ },                                               --
 		},
 		{
-			{ "armason", "armfatf" },                		   -- adv sonar, floating targeting facility
-			{ "", "", "", "armfasp" },                         -- Floating air repair pad
+			{ "armada_advancedsonarstation", "armada_navalpinpointer" },                		   -- adv sonar, floating targeting facility
+			{ "", "", "", "armada_airrepairpad" },                         -- Floating air repair pad
 			{ },                                               --
 		},
 		{
-			{ "armsy", },                                      -- T1 shipyard
-			{ "armshltxuw", "armasy", },                       -- amphibious gantry, T2 shipyard
+			{ "armada_shipyard", },                                      -- T1 shipyard
+			{ "armada_experimentalgantryuw", "armada_advancedshipyard", },                       -- amphibious gantry, T2 shipyard
 			{ },                                               --
 		}
 	},
@@ -1114,9 +1114,9 @@ local unitGrids = {
 			{ },                                    --
 		},
 		{
-			{ "", "armeyes", "armdrag", },                  -- camera, dragon's teeth
+			{ "", "armada_beholder", "armada_dragonsteeth", },                  -- camera, dragon's teeth
 			{ },                                        --
-			{ "armmine1", "armmine2", "armmine3", },    -- light mine, med mine, heavy mine
+			{ "armada_lightmine", "armada_mediummine", "armada_heavymine", },    -- light mine, med mine, heavy mine
 		},
 		{
 			{ },        --
@@ -1151,19 +1151,19 @@ local unitGrids = {
 	--Decoy commanders
 	armada_decoycommander = {
 		{
-			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},              -- T1 converter, uw ms storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },               -- mex, solar, wind
+			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},              -- T1 converter, uw ms storage, tidal
+			{ "armada_energystorage", "armada_metalstorage", "armada_navalenergystorage", "armada_navalenergyconverter", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
-			{ "armllt", },                                   -- LLT
-			{ "armrl", },                                    -- basic AA
+			{ "armada_sentry", },                                   -- LLT
+			{ "armada_nettle", },                                    -- basic AA
 			{ },                                             --
 		},
 		{
-			{ "armrad", },                                   -- radar
+			{ "armada_radartower", },                                   -- radar
 			{ },                                             --
-			{ "armmine1", "armmine2", "armmine3", },         -- light mine, med mine, heavy mine
+			{ "armada_lightmine", "armada_mediummine", "armada_heavymine", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ },                                             --
@@ -1198,8 +1198,8 @@ local unitGrids = {
 	--fark
 	armada_butler = {
 		{
-			{ "armmex", "armsolar", "armwin", },   -- mex, solar, wind
-			{ "armmakr", },                        -- T1 converter
+			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },   -- mex, solar, wind
+			{ "armada_energyconverter", },                        -- T1 converter
 			{ },                                   --
 		},
 		{
@@ -1208,7 +1208,7 @@ local unitGrids = {
 			{ },                                   --
 		},
 		{
-			{ "armada_compass", "armeyes", "armada_radarjammerbot", },  -- radar bot, perimeter camera, jammer bot
+			{ "armada_compass", "armada_beholder", "armada_radarjammerbot", },  -- radar bot, perimeter camera, jammer bot
 			{ },                                   --
 			{ },                                   --
 		},
@@ -1246,23 +1246,23 @@ local unitGrids = {
 	--consul
 	armconsul = {
 		{
-			{ "armmex", "armsolar", },                                -- mex, solar
+			{ "armada_metalextractor", "armada_solarcollector", },                                -- mex, solar
 			{ },                                                      --
 			{ },                                                      --
 		},
 		{
-			{ "armbeamer", "armada_sprinter", "armamb", "armada_gunslinger", },          -- beamer, sprinter, ambusher, maverick
-			{ "armflak", "armferret", "armada_crossbow", "armada_pawn", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armada_webber", "armada_amphibiousbot", },             -- coastal torp launcher, destroyer, emp spider, platypus
+			{ "armada_beamer", "armada_sprinter", "armada_rattlesnake", "armada_gunslinger", },          -- beamer, sprinter, ambusher, maverick
+			{ "armada_arbalest", "armada_ferret", "armada_crossbow", "armada_pawn", },          -- flak, ferret, T1 aa bot, peewee
+			{ "armada_anemone", "armroy", "armada_webber", "armada_amphibiousbot", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
-			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer
+			{ "armada_advancedradartower", "armada_beholder", "armada_fortificationwall", "armada_veil", },          -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "armmine2" },                                           -- med. mine
+			{ "armada_mediummine" },                                           -- med. mine
 		},
 		{
-			{ "armcv", "armvp" },                             	 	  -- T1 veh con, vehicle lab
-			{ "armnanotc" },                                		  -- nano
+			{ "armcv", "armada_vehicleplant" },                             	 	  -- T1 veh con, vehicle lab
+			{ "armada_constructionturret" },                                		  -- nano
 			{ "armcs" },                                              -- sea con
 		}
 	},
@@ -1318,23 +1318,23 @@ local unitGrids = {
 	--naval engineers
 	armmls = {
 		{
-			{ "armmex", "armtide", },                               -- mex, tidal
+			{ "armada_metalextractor", "armada_tidalgenerator", },                               -- mex, tidal
 			{ },                                                    --
 			{ },                                                    --
 		},
 		{
-			{ "armtl", "armkraken", "armamb", "armfhlt", },         -- torp launcher, kraken, ambusher, fHLT
-			{ "armfflak", "armpt", "armada_amphibiousbot", },                    -- fl flak, PT boat, pelican
+			{ "armada_harpoon", "armada_gorgon", "armada_rattlesnake", "armada_manta", },         -- torp launcher, kraken, ambusher, fHLT
+			{ "armada_navalarbalest", "armpt", "armada_amphibiousbot", },                    -- fl flak, PT boat, pelican
 			{ "armdecade", "armroy", },                             -- decade, destroyer
 		},
 		{
-			{ "armfrad", "armarad", },                              -- fl radar, adv radar
+			{ "armada_navalradar", "armada_advancedradartower", },                              -- fl radar, adv radar
 			{ },                                                    --
-			{ "armfmine3", },                                       -- naval mine
+			{ "armada_heavymine", },                                       -- naval mine
 		},
 		{
-			{ "armsy", "armcs", },                                  -- shipyard, sea con
-			{ "armnanotcplat", },                                   -- fl nano
+			{ "armada_shipyard", "armcs", },                                  -- shipyard, sea con
+			{ "armada_constructionturretplat", },                                   -- fl nano
 			{ },                                                    --
 		}
 	},

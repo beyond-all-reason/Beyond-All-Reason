@@ -45,7 +45,7 @@ local function t1FactoryBase1()
 		}
 	elseif r == 1 then
 		buildings = {
-			{ unitDefID = UDN.armlab_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
+			{ unitDefID = UDN.armada_botlab_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
 		}
 	elseif r == 2 then
 		buildings = {
@@ -73,7 +73,7 @@ local function t1FactoryBase1()
 		}
 	elseif r == 3 then
 		buildings = {
-			{ unitDefID = UDN.armvp_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
+			{ unitDefID = UDN.armada_vehicleplant_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
 		}
 	elseif r == 4 then
 		buildings = {
@@ -114,7 +114,7 @@ local function t1FactoryBase1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armap_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
+			{ unitDefID = UDN.armada_aircraftplant_scav.id, xOffset = 0,  zOffset = 0, direction = math.random(0,3) },
 		}
 	end
 
@@ -129,11 +129,11 @@ end
 local function t2Factory()
 	local randomFactoryID = {
 		UDN.coralab_scav.id,
-		UDN.armalab_scav.id,
+		UDN.armada_advancedbotlab_scav.id,
 		UDN.coravp_scav.id,
-		UDN.armavp_scav.id,
+		UDN.armada_advancedvehicleplant_scav.id,
 		UDN.coraap_scav.id,
-		UDN.armaap_scav.id,
+		UDN.armada_advancedaircraftplant_scav.id,
 	}
 
 	local r = math.random(1, #randomFactoryID)
@@ -477,7 +477,7 @@ end
 
 local function t1Energy1()
 	local randomTurretsCor = {UDN.corllt_scav.id, UDN.corrad_scav.id, UDN.corjamt_scav.id,}
-	local randomTurretsArm = {UDN.armllt_scav.id, UDN.armrad_scav.id, UDN.armjamt_scav.id,}
+	local randomTurretsArm = {UDN.armada_sentry_scav.id, UDN.armada_radartower_scav.id, UDN.armada_sneakypete_scav.id,}
 	local buildings
 	local r = math.random(0,1)
 	local x1 = math.random(-48,48)
@@ -495,10 +495,10 @@ local function t1Energy1()
 	else
 		buildings = {
 			{ unitDefID = randomTurretsArm[math.random(1, #randomTurretsArm)], xOffset =   x1,  zOffset = -112, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id,                               xOffset =  -32,  zOffset =  -32, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id,                               xOffset =   32,  zOffset =  -32, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id,                               xOffset =  -32,  zOffset =   32, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id,                               xOffset =   32,  zOffset =   32, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id,                               xOffset =  -32,  zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id,                               xOffset =   32,  zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id,                               xOffset =  -32,  zOffset =   32, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id,                               xOffset =   32,  zOffset =   32, direction = 0 },
 			{ unitDefID = randomTurretsArm[math.random(1, #randomTurretsArm)], xOffset =   x2,  zOffset =  112, direction = 0 },
 		}
 	end
@@ -651,7 +651,7 @@ end
 -- CLOAKED BASES
 
 local function t2Firebase4()
-	local randomTurrets = {UDN.corvipe_scav.id, UDN.armferret_scav.id,}
+	local randomTurrets = {UDN.corvipe_scav.id, UDN.armada_ferret_scav.id,}
 
 	return {
 		type = types.Land,
@@ -667,7 +667,7 @@ end
 -- BIG BASES
 
 local function t2HeavyFirebase1()
-	local randomIntel = {UDN.corrad_scav.id, UDN.corarad_scav.id, UDN.corshroud_scav.id, UDN.cornanotc_scav.id, UDN.armtarg_scav.id,}
+	local randomIntel = {UDN.corrad_scav.id, UDN.corarad_scav.id, UDN.corshroud_scav.id, UDN.cornanotc_scav.id, UDN.armada_pinpointer_scav.id,}
 	local randomTurrets = {UDN.corhlt_scav.id, UDN.corhllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
 	local buildings
 	local r = math.random(0,2)
@@ -969,11 +969,11 @@ local function t2Energy1()
 		}
 	elseif r == 1 then
 		buildings = {
-			{ unitDefID = UDN.armnanotc_scav.id,                         xOffset = -160,  zOffset = -160, direction = 0 },
-			{ unitDefID = UDN.armnanotc_scav.id,                         xOffset =  160,  zOffset = -160, direction = 0 },
-			{ unitDefID = UDN.armnanotc_scav.id,                         xOffset = -160,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armnanotc_scav.id,                         xOffset =  160,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.armafus_scav.id,                           xOffset =    0,  zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id,                         xOffset = -160,  zOffset = -160, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id,                         xOffset =  160,  zOffset = -160, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id,                         xOffset = -160,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id,                         xOffset =  160,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armada_advancedfusionreactor_scav.id,                           xOffset =    0,  zOffset =    0, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),                         xOffset =  -80,  zOffset =  -64, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1),                         xOffset =  -96,  zOffset =  -32, direction = 0 },
 			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset =  -96,  zOffset =    0, direction = 3 },
@@ -1054,17 +1054,17 @@ local function t2Energy1()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -160,  zOffset =    0, direction = 0 },
-			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  160,  zOffset =    0, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =  -64,  zOffset =  -64, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =    0,  zOffset =  -64, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =   64,  zOffset =  -64, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =  -64,  zOffset =    0, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =    0,  zOffset =    0, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =   64,  zOffset =    0, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =  -64,  zOffset =   64, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =    0,  zOffset =   64, direction = 0 },
-			{ unitDefID = UDN.armadvsol_scav.id, xOffset =   64,  zOffset =   64, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset = -160,  zOffset =    0, direction = 0 },
+			{ unitDefID = UDN.armada_constructionturret_scav.id, xOffset =  160,  zOffset =    0, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =  -64,  zOffset =  -64, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =    0,  zOffset =  -64, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =   64,  zOffset =  -64, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =  -64,  zOffset =    0, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =    0,  zOffset =    0, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =   64,  zOffset =    0, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =  -64,  zOffset =   64, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =    0,  zOffset =   64, direction = 0 },
+			{ unitDefID = UDN.armada_advancedsolarcollector_scav.id, xOffset =   64,  zOffset =   64, direction = 0 },
 		}
 	end
 

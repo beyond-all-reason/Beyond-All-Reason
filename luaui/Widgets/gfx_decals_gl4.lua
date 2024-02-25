@@ -758,8 +758,8 @@ end
 local buildingExplosionPositionVariation = {
 	nanoboom = 1,
 	nanoselfd = 1,
-	--smallBuildingExplosionGeneric = 1, --armadvsol
-	--smallBuildingExplosionGenericSelfd = 1, -- armadvsol
+	--smallBuildingExplosionGeneric = 1, --armada_advancedsolarcollector
+	--smallBuildingExplosionGenericSelfd = 1, -- armada_advancedsolarcollector
 	metalmaker = 1,
 	metalmakerSelfd = 1,
 	advmetalmaker = 1,
