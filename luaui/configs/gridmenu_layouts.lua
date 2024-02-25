@@ -25,7 +25,7 @@ local labGrids = {
 
 	coralab = {
 		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
-		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
+		"corvoyr", "corspec", "cortex_sumo", "corhrk",              -- radar bot, jammer bot, can, dominator
 		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
 	legalab = {
@@ -73,12 +73,12 @@ local labGrids = {
 		"armada_blink", "armada_stork",                             -- radar, transport,
 	},
 	corap = {
-		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
-		"corfink", "corvalk",                                -- radar, transport
+		"cortex_constructionaircraft", "cortex_valiant", "cortex_shuriken", "cortex_whirlwind",              -- T1 con, fig, drone, bomber
+		"corfink", "cortex_hercules",                                -- radar, transport
 	},
     legap = {
 		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
-		"legcib", "corvalk",                                -- radar, transport
+		"legcib", "cortex_hercules",                                -- radar, transport
 	},
 	-- T2 air
 	armada_advancedaircraftplant = {
@@ -88,13 +88,13 @@ local labGrids = {
 	},
 
 	coraap = {
-		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
-		"corcrw","corcrwh",                                              -- krow
+		"cortex_advancedconstructionaircraft", "cortex_nighthawk", "cortex_wasp", "cortex_hailstorm",              -- T2 con, fig, gunship, bomber
+		"cortex_condor", "cortex_skyhook", "cortex_angler", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
+		"cortex_dragonold","cortex_dragon",                                              -- krow
 	},
 	legaap = {
 	"legaca","legionnaire","legvenator","",					--T2 con, defensive fig, interceptor
-	"legmineb","legnap","legphoenix","cortitan",			--minebomber, napalmbomber, 'heavy bomber', torpedo
+	"legmineb","legnap","legphoenix","cortex_angler",			--minebomber, napalmbomber, 'heavy bomber', torpedo
 	"legfort","legstronghold","legwhisper",	""			--knockoff krow, (well armed)transport, radar
 	},
 	-- seaplanes
@@ -128,7 +128,7 @@ local labGrids = {
 
 	corasy = {
 		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
-		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
+		"cortex_oasis", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
 	},
 	-- amphibious labs
@@ -174,11 +174,11 @@ local labGrids = {
 	},
 
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
+		"cortex_catapult", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
+		"cortex_catapult", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok", "legpede", "leegmech",
 		"legkeres","",""
 	}
@@ -616,7 +616,7 @@ local unitGrids = {
 		}
 	},
 
-	corca = {
+	cortex_constructionaircraft = {
 		{
 			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
@@ -1010,7 +1010,7 @@ local unitGrids = {
 		}
 	},
 
-	coraca = {
+	cortex_advancedconstructionaircraft = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
@@ -1281,7 +1281,7 @@ local unitGrids = {
 		},
 		{
 			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
-			{ "corvalk", },                                          -- transport
+			{ "cortex_hercules", },                                          -- transport
 			{ "cormine4" },                                          -- commando mine
 		},
 		{

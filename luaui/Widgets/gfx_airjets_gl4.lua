@@ -78,7 +78,7 @@ local effectDefs = {
 	["armada_falcon"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
 	},
-	["corveng"] = {
+	["cortex_valiant"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1", limit = true  },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2", limit = true  },
 	},
@@ -97,7 +97,7 @@ local effectDefs = {
 	["armada_highwind"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
 	},
-	["corvamp"] = {
+	["cortex_nighthawk"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
 	},
 	["legfig"] = {
@@ -113,7 +113,7 @@ local effectDefs = {
 	["armada_oracle"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
-	["corawac"] = {
+	["cortex_condor"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
@@ -143,7 +143,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
 	},
-	["corvalk"] = {
+	["cortex_hercules"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 1 },
@@ -153,7 +153,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", xzVelocity = 1.5, light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrustb", xzVelocity = 1.5, light = 1 },
 	},
-	["corseah"] = {
+	["cortex_skyhook"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
@@ -178,7 +178,7 @@ local effectDefs = {
 	["armada_hornet"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
 	},
-	["corape"] = {
+	["cortex_wasp"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "rthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "lthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, light=1},
@@ -192,19 +192,19 @@ local effectDefs = {
 	["corseap"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
-	["corcrw"] = {
+	["cortex_dragonold"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
 	},
-	["corcrwh"] = {
+	["cortex_dragon"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
 	},
-	["corcrwt4"] = {
+	["cortex_dragont4"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -226,15 +226,15 @@ local effectDefs = {
 	--},
 
 	-- bladewing
-	["corbw"] = {
+	["cortex_shuriken"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta", limit = true  },
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb", limit = true  },
 	},
-	["cordroneold"] = {
+	["cortex_attackdroneold"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
 	},
-	["cordrone"] = {
+	["cortex_attackdrone"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
 	},
@@ -262,7 +262,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrusta", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrustb", light = 1 },
 	},
-	["corshad"] = {
+	["cortex_whirlwind"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta2", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 33, piece = "thrustb", light = 1 },
@@ -277,7 +277,7 @@ local effectDefs = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustb", light = 1.5 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustc", light = 1.5 },
 	},
-	["cortitan"] = {
+	["cortex_angler"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrustb1", light = 1 },
@@ -286,7 +286,7 @@ local effectDefs = {
 	["armada_cormorant"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 40, piece = "thrust1", light = 1 },
 	},
-	["corhurc"] = {
+	["cortex_hailstorm"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
@@ -333,10 +333,10 @@ local effectDefs = {
 	["armada_advancedconstructionaircraft"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
 	},
-	["corca"] = {
+	["cortex_constructionaircraft"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 15, piece = "thrust", xzVelocity = 1.2 },
 	},
-	["coraca"] = {
+	["cortex_advancedconstructionaircraft"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
 	},
 	["armada_constructionseaplane"] = {
@@ -362,7 +362,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
 	},
-	["cordronecarryair"] = {
+	["cortex_flyingdronecarrier"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl1", light = 0.58 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr1", light = 0.58 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl2", light = 0.58 },

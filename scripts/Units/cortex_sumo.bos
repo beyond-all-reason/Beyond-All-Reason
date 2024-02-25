@@ -16,7 +16,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM				4
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcan_anim_walk_v2.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_sumo_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4
 			turn head to x-axis <-2.988460> speed <266.653795> / animSpeed; 

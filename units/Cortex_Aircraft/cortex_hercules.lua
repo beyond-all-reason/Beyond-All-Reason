@@ -1,11 +1,11 @@
 return {
-	corvalk = {
+	cortex_hercules = {
 		maxacc = 0.09,
 		blocking = false,
 		maxdec = 0.75,
 		energycost = 1450,
 		metalcost = 74,
-		buildpic = "CORVALK.DDS",
+		buildpic = "cortex_hercules.DDS",
 		buildtime = 4120,
 		canfly = true,
 		canmove = true,
@@ -22,9 +22,9 @@ return {
 		maxslope = 10,
 		speed = 198.0,
 		maxwaterdepth = 0,
-		objectname = "Units/CORVALK.s3o",
+		objectname = "Units/cortex_hercules.s3o",
 		releaseheld = true,
-		script = "Units/CORVALK.cob",
+		script = "Units/cortex_hercules.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,

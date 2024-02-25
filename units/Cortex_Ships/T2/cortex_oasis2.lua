@@ -1,5 +1,5 @@
 return {
-	corcarry2 = {
+	cortex_oasis2 = {
 		maxacc = 0.01647,
 		activatewhenbuilt = true,
 		maxdec = 0.01647,
@@ -7,7 +7,7 @@ return {
 		energycost = 17000,
 		metalcost = 1400,
 		--builder = true,
-		buildpic = "CORCARRY2.DDS",
+		buildpic = "cortex_oasis2.DDS",
 		buildtime = 20000,
 		--canassist = false,
 		--canattack = true,
@@ -36,10 +36,10 @@ return {
 		movementclass = "BOAT8",
 		movestate = 1,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCARRY2.s3o",
+		objectname = "Units/cortex_oasis2.s3o",
 		radardistance = 2700,
 		radaremitheight = 50,
-		script = "Units/CORCARRY2.cob",
+		script = "Units/cortex_oasis2.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 1040,
@@ -73,7 +73,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/corcarry_dead.s3o",
+				object = "Units/cortex_oasis_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -208,7 +208,7 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "cordroneold",     --Name of the unit spawned by this carrier unit. 
+					carried_unit = "cortex_attackdroneold",     --Name of the unit spawned by this carrier unit. 
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200, 	
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 

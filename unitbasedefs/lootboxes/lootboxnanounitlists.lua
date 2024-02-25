@@ -45,9 +45,9 @@ return {
 		-- Air
 		"armada_stormbringer",
 		"armada_falcon",
-		"corshad",
-		"corbw",
-		"corveng",
+		"cortex_whirlwind",
+		"cortex_shuriken",
+		"cortex_valiant",
 
 		-- Sea
 		"armada_skater",
@@ -86,7 +86,7 @@ return {
 		"coramph",
 		"corsktl",
 		"corspy",
-		"corcan",
+		"cortex_sumo",
 		"coraak",
 		"cortermite",
 		"cormando",
@@ -147,7 +147,7 @@ return {
 		"corshark",
 		"corarch",
 		"corcrus",
-		--"corcarry",
+		--"cortex_oasis",
 		"corssub",
 		"cormship",
 		"corseal",
@@ -173,7 +173,7 @@ return {
 		"armada_razorback",
 		"corshiva",
 		"corkarg",
-		"corcat",
+		"cortex_catapult",
 		"legpede",
 
 		-- Vehicles
@@ -196,10 +196,10 @@ return {
 		"armada_liche",
 		"armada_blizzard",
 		"corsb",
-		"corvamp",
-		"corhurc",
-		"corape",
-		"corcrw",
+		"cortex_nighthawk",
+		"cortex_hailstorm",
+		"cortex_wasp",
+		"cortex_dragonold",
 
 		-- Sea
 		"armada_dreadnought",
@@ -229,14 +229,14 @@ return {
 		"armada_tumbleweedt4",
 		"armfepocht4",
 		"corfblackhyt4",
-		"corcrwt4",
+		"cortex_dragont4",
 		"cordemon",
 		"corkarganetht4",
 		"corgolt4",
 		"corakt4",
 
 		-- Air
-		"corcrwt4",
+		"cortex_dragont4",
 		"armfepocht4",
 		"corfblackhyt4",
 		"armada_stormbringert4",
@@ -244,7 +244,7 @@ return {
 		-- Sea
 		"armada_epoch",
 		"corblackhy",
-		"corcrwt4",
+		"cortex_dragont4",
 		"armfepocht4",
 		"corfblackhyt4",
 		"armada_tumbleweedt4",

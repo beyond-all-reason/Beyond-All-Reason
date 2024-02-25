@@ -859,7 +859,7 @@
 			"limit": 15,
 			"build_speed": 3.0  //bp 60
 		},
-        "corca": {
+        "cortex_constructionaircraft": {
 			"role": ["builder", "air"],
 			"attribute": ["solo"],
 			"retreat": 0.6,
@@ -873,7 +873,7 @@
 			"limit": 15,
 			"build_speed": 5.0  //bp 100
 		},
-		"coraca": {
+		"cortex_advancedconstructionaircraft": {
 			"role": ["builder", "air"],
 			"retreat": 0.6,
 			"limit": 15,
@@ -1454,7 +1454,7 @@
 			"attribute": ["support"],
 			"threat":{"air":0.5}
 		},
-		"corcan": {
+		"cortex_sumo": {
 			"role": ["skirmish"],
 			"attribute": ["melee"]
 		},
@@ -1530,7 +1530,7 @@
 		"corkarg": {
 			"role": ["raider", "heavy"]
 		},
-		"corcat": {
+		"cortex_catapult": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
 			"threat": {"surf": 0.5, "vs":{"static":4.0, "artillery":4.0}},
@@ -1705,7 +1705,7 @@
 			"role": ["support"],
 			"retreat": 0.75
 		},
-		"corcarry": {
+		"cortex_oasis": {
 			"role": ["support"],
 			"retreat": 0.75,
             "limit": 2
@@ -1735,16 +1735,16 @@
 			"retreat": 0.8,
 			"limit": 5
 		},
-		"corveng": {
+		"cortex_valiant": {
 			"role": ["anti_air", "air"],
 			"power": 0.5,
 			"retreat": 0.5
 		},
-		"corshad": {
+		"cortex_whirlwind": {
 			"role": ["bomber", "air"],
 			"retreat": 0.5
 		},
-		"corbw": {
+		"cortex_shuriken": {
 			"role": ["skirmish", "air"], //skirmish with support doesnt work
             "threat": {"surf": 0.2},
 			"power": 0.1,
@@ -1756,23 +1756,23 @@
 
 		// CORE ADV AIRCRAFT aircraft - coraap
 
-		"corawac": {
+		"cortex_condor": {
 			"role": ["scout", "air"],
 			"retreat": 0.6
 		},
-		"corvamp": {
+		"cortex_nighthawk": {
 			"role": ["anti_air", "air"],
 			"retreat": 0.5
 		},
-		"corhurc": {
+		"cortex_hailstorm": {
 			"role": ["bomber", "air"],
 			"retreat": 0.8
 		},
-		"corape": {
+		"cortex_wasp": {
 			"role": ["raider", "air"],
 			"retreat": 0.8
 		},
-		"corcrw": {
+		"cortex_dragonold": {
 			"role": ["heavy", "air"],
 			"retreat": 0.4
 		},

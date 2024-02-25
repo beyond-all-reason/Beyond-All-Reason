@@ -31,7 +31,7 @@ return {
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",
-		script = "Units/CORHURC.cob",
+		script = "Units/cortex_hailstorm.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 221,

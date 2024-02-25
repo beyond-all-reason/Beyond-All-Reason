@@ -1,10 +1,10 @@
 return {
-	corcat = {
+	cortex_catapult = {
 		maxacc = 0.1242,
 		maxdec = 0.6486,
 		energycost = 80000,
 		metalcost = 4900,
-		buildpic = "CORCAT.DDS",
+		buildpic = "cortex_catapult.DDS",
 		buildtime = 127000,
 		canmove = true,
 		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE BOT EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCAT.s3o",
-		script = "Units/CORCAT.cob",
+		objectname = "Units/cortex_catapult.s3o",
+		script = "Units/cortex_catapult.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 700,
@@ -57,7 +57,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 2958,
-				object = "Units/corcat_dead.s3o",
+				object = "Units/cortex_catapult_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

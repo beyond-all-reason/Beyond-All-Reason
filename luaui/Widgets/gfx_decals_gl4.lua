@@ -1642,9 +1642,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		},
-	['corcan'] = {
+	['cortex_sumo'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corcan_a.png',
+			texture = footprintsPath..'f_cortex_sumo_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
@@ -1661,7 +1661,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_corcan_a.png',
+			texture = footprintsPath..'f_cortex_sumo_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1717,9 +1717,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		},
-	['corcat'] = {
+	['cortex_catapult'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corcat_a.png',
+			texture = footprintsPath..'f_cortex_catapult_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 3, --
 			offsetrot = 0.0, -- in radians

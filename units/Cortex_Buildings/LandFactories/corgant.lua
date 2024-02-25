@@ -38,7 +38,7 @@ return {
 			[2] = "corkarg",
 			[3] = "corjugg",
 			[4] = "corshiva",
-			[5] = "corcat",
+			[5] = "cortex_catapult",
 			[6] = "corsok",
 			[7] = "cordemon",
 		},

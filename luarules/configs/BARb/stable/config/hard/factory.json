@@ -414,7 +414,7 @@
 
 		"income_tier": [30, 60],
 
-		"unit":      ["corack",  "corpyro", "corsumo", "corcan", "corfast", "cormort", "corhrk", "coraak", 	"coramph", "cormando", 	"cortex_decoycommander", "corroach",	"corsktl", "corvoyr", "corspec", "corspy",	"cortermite"],
+		"unit":      ["corack",  "corpyro", "corsumo", "cortex_sumo", "corfast", "cormort", "corhrk", "coraak", 	"coramph", "cormando", 	"cortex_decoycommander", "corroach",	"corsktl", "corvoyr", "corspec", "corspy",	"cortermite"],
                                                                                                                                                         
 		"land": {                                                                                                                                       
 			"tier0": [ 0.30,      0.50,      0.00,      0.00,     0.00,      0.20,      0.00,     0.01,     0.00,		0.00,       0.00,		0.00,		0.00,      0.00,		0.00,   	0.00,		0.00],   
@@ -503,7 +503,7 @@
 
 		"income_tier": [100, 200],
 
-		"unit":      ["corsok", "corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
+		"unit":      ["corsok", "corshiva", "corkarg", "cortex_catapult", "corkorg", "corjugg"],
 
 		"land": {
 			"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00],
@@ -547,7 +547,7 @@
 
 		"income_tier": [30, 90],
 
-		"unit":      ["corca", "corveng", "corfink", "corshad", "corbw"],
+		"unit":      ["cortex_constructionaircraft", "cortex_valiant", "corfink", "cortex_whirlwind", "cortex_shuriken"],
 
 		"land": {
 			"tier0": [ 0.10,    0.00,     0.10,      0.30,       0.60],
@@ -570,7 +570,7 @@
 
 		"income_tier": [50],
 
-		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrw"],
+		"unit":      ["cortex_advancedconstructionaircraft", "cortex_nighthawk", "cortex_condor", "cortex_hailstorm", "cortex_wasp", "cortex_dragonold"],
 
 		"land": {
 			"tier0": [ 0.10,     0.20,       0.15,      0.05,       0.40,      0.00],
@@ -609,7 +609,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "cortex_oasis", "cormship", "corbats", "corblackhy"],
 
 		"land": {
 			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],

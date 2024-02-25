@@ -35,10 +35,10 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo ",
 		buildoptions = {
-			"coraca",
-			"corcrwt4",
+			"cortex_advancedconstructionaircraft",
+			"cortex_dragont4",
 			"corfblackhyt4",
-			"cordronecarryair",
+			"cortex_flyingdronecarrier",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

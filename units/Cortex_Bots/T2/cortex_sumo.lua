@@ -1,10 +1,10 @@
 return {
-	corcan = {
+	cortex_sumo = {
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		energycost = 9300,
 		metalcost = 560,
-		buildpic = "CORCAN.DDS",
+		buildpic = "cortex_sumo.DDS",
 		buildtime = 11700,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCAN.s3o",
-		script = "Units/CORCAN.cob",
+		objectname = "Units/cortex_sumo.s3o",
+		script = "Units/cortex_sumo.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 350,
@@ -56,7 +56,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 339,
-				object = "Units/corcan_dead.s3o",
+				object = "Units/cortex_sumo_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

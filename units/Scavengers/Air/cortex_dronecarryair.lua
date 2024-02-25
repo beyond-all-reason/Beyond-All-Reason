@@ -1,12 +1,12 @@
 return {
-	cordronecarryair = {
+	cortex_flyingdronecarrier = {
 		maxacc = 0.018,
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
 		buildangle = 16384,
 		energycost = 12500,
 		metalcost = 1250,
-		buildpic = "CORDRONECARRY.DDS",
+		buildpic = "cortex_dronecarrier.DDS",
 		buildtime = 20000,
 		canfly = true,
 		canmove = true,
@@ -35,10 +35,10 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "BOAT5",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORDRONECARRYAIR.s3o",
+		objectname = "Units/cortex_flyingdronecarrier.s3o",
 		radardistance = 1500,
 		radaremitheight = 56,
-		script = "Units/CORDRONECARRYAIR.cob",
+		script = "Units/cortex_flyingdronecarrier.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 700,
@@ -67,7 +67,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/cordronecarry_dead.s3o",
+				object = "Units/cortex_dronecarrier_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -150,7 +150,7 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "cordrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "cortex_attackdrone",     --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200,
 					--spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.

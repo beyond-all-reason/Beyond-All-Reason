@@ -12,7 +12,7 @@ local unitOrderTable = {
 	['cormuskrat']     = 001150,
 
 	['armada_constructionaircraft']          = 001160, --AIR
-	['corca']          = 001165,
+	['cortex_constructionaircraft']          = 001165,
 	['legca']          = 001166,
 
 	['legassistdrone'] = 001167,
@@ -46,7 +46,7 @@ local unitOrderTable = {
 	['legacv']         = 002555,
 
 	['armada_advancedconstructionaircraft']         = 002600,
-	['coraca']         = 002650,
+	['cortex_advancedconstructionaircraft']         = 002650,
 	['legaca']         = 002660,
 
 	['armada_advancedconstructionsub']       = 002700,
@@ -79,7 +79,7 @@ local unitOrderTable = {
 	['armada_horizon']       = 004050, --SEAPLANES
 	['corhunt']        = 004060,
 	['armada_oracle']        = 004050,
-	['corawac']        = 004060,
+	['cortex_condor']        = 004060,
 
 	-- SCOUTS/UTILITY LAND
 	['armada_compass']        = 004100,
@@ -97,10 +97,10 @@ local unitOrderTable = {
 
 	-- AIRCRAFT
 	['armada_falcon']         = 004300, --FIGHTERS
-	['corveng']        = 004305,
+	['cortex_valiant']        = 004305,
 	['legfig']         = 004306,
 	['armada_highwind']        = 004310, --FIGHTERS T2
-	['corvamp']        = 004315,
+	['cortex_nighthawk']        = 004315,
 	['legionnaire']    = 004316,
 	['legvenator']     = 004317,
 	['armada_cyclone2']       = 004316, -- T2 Heavy Fighter (air rework mod)
@@ -113,14 +113,14 @@ local unitOrderTable = {
 	['legstronghold']  = 004331,
 
 	['armada_roughneck']       = 004335, --GUNSHIPS T2
-	['corape']         = 004340,
+	['cortex_wasp']         = 004340,
 	['armada_hornet']       = 004345,
-	['corcrw']         = 004348,
-	['corcrwh']         = 004347,
+	['cortex_dragonold']         = 004348,
+	['cortex_dragon']         = 004347,
 	['legfort']        = 004349,
 
 	['armada_stormbringer']       = 004350, --BOMBERS
-	['corshad']        = 004355,
+	['cortex_whirlwind']        = 004355,
 	['legcib']         = 004356,
 	['legkam']         = 004357,
 	['armada_tsunami']          = 004360,
@@ -128,7 +128,7 @@ local unitOrderTable = {
 	['legphoenix']     = 004366,
 
 	['armada_blizzard']        = 004370, --BOMBERS T2
-	['corhurc']        = 004380,
+	['cortex_hailstorm']        = 004380,
 	['legnap']         = 004381,
 	['legmineb']       = 004382,
 	['legphoenix']     = 004383,
@@ -145,7 +145,7 @@ local unitOrderTable = {
 	['corsh']          = 004510,
 
 	-- EMP
-	['corbw']          = 004800, --EMP
+	['cortex_shuriken']          = 004800, --EMP
 	['armada_webber']        = 004810, --EMP
 
 	-- T1 LAND ATTACK
@@ -229,7 +229,7 @@ local unitOrderTable = {
 	['legsrail']       = 006615,
 
 	['armada_fatboy']        = 006700, --STRONK
-	['corcan']         = 006710,
+	['cortex_sumo']         = 006710,
 	['legshot']        = 006715,
 	['armada_sharpshooter']       = 006720,
 	['corsumo']        = 006730,
@@ -253,7 +253,7 @@ local unitOrderTable = {
 
 	--T3 LAND ATTACK
 	['armada_marauder']         = 007000,
-	['corcat']         = 007010,
+	['cortex_catapult']         = 007010,
 	['armada_razorback']         = 007020,
 	['corkarg']        = 007030,
 	['armada_vanguard']        = 007040,
@@ -289,7 +289,7 @@ local unitOrderTable = {
 	['armada_stormbringert4']     = 007500,
 	['armfepocht4']    = 007510,
 	['corfblackhyt4']  = 007520,
-	['corcrwt4']       = 007530,
+	['cortex_dragont4']       = 007530,
 
 	-- LAND AA
 	['armada_crossbow']        = 008000,
@@ -311,7 +311,7 @@ local unitOrderTable = {
 	-- ['corsent']        = 008530,
 
 	-- ['armada_highwind']        = 008540,
-	-- ['corvamp']        = 008550,
+	-- ['cortex_nighthawk']        = 008550,
 
 	-- WATER SCOUTS
 	['armada_skater']          = 009000, --SCOUTS AA
@@ -337,7 +337,7 @@ local unitOrderTable = {
 	['cormship']       = 009350,
 	
 	['armada_dronecarrier']  = 009360, --DRONE CARRIERS
-	['cordronecarry']  = 009361,
+	['cortex_dronecarrier']  = 009361,
 
 	['armada_dreadnought']        = 009370, --STRONK
 	['corbats']        = 009380,
@@ -365,7 +365,7 @@ local unitOrderTable = {
 	['corsub']         = 009830,
 
 	['armada_cormorant']       = 009900,
-	['cortitan']       = 009910,
+	['cortex_angler']       = 009910,
 	['armada_barracuda']        = 009920,
 	['corshark']       = 009930,
 	['armada_serpent']        = 009940,
@@ -376,7 +376,7 @@ local unitOrderTable = {
 
 	-- TRANSPORTS
 	['armada_stork']       = 010500,
-	['corvalk']        = 010510,
+	['cortex_hercules']        = 010510,
 
 	['armada_convoy']       = 010540,
 	['cortship']       = 010550,
@@ -387,7 +387,7 @@ local unitOrderTable = {
 	['corintr']        = 010600,
 
 	['armada_abductor']        = 010610,
-	['corseah']        = 010620,
+	['cortex_skyhook']        = 010620,
 
 	-- ANTINUKES
 	['armada_umbrella']        = 020000,
@@ -396,9 +396,9 @@ local unitOrderTable = {
 	['armada_haven']       = 020100,
 	['armada_t2supportship']	   = 020101,
 	['armada_haven2']      = 020105,
-	['corcarry']       = 020110,
+	['cortex_oasis']       = 020110,
 	['corantiship']    = 020111,
-	['corcarry2']      = 020115,
+	['cortex_oasis2']      = 020115,
 
 -- BUILDINGS
    --ECO METAL MEX

@@ -370,11 +370,11 @@ local function skyshiftUnitTweaks(name, uDef)
 			--------------------
 ---------------------------------------------
 
-	if name == "corca" then
+	if name == "cortex_constructionaircraft" then
 		uDef.health = 720
 	end
 	
-	if name == "corveng" then
+	if name == "cortex_valiant" then
 		uDef.acceleration = 0.45
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
@@ -382,7 +382,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxdec = 0.45
 		uDef.energycost = 1100
 		uDef.metalcost = 80
-		uDef.buildpic = "CORVENG.DDS"
+		uDef.buildpic = "cortex_valiant.DDS"
 		uDef.buildtime = 3330
 		uDef.canfly = true
 		uDef.canmove = true
@@ -404,8 +404,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.speed = 160
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
-		uDef.objectname = "Units/CORVENG.s3o"
-		uDef.script = "Units/CORVENG.cob"
+		uDef.objectname = "Units/cortex_valiant.s3o"
+		uDef.script = "Units/cortex_valiant.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "smallExplosionGenericAir"
 		uDef.sightdistance = 210
@@ -465,13 +465,13 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "corshad" then
+	if name == "cortex_whirlwind" then
 		uDef.acceleration = 0.045
 		uDef.blocking = false
 		uDef.maxdec = 0.045
 		uDef.energycost = 2400
 		uDef.metalcost = 220
-		uDef.buildpic = "CORSHAD.DDS"
+		uDef.buildpic = "cortex_whirlwind.DDS"
 		uDef.buildtime = 5050
 		uDef.canfly = true
 		uDef.canmove = true
@@ -495,8 +495,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "VTOL"
-		uDef.objectname = "Units/CORSHAD.s3o"
-		uDef.script = "Units/CORSHAD.cob"
+		uDef.objectname = "Units/cortex_whirlwind.s3o"
+		uDef.script = "Units/cortex_whirlwind.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 169
@@ -544,13 +544,13 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "corbw" then
+	if name == "cortex_shuriken" then
 		uDef.acceleration = 0.5
 		uDef.blocking = false
 		uDef.maxdec = 0.4
 		uDef.energycost = 700
 		uDef.metalcost = 50
-		uDef.buildpic = "CORBW.DDS"
+		uDef.buildpic = "cortex_shuriken.DDS"
 		uDef.buildtime = 2070
 		uDef.canfly = true
 		uDef.canmove = true
@@ -576,8 +576,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.speed = 190
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "COMMANDER"
-		uDef.objectname = "Units/CORBW.s3o"
-		uDef.script = "Units/CORBW.cob"
+		uDef.objectname = "Units/cortex_shuriken.s3o"
+		uDef.script = "Units/cortex_shuriken.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "tinyExplosionGenericSelfd"
 		uDef.sightdistance = 364

@@ -1,5 +1,5 @@
 return {
-	corcrwh = {
+	cortex_dragon = {
 		maxacc = 0.15,
 		airsightdistance = 850,
 		activatewhenbuilt = true,
@@ -8,7 +8,7 @@ return {
 		maxdec = 0.15,
 		energycost = 72000,
 		metalcost = 5100,
-		buildpic = "CORCRWH.DDS",
+		buildpic = "cortex_dragon.DDS",
 		buildtime = 84200,
 		canfly = true,
 		canmove = true,
@@ -29,8 +29,8 @@ return {
 		speed = 114.9,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCRWH.s3o",
-		script = "Units/CORCRWH.cob",
+		objectname = "Units/cortex_dragon.s3o",
+		script = "Units/cortex_dragon.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,

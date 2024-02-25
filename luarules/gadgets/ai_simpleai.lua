@@ -60,10 +60,10 @@ if gameShortName == "BYAR" then
 		"corthovr",
 		"armada_stork",
 		"armada_convoy",
-		"corvalk",
+		"cortex_hercules",
 		"cortship",
 		"armada_abductor",
-		"corseah",
+		"cortex_skyhook",
 		"corint",
 
 		-- stockpilers

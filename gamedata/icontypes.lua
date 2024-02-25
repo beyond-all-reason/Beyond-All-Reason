@@ -983,7 +983,7 @@ local icontypes = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
 	},
-	coraca = {
+	cortex_advancedconstructionaircraft = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
@@ -1043,7 +1043,7 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	corape = {
+	cortex_wasp = {
 		bitmap = "icons/air_t2_hover_missile.png",
 		size = 1.46999991
 	},
@@ -1087,7 +1087,7 @@ local icontypes = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
 	},
-	corawac = {
+	cortex_condor = {
 		bitmap = "icons/air_t2_radar.png",
 		size = 1.39649999
 	},
@@ -1111,28 +1111,28 @@ local icontypes = {
 		bitmap = "icons/corbuzz.png",
 		size = 4.04249954
 	},
-	corbw = {
+	cortex_shuriken = {
 		bitmap = "icons/air_bladew.png",
 		size = 0.78749996
 	},
-	corca = {
+	cortex_constructionaircraft = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
 	},
-	corcan = {
-		bitmap = "icons/corcan.png",
+	cortex_sumo = {
+		bitmap = "icons/cortex_sumo.png",
 		size = 1.34399986
 	},
-	corcarry = {
+	cortex_oasis = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	corcarry2 = {
+	cortex_oasis2 = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	corcat = {
-		bitmap = "icons/corcat_1.9.png",
+	cortex_catapult = {
+		bitmap = "icons/cortex_catapult_1.9.png",
 		size = 1.99499989
 	},
 	corch = {
@@ -1163,16 +1163,16 @@ local icontypes = {
 		bitmap = "icons/ship_t2_cruiser.png",
 		size = 2.25749993
 	},
-	corcrw = {
+	cortex_dragonold = {
 		bitmap = "icons/air_krow.png",
 		size = 2.0999999
 	},
-	corcrwh = {
+	cortex_dragon = {
 		bitmap = "icons/air_krow.png",
 		size = 2.0999999
 	},
-	corcrwt4 = {
-		bitmap = "icons/corcrwt4.png",
+	cortex_dragont4 = {
+		bitmap = "icons/cortex_dragont4.png",
 		size = 3.3599999
 	},
 	corcs = {
@@ -1215,19 +1215,19 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	cordrone = {
+	cortex_attackdrone = {
 		bitmap = "icons/air_bladew.png",
 		size = 0.5
 	},
-	cordronecarry = {
+	cortex_dronecarrier = {
 		bitmap = "icons/ship_t2_dronecarry.png",
 		size = 2.45000005
 	},
-	cordronecarryair = {
+	cortex_flyingdronecarrier = {
 		bitmap = "icons/air_t3_dronecarryair.png",
 		size = 2.45000005
 	},
-	cordroneold = {
+	cortex_attackdroneold = {
 		bitmap = "icons/air_hover.png",
 		size = 0.34999999
 	},
@@ -1423,7 +1423,7 @@ local icontypes = {
 		bitmap = "icons/air_los_sea.png",
 		size = 1.39649999
 	},
-	corhurc = {
+	cortex_hailstorm = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
@@ -1683,7 +1683,7 @@ local icontypes = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
 	},
-	corseah = {
+	cortex_skyhook = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
@@ -1711,7 +1711,7 @@ local icontypes = {
 		bitmap = "icons/hover_raid.png",
 		size = 1.10249984
 	},
-	corshad = {
+	cortex_whirlwind = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
 	},
@@ -1811,7 +1811,7 @@ local icontypes = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
-	cortitan = {
+	cortex_angler = {
 		bitmap = "icons/air_t2_torpbomber.png",
 		size = 1.67999995
 	},
@@ -1887,15 +1887,15 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.20000005
 	},
-	corvalk = {
+	cortex_hercules = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
-	corvamp = {
+	cortex_nighthawk = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
 	},
-	corveng = {
+	cortex_valiant = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},

@@ -1,11 +1,11 @@
 return {
-	cortitan = {
+	cortex_angler = {
 		acceleration = 0.2,
 		blocking = false,
 		maxdec = 0.0725,
 		energycost = 8200,
 		metalcost = 410,
-		buildpic = "CORTITAN.DDS",
+		buildpic = "cortex_angler.DDS",
 		buildtime = 14700,
 		canfly = true,
 		canmove = true,
@@ -28,9 +28,9 @@ return {
 		speed = 279.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORTITAN.s3o",
+		objectname = "Units/cortex_angler.s3o",
 		radardistance = 800,
-		script = "Units/CORTITAN.cob",
+		script = "Units/cortex_angler.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,

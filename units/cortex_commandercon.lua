@@ -64,8 +64,8 @@ return {
 			-- rezzers
 			"cornecro",
 			-- builders
-			"corca",
-			--"coraca",
+			"cortex_constructionaircraft",
+			--"cortex_advancedconstructionaircraft",
 			"corck",
 			--"corack",
 			"corch",

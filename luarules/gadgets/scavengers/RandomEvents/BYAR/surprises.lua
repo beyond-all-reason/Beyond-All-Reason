@@ -18,7 +18,7 @@ end
 
 local function transport1(currentFrame)
 	if currentFrame > scavconfig.gracePeriod*2 then
-		local transportsT1 = {"armada_stork_scav", "corvalk_scav",}
+		local transportsT1 = {"armada_stork_scav", "cortex_hercules_scav",}
 		local unitsT1 = {
 			"armada_pawn_scav",
 			"armada_shellshocker_scav",
@@ -49,7 +49,7 @@ local function transport1(currentFrame)
 			"armada_constructionturret_scav",
 			"cornanotc_scav",
 		}
-		local transportsT2 = {"armada_abductor_scav", "corseah_scav",}
+		local transportsT2 = {"armada_abductor_scav", "cortex_skyhook_scav",}
 		local unitsT2 = {
 			"armada_welder_scav",
 			"corpyro_scav",
@@ -73,7 +73,7 @@ local function transport1(currentFrame)
 			"corhrk_scav",
 			"correap_scav",
 			"corvroc_scav",
-			"corcan_scav",
+			"cortex_sumo_scav",
 			"cormort_scav",
 			"coramph_scav",
 			"corseal_scav",

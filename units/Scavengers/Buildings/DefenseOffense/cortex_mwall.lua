@@ -191,7 +191,7 @@ return {
 				name = "CatapultRockets",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 675, --1/2 of corcat
+				range = 675, --1/2 of cortex_catapult
 				reloadtime = 15,
 				smoketrail = true,
 				smokePeriod = 4,

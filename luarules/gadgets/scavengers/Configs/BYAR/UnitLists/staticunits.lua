@@ -58,7 +58,7 @@ local stockpilers = {
 	"armada_umbrella_scav",
 	"cormabm_scav",
 	"armada_haven_scav",
-	"corcarry_scav",
+	"cortex_oasis_scav",
 	"armbotrail_scav",
 }
 

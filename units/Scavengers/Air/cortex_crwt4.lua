@@ -1,5 +1,5 @@
 return {
-	corcrwt4 = {
+	cortex_dragont4 = {
 		maxacc = 0.08,
 		activatewhenbuilt = true,
 		blocking = false,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.275,
 		energycost = 150000,
 		metalcost = 15000,
-		buildpic = "scavengers/corcrwt4.DDS",
+		buildpic = "scavengers/cortex_dragont4.DDS",
 		buildtime = 150000,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		speed = 114.9,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/corcrwt4.s3o",
-		script = "Units/scavboss/corcrwt4.cob",
+		objectname = "Units/scavboss/cortex_dragont4.s3o",
+		script = "Units/scavboss/cortex_dragont4.cob",
 		seismicsignature = 0,
 		selfdestructas = "bantha",
 		sightdistance = 675,

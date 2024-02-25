@@ -1,11 +1,11 @@
 return {
-	corshad = {
+	cortex_whirlwind = {
 		acceleration = 0.05,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 4600,
 		metalcost = 150,
-		buildpic = "CORSHAD.DDS",
+		buildpic = "cortex_whirlwind.DDS",
 		buildtime = 5050,
 		canfly = true,
 		canmove = true,
@@ -29,8 +29,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSHAD.s3o",
-		script = "Units/CORSHAD.cob",
+		objectname = "Units/cortex_whirlwind.s3o",
+		script = "Units/cortex_whirlwind.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 169,

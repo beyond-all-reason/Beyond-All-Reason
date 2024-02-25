@@ -958,8 +958,8 @@ projectileDefLights[WeaponDefNames["armada_banshee_med_emg"].id] =
 GetLightClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
 											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
 
---corcat
-explosionLights[WeaponDefNames["corcat_exp_heavyrocket"].id] =
+--cortex_catapult
+explosionLights[WeaponDefNames["cortex_catapult_exp_heavyrocket"].id] =
 GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										color2r = 0.8, color2g = 0.43, color2b = 0.11, colortime = 5,
 										sustain = 10, lifetime = 38,

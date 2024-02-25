@@ -120,7 +120,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.armada_umbrella.id ] = true,
 	[UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.cormabm.id ] = true,
-	[UnitDefNames.corcarry.id] = true,
+	[UnitDefNames.cortex_oasis.id] = true,
 	[UnitDefNames.armada_t2supportship.id] = true,
 	[UnitDefNames.corantiship.id] = true,
 }
@@ -248,7 +248,7 @@ local function initUnitList()
 		['armada_umbrella'] = { weapons = { 3 } },
 		['armada_haven'] = { weapons = { 3 } },
 		['cormabm'] = { weapons = { 3 } },
-		['corcarry'] = { weapons = { 3 } },
+		['cortex_oasis'] = { weapons = { 3 } },
 		['armada_t2supportship'] = { weapons = { 3 } },
 		['corantiship'] = { weapons = { 3 } },
 

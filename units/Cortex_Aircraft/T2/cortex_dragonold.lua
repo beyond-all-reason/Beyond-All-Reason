@@ -1,5 +1,5 @@
 return {
-	corcrw = {
+	cortex_dragonold = {
 		maxacc = 0.15,
 		activatewhenbuilt = true,
 		blocking = true,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.15,
 		energycost = 72000,
 		metalcost = 5100,
-		buildpic = "CORCRW.DDS",
+		buildpic = "cortex_dragonold.DDS",
 		buildtime = 84200,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		speed = 114.9,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCRW.s3o",
-		script = "Units/CORCRW.cob",
+		objectname = "Units/cortex_dragonold.s3o",
+		script = "Units/cortex_dragonold.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,

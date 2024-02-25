@@ -6,7 +6,7 @@ return {
 		maxdec = 0.01,
 		energycost = 40000,
 		metalcost = 4000,
-		buildpic = "CORAWAC.DDS",
+		buildpic = "cortex_condor.DDS",
 		buildtime = 12800,
 		canfly = true,
 		canmove = true,

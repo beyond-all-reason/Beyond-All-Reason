@@ -64,7 +64,7 @@ local unitNames = {
   "armada_epoch",
   "corblackhy",
 
-  "corcat",
+  "cortex_catapult",
   "armada_vanguard",
 
   --skirmishers/fire support
@@ -100,7 +100,7 @@ local unitNames = {
   "armada_umbrella",
   "cormabm",
   "armada_haven",
-  "corcarry",
+  "cortex_oasis",
   "armada_t2supportship",
   "corantiship",
 

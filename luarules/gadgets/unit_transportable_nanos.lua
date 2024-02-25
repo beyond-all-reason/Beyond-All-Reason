@@ -39,8 +39,8 @@ local CMD_REMOVE = CMD.REMOVE
 --also do for AREA LOAD!
 --------------------------------------------------------------------------------
 local AirTrans = {
-  [UnitDefNames.corvalk.id] = true,
-  [UnitDefNames.corseah.id] = true,
+  [UnitDefNames.cortex_hercules.id] = true,
+  [UnitDefNames.cortex_skyhook.id] = true,
   [UnitDefNames.armada_stork.id] = true,
   [UnitDefNames.armada_abductor.id] = true,
   [UnitDefNames.armada_bearer.id] = true,

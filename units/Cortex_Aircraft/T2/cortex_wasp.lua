@@ -1,11 +1,11 @@
 return {
-	corape = {
+	cortex_wasp = {
 		maxacc = 0.20,
 		blocking = false,
 		maxdec = 0.20,
 		energycost = 6800,
 		metalcost = 370,
-		buildpic = "CORAPE.DDS",
+		buildpic = "cortex_wasp.DDS",
 		buildtime = 14500,
 		canfly = true,
 		canmove = true,
@@ -26,8 +26,8 @@ return {
 		speed = 159.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORAPE.s3o",
-		script = "Units/CORAPE.cob",
+		objectname = "Units/cortex_wasp.s3o",
+		script = "Units/cortex_wasp.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,

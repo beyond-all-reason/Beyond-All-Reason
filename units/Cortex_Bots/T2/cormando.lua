@@ -45,7 +45,7 @@ return {
 		upright = true,
 		workertime = 200,
 		buildoptions = {
-			[1] = "corvalk",
+			[1] = "cortex_hercules",
 			[2] = "corfink",
 			[3] = "cormine4",
 			[4] = "cormaw",

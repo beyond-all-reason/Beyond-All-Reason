@@ -1,11 +1,11 @@
 return {
-	corhurc = {
+	cortex_hailstorm = {
 		acceleration = 0.04,
 		blocking = false,
 		maxdec = 0.045,
 		energycost = 18500,
 		metalcost = 310,
-		buildpic = "CORHURC.DDS",
+		buildpic = "cortex_hailstorm.DDS",
 		buildtime = 31000,
 		canfly = true,
 		canmove = true,
@@ -29,8 +29,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORHURC.s3o",
-		script = "Units/CORHURC.cob",
+		objectname = "Units/cortex_hailstorm.s3o",
+		script = "Units/cortex_hailstorm.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 221,

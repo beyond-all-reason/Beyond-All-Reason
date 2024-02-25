@@ -5,7 +5,7 @@ return {
 		maxdec = 0.055,
 		energycost = 14600,
 		metalcost = 1000,
-		buildpic = "CORSHAD.DDS",
+		buildpic = "cortex_whirlwind.DDS",
 		buildtime = 5000,
 		canfly = true,
 		canmove = true,

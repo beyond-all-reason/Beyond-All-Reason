@@ -68,7 +68,7 @@ return {
 
 		-- Air
 		"armada_cormorant_scav",
-		"cortitan_scav",
+		"cortex_angler_scav",
 	},
 
 	T3 = {
@@ -77,7 +77,7 @@ return {
 		"armada_epoch_scav",
 		"armada_serpent_scav",
 		"corbats_scav",
-		"corcarry2_scav",
+		"cortex_oasis2_scav",
 		"corblackhy_scav",
 		"corslrpc_scav",
 		"armada_dolphint3_scav",

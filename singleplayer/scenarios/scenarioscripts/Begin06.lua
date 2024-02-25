@@ -251,17 +251,17 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 2002, py = 0, pz = 2719}},
     {cmdID = CMD.PATROL, position = {px = 1545, py = 0, pz = 4059}},
     }},
-    {name = "corcarry2", x = 372, y = 0, z = 3418, rot = -14339, teamID = 5, queue = {
+    {name = "cortex_oasis2", x = 372, y = 0, z = 3418, rot = -14339, teamID = 5, queue = {
     {cmdID = CMD.MOVE, position = {px = 1048, py = 0, pz = 3196}},
     {cmdID = CMD.PATROL, position = {px = 2060, py = 0, pz = 2486}},
     {cmdID = CMD.PATROL, position = {px = 1603, py = 0, pz = 3825}},
     }},
-    {name = "corcarry", x = 214, y = 0, z = 3129, rot = -16320, teamID = 5, queue = {
+    {name = "cortex_oasis", x = 214, y = 0, z = 3129, rot = -16320, teamID = 5, queue = {
     {cmdID = CMD.MOVE, position = {px = 890, py = 0, pz = 2907}},
     {cmdID = CMD.PATROL, position = {px = 1902, py = 0, pz = 2197}},
     {cmdID = CMD.PATROL, position = {px = 1445, py = 0, pz = 3536}},
     }},
-    {name = "corcarry2", x = 73, y = 0, z = 3292, rot = -20175, teamID = 5, queue = {
+    {name = "cortex_oasis2", x = 73, y = 0, z = 3292, rot = -20175, teamID = 5, queue = {
     {cmdID = CMD.MOVE, position = {px = 749, py = 0, pz = 3070}},
     {cmdID = CMD.PATROL, position = {px = 1761, py = 0, pz = 2360}},
     {cmdID = CMD.PATROL, position = {px = 1304, py = 0, pz = 3699}},
@@ -291,7 +291,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 3531, py = -81, pz = 1269}},
     {cmdID = CMD.PATROL, position = {px = 4317, py = -81, pz = 1882}},
     }},
-    {name = "corcarry2", x = 4272, y = 0, z = 350, rot = 30329, teamID = 4, queue = {
+    {name = "cortex_oasis2", x = 4272, y = 0, z = 350, rot = 30329, teamID = 4, queue = {
     {cmdID = CMD.MOVE, position = {px = 3892, py = 0, pz = 955}},
     {cmdID = CMD.PATROL, position = {px = 3353, py = 0, pz = 1411}},
     {cmdID = CMD.PATROL, position = {px = 4140, py = 0, pz = 2024}},
@@ -316,7 +316,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 3585, py = 0, pz = 1395}},
     {cmdID = CMD.PATROL, position = {px = 4371, py = 0, pz = 2008}},
     }},
-    {name = "corcarry", x = 4109, y = 0, z = 204, rot = 29517, teamID = 4, queue = {
+    {name = "cortex_oasis", x = 4109, y = 0, z = 204, rot = 29517, teamID = 4, queue = {
     {cmdID = CMD.MOVE, position = {px = 3728, py = 0, pz = 809}},
     {cmdID = CMD.PATROL, position = {px = 3190, py = 0, pz = 1265}},
     {cmdID = CMD.PATROL, position = {px = 3976, py = 0, pz = 1878}},
@@ -341,7 +341,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 3475, py = 0, pz = 1109}},
     {cmdID = CMD.PATROL, position = {px = 4261, py = 0, pz = 1722}},
     }},
-    {name = "corcarry2", x = 4283, y = 0, z = 65, rot = 20132, teamID = 4, queue = {
+    {name = "cortex_oasis2", x = 4283, y = 0, z = 65, rot = 20132, teamID = 4, queue = {
     {cmdID = CMD.MOVE, position = {px = 3902, py = 0, pz = 669}},
     {cmdID = CMD.PATROL, position = {px = 3363, py = 0, pz = 1126}},
     {cmdID = CMD.PATROL, position = {px = 4150, py = 0, pz = 1739}},
@@ -519,16 +519,16 @@ local timed = {
 }
 
 local special = {
-    {name = 'corcrw', x = 6031, y = 150, z = 4, rot = 0, teamID = 4, queue = {
+    {name = 'cortex_dragonold', x = 6031, y = 150, z = 4, rot = 0, teamID = 4, queue = {
     {cmdID = CMD.FIGHT, position = {px = 5154, py = 130, pz = 4875}},
     }},
-    {name = 'corcrw', x = 5970, y = 150, z = 4, rot = 0, teamID = 4, queue = {
+    {name = 'cortex_dragonold', x = 5970, y = 150, z = 4, rot = 0, teamID = 4, queue = {
     {cmdID = CMD.FIGHT, position = {px = 5822, py = 130, pz = 4892}},
     }},
-    {name = 'corcrw', x = 5800, y = 150, z = 4, rot = 0, teamID = 4, queue = {
+    {name = 'cortex_dragonold', x = 5800, y = 150, z = 4, rot = 0, teamID = 4, queue = {
     {cmdID = CMD.FIGHT, position = {px = 3723, py = 130, pz = 4297}},
     }},
-    {name = 'corcrw', x = 5750, y = 150, z = 4, rot = 0, teamID = 4, queue = {
+    {name = 'cortex_dragonold', x = 5750, y = 150, z = 4, rot = 0, teamID = 4, queue = {
     {cmdID = CMD.FIGHT, position = {px = 1830, py = 130, pz = 3256}},
     }},
     {name = 'corhunt', x = 5550, y = 130, z = 4, rot = 0, teamID = 4, queue = {
@@ -539,16 +539,16 @@ local special = {
     {cmdID = CMD.MOVE, position = {px = 3286, py = 130, pz = 938}},
     {cmdID = CMD.PATROL, position = {px = 2565, py = 130, pz = 41}},
     }},
-    {name = 'corcrw', x = 160, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
+    {name = 'cortex_dragonold', x = 160, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
     {cmdID = CMD.FIGHT, position = {px = 242, py = 130, pz = 221}},
     }},
-    {name = 'corcrw', x = 560, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
+    {name = 'cortex_dragonold', x = 560, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
     {cmdID = CMD.FIGHT, position = {px = 742, py = 130, pz = 264}},
     }},
-    {name = 'corcrw', x = 180, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
+    {name = 'cortex_dragonold', x = 180, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
     {cmdID = CMD.FIGHT, position = {px = 1214, py = 130, pz = 399}},
     }},
-    {name = 'corcrw', x = 210, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
+    {name = 'cortex_dragonold', x = 210, y = 150, z = 5110, rot = 32767, teamID = 5, queue = {
     {cmdID = CMD.FIGHT, position = {px = 1932, py = 130, pz = 556}},
     }},
     {name = 'corhunt', x = 330, y = 130, z = 5110, rot = 32767, teamID = 5, queue = {
@@ -562,15 +562,15 @@ local special = {
     {name = 'corcsa', x = 6000, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
     {name = 'corcsa', x = 5930, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
     {name = 'corcsa', x = 5870, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
-    {name = 'corhurc', x = 5700, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
-    {name = 'corhurc', x = 5650, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
-    {name = 'corhurc', x = 5600, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
+    {name = 'cortex_hailstorm', x = 5700, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
+    {name = 'cortex_hailstorm', x = 5650, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
+    {name = 'cortex_hailstorm', x = 5600, y = 130, z = 4, rot = 0, teamID = 2, queue = {}},
     {name = 'corcsa', x = 50, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
     {name = 'corcsa', x = 84, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
     {name = 'corcsa', x = 128, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
-    {name = 'corhurc', x = 240, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
-    {name = 'corhurc', x = 270, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
-    {name = 'corhurc', x = 300, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
+    {name = 'cortex_hailstorm', x = 240, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
+    {name = 'cortex_hailstorm', x = 270, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
+    {name = 'cortex_hailstorm', x = 300, y = 130, z = 5110, rot = 32767, teamID = 3, queue = {}},
 }
 
 local objectiveUnits = {

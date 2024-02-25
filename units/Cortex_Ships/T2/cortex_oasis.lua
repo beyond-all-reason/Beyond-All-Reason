@@ -1,5 +1,5 @@
 return {
-	corcarry = {
+	cortex_oasis = {
 		maxacc = 0.01647,
 		activatewhenbuilt = true,
 		maxdec = 0.01647,
@@ -7,7 +7,7 @@ return {
 		energycost = 17000,
 		metalcost = 1400,
 		builder = true,
-		buildpic = "CORCARRY.DDS",
+		buildpic = "cortex_oasis.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -35,10 +35,10 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCARRY.s3o",
+		objectname = "Units/cortex_oasis.s3o",
 		radardistance = 2700,
 		radaremitheight = 50,
-		script = "Units/CORCARRY.cob",
+		script = "Units/cortex_oasis.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
 		sightdistance = 1040,
@@ -72,7 +72,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/corcarry_dead.s3o",
+				object = "Units/cortex_oasis_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

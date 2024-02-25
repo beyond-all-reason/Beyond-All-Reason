@@ -297,7 +297,7 @@
 		"importance": [0.0, 0.8],
 		"require_energy": true,
 		"income_tier": [40],
-		"unit":      ["corack", "cortermite", "corpyro", "corsumo", "corcan", "corfast", "cormort", "corhrk", "coraak", "cormando", "corsktl", "corvoyr", "coramph", "corspy"],
+		"unit":      ["corack", "cortermite", "corpyro", "corsumo", "cortex_sumo", "corfast", "cormort", "corhrk", "coraak", "cormando", "corsktl", "corvoyr", "coramph", "corspy"],
 		"land": {
 			"tier0": [ 0.01,     0.01,         0.52,      0.01,      0.13,     0.02,      0.15,      0.07,     0.01,     0.00,       0.00,      0.04,      0.02,      0.01],
 			"tier1": [ 0.02,     0.05,         0.41,      0.14,      0.05,     0.02,      0.07,      0.09,     0.02,     0.01,       0.02,      0.03,      0.02,      0.05]
@@ -376,7 +376,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
-		"unit":      ["corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
+		"unit":      ["corshiva", "corkarg", "cortex_catapult", "corkorg", "corjugg"],
 		"land": {
 			"tier0": [ 0.18,       0.53,      0.29,     0.00,      0.00],
 			"tier1": [ 0.16,       0.00,      0.16,     0.57,      0.11]
@@ -389,7 +389,7 @@
 		"importance": [0.5, 0.1],
 		"require_energy": false,
 		"income_tier": [30],
-		"unit":      ["corca", "corveng", "corfink", "corshad", "corbw"],
+		"unit":      ["cortex_constructionaircraft", "cortex_valiant", "corfink", "cortex_whirlwind", "cortex_shuriken"],
 		"land": {
 			"tier0": [ 0.08,    0.38,      0.08,      0.34,      0.12],
 			"tier1": [ 0.04,    0.33,      0.05,      0.38,      0.20]
@@ -405,7 +405,7 @@
 		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [50],
-		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrw"],
+		"unit":      ["cortex_advancedconstructionaircraft", "cortex_nighthawk", "cortex_condor", "cortex_hailstorm", "cortex_wasp", "cortex_dragonold"],
 		"land": {
 			"tier0": [ 0.01,     0.59,      0.17,      0.06,      0.17,     0.00],
 			"tier1": [ 0.02,     0.35,      0.10,      0.28,      0.22,     0.03]
@@ -438,7 +438,7 @@
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
-		"unit":      ["coracsub", "corshark", "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "corshark", "corarch", "corcrus", "cortex_oasis", "cormship", "corbats", "corblackhy"],
 		"land": {
 			"tier0": [ 0.01,       0.28,       0.00,      0.43,      0.00,       0.14,       0.14,      0.00],
 			"tier1": [ 0.02,       0.16,       0.05,      0.11,      0.05,       0.22,       0.28,      0.11]

@@ -21,12 +21,12 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 // 
 // LICENSED CC BY NC ND to Beherith mysterme@gmail.com
-// Generated for N:\animations\corcat_anim_walk_v2.blend
+// Generated for N:\animations\cortex_catapult_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_WALK 16
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcat_anim_walk_v2.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_catapult_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:8
 			turn head to x-axis <3.000000> speed <90.000003> / animSpeed; //delta=-3.00 

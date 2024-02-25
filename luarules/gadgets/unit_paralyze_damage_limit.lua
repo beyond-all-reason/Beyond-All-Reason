@@ -25,7 +25,7 @@ local excluded = {
     -- mobile units that are excluded from the maxTime limit
     [UnitDefNames.armada_umbrella.id] = true,
     [UnitDefNames.cormabm.id] = true,
-    [UnitDefNames.corcarry.id] = true,
+    [UnitDefNames.cortex_oasis.id] = true,
     [UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.armada_t2supportship.id] = true,
 	[UnitDefNames.corantiship.id] = true,

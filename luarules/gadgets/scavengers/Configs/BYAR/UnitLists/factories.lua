@@ -83,8 +83,8 @@ end
 local factoryBannedUnits = {
 	"armada_abductor_scav",
 	"armada_stork_scav",
-	"corvalk_scav",
-	"corseah_scav",
+	"cortex_hercules_scav",
+	"cortex_skyhook_scav",
 	"corthovr_scav",
 	"armada_bearer_scav",
 	"armada_convoy_scav",

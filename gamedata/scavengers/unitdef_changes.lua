@@ -148,9 +148,9 @@ customDefs.corscavdtl = {
 -- 	"cornecro",
 -- 	-- builders
 -- 	"armada_constructionaircraft",
--- 	"corca",
+-- 	"cortex_constructionaircraft",
 -- 	"armada_advancedconstructionaircraft",
--- 	"coraca",
+-- 	"cortex_advancedconstructionaircraft",
 -- 	"armada_constructionbot",
 -- 	"corck",
 -- 	"armada_advancedconstructionbot",
@@ -477,7 +477,7 @@ customDefs.corscavdtl = {
 -- ----CUSTOM UNITS---
 
 -- -- Bladewing do damage instead of paralyzer
--- customDefs.corbw = {
+-- customDefs.cortex_shuriken = {
 -- 	weapondefs = {
 -- 		bladewing_lyzer = {
 -- 			explosiongenerator = "custom:laserhit-tiny-blue",
@@ -685,8 +685,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corca.buildoptions
--- customDefs.corca = {
+-- numBuildoptions = #UnitDefs.cortex_constructionaircraft.buildoptions
+-- customDefs.cortex_constructionaircraft = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -751,8 +751,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.coraca.buildoptions
--- customDefs.coraca = {
+-- numBuildoptions = #UnitDefs.cortex_advancedconstructionaircraft.buildoptions
+-- customDefs.cortex_advancedconstructionaircraft = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corapt3",
 -- 		[numBuildoptions+2] = "corminibuzz",

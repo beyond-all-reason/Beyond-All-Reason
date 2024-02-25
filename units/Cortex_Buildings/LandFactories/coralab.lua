@@ -38,7 +38,7 @@ return {
 			[2] = "corfast",
 			[3] = "corpyro",
 			[4] = "coramph",
-			[5] = "corcan",
+			[5] = "cortex_sumo",
 			[6] = "corsumo",
 			[7] = "cortermite",
 			[8] = "cormort",

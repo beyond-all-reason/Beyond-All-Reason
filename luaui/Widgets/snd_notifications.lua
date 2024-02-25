@@ -138,9 +138,9 @@ local unitsOfInterestNames = {
 	['corthovr'] = 'TransportDetected',
 	['corintr'] = 'TransportDetected',
 	['armada_stork'] = 'AirTransportDetected',
-	['corvalk'] = 'AirTransportDetected',
+	['cortex_hercules'] = 'AirTransportDetected',
 	['armada_abductor'] = 'AirTransportDetected',
-	['corseah'] = 'AirTransportDetected',
+	['cortex_skyhook'] = 'AirTransportDetected',
 	['armada_convoy'] = 'SeaTransportDetected',
 	['cortship'] = 'SeaTransportDetected',
 }

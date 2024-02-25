@@ -70,7 +70,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 		unitloadout = {
 			-- {name = 'cortex_commander', x = 872, y = 1103, z = 1443, rot = 25860 , team = 1},
 			-- {name = 'armada_commander', x = 4062, y = 1064, z = 3609, rot = 0 , team = 0},
-			-- {name = 'corca', x = 4400, y = 1108, z = 4251, rot = 10273 , team = 0},
+			-- {name = 'cortex_constructionaircraft', x = 4400, y = 1108, z = 4251, rot = 10273 , team = 0},
 			{name = 'coradvsol', x = 4160, y = 1121, z = 4192, rot = -16384 , team = 0},
 			{name = 'coradvsol', x = 4224, y = 1116, z = 4192, rot = -16384 , team = 0},
 			{name = 'coradvsol', x = 4288, y = 1111, z = 4192, rot = -16384 , team = 0},

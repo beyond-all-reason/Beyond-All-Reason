@@ -1,21 +1,21 @@
 return {
 	T0 = {
 		"armada_falcon_scav",
-		"corbw_scav",
-		"corveng_scav",
+		"cortex_shuriken_scav",
+		"cortex_valiant_scav",
 	},
 
 	T1 = {
 		"armada_stormbringer_scav",
 		"armada_falcon_scav",
-		"corshad_scav",
-		"corbw_scav",
-		"corveng_scav",
+		"cortex_whirlwind_scav",
+		"cortex_shuriken_scav",
+		"cortex_valiant_scav",
 
 		-- Constructors
 		"armada_constructionaircraft_scav",
 		"armada_constructionseaplane_scav",
-		"corca_scav",
+		"cortex_constructionaircraft_scav",
 		"corcsa_scav",
 	},
 
@@ -31,7 +31,7 @@ return {
 
 		-- Constructors
 		"armada_advancedconstructionaircraft_scav",
-		"coraca_scav",
+		"cortex_advancedconstructionaircraft_scav",
 		"armassistdrone",
 		"corassistdrone",
 	},
@@ -44,16 +44,16 @@ return {
 		"armada_liche_scav",
 		"armada_blizzard_scav",
 		"corsb_scav",
-		"corvamp_scav",
-		"corhurc_scav",
-		"corape_scav",
-		"corcrw_scav",
+		"cortex_nighthawk_scav",
+		"cortex_hailstorm_scav",
+		"cortex_wasp_scav",
+		"cortex_dragonold_scav",
 		"legfort_scav",
 		
 	},
 
 	T4 = {
-		"corcrwt4_scav",
+		"cortex_dragont4_scav",
 		"armfepocht4_scav",
 		"corfblackhyt4_scav",
 		"armada_stormbringert4_scav",

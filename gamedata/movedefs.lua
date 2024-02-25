@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armada_haven armada_epoch corblackhy armada_haven2 armada_dreadnought corbats corcarry corcarry2
+	-- armada_haven armada_epoch corblackhy armada_haven2 armada_dreadnought corbats cortex_oasis cortex_oasis2
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -421,7 +421,7 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armada_compass corspec corck corvoyr armzues corcan armada_mace armada_constructionbot corack legck corstorm legbart corthud legbal legack armada_sharpshooter
+	--armada_compass corspec corck corvoyr armzues cortex_sumo armada_mace armada_constructionbot corack legck corstorm legbart corthud legbal legack armada_sharpshooter
 	--corpyro armada_advancedconstructionbot armada_rocketeer armada_gunslinger cormort armada_radarjammerbot armada_centurion legcen legshot
 	--
 	--cornecro leggob legkark armada_pawn armada_butler armada_lazarus corak corfast corspy leglob armada_ghost armada_sprinter
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armada_razorback legpede corcat leginc armada_fatboy corsumo legmech cordemon
+	-- armada_razorback legpede cortex_catapult leginc armada_fatboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,

@@ -24,7 +24,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
-	if unitDef.name == 'armada_anemone' or unitDef.name == 'cordl' or unitDef.name == 'armada_cormorant' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armada_beaver' or unitDef.name == 'cormuskrat'
+	if unitDef.name == 'armada_anemone' or unitDef.name == 'cordl' or unitDef.name == 'armada_cormorant' or unitDef.name == 'cortex_angler'	-- or unitDef.name == 'armada_beaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end

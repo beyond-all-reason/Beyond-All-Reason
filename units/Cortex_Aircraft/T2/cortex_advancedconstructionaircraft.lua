@@ -1,5 +1,5 @@
 return {
-	coraca = {
+	cortex_advancedconstructionaircraft = {
 		maxacc = 0.065,
 		blocking = false,
 		maxdec = 0.4275,
@@ -7,7 +7,7 @@ return {
 		metalcost = 360,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACA.DDS",
+		buildpic = "cortex_advancedconstructionaircraft.DDS",
 		buildtime = 18000,
 		canfly = true,
 		canmove = true,
@@ -26,9 +26,9 @@ return {
 		maxslope = 10,
 		speed = 181.5,
 		maxwaterdepth = 0,
-		objectname = "Units/CORACA.s3o",
+		objectname = "Units/cortex_advancedconstructionaircraft.s3o",
 		radardistance = 50,
-		script = "Units/CORACA.cob",
+		script = "Units/cortex_advancedconstructionaircraft.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 383.5,

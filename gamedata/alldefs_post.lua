@@ -139,7 +139,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_windturbinet2"
 		end
-		if name == "coraca" or name == "corack" or name == "coracv" then
+		if name == "cortex_advancedconstructionaircraft" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
 		end
@@ -374,7 +374,7 @@ function UnitDef_Post(name, uDef)
 		end
 		if name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_dronecarrier"
 		end
 		
 	end
@@ -436,7 +436,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armada_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "corca" or name == "corck" or name == "corcv" then
+		elseif name == "cortex_constructionaircraft" or name == "corck" or name == "corcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -463,7 +463,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armlwall"
-		elseif name == "coraca" or name == "corack" or name == "coracv" then
+		elseif name == "cortex_advancedconstructionaircraft" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
@@ -491,7 +491,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions+3] = "corcarry2"
+			uDef.buildoptions[numBuildoptions+3] = "cortex_oasis2"
 		end
 	end
 
@@ -772,7 +772,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "cortex_dragonold") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 				if not modOptions.experimentalnoaircollisions then
 					uDef.collide = false
 				else
@@ -915,7 +915,7 @@ if modOptions.emprework == true then
 			uDef.weapondefs.emp.paralyzetime = 5
 		end
 
-		if name == "corbw" then
+		if name == "cortex_shuriken" then
 			uDef.weapondefs.bladewing_lyzer.damage.default = 400
 			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5
 		end
@@ -948,7 +948,7 @@ if modOptions.emprework == true then
 			uDef.customparams.paralyzemultiplier = 1.1
 		end
 
-		if name == "corcat" then
+		if name == "cortex_catapult" then
 			uDef.customparams.paralyzemultiplier = 1.05
 		end
 
@@ -1083,7 +1083,7 @@ if modOptions.air_rework == true then
 		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 120
 	end
-	if name == "corawac" then
+	if name == "cortex_condor" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.017
@@ -1116,7 +1116,7 @@ if modOptions.air_rework == true then
 		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 220
 	end
-	if name == "corvamp" then
+	if name == "cortex_nighthawk" then
 		uDef.metalcost = 200
 		uDef.energycost = 5500
 		uDef.buildtime = uDef.buildtime * 1.15
@@ -1144,7 +1144,7 @@ if modOptions.air_rework == true then
 			vtol = 340,
 		}
 	end
-	if name == "corveng" then
+	if name == "cortex_valiant" then
 		uDef.metalcost = 125
 		uDef.energycost = 3700
 		uDef.buildtime = 4350
@@ -1220,7 +1220,7 @@ if modOptions.air_rework == true then
 			vtol = 1000,
 		}
 	end
-	if name == "armada_roughneck" or name == "armada_banshee" or name == "armada_abductor" or name == "armada_stork" or name == "corvalk" or name == "corseah"  or name == "corape" then
+	if name == "armada_roughneck" or name == "armada_banshee" or name == "armada_abductor" or name == "armada_stork" or name == "cortex_hercules" or name == "cortex_skyhook"  or name == "cortex_wasp" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1231,20 +1231,20 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.med_emg.burstrate = 0.08
 		uDef.weapondefs.med_emg.reloadtime = 1.15
 	end
-	if name == "corcrw" or name == "corcrwh" then
+	if name == "cortex_dragonold" or name == "cortex_dragon" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		--uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 80
 	end
-	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "corca" or name == "corcsa" or name == "armada_constructionseaplane" or name == "coraca" then
+	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "cortex_constructionaircraft" or name == "corcsa" or name == "armada_constructionseaplane" or name == "cortex_advancedconstructionaircraft" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
 		uDef.workertime = (uDef.workertime * 7/6) - (uDef.workertime * 7/6 - 5)%5
 		uDef.metalcost = uDef.metalcost * 7/6 - (uDef.metalcost * 7/6)%1
 	end
-	if name == "corbw" then
+	if name == "cortex_shuriken" then
 		uDef.health = 105
 		uDef.speed = 210
 		uDef.cruisealtitude = 80
@@ -1302,10 +1302,10 @@ if modOptions.air_rework == true then
 			default = 500,
 		}
 	end
-	if name == "corape" then
+	if name == "cortex_wasp" then
 		uDef.weapondefs.vtol_rocket.turnrate = 15000
 	end
-	if name == "cortitan" or name == "corshad" or name == "armada_stormbringer" or name == "armada_liche" or name == "armada_stiletto" or name == "armada_cormorant" then
+	if name == "cortex_angler" or name == "cortex_whirlwind" or name == "armada_stormbringer" or name == "armada_liche" or name == "armada_stiletto" or name == "armada_cormorant" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.65
 		uDef.maxacc = uDef.maxacc * 1.3
@@ -1315,7 +1315,7 @@ if modOptions.air_rework == true then
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 120
 	end
-	if name == "corhurc" then
+	if name == "cortex_hailstorm" then
 		uDef.metalcost = uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3 - (uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3)%1
 		uDef.speed = uDef.speed * 0.55
 		uDef.maxbank = 0.5
@@ -1636,7 +1636,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armada_cormorant" then
 		uDef.health = 1750
 	end
-	if name == "cortitan" then
+	if name == "cortex_angler" then
 		uDef.health = 1800
 	end
 	if name == "armada_shredder" then
@@ -1680,7 +1680,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 6300
 		uDef.buildtime = 9800
 	end
-	if name == "corveng" then
+	if name == "cortex_valiant" then
 		uDef.metalcost = 77
 		uDef.energycost = 3000
 		uDef.buildtime = 3600
@@ -1690,7 +1690,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 4850
 		uDef.buildtime = 5400
 	end
-	if name == "corvamp" then
+	if name == "cortex_nighthawk" then
 		uDef.metalcost = 150
 		uDef.energycost = 5250
 		uDef.buildtime = 9250

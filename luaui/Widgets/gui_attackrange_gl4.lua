@@ -85,7 +85,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.armada_umbrella.id] = true,
 	[UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.cormabm.id] = true,
-	[UnitDefNames.corcarry.id] = true,
+	[UnitDefNames.cortex_oasis.id] = true,
 }
 
 local vtoldamagetag = Game.armorTypes['vtol']
