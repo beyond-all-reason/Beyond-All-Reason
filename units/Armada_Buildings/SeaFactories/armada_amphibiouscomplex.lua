@@ -31,9 +31,9 @@ return {
 		workertime = 150,
 		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
 		buildoptions = {
-			[1] = "armbeaver",
-			[2] = "armpincer",
-			[3] = "armcroc",
+			[1] = "armada_beaver",
+			[2] = "armada_pincer",
+			[3] = "armada_turtle",
 			[4] = "armada_crossbow",
 			[5] = "armada_archangel",
 			[6] = "armada_decoycommander",

@@ -30,7 +30,7 @@ local scenariodata = {
     defaultdifficulty = "Bots", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{name = "Bots", playerhandicap = "corak armada_pawn 650 10 2040" , enemyhandicap = 0},
-		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
+		{name = "Tanks", playerhandicap = "armada_bull armada_bull 650 10 2040" , enemyhandicap = 0},
 		{name = "Aircraft", playerhandicap = "corvamp armada_highwind 650 10 2040" , enemyhandicap = 0},
 		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
     },

@@ -143,7 +143,7 @@ local starterLandUnitsList = {
             "armada_pawn",
             "corak",
             --vehicles
-            "armflash",
+            "armada_blitz",
             "corgator",
         },
         quantity = 10,
@@ -151,7 +151,7 @@ local starterLandUnitsList = {
     [2] = {
         table = {
             "armada_tick",
-            "armfav",
+            "armada_rover",
             "corfav" ,
         },
         quantity = 5,
@@ -172,7 +172,7 @@ local starterLandUnitsList = {
     },
     [4] = {
         table = {
-            "armmlv",
+            "armada_groundhog",
             "cormlv",
         },
         quantity = 2,
@@ -183,7 +183,7 @@ local starterLandUnitsList = {
             -- "corcrash",
             -- "armada_sweeper",
             -- "corah",
-            "armsam",
+            "armada_whistler",
             "cormist",
         },
         quantity = 4,
@@ -212,12 +212,12 @@ local landUnitsList = {
                 "legbal",
 
                 -- Vehicles
-                "armflash",
-                "armstump",
-                "armart",
-                "armsam",
-                "armpincer",
-                "armjanus",
+                "armada_blitz",
+                "armada_stout",
+                "armada_shellshocker",
+                "armada_whistler",
+                "armada_pincer",
+                "armada_janus",
                 "corgator",
                 "cormist",
                 "corwolv",
@@ -248,8 +248,8 @@ local landUnitsList = {
         -- [2] = {
         --     table = {
         --         "armada_constructionbot",
-        --         "armcv",
-        --         "armbeaver",
+        --         "armada_constructionvehicle",
+        --         "armada_beaver",
         --         "armada_constructionhovercraft",
         --         "corck",
         --         "corcv",
@@ -288,13 +288,13 @@ local landUnitsList = {
                 "cormando",
 
                 -- Vehicles
-                "armgremlin",
+                "armada_gremlin",
                 "armada_mauser",
-                "armlatnk",
-                --"armyork",
-                "armcroc",
-                "armmerl",
-                "armbull",
+                "armada_jaguar",
+                --"armada_shredder",
+                "armada_turtle",
+                "armada_ambassador",
+                "armada_bull",
 				--"corforge",
                 "cormart",
                 --"corsent",
@@ -321,8 +321,8 @@ local landUnitsList = {
         --     table = {
         --         "armada_advancedconstructionbot",
         --         "armada_decoycommander",
-        --         "armacv",
-        --         --"armconsul",
+        --         "armada_advancedconstructionvehicle",
+        --         --"armada_consul",
         --         "corack",
         --         "cortex_decoycommander",
         --         "coracv",
@@ -339,12 +339,12 @@ local landUnitsList = {
                 "corgol",
                 "corsumo",
                 "armada_fatboy",
-                "armmanni",
+                "armada_starlight",
                 "cortrem",
                 "corhrk",
 
                 -- Bots
-                "armmar",
+                "armada_marauder",
                 "armada_vanguard",
                 "armada_razorback",
                 "corshiva",
@@ -375,8 +375,8 @@ local landUnitsList = {
         --     table = {
         --         "armada_advancedconstructionbot",
         --         "armada_decoycommander",
-        --         "armacv",
-        --         --"armconsul",
+        --         "armada_advancedconstructionvehicle",
+        --         --"armada_consul",
         --         "corack",
         --         "cortex_decoycommander",
         --         "coracv",
@@ -416,8 +416,8 @@ local landUnitsList = {
         --     table = {
         --         "armada_advancedconstructionbot",
         --         "armada_decoycommander",
-        --         "armacv",
-        --         --"armconsul",
+        --         "armada_advancedconstructionvehicle",
+        --         --"armada_consul",
         --         "corack",
         --         "cortex_decoycommander",
         --         "coracv",
@@ -460,7 +460,7 @@ local seaUnitsList = {
                 "armada_dolphin",
                 "armada_ellysaw",
                 "armada_eel",
-                "armpincer",
+                "armada_pincer",
                 "corpt",
                 "coresupp",
                 "corpship",
@@ -488,7 +488,7 @@ local seaUnitsList = {
         },
         -- [2] = {
         --     table = {
-        --         "armbeaver",
+        --         "armada_beaver",
         --         "armada_constructionhovercraft",
         --         "armada_constructionship",
         --         "cormuskrat",
@@ -508,7 +508,7 @@ local seaUnitsList = {
                 "armada_dragonslayer",
                 "armada_paladin",
                 "armada_longbow",
-                "armcroc",
+                "armada_turtle",
                 "corroy",
                 "cormls",
                 "corshark",

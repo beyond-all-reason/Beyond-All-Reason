@@ -53,9 +53,9 @@ The difficulty modifier will change the amount of resources you and the enemy re
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
         armada_constructionbot = 0,
-		armcv = 0,
-		armmlv = 0,
-		armbeaver = 0,
+		armada_constructionvehicle = 0,
+		armada_groundhog = 0,
+		armada_beaver = 0,
 		armada_botlab = 1,
 		armada_vehicleplant = 1,
 		armada_aircraftplant = 0,
@@ -504,7 +504,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'armada_radartower_dead', x = 4257, y = 1066, z = 1710, rot = 0 , scale = 1.0, resurrectas = "armada_radartower"},
 			{name = 'armada_pitbull_dead', x = 3744, y = 994, z = 1784, rot = 0 , scale = 1.0, resurrectas = "armada_pitbull"},
 			{name = 'corgeo_dead', x = 2767, y = 1156, z = 3027, rot = 0 , scale = 1.0, resurrectas = "corgeo"},
-			{name = 'armmlv_dead', x = 426, y = 1079, z = 2926, rot = 0 , scale = 1.0, resurrectas = "armmlv"},
+			{name = 'armada_groundhog_dead', x = 426, y = 1079, z = 2926, rot = 0 , scale = 1.0, resurrectas = "armada_groundhog"},
 			{name = 'armada_pitbull_dead', x = 4015, y = 1013, z = 1560, rot = 0 , scale = 1.0, resurrectas = "armada_pitbull"},
 		}
     },

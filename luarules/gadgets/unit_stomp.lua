@@ -17,7 +17,7 @@ end
 -- Exhaustive list of all units that will take damages from krog's footsteps (must be completed)
 local isStompedUnit = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'armfav') then       -- using string.find to _scav units are included aswell
+	if string.find(ud.name, 'armada_rover') then       -- using string.find to _scav units are included aswell
 		isStompedUnit[udid] = true
 	end
 	if string.find(ud.name, 'corfav') then

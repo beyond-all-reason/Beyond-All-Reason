@@ -76,7 +76,7 @@
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [20, 40],
-		"unit":      ["armcv", "armbeaver", "armmlv", "armfav", "armflash", "armpincer", "armstump", "armart", "armjanus", "armsam"],
+		"unit":      ["armada_constructionvehicle", "armada_beaver", "armada_groundhog", "armada_rover", "armada_blitz", "armada_pincer", "armada_stout", "armada_shellshocker", "armada_janus", "armada_whistler"],
 		"land": {
 			"tier0": [ 0.16,    0.00,        0.00,     0.00,     0.40,       0.00,        0.00,       0.20,     0.00,       0.10],
 			"tier1": [ 0.12,    0.00,        0.00,     0.10,     0.25,       0.00,        0.30,       0.20,     0.00,       0.20],
@@ -99,7 +99,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [40],
-		"unit":      ["armacv", "armlatnk", "armbull", "armmanni", "armada_mauser", "armmerl", "armyork", "armseer", "armgremlin"],
+		"unit":      ["armada_advancedconstructionvehicle", "armada_jaguar", "armada_bull", "armada_starlight", "armada_mauser", "armada_ambassador", "armada_shredder", "armada_prophet", "armada_gremlin"],
 		"land": {
 			"tier0": [ 0.55,     0.22,       0.16,      0.00,       0.00,      0.03,      0.00,      0.03,      0.01],
 			"tier1": [ 0.30,     0.10,       0.31,      0.18,       0.06,      0.03,      0.00,      0.01,      0.01]
@@ -116,7 +116,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
-		"unit":      ["armmar", "armada_razorback", "armada_vanguard", "armada_titan"],
+		"unit":      ["armada_marauder", "armada_razorback", "armada_vanguard", "armada_titan"],
 		"land": {
 			"tier0": [ 0.25,     0.50,     0.20,      0.05],
 			"tier1": [ 0.00,     0.25,     0.25,      0.50]
@@ -216,7 +216,7 @@
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["armbeaver", "armpincer", "armcroc", "armada_crossbow", "armada_archangel", "armada_decoycommander"],
+		"unit":      ["armada_beaver", "armada_pincer", "armada_turtle", "armada_crossbow", "armada_archangel", "armada_decoycommander"],
 		"land": {
 			"tier0": [ 0.17,        0.17,        0.17,      0.17,      0.16,     0.16],
 			"tier1": [ 0.01,        0.01,        0.95,      0.01,      0.01,     0.01]
@@ -260,7 +260,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
-		"unit":      ["armmar", "armcroc", "armada_titan"],
+		"unit":      ["armada_marauder", "armada_turtle", "armada_titan"],
 		"land": {
 			"tier0": [ 0.25,     0.70,      0.05],
 			"tier1": [ 0.00,     0.50,      0.50]

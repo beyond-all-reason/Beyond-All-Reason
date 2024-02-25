@@ -73,8 +73,8 @@ return {
 			"armada_constructionseaplane",
 			"armada_constructionship",
 			--"armada_advancedconstructionsub",
-			"armcv",
-			--"armacv",
+			"armada_constructionvehicle",
+			--"armada_advancedconstructionvehicle",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -82,7 +82,7 @@ local unitlist = {
 }
 
 local ptlCons = {
-	['armbeaver'] = true,
+	['armada_beaver'] = true,
 	['cormuskrat'] = true,
 }
 

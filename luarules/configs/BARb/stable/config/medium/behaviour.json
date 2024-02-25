@@ -456,7 +456,7 @@
 	},
 
 	// T3 bot - armada_experimentalgantry
-	"armmar": {
+	"armada_marauder": {
 		"role": ["raider", "heavy"]
 	},
 	"armada_razorback": {
@@ -475,81 +475,81 @@
 
 
 	// vehicles - armada_vehicleplant
-	"armcv": {
+	"armada_constructionvehicle": {
 		"role": ["builder"],
 		"limit": 20,
 		"build_speed": 7.0
 	},
-	"armbeaver": {
+	"armada_beaver": {
 		"role": ["builder"],
 		"limit": 10,
 		"build_speed": 8.0
 	},
-	// "armmlv": {
+	// "armada_groundhog": {
 	// 	"role": ["support"]
 	// },
-	"armfav": {
+	"armada_rover": {
 		"role": ["scout"]
 	},
-	"armflash": {
+	"armada_blitz": {
 		"role": ["raider"],
 		"attribute": ["scout"]
 	},
-	"armpincer": {
+	"armada_pincer": {
 		"role": ["assault"],
 		"limit": 30
 	},
-	"armstump": {
+	"armada_stout": {
 		"role": ["assault"]
 	},
-	"armart": {
+	"armada_shellshocker": {
 		"role": ["artillery"]
 	},
-	"armjanus": {
+	"armada_janus": {
 		"role": ["skirmish"]
 	},
-	"armsam": {
+	"armada_whistler": {
 		"role": ["anti_air"],
 		"attribute": ["skirmish"]
 	},
 
 	// adv vehicles - armada_advancedvehicleplant
-	"armacv": {
+	"armada_advancedconstructionvehicle": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
 		"limit": 10,
 		"build_speed": 10.0
 	},
-	"armconsul": {
+	"armada_consul": {
 		"role": ["builder"],
 		"limit": 2,
 		"build_speed": 10.0
 	},
-	"armlatnk": {
+	"armada_jaguar": {
 		"role": ["raider"]
 	},
-	"armbull": {
+	"armada_bull": {
 		"role": ["assault"]
 	},
-	"armmanni": {
+	"armada_starlight": {
 		"role": ["anti_heavy"],
 		"attribute": ["artillery"]
 	},
 	"armada_mauser": {
 		"role": ["artillery"]
 	},
-	"armmerl": {
+	"armada_ambassador": {
 		"role": ["artillery"]
 	},
-	"armyork": {
+	"armada_shredder": {
 		"role": ["anti_air"]
 	},
-	"armseer": {
+	"armada_prophet": {
 		"role": ["assault"],
 		"attribute": ["support"],
 		"limit": 1
 	},
-	"armgremlin": {
+	"armada_gremlin": {
 		"role": ["assault"]
 	},
 

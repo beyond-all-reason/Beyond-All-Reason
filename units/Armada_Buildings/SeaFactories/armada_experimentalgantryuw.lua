@@ -33,8 +33,8 @@ return {
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooocccccccccccccccccccccccccccccccccccc",
 		buildoptions = {
 			[1] = "armada_titan",
-			[2] = "armmar",
-			[3] = "armcroc",
+			[2] = "armada_marauder",
+			[3] = "armada_turtle",
 			[4] = "armada_lunkhead",
 		},
 		customparams = {

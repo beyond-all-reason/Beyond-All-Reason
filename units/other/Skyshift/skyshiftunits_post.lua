@@ -737,7 +737,7 @@ local function skyshiftUnitTweaks(name, uDef)
 ---------------------------------------------
 
 
-	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armstump" or name == "armfav" or name == "armart" or name == "armflash" or name == "armpincer" or name == "armjanus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "corstorm" or name == "corthud" or name == "corak" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "corllt" or name == "corhlt" or name == "corhllt" or name == "cormaw" or name == "corpun" or name == "corpship" or name == "corroy" or name == "coresupp" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "corfhlt" then
+	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armada_stout" or name == "armada_rover" or name == "armada_shellshocker" or name == "armada_blitz" or name == "armada_pincer" or name == "armada_janus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "corstorm" or name == "corthud" or name == "corak" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "corllt" or name == "corhlt" or name == "corhllt" or name == "cormaw" or name == "corpun" or name == "corpship" or name == "corroy" or name == "coresupp" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "corfhlt" then
 		for weapons, weaponDef in pairs(uDef.weapondefs) do
         -- Assuming weaponDef is a table that directly contains the damage table
 			if weaponDef.damage and weaponDef.damage.default then
@@ -747,7 +747,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		end
 	end
 	
-	if name == "armsam" then
+	if name == "armada_whistler" then
 		uDef.energycost = 1350
 		uDef.buildtime = 2000
 		uDef.nochasecategory = "NOTAIR"

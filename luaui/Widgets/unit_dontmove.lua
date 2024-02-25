@@ -24,8 +24,8 @@ local unitNames = {
   "corcrash",
   "coraak",
 
-  "armsam",
-  "armyork",
+  "armada_whistler",
+  "armada_shredder",
   "cormist",
   "corsent",
 
@@ -37,12 +37,12 @@ local unitNames = {
   "corarch",
 
   --arty
-  "armart",
+  "armada_shellshocker",
   "armada_mace",
   "corwolv",
 
   "armada_mauser",
-  "armmerl",
+  "armada_ambassador",
   "cormart",
   "corvroc",
   "cortrem",
@@ -68,30 +68,30 @@ local unitNames = {
   "armada_vanguard",
 
   --skirmishers/fire support
-  "armjanus",
+  "armada_janus",
   "armada_rocketeer",
   "corstorm",
 
   "corban",
-  "armmanni",
+  "armada_starlight",
   "cormort",
 
   --scouts
   "armada_tick",
-  "armfav",
+  "armada_rover",
   "corfav",
   "armada_ghost",
-  "armgremlin",
+  "armada_gremlin",
 
   "armada_skater",
   "corpt",
 
   --shields/jammers/radars
   "armada_radarjammerbot",
-  "armjam",
+  "armada_umbra",
   "corspec",
 
-  "armseer",
+  "armada_prophet",
   "armada_compass",
   "corvrad",
   "corvoyr",

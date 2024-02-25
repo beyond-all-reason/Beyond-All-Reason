@@ -88,7 +88,7 @@
 
 		"income_tier": [ 20, 27, 35, 60, 110],
 
-		"unit":      ["armcv", "armbeaver", "armmlv", "armfav", "armflash", "armpincer", "armstump", "armart", "armjanus", "armsam"],
+		"unit":      ["armada_constructionvehicle", "armada_beaver", "armada_groundhog", "armada_rover", "armada_blitz", "armada_pincer", "armada_stout", "armada_shellshocker", "armada_janus", "armada_whistler"],
 
 		"land": {
 			"tier0": [ 0.30,    0.00,        0.00,     0.30,     0.70,       0.00,        0.00,       0.00,     0.00,       0.00],
@@ -125,7 +125,7 @@
 
 		"income_tier": [40, 60, 100],
 
-		"unit":      ["armacv", "armconsul", "armgremlin", "armlatnk", "armbull", "armmanni", "armada_mauser", "armmerl", "armyork", "armseer", "armjam", "armcroc"],
+		"unit":      ["armada_advancedconstructionvehicle", "armada_consul", "armada_gremlin", "armada_jaguar", "armada_bull", "armada_starlight", "armada_mauser", "armada_ambassador", "armada_shredder", "armada_prophet", "armada_umbra", "armada_turtle"],
 
 		"land": {
 			"tier0": [ 0.40,   	 0.00,			0.00,		0.20,       0.20,      0.00,       0.00,      0.00,      0.00,      0.05,		0.00,		0.00],
@@ -156,7 +156,7 @@
 
 		"income_tier": [100, 200],
 
-		"unit":      ["armmar", "armada_razorback", "armada_vanguard", "armada_titan", "armada_lunkhead", "armada_thor"],
+		"unit":      ["armada_marauder", "armada_razorback", "armada_vanguard", "armada_titan", "armada_lunkhead", "armada_thor"],
 
 		"land": {
 			"tier0": [ 0.05,     0.40,     0.45,      0.00,     0.00,        0.10],
@@ -322,7 +322,7 @@
 	
 			"income_tier": [20, 45],
 	
-			"unit":      ["armbeaver", "armpincer", "armcroc", "armada_amphibiousbot", "armada_archangel"],
+			"unit":      ["armada_beaver", "armada_pincer", "armada_turtle", "armada_amphibiousbot", "armada_archangel"],
 	
 			"land": {
 				"tier0": [ 0.10,    	0.40,     	0.00,         0.20,     0.01],

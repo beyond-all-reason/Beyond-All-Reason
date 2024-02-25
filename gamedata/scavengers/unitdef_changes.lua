@@ -163,9 +163,9 @@ customDefs.corscavdtl = {
 -- 	"corcs",
 -- 	"armada_advancedconstructionsub",
 -- 	"coracsub",
--- 	"armcv",
+-- 	"armada_constructionvehicle",
 -- 	"corcv",
--- 	"armacv",
+-- 	"armada_advancedconstructionvehicle",
 -- 	"coracv",
 -- }
 
@@ -674,8 +674,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armcv.buildoptions
--- customDefs.armcv = {
+-- numBuildoptions = #UnitDefs.armada_constructionvehicle.buildoptions
+-- customDefs.armada_constructionvehicle = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -739,8 +739,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armacv.buildoptions
--- customDefs.armacv = {
+-- numBuildoptions = #UnitDefs.armada_advancedconstructionvehicle.buildoptions
+-- customDefs.armada_advancedconstructionvehicle = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armminivulc",
@@ -1128,7 +1128,7 @@ customDefs.corscavdtl = {
 
 -- -- Shorter ranged long range rockets
 
--- customDefs.armmerl = {
+-- customDefs.armada_ambassador = {
 -- 	weapondefs = {
 -- 		armtruck_rocket = {
 -- 			areaofeffect = 200,

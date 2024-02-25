@@ -32,7 +32,7 @@ return {
 		sightdistance = 400,
 		trackoffset = 3,
 		trackstrength = 6,
-		tracktype = "armstump_tracks",
+		tracktype = "armada_stout_tracks",
 		trackwidth = 38,
 		turninplace = true,
 		turninplaceanglelimit = 90,

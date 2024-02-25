@@ -75,7 +75,7 @@ if gameShortName == "BYAR" then
 		"cortron",
 
 		-- minelayers
-		"armmlv",
+		"armada_groundhog",
 		"cormlv",
 
 		-- depth charge launchers

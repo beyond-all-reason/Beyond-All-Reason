@@ -90,8 +90,8 @@ if gadgetHandler:IsSyncedCode() then
 	local fighterteststartgameframe = 0
 	local fightertesttotalunitsspawned = 0
 
-	local team1unitDefName = "armbull"
-	local team2unitDefName = "armbull"
+	local team1unitDefName = "armada_bull"
+	local team2unitDefName = "armada_bull"
 
 
 
@@ -846,7 +846,7 @@ else	-- UNSYNCED
 
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
-		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
+		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armada_blitz removes all units, their wrecks and heaps too
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count

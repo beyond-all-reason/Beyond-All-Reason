@@ -35,9 +35,9 @@ local labGrids = {
 	},
 	-- T1 vehicle
 	armada_vehicleplant = {
-		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armada_constructionvehicle", "armada_groundhog", "armada_blitz", "armada_rover",        -- T1 con, minelayer, flash, scout
+		"armada_stout", "armada_janus", "armada_shellshocker", "",          -- stumpy, janus, arty
+		"armada_beaver", "armada_pincer", "armada_whistler", "",        -- amphib con, amphib tank, missile truck
 	},
 
 	corvp = {
@@ -52,9 +52,9 @@ local labGrids = {
 	},
 	-- T2 vehicle
 	armada_advancedvehicleplant = {
-		"armacv", "armconsul", "armbull", "armada_mauser",           -- T2 con, consul, bulldog, luger
-		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
-		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
+		"armada_advancedconstructionvehicle", "armada_consul", "armada_bull", "armada_mauser",           -- T2 con, consul, bulldog, luger
+		"armada_prophet", "armada_umbra", "armada_starlight", "armst",              -- radar, jammer, penetrator, gremlin
+		"armada_jaguar", "armada_turtle", "armada_shredder", "armada_ambassador",           -- panther, triton, AA, merl
 	},
 
 	coravp = {
@@ -133,8 +133,8 @@ local labGrids = {
 	},
 	-- amphibious labs
 	armada_amphibiouscomplex = {
-		"armbeaver", "armada_decoycommander", "armpincer", "",
-		"armcroc", "", "", "",
+		"armada_beaver", "armada_decoycommander", "armada_pincer", "",
+		"armada_turtle", "", "", "",
 		"", "armada_crossbow", "armada_archangel",
 	},
 
@@ -169,7 +169,7 @@ local labGrids = {
 
 	-- T3 labs
 	armada_experimentalgantry = {
-		"armmar", "armada_razorback", "armada_vanguard", "armada_thor",
+		"armada_marauder", "armada_razorback", "armada_vanguard", "armada_thor",
 		"armada_titan", "armada_lunkhead"
 	},
 
@@ -525,7 +525,7 @@ local unitGrids = {
 	},
 
 	-- T1 vehicle con
-	armcv = {
+	armada_constructionvehicle = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
 			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", },               -- T1 converter, geo, twilight, (tidal)
@@ -800,7 +800,7 @@ local unitGrids = {
 	},
 
 	-- Amphibious vehicle cons
-	armbeaver = {
+	armada_beaver = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
 			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)
@@ -917,7 +917,7 @@ local unitGrids = {
 	},
 
 	--T2 vehicle cons
-	armacv = {
+	armada_advancedconstructionvehicle = {
 		{
 			{ "armada_advancedmetalextractor", "armada_fusionreactor", "armada_advancedfusionreactor", "armada_prude", },             -- moho, fusion, afus, safe geo
 			{ "armada_advancedenergyconverter", "armada_advancedgeothermalpowerplant", "armada_cloakablefusionreactor", "armada_shockwave" },                     -- T2 converter, T2 geo, cloaked fusion
@@ -1102,7 +1102,7 @@ local unitGrids = {
 	},
 
 	--minelayers
-	armmlv = {
+	armada_groundhog = {
 		{
 			{ }, --
 			{ },            --
@@ -1244,7 +1244,7 @@ local unitGrids = {
 	},
 
 	--consul
-	armconsul = {
+	armada_consul = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", },                                -- mex, solar
 			{ },                                                      --
@@ -1261,7 +1261,7 @@ local unitGrids = {
 			{ "armada_mediummine" },                                           -- med. mine
 		},
 		{
-			{ "armcv", "armada_vehicleplant" },                             	 	  -- T1 veh con, vehicle lab
+			{ "armada_constructionvehicle", "armada_vehicleplant" },                             	 	  -- T1 veh con, vehicle lab
 			{ "armada_constructionturret" },                                		  -- nano
 			{ "armada_constructionship" },                                              -- sea con
 		}

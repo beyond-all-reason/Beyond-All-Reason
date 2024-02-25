@@ -34,7 +34,7 @@ return {
 		buildoptions = {
 			[1] = "armada_titan",
 			[2] = "armada_razorback",
-			[3] = "armmar",
+			[3] = "armada_marauder",
 			[4] = "armada_vanguard",
 			[5] = "armada_lunkhead",
 			[6] = "armada_thor",

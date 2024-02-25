@@ -32,7 +32,7 @@ return {
 		sightdistance = 650,
 		trackoffset = -7,
 		trackstrength = 5,
-		tracktype = "armsam_tracks",
+		tracktype = "armada_whistler_tracks",
 		trackwidth = 28,
 		turninplace = true,
 		turninplaceanglelimit = 90,

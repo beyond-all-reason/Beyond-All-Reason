@@ -4,7 +4,7 @@
 --for organizational purposes all unit deffs must be added to thge movedeff name.
 -- formatted as such
 --
-	-- armfav/corfav                   <-- add unitdeffname here for the below movedeff type
+	-- armada_rover/corfav                   <-- add unitdeffname here for the below movedeff type
 	--TANK1 = {
 	--	crushstrength = 10,
 	--	footprintx = 2,
@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
+	-- corgarp armada_beaver armada_marauder corparrow armprow corseal corsala cormuskrat armada_turtle armada_pincer corintr legassistdrone_land corassistdrone armassistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -290,7 +290,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
+	-- cormlv armmflash corgator legmrv armada_groundhog leghades leghelops armada_rover corfav armada_consul armada_jaguar cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -304,8 +304,8 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
-	--armcv armart coracv corlevlr leggat legbar armseer armada_mauser armyork corforge cormabm legvcarry corvrad cormart
+	-- armada_umbra corraid armada_janus armada_whistler armada_stout corwolv legcv corsent coreter corcv  cormist legrail legacv armada_advancedconstructionvehicle armada_gremlin
+	--armada_constructionvehicle armada_shellshocker coracv corlevlr leggat legbar armada_prophet armada_mauser armada_shredder corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
 		footprintx = 3,
@@ -336,7 +336,7 @@ local moveDatas = {
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
 
-	--corprinter corvac corvacct correap corftiger armbull legsco corvoc armmerl
+	--corprinter corvac corvacct correap corftiger armada_bull legsco corvoc armada_ambassador
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl legkeres
+	-- corgol leginf corban cortrem armada_starlight armada_ambassador legkeres
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -477,7 +477,7 @@ local moveDatas = {
 		}
 	},
 	-- see if this one can be merged elsewhere
-	-- corshiva armmar
+	-- corshiva armada_marauder
 	HABOT4 = {
 		crushstrength = 252,
 		depthmod = 0,

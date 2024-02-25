@@ -26,10 +26,10 @@ function ArmyHST:Init()
 		armada_constructionaircraft = true,
 		corcsa = true, --plat
 		armada_constructionseaplane = true, --plat
-		armcv = true,
+		armada_constructionvehicle = true,
 		coracv = true,
 		coraca = true,
-		armacv = true,
+		armada_advancedconstructionvehicle = true,
 		armada_advancedconstructionbot = true,
 		corack = true,
 		corcv = true,
@@ -45,7 +45,7 @@ function ArmyHST:Init()
 	self.engineers = {
 		armada_voyager = true,
 		armada_butler = true,
-		armconsul = true,
+		armada_consul = true,
 		corfast = true,
 		cormls = true,
 
@@ -65,13 +65,13 @@ function ArmyHST:Init()
 
 		}
 	self.amptechs = {
-		armbeaver = true,
+		armada_beaver = true,
 		cormuskrat = true,
 
 
 		} --amphibious builders
 	self.miners = {
-		armmlv = true,
+		armada_groundhog = true,
 		cormlv = true,
 		}
 
@@ -79,7 +79,7 @@ function ArmyHST:Init()
 		armada_bermuda = true,
 		coreter = true,
 		armada_radarjammerbot = true,
-		armjam = true,
+		armada_umbra = true,
 		corsjam = true,
 		corspec = true,
 
@@ -90,7 +90,7 @@ function ArmyHST:Init()
 		armada_blink = true,--is a scout but is better used as radar cause no weapon
 		corvrad = true,
 		armada_compass = true,
-		armseer = true,
+		armada_prophet = true,
 		corvoyr = true,
 		corawac = true,
 		armada_oracle = true,
@@ -117,7 +117,7 @@ function ArmyHST:Init()
 		}
 
 	self.scouts = {
-		armfav = true,
+		armada_rover = true,
 		corfav = true,
 		armada_tick = true,
 		armada_sprinter = true,
@@ -128,11 +128,11 @@ function ArmyHST:Init()
 
 		}
 	self.raiders = {
-		armflash = true,
+		armada_blitz = true,
 		corgator = true,
 		corak = true,
 		armada_pawn = true,
-		armlatnk = true,
+		armada_jaguar = true,
 		corseal = true,
 		corpyro = true,
 		armada_welder = true,
@@ -149,7 +149,7 @@ function ArmyHST:Init()
 	self.artillerys = {
 		armada_rocketeer = true,
 		corstorm = true,
-		armart = true,
+		armada_shellshocker = true,
 		corwolv = true,
 		armada_hound = true,
 		cormort = true,
@@ -165,7 +165,7 @@ function ArmyHST:Init()
 
 		}
 	self.rocketers = {
-		armmerl = true,
+		armada_ambassador = true,
 		corvroc = true, -- T2C
 -- 		corban = true,T2C
 		corhrk = true,
@@ -178,11 +178,11 @@ function ArmyHST:Init()
 	self.battles = {
 		armada_mace = true,
 		corthud = true,
-		armstump = true,
+		armada_stout = true,
 		corraid = true,
 		armada_gunslinger = true,
 		corcan = true,
-		armbull = true,
+		armada_bull = true,
 		correap = true,
 		armada_crocodile = true,--ha
 		corsnap = true,--hc
@@ -203,12 +203,12 @@ function ArmyHST:Init()
 		}
 	self.breaks = {
 		armada_centurion = true,
-		armjanus = true,
+		armada_janus = true,
 		corlevlr = true,
 		armada_fatboy = true,
 		corsumo = true,
 		corgol = true,
-		armmanni = true,
+		armada_starlight = true,
 		armada_lunkhead = true,--hover
 		corsok = true,--hover
 		armada_corsair = true,
@@ -223,13 +223,13 @@ function ArmyHST:Init()
 
 		}
 	self.amphibious = {
-		armpincer = true,
+		armada_pincer = true,
 		corparrow = true,
-		armcroc = true,
+		armada_turtle = true,
 		armada_amphibiousbot = true,
 		corgarp = true,
 		coramph = true,
-		armmar = true,
+		armada_marauder = true,
 		corshiva = true,
 
 		}
@@ -296,10 +296,10 @@ function ArmyHST:Init()
 		armada_sweeper = true,
 		corah = true,
 		armada_dragonslayer = true,
-		armsam = true,
+		armada_whistler = true,
 		corsent = true,
 		armada_archangel = true,
-		armyork = true,
+		armada_shredder = true,
 		cormist = true,
 		corcrash = true,
 		armada_crossbow = true,
@@ -324,7 +324,7 @@ function ArmyHST:Init()
 
 	self.cloakables = {
 		armada_sharpshooter = true,
-		armgremlin = true,
+		armada_gremlin = true,
 		}
 
 	-------IMMOBILE--------
@@ -796,7 +796,7 @@ ArmyHST.groundFacList = {
 	corgant = 1,
 	armada_experimentalgantry = 1,
 	corfast = 1,
-	armconsul = 1,
+	armada_consul = 1,
 	armada_butler = 1,
 	}
 
@@ -887,9 +887,9 @@ ArmyHST.mobUnitNames = {
 
 -- tests move orders of these units to determine mobility there
 ArmyHST.mobUnitExampleName = {
-	veh = "armcv",
+	veh = "armada_constructionvehicle",
 	bot = "armada_constructionbot",
-	amp = "armbeaver",
+	amp = "armada_beaver",
 	hov = "armada_constructionhovercraft",
 	shp = "armada_constructionship",
 	sub = "armada_advancedconstructionsub"

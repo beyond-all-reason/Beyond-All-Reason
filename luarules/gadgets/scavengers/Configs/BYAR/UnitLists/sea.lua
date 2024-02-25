@@ -10,7 +10,7 @@ return {
 		"armada_grimreaper_scav",
 		"armada_ellysaw_scav",
 		"armada_eel_scav",
-		"armpincer_scav",
+		"armada_pincer_scav",
 		"corpt_scav",
 		"coresupp_scav",
 		"correcl_scav",
@@ -29,7 +29,7 @@ return {
 		"corsnap_scav",
 
 		-- Constructors
-		"armbeaver_scav",
+		"armada_beaver_scav",
 		"armada_constructionhovercraft_scav",
 		"armada_constructionship_scav",
 		"cormuskrat_scav",
@@ -47,7 +47,7 @@ return {
 		"armada_dragonslayer_scav",
 		"armada_paladin_scav",
 		"armada_longbow_scav",
-		"armcroc_scav",
+		"armada_turtle_scav",
 		"corroy_scav",
 		"cormls_scav",
 		"corshark_scav",

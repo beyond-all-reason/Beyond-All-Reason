@@ -379,16 +379,16 @@ local backupOne = {
     {name = 'corfast', x = 4758, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4951, py = 34, pz = 4889}},
     }},
-    {name = 'armconsul', x = 4868, y = 34, z = 5112, rot = 32767, teamID = 0, queue = {
+    {name = 'armada_consul', x = 4868, y = 34, z = 5112, rot = 32767, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 4951, py = 34, pz = 4889}},
     }},
-    {name = 'armmar', x = 1382, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_marauder', x = 1382, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1439, py = 34, pz = 326}},
     }},
-    {name = 'armmanni', x = 1487, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_starlight', x = 1487, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1548, py = 34, pz = 399}},
     }},
-    {name = 'armbull', x = 1584, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_bull', x = 1584, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1645, py = 34, pz = 404}},
     }},
     {name = 'armada_mauser', x = 1676, y = 34, z = 4, rot = 0, teamID = 0, queue = {
@@ -415,16 +415,16 @@ local backupTwo = {
     {name = 'corvroc', x = 4758, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4951, py = 34, pz = 4889}},
     }},
-    {name = 'armmerl', x = 1382, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_ambassador', x = 1382, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1439, py = 34, pz = 326}},
     }},
-    {name = 'armmerl', x = 1487, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_ambassador', x = 1487, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1548, py = 34, pz = 399}},
     }},
     {name = 'armada_razorback', x = 1584, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1645, py = 34, pz = 404}},
     }},
-    {name = 'armyork', x = 1676, y = 34, z = 4, rot = 0, teamID = 0, queue = {
+    {name = 'armada_shredder', x = 1676, y = 34, z = 4, rot = 0, teamID = 0, queue = {
     {cmdID = CMD.MOVE, position = {px = 1725, py = 34, pz = 403}},
     }},
     {name = 'armada_razorback', x = 1770, y = 34, z = 4, rot = 0, teamID = 0, queue = {

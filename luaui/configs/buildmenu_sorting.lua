@@ -5,10 +5,10 @@ local unitOrderTable = {
 	['corck']          = 001110,
 	['legck']          = 001115,
 
-	['armcv']          = 001120, --VEH
+	['armada_constructionvehicle']          = 001120, --VEH
 	['corcv']          = 001130,
 	['legcv']          = 001135,
-	['armbeaver']      = 001140,
+	['armada_beaver']      = 001140,
 	['cormuskrat']     = 001150,
 
 	['armada_constructionaircraft']          = 001160, --AIR
@@ -31,7 +31,7 @@ local unitOrderTable = {
 	['armada_lazarus']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
 
-	['armmlv']         = 002200, --MINELAYERS
+	['armada_groundhog']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
 
 	['armada_grimreaper']        = 002300, --REZ SUBS
@@ -41,7 +41,7 @@ local unitOrderTable = {
 	['corack']         = 002450,
 	['legack']         = 002455,
 
-	['armacv']         = 002500,
+	['armada_advancedconstructionvehicle']         = 002500,
 	['coracv']         = 002550,
 	['legacv']         = 002555,
 
@@ -56,7 +56,7 @@ local unitOrderTable = {
 	['armada_butler']        = 003100, --BOTS
 	['corfast']        = 003200,
 
-	['armconsul']      = 003300, --VEH
+	['armada_consul']      = 003300, --VEH
 	['corprinter']     = 003325, --VEH
 	['corvac']		   = 003326, --VEH
 	['corvacct']       = 003327, --VEH
@@ -87,9 +87,9 @@ local unitOrderTable = {
 	['armada_radarjammerbot']        = 004120,
 	['corspec']        = 004130,
 
-	['armseer']        = 004200,
+	['armada_prophet']        = 004200,
 	['corvrad']        = 004210,
-	['armjam']         = 004220,
+	['armada_umbra']         = 004220,
 	['coreter']        = 004230,
 
 	['armada_bermuda']        = 004250,
@@ -138,7 +138,7 @@ local unitOrderTable = {
 	-- SCOUTS LAND ARMED
 	['armada_tick']        = 004400, --BOTS
 
-	['armfav']         = 004410, --VEH
+	['armada_rover']         = 004410, --VEH
 	['corfav']         = 004420,
 
 	['armada_seeker']          = 004500, --HOVER
@@ -153,14 +153,14 @@ local unitOrderTable = {
 	['corak']          = 005010,
 	['leggob']		   = 005015,
 	['leglob']         = 005016,
-	['armflash']       = 005020,
+	['armada_blitz']       = 005020,
 	['corgator']       = 005030,
 	['leghades']	   = 005031,
 	['legcen']		   = 005032,
 
-	['armjanus']       = 005200, --MAIN BATTLE
+	['armada_janus']       = 005200, --MAIN BATTLE
 	['corlevlr']       = 005210,
-	['armstump']       = 005220,
+	['armada_stout']       = 005220,
 	['corraid']        = 005230,
 	['armada_crocodile']        = 005240,
 	['corsnap']        = 005250,
@@ -173,7 +173,7 @@ local unitOrderTable = {
 
 	['armada_mace']         = 005400, --ARTILLERY
 	['corthud']        = 005410,
-	['armart']         = 005420,
+	['armada_shellshocker']         = 005420,
 	['corwolv']        = 005430,
 	['armada_possum']          = 005420,
 	['cormh']          = 005430,
@@ -182,36 +182,36 @@ local unitOrderTable = {
 	['armada_centurion']         = 005600, --STRONK
 	['legkark']        = 005610,
 
-	['armsam']         = 005800, --LAND + AA
+	['armada_whistler']         = 005800, --LAND + AA
 	['cormist']        = 005810,
 	['legrail']		   = 005811,
 
-	['armpincer']      = 005900, --LAND + AMPHIBIOUS
+	['armada_pincer']      = 005900, --LAND + AMPHIBIOUS
 	['corgarp']        = 005910,
 
 	-- T2 LAND ATTACK
-	['armgremlin']     = 006005,
+	['armada_gremlin']     = 006005,
 
 	['armada_sprinter']        = 006100, --FAST
 	['legstr']         = 006105,
 	['corpyro']        = 006110,
-	['armlatnk']       = 006120,
+	['armada_jaguar']       = 006120,
 	['cortorch']       = 006125,
 	['legmrv']         = 006130,
 
 	['armada_welder']        = 006300, --MAIN BATTLE
 	['armada_gunslinger']         = 006310,
-	['armbull']        = 006320,
+	['armada_bull']        = 006320,
 	['corftiger']      = 006325,
 	['correap']        = 006330,
 	['legsco']         = 006335,
-	['armmanni']       = 006340,
+	['armada_starlight']       = 006340,
 	['corgatreap']     = 006350,
 
 	['corhrk']         = 006400, --ROCKETS
-	['armmerl']        = 006410,
+	['armada_ambassador']        = 006410,
 	['corvroc']        = 006420,
-	['armmerl']        = 006430,
+	['armada_ambassador']        = 006430,
 	['corban']         = 006440,
 
 	['armada_hound']        = 006500, --ARTILLERY
@@ -242,7 +242,7 @@ local unitOrderTable = {
 
 	['armada_amphibiousbot']        = 006900, --LAND + AMPHIBIOUS
 	['coramph']        = 006910,
-	['armcroc']        = 006920,
+	['armada_turtle']        = 006920,
 	['corseal']        = 006930,
 	['corsala']        = 006935,
 	['corparrow']      = 006940,
@@ -252,7 +252,7 @@ local unitOrderTable = {
    ['corhal']         = 006950,
 
 	--T3 LAND ATTACK
-	['armmar']         = 007000,
+	['armada_marauder']         = 007000,
 	['corcat']         = 007010,
 	['armada_razorback']         = 007020,
 	['corkarg']        = 007030,
@@ -297,7 +297,7 @@ local unitOrderTable = {
 	['armada_archangel']         = 008020,
 	['coraak']         = 008030,
 
-	['armyork']        = 008200,
+	['armada_shredder']        = 008200,
 	['corsent']        = 008210,
 
 	['armada_sweeper']          = 008300,
@@ -307,7 +307,7 @@ local unitOrderTable = {
 	-- ['armada_archangel']         = 008500,
 	-- ['coraak']         = 008510,
 
-	-- ['armyork']        = 008520,
+	-- ['armada_shredder']        = 008520,
 	-- ['corsent']        = 008530,
 
 	-- ['armada_highwind']        = 008540,

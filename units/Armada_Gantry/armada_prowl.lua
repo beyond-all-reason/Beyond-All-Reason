@@ -4,7 +4,7 @@ return {
 		maxdec = 0.8211,
 		energycost = 21000,
 		metalcost = 970,
-		buildpic = "ARMMAR.DDS",
+		buildpic = "armada_marauder.DDS",
 		buildtime = 26100,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -42,7 +42,7 @@ return {
 			techlevel = 3,
 			wpn1turretx = 90,
 			wpn1turrety = 150,
-			i18nfromunit = 'armmar'
+			i18nfromunit = 'armada_marauder'
 		},
 		featuredefs = {
 			dead = {
@@ -60,7 +60,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 592,
-				object = "Units/armmar_dead.s3o",
+				object = "Units/armada_marauder_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

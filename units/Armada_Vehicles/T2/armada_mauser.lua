@@ -32,7 +32,7 @@ return {
 		sightdistance = 286,
 		trackoffset = -8,
 		trackstrength = 8,
-		tracktype = "armbull_tracks",
+		tracktype = "armada_bull_tracks",
 		trackwidth = 40,
 		turninplace = true,
 		turninplaceanglelimit = 90,

@@ -789,7 +789,7 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T3 BOTS
 
-	armmar = {
+	armada_marauder = {
 		BaseSoundSelectType = "arm-bot-huge-sel",
 		BaseSoundMovementType = "arm-bot-huge-ok",
 		BaseSoundWeaponType = "plasma-large-alt",
@@ -817,52 +817,52 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T1 VEHICLES
 
-	armfav = {
+	armada_rover = {
 		BaseSoundSelectType = "arm-veh-tiny-sel",
 		BaseSoundMovementType = "arm-veh-tiny-ok",
 		BaseSoundWeaponType = "laser-tiny",
 	},
-	armflash = {
+	armada_blitz = {
 		BaseSoundSelectType = "arm-veh-small-sel",
 		BaseSoundMovementType = "arm-veh-small-ok",
 		BaseSoundWeaponType = "fastemg-small",
 	},
-	armart = {
+	armada_shellshocker = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "arty-small",
 	},
-	armsam = {
+	armada_whistler = {
 		BaseSoundSelectType = "arm-veh-small-sel",
 		BaseSoundMovementType = "arm-veh-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	armpincer = {
+	armada_pincer = {
 		BaseSoundSelectType = "arm-tnk-small-amph-sel",
 		BaseSoundMovementType = "arm-tnk-small-amph-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	armstump = {
+	armada_stout = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	armjanus = {
+	armada_janus = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "rocket-medium",
 	},
-	armcv = {
+	armada_constructionvehicle = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armbeaver = {
+	armada_beaver = {
 		BaseSoundSelectType = "arm-tnk-small-amph-sel",
 		BaseSoundMovementType = "arm-tnk-small-amph-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armmlv = {
+	armada_groundhog = {
 		BaseSoundSelectType = "arm-veh-tiny-sel",
 		BaseSoundMovementType = "arm-veh-tiny-ok",
 		BaseSoundWeaponType = "mine-small",
@@ -870,22 +870,22 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA T2 VEHICLES
 
-	armjam = {
+	armada_umbra = {
 		BaseSoundSelectType = "arm-veh-small-sel",
 		BaseSoundMovementType = "arm-veh-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	armseer = {
+	armada_prophet = {
 		BaseSoundSelectType = "arm-veh-small-sel",
 		BaseSoundMovementType = "arm-veh-small-ok",
 		BaseSoundWeaponType = "radar",
 	},
-	armgremlin = {
+	armada_gremlin = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "cloak",
 	},
-	armconsul = {
+	armada_consul = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "con-assist",
@@ -895,37 +895,37 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-medium",
 	},
-	armlatnk = {
+	armada_jaguar = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "lightning",
 	},
-	armyork = {
+	armada_shredder = {
 		BaseSoundSelectType = "arm-tnk-medium-sel",
 		BaseSoundMovementType = "arm-tnk-medium-ok",
 		BaseSoundWeaponType = "flak",
 	},
-	armcroc = {
+	armada_turtle = {
 		BaseSoundSelectType = "arm-tnk-medium-sel",
 		BaseSoundMovementType = "arm-tnk-medium-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	armacv = {
+	armada_advancedconstructionvehicle = {
 		BaseSoundSelectType = "arm-tnk-small-sel",
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
-	armmerl = {
+	armada_ambassador = {
 		BaseSoundSelectType = "arm-tnk-medium-sel",
 		BaseSoundMovementType = "arm-tnk-medium-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	armbull = {
+	armada_bull = {
 		BaseSoundSelectType = "arm-tnk-large-sel",
 		BaseSoundMovementType = "arm-tnk-large-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	armmanni = {
+	armada_starlight = {
 		BaseSoundSelectType = "arm-tnk-large-sel",
 		BaseSoundMovementType = "arm-tnk-largealt-ok",
 		BaseSoundWeaponType = "laser-large",

@@ -6,7 +6,7 @@ return {
 		"corsh_scav",
 
 		-- Vehicles
-		"armfav_scav",
+		"armada_rover_scav",
 		"corfav_scav",
 	},
 
@@ -29,12 +29,12 @@ return {
 		"legbal_scav",
 
 		-- Vehicles
-		"armflash_scav",
-		"armstump_scav",
-		"armart_scav",
-		"armsam_scav",
-		"armpincer_scav",
-		"armjanus_scav",
+		"armada_blitz_scav",
+		"armada_stout_scav",
+		"armada_shellshocker_scav",
+		"armada_whistler_scav",
+		"armada_pincer_scav",
+		"armada_janus_scav",
 		"armzapper_scav",
 		"corgator_scav",
 		"cormist_scav",
@@ -56,8 +56,8 @@ return {
 
 		-- Constructors
 		"armada_constructionbot_scav",
-		"armcv_scav",
-		"armbeaver_scav",
+		"armada_constructionvehicle_scav",
+		"armada_beaver_scav",
 		"armada_constructionhovercraft_scav",
 		"corck_scav",
 		"corcv_scav",
@@ -96,13 +96,13 @@ return {
 		"legsrail_scav",
 
 		-- Vehicles
-		"armgremlin_scav",
+		"armada_gremlin_scav",
 		"armada_mauser_scav",
-		"armlatnk_scav",
-		"armyork_scav",
-		"armcroc_scav",
-		"armmerl_scav",
-		"armbull_scav",
+		"armada_jaguar_scav",
+		"armada_shredder_scav",
+		"armada_turtle_scav",
+		"armada_ambassador_scav",
+		"armada_bull_scav",
 		"corforge_scav",
 		"corftiger_scav",
 		"cormart_scav",
@@ -122,8 +122,8 @@ return {
 		-- Constructors
 		"armada_advancedconstructionbot_scav",
 		"armada_decoycommander_scav",
-		"armacv_scav",
-		"armconsul_scav",
+		"armada_advancedconstructionvehicle_scav",
+		"armada_consul_scav",
 		"corack_scav",
 		"cortex_decoycommander_scav",
 		"coracv_scav",
@@ -136,13 +136,13 @@ return {
 		"corgol_scav",
 		"corsumo_scav",
 		"armada_fatboy_scav",
-		"armmanni_scav",
+		"armada_starlight_scav",
 		"cortrem_scav",
 		"corhrk_scav",
 		"leginc_scav",
 
 		-- Bots
-		"armmar_scav",
+		"armada_marauder_scav",
 		"armada_vanguard_scav",
 		"armada_razorback_scav",
 		"corshiva_scav",

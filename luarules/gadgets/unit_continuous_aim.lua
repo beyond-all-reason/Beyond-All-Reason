@@ -17,13 +17,13 @@ end
 
 local convertedUnits = {
 	-- value is reaimtime in frames, engine default is 15
-	--[UnitDefNames.armart.id] = true,
-	[UnitDefNames.armfav.id] = 3,
-	--[UnitDefNames.armflash.id] = true,
-	--[UnitDefNames.armjanus.id] = true,
-	--[UnitDefNames.armpincer.id] = true,
-	--[UnitDefNames.armsam.id] = true,
-	--[UnitDefNames.armstump.id] = true,
+	--[UnitDefNames.armada_shellshocker.id] = true,
+	[UnitDefNames.armada_rover.id] = 3,
+	--[UnitDefNames.armada_blitz.id] = true,
+	--[UnitDefNames.armada_janus.id] = true,
+	--[UnitDefNames.armada_pincer.id] = true,
+	--[UnitDefNames.armada_whistler.id] = true,
+	--[UnitDefNames.armada_stout.id] = true,
 	[UnitDefNames.armada_beamer.id] = 3,
 	[UnitDefNames.armada_pawn.id] = 2,
 	[UnitDefNames.armada_pawnt4.id] = 2,
@@ -62,7 +62,7 @@ local convertedUnits = {
 	--[UnitDefNames.corsumo.id] = true,
 	[UnitDefNames.cortermite.id] = 2,
 	[UnitDefNames.armada_razorback.id] = 2,
-	[UnitDefNames.armmar.id] = 3,
+	[UnitDefNames.armada_marauder.id] = 3,
 	[UnitDefNames.armada_titan.id] = 1,
 	[UnitDefNames.corkorg.id] = 1,
 	--[UnitDefNames.corkarg.id] = true,
@@ -70,7 +70,7 @@ local convertedUnits = {
 	[UnitDefNames.armada_vanguard.id] = 3,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
-	[UnitDefNames.armflash.id] = 6,
+	[UnitDefNames.armada_blitz.id] = 6,
 	[UnitDefNames.corgator.id] = 6,
 	[UnitDefNames.armada_dolphin.id] = 6,
 	[UnitDefNames.coresupp.id] = 6,
@@ -128,7 +128,7 @@ local convertedUnits = {
 local spamUnitsTeams = { --{unitDefID = {teamID = totalcreated,...}}
 	[UnitDefNames.armada_pawn.id] = {},
 	[UnitDefNames.armada_tick.id]  = {},
-	[UnitDefNames.armfav.id]  = {},
+	[UnitDefNames.armada_rover.id]  = {},
 	[UnitDefNames.corak.id]  = {},
 	[UnitDefNames.corfav.id]  = {},
 }

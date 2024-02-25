@@ -1,10 +1,10 @@
 return {
-	armmar = {
+	armada_marauder = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
 		energycost = 21000,
 		metalcost = 970,
-		buildpic = "ARMMAR.DDS",
+		buildpic = "armada_marauder.DDS",
 		buildtime = 26100,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 32,
 		movementclass = "HABOT4", --"ATANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMMAR.s3o",
-		script = "Units/armmar.cob",
+		objectname = "Units/armada_marauder.s3o",
+		script = "Units/armada_marauder.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
@@ -60,7 +60,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 592,
-				object = "Units/armmar_dead.s3o",
+				object = "Units/armada_marauder_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

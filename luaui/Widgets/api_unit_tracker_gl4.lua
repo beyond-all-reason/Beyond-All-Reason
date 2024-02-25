@@ -421,15 +421,15 @@ end
 -- solution: in the api_widget_events gadget, we need to forward this too!
 
 --[[
-[t=00:04:53.877051][f=0004348] g:UnitTaken, 24007, armacv, 2, 1
+[t=00:04:53.877051][f=0004348] g:UnitTaken, 24007, armada_advancedconstructionvehicle, 2, 1
 [t=00:04:53.877107][f=0004348] g:UnitEnteredLos, 24007, 1
 [t=00:04:53.877163][f=0004348] w:UnitEnteredLos, 24007, 1
 [t=00:04:53.877198][f=0004348] g:UnitEnteredRadar, 24007, 1
 [t=00:04:53.877213][f=0004348] w:UnitEnteredRadar, 24007, 1
 [t=00:04:53.877228][f=0004348] g:UnitEnteredLos, 24007, 1
 [t=00:04:53.877240][f=0004348] g:UnitEnteredRadar, 24007, 1
-[t=00:04:53.877277][f=0004348] g:UnitGiven, 24007, armacv, 1, 2
-[t=00:04:53.877451][f=0004348] g:UnitIdle, 24007, armacv, 1
+[t=00:04:53.877277][f=0004348] g:UnitGiven, 24007, armada_advancedconstructionvehicle, 1, 2
+[t=00:04:53.877451][f=0004348] g:UnitIdle, 24007, armada_advancedconstructionvehicle, 1
 [t=00:04:53.909507][f=0004349] g:UnitLeftLos, 14177, 1
 [t=00:04:53.909535][f=0004349] g:UnitLeftRadar, 14177, 1
 [t=00:04:53.909549][f=0004349] g:UnitLeftLos, 24007, 1

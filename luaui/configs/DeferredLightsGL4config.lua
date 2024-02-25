@@ -755,7 +755,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armseer'] = {
+	['armada_prophet'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'eye',
@@ -1809,7 +1809,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['armjam'] = {
+	['armada_umbra'] = {
 		cloaklightred = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7262,7 +7262,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armart'] = {
+	['armada_shellshocker'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -7273,7 +7273,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armflash'] = {
+	['armada_blitz'] = {
 		back1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7349,7 +7349,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfav'] = {
+	['armada_rover'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7360,7 +7360,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armjanus'] = {
+	['armada_janus'] = {
 		turret = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -7389,7 +7389,7 @@ local unitLights = {
 						lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armpincer'] = {
+	['armada_pincer'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7503,7 +7503,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armsam'] = {
+	['armada_whistler'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7523,7 +7523,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armstump'] = {
+	['armada_stout'] = {
 		-- searchlight = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'base',
@@ -7704,7 +7704,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armmlv'] = {
+	['armada_groundhog'] = {
 		backpack = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -8662,7 +8662,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armbull'] = {
+	['armada_bull'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -8682,7 +8682,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armcroc'] = {
+	['armada_turtle'] = {
 		front = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -8693,7 +8693,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armconsul'] = {
+	['armada_consul'] = {
 		front = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -12833,7 +12833,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armyork'] = {
+	['armada_shredder'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -12853,7 +12853,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armmanni'] = {
+	['armada_starlight'] = {
 		antenna = {
 			lightType = 'point',
 			pieceName = 'sleeve',
@@ -12882,7 +12882,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armlatnk'] = {
+	['armada_jaguar'] = {
 		weaponglow = {
 			lightType = 'point',
 			pieceName = 'emit_spark',
@@ -17133,7 +17133,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['armmar'] = {
+	['armada_marauder'] = {
 		foot1 = {
 			lightType = 'point',
 			pieceName = 'rfoot',
@@ -18018,7 +18018,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armbeaver'] = {
+	['armada_beaver'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -18398,7 +18398,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armcv'] = {
+	['armada_constructionvehicle'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -18445,7 +18445,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armacv'] = {
+	['armada_advancedconstructionvehicle'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -19040,7 +19040,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armcv'] = {
+		['armada_constructionvehicle'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',
@@ -19052,7 +19052,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armbeaver'] = {
+		['armada_beaver'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',
@@ -19149,7 +19149,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armmlv'] = {
+		['armada_groundhog'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',
@@ -19171,7 +19171,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armacv'] = {
+		['armada_advancedconstructionvehicle'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',
@@ -19194,7 +19194,7 @@ local unitEventLights = {
 			},
 		},
 		--[[
-		['armstump'] = { -- BLINK BLINK
+		['armada_stout'] = { -- BLINK BLINK
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'justatthebase',

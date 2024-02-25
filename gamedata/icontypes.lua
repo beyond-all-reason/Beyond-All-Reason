@@ -23,7 +23,7 @@ local icontypes = {
 		bitmap = "icons/sub_t2_worker.png",
 		size = 1.74299991
 	},
-	armacv = {
+	armada_advancedconstructionvehicle = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
@@ -95,7 +95,7 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	armart = {
+	armada_shellshocker = {
 		bitmap = "icons/vehicle_arty.png",
 		size = 1.10000002
 	},
@@ -155,7 +155,7 @@ local icontypes = {
 		bitmap = "icons/def_beamer.png",
 		size = 1.10699987
 	},
-	armbeaver = {
+	armada_beaver = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
 	},
@@ -175,7 +175,7 @@ local icontypes = {
 		bitmap = "icons/armada_basilica.png",
 		size = 2.625
 	},
-	armbull = {
+	armada_bull = {
 		bitmap = "icons/vehicle_t2_tank.png",
 		size = 1.46999991
 	},
@@ -223,12 +223,12 @@ local icontypes = {
 		bitmap = "icons/armada_commander.png",
 		size = 1.83749986
 	},
-	armconsul = {
-		bitmap = "icons/armconsul_1.35.png",
+	armada_consul = {
+		bitmap = "icons/armada_consul_1.35.png",
 		size = 1.41750002
 	},
-	armcroc = {
-		bitmap = "icons/armcroc.png",
+	armada_turtle = {
+		bitmap = "icons/armada_turtle.png",
 		size = 1.67999995
 	},
 	armada_paladin = {
@@ -243,7 +243,7 @@ local icontypes = {
 		bitmap = "icons/air_worker_sea.png",
 		size = 1.25999999
 	},
-	armcv = {
+	armada_constructionvehicle = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
@@ -323,7 +323,7 @@ local icontypes = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
-	armfav = {
+	armada_rover = {
 		bitmap = "icons/vehicle.png",
 		size = 0.57749999
 	},
@@ -371,7 +371,7 @@ local icontypes = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
 	},
-	armflash = {
+	armada_blitz = {
 		bitmap = "icons/vehicle_t1_raid.png",
 		size = 0.89249998
 	},
@@ -423,7 +423,7 @@ local icontypes = {
 		bitmap = "icons/defence_0_0.8.png",
 		size = 0.83999997
 	},
-	armgremlin = {
+	armada_gremlin = {
 		bitmap = "icons/armst_1.25.png",
 		size = 1.2889998
 	},
@@ -447,7 +447,7 @@ local icontypes = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
-	armjam = {
+	armada_umbra = {
 		bitmap = "icons/vehicle_t2_jammer.png",
 		size = 1.36499989
 	},
@@ -455,8 +455,8 @@ local icontypes = {
 		bitmap = "icons/jammer.png",
 		size = 0.94499993
 	},
-	armjanus = {
-		bitmap = "icons/armjanus_1.2.png",
+	armada_janus = {
+		bitmap = "icons/armada_janus_1.2.png",
 		size = 1.25999999
 	},
 	armada_crossbow = {
@@ -483,8 +483,8 @@ local icontypes = {
 		bitmap = "icons/air_t2_torpbomber.png",
 		size = 1.67999995
 	},
-	armlatnk = {
-		bitmap = "icons/armlatnk_1.3.png",
+	armada_jaguar = {
+		bitmap = "icons/armada_jaguar_1.3.png",
 		size = 1.36499989
 	},
 	armada_liche = {
@@ -519,12 +519,12 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
-	armmanni = {
-		bitmap = "icons/armmanni_1.55.png",
+	armada_starlight = {
+		bitmap = "icons/armada_starlight_1.55.png",
 		size = 1.62749982
 	},
-	armmar = {
-		bitmap = "icons/armmar_t3.png",
+	armada_marauder = {
+		bitmap = "icons/armada_marauder_t3.png",
 		size = 2
 	},
 	armada_compass = {
@@ -547,7 +547,7 @@ local icontypes = {
 		bitmap = "icons/aa_longrange_t2.png",
 		size = 1.88999987
 	},
-	armmerl = {
+	armada_ambassador = {
 		bitmap = "icons/vehicle_t2_vroc.png",
 		size = 1.62749982
 	},
@@ -579,8 +579,8 @@ local icontypes = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
 	},
-	armmlv = {
-		bitmap = "icons/armmlv_1.0.png",
+	armada_groundhog = {
+		bitmap = "icons/armada_groundhog_1.0.png",
 		size = 1.04999995
 	},
 	armada_advancedenergyconverter = {
@@ -619,7 +619,7 @@ local icontypes = {
 		bitmap = "icons/air_los.png",
 		size = 0.78749996
 	},
-	armpincer = {
+	armada_pincer = {
 		bitmap = "icons/amphib_tank.png",
 		size = 1.35000002
 	},
@@ -703,7 +703,7 @@ local icontypes = {
 		bitmap = "icons/air_t1_hover_sea.png",
 		size = 1.25999999
 	},
-	armsam = {
+	armada_whistler = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
@@ -747,7 +747,7 @@ local icontypes = {
 		bitmap = "icons/air_torp_sea.png",
 		size = 1.57499993
 	},
-	armseer = {
+	armada_prophet = {
 		bitmap = "icons/vehicle_t2_radar.png",
 		size = 1.36499989
 	},
@@ -827,7 +827,7 @@ local icontypes = {
 		bitmap = "icons/armada_stiletto_1.66.png",
 		size = 1.74299991
 	},
-	armstump = {
+	armada_stout = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 1.15499997
 	},
@@ -955,7 +955,7 @@ local icontypes = {
 		bitmap = "icons/wind.png",
 		size = 1.64999998
 	},
-	armyork = {
+	armada_shredder = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},

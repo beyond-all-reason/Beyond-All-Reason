@@ -808,7 +808,7 @@
 			"build_speed": 7.0,
             "since": 1500
 		},
-		"armcv": {
+		"armada_constructionvehicle": {
 			"role": ["builder"],
 			"limit": 10,
 			"build_speed": 4.5  //bp 90
@@ -818,7 +818,7 @@
 			"limit": 10,
 			"build_speed": 4.5  //bp 90
 		},
-		"armbeaver": {
+		"armada_beaver": {
 			"role": ["builder"],
 			"attribute": ["solo"],
 			"limit": 6,
@@ -834,7 +834,7 @@
 			"role": ["support"],
 			"limit": 0
 		},
-		"armacv": {
+		"armada_advancedconstructionvehicle": {
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 15,
@@ -846,7 +846,7 @@
 			"limit": 15,
 			"build_speed": 12.5  //bp 250
 		},
-		"armconsul": {
+		"armada_consul": {
 			"role": ["builder"],
 			//"attribute": ["support"],
 			"build_speed": 1.0 ,  //bp 150 																test!!!
@@ -1082,7 +1082,7 @@
 
 		// T3 bot - armada_experimentalgantry
 
-		"armmar": {
+		"armada_marauder": {
 			"role": ["raider", "heavy"],
 			"threat": {"air": 0.5, "water": 0.0, "surf": 0.5}	
 		},
@@ -1121,50 +1121,50 @@
 
 		// vehicles - armada_vehicleplant
 
-		"armmlv": {
+		"armada_groundhog": {
 			"role": ["support"],
 			"limit": 0
 		},
-		"armfav": {
+		"armada_rover": {
 			"role": ["scout"],
 			"limit": 5
 		},
-		"armflash": {
+		"armada_blitz": {
 			"role": ["raider"],
 			"limit": 20,
 			"threat":{"air": 0.0, "water": 0.0,
 				"vs":{"artillery": 2.0, "anti_air": 2.0, "scout":1.5}	
 			}
 		},
-		"armpincer": {
+		"armada_pincer": {
 			"role": ["raider"],
 			"limit": 20,
 			"threat":{"air": 0.0, "water": 0.0,
 				"vs":{"artillery": 2.0, "anti_air": 2.0, "scout":1.0}
 			}
 		},
-		"armstump": {
+		"armada_stout": {
 			"role": ["skirmish"],
 			"limit":30,
 			"threat":{"air": 0.0, "water": 0.0,
 				"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
-		"armart": {
+		"armada_shellshocker": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
 			"limit": 5,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.5, "vs":{"anti_air": 2.0}},
 			"power": 0.5
 		},
-		"armjanus": {
+		"armada_janus": {
 			"role": ["assault"],
 			//"attribute": ["siege"],
 			"threat":{"air": 0.0, "water": 0.0,
 				"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
-		"armsam": {
+		"armada_whistler": {
 			"role": ["anti_air"],
 			"attribute": ["support", "siege"],
 			"threat":{"air": 2.0, "water": 0.0, "surf": 0.5,
@@ -1178,23 +1178,23 @@
 
 		// adv vehicles - armada_advancedvehicleplant
 
-		"armlatnk": {
+		"armada_jaguar": {
 			"role": ["raider"],
 			"threat":{
 				"vs":{"artillery":2.0, "anti_air": 2.0}	
 			}
 		},
-		"armgremlin": {
+		"armada_gremlin": {
 				"role": ["scout"],
 				"limit": 5	
 		},
-		"armbull": {
+		"armada_bull": {
 			"role": ["skirmish"],
 			"threat":{"air":0.0, "water":0.0,
 				"vs":{"artillery":2.0, "anti_air": 2.0, "raider": 1.2}	
 			}
 		},
-		"armmanni": {
+		"armada_starlight": {
 			"role": ["anti_heavy_ass"],
 			"attribute": ["siege"],
 			"threat":{"air":0.0, "water":0.0,
@@ -1206,22 +1206,22 @@
 			"attribute":["siege"],
 			"threat":{"air":0.0, "water":0.0}
 		},
-		"armmerl": {
+		"armada_ambassador": {
 			"role": ["artillery"],
 			"attribute":["siege"],
 			"threat":{"air":0.0, "water":0.0, "surf":0.5,
 				"vs":{"static":3.0}
 			}	
 		},
-		"armyork": {
+		"armada_shredder": {
 			"role": ["anti_air"],
 			"threat":{"air":1.0, "water":0.0, "surf":0.0}
 		},
-		"armseer": {
+		"armada_prophet": {
 			"role": ["support"], //support
 			"limit": 2
 		},
-		"armjam": {
+		"armada_umbra": {
 			"role": ["support"], //support
 			"limit": 2
 		},

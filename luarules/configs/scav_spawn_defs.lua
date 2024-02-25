@@ -171,7 +171,7 @@ local LandUnitsList = {
 			--Armada
 			["armada_tick_scav"] = 1,
 			["armada_pawn_scav"] = 1,
-			["armfav_scav"] = 1,
+			["armada_rover_scav"] = 1,
 			["armada_seeker_scav"] = 1,
 			--Cortex
 			["corak_scav"] = 1,
@@ -182,7 +182,7 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armflash_scav"] = 1,
+			["armada_blitz_scav"] = 1,
 			["armzapper_scav"] = 1,
 			--Cortex
 			["corgator_scav"] = 1,
@@ -191,7 +191,7 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
-			["armlatnk_scav"] = 1,
+			["armada_jaguar_scav"] = 1,
 			["armada_amphibiousbot_scav"] = 1,
 			["armada_sprinter_scav"] = 1,
 			--Cortex
@@ -216,7 +216,7 @@ local LandUnitsList = {
 		[5] = {
 			--Armada
 			["armada_pawnt4_scav"] = 1,
-			["armmar_scav"] = 1,
+			["armada_marauder_scav"] = 1,
 			--Cortex
 			["corakt4_scav"] = 1,
 			--Legion
@@ -235,7 +235,7 @@ local LandUnitsList = {
 		[1] = {
 			--Armada
 			["armada_mace_scav"] = 1,
-			["armpincer_scav"] = 1,
+			["armada_pincer_scav"] = 1,
 			--Cortex
 			["corthud_scav"] = 1,
 			["corgarp_scav"] = 1,
@@ -246,8 +246,8 @@ local LandUnitsList = {
 		[2] = {
 			--Armada
 			["armada_centurion_scav"] = 1,
-			["armstump_scav"] = 1,
-			["armjanus_scav"] = 1,
+			["armada_stout_scav"] = 1,
+			["armada_janus_scav"] = 1,
 			["armada_crocodile_scav"] = 1,
 			--Cortex
 			["corraid_scav"] = 1,
@@ -272,8 +272,8 @@ local LandUnitsList = {
 			["armada_sharpshooter_scav"] = 1,
 			["armada_tumbleweed_scav"] = 1,
 			["armada_recluse_scav"] = 1,
-			["armbull_scav"] = 1,
-			["armcroc_scav"] = 1,
+			["armada_bull_scav"] = 1,
+			["armada_turtle_scav"] = 1,
 			--Cortex
 			["corparrow_scav"] = 1,
 			["corftiger_scav"] = 1,
@@ -332,8 +332,8 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armart_scav"] = 1,
-			["armsam_scav"] = 1,
+			["armada_shellshocker_scav"] = 1,
+			["armada_whistler_scav"] = 1,
 			["armada_possum_scav"] = 1,
 			--Cortex
 			["corwolv_scav"] = 1,
@@ -349,7 +349,7 @@ local LandUnitsList = {
 			["armada_hound_scav"] = 1,
 			["armada_archangel_scav"] = 1,
 			["armada_gunslinger_scav"] = 1,
-			["armyork_scav"] = 1,
+			["armada_shredder_scav"] = 1,
 			["armada_mauser_scav"] = 1,
 			--Cortex
 			["cormart_scav"] = 1,
@@ -364,8 +364,8 @@ local LandUnitsList = {
 		[4] = {
 			--Armada
 			["armada_fatboy_scav"] = 1,
-			["armmanni_scav"] = 1,
-			["armmerl_scav"] = 1,
+			["armada_starlight_scav"] = 1,
+			["armada_ambassador_scav"] = 1,
 			--Cortex
 			["corban_scav"] = 1,
 			["corvroc_scav"] = 1,
@@ -406,7 +406,7 @@ local LandUnitsList = {
 			--Armada
 			["armada_constructionbot_scav"] = 1,
 			["armada_lazarus_scav"] = 20,
-			["armcv_scav"] = 1,
+			["armada_constructionvehicle_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
 			["cornecro_scav"] = 20,
@@ -418,10 +418,10 @@ local LandUnitsList = {
 		[3] = {
 			--Armada
 			["armada_advancedconstructionbot_scav"] = 1,
-			["armacv_scav"] = 1,
+			["armada_advancedconstructionvehicle_scav"] = 1,
 			["armada_butler_scav"] = 1,
 			["armada_decoycommander_scav"] = 1,
-			["armconsul_scav"] = 1,
+			["armada_consul_scav"] = 1,
 			--Cortex
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
@@ -1052,23 +1052,23 @@ end
 ------Tier 1 0-25% (Land and Airland)
 addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armada_lazarus_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
-addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
-addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
-addNewSquad({ type = "basicLand", minAnger = 5, units = { "5 armstump_scav","5 corraid_scav","5 leggat_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Assault
-addNewSquad({ type = "basicLand", minAnger = 10, units = { "2 armjanus_scav","2 corlevlr_scav","2 legrail_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Unique
-addNewSquad({ type = "basicLand", minAnger = 10, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist_scav","2 legbar_scav"}, weight = 4, maxAnger = 25}) --T1 Arty/AA
+addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armada_rover_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armada_blitz_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
+addNewSquad({ type = "basicLand", minAnger = 5, units = { "5 armada_stout_scav","5 corraid_scav","5 leggat_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Assault
+addNewSquad({ type = "basicLand", minAnger = 10, units = { "2 armada_janus_scav","2 corlevlr_scav","2 legrail_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Unique
+addNewSquad({ type = "basicLand", minAnger = 10, units = { "1 armada_shellshocker_scav","2 armada_whistler_scav","1 corwolv_scav","2 cormist_scav","2 legbar_scav"}, weight = 4, maxAnger = 25}) --T1 Arty/AA
 --AirLand
 addNewSquad({ type = "airLand", minAnger = 10, units = { "3 armada_blink_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = 20}) --T1 Air Scouts
 addNewSquad({ type = "airLand", minAnger = 10, units = { "12 corbw_scav",}, weight = 4, maxAnger = 20}) --Bladewings
 addNewSquad({ type = "airLand", minAnger = 15, units = { "20 armada_falcon_scav","20 corveng_scav",}, weight = 4, maxAnger = 25}) --Fighters
 addNewSquad({ type = "airLand", minAnger = 15, units = { "12 armada_stormbringer_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 25}) --Bombers
 ------Tier 2 25-60%
-addNewSquad({ type = "basicLand", minAnger = 25, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = 60}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 25, units = { "10 armada_rover_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = 60}) --Rover and EMP Rover/Whole Tier Length
 --Land
-addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = 55}) --T2 Veh Raid
-addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legsco_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Assault/AA
-addNewSquad({ type = "basicLand", minAnger = 40, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Unique
-addNewSquad({ type = "basicLand", minAnger = 40, units = { "3 armada_mauser_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = 60}) --T2 Arty/AA
+addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armada_jaguar_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = 55}) --T2 Veh Raid
+addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armada_bull_scav","6 correap_scav","1 corgol_scav","5 legsco_scav","2 armada_shredder_scav","2 corsent_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 40, units = { "2 armada_starlight_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Unique
+addNewSquad({ type = "basicLand", minAnger = 40, units = { "3 armada_mauser_scav","1 armada_ambassador_scav","1 armada_shredder_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = 60}) --T2 Arty/AA
 --AirLand
 addNewSquad({ type = "airLand", minAnger = 40, units = { "3 armada_oracle_scav","3 corawac_scav",}, weight = 4, maxAnger = 50}) --T2 Air Scouts
 addNewSquad({ type = "airLand", minAnger = 40, units = { "2 armada_stiletto_scav",}, weight = 4, maxAnger = 50}) --EMP Bombers
@@ -1076,13 +1076,13 @@ addNewSquad({ type = "airLand", minAnger = 50, units = { "20 armada_highwind_sca
 addNewSquad({ type = "airLand", minAnger = 50, units = { "1 armada_hornet_scav","15 armada_roughneck_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 4, maxAnger = 60}) --T2 Gunships
 ------Tier 3 60-80%
 --Dilluters
-addNewSquad({ type = "basicLand", minAnger = 60, units = { "15 armfav_scav","15 corfav_scav",}, weight = 8, maxAnger = 1000}) --Rover Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "15 armada_rover_scav","15 corfav_scav",}, weight = 8, maxAnger = 1000}) --Rover Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = 1000}) --T2 Veh Raid
 --Land
-addNewSquad({ type = "basicLand", minAnger = 60, units = { "12 armmar_scav",}, weight = 3, maxAnger = 1000}) --T3 Raid
-addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = 100}) --T3 Assault/AA
-addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 corshiva_scav","2 armada_razorback_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = 100}) --T3 Assault/AA
-addNewSquad({ type = "basicLand", minAnger = 70, units = { "2 armada_vanguard_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = 1000}) --T3 Arty/AA
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "12 armada_marauder_scav",}, weight = 3, maxAnger = 1000}) --T3 Raid
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armada_shredder_scav","2 corsent_scav",}, weight = 4, maxAnger = 100}) --T3 Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 corshiva_scav","2 armada_razorback_scav","1 legpede_scav","1 armada_shredder_scav","1 corsent_scav",}, weight = 4, maxAnger = 100}) --T3 Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 70, units = { "2 armada_vanguard_scav","2 corcat_scav","1 armada_shredder_scav","1 corsent_scav",}, weight = 4, maxAnger = 1000}) --T3 Arty/AA
 --AirLand
 addNewSquad({ type = "airLand", minAnger = 65, units = { "40 armada_falcon_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armada_hornet_scav","15 armada_roughneck_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 2, maxAnger = 100}) --T2 Gunships

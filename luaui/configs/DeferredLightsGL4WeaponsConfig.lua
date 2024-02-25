@@ -735,12 +735,12 @@ GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  sustain = 4, lifetime = 55,
 										  modelfactor = 0.1, specular = 0.4, scattering = 0.4, lensflare = 6})
 
---armmerl
-projectileDefLights[WeaponDefNames["armmerl_armtruck_rocket"].id] =
+--armada_ambassador
+projectileDefLights[WeaponDefNames["armada_ambassador_armtruck_rocket"].id] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
---armmerl
+--armada_ambassador
 projectileDefLights[WeaponDefNames["corvroc_cortruck_rocket"].id] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})

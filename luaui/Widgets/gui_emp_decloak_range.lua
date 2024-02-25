@@ -74,7 +74,7 @@ for udid, ud in pairs(UnitDefs) do
             WeaponDefs[selfdBlastId]['damageAreaOfEffect']
         }
     end
-    if string.find(ud.name, 'armgremlin') then
+    if string.find(ud.name, 'armada_gremlin') then
         isGremlin[udid] = ud.decloakDistance
     end
 end

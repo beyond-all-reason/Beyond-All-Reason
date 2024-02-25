@@ -34,7 +34,7 @@ return {
 		sightdistance = 600,
 		trackoffset = 6,
 		trackstrength = 5,
-		tracktype = "armacv_tracks",
+		tracktype = "armada_advancedconstructionvehicle_tracks",
 		trackwidth = 60,
 		turninplace = true,
 		turninplaceanglelimit = 90,

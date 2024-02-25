@@ -1387,9 +1387,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armmar'] = {
+	['armada_marauder'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armmar_a.png',
+			texture = footprintsPath..'f_armada_marauder_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians

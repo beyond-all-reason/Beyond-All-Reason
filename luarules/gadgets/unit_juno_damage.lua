@@ -25,11 +25,11 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armada_advancedsonarstation.id] = true,
 		[UnitDefNames.armada_beholder.id] = true,
 		[UnitDefNames.armada_navalradar.id] = true,
-		[UnitDefNames.armjam.id] = true,
+		[UnitDefNames.armada_umbra.id] = true,
 		[UnitDefNames.armada_sneakypete.id] = true,
 		[UnitDefNames.armada_compass.id] = true,
 		[UnitDefNames.armada_radartower.id] = true,
-		[UnitDefNames.armseer.id] = true,
+		[UnitDefNames.armada_prophet.id] = true,
 		[UnitDefNames.armada_bermuda.id] = true,
 		[UnitDefNames.armada_sonarstation.id] = true,
 		[UnitDefNames.armada_veil.id] = true,
@@ -48,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.corvrad.id] = true,
 
 		[UnitDefNames.corfav.id] = true,
-		[UnitDefNames.armfav.id] = true,
+		[UnitDefNames.armada_rover.id] = true,
 		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
@@ -59,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	local todenyUnits = {
 		[UnitDefNames.corfav.id] = true,
-		[UnitDefNames.armfav.id] = true,
+		[UnitDefNames.armada_rover.id] = true,
 		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
 		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,

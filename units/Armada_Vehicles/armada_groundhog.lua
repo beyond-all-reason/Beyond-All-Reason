@@ -1,5 +1,5 @@
 return {
-	armmlv = {
+	armada_groundhog = {
 		maxacc = 0.07135,
 		activatewhenbuilt = true,
 		maxdec = 0.1427,
@@ -7,7 +7,7 @@ return {
 		metalcost = 57,
 		builddistance = 96,
 		builder = true,
-		buildpic = "ARMMLV.DDS",
+		buildpic = "armada_groundhog.DDS",
 		buildtime = 3520,
 		canassist = false,
 		canguard = false,
@@ -34,9 +34,9 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMMLV.s3o",
+		objectname = "Units/armada_groundhog.s3o",
 		radardistancejam = 64,
-		script = "Units/ARMMLV.cob",
+		script = "Units/armada_groundhog.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 201,
@@ -80,7 +80,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 34,
-				object = "Units/armmlv_dead.s3o",
+				object = "Units/armada_groundhog_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
