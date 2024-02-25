@@ -157,11 +157,11 @@ customDefs.corscavdtl = {
 -- 	"corack",
 -- 	"armada_constructionhovercraft",
 -- 	"corch",
--- 	"armcsa",
+-- 	"armada_constructionseaplane",
 -- 	"corcsa",
--- 	"armcs",
+-- 	"armada_constructionship",
 -- 	"corcs",
--- 	"armacsub",
+-- 	"armada_advancedconstructionsub",
 -- 	"coracsub",
 -- 	"armcv",
 -- 	"corcv",
@@ -632,9 +632,9 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_advancedshipyard.buildoptions
 -- customDefs.armada_advancedshipyard = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armptt2",
--- 		[numBuildoptions+2] = "armdecadet3",
--- 		[numBuildoptions+3] = "armpshipt3",
+-- 		[numBuildoptions+1] = "armada_skatert2",
+-- 		[numBuildoptions+2] = "armada_dolphint3",
+-- 		[numBuildoptions+3] = "armada_ellysawt3",
 -- 	},
 -- }
 

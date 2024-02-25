@@ -1,12 +1,12 @@
 local unitName = "Epic Serpent"
 return {
-	armserpt3 = {
+	armada_serpentt3 = {
 		maxacc = 0.02,
 		activatewhenbuilt = true,
 		maxdec = 0.02,
 		energycost = 225000,
 		metalcost = 15000,
-		buildpic = "armserpt3.DDS",
+		buildpic = "armada_serpentt3.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -24,8 +24,8 @@ return {
 		minwaterdepth = 30,
 		movementclass = "EPICSUBMARINE",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/ARMSERPT3.s3o",
-		script = "Units/scavboss/ARMSERPT3.cob",
+		objectname = "Units/scavboss/armada_serpentT3.s3o",
+		script = "Units/scavboss/armada_serpentT3.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 950,
@@ -59,7 +59,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 7500,
-				object = "Units/scavboss/armserpt3_dead.s3o",
+				object = "Units/scavboss/armada_serpentt3_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armserp_weapon = {
+			armada_serpent_weapon = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -153,35 +153,35 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "0 0.2 1",
 				maxangledif = 60,
 				onlytargetcategory = "NOTHOVER",
 			},
 			[2] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "-0.3826 0.2 0.9238",
 				maxangledif = 60,
 				onlytargetcategory = "NOTHOVER",
 			},
 			[3] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "-0.9238 0.2 0.3826",
 				maxangledif = 60,
 				onlytargetcategory = "NOTHOVER",
 			},
 			[4] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "0.3826 0.2 0.9238",
 				maxangledif = 60,
 				onlytargetcategory = "NOTHOVER",
 			},
 			[5] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "0.9238 0.2 0.3826",
 				maxangledif = 60,
 				onlytargetcategory = "NOTHOVER",

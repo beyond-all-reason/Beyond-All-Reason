@@ -1,15 +1,15 @@
 return {
 	T0 = {
-	"armpt_scav",
+	"armada_skater_scav",
 	"corpt_scav",
 	},
 
 	T1 = {
-		"armpt_scav",
-		"armdecade_scav",
-		"armrecl_scav",
-		"armpship_scav",
-		"armsub_scav",
+		"armada_skater_scav",
+		"armada_dolphin_scav",
+		"armada_grimreaper_scav",
+		"armada_ellysaw_scav",
+		"armada_eel_scav",
 		"armpincer_scav",
 		"corpt_scav",
 		"coresupp_scav",
@@ -31,22 +31,22 @@ return {
 		-- Constructors
 		"armbeaver_scav",
 		"armada_constructionhovercraft_scav",
-		"armcs_scav",
+		"armada_constructionship_scav",
 		"cormuskrat_scav",
 		"corcs_scav",
 
 		-- Air
-		"armseap_scav",
+		"armada_puffin_scav",
 		"corseap_scav",
 	},
 
 	T2 = {
-		"armroy_scav",
-		"armmls_scav",
-		"armsubk_scav",
-		"armaas_scav",
-		"armcrus_scav",
-		"armmship_scav",
+		"armada_corsair_scav",
+		"armada_voyager_scav",
+		"armada_barracuda_scav",
+		"armada_dragonslayer_scav",
+		"armada_paladin_scav",
+		"armada_longbow_scav",
 		"armcroc_scav",
 		"corroy_scav",
 		"cormls_scav",
@@ -61,8 +61,8 @@ return {
 		"corhal_scav",
 
 		-- Constructors
-		"armmls_scav",
-		"armacsub_scav",
+		"armada_voyager_scav",
+		"armada_advancedconstructionsub_scav",
 		"cormls_scav",
 		"coracsub_scav",
 
@@ -72,17 +72,17 @@ return {
 	},
 
 	T3 = {
-		"armbats_scav",
+		"armada_dreadnought_scav",
 		"armada_haven2_scav",
-		"armepoch_scav",
-		"armserp_scav",
+		"armada_epoch_scav",
+		"armada_serpent_scav",
 		"corbats_scav",
 		"corcarry2_scav",
 		"corblackhy_scav",
 		"corslrpc_scav",
-		"armdecadet3_scav",
-		"armpshipt3_scav",
-		"armptt2_scav",
+		"armada_dolphint3_scav",
+		"armada_ellysawt3_scav",
+		"armada_skatert2_scav",
 
 		-- Hovercraft
 		"armada_lunkhead_scav",
@@ -90,8 +90,8 @@ return {
 	},
 
 	T4 = {
-		"armserpt3_scav",
-		"armepoch_scav",
+		"armada_serpentt3_scav",
+		"armada_epoch_scav",
 		"corblackhy_scav",
 		"armada_tumbleweedt4_scav",
 		"corkorg_scav",

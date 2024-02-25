@@ -1,12 +1,12 @@
 return {
-	armsfig2 = {
+	armada_cyclone2 = {
 		acceleration = 0.35,
 		airsightdistance = 950,
 		blocking = false,
 		maxdec = 0.1,
 		energycost = 4500,
 		metalcost = 90,
-		buildpic = "ARMSFIG2.DDS",
+		buildpic = "armada_cyclone2.DDS",
 		buildtime = 5500,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		speed = 310.8,
 		maxwaterdepth = 255,
 		nochasecategory = "NOTAIR",
-		objectname = "Units/ARMSFIG2.s3o",
-		script = "Units/ARMSFIG2.cob",
+		objectname = "Units/armada_cyclone2.s3o",
+		script = "Units/armada_cyclone2.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
@@ -82,7 +82,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armsfig_weapon = {
+			armada_cyclone_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -136,7 +136,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR",
-				def = "ARMSFIG_WEAPON",
+				def = "armada_cyclone_WEAPON",
 				onlytargetcategory = "VTOL",
 			},
 		},

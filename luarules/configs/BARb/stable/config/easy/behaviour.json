@@ -637,47 +637,47 @@
 	},
 
 	// ships - armada_shipyard
-	"armcs": {
+	"armada_constructionship": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
 		"limit": 6,
 		"build_speed": 7.0
 	},
-	"armpt": {
+	"armada_skater": {
 		"role": ["scout", "anti_air", "raider"]
 	},
-	"armdecade": {
+	"armada_dolphin": {
 		"role": ["raider", "skirmish"]
 	},
-	"armpship": {
+	"armada_ellysaw": {
 		"role": ["assault", "skirmish"]
 	},
-	"armsub": {
+	"armada_eel": {
 		"role": ["sub"],
 		"attribute": ["anti_sub"]
 	},
-	"armroy": {
+	"armada_corsair": {
 		"role": ["artillery", "assault"],
 		"attribute": ["siege"],
 		"retreat": 0.5
 	},
 
 	// adv shipyard - armada_advancedshipyard
-	"armacsub": {
+	"armada_advancedconstructionsub": {
 		"role": ["builderT2", "sub"],
 		"attribute": ["solo"],
 		"retreat": 0.3,
 		"limit": 10,
 		"build_speed": 10.0
 	},
-	"armsubk": {
+	"armada_barracuda": {
 		"role": ["sub"],
 		"attribute": ["anti_sub"]
 	},
-	"armaas": {
+	"armada_dragonslayer": {
 		"role": ["anti_air"]
 	},
-	"armcrus": {
+	"armada_paladin": {
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
@@ -685,16 +685,16 @@
 		"role": ["support", "heavy"],
 		"retreat": 0.75
 	},
-	"armmship": {
+	"armada_longbow": {
 		"role": ["artillery"],
 		"attribute": ["siege"],
 		"retreat": 0.5
 	},
-	"armbats": {
+	"armada_dreadnought": {
 		"role": ["heavy"],
 		"attribute": ["assault"]
 	},
-	"armepoch": {
+	"armada_epoch": {
 		"role": ["heavy"],
 		"attribute": ["artillery"],
 		"retreat": 0.3

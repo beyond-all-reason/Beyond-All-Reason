@@ -131,7 +131,7 @@ local unitsOfInterestNames = {
 	['corjugg'] = 'JuggernautDetected',
 	['corkorg'] = 'KorgothDetected',
 	['armada_titan'] = 'BanthaDetected',
-	['armepoch'] = 'FlagshipDetected',
+	['armada_epoch'] = 'FlagshipDetected',
 	['corblackhy'] = 'FlagshipDetected',
 	['cormando'] = 'CommandoDetected',
 	['armada_bearer'] = 'TransportDetected',
@@ -141,7 +141,7 @@ local unitsOfInterestNames = {
 	['corvalk'] = 'AirTransportDetected',
 	['armada_abductor'] = 'AirTransportDetected',
 	['corseah'] = 'AirTransportDetected',
-	['armtship'] = 'SeaTransportDetected',
+	['armada_convoy'] = 'SeaTransportDetected',
 	['cortship'] = 'SeaTransportDetected',
 }
 -- convert unitname -> unitDefID

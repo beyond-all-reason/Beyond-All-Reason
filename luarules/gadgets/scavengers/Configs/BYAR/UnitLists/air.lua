@@ -14,17 +14,17 @@ return {
 
 		-- Constructors
 		"armada_constructionaircraft_scav",
-		"armcsa_scav",
+		"armada_constructionseaplane_scav",
 		"corca_scav",
 		"corcsa_scav",
 	},
 
 	T2 = {
-		"armsb_scav",
+		"armada_tsunami_scav",
 		"armada_banshee_scav",
 		"armada_roughneck_scav",
-		"armsaber_scav",
-		"armsfig_scav",
+		"armada_sabre_scav",
+		"armada_cyclone_scav",
 		"corsb_scav",
 		"corsfig_scav",
 		"corcut_scav",
@@ -38,7 +38,7 @@ return {
 
 	T3 = {
 		"armada_highwind_scav",
-		"armsb_scav",
+		"armada_tsunami_scav",
 		"armada_hornet_scav",
 		"armada_stiletto_scav",
 		"armada_liche_scav",

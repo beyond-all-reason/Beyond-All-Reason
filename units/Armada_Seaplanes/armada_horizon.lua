@@ -1,11 +1,11 @@
 return {
-	armsehak = {
+	armada_horizon = {
 		acceleration = 0.2,
 		blocking = false,
 		maxdec = 0.05,
 		energycost = 7000,
 		metalcost = 125,
-		buildpic = "ARMSEHAK.DDS",
+		buildpic = "armada_horizon.DDS",
 		buildtime = 9050,
 		canfly = true,
 		canmove = true,
@@ -28,9 +28,9 @@ return {
 		maxslope = 10,
 		speed = 338.1,
 		maxwaterdepth = 255,
-		objectname = "Units/ARMSEHAK.s3o",
+		objectname = "Units/armada_horizon.s3o",
 		radardistance = 2250,
-		script = "Units/ARMSEHAK.cob",
+		script = "Units/armada_horizon.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1100,

@@ -82,10 +82,10 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1", limit = true  },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2", limit = true  },
 	},
-	["armsfig"] = {
+	["armada_cyclone"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
 	},
-	["armsfig2"] = {
+	["armada_cyclone2"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
 	["corsfig"] = {
@@ -124,7 +124,7 @@ local effectDefs = {
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},
-	--["armsehak"] = {
+	--["armada_horizon"] = {
 	--	{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
 	--},
 
@@ -186,7 +186,7 @@ local effectDefs = {
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, light=1},
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust1", emitVector= {-1,0,0}, light=1},
 	},
-	["armseap"] = {
+	["armada_puffin"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 35, piece = "thrustm", light = 1 },
 	},
 	["corseap"] = {
@@ -302,7 +302,7 @@ local effectDefs = {
 	["legkam"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 24, piece = "thrust", light = 1 },
 	},
-	["armsb"] = {
+	["armada_tsunami"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 36, piece = "thrustc", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrustb", light = 1 },
@@ -339,7 +339,7 @@ local effectDefs = {
 	["coraca"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
 	},
-	["armcsa"] = {
+	["armada_constructionseaplane"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrusta" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
 	},

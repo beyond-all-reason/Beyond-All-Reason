@@ -1,11 +1,11 @@
 return {
-	armmship = {
+	armada_longbow = {
 		maxacc = 0.0287,
 		activatewhenbuilt = true,
 		maxdec = 0.0387,
 		energycost = 10000,
 		metalcost = 2000,
-		buildpic = "ARMMSHIP.DDS",
+		buildpic = "armada_longbow.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,9 +24,9 @@ return {
 		minwaterdepth = 12,
 		movementclass = "BOAT5",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMMSHIP.s3o",
+		objectname = "Units/armada_longbow.s3o",
 		radardistance = 1000,
-		script = "Units/ARMMSHIP.cob",
+		script = "Units/armada_longbow.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 318.5,
@@ -57,7 +57,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1000,
-				object = "Units/armmship_dead.s3o",
+				object = "Units/armada_longbow_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -199,7 +199,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
-					def = "armmship_rocket_split",
+					def = "armada_longbow_rocket_split",
 					model = "airbomb",
 					number = "6",
 					speceffect = "split",

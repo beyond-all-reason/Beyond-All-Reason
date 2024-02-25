@@ -27,7 +27,7 @@ local excluded = {
     [UnitDefNames.cormabm.id] = true,
     [UnitDefNames.corcarry.id] = true,
     [UnitDefNames.armada_haven.id] = true,
-	[UnitDefNames.armantiship.id] = true,
+	[UnitDefNames.armada_t2supportship.id] = true,
 	[UnitDefNames.corantiship.id] = true,
 }
 

@@ -1,5 +1,5 @@
 return {
-	armrecl = {
+	armada_grimreaper = {
 		maxacc = 0.05262,
 		autoheal = 2,
 		maxdec = 0.05262,
@@ -7,7 +7,7 @@ return {
 		metalcost = 210,
 		builddistance = 140,
 		builder = true,
-		buildpic = "ARMRECL.DDS",
+		buildpic = "armada_grimreaper.DDS",
 		buildtime = 6200,
 		canassist = false,
 		canmove = true,
@@ -25,9 +25,9 @@ return {
 		speed = 66.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
-		objectname = "Units/ARMRECL.s3o",
+		objectname = "Units/armada_grimreaper.s3o",
 		reclaimspeed = 100,
-		script = "Units/ARMRECL.cob",
+		script = "Units/armada_grimreaper.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,

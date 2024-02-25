@@ -121,7 +121,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.cormabm.id ] = true,
 	[UnitDefNames.corcarry.id] = true,
-	[UnitDefNames.armantiship.id] = true,
+	[UnitDefNames.armada_t2supportship.id] = true,
 	[UnitDefNames.corantiship.id] = true,
 }
 
@@ -249,7 +249,7 @@ local function initUnitList()
 		['armada_haven'] = { weapons = { 3 } },
 		['cormabm'] = { weapons = { 3 } },
 		['corcarry'] = { weapons = { 3 } },
-		['armantiship'] = { weapons = { 3 } },
+		['armada_t2supportship'] = { weapons = { 3 } },
 		['corantiship'] = { weapons = { 3 } },
 
 		-- SCAVENGERS

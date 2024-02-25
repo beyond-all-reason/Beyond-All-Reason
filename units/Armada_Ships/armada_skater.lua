@@ -1,5 +1,5 @@
 return {
-	armpt = {
+	armada_skater = {
 		maxacc = 0.07011,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.07011,
 		energycost = 1000,
 		metalcost = 150,
-		buildpic = "ARMPT.DDS",
+		buildpic = "armada_skater.DDS",
 		buildtime = 2700,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,10 +26,10 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/ARMPT.s3o",
+		objectname = "Units/armada_skater.s3o",
 		radardistance = 1000,
 		radaremitheight = 15,
-		script = "Units/ARMPT.cob",
+		script = "Units/armada_skater.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 750,
@@ -62,7 +62,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 95,
-				object = "Units/armpt_dead.s3o",
+				object = "Units/armada_skater_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -467,7 +467,7 @@ local SeaUnitsList = {
 	Raid = {
 		[1] = {
 		--Armada
-		["armdecade_scav"] = 1,
+		["armada_dolphin_scav"] = 1,
 		--Cortex
 		["coresupp_scav"] = 1,
 		},
@@ -479,13 +479,13 @@ local SeaUnitsList = {
 		},
 		[3] = {
 		--Armada
-		["armlship_scav"] = 1,
+		["armada_lightningship_scav"] = 1,
 		--Cortex
 		["corfship_scav"] = 1,
 		},
 		[4] = {
 		--Armada
-		["armsubk_scav"] = 1,
+		["armada_barracuda_scav"] = 1,
 		--Cortex
 		["corshark_scav"] = 1,
 		},
@@ -510,35 +510,35 @@ local SeaUnitsList = {
 		},
 		[2] = {
 		--Armada
-		["armpship_scav"] = 1,
-		["armroy_scav"] = 1,
+		["armada_ellysaw_scav"] = 1,
+		["armada_corsair_scav"] = 1,
 		--Cortex
 		["corpship_scav"] = 1,
 		["corroy_scav"] = 1,
 		},
 		[3] = {
 		--Armada
-		["armcrus_scav"] = 1,
+		["armada_paladin_scav"] = 1,
 		--Cortex
 		["corcrus_scav"] = 1,
 		},
 		[4] = {
 		--Armada
-		["armbats_scav"] = 1,
+		["armada_dreadnought_scav"] = 1,
 		--Cortex
 		["corbats_scav"] = 1,
 		},
 		[5] = {
 		--Armada
-		["armpshipt3_scav"] = 1,
-		["armptt2_scav"] = 1,
+		["armada_ellysawt3_scav"] = 1,
+		["armada_skatert2_scav"] = 1,
 		--Cortex
 		["corblackhy_scav"] = 1,
 		},
 		[6] = {
 		--Armada
-		["armepoch_scav"] = 1,
-		["armserpt3_scav"] = 1,
+		["armada_epoch_scav"] = 1,
+		["armada_serpentt3_scav"] = 1,
 		--Cortex
 		["coresuppt3_scav"] = 1,
 		},
@@ -546,22 +546,22 @@ local SeaUnitsList = {
 	Support = {
 		[1] = {
 		--Armada
-		["armpt_scav"] = 1,
+		["armada_skater_scav"] = 1,
 		--Cortex
 		["corpt_scav"] = 1,
 		},
 		[2] = {
 		--Armada
-		["armsub_scav"] = 1,
+		["armada_eel_scav"] = 1,
 		--Cortex
 		["corsub_scav"] = 1,
 		},
 		[3] = {
 		--Armada
 		["armada_haven2_scav"] = 1,
-		["armantiship_scav"] = 1,
+		["armada_t2supportship_scav"] = 1,
 		["armada_dronecarrier_scav"] = 1,
-		["armaas_scav"] = 1,
+		["armada_dragonslayer_scav"] = 1,
 		--Cortex
 		["cordronecarry_scav"] = 1,
 		["corantiship_scav"] = 1,
@@ -570,9 +570,9 @@ local SeaUnitsList = {
 		},
 		[4] = {
 		--Armada
-		["armserp_scav"] = 1,
-		["armmship_scav"] = 1,
-		["armsjam_scav"] = 1,
+		["armada_serpent_scav"] = 1,
+		["armada_longbow_scav"] = 1,
+		["armada_bermuda_scav"] = 1,
 		--Cortex
 		["corssub_scav"] = 1,
 		["cormship_scav"] = 1,
@@ -586,7 +586,7 @@ local SeaUnitsList = {
 		},
 		[6] = {
 		--Armada
-		["armdecadet3_scav"] = 1,
+		["armada_dolphint3_scav"] = 1,
 		--Cortex
 		["corslrpc_scav"] = 1,
 		},
@@ -600,16 +600,16 @@ local SeaUnitsList = {
 		},
 		[2] = {
 		--Armada
-		["armcs_scav"] = 1,
-		["armrecl_scav"] = 1,
+		["armada_constructionship_scav"] = 1,
+		["armada_grimreaper_scav"] = 1,
 		--Cortex
 		["corcs_scav"] = 1,
 		["correcl_scav"] = 1,
 		},
 		[3] = {
 		--Armada
-		["armacsub_scav"] = 1,
-		["armmls_scav"] = 1,
+		["armada_advancedconstructionsub_scav"] = 1,
+		["armada_voyager_scav"] = 1,
 		--Cortex
 		["coracsub_scav"] = 1,
 		["cormls_scav"] = 1,
@@ -640,7 +640,7 @@ local AirUnitsList = {
 	[1] = {
 	--Armada
 	["armada_blink_scav"] = 1,
-	["armsehak_scav"]= 1,
+	["armada_horizon_scav"]= 1,
 	--Cortex
 	["corfink_scav"] = 1,
 	["corbw_scav"] = 1,
@@ -655,8 +655,8 @@ local AirUnitsList = {
 	["armada_falcon_scav"] = 1,
 	["armada_banshee_scav"] = 1,
 	["armada_stormbringer_scav"] = 1,
-	["armsfig_scav"] = 1,
-	["armcsa_scav"] = 1,
+	["armada_cyclone_scav"] = 1,
+	["armada_constructionseaplane_scav"] = 1,
 	--Cortex
 	["corca_scav"] = 1,
 	["corveng_scav"] = 1,
@@ -674,9 +674,9 @@ local AirUnitsList = {
 	--Armada
 	["armada_advancedconstructionaircraft_scav"] = 1,
 	["armada_oracle_scav"] = 1,
-	["armsaber_scav"] = 1,
-	["armseap_scav"] = 1,
-	["armsb_scav"] = 1,
+	["armada_sabre_scav"] = 1,
+	["armada_puffin_scav"] = 1,
+	["armada_tsunami_scav"] = 1,
 	["armada_cormorant_scav"] = 1,
 	--Cortex
 	["coraca_scav"] = 1,

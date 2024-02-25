@@ -31,9 +31,9 @@ local unitNames = {
 
   "armada_sweeper",
   "corah",
-  "armmls",
+  "armada_voyager",
   "cormls",
-  "armaas",
+  "armada_dragonslayer",
   "corarch",
 
   --arty
@@ -51,17 +51,17 @@ local unitNames = {
 
   "armada_possum",
   "cormh",
-  "armroy",
+  "armada_corsair",
   "corroy",
-  "armserp",
+  "armada_serpent",
   "corssub",
 
-  "armmship",
+  "armada_longbow",
   "cormship",
-  "armbats",
+  "armada_dreadnought",
   "corbats",
 
-  "armepoch",
+  "armada_epoch",
   "corblackhy",
 
   "corcat",
@@ -83,7 +83,7 @@ local unitNames = {
   "armada_ghost",
   "armgremlin",
 
-  "armpt",
+  "armada_skater",
   "corpt",
 
   --shields/jammers/radars
@@ -101,7 +101,7 @@ local unitNames = {
   "cormabm",
   "armada_haven",
   "corcarry",
-  "armantiship",
+  "armada_t2supportship",
   "corantiship",
 
   --misc

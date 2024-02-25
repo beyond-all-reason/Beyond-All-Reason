@@ -29,8 +29,8 @@ local PWN_UNITS = {
   [UnitDefNames.corfav.id] = true,
   [UnitDefNames.corak.id] = true,
   [UnitDefNames.corpt.id] = true,
-  [UnitDefNames.armpt.id] = true,
-  [UnitDefNames.armdecade.id] = true,
+  [UnitDefNames.armada_skater.id] = true,
+  [UnitDefNames.armada_dolphin.id] = true,
   [UnitDefNames.coresupp.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do

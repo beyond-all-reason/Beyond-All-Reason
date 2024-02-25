@@ -444,14 +444,14 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgplat"
 			uDef.buildoptions[numBuildoptions+2] = "corfrock"
-		elseif name == "armcs" or name == "armcsa" then
+		elseif name == "armada_constructionship" or name == "armada_constructionseaplane" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_gunplatform"
 			uDef.buildoptions[numBuildoptions+2] = "armada_scumbag"
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corfgate"
-		elseif name == "armacsub" then
+		elseif name == "armada_advancedconstructionsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_aurora"
 		elseif name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
@@ -482,10 +482,10 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armptt2"
-			uDef.buildoptions[numBuildoptions+2] = "armdecadet3"
-			uDef.buildoptions[numBuildoptions+3] = "armpshipt3"
-			uDef.buildoptions[numBuildoptions+4] = "armserpt3"
+			uDef.buildoptions[numBuildoptions+1] = "armada_skatert2"
+			uDef.buildoptions[numBuildoptions+2] = "armada_dolphint3"
+			uDef.buildoptions[numBuildoptions+3] = "armada_ellysawt3"
+			uDef.buildoptions[numBuildoptions+4] = "armada_serpentt3"
 			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
@@ -1027,7 +1027,7 @@ if modOptions.air_rework == true then
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "armsfig2" then
+	if name == "armada_cyclone2" then
 		uDef.metalcost = 450
 		uDef.energycost = 6500
 		uDef.buildtime = 10000
@@ -1041,26 +1041,26 @@ if modOptions.air_rework == true then
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		--uDef.turnradius = 128
-		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
-		uDef.weapondefs.armsfig_weapon.flighttime = 1.4
-		uDef.weapondefs.armsfig_weapon.range = 650
-		uDef.weapondefs.armsfig_weapon.burst = 4
-		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
-		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
-		uDef.weapondefs.armsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.armsfig_weapon.smoketime = 48
-		uDef.weapondefs.armsfig_weapon.smokesize = 10
-		uDef.weapondefs.armsfig_weapon.smoketrail = true
-		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
-		uDef.weapondefs.armsfig_weapon.reloadtime = 3
-		uDef.weapondefs.armsfig_weapon.startvelocity = 180
-		uDef.weapondefs.armsfig_weapon.tolerance = 1000
-		uDef.weapondefs.armsfig_weapon.turnrate = 4000
-		uDef.weapondefs.armsfig_weapon.weaponacceleration = 450
-		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
-		uDef.weapondefs.armsfig_weapon.wobble = 5
-		uDef.weapondefs.armsfig_weapon.dance = 30
-		uDef.weapondefs.armsfig_weapon.damage = {
+		uDef.weapondefs.armada_cyclone_weapon.proximitypriority = 0
+		uDef.weapondefs.armada_cyclone_weapon.flighttime = 1.4
+		uDef.weapondefs.armada_cyclone_weapon.range = 650
+		uDef.weapondefs.armada_cyclone_weapon.burst = 4
+		uDef.weapondefs.armada_cyclone_weapon.burstrate = 0.15
+		uDef.weapondefs.armada_cyclone_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
+		uDef.weapondefs.armada_cyclone_weapon.smokePeriod = 7
+		uDef.weapondefs.armada_cyclone_weapon.smoketime = 48
+		uDef.weapondefs.armada_cyclone_weapon.smokesize = 10
+		uDef.weapondefs.armada_cyclone_weapon.smoketrail = true
+		uDef.weapondefs.armada_cyclone_weapon.areaofeffect = 200
+		uDef.weapondefs.armada_cyclone_weapon.reloadtime = 3
+		uDef.weapondefs.armada_cyclone_weapon.startvelocity = 180
+		uDef.weapondefs.armada_cyclone_weapon.tolerance = 1000
+		uDef.weapondefs.armada_cyclone_weapon.turnrate = 4000
+		uDef.weapondefs.armada_cyclone_weapon.weaponacceleration = 450
+		uDef.weapondefs.armada_cyclone_weapon.weaponvelocity = 1000
+		uDef.weapondefs.armada_cyclone_weapon.wobble = 5
+		uDef.weapondefs.armada_cyclone_weapon.dance = 30
+		uDef.weapondefs.armada_cyclone_weapon.damage = {
 			default = 1,
 			vtol = 180,
 		}
@@ -1108,7 +1108,7 @@ if modOptions.air_rework == true then
 		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 220
 	end
-	if name == "armsehak" then
+	if name == "armada_horizon" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.015
@@ -1237,7 +1237,7 @@ if modOptions.air_rework == true then
 		--uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 80
 	end
-	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "corca" or name == "corcsa" or name == "armcsa" or name == "coraca" then
+	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "corca" or name == "corcsa" or name == "armada_constructionseaplane" or name == "coraca" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1249,12 +1249,12 @@ if modOptions.air_rework == true then
 		uDef.speed = 210
 		uDef.cruisealtitude = 80
 	end
-	if name == "armseap" or name == "corseap" then
+	if name == "armada_puffin" or name == "corseap" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.65
 		uDef.turnrate = uDef.turnrate * 1.5
 	end
-	if  name == "armsaber" then
+	if  name == "armada_sabre" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.65
 		--uDef.turnrate = uDef.turnrate * 1.5
@@ -1340,7 +1340,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armadvbomb.burst = 6
 		uDef.weapondefs.armadvbomb.areaofeffect = 220
 	end
-	if name == "corsb" or name == "armsb" then
+	if name == "corsb" or name == "armada_tsunami" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.78
 		uDef.maxacc = 0.35
@@ -1352,10 +1352,10 @@ if modOptions.air_rework == true then
 	end
 	if name == "armada_advancedaircraftplant" then
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "armsb"
-		uDef.buildoptions[numBuildoptions+2] = "armsfig2"
-		uDef.buildoptions[numBuildoptions+3] = "armsaber"
-		uDef.buildoptions[numBuildoptions+4] = "armseap"
+		uDef.buildoptions[numBuildoptions+1] = "armada_tsunami"
+		uDef.buildoptions[numBuildoptions+2] = "armada_cyclone2"
+		uDef.buildoptions[numBuildoptions+3] = "armada_sabre"
+		uDef.buildoptions[numBuildoptions+4] = "armada_puffin"
 	end
 	if name == "coraap" then
 		local numBuildoptions = #uDef.buildoptions
@@ -1368,7 +1368,7 @@ if modOptions.air_rework == true then
 		uDef.buildoptions[5] = "corsfig2"
 	end
 	if name == "armada_seaplaneplatform" then
-		uDef.buildoptions[5] = "armsfig2"
+		uDef.buildoptions[5] = "armada_cyclone2"
 	end
 	if name == "armada_nettle" then
 		uDef.weapondefs.armada_nettle_missile.startvelocity = 111
@@ -1498,7 +1498,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cortruck_missile.weaponacceleration = 250
 		uDef.weapondefs.cortruck_missile.damage.vtol = 150
 	end
-	if name == "armpt" then
+	if name == "armada_skater" then
 		uDef.weapondefs.aamissile.startvelocity = 140
 		uDef.weapondefs.aamissile.weaponacceleration = 270
 		uDef.weapondefs.aamissile.flighttime = 2.1
@@ -1524,7 +1524,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armada_amphibiousbot_missile.weaponacceleration = 250
 		uDef.weapondefs.armada_amphibiousbot_missile.flighttime = 2
 	end
-	if name == "armaas" then
+	if name == "armada_dragonslayer" then
 		uDef.weapondefs.ga2.startvelocity = 150
 		uDef.weapondefs.ga2.weaponacceleration = 230
 		uDef.weapondefs.ga2.flighttime = 2.5
@@ -1645,7 +1645,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "corsent" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
-	if name == "armaas" then
+	if name == "armada_dragonslayer" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
 	if name == "corarch" then
@@ -1670,7 +1670,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 3100
 		uDef.buildtime = 3700
 	end
-	if name == "armsfig" then
+	if name == "armada_cyclone" then
 		uDef.metalcost = 95
 		uDef.energycost = 4750
 		uDef.buildtime = 5700

@@ -1,5 +1,5 @@
 return {
-	armpship = {
+	armada_ellysaw = {
 		maxacc = 0.04771,
 		airsightdistance = 470,
 		autoheal = 1.5,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.04771,
 		energycost = 2550,
 		metalcost = 380,
-		buildpic = "ARMPSHIP.DDS",
+		buildpic = "armada_ellysaw.DDS",
 		buildtime = 4250,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,8 +26,8 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/ARMPSHIP.s3o",
-		script = "Units/ARMPSHIP.cob",
+		objectname = "Units/armada_ellysaw.s3o",
+		script = "Units/armada_ellysaw.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
@@ -55,7 +55,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 195,
-				object = "Units/armpship_dead.s3o",
+				object = "Units/armada_ellysaw_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

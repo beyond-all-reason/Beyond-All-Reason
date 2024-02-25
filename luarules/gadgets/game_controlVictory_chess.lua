@@ -430,14 +430,14 @@ local landUnitsList = {
 local starterSeaUnitsList = {
     [1] = {
         table = {
-            "armpt",
+            "armada_skater",
             "corpt",
         },
         quantity = 10,
     },
     [2] = {
         table = {
-            "armrecl",
+            "armada_grimreaper",
             "correcl",
         },
         quantity = 4,
@@ -456,10 +456,10 @@ local seaUnitsList = {
     [1] = {
         [1] = {
             table = {
-                "armpt",
-                "armdecade",
-                "armpship",
-                "armsub",
+                "armada_skater",
+                "armada_dolphin",
+                "armada_ellysaw",
+                "armada_eel",
                 "armpincer",
                 "corpt",
                 "coresupp",
@@ -481,7 +481,7 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armrecl",
+                "armada_grimreaper",
                 "correcl",
             },
             quantity = 4,
@@ -490,7 +490,7 @@ local seaUnitsList = {
         --     table = {
         --         "armbeaver",
         --         "armada_constructionhovercraft",
-        --         "armcs",
+        --         "armada_constructionship",
         --         "cormuskrat",
         --         "corcs",
         --     },
@@ -502,12 +502,12 @@ local seaUnitsList = {
     [2] = {
         [1] = {
             table = {
-                "armroy",
-                "armmls",
-                "armsubk",
-                "armaas",
-                "armcrus",
-                "armmship",
+                "armada_corsair",
+                "armada_voyager",
+                "armada_barracuda",
+                "armada_dragonslayer",
+                "armada_paladin",
+                "armada_longbow",
                 "armcroc",
                 "corroy",
                 "cormls",
@@ -525,15 +525,15 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armrecl",
+                "armada_grimreaper",
                 "correcl",
             },
             quantity = 3,
         },
         -- [2] = {
         --     table = {
-        --         "armmls",
-        --         "armacsub",
+        --         "armada_voyager",
+        --         "armada_advancedconstructionsub",
         --         "cormls",
         --         "coracsub",
         --     },
@@ -545,15 +545,15 @@ local seaUnitsList = {
     [3] = {
         [1] = {
             table = {
-                "armbats",
-                "armepoch",
-                "armserp",
+                "armada_dreadnought",
+                "armada_epoch",
+                "armada_serpent",
                 "corbats",
                 "corblackhy",
                 "corslrpc",
-                "armdecadet3",
-                "armpshipt3",
-                "armptt2",
+                "armada_dolphint3",
+                "armada_ellysawt3",
+                "armada_skatert2",
 
                 -- Hovercraft
                 "armada_lunkhead",
@@ -563,15 +563,15 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armrecl",
+                "armada_grimreaper",
                 "correcl",
             },
             quantity = 2,
         },
         -- [2] = {
         --     table = {
-        --         "armmls",
-        --         "armacsub",
+        --         "armada_voyager",
+        --         "armada_advancedconstructionsub",
         --         "cormls",
         --         "coracsub",
         --     },
@@ -583,8 +583,8 @@ local seaUnitsList = {
     [4] = {
         [1] = {
             table = {
-                "armserpt3",
-                "armepoch",
+                "armada_serpentt3",
+                "armada_epoch",
                 "corblackhy",
                 "armada_tumbleweedt4",
                 "corkorg",
@@ -595,15 +595,15 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armrecl",
+                "armada_grimreaper",
                 "correcl",
             },
             quantity = 1,
         },
         -- [2] = {
         --     table = {
-        --         "armmls",
-        --         "armacsub",
+        --         "armada_voyager",
+        --         "armada_advancedconstructionsub",
         --         "cormls",
         --         "coracsub",
         --     },

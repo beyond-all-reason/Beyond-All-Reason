@@ -933,72 +933,72 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA SHIPS-SUBS
 
-	armdecade = {
+	armada_dolphin = {
 		BaseSoundSelectType = "arm-shp-small-sel",
 		BaseSoundMovementType = "arm-shp-small-ok",
 		BaseSoundWeaponType = "fastemg-small",
 	},
-	armpt = {
+	armada_skater = {
 		BaseSoundSelectType = "arm-shp-small-sel",
 		BaseSoundMovementType = "arm-shp-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	armcs = {
+	armada_constructionship = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armrecl = {
+	armada_grimreaper = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		BaseSoundMovementType = "arm-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
 	},
-	armtship = {
+	armada_convoy = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
-	armpship = {
+	armada_ellysaw = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	armsub = {
+	armada_eel = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		BaseSoundMovementType = "arm-sub-small-ok",
 		BaseSoundWeaponType = "torpedo-small",
 	},
-	armroy = {
+	armada_corsair = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "plasma-medium-torpedo",
 	},
-	armsjam = {
+	armada_bermuda = {
 		BaseSoundSelectType = "arm-shp-small-sel",
 		BaseSoundMovementType = "arm-shp-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	armmls = {
+	armada_voyager = {
 		BaseSoundSelectType = "arm-shp-small-sel",
 		BaseSoundMovementType = "arm-shp-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armacsub = {
+	armada_advancedconstructionsub = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
-	armsubk = {
+	armada_barracuda = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
-	armaas = {
+	armada_dragonslayer = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "flak",
 	},
-	armcrus = {
+	armada_paladin = {
 		BaseSoundSelectType = "arm-shp-large-sel",
 		BaseSoundMovementType = "arm-shp-large-ok",
 		BaseSoundWeaponType = "plasma-medium-torpedo",
@@ -1008,22 +1008,22 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-shp-large-ok",
 		BaseSoundWeaponType = "radar-support",
 	},
-	armserp = {
+	armada_serpent = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
-	armmship = {
+	armada_longbow = {
 		BaseSoundSelectType = "arm-shp-large-sel",
 		BaseSoundMovementType = "arm-shp-large-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	armbats = {
+	armada_dreadnought = {
 		BaseSoundSelectType = "arm-shp-large-sel",
 		BaseSoundMovementType = "arm-shp-large-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
-	armepoch = {
+	armada_epoch = {
 		BaseSoundSelectType = "arm-shp-huge-sel",
 		BaseSoundMovementType = "arm-shp-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",
@@ -1046,7 +1046,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "aarocket-air",
 	},
-	armsfig = {
+	armada_cyclone = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "aarocket-air",
@@ -1056,7 +1056,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armsehak = {
+	armada_horizon = {
 		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "radar",
@@ -1071,22 +1071,22 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-bomber-ok",
 		BaseSoundWeaponType = "air-bomb-small",
 	},
-	armcsa = {
+	armada_constructionseaplane = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armsaber = {
+	armada_sabre = {
 		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
-	armsb = {
+	armada_tsunami = {
 		BaseSoundSelectType = "arm-air-bomber-sel",
 		BaseSoundMovementType = "arm-air-bomber-ok",
 		BaseSoundWeaponType = "air-bomb-small",
 	},
-	armseap = {
+	armada_puffin = {
 		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "air-bomb-small-torp",

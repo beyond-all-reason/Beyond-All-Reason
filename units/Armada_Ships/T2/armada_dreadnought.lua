@@ -1,11 +1,11 @@
 return {
-	armbats = {
+	armada_dreadnought = {
 		maxacc = 0.01583,
 		maxdec = 0.01583,
 		buildangle = 16384,
 		energycost = 22000,
 		metalcost = 3300,
-		buildpic = "ARMBATS.DDS",
+		buildpic = "armada_dreadnought.DDS",
 		buildtime = 35000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMBATS.s3o",
-		script = "Units/ARMBATS.cob",
+		objectname = "Units/armada_dreadnought.s3o",
+		script = "Units/armada_dreadnought.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1650,
-				object = "Units/armbats_dead.s3o",
+				object = "Units/armada_dreadnought_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

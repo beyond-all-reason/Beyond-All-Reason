@@ -59,7 +59,7 @@ if gameShortName == "BYAR" then
 		"armada_bearer",
 		"corthovr",
 		"armada_stork",
-		"armtship",
+		"armada_convoy",
 		"corvalk",
 		"cortship",
 		"armada_abductor",

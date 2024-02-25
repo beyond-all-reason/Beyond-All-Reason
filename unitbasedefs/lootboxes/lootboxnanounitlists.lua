@@ -50,11 +50,11 @@ return {
 		"corveng",
 
 		-- Sea
-		"armpt",
-		"armdecade",
-		"armrecl",
-		"armpship",
-		"armsub",
+		"armada_skater",
+		"armada_dolphin",
+		"armada_grimreaper",
+		"armada_ellysaw",
+		"armada_eel",
 		"armpincer",
 		"corpt",
 		"coresupp",
@@ -121,25 +121,25 @@ return {
 		"legfloat",
 
 		-- Air
-		"armsb",
+		"armada_tsunami",
 		"armada_banshee",
 		"armada_roughneck",
-		"armsaber",
-		"armsfig",
+		"armada_sabre",
+		"armada_cyclone",
 		"corsb",
 		"corsfig",
 		"corcut",
 
 		-- Sea
-		"armroy",
-		--"armsjam",
-		"armmls",
-		"armsubk",
-		"armaas",
-		"armcrus",
+		"armada_corsair",
+		--"armada_bermuda",
+		"armada_voyager",
+		"armada_barracuda",
+		"armada_dragonslayer",
+		"armada_paladin",
 		--"armada_haven",
-		"armserp",
-		"armmship",
+		"armada_serpent",
+		"armada_longbow",
 		"armcroc",
 		"corroy",
 		--"corsjam",
@@ -190,7 +190,7 @@ return {
 
 		-- Air
 		"armada_highwind",
-		"armsb",
+		"armada_tsunami",
 		"armada_hornet",
 		"armada_stiletto",
 		"armada_liche",
@@ -202,14 +202,14 @@ return {
 		"corcrw",
 
 		-- Sea
-		"armbats",
-		"armepoch",
+		"armada_dreadnought",
+		"armada_epoch",
 		"corbats",
 		"corblackhy",
 		"corslrpc",
-		"armdecadet3",
-		"armpshipt3",
-		"armptt2",
+		"armada_dolphint3",
+		"armada_ellysawt3",
+		"armada_skatert2",
 
 		-- Hovercraft
 		"armada_lunkhead",
@@ -242,7 +242,7 @@ return {
 		"armada_stormbringert4",
 
 		-- Sea
-		"armepoch",
+		"armada_epoch",
 		"corblackhy",
 		"corcrwt4",
 		"armfepocht4",
@@ -250,7 +250,7 @@ return {
 		"armada_tumbleweedt4",
 		"corkorg",
 		"armada_titan",
-		"armserpt3",
+		"armada_serpentt3",
 		"coresuppt3",
 	},
 }

@@ -19,7 +19,7 @@ end
 
 local GetUnitBasePosition = Spring.GetUnitBasePosition
 
-local weapons = {'armair_torpedo', 'armseap_weapon'}
+local weapons = {'armair_torpedo', 'armada_puffin_weapon'}
 local NO_LAND_DAMAGE = {}
 for wdid, wd in pairs(WeaponDefNames) do
   for _, wname in pairs(weapons) do

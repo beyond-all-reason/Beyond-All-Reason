@@ -42,7 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 			alwaysCrash[UnitDef.id] = true
 		end
 	end
-	--local nonCrashable = {'armada_blink', 'corfink', 'corbw', 'armada_falcon', 'armsfig', 'armada_highwind', 'corveng', 'corsfig', 'corvamp'}
+	--local nonCrashable = {'armada_blink', 'corfink', 'corbw', 'armada_falcon', 'armada_cyclone', 'armada_highwind', 'corveng', 'corsfig', 'corvamp'}
 	local nonCrashable = {'armada_blink', 'corfink', 'corbw', 'legkam'}
 	for udid, ud in pairs(UnitDefs) do
 		for _, unitname in pairs(nonCrashable) do

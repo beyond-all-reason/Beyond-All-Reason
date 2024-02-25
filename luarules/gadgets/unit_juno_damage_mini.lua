@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armada_compass.id] = true,
 		[UnitDefNames.armada_radartower.id] = true,
 		[UnitDefNames.armseer.id] = true,
-		[UnitDefNames.armsjam.id] = true,
+		[UnitDefNames.armada_bermuda.id] = true,
 		[UnitDefNames.armada_sonarstation.id] = true,
 		[UnitDefNames.armada_veil.id] = true,
 		[UnitDefNames.corarad.id] = true,

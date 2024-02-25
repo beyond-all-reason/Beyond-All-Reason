@@ -83,7 +83,7 @@ local labGrids = {
 	-- T2 air
 	armada_advancedaircraftplant = {
 		"armada_advancedconstructionaircraft", "armada_highwind", "armada_roughneck", "armada_blizzard",           -- T2 con, fig, gunship, bomber
-		"armada_oracle", "armada_abductor", "armada_cormorant", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
+		"armada_oracle", "armada_abductor", "armada_cormorant", "armada_cyclone2",                -- radar, transport, torpedo, heavy fighter (mod)
 		"armada_liche", "armada_hornet", "armada_stiletto",                    -- liche, blade, stiletto
 	},
 
@@ -99,8 +99,8 @@ local labGrids = {
 	},
 	-- seaplanes
 	armada_seaplaneplatform = {
-		"armcsa", "armsfig", "armsaber", "armsb",           -- seaplane con, fig, gunship, bomber
-		"armsehak", "armseap",                              -- radar, torpedo
+		"armada_constructionseaplane", "armada_cyclone", "armada_sabre", "armada_tsunami",           -- seaplane con, fig, gunship, bomber
+		"armada_horizon", "armada_puffin",                              -- radar, torpedo
 	},
 
 	corplat = {
@@ -109,9 +109,9 @@ local labGrids = {
 	},
 	-- T1 boats
 	armada_shipyard = {
-		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
-		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
-		"armsub", "", "armpt",                            -- sub, PT boat
+		"armada_constructionship", "armada_grimreaper", "armada_dolphin", "",              -- T1 sea con, rez sub, decade
+		"armada_ellysaw", "armada_corsair", "", "",                    -- frigate, destroyer, transport ("armada_convoy",)
+		"armada_eel", "", "armada_skater",                            -- sub, PT boat
 	},
 
 	corsy = {
@@ -121,9 +121,9 @@ local labGrids = {
 	},
 	-- T2 boats
 	armada_advancedshipyard = {
-		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
-		"armada_haven", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
-		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
+		"armada_advancedconstructionsub", "armada_voyager", "armada_paladin", "armada_longbow",         -- T2 con sub, naval engineer, cruiser, rocket ship
+		"armada_haven", "armada_bermuda", "armada_dreadnought", "armada_epoch",        -- carrier, jammer, battleship, flagship
+		"armada_barracuda", "armada_serpent", "armada_dragonslayer",                      -- sub killer, battlesub, AA
 	},
 
 	corasy = {
@@ -661,7 +661,7 @@ local unitGrids = {
 		}
 	},
 	-- T1 sea con
-	armcs = {
+	armada_constructionship = {
 		{
 			{ "armada_metalextractor", "armada_tidalgenerator", },                         -- mex, tidal
 			{ "armada_navalenergyconverter", "armada_geothermalpowerplant", },                         -- floating T1 converter, geo
@@ -753,7 +753,7 @@ local unitGrids = {
 	},
 
 	-- Seaplane cons
-	armcsa = {
+	armada_constructionseaplane = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
 			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)
@@ -1056,7 +1056,7 @@ local unitGrids = {
 	},
 
 	--T2 sub cons
-	armacsub = {
+	armada_advancedconstructionsub = {
 		{
 			{ "armada_navaladvancedmetalextractor", "armada_navalfusionreactor", },                       -- uw moho, uw fusion,
 			{ "armada_navaladvancedenergyconverter", "armada_advancedgeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
@@ -1253,7 +1253,7 @@ local unitGrids = {
 		{
 			{ "armada_beamer", "armada_sprinter", "armada_rattlesnake", "armada_gunslinger", },          -- beamer, sprinter, ambusher, maverick
 			{ "armada_arbalest", "armada_ferret", "armada_crossbow", "armada_pawn", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armada_anemone", "armroy", "armada_webber", "armada_amphibiousbot", },             -- coastal torp launcher, destroyer, emp spider, platypus
+			{ "armada_anemone", "armada_corsair", "armada_webber", "armada_amphibiousbot", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
 			{ "armada_advancedradartower", "armada_beholder", "armada_fortificationwall", "armada_veil", },          -- adv radar, camera, wall, adv jammer
@@ -1263,7 +1263,7 @@ local unitGrids = {
 		{
 			{ "armcv", "armada_vehicleplant" },                             	 	  -- T1 veh con, vehicle lab
 			{ "armada_constructionturret" },                                		  -- nano
-			{ "armcs" },                                              -- sea con
+			{ "armada_constructionship" },                                              -- sea con
 		}
 	},
 
@@ -1316,7 +1316,7 @@ local unitGrids = {
 	},
 
 	--naval engineers
-	armmls = {
+	armada_voyager = {
 		{
 			{ "armada_metalextractor", "armada_tidalgenerator", },                               -- mex, tidal
 			{ },                                                    --
@@ -1324,8 +1324,8 @@ local unitGrids = {
 		},
 		{
 			{ "armada_harpoon", "armada_gorgon", "armada_rattlesnake", "armada_manta", },         -- torp launcher, kraken, ambusher, fHLT
-			{ "armada_navalarbalest", "armpt", "armada_amphibiousbot", },                    -- fl flak, PT boat, pelican
-			{ "armdecade", "armroy", },                             -- decade, destroyer
+			{ "armada_navalarbalest", "armada_skater", "armada_amphibiousbot", },                    -- fl flak, PT boat, pelican
+			{ "armada_dolphin", "armada_corsair", },                             -- decade, destroyer
 		},
 		{
 			{ "armada_navalradar", "armada_advancedradartower", },                              -- fl radar, adv radar
@@ -1333,7 +1333,7 @@ local unitGrids = {
 			{ "armada_heavymine", },                                       -- naval mine
 		},
 		{
-			{ "armada_shipyard", "armcs", },                                  -- shipyard, sea con
+			{ "armada_shipyard", "armada_constructionship", },                                  -- shipyard, sea con
 			{ "armada_constructionturretplat", },                                   -- fl nano
 			{ },                                                    --
 		}

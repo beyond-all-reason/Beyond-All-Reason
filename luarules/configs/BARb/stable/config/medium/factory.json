@@ -165,7 +165,7 @@
 		"importance": [5.5, 5.5],
 		"require_energy": false,
 		"income_tier": [20],
-		"unit":      ["armcs", "armpt", "armdecade", "armpship", "armsub", "armroy"],
+		"unit":      ["armada_constructionship", "armada_skater", "armada_dolphin", "armada_ellysaw", "armada_eel", "armada_corsair"],
 		"land": {
 			"tier0": [ 0.09,    0.27,    0.23,        0.14,       0.18,     0.09],
 			"tier1": [ 0.05,    0.10,    0.14,        0.23,       0.24,     0.24]
@@ -181,7 +181,7 @@
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
-		"unit":      ["armacsub", "armsubk", "armaas", "armcrus", "armada_haven", "armmship", "armbats", "armepoch"],
+		"unit":      ["armada_advancedconstructionsub", "armada_barracuda", "armada_dragonslayer", "armada_paladin", "armada_haven", "armada_longbow", "armada_dreadnought", "armada_epoch"],
 		"land": {
 			"tier0": [ 0.57,       0.12,      0.00,     0.19,      0.00,       0.06,       0.06,      0.00],
 			"tier1": [ 0.35,       0.11,      0.04,     0.07,      0.04,       0.14,       0.18,      0.07]
@@ -251,7 +251,7 @@
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["armcsa", "armsaber", "armsb", "armseap", "armsfig", "armsehak"],
+		"unit":      ["armada_constructionseaplane", "armada_sabre", "armada_tsunami", "armada_puffin", "armada_cyclone", "armada_horizon"],
 		"land": {
 			"tier0": [ 0.17,     0.17,       0.17,    0.17,      0.16,      0.16],
 			"tier1": [ 0.01,     0.01,       0.95,    0.01,      0.01,      0.01]

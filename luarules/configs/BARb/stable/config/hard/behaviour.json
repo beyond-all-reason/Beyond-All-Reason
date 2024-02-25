@@ -879,7 +879,7 @@
 			"limit": 15,
 			"build_speed": 5.0
 		},
-		"armcs": {
+		"armada_constructionship": {
 			"role": ["builder"],
 			"retreat": 0.6,
 			"limit": 8,
@@ -891,7 +891,7 @@
 			"limit": 6,
 			"build_speed": 6.0
 		},
-		"armacsub": {
+		"armada_advancedconstructionsub": {
 			"role": ["builderT2", "sub"],
 			"attribute": ["solo"],
 			"retreat": 0.5,
@@ -905,7 +905,7 @@
 			"limit": 6,
 			"build_speed": 15.0
 		},
-        "armmls": {
+        "armada_voyager": {
 			"role": ["builder"],
 			"retreat": 0.5,
 			"limit": 2,
@@ -1297,7 +1297,7 @@
 
 
 		// Naval Aircrafts
-		"armsaber": {
+		"armada_sabre": {
 			"role": ["skirmish", "air"],
 			"retreat": 0.6
 		},
@@ -1307,27 +1307,27 @@
 
 		// ships - armada_shipyard
 
-        "armrecl": {
+        "armada_grimreaper": {
 			"role": ["support"],
 			"retreat": 0.6,
 			"limit": 6
 		},
-		"armpt": {
+		"armada_skater": {
 			"role": ["scout", "anti_air"]
 		},
-		"armdecade": {
+		"armada_dolphin": {
 			"role": ["raider"]
 		},
-		"armpship": {
+		"armada_ellysaw": {
 			"role": ["riot"],
 			"attribute": ["siege"]
 		},
-		"armsub": {
+		"armada_eel": {
 			"role": ["sub"],
 			"attribute": ["siege"]
 			
 		},
-		"armroy": {
+		"armada_corsair": {
 			"role": ["anti_sub"],
 			"attribute": ["siege"],
 			"threat": {
@@ -1342,24 +1342,24 @@
 
 		// adv shipyard - armada_advancedshipyard
 
-		"armsubk": {
+		"armada_barracuda": {
 			"role": ["anti_sub", "sub"]	
 		},
-		"armserp": {
+		"armada_serpent": {
 			"role":["sub"],
 			"attribute": ["siege"]
 		},	
-		"armaas": {
+		"armada_dragonslayer": {
 			"role": ["anti_air"],
 			"limit": 5
 		},
-		"armcrus": {
+		"armada_paladin": {
 			"role": ["skirmish"],
 			"attribute": ["anti_sub"],
 			"threat": {
 				"air": 0.0, "surf": 1.0, "water": 0.5}	
 		},
-        "armsjam": {
+        "armada_bermuda": {
 			"role": ["support"],
 			"retreat": 0.75,
             "limit": 3
@@ -1369,16 +1369,16 @@
 			"retreat": 0.75,
             "limit": 2
 		},
-		"armmship": {
+		"armada_longbow": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
 			"retreat": 0.5
 		},
-		"armbats": {
+		"armada_dreadnought": {
 			"role": ["heavy"],
 			"attribute": ["siege"]
 		},
-		"armepoch": {
+		"armada_epoch": {
 			"role": ["super"],  //+ artillery main role?
 			"attribute": ["super"],
 			"retreat": 0.4	

@@ -63,8 +63,8 @@ return {
 			[18] = "armada_webber",
 			[19] = "armada_sprinter",
 			[20] = "armada_gunslinger",
-			[21] = "armcs",
-			[22] = "armroy",
+			[21] = "armada_constructionship",
+			[22] = "armada_corsair",
 			[23] = "armada_amphibiousbot",
 		},
 		customparams = {

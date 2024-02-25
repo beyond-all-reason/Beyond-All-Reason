@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armserp_weapon = {
+			armada_serpent_weapon = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -151,7 +151,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARMSERP_WEAPON",
+				def = "armada_serpent_WEAPON",
 				maindir = "0 0.2 1",
 				maxangledif = 80,
 				onlytargetcategory = "NOTHOVER",

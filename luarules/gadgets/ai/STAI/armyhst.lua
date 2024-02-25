@@ -22,10 +22,10 @@ function ArmyHST:Init()
 		corca = true,
 		armada_constructionhovercraft = true,
 		corch = true,
-		armacsub = true,
+		armada_advancedconstructionsub = true,
 		armada_constructionaircraft = true,
 		corcsa = true, --plat
-		armcsa = true, --plat
+		armada_constructionseaplane = true, --plat
 		armcv = true,
 		coracv = true,
 		coraca = true,
@@ -35,7 +35,7 @@ function ArmyHST:Init()
 		corcv = true,
 		armada_advancedconstructionaircraft = true,
 		corcs = true,
-		armcs = true,
+		armada_constructionship = true,
 		corck = true,
 		armada_constructionbot = true,
 
@@ -43,7 +43,7 @@ function ArmyHST:Init()
 
 		}
 	self.engineers = {
-		armmls = true,
+		armada_voyager = true,
 		armada_butler = true,
 		armconsul = true,
 		corfast = true,
@@ -60,7 +60,7 @@ function ArmyHST:Init()
 	self.rezs = {
 		armada_lazarus = true,
 		cornecro = true,
-		armrecl = true,
+		armada_grimreaper = true,
 		correcl = true,
 
 		}
@@ -76,7 +76,7 @@ function ArmyHST:Init()
 		}
 
 	self.jammers = {
-		armsjam = true,
+		armada_bermuda = true,
 		coreter = true,
 		armada_radarjammerbot = true,
 		armjam = true,
@@ -94,7 +94,7 @@ function ArmyHST:Init()
 		corvoyr = true,
 		corawac = true,
 		armada_oracle = true,
-		armsehak = true,
+		armada_horizon = true,
 		corhunt = true,
 
 
@@ -111,7 +111,7 @@ function ArmyHST:Init()
 		corintr = true,
 		armada_abductor = true,
 		cortship = true,
-		armtship = true,
+		armada_convoy = true,
 		corseah = true,
 
 		}
@@ -121,7 +121,7 @@ function ArmyHST:Init()
 		corfav = true,
 		armada_tick = true,
 		armada_sprinter = true,
-		armdecade = true,
+		armada_dolphin = true,
 		coresupp = true,
 
 
@@ -139,8 +139,8 @@ function ArmyHST:Init()
 		armada_seeker = true,
 		corsh = true,
 		corsub = true,
-		armsub = true,
-		armsubk = true,
+		armada_eel = true,
+		armada_barracuda = true,
 		corshark = true,
 		armada_razorback = true,
 		corkarg = true,
@@ -158,7 +158,7 @@ function ArmyHST:Init()
 		armada_vanguard = true,--t3a
 		corcat = true,--t3c
 		corbats = true,
-		armbats = true,
+		armada_dreadnought = true,
 
 		--cortrem = true,
 		corjugg = true,
@@ -170,7 +170,7 @@ function ArmyHST:Init()
 -- 		corban = true,T2C
 		corhrk = true,
 		cormship = true,
-		armmship = true,
+		armada_longbow = true,
 		armada_possum = true,
 		cormh = true,
 		}
@@ -186,10 +186,10 @@ function ArmyHST:Init()
 		correap = true,
 		armada_crocodile = true,--ha
 		corsnap = true,--hc
-		armpship = true,--t1a
+		armada_ellysaw = true,--t1a
 		corpship = true,--t1c
 		corcrus = true,
-		armcrus = true,
+		armada_paladin = true,
 		armada_titan = true,--t3a
 
 
@@ -211,13 +211,13 @@ function ArmyHST:Init()
 		armmanni = true,
 		armada_lunkhead = true,--hover
 		corsok = true,--hover
-		armroy = true,
+		armada_corsair = true,
 		corroy = true,
 
 
 
 		corblackhy = true,
-		armepoch = true,
+		armada_epoch = true,
 		armada_thor = true, --t3a
 		corkorg = true,--t3c
 
@@ -246,7 +246,7 @@ function ArmyHST:Init()
 
 		}
 	self.subkillers = {
-		armserp = true,
+		armada_serpent = true,
 		corssub = true,
 
 
@@ -255,7 +255,7 @@ function ArmyHST:Init()
 	self.bomberairs = {
 		corshad = true,
 		armada_stormbringer = true,
-		armsb = true, --plat
+		armada_tsunami = true, --plat
 		corhurc = true,
 		armada_blizzard = true,
 		armada_liche = true,
@@ -266,7 +266,7 @@ function ArmyHST:Init()
 		corveng = true,
 		armada_falcon = true,
 		corsfig = true, --plat
-		armsfig = true, --plat
+		armada_cyclone = true, --plat
 		cortitan = true,
 		armada_highwind = true,
 		}
@@ -285,8 +285,8 @@ function ArmyHST:Init()
 		corape = true,
 		armada_roughneck = true,
 		armada_hornet = true,
-		armseap = true, -- but is a torpedo gunship
-		armsaber = true,
+		armada_puffin = true, -- but is a torpedo gunship
+		armada_sabre = true,
 		corseap = true,
 		corcut = true,
 
@@ -295,7 +295,7 @@ function ArmyHST:Init()
 	self.antiairs = {
 		armada_sweeper = true,
 		corah = true,
-		armaas = true,
+		armada_dragonslayer = true,
 		armsam = true,
 		corsent = true,
 		armada_archangel = true,
@@ -305,7 +305,7 @@ function ArmyHST:Init()
 		armada_crossbow = true,
 		coraak = true,
 		corarch = true,
-		armpt = true, --aa+scout
+		armada_skater = true, --aa+scout
 		corpt = true, --aa+scout
 		}
 
@@ -891,8 +891,8 @@ ArmyHST.mobUnitExampleName = {
 	bot = "armada_constructionbot",
 	amp = "armbeaver",
 	hov = "armada_constructionhovercraft",
-	shp = "armcs",
-	sub = "armacsub"
+	shp = "armada_constructionship",
+	sub = "armada_advancedconstructionsub"
 }
 
 -- side names

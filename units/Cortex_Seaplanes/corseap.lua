@@ -76,7 +76,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armseap_weapon1 = {
+			armada_puffin_weapon1 = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -125,7 +125,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTSHIP",
-				def = "ARMSEAP_WEAPON1",
+				def = "armada_puffin_WEAPON1",
 				maindir = "0 0 1",
 				maxangledif = 40,
 				onlytargetcategory = "NOTHOVER",

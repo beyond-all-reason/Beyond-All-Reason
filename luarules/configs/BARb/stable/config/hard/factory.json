@@ -232,7 +232,7 @@
 
 		"income_tier": [20],
 
-		"unit":      ["armcs", "armrecl", "armpt", "armdecade", "armsub", "armpship", "armroy"],
+		"unit":      ["armada_constructionship", "armada_grimreaper", "armada_skater", "armada_dolphin", "armada_eel", "armada_ellysaw", "armada_corsair"],
 
 		"water": {
 			"tier0": [ 0.01,    0.10,       0.20,    0.30,        0.15,       0.15,     0.10],
@@ -250,7 +250,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armada_haven", "armmship", "armbats", "armepoch"],
+		"unit":      ["armada_advancedconstructionsub", "armada_voyager", "armada_bermuda", "armada_barracuda", "armada_serpent", "armada_dragonslayer", "armada_paladin", "armada_haven", "armada_longbow", "armada_dreadnought", "armada_epoch"],
 
 		"water": {
 			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.00,      0.20,        0.10,        0.00],
@@ -354,7 +354,7 @@
 	
 			"income_tier": [40],
 	
-			"unit":      ["armcsa", "armsehak",	"armsfig", "armsaber", "armsb", "armseap"],
+			"unit":      ["armada_constructionseaplane", "armada_horizon",	"armada_cyclone", "armada_sabre", "armada_tsunami", "armada_puffin"],
 	
 			"land": {
 				"tier0": [0.10,    	  0.10,     0.00,     	0.50,       0.20,     0.00],

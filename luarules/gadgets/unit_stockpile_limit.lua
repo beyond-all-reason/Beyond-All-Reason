@@ -46,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['armada_haven'].id] = 20,
 		[UnitDefNames['corcarry'].id] = 20,
 		
-		[UnitDefNames['armantiship'].id] = 20,
+		[UnitDefNames['armada_t2supportship'].id] = 20,
 		[UnitDefNames['corantiship'].id] = 20,
 
 		[UnitDefNames['armada_umbrella'].id] = 20,

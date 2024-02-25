@@ -1,5 +1,5 @@
 return {
-	armcsa = {
+	armada_constructionseaplane = {
 		maxacc = 0.07,
 		blocking = false,
 		maxdec = 0.4275,
@@ -7,7 +7,7 @@ return {
 		metalcost = 150,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMCSA.DDS",
+		buildpic = "armada_constructionseaplane.DDS",
 		buildtime = 12000,
 		canfly = true,
 		canmove = true,
@@ -27,8 +27,8 @@ return {
 		maxslope = 10,
 		speed = 192.0,
 		maxwaterdepth = 255,
-		objectname = "Units/ARMCSA.s3o",
-		script = "Units/ARMCSA.cob",
+		objectname = "Units/armada_constructionseaplane.s3o",
+		script = "Units/armada_constructionseaplane.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 364,

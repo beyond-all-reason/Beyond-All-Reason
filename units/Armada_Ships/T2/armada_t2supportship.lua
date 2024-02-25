@@ -1,5 +1,5 @@
 return {
-	armantiship = {
+	armada_t2supportship = {
 		maxacc = 0.01722,
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
@@ -7,7 +7,7 @@ return {
 		energycost = 12000,
 		metalcost = 1400,
 		builder = true,
-		buildpic = "ARMANTISHIP.DDS",
+		buildpic = "armada_t2supportship.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -36,10 +36,10 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMANTISHIP.s3o",
+		objectname = "Units/armada_t2supportship.s3o",
 		radardistance = 2950,
 		radaremitheight = 56,
-		script = "Units/ARMANTISHIP.cob",
+		script = "Units/armada_t2supportship.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
 		sightdistance = 1000,
@@ -73,7 +73,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/armantiship_dead.s3o",
+				object = "Units/armada_t2supportship_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

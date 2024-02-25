@@ -111,14 +111,14 @@ local moveDatas = {
 
 	-- break line
 
-	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl  corsupp  corsjam cormls armpt
+	-- corcs armada_bermuda corpt armada_dolphin armada_torpedoship corshark critter_goldfish armada_constructionship correcl armada_grimreaper  corsupp  corsjam cormls armada_skater
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
 		footprintz = 3,
 		minwaterdepth = 8,
 	},
-	--armmls armroy armaas corrsub corroy armada_seekerip coracsub armserp  corpship  corarch
+	--armada_voyager armada_corsair armada_dragonslayer corrsub corroy armada_seekerip coracsub armada_serpent  corpship  corarch
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
@@ -126,7 +126,7 @@ local moveDatas = {
 		minwaterdepth = 8,
 	},
 	-- cruisers / missile ships / transport ships
-	-- armtship cormship corcrus armmship cortship armcrus
+	-- armada_convoy cormship corcrus armada_longbow cortship armada_paladin
 	BOAT5 = {
 		crushstrength = 16,
 		footprintx = 5,
@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armada_haven armepoch corblackhy armada_haven2 armbats corbats corcarry corcarry2
+	-- armada_haven armada_epoch corblackhy armada_haven2 armada_dreadnought corbats corcarry corcarry2
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -168,7 +168,7 @@ local moveDatas = {
 	-- 	subMarine = 1,
 	-- },
 	-- Battle Subs
-	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
+	--critter_goldfish coracsub armada_advancedconstructionsub armada_serpent corrsub armada_barracuda correcl corshark corsub
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3
+	-- corslrpc coresuppt3 armada_dolphint3 armada_skatert2 armada_ellysawt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
@@ -801,7 +801,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 1,
 	},
-	-- armserpt3
+	-- armada_serpentt3
 	EPICSUBMARINE = {
 		footprintx = 5,
 		footprintz = 5,
