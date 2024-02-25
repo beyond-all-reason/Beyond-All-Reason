@@ -364,19 +364,19 @@ local loadout = {
 }
 
 local backupOne = {
-    {name = 'corsumo', x = 4367, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
+    {name = 'cortex_mammoth', x = 4367, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4677, py = 34, pz = 4530}},
     }},
     {name = 'corban', x = 4453, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4788, py = 34, pz = 4707}},
     }},
-    {name = 'corspec', x = 4542, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
+    {name = 'cortex_deceiver', x = 4542, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4838, py = 34, pz = 4778}},
     }},
     {name = 'corsent', x = 4634, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4907, py = 34, pz = 4854}},
     }},
-    {name = 'corfast', x = 4758, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
+    {name = 'cortex_twitcher', x = 4758, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4951, py = 34, pz = 4889}},
     }},
     {name = 'armada_consul', x = 4868, y = 34, z = 5112, rot = 32767, teamID = 0, queue = {
@@ -400,13 +400,13 @@ local backupOne = {
 }
 
 local backupTwo = {
-    {name = 'corsumo', x = 4367, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
+    {name = 'cortex_mammoth', x = 4367, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4677, py = 34, pz = 4530}},
     }},
     {name = 'corkarg', x = 4453, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4788, py = 34, pz = 4707}},
     }},
-    {name = 'corspec', x = 4542, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
+    {name = 'cortex_deceiver', x = 4542, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
     {cmdID = CMD.MOVE, position = {px = 4838, py = 34, pz = 4778}},
     }},
     {name = 'corgol', x = 4634, y = 34, z = 5112, rot = 32767, teamID = 1, queue = {
@@ -484,35 +484,35 @@ local timed = {
     {name = 'cormship', x = 6125, y = 0, z = 1556, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 4824, py = 0, pz = 1977}},
     }},
-    {name = 'corsumo', x = 2791, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
+    {name = 'cortex_mammoth', x = 2791, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
     {cmdID = CMD.MOVE, position = {px = 2884, py = 33, pz = 4887}},
     }},
     {name = 'correap', x = 2738, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
     {cmdID = CMD.MOVE, position = {px = 2777, py = 33, pz = 4890}},
     }},
-    {name = 'corspec', x = 2660, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
+    {name = 'cortex_deceiver', x = 2660, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
     {cmdID = CMD.MOVE, position = {px = 2703, py = 33, pz = 4881}},
     }},
     {name = 'corsent', x = 2600, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
     {cmdID = CMD.MOVE, position = {px = 2630, py = 33, pz = 4881}},
     }},
-    {name = 'corack', x = 2520, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
+    {name = 'cortex_advancedconstructionbot', x = 2520, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {
     {cmdID = CMD.MOVE, position = {px = 2581, py = 33, pz = 4884}},
     }},
     {name = 'corshiva', x = 2851, y = 33, z = 5110, rot = 32767, teamID = 3, queue = {}},
-    {name = 'corsumo', x = 2920, y = 33, z = 4, rot = 0, teamID = 2, queue = {
+    {name = 'cortex_mammoth', x = 2920, y = 33, z = 4, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 3100, py = 33, pz = 362}},
     }},
     {name = 'correap', x = 3056, y = 33, z = 4, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 3171, py = 33, pz = 362}},
     }},
-    {name = 'corspec', x = 3144, y = 33, z = 4, rot = 0, teamID = 2, queue = {
+    {name = 'cortex_deceiver', x = 3144, y = 33, z = 4, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 3230, py = 33, pz = 362}},
     }},
     {name = 'corsent', x = 3235, y = 33, z = 4, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 3310, py = 33, pz = 362}},
     }},
-    {name = 'corack', x = 3306, y = 33, z = 4, rot = 0, teamID = 2, queue = {
+    {name = 'cortex_advancedconstructionbot', x = 3306, y = 33, z = 4, rot = 0, teamID = 2, queue = {
     {cmdID = CMD.MOVE, position = {px = 3425, py = 33, pz = 362}},
     }},
     {name = 'corshiva', x = 2810, y = 33, z = 4, rot = 0, teamID = 2, queue = {}},

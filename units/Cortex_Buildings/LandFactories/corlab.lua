@@ -34,12 +34,12 @@ return {
 		workertime = 100,
 		yardmap = "occccooccccooccccooccccooccccoocccco",
 		buildoptions = {
-			[1] = "corck",
-			[2] = "corak",
-			[3] = "cornecro",
-			[4] = "corstorm",
-			[5] = "corthud",
-			[6] = "corcrash",
+			[1] = "cortex_constructionbot",
+			[2] = "cortex_grunt",
+			[3] = "cortex_graverobber",
+			[4] = "cortex_aggravator",
+			[5] = "cortex_thug",
+			[6] = "cortex_trasher",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

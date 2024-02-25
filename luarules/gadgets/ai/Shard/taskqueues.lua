@@ -114,25 +114,25 @@ local armconstructionbot = {
 }
 
 local corebotlab = {
-	"corck",
-	"corck",
-	"corck",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
+	"cortex_constructionbot",
+	"cortex_constructionbot",
+	"cortex_constructionbot",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
+	"cortex_grunt",
 }
 
 local armbotlab = {
@@ -161,8 +161,8 @@ local armbotlab = {
 taskqueues = {
 	-- unittype = tasklist,
 	cortex_commander = corecommanderlist,
-	-- we can assign 1 list, to multiple unit types, here a construction bot (corck) gets the construction bot tasklist, but then we assign it to the construction vehicle too (corcv))
-	corck = coreconstructionbot,
+	-- we can assign 1 list, to multiple unit types, here a construction bot (cortex_constructionbot) gets the construction bot tasklist, but then we assign it to the construction vehicle too (corcv))
+	cortex_constructionbot = coreconstructionbot,
 	corcv = coreconstructionbot,
 	armada_commander = armada_commandermander,
 	armada_constructionbot = armconstructionbot,

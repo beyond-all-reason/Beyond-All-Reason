@@ -3,10 +3,10 @@ Attackers!
 ]]--
 
 attackerlist = {
-	"corak",
+	"cortex_grunt",
 	"armada_pawn",
 	"corgator",
-	"corthud",
+	"cortex_thug",
 	"corkorg",
 	"armada_mace",
 	"corraid",

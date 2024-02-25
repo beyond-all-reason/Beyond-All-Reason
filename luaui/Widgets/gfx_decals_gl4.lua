@@ -1485,9 +1485,9 @@ local UnitScriptDecalsNames = {
 			}
 		},
 
-	['corck'] = {
+	['cortex_constructionbot'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corck_a.png',
+			texture = footprintsPath..'f_cortex_constructionbot_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1505,9 +1505,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['corstorm'] = {
+	['cortex_aggravator'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corstorm_a.png',
+			texture = footprintsPath..'f_cortex_aggravator_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1525,9 +1525,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['corthud'] = {
+	['cortex_thug'] = {
 		[1] = {
-			texture = footprintsPath..'f_corthud_a.png',
+			texture = footprintsPath..'f_cortex_thug_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -2, --
 			offsetrot = 0, -- in radians
@@ -1545,9 +1545,9 @@ local UnitScriptDecalsNames = {
 			}
 		},
 
-	['corack'] = {
+	['cortex_advancedconstructionbot'] = {
 		[1] = {
-			texture = footprintsPath..'f_corthud_a.png',
+			texture = footprintsPath..'f_cortex_thug_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -2, --
 			offsetrot = 0, -- in radians
@@ -1566,9 +1566,9 @@ local UnitScriptDecalsNames = {
 		},
 
 
-	['cormando'] = {
+	['cortex_commando'] = {
 		[1] = { --lfoot
-			texture = footprintsPath..'f_cormando_a.png',
+			texture = footprintsPath..'f_cortex_commando_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.15, -- in radians
@@ -1585,7 +1585,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			},
 		[2] = { --rfoot
-			texture = footprintsPath..'f_cormando_a.png',
+			texture = footprintsPath..'f_cortex_commando_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = -0.15, -- in radians
@@ -1604,9 +1604,9 @@ local UnitScriptDecalsNames = {
 		},
 
 
-	['corpyro'] = {
+	['cortex_fiend'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corpyro_a.png',
+			texture = footprintsPath..'f_cortex_fiend_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1623,9 +1623,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		},
-	['corhrk'] = {
+	['cortex_arbiter'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corhrk_a.png',
+			texture = footprintsPath..'f_cortex_arbiter_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1679,9 +1679,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['corsumo'] = {
+	['cortex_mammoth'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corsumo_a.png',
+			texture = footprintsPath..'f_cortex_mammoth_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1698,9 +1698,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 			},
 		},
-	['coramph'] = {
+	['cortex_duck'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_coramph_a.png',
+			texture = footprintsPath..'f_cortex_duck_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 3, --
 			offsetrot = 0.0, -- in radians

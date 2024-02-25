@@ -12,7 +12,7 @@ end
 
 local spies  = {
 	[UnitDefNames.armada_ghost.id] = true,
-	[UnitDefNames.corspy.id] = true,
+	[UnitDefNames.cortex_spectre.id] = true,
 }
 
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted

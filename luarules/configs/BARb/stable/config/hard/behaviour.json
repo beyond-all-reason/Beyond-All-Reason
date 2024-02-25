@@ -777,7 +777,7 @@
 			"limit": 12,
 			"build_speed": 4.0  //bp 80
 		},
-        "corck": {
+        "cortex_constructionbot": {
 			"role": ["builder"],
 			//"attribute": ["solo"],
 			"limit": 12,
@@ -789,7 +789,7 @@
 			"limit": 10,
 			"build_speed": 9.0  //bp 180
 		},
-        "corack": {
+        "cortex_advancedconstructionbot": {
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 10,
@@ -802,7 +802,7 @@
 			"limit": 20,
             "since": 1500
 		},
-        "corfast": {
+        "cortex_twitcher": {
 			"role": ["builder"],
 			"limit": 10,
 			"build_speed": 7.0,
@@ -1409,28 +1409,28 @@
 
 		// CORE BOTLAB
 
-		"corak": {
+		"cortex_grunt": {
 			"role": ["raider"],
 			"attribute": ["scout"],
 			"threat":{"vs":{"artillery": 4.0, "anti-heavy":3.0}},
             "power": 0.9,
 			"limit": 40
 		},
-		"cornecro": {
+		"cortex_graverobber": {
 			"role": ["scout"], // 1st role was "raider"; scout cause there is no other scout on core
 			"limit": 60,
 			"retreat": 0.6
 		},
-		"corstorm": {
+		"cortex_aggravator": {
 			"role": ["artillery"],  //assault
 			"attribute": ["siege"],
             "limit": 10
 		},
-		"corthud": {
+		"cortex_thug": {
 			"role": ["skirmish"],
 			"threat":{"vs":{"artillery": 2.0}}
 		},
-		"corcrash": {
+		"cortex_trasher": {
 			"role": ["anti_air"],
 			//"attribute": ["support"],
 			"limit": 10
@@ -1441,15 +1441,15 @@
 
 		// adv bot - coralab
 
-		"cortermite": {
+		"cortex_termite": {
 			"role": ["raider"]
 		},
-		"corpyro": {
+		"cortex_fiend": {
 			"role": ["raider"],
 			"attribute":["melee"],
 			"threat":{"vs":{"artillery": 4.0}}
 		},
-		"corsumo": {
+		"cortex_mammoth": {
 			"role": ["heavy"],
 			"attribute": ["support"],
 			"threat":{"air":0.5}
@@ -1458,24 +1458,24 @@
 			"role": ["skirmish"],
 			"attribute": ["melee"]
 		},
-		"cormort": {
+		"cortex_sheldon": {
 			"role": ["assault"],
 			"attribute":["support"],  //was siege too - but evtl not working correct
 			"retreat": 0.85
 		},
-		"corhrk": {
+		"cortex_arbiter": {
 			"role": ["artillery"],
 			"attribute":["siege"],
 			"threat": {"surf":0.5, "vs":{"static":2.0, "artillery":2.0}},
 			"retreat": 0.8,
 			"limit": 10
 		},
-		"coraak": {
+		"cortex_manticore": {
 			"role": ["anti_air"],
 			//"attribute": ["support"],
 			"limit": 10
 		},
-		"cormando": {
+		"cortex_commando": {
 			"role": ["support"],
 			"buildpeed": 6.0,
 			"limit": 3
@@ -1485,32 +1485,32 @@
 			"buildspeed": 6.0, 
 			"limit": 2
 		},
-		"corroach": {
+		"cortex_bedbug": {
 			"role": ["scout"],
 			"attribute": ["melee"],
 			"retreat": 0,
 			"limit": 2
 		},
-		"corsktl": {
+		"cortex_skuttle": {
 			"role": ["raider"],
 			"attribute": ["melee"],
 			"retreat": 0,
 			"limit": 2
 		},
-		"corvoyr": {
+		"cortex_augur": {
 			"role": ["support"],
 			"retreat": 0.6,
 			"limit": 3
 		},
-		"corspec": {
+		"cortex_deceiver": {
 			"role": ["support"],
 			"limit": 3
 		},
-		"coramph": {
+		"cortex_duck": {
 			"role": ["raider"],
             "limit": 10
 		},
-		"corspy": {
+		"cortex_spectre": {
 			"role": ["scout"],
 			"limit": 3
 		},

@@ -45,7 +45,7 @@ local exceptionList = { --add exempt units here
 	"cormine3",
 	"cormine4",
 	"corfmine3",
-	"corsktl",
+	"cortex_skuttle",
 	"armada_pitbull",
 	"armada_rattlesnake",
 	"armada_ferret",

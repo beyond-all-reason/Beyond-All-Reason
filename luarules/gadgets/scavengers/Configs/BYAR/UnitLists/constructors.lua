@@ -79,12 +79,12 @@ local assisters = {
 
 local resurrectors = {
 	"armada_lazarus_scav",
-	"cornecro_scav",
+	"cortex_graverobber_scav",
 }
 
 local resurrectorsSea = {
 	"armada_lazarus_scav",
-	"cornecro_scav",
+	"cortex_graverobber_scav",
 }
 
 local collectors = {
@@ -100,8 +100,8 @@ local collectors = {
 	"armada_constructionship_scav",
 	"armada_advancedconstructionsub_scav",
 	"armada_constructionhovercraft_scav",
-	"corck_scav",
-	"corack_scav",
+	"cortex_constructionbot_scav",
+	"cortex_advancedconstructionbot_scav",
 	"cortex_decoycommander_scav",
 	"corcv_scav",
 	"cormuskrat_scav",
@@ -112,7 +112,7 @@ local collectors = {
 	"corcs_scav",
 	"coracsub_scav",
 	"corch_scav",
-	"corfast_scav",
+	"cortex_twitcher_scav",
 	"armassistdrone_scav",
 	"corassistdrone_scav",
 }

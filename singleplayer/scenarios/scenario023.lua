@@ -17,7 +17,7 @@ local scenariodata = {
 	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
-	/luarules fightertest corak armada_pawn 650 10 2040
+	/luarules fightertest cortex_grunt armada_pawn 650 10 2040
 
 	]],
 
@@ -29,7 +29,7 @@ local scenariodata = {
 	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "Bots", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-		{name = "Bots", playerhandicap = "corak armada_pawn 650 10 2040" , enemyhandicap = 0},
+		{name = "Bots", playerhandicap = "cortex_grunt armada_pawn 650 10 2040" , enemyhandicap = 0},
 		{name = "Tanks", playerhandicap = "armada_bull armada_bull 650 10 2040" , enemyhandicap = 0},
 		{name = "Aircraft", playerhandicap = "cortex_nighthawk armada_highwind 650 10 2040" , enemyhandicap = 0},
 		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
@@ -42,7 +42,7 @@ local scenariodata = {
         --myoption = "dostuff",
         scenarioid = "benchmark_lightside", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest corak armada_pawn 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkcommand = "luarules fightertest cortex_grunt armada_pawn 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	

@@ -15,7 +15,7 @@ local function t1ResurrectorGroup1()
 	if r == 0 then
 		unitID = UDN.armada_lazarus_scav.id
 	else
-		unitID =  UDN.cornecro_scav.id
+		unitID =  UDN.cortex_graverobber_scav.id
 	end
 
     return {
@@ -38,7 +38,7 @@ local function t1ResurrectorGroup2()
 	if r == 0 then
 		unitID = UDN.armada_lazarus_scav.id
 	else
-		unitID =  UDN.cornecro_scav.id
+		unitID =  UDN.cortex_graverobber_scav.id
 	end
 
     return {

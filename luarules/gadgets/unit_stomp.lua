@@ -23,7 +23,7 @@ for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'corfav') then
 		isStompedUnit[udid] = true
 	end
-	if string.find(ud.name, 'corak') then
+	if string.find(ud.name, 'cortex_grunt') then
 		isStompedUnit[udid] = true
 	end
 	if string.find(ud.name, 'armada_pawn') then

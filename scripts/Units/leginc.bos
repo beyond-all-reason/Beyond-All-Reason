@@ -13,7 +13,7 @@ targetswap, isfiring, timer;
 #define SIG_WALK			4
 
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_trasher_anim_walk.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4 
 			move lfleg to z-axis [-1.47] speed [43] / animSpeed; 

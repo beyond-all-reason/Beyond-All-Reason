@@ -145,16 +145,16 @@ customDefs.corscavdtl = {
 -- local scavConstructorsList = {
 -- 	-- rezzers
 -- 	"armada_lazarus",
--- 	"cornecro",
+-- 	"cortex_graverobber",
 -- 	-- builders
 -- 	"armada_constructionaircraft",
 -- 	"cortex_constructionaircraft",
 -- 	"armada_advancedconstructionaircraft",
 -- 	"cortex_advancedconstructionaircraft",
 -- 	"armada_constructionbot",
--- 	"corck",
+-- 	"cortex_constructionbot",
 -- 	"armada_advancedconstructionbot",
--- 	"corack",
+-- 	"cortex_advancedconstructionbot",
 -- 	"armada_constructionhovercraft",
 -- 	"corch",
 -- 	"armada_constructionseaplane",
@@ -491,7 +491,7 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Faster rockets with Accel - Lower DMG - higher pitched sound
--- customDefs.corstorm = {
+-- customDefs.cortex_aggravator = {
 -- 	weapondefs = {
 -- 		core_bot_rocket = {
 -- 			soundstart = "rocklit1scav",
@@ -523,7 +523,7 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Rapid Fire AK + Cloak
--- customDefs.corak = {
+-- customDefs.cortex_grunt = {
 -- 	--cloakcost = 3,
 -- 	--mincloakdistance = 144,
 -- 	maxvelocity = 3,
@@ -598,7 +598,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+1] = "cordemon",
 -- 		[numBuildoptions+2] = "corkarganetht4",
 -- 		[numBuildoptions+3] = "corgolt4",
--- 		[numBuildoptions+4] = "corakt4",
+-- 		[numBuildoptions+4] = "cortex_gruntt4",
 -- 	},
 -- }
 
@@ -695,8 +695,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corck.buildoptions
--- customDefs.corck = {
+-- numBuildoptions = #UnitDefs.cortex_constructionbot.buildoptions
+-- customDefs.cortex_constructionbot = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -763,8 +763,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corack.buildoptions
--- customDefs.corack = {
+-- numBuildoptions = #UnitDefs.cortex_advancedconstructionbot.buildoptions
+-- customDefs.cortex_advancedconstructionbot = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corapt3",
 -- 		[numBuildoptions+2] = "corminibuzz",
@@ -846,7 +846,7 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.cortermite = {
+-- customDefs.cortex_termite = {
 -- 	cloakcost = 12,
 -- 	maxdamage = 2550,
 -- 	mincloakdistance = 144,
@@ -871,13 +871,13 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- customDefs.cormando = {
+-- customDefs.cortex_commando = {
 -- 	cloakcost = 12,
 -- 	mincloakdistance = 144,
 -- 	maxvelocity = 1.5,
 -- }
 
--- customDefs.corfast = {
+-- customDefs.cortex_twitcher = {
 -- 	maxvelocity = 2.1,
 -- }
 
@@ -886,7 +886,7 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.corroach = {
+-- customDefs.cortex_bedbug = {
 -- 	cloakcost = 3,
 -- 	mincloakdistance = 144,
 -- }
@@ -898,7 +898,7 @@ customDefs.corscavdtl = {
 
 -- -- Cloaked + Stealh Units
 
--- customDefs.corspy = {
+-- customDefs.cortex_spectre = {
 -- 	explodeas = "spybombxscav",
 -- 	selfdestructas = "spybombxscav",
 -- 	mincloakdistance = 64,
@@ -915,12 +915,12 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.corroach = {
+-- customDefs.cortex_bedbug = {
 -- 	cloakcost = 3,
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.corsktl = {
+-- customDefs.cortex_skuttle = {
 -- 	cloakcost = 6,
 -- 	mincloakdistance = 144,
 -- }
@@ -1092,7 +1092,7 @@ customDefs.corscavdtl = {
 -- 	-- workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 -- }
 
--- customDefs.cornecro = {
+-- customDefs.cortex_graverobber = {
 -- 	-- cancloak = true,
 -- 	-- cloakcost = 10,
 -- 	--cloakcostmoving = 100,
@@ -1172,9 +1172,9 @@ customDefs.armbotrail = {
 	},
 }
 
--- customDefs.corhrk = {
+-- customDefs.cortex_arbiter = {
 -- 	weapondefs = {
--- 		corhrk_rocket = {
+-- 		cortex_arbiter_rocket = {
 -- 			range = 605,
 -- 			reloadtime = 4,
 -- 			damage = {

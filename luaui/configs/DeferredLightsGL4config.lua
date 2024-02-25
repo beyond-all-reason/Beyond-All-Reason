@@ -704,7 +704,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corvoyr'] = {
+	['cortex_augur'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -1907,7 +1907,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corspec'] = {
+	['cortex_deceiver'] = {
 		cloaklightred = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -2001,7 +2001,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corack'] = {
+	['cortex_advancedconstructionbot'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -7561,7 +7561,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcrash'] = {
+	['cortex_trasher'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -7599,7 +7599,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfast'] = {
+	['cortex_twitcher'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -7637,7 +7637,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cornecro'] = {
+	['cortex_graverobber'] = {
 		corbuildlight = {
 			lightType = 'point',
 			pieceName = 'corhexl_emit',
@@ -8823,7 +8823,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corspy'] = {
+	['cortex_spectre'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -8834,7 +8834,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormando'] = {
+	['cortex_commando'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -8997,7 +8997,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corhrk'] = {
+	['cortex_arbiter'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -9017,7 +9017,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corak'] = {
+	['cortex_grunt'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13311,7 +13311,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coramph'] = {
+	['cortex_duck'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13371,7 +13371,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coraak'] = {
+	['cortex_manticore'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'flakgun',
@@ -13402,7 +13402,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corpyro'] = {
+	['cortex_fiend'] = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'lloarm',
@@ -13449,7 +13449,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsumo'] = {
+	['cortex_mammoth'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13469,7 +13469,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cortermite'] = {
+	['cortex_termite'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -13491,7 +13491,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corstorm'] = {
+	['cortex_aggravator'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -13502,7 +13502,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormort'] = {
+	['cortex_sheldon'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -13558,7 +13558,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corthud'] = {
+	['cortex_thug'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -13569,7 +13569,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsktl'] = {
+	['cortex_skuttle'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -13580,7 +13580,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corroach'] = {
+	['cortex_bedbug'] = {
 		base = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18483,7 +18483,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['corck'] = {
+	['cortex_constructionbot'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',

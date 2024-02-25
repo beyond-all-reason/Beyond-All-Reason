@@ -15,7 +15,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
--- for testing: /luarules fightertest corak armada_pawn 100 10 3000
+-- for testing: /luarules fightertest cortex_grunt armada_pawn 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
 

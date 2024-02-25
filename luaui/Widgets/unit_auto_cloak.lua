@@ -19,12 +19,12 @@ local unitdefConfigNames = {
 	['armada_rattlesnake'] = false,
 	['armada_pitbull'] = false,
 	['armada_sharpshooter'] = false,
-	['corsktl'] = false,
+	['cortex_skuttle'] = false,
 	['armada_gremlin'] = false,
 	['armada_twilight'] = true,
 	['armada_cloakablefusionreactor'] = true,
 	['armada_ghost'] = true,
-	['corspy'] = true,
+	['cortex_spectre'] = true,
 }
 -- convert unitname -> unitDefID
 local unitdefConfig = {}

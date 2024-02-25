@@ -984,7 +984,7 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 
 -- hue hue turning these on will completely break the game...
 --projectileDefLights[WeaponDefNames["armada_rocketeer_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
---projectileDefLights[WeaponDefNames["corstorm_cor_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
+--projectileDefLights[WeaponDefNames["cortex_aggravator_cor_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
 
 
 

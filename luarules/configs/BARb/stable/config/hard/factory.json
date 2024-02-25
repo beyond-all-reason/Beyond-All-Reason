@@ -387,7 +387,7 @@
 
 		"income_tier": [20, 30, 70, 120],
 
-		"unit":      ["corck", "corak", "cornecro", "corstorm", "corthud", "corcrash"],
+		"unit":      ["cortex_constructionbot", "cortex_grunt", "cortex_graverobber", "cortex_aggravator", "cortex_thug", "cortex_trasher"],
 
 		"land": {
 			"tier0": [ 0.25,    0.55,    0.15,      0.01,       0.40,      	0.00],
@@ -414,7 +414,7 @@
 
 		"income_tier": [30, 60],
 
-		"unit":      ["corack",  "corpyro", "corsumo", "cortex_sumo", "corfast", "cormort", "corhrk", "coraak", 	"coramph", "cormando", 	"cortex_decoycommander", "corroach",	"corsktl", "corvoyr", "corspec", "corspy",	"cortermite"],
+		"unit":      ["cortex_advancedconstructionbot",  "cortex_fiend", "cortex_mammoth", "cortex_sumo", "cortex_twitcher", "cortex_sheldon", "cortex_arbiter", "cortex_manticore", 	"cortex_duck", "cortex_commando", 	"cortex_decoycommander", "cortex_bedbug",	"cortex_skuttle", "cortex_augur", "cortex_deceiver", "cortex_spectre",	"cortex_termite"],
                                                                                                                                                         
 		"land": {                                                                                                                                       
 			"tier0": [ 0.30,      0.50,      0.00,      0.00,     0.00,      0.20,      0.00,     0.01,     0.00,		0.00,       0.00,		0.00,		0.00,      0.00,		0.00,   	0.00,		0.00],   
@@ -666,7 +666,7 @@
 
 		"income_tier": [30],
 
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "corcrash", "coraak"],
+		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "cortex_trasher", "cortex_manticore"],
 
 		"land": {
 			"tier0": [ 0.10,        0.00,       0.30,       0.00,       0.00,       0.00],

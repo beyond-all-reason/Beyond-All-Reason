@@ -726,84 +726,84 @@
 
 
 	// CORE bot - corlab
-	"corck": {
+	"cortex_constructionbot": {
 		"role": ["builder"],
 		"limit": 25,
 		"build_speed": 5.0
 	},
-	"corak": {
+	"cortex_grunt": {
 		"role": ["raider"],
 		"attribute": ["scout"]
 	},
-	"cornecro": {
+	"cortex_graverobber": {
 		"role": ["raider"],
 		"limit": 5,
 		"since": 200
 	},
-	"corstorm": {
+	"cortex_aggravator": {
 		"role": ["skirmish"]
 	},
-	"corthud": {
+	"cortex_thug": {
 		"role": ["assault"]
 	},
-	"corcrash": {
+	"cortex_trasher": {
 		"role": ["anti_air"],
 		"limit": 30
 	},
 
 	// adv bot - coralab
-	"corack": {
+	"cortex_advancedconstructionbot": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
 		"limit": 3,
 		"build_speed": 10.0
 	},
-	"corfast": {
+	"cortex_twitcher": {
 		"role": ["builder"],
 		"limit": 2,
 		"build_speed": 10.0
 	},
-	"cortermite": {
+	"cortex_termite": {
 		"role": ["raider"]
 	},
-	"corpyro": {
+	"cortex_fiend": {
 		"role": ["assault"]
 	},
-	"corsumo": {
+	"cortex_mammoth": {
 		"role": ["heavy"]
 	},
 	"cortex_sumo": {
 		"role": ["assault"]
 	},
-	"cormort": {
+	"cortex_sheldon": {
 		"role": ["artillery"],
 		"attribute": ["skirmish"]
 	},
-	"corhrk": {
+	"cortex_arbiter": {
 		"role": ["artillery"]
 	},
-	"coraak": {
+	"cortex_manticore": {
 		"role": ["anti_air"]
 	},
-	"cormando": {
+	"cortex_commando": {
 		"role": ["builder"],
 		"limit": 2,
 		"build_speed": 10.0
 	},
-	"corsktl": {
+	"cortex_skuttle": {
 		"role": ["assault"],
 		"attribute": ["melee"],
 		"retreat": 0
 	},
-	"corvoyr": {
+	"cortex_augur": {
 		"role": ["assault"],
 		"attribute": ["support"],
 		"limit": 1
 	},
-	"coramph": {
+	"cortex_duck": {
 		"role": ["raider", "anti_air"]
 	},
-	"corspy": {
+	"cortex_spectre": {
 		"role": ["scout"]
 	},
 

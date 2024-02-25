@@ -1797,32 +1797,32 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T1 BOTS
 
-	corak = {
+	cortex_grunt = {
 		BaseSoundSelectType = "cor-bot-tiny-sel",
 		BaseSoundMovementType = "cor-bot-tiny-ok",
 		BaseSoundWeaponType = "laser-small-cor",
 	},
-	corthud = {
+	cortex_thug = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	corstorm = {
+	cortex_aggravator = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "rocketalt-small",
 	},
-	corcrash = {
+	cortex_trasher = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	corck = {
+	cortex_constructionbot = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	cornecro = {
+	cortex_graverobber = {
 		BaseSoundSelectType = "cor-bot-tiny-sel",
 		BaseSoundMovementType = "cor-bot-tiny-ok",
 		BaseSoundWeaponType = "rez-small",
@@ -1830,52 +1830,52 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T2 BOTS
 
-	corroach = {
+	cortex_bedbug = {
 		BaseSoundSelectType = "cor-bot-tiny-sel",
 		BaseSoundMovementType = "cor-bot-tiny-ok",
 		BaseSoundWeaponType = "bomb",
 	},
-	corspec = {
+	cortex_deceiver = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	corvoyr = {
+	cortex_augur = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "radar-t2",
 	},
-	corspy = {
+	cortex_spectre = {
 		BaseSoundSelectType = "cor-bot-small-sel",
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "cloak",
 	},
-	corpyro = {
+	cortex_fiend = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
 		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
-	corfast = {
+	cortex_twitcher = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
 		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
-	coramph = {
+	cortex_duck = {
 		BaseSoundSelectType = "cor-bot-medium-amph-sel",
 		BaseSoundMovementType = "cor-bot-medium-amph-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
-	cormort = {
+	cortex_sheldon = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
 		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "arty-medium",
 	},
-	corack = {
+	cortex_advancedconstructionbot = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
 		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
-	corsktl = {
+	cortex_skuttle = {
 		BaseSoundSelectType = "cor-bot-at-sel",
 		BaseSoundMovementType = "cor-bot-at-ok",
 		BaseSoundWeaponType = "bomb",
@@ -1885,27 +1885,27 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-large-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
-	corhrk = {
+	cortex_arbiter = {
 		BaseSoundSelectType = "cor-bot-medium-sel",
 		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	coraak = {
+	cortex_manticore = {
 		BaseSoundSelectType = "cor-bot-large-ok",
 		BaseSoundMovementType = "cor-bot-large-sel",
 		BaseSoundWeaponType = "aarocket-medium-flak",
 	},
-	cortermite = {
+	cortex_termite = {
 		BaseSoundSelectType = "cor-bot-at-sel",
 		BaseSoundMovementType = "cor-bot-at-ok",
 		BaseSoundWeaponType = "heatray",
 	},
-	cormando = {
+	cortex_commando = {
 		BaseSoundSelectType = "cor-bot-medium-stealth-sel",
 		BaseSoundMovementType = "cor-bot-medium-stealth-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	corsumo = {
+	cortex_mammoth = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
 		BaseSoundWeaponType = "laser-large",

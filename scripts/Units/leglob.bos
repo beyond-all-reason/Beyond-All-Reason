@@ -10,7 +10,7 @@ static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFrames
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_WALK			2
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corthud_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_thug_anim_walk.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4
 			turn turret to x-axis <-6.599999> speed <197.999970> / animSpeed; 
@@ -464,9 +464,9 @@ FirePrimary()
 	return (0);
 }
 
-// For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
+// For N:\animations\cortex_thug_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
+DeathAnim() {// For N:\animations\cortex_thug_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	signal SIG_WALK;
 	signal SIG_AIM;
 	call-script StopWalking();

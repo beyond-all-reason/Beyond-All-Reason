@@ -21,13 +21,13 @@ local GetUnitHealth = Spring.GetUnitHealth
 local SetUnitHealth = Spring.SetUnitHealth
 
 local PWN_UNITS = {
-  [UnitDefNames.corpyro.id] = true,
+  [UnitDefNames.cortex_fiend.id] = true,
   [UnitDefNames.cormaw.id] = true,
-  [UnitDefNames.corthud.id] = true,
+  [UnitDefNames.cortex_thug.id] = true,
   [UnitDefNames.armada_mace.id] = true,
   [UnitDefNames.armada_rover.id] = true,
   [UnitDefNames.corfav.id] = true,
-  [UnitDefNames.corak.id] = true,
+  [UnitDefNames.cortex_grunt.id] = true,
   [UnitDefNames.corpt.id] = true,
   [UnitDefNames.armada_skater.id] = true,
   [UnitDefNames.armada_dolphin.id] = true,

@@ -62,12 +62,12 @@ return {
 		workertime = 300,
 		buildoptions = {
 			-- rezzers
-			"cornecro",
+			"cortex_graverobber",
 			-- builders
 			"cortex_constructionaircraft",
 			--"cortex_advancedconstructionaircraft",
-			"corck",
-			--"corack",
+			"cortex_constructionbot",
+			--"cortex_advancedconstructionbot",
 			"corch",
 			"corcsa",
 			"corcs",

@@ -2,7 +2,7 @@ local unitOrderTable = {
 -- UNITS
 	--CONSTRUCTORS
 	['armada_constructionbot']          = 001100, --BOTS
-	['corck']          = 001110,
+	['cortex_constructionbot']          = 001110,
 	['legck']          = 001115,
 
 	['armada_constructionvehicle']          = 001120, --VEH
@@ -29,7 +29,7 @@ local unitOrderTable = {
 	['corch']          = 002050,
 
 	['armada_lazarus']       = 002100, --REZ BOTS
-	['cornecro']       = 002150,
+	['cortex_graverobber']       = 002150,
 
 	['armada_groundhog']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
@@ -38,7 +38,7 @@ local unitOrderTable = {
 	['correcl']        = 002350,
 
 	['armada_advancedconstructionbot']         = 002400,
-	['corack']         = 002450,
+	['cortex_advancedconstructionbot']         = 002450,
 	['legack']         = 002455,
 
 	['armada_advancedconstructionvehicle']         = 002500,
@@ -54,7 +54,7 @@ local unitOrderTable = {
 
 	--NANO SUPPORT
 	['armada_butler']        = 003100, --BOTS
-	['corfast']        = 003200,
+	['cortex_twitcher']        = 003200,
 
 	['armada_consul']      = 003300, --VEH
 	['corprinter']     = 003325, --VEH
@@ -68,10 +68,10 @@ local unitOrderTable = {
 	['armada_decoycommander']       = 003600, --SUPPORT COMS
 	['cortex_decoycommander']       = 003700,
 
-	['cormando']       = 003800, --COMMANDO
+	['cortex_commando']       = 003800, --COMMANDO
 
 	['armada_ghost']         = 003900, --SPIES
-	['corspy']         = 004000,
+	['cortex_spectre']         = 004000,
 
 	-- AIR SCOUTS LAND UNARMED
 	['armada_blink']        = 004030, --AIR
@@ -83,9 +83,9 @@ local unitOrderTable = {
 
 	-- SCOUTS/UTILITY LAND
 	['armada_compass']        = 004100,
-	['corvoyr']        = 004110,
+	['cortex_augur']        = 004110,
 	['armada_radarjammerbot']        = 004120,
-	['corspec']        = 004130,
+	['cortex_deceiver']        = 004130,
 
 	['armada_prophet']        = 004200,
 	['corvrad']        = 004210,
@@ -150,7 +150,7 @@ local unitOrderTable = {
 
 	-- T1 LAND ATTACK
 	['armada_pawn']          = 005000, --FAST
-	['corak']          = 005010,
+	['cortex_grunt']          = 005010,
 	['leggob']		   = 005015,
 	['leglob']         = 005016,
 	['armada_blitz']       = 005020,
@@ -168,11 +168,11 @@ local unitOrderTable = {
 	['leggat']		   = 005252,
 
 	['armada_rocketeer']        = 005300, --ROCKETS
-	['corstorm']       = 005310,
+	['cortex_aggravator']       = 005310,
 	['legbal']		   = 005311,
 
 	['armada_mace']         = 005400, --ARTILLERY
-	['corthud']        = 005410,
+	['cortex_thug']        = 005410,
 	['armada_shellshocker']         = 005420,
 	['corwolv']        = 005430,
 	['armada_possum']          = 005420,
@@ -194,7 +194,7 @@ local unitOrderTable = {
 
 	['armada_sprinter']        = 006100, --FAST
 	['legstr']         = 006105,
-	['corpyro']        = 006110,
+	['cortex_fiend']        = 006110,
 	['armada_jaguar']       = 006120,
 	['cortorch']       = 006125,
 	['legmrv']         = 006130,
@@ -208,14 +208,14 @@ local unitOrderTable = {
 	['armada_starlight']       = 006340,
 	['corgatreap']     = 006350,
 
-	['corhrk']         = 006400, --ROCKETS
+	['cortex_arbiter']         = 006400, --ROCKETS
 	['armada_ambassador']        = 006410,
 	['corvroc']        = 006420,
 	['armada_ambassador']        = 006430,
 	['corban']         = 006440,
 
 	['armada_hound']        = 006500, --ARTILLERY
-	['cormort']        = 006510,
+	['cortex_sheldon']        = 006510,
 	['legbart']        = 006515,
 	['legvcarry']      = 006516,
 	['armada_mauser']        = 006520,
@@ -224,7 +224,7 @@ local unitOrderTable = {
 	['leginf']         = 006550,
 
 	['armada_recluse']        = 006600, --ALL-TERRAIN
-	['cortermite']     = 006610,
+	['cortex_termite']     = 006610,
 	['leginfestor']   = 006614,
 	['legsrail']       = 006615,
 
@@ -232,16 +232,16 @@ local unitOrderTable = {
 	['cortex_sumo']         = 006710,
 	['legshot']        = 006715,
 	['armada_sharpshooter']       = 006720,
-	['corsumo']        = 006730,
+	['cortex_mammoth']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,
 
 	['armada_tumbleweed']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
-	['corroach']       = 006820,
-	['corsktl']        = 006830,
+	['cortex_bedbug']       = 006820,
+	['cortex_skuttle']        = 006830,
 
 	['armada_amphibiousbot']        = 006900, --LAND + AMPHIBIOUS
-	['coramph']        = 006910,
+	['cortex_duck']        = 006910,
 	['armada_turtle']        = 006920,
 	['corseal']        = 006930,
 	['corsala']        = 006935,
@@ -276,7 +276,7 @@ local unitOrderTable = {
 	['armassimilator'] = 007220,
 
 	['armada_pawnt4']        = 007300,
-   ['corakt4']        = 007310,
+   ['cortex_gruntt4']        = 007310,
 	['armada_recluset4']      = 007320,
 	['cordemon']     = 007330,
 	['corkarganetht4'] = 007340,
@@ -293,9 +293,9 @@ local unitOrderTable = {
 
 	-- LAND AA
 	['armada_crossbow']        = 008000,
-	['corcrash']       = 008010,
+	['cortex_trasher']       = 008010,
 	['armada_archangel']         = 008020,
-	['coraak']         = 008030,
+	['cortex_manticore']         = 008030,
 
 	['armada_shredder']        = 008200,
 	['corsent']        = 008210,
@@ -305,7 +305,7 @@ local unitOrderTable = {
 
 	-- -- T2 AA
 	-- ['armada_archangel']         = 008500,
-	-- ['coraak']         = 008510,
+	-- ['cortex_manticore']         = 008510,
 
 	-- ['armada_shredder']        = 008520,
 	-- ['corsent']        = 008530,
@@ -540,7 +540,7 @@ local unitOrderTable = {
    ['cormine1']       = 105200,
    ['armada_mediummine']       = 105300,
    ['cormine2']       = 105400,
-   ['cormine4']       = 105500, --cormando
+   ['cormine4']       = 105500, --cortex_commando
    ['armada_heavymine']       = 105600,
    ['cormine3']       = 105700,
 

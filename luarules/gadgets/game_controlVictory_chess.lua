@@ -141,7 +141,7 @@ local starterLandUnitsList = {
         table = {
             --bots
             "armada_pawn",
-            "corak",
+            "cortex_grunt",
             --vehicles
             "armada_blitz",
             "corgator",
@@ -166,7 +166,7 @@ local starterLandUnitsList = {
     [3] = {
         table = {
             "armada_lazarus",
-            "cornecro",
+            "cortex_graverobber",
         },
         quantity = 4,
     },
@@ -180,7 +180,7 @@ local starterLandUnitsList = {
     [5] = {
         table = {
             -- "armada_crossbow",
-            -- "corcrash",
+            -- "cortex_trasher",
             -- "armada_sweeper",
             -- "corah",
             "armada_whistler",
@@ -202,10 +202,10 @@ local landUnitsList = {
                 "armada_mace",
                 --"armada_crossbow",
                 "armada_centurion",
-                "corak",
-                "corthud",
-                "corstorm",
-                --"corcrash",
+                "cortex_grunt",
+                "cortex_thug",
+                "cortex_aggravator",
+                --"cortex_trasher",
                 "legkark",
                 "leggob",
                 "legcen",
@@ -241,7 +241,7 @@ local landUnitsList = {
         [2] = {
             table = {
                 "armada_lazarus",
-                "cornecro",
+                "cortex_graverobber",
             },
             quantity = 4,
         },
@@ -251,7 +251,7 @@ local landUnitsList = {
         --         "armada_constructionvehicle",
         --         "armada_beaver",
         --         "armada_constructionhovercraft",
-        --         "corck",
+        --         "cortex_constructionbot",
         --         "corcv",
         --         "cormuskrat",
         --     },
@@ -275,17 +275,17 @@ local landUnitsList = {
                 --"armada_archangel",
                 "armada_sharpshooter",
                 "armada_gunslinger",
-                "corroach",
-                "corpyro",
-                --"corfast",
-                "cormort",
-                "coramph",
-                "corsktl",
-                "corspy",
+                "cortex_bedbug",
+                "cortex_fiend",
+                --"cortex_twitcher",
+                "cortex_sheldon",
+                "cortex_duck",
+                "cortex_skuttle",
+                "cortex_spectre",
                 "cortex_sumo",
-                --"coraak",
-                "cortermite",
-                "cormando",
+                --"cortex_manticore",
+                "cortex_termite",
+                "cortex_commando",
 
                 -- Vehicles
                 "armada_gremlin",
@@ -313,7 +313,7 @@ local landUnitsList = {
         [2] = {
             table = {
                 "armada_lazarus",
-                "cornecro",
+                "cortex_graverobber",
             },
             quantity = 3,
         },
@@ -323,7 +323,7 @@ local landUnitsList = {
         --         "armada_decoycommander",
         --         "armada_advancedconstructionvehicle",
         --         --"armada_consul",
-        --         "corack",
+        --         "cortex_advancedconstructionbot",
         --         "cortex_decoycommander",
         --         "coracv",
         --     },
@@ -337,11 +337,11 @@ local landUnitsList = {
             table = {
                 -- Heavy T2s
                 "corgol",
-                "corsumo",
+                "cortex_mammoth",
                 "armada_fatboy",
                 "armada_starlight",
                 "cortrem",
-                "corhrk",
+                "cortex_arbiter",
 
                 -- Bots
                 "armada_marauder",
@@ -367,7 +367,7 @@ local landUnitsList = {
         [2] = {
             table = {
                 "armada_lazarus",
-                "cornecro",
+                "cortex_graverobber",
             },
             quantity = 2,
         },
@@ -377,7 +377,7 @@ local landUnitsList = {
         --         "armada_decoycommander",
         --         "armada_advancedconstructionvehicle",
         --         --"armada_consul",
-        --         "corack",
+        --         "cortex_advancedconstructionbot",
         --         "cortex_decoycommander",
         --         "coracv",
         --     },
@@ -398,7 +398,7 @@ local landUnitsList = {
                 "armada_pawnt4",
                 "armrattet4",
                 "armada_tumbleweedt4",
-                "corakt4",
+                "cortex_gruntt4",
                 "cordemon",
                 "corkarganetht4",
                 "corgolt4",
@@ -408,7 +408,7 @@ local landUnitsList = {
         [2] = {
             table = {
                 "armada_lazarus",
-                "cornecro",
+                "cortex_graverobber",
             },
             quantity = 1,
         },
@@ -418,7 +418,7 @@ local landUnitsList = {
         --         "armada_decoycommander",
         --         "armada_advancedconstructionvehicle",
         --         --"armada_consul",
-        --         "corack",
+        --         "cortex_advancedconstructionbot",
         --         "cortex_decoycommander",
         --         "coracv",
         --     },

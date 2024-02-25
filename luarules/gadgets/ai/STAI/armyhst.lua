@@ -31,12 +31,12 @@ function ArmyHST:Init()
 		cortex_advancedconstructionaircraft = true,
 		armada_advancedconstructionvehicle = true,
 		armada_advancedconstructionbot = true,
-		corack = true,
+		cortex_advancedconstructionbot = true,
 		corcv = true,
 		armada_advancedconstructionaircraft = true,
 		corcs = true,
 		armada_constructionship = true,
-		corck = true,
+		cortex_constructionbot = true,
 		armada_constructionbot = true,
 
 
@@ -46,20 +46,20 @@ function ArmyHST:Init()
 		armada_voyager = true,
 		armada_butler = true,
 		armada_consul = true,
-		corfast = true,
+		cortex_twitcher = true,
 		cormls = true,
 
 		}
 	self.wartechs = {
 		armada_decoycommander = true,
 		cortex_decoycommander = true,
-		cormando = true,
+		cortex_commando = true,
 
 
 		} --decoy etc
 	self.rezs = {
 		armada_lazarus = true,
-		cornecro = true,
+		cortex_graverobber = true,
 		armada_grimreaper = true,
 		correcl = true,
 
@@ -81,7 +81,7 @@ function ArmyHST:Init()
 		armada_radarjammerbot = true,
 		armada_umbra = true,
 		corsjam = true,
-		corspec = true,
+		cortex_deceiver = true,
 
 
 		}
@@ -91,7 +91,7 @@ function ArmyHST:Init()
 		corvrad = true,
 		armada_compass = true,
 		armada_prophet = true,
-		corvoyr = true,
+		cortex_augur = true,
 		cortex_condor = true,
 		armada_oracle = true,
 		armada_horizon = true,
@@ -101,7 +101,7 @@ function ArmyHST:Init()
 		}
 	self.spys = {
 		armada_ghost = true,
-		corspy = true,
+		cortex_spectre = true,
 		}
 	self.transports = {
 		cortex_hercules = true,
@@ -130,11 +130,11 @@ function ArmyHST:Init()
 	self.raiders = {
 		armada_blitz = true,
 		corgator = true,
-		corak = true,
+		cortex_grunt = true,
 		armada_pawn = true,
 		armada_jaguar = true,
 		corseal = true,
-		corpyro = true,
+		cortex_fiend = true,
 		armada_welder = true,
 		armada_seeker = true,
 		corsh = true,
@@ -148,11 +148,11 @@ function ArmyHST:Init()
 		}
 	self.artillerys = {
 		armada_rocketeer = true,
-		corstorm = true,
+		cortex_aggravator = true,
 		armada_shellshocker = true,
 		corwolv = true,
 		armada_hound = true,
-		cormort = true,
+		cortex_sheldon = true,
 		armada_mauser = true,
 		cormart = true,
 		armada_vanguard = true,--t3a
@@ -168,7 +168,7 @@ function ArmyHST:Init()
 		armada_ambassador = true,
 		corvroc = true, -- T2C
 -- 		corban = true,T2C
-		corhrk = true,
+		cortex_arbiter = true,
 		cormship = true,
 		armada_longbow = true,
 		armada_possum = true,
@@ -177,7 +177,7 @@ function ArmyHST:Init()
 
 	self.battles = {
 		armada_mace = true,
-		corthud = true,
+		cortex_thug = true,
 		armada_stout = true,
 		corraid = true,
 		armada_gunslinger = true,
@@ -206,7 +206,7 @@ function ArmyHST:Init()
 		armada_janus = true,
 		corlevlr = true,
 		armada_fatboy = true,
-		corsumo = true,
+		cortex_mammoth = true,
 		corgol = true,
 		armada_starlight = true,
 		armada_lunkhead = true,--hover
@@ -228,14 +228,14 @@ function ArmyHST:Init()
 		armada_turtle = true,
 		armada_amphibiousbot = true,
 		corgarp = true,
-		coramph = true,
+		cortex_duck = true,
 		armada_marauder = true,
 		corshiva = true,
 
 		}
 
 	self.spiders = {
-		cortermite = true,
+		cortex_termite = true,
 		armada_recluse = true,
 
 		}
@@ -301,9 +301,9 @@ function ArmyHST:Init()
 		armada_archangel = true,
 		armada_shredder = true,
 		cormist = true,
-		corcrash = true,
+		cortex_trasher = true,
 		armada_crossbow = true,
-		coraak = true,
+		cortex_manticore = true,
 		corarch = true,
 		armada_skater = true, --aa+scout
 		corpt = true, --aa+scout
@@ -318,8 +318,8 @@ function ArmyHST:Init()
 
 	self.crawlings = {
 		armada_tumbleweed = true,
-		corroach = true,
-		corsktl = true,
+		cortex_bedbug = true,
+		cortex_skuttle = true,
 		}
 
 	self.cloakables = {
@@ -795,7 +795,7 @@ ArmyHST.groundFacList = {
 	armada_amphibiouscomplex = 1,
 	corgant = 1,
 	armada_experimentalgantry = 1,
-	corfast = 1,
+	cortex_twitcher = 1,
 	armada_consul = 1,
 	armada_butler = 1,
 	}
@@ -878,7 +878,7 @@ ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
 -- multiple units for one mtype function as OR
 ArmyHST.mobUnitNames = {
 	veh = {"corcv", "armada_sentry"},
-	bot = {"corck", "armada_beholder"},
+	bot = {"cortex_constructionbot", "armada_beholder"},
 	amp = {"cormuskrat"},
 	hov = {"corsh", "armada_sharksteeth"},
 	shp = {"corcs"},

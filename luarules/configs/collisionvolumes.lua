@@ -126,7 +126,7 @@ for name, v in pairs(unitCollisionVolume) do
 		end
 	end
 end
-pieceCollisionVolume['corhrk'] = {
+pieceCollisionVolume['cortex_arbiter'] = {
 	['2']={35,40,30,0,-8,0,2,1},
 
 }

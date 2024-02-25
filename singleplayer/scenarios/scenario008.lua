@@ -148,13 +148,13 @@ Scoring:
             {name = 'armada_sentry', x = 1408, y = 157, z = 1088, rot = 16384 , team = 0},
             {name = 'armada_nettle', x = 1304, y = 155, z = 520, rot = 16384 , team = 0},
             {name = 'armada_nettle', x = 1128, y = 155, z = 1016, rot = 16384 , team = 0},
-            {name = 'corak', x = 5697, y = 52, z = 1720, rot = -29165 , team = 1},
+            {name = 'cortex_grunt', x = 5697, y = 52, z = 1720, rot = -29165 , team = 1},
             {name = 'armada_nettle', x = 920, y = 154, z = 856, rot = 16384 , team = 0},
             --{name = 'armada_energystorage', x = 1096, y = 154, z = 664, rot = 16384 , team = 0},
-            {name = 'corthud', x = 5744, y = 52, z = 1790, rot = -32739 , team = 1},
+            {name = 'cortex_thug', x = 5744, y = 52, z = 1790, rot = -32739 , team = 1},
             {name = 'armada_metalextractor', x = 3480, y = 52, z = 776, rot = 16384 , team = 0},
             {name = 'corrad', x = 5296, y = 53, z = 2368, rot = 0 , team = 1},
-            {name = 'corak', x = 5698, y = 52, z = 1998, rot = 32767 , team = 1},
+            {name = 'cortex_grunt', x = 5698, y = 52, z = 1998, rot = 32767 , team = 1},
 
 		},
 		featureloadout = {

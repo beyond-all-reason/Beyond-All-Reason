@@ -43,8 +43,8 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.corshroud.id] = true,
 		[UnitDefNames.corsjam.id] = true,
 		[UnitDefNames.corsonar.id] = true,
-		[UnitDefNames.corspec.id] = true,
-		[UnitDefNames.corvoyr.id] = true,
+		[UnitDefNames.cortex_deceiver.id] = true,
+		[UnitDefNames.cortex_augur.id] = true,
 		[UnitDefNames.corvrad.id] = true,
 
 		[UnitDefNames.corfav.id] = true,

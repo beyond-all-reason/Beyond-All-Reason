@@ -35,8 +35,8 @@ return {
 			[2] = "corgarp",
 			[3] = "corsala",
 			[4] = "corparrow",
-			[5] = "corcrash",
-			[6] = "coraak",
+			[5] = "cortex_trasher",
+			[6] = "cortex_manticore",
 			[7] = "cortex_decoycommander",
 		},
 		customparams = {

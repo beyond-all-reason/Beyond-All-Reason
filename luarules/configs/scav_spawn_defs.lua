@@ -174,7 +174,7 @@ local LandUnitsList = {
 			["armada_rover_scav"] = 1,
 			["armada_seeker_scav"] = 1,
 			--Cortex
-			["corak_scav"] = 1,
+			["cortex_grunt_scav"] = 1,
 			["corfav_scav"] = 1,
 			["corsh_scav"] = 1,
 			--Legion
@@ -197,9 +197,9 @@ local LandUnitsList = {
 			--Cortex
 			["cortorch_scav"] = 1,
 			["corsala_scav"] = 1,
-			["corpyro_scav"] = 1,
+			["cortex_fiend_scav"] = 1,
 			["corseal_scav"] = 1,
-			["coramph_scav"] = 1,
+			["cortex_duck_scav"] = 1,
 			--Legion
 			["legmrv_scav"] = 1,
 			["legstr_scav"] = 1,
@@ -218,7 +218,7 @@ local LandUnitsList = {
 			["armada_pawnt4_scav"] = 1,
 			["armada_marauder_scav"] = 1,
 			--Cortex
-			["corakt4_scav"] = 1,
+			["cortex_gruntt4_scav"] = 1,
 			--Legion
 			--N/A
 		},
@@ -237,7 +237,7 @@ local LandUnitsList = {
 			["armada_mace_scav"] = 1,
 			["armada_pincer_scav"] = 1,
 			--Cortex
-			["corthud_scav"] = 1,
+			["cortex_thug_scav"] = 1,
 			["corgarp_scav"] = 1,
 			--Legion
 			["legcen_scav"] = 1,
@@ -278,10 +278,10 @@ local LandUnitsList = {
 			["corparrow_scav"] = 1,
 			["corftiger_scav"] = 1,
 			["corgol_scav"] = 1,
-			["corroach_scav"] = 1,
-			["corsktl_scav"] = 1,
-			["cortermite_scav"] = 1,
-			["corsumo_scav"] = 1,
+			["cortex_bedbug_scav"] = 1,
+			["cortex_skuttle_scav"] = 1,
+			["cortex_termite_scav"] = 1,
+			["cortex_mammoth_scav"] = 1,
 			["correap_scav"] = 1,
 			["corgatreap_scav"] = 1,
 			--Legion
@@ -324,8 +324,8 @@ local LandUnitsList = {
 			["armada_crossbow_scav"] = 1,
 			["armada_sweeper_scav"] = 1,
 			--Cortex
-			["corstorm_scav"] = 1,
-			["corcrash_scav"] = 1,
+			["cortex_aggravator_scav"] = 1,
+			["cortex_trasher_scav"] = 1,
 			["corah_scav"] = 1,
 			--Legion
 			["legbal_scav"] = 1,
@@ -354,8 +354,8 @@ local LandUnitsList = {
 			--Cortex
 			["cormart_scav"] = 1,
 			["corsent_scav"] = 1,
-			["coraak_scav"] = 1,
-			["cormort_scav"] = 1,
+			["cortex_manticore_scav"] = 1,
+			["cortex_sheldon_scav"] = 1,
 			--Legion
 			["legvcarry_scav"] = 1,
 			["legbart_scav"] = 1,
@@ -370,7 +370,7 @@ local LandUnitsList = {
 			["corban_scav"] = 1,
 			["corvroc_scav"] = 1,
 			["cortrem_scav"] = 1,
-			["corhrk_scav"] = 1,
+			["cortex_arbiter_scav"] = 1,
 			--Legion
 			["leginf_scav"] = 1,
 
@@ -408,8 +408,8 @@ local LandUnitsList = {
 			["armada_lazarus_scav"] = 20,
 			["armada_constructionvehicle_scav"] = 1,
 			--Cortex
-			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
+			["cortex_constructionbot_scav"] = 1,
+			["cortex_graverobber_scav"] = 20,
 			["corcv_scav"] = 1,
 			--Legion
 			["legcv_scav"] = 1,
@@ -423,11 +423,11 @@ local LandUnitsList = {
 			["armada_decoycommander_scav"] = 1,
 			["armada_consul_scav"] = 1,
 			--Cortex
-			["corack_scav"] = 1,
+			["cortex_advancedconstructionbot_scav"] = 1,
 			["coracv_scav"] = 1,
-			["corfast_scav"] = 1,
+			["cortex_twitcher_scav"] = 1,
 			["cortex_decoycommander_scav"] = 1,
-			["cormando_scav"] = 1,
+			["cortex_commando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
@@ -889,7 +889,7 @@ scavBehaviours = {
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
 		[UnitDefNames["armada_lazarus_scav"].id] = true,--Armada Rezzer
-		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
+		[UnitDefNames["cortex_graverobber_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
@@ -1050,7 +1050,7 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Airland)
-addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armada_lazarus_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armada_lazarus_scav","6 cortex_graverobber_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armada_rover_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armada_blitz_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid

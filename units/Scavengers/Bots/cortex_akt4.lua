@@ -1,10 +1,10 @@
 return {
-	corakt4 = {
+	cortex_gruntt4 = {
 		maxacc = 0.4416,
 		maxdec = 0.8625,
 		energycost = 120000,
 		metalcost = 6000,
-		buildpic = "CORAKT4.DDS",
+		buildpic = "cortex_gruntT4.DDS",
 		buildtime = 120000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 25,
 		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORAKT4.s3o",
-		script = "Units/scavboss/CORAKT4.cob",
+		objectname = "Units/scavboss/cortex_gruntT4.s3o",
+		script = "Units/scavboss/cortex_gruntT4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 600,
@@ -58,7 +58,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 3500,
-				object = "Units/scavboss/corakt4_dead.s3o",
+				object = "Units/scavboss/cortex_gruntt4_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

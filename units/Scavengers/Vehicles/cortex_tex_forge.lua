@@ -46,8 +46,8 @@ return {
 			[3] = "cormex",
 			[4] = "cormakr",
 			[5] = "coreyes",
-			[6] = "corvoyr",
-			[7] = "corspec",
+			[6] = "cortex_augur",
+			[7] = "cortex_deceiver",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

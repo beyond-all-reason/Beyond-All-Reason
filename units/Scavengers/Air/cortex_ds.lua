@@ -109,7 +109,7 @@ return {
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				customparams = {
-					spawns_name = "corak",
+					spawns_name = "cortex_grunt",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {

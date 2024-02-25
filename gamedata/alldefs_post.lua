@@ -139,7 +139,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_windturbinet2"
 		end
-		if name == "cortex_advancedconstructionaircraft" or name == "corack" or name == "coracv" then
+		if name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
 		end
@@ -401,7 +401,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
-			uDef.buildoptions[numBuildoptions+2] = "corakt4"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_gruntt4"
 		elseif name == "armada_vehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
@@ -432,11 +432,11 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkarganetht4"
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
-			uDef.buildoptions[numBuildoptions+3] = "corakt4"
+			uDef.buildoptions[numBuildoptions+3] = "cortex_gruntt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armada_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "cortex_constructionaircraft" or name == "corck" or name == "corcv" then
+		elseif name == "cortex_constructionaircraft" or name == "cortex_constructionbot" or name == "corcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -463,7 +463,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armlwall"
-		elseif name == "cortex_advancedconstructionaircraft" or name == "corack" or name == "coracv" then
+		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
@@ -921,7 +921,7 @@ if modOptions.emprework == true then
 		end
 
 
-		if name == "corsumo" then
+		if name == "cortex_mammoth" then
 			uDef.customparams.paralyzemultiplier = 0.9
 		end
 
@@ -1433,7 +1433,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armbot_missile.weaponacceleration = 230
 		uDef.weapondefs.armbot_missile.flighttime = 2.4
 	end
-	if name == "corcrash" then
+	if name == "cortex_trasher" then
 		uDef.weapondefs.corbot_missile.startvelocity = 130
 		uDef.weapondefs.corbot_missile.weaponacceleration = 230
 		uDef.weapondefs.corbot_missile.flighttime = 2.4
@@ -1452,7 +1452,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armaabot_missile2.range = 880
 		uDef.weapons[5].def = ""
 	end
-	if name == "coraak" then
+	if name == "cortex_manticore" then
 		uDef.health = uDef.health * 2
 		uDef.weapondefs.coraabot_missile4.range = 1400
 		uDef.weapondefs.coraabot_missile4.reloadtime = 1.6

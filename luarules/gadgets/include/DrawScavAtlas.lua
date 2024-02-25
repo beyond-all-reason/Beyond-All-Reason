@@ -246,12 +246,12 @@ function DrawScavAtlas:Initialize()
 	}
 
 	self.coreTextures = {
-		[0] = string.format("%%%d:0", UnitDefNames["corak"].id),
-		[1] = string.format("%%%d:1", UnitDefNames["corak"].id),
-		[2] = GetNormal(UnitDefNames["corak"], nil),
-		[3] = string.format("%%-%d:0", FeatureDefNames["corak_dead"].id),
-		[4] = string.format("%%-%d:1", FeatureDefNames["corak_dead"].id),
-		[5] = GetNormal(nil, FeatureDefNames["corak_dead"]),
+		[0] = string.format("%%%d:0", UnitDefNames["cortex_grunt"].id),
+		[1] = string.format("%%%d:1", UnitDefNames["cortex_grunt"].id),
+		[2] = GetNormal(UnitDefNames["cortex_grunt"], nil),
+		[3] = string.format("%%-%d:0", FeatureDefNames["cortex_grunt_dead"].id),
+		[4] = string.format("%%-%d:1", FeatureDefNames["cortex_grunt_dead"].id),
+		[5] = GetNormal(nil, FeatureDefNames["cortex_grunt_dead"]),
 	}
 
 	self.armTexInfo = gl.TextureInfo(self.armTextures[0])

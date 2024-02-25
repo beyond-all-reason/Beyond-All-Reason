@@ -157,7 +157,7 @@ return {
 					vtol = 45,
 				},
 			},
-			corsumo_weapon = {
+			cortex_mammoth_weapon = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.15,
@@ -196,7 +196,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORSUMO_WEAPON",
+				def = "cortex_mammoth_WEAPON",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
 			},

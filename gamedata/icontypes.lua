@@ -975,7 +975,7 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
-	coraak = {
+	cortex_manticore = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
 	},
@@ -987,7 +987,7 @@ local icontypes = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
-	corack = {
+	cortex_advancedconstructionbot = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999
 	},
@@ -1015,19 +1015,19 @@ local icontypes = {
 		bitmap = "icons/hover_aa.png",
 		size = 1.15499997
 	},
-	corak = {
+	cortex_grunt = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.73499995
 	},
-	corakt4 = {
-		bitmap = "icons/corakt4.png",
+	cortex_gruntt4 = {
+		bitmap = "icons/cortex_gruntt4.png",
 		size = 2.30999994
 	},
 	coralab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
 	},
-	coramph = {
+	cortex_duck = {
 		bitmap = "icons/amph_torp.png",
 		size = 1.65999997
 	},
@@ -1139,7 +1139,7 @@ local icontypes = {
 		bitmap = "icons/hover_worker.png",
 		size = 1.25999999
 	},
-	corck = {
+	cortex_constructionbot = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
@@ -1155,7 +1155,7 @@ local icontypes = {
 		bitmap = "icons/cortex_commander.png",
 		size = 1.83749986
 	},
-	corcrash = {
+	cortex_trasher = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
@@ -1267,8 +1267,8 @@ local icontypes = {
 		bitmap = "icons/corasp_2.4.png",
 		size = 2.51999998
 	},
-	corfast = {
-		bitmap = "icons/corfast_1.3.png",
+	cortex_twitcher = {
+		bitmap = "icons/cortex_twitcher_1.3.png",
 		size = 1.16999996
 	},
 	corfatf = {
@@ -1415,7 +1415,7 @@ local icontypes = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
-	corhrk = {
+	cortex_arbiter = {
 		bitmap = "icons/bot_t2_vroc.png",
 		size = 1.41750002
 	},
@@ -1483,8 +1483,8 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
-	cormando = {
-		bitmap = "icons/cormando.png",
+	cortex_commando = {
+		bitmap = "icons/cortex_commando.png",
 		size = 1.65999997
 	},
 	cormart = {
@@ -1547,7 +1547,7 @@ local icontypes = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
-	cormort = {
+	cortex_sheldon = {
 		bitmap = "icons/bot_arty_t2.png",
 		size = 1.36499989
 	},
@@ -1579,7 +1579,7 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	cornecro = {
+	cortex_graverobber = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
 	},
@@ -1611,8 +1611,8 @@ local icontypes = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
 	},
-	corpyro = {
-		bitmap = "icons/corpyro_1.15.png",
+	cortex_fiend = {
+		bitmap = "icons/cortex_fiend_1.15.png",
 		size = 1.20749986
 	},
 	corrad = {
@@ -1639,8 +1639,8 @@ local icontypes = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	corroach = {
-		bitmap = "icons/corroach_0.9.png",
+	cortex_bedbug = {
+		bitmap = "icons/cortex_bedbug_0.9.png",
 		size = 0.94499993
 	},
 	corroy = {
@@ -1735,8 +1735,8 @@ local icontypes = {
 		bitmap = "icons/ship_t2_jammer.png",
 		size = 1.73249984
 	},
-	corsktl = {
-		bitmap = "icons/corsktl.png",
+	cortex_skuttle = {
+		bitmap = "icons/cortex_skuttle.png",
 		size = 1.14999998
 	},
 	corslrpc = {
@@ -1759,11 +1759,11 @@ local icontypes = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
-	corspec = {
+	cortex_deceiver = {
 		bitmap = "icons/bot_t2_jammer.png",
 		size = 1.34399986
 	},
-	corspy = {
+	cortex_spectre = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
 	},
@@ -1771,7 +1771,7 @@ local icontypes = {
 		bitmap = "icons/battlesub_t2.png",
 		size = 2.20000005
 	},
-	corstorm = {
+	cortex_aggravator = {
 		bitmap = "icons/bot_rocket.png",
 		size = 1.04999995
 	},
@@ -1779,8 +1779,8 @@ local icontypes = {
 		bitmap = "icons/sub.png",
 		size = 1.5
 	},
-	corsumo = {
-		bitmap = "icons/corsumo.png",
+	cortex_mammoth = {
+		bitmap = "icons/cortex_mammoth.png",
 		size = 1.74299991
 	},
 	corsy = {
@@ -1791,8 +1791,8 @@ local icontypes = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
-	cortermite = {
-		bitmap = "icons/cortermite_1.5.png",
+	cortex_termite = {
+		bitmap = "icons/cortex_termite_1.5.png",
 		size = 1.57499993
 	},
 	corthermite = {
@@ -1803,7 +1803,7 @@ local icontypes = {
 		bitmap = "icons/hovertrans.png",
 		size = 1.78499997
 	},
-	corthud = {
+	cortex_thug = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
 	},
@@ -1903,7 +1903,7 @@ local icontypes = {
 		bitmap = "icons/def_t2_missile.png",
 		size = 1.46999991
 	},
-	corvoyr = {
+	cortex_augur = {
 		bitmap = "icons/bot_t2_radar.png",
 		size = 1.34399986
 	},
@@ -2128,7 +2128,7 @@ local icontypes = {
 		size = 0.94999999
 	},
 	leginc = {
-		bitmap = "icons/corsumo.png",
+		bitmap = "icons/cortex_mammoth.png",
 		size = 1.85000002
 	},
 	leginf = {
@@ -2136,7 +2136,7 @@ local icontypes = {
 		size = 1.9425
 	},
 	leginfestor = {
-		bitmap = "icons/cortermite_1.5.png",
+		bitmap = "icons/cortex_termite_1.5.png",
 		size = 1.57499993
 	},
 	legionnaire = {

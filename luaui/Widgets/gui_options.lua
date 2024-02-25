@@ -5810,12 +5810,12 @@ function init()
 		[UnitDefNames["armada_rattlesnake"].id] = false,
 		[UnitDefNames["armada_pitbull"].id] = false,
 		[UnitDefNames["armada_sharpshooter"].id] = false,
-		[UnitDefNames["corsktl"].id] = false,
+		[UnitDefNames["cortex_skuttle"].id] = false,
 		[UnitDefNames["armada_gremlin"].id] = false,
 		[UnitDefNames["armada_twilight"].id] = true,
 		[UnitDefNames["armada_cloakablefusionreactor"].id] = true,
 		[UnitDefNames["armada_ghost"].id] = true,
-		[UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["cortex_spectre"].id] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then

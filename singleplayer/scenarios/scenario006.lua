@@ -63,9 +63,9 @@ Tips:
         corhp=0,
         corgant=0,
         corvp=0,
-        corcrash=0,
-        corstorm=0,
-        corthud=0,
+        cortex_trasher=0,
+        cortex_aggravator=0,
+        cortex_thug=0,
     } ,
 
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game

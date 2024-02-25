@@ -12,7 +12,7 @@ static-var  maxSpeed, animFramesPerKeyframe;
 #define SIG_AIM				4
 #define SIG_WALK			2
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corpyro_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_fiend_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:3
 			turn head to y-axis <-1.600000> speed <47.999996> / animSpeed; //delta=-1.60 

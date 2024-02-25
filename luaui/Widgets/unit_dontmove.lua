@@ -21,8 +21,8 @@ local unitNames = {
   --aa units
   "armada_crossbow",
   "armada_archangel",
-  "corcrash",
-  "coraak",
+  "cortex_trasher",
+  "cortex_manticore",
 
   "armada_whistler",
   "armada_shredder",
@@ -47,7 +47,7 @@ local unitNames = {
   "corvroc",
   "cortrem",
   "armada_sharpshooter",
-  "corhrk",
+  "cortex_arbiter",
 
   "armada_possum",
   "cormh",
@@ -70,11 +70,11 @@ local unitNames = {
   --skirmishers/fire support
   "armada_janus",
   "armada_rocketeer",
-  "corstorm",
+  "cortex_aggravator",
 
   "corban",
   "armada_starlight",
-  "cormort",
+  "cortex_sheldon",
 
   --scouts
   "armada_tick",
@@ -89,12 +89,12 @@ local unitNames = {
   --shields/jammers/radars
   "armada_radarjammerbot",
   "armada_umbra",
-  "corspec",
+  "cortex_deceiver",
 
   "armada_prophet",
   "armada_compass",
   "corvrad",
-  "corvoyr",
+  "cortex_augur",
 
   --antinukes
   "armada_umbrella",

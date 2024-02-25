@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local commandoUnitDefID = UnitDefNames["cormando"].id
+local commandoUnitDefID = UnitDefNames["cortex_commando"].id
 local masses = {}
 local droppedunits = {}
 local heightThreshold = 32 -- if unit is at least 32 elmos up consider it falling

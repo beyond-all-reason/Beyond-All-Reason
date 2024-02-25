@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	--unitDefMidAndAimPos[UnitDefNames['armada_sentry'].id] = { midx = -5, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
-	--unitDefMidAndAimPos[UnitDefNames['corak'].id] = { midx = 0, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
+	--unitDefMidAndAimPos[UnitDefNames['cortex_grunt'].id] = { midx = 0, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
 	--Process all initial map features
 	function gadget:Initialize()
 		--loading the file here allows to have /luarules reload dyn reload it as necessary

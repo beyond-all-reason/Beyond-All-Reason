@@ -35,13 +35,13 @@ return {
 		yardmap = "occccooccccooccccooccccooccccoocccco",
 		buildoptions = {
 			[1] = "legck",
-			[2] = "cornecro",
+			[2] = "cortex_graverobber",
 			[3] = "leggob",
 			[4] = "leglob",
 			[5] = "legcen",
 			[6] = "legbal",
 			[7] = "legkark",
-			[8] = "corcrash",
+			[8] = "cortex_trasher",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

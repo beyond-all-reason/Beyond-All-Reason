@@ -16,9 +16,9 @@ end
 
 local hasDeathAnim = {
   [UnitDefNames.corkarg.id] = true,
-  [UnitDefNames.corthud.id] = true,
-  [UnitDefNames.corstorm.id] = true,
-  [UnitDefNames.corsumo.id] = true,
+  [UnitDefNames.cortex_thug.id] = true,
+  [UnitDefNames.cortex_aggravator.id] = true,
+  [UnitDefNames.cortex_mammoth.id] = true,
   [UnitDefNames.armada_razorback.id] = true,
   [UnitDefNames.armada_pawn.id] = true,
   [UnitDefNames.armada_constructionbot.id] = true,
@@ -28,8 +28,8 @@ local hasDeathAnim = {
   [UnitDefNames.armada_welder.id] = true,
   [UnitDefNames.armada_hound.id] = true,
   [UnitDefNames.armada_mace.id] = true,
-  [UnitDefNames.corak.id] = true,
-  [UnitDefNames.corck.id] = true,
+  [UnitDefNames.cortex_grunt.id] = true,
+  [UnitDefNames.cortex_constructionbot.id] = true,
 }
 
 local dyingUnits = {}

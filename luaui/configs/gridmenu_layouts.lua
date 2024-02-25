@@ -7,14 +7,14 @@ local labGrids = {
 	},
 
 	corlab = {
-		"corck", "cornecro", "corak", "",                      -- T1 con, rez bot, AK
-		"corstorm", "corthud", "", "",                        -- storm, thud
-		"", "", "corcrash",                                        -- aa bot
+		"cortex_constructionbot", "cortex_graverobber", "cortex_grunt", "",                      -- T1 con, rez bot, AK
+		"cortex_aggravator", "cortex_thug", "", "",                        -- storm, thud
+		"", "", "cortex_trasher",                                        -- aa bot
 	},
 	leglab = {
-		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
+		"legck", "cortex_graverobber", "leggob", "",                      -- T1 con, rez bot, AK
 		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
-		"", "", "corcrash",                                        -- aa bot
+		"", "", "cortex_trasher",                                        -- aa bot
 	},
 	-- T2 bot
 	armada_advancedbotlab = {
@@ -24,14 +24,14 @@ local labGrids = {
 	},
 
 	coralab = {
-		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
-		"corvoyr", "corspec", "cortex_sumo", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		"cortex_advancedconstructionbot", "cortex_twitcher", "cortex_fiend", "cortex_spectre",               -- T2 con, freaker, pyro, spy
+		"cortex_augur", "cortex_deceiver", "cortex_sumo", "cortex_arbiter",              -- radar bot, jammer bot, can, dominator
+		"cortex_sheldon", "cortex_bedbug", "cortex_manticore", "cortex_mammoth",             -- morty, skuttle, AA bot, sumo
 	},
 	legalab = {
-		"legack", "corfast", "legstr", "corspy",               -- T2 con, freaker, strider, spy
-		"corvoyr", "corspec", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
-		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
+		"legack", "cortex_twitcher", "legstr", "cortex_spectre",               -- T2 con, freaker, strider, spy
+		"cortex_augur", "cortex_deceiver", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
+		"legbart", "cortex_bedbug", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
 	},
 	-- T1 vehicle
 	armada_vehicleplant = {
@@ -141,7 +141,7 @@ local labGrids = {
 	coramsub = {
 		"cormuskrat", "cortex_decoycommander", "corgarp", "",
 		"corseal", "corparrow", "", "",
-		"", "corcrash", "coraak",
+		"", "cortex_trasher", "cortex_manticore",
 	},
 	-- hover labs
 	armada_hovercraftplatform = {
@@ -479,7 +479,7 @@ local unitGrids = {
 		}
 	},
 
-	corck = {
+	cortex_constructionbot = {
 		{
 			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
@@ -870,7 +870,7 @@ local unitGrids = {
 		}
 	},
 
-	corack = {
+	cortex_advancedconstructionbot = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
@@ -1220,16 +1220,16 @@ local unitGrids = {
 	},
 
 	--freaker
-	corfast = {
+	cortex_twitcher = {
 		{
 			{ "cormex", "corsolar", },                                -- mex, solar
 			{ },                                                      -- solar
 			{ },                                                      --
 		},
 		{
-			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
-			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
-			{ "cordl", "corroy", "cortermite", "coramph", },          -- coastal torp launcher, destroyer, termite, gimp
+			{ "corhllt", "cortex_fiend", "cortoast", },                    -- HLLT, pyro, toaster
+			{ "corflak", "cormadsam", "cortex_trasher", "cortex_grunt", },         -- flak, SAM, T1 aa bot, AK
+			{ "cordl", "corroy", "cortex_termite", "cortex_duck", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
@@ -1237,9 +1237,9 @@ local unitGrids = {
 			{ "cormine2", },                                          -- med mine
 		},
 		{
-			{ "corlab", "corck", },                                   -- bot lab, bot con
+			{ "corlab", "cortex_constructionbot", },                                   -- bot lab, bot con
 			{ "cornanotc", "corcs", },                                -- nano, sea con
-			{ "cormando", },                                          -- commando
+			{ "cortex_commando", },                                          -- commando
 		}
 	},
 
@@ -1268,7 +1268,7 @@ local unitGrids = {
 	},
 
 	--commando
-	cormando = {
+	cortex_commando = {
 		{
 			{ }, --
 			{ },            --
