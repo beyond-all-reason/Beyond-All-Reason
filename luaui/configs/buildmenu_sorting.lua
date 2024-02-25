@@ -11,7 +11,7 @@ local unitOrderTable = {
 	['armbeaver']      = 001140,
 	['cormuskrat']     = 001150,
 
-	['armca']          = 001160, --AIR
+	['armada_constructionaircraft']          = 001160, --AIR
 	['corca']          = 001165,
 	['legca']          = 001166,
 
@@ -45,7 +45,7 @@ local unitOrderTable = {
 	['coracv']         = 002550,
 	['legacv']         = 002555,
 
-	['armaca']         = 002600,
+	['armada_advancedconstructionaircraft']         = 002600,
 	['coraca']         = 002650,
 	['legaca']         = 002660,
 
@@ -74,11 +74,11 @@ local unitOrderTable = {
 	['corspy']         = 004000,
 
 	-- AIR SCOUTS LAND UNARMED
-	['armpeep']        = 004030, --AIR
+	['armada_blink']        = 004030, --AIR
 	['corfink']        = 004040,
 	['armsehak']       = 004050, --SEAPLANES
 	['corhunt']        = 004060,
-	['armawac']        = 004050,
+	['armada_oracle']        = 004050,
 	['corawac']        = 004060,
 
 	-- SCOUTS/UTILITY LAND
@@ -96,30 +96,30 @@ local unitOrderTable = {
 	['corsjam']        = 004260,
 
 	-- AIRCRAFT
-	['armfig']         = 004300, --FIGHTERS
+	['armada_falcon']         = 004300, --FIGHTERS
 	['corveng']        = 004305,
 	['legfig']         = 004306,
-	['armhawk']        = 004310, --FIGHTERS T2
+	['armada_highwind']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
 	['legionnaire']    = 004316,
 	['legvenator']     = 004317,
 	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
 	['corsfig2']       = 004317,
 
-	['armkam']         = 004320, --GUNSHIPS
+	['armada_banshee']         = 004320, --GUNSHIPS
 	['legmos']         = 004322,
 	['armsaber']       = 004325,
 	['corcut']         = 004330,
 	['legstronghold']  = 004331,
 
-	['armbrawl']       = 004335, --GUNSHIPS T2
+	['armada_roughneck']       = 004335, --GUNSHIPS T2
 	['corape']         = 004340,
-	['armblade']       = 004345,
+	['armada_hornet']       = 004345,
 	['corcrw']         = 004348,
 	['corcrwh']         = 004347,
 	['legfort']        = 004349,
 
-	['armthund']       = 004350, --BOMBERS
+	['armada_stormbringer']       = 004350, --BOMBERS
 	['corshad']        = 004355,
 	['legcib']         = 004356,
 	['legkam']         = 004357,
@@ -127,13 +127,13 @@ local unitOrderTable = {
 	['corsb']          = 004365,
 	['legphoenix']     = 004366,
 
-	['armpnix']        = 004370, --BOMBERS T2
+	['armada_blizzard']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
 	['legnap']         = 004381,
 	['legmineb']       = 004382,
 	['legphoenix']     = 004383,
-	['armliche']       = 004385,
-	['armstil']        = 004390,
+	['armada_liche']       = 004385,
+	['armada_stiletto']        = 004390,
 
 	-- SCOUTS LAND ARMED
 	['armada_tick']        = 004400, --BOTS
@@ -286,7 +286,7 @@ local unitOrderTable = {
 	['armrattet4']     = 007410,
 	['corgolt4']       = 007420,
 
-	['armthundt4']     = 007500,
+	['armada_stormbringert4']     = 007500,
 	['armfepocht4']    = 007510,
 	['corfblackhyt4']  = 007520,
 	['corcrwt4']       = 007530,
@@ -310,7 +310,7 @@ local unitOrderTable = {
 	-- ['armyork']        = 008520,
 	-- ['corsent']        = 008530,
 
-	-- ['armhawk']        = 008540,
+	-- ['armada_highwind']        = 008540,
 	-- ['corvamp']        = 008550,
 
 	-- WATER SCOUTS
@@ -336,7 +336,7 @@ local unitOrderTable = {
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
 	
-	['armdronecarry']  = 009360, --DRONE CARRIERS
+	['armada_dronecarrier']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
 
 	['armbats']        = 009370, --STRONK
@@ -364,7 +364,7 @@ local unitOrderTable = {
 	['armsub']         = 009820,
 	['corsub']         = 009830,
 
-	['armlance']       = 009900,
+	['armada_cormorant']       = 009900,
 	['cortitan']       = 009910,
 	['armsubk']        = 009920,
 	['corshark']       = 009930,
@@ -375,7 +375,7 @@ local unitOrderTable = {
 	['armptt2']        = 009962,
 
 	-- TRANSPORTS
-	['armatlas']       = 010500,
+	['armada_stork']       = 010500,
 	['corvalk']        = 010510,
 
 	['armtship']       = 010540,
@@ -386,16 +386,16 @@ local unitOrderTable = {
 
 	['corintr']        = 010600,
 
-	['armdfly']        = 010610,
+	['armada_abductor']        = 010610,
 	['corseah']        = 010620,
 
 	-- ANTINUKES
 	['armada_umbrella']        = 020000,
 	['cormabm']        = 020010,
 
-	['armcarry']       = 020100,
+	['armada_haven']       = 020100,
 	['armantiship']	   = 020101,
-	['armcarry2']      = 020105,
+	['armada_haven2']      = 020105,
 	['corcarry']       = 020110,
 	['corantiship']    = 020111,
 	['corcarry2']      = 020115,

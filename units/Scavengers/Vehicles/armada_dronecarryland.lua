@@ -1,12 +1,12 @@
 return {
-	armdronecarryland = {
+	armada_dronecarrierland = {
 		maxacc = 0.007,
 		activatewhenbuilt = true,
 		maxdec = 0.022,
 		buildangle = 16384,
 		energycost = 12500,
 		metalcost = 1250,
-		buildpic = "ARMDRONECARRY.DDS",
+		buildpic = "armada_dronecarrier.DDS",
 		buildtime = 20000,
 		canmove = true,
 		canreclaim = false,
@@ -32,10 +32,10 @@ return {
 		minwaterdepth = 0,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMDRONECARRYLAND.s3o",
+		objectname = "Units/armada_dronecarrierLAND.s3o",
 		radardistance = 1500,
 		radaremitheight = 56,
-		script = "Units/ARMDRONECARRYLAND.cob",
+		script = "Units/armada_dronecarrierLAND.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 700,
@@ -64,7 +64,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/armdronecarry_dead.s3o",
+				object = "Units/armada_dronecarrier_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -147,7 +147,7 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "armada_attackdrone",     --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200,
 					--spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.

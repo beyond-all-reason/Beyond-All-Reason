@@ -564,24 +564,24 @@
 	},
 
 	// aircraft - armap
-	"armca": {
+	"armada_constructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
 		"limit": 25,
 		"build_speed": 5.0
 	},
-	"armpeep": {
+	"armada_blink": {
 		"role": ["scout", "air"]
 	},
-	"armfig": {
+	"armada_falcon": {
 		"role": ["anti_air", "air"],
 		"attribute": ["scout"]
 	},
-	"armthund": {
+	"armada_stormbringer": {
 		"role": ["bomber", "air"],
 		"threat": 0.1
 	},
-	"armkam": {
+	"armada_banshee": {
 		"role": ["raider", "air"],
 		"attribute": ["siege"],
 		"retreat": 0.6
@@ -592,34 +592,34 @@
 	},
 
 	// adv aircraft - armaap
-	"armaca": {
+	"armada_advancedconstructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
 		"limit": 2,
 		"build_speed": 10.0
 	},
-	"armawac": {
+	"armada_oracle": {
 		"role": ["scout", "air"]
 	},
-	"armhawk": {
+	"armada_highwind": {
 		"role": ["anti_air", "air"]
 	},
-	"armpnix": {
+	"armada_blizzard": {
 		"role": ["bomber", "air"]
 	},
-	"armbrawl": {
+	"armada_roughneck": {
 		"role": ["raider", "air"],
 		"attribute": ["siege"],
 		"retreat": 0.5
 	},
-	"armblade": {
+	"armada_hornet": {
 		"role": ["heavy", "air"],
 		"retreat": 0.4
 	},
-	"armstil": {
+	"armada_stiletto": {
 		"role": ["bomber", "air"],
 	},
-	"armliche": {
+	"armada_liche": {
 		"role": ["bomber", "air"],
 		"attribute": ["heavy"],
 		"retreat": 0.5
@@ -670,7 +670,7 @@
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
-	"armcarry": {
+	"armada_haven": {
 		"role": ["support", "heavy"],
 		"retreat": 0.75
 	},

@@ -151,7 +151,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'coreter', x = 4013, y = 1101, z = 4038, rot = 19007 , team = 0},
 			{name = 'cornecro', x = 3874, y = 1119, z = 4207, rot = 24246 , team = 0},
 			{name = 'cornecro', x = 3792, y = 1116, z = 4201, rot = 19920 , team = 0},
-			-- {name = 'armca', x = 1567, y = 1035, z = 2520, rot = -24106 , team = 1},
+			-- {name = 'armada_constructionaircraft', x = 1567, y = 1035, z = 2520, rot = -24106 , team = 1},
 			{name = 'armmex', x = 952, y = 1101, z = 1592, rot = -16384 , team = 1},
 			{name = 'armmex', x = 744, y = 1104, z = 1496, rot = -16384 , team = 1},
 			{name = 'armmex', x = 760, y = 1101, z = 1864, rot = -16384 , team = 1},

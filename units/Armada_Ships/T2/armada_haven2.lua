@@ -1,5 +1,5 @@
 return {
-	armcarry2 = {
+	armada_haven2 = {
 		maxacc = 0.01722,
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
@@ -7,7 +7,7 @@ return {
 		energycost = 17000,
 		metalcost = 1400,
 		--builder = true,
-		buildpic = "ARMCARRY2.DDS",
+		buildpic = "armada_haven2.DDS",
 		buildtime = 20000,
 		--canassist = false,
 		--canattack = false,
@@ -36,10 +36,10 @@ return {
 		movementclass = "BOAT8",
 		movestate = 1,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMCARRY2.s3o",
+		objectname = "Units/armada_haven2.s3o",
 		radardistance = 2950,
 		radaremitheight = 56,
-		script = "Units/ARMCARRY2.cob",
+		script = "Units/armada_haven2.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 1105,
@@ -73,7 +73,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/armcarry_dead.s3o",
+				object = "Units/armada_haven_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -206,7 +206,7 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdroneold",     --Name of the unit spawned by this carrier unit. 
+					carried_unit = "armada_attackdroneold",     --Name of the unit spawned by this carrier unit. 
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200, 	
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 

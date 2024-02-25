@@ -138,7 +138,7 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
 		end
 
-		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
+		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armada_cormorant' or unitDef.name == 'cortitan'
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
 			if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
 				isWaterUnit[unitDefID] = true

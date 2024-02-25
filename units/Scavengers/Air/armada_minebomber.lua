@@ -4,7 +4,7 @@ return {
 		maxdec = 0.05,
 		energycost = 4200,
 		metalcost = 145,
-		buildpic = "ARMTHUND.DDS",
+		buildpic = "armada_stormbringer.DDS",
 		buildtime = 4800,
 		canfly = true,
 		canmove = true,

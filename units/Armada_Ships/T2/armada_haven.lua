@@ -1,5 +1,5 @@
 return {
-	armcarry = {
+	armada_haven = {
 		maxacc = 0.01722,
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
@@ -7,7 +7,7 @@ return {
 		energycost = 12000,
 		metalcost = 1400,
 		builder = true,
-		buildpic = "ARMCARRY.DDS",
+		buildpic = "armada_haven.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -36,10 +36,10 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCARRY.s3o",
+		objectname = "Units/armada_haven.s3o",
 		radardistance = 2950,
 		radaremitheight = 56,
-		script = "Units/ARMCARRY.cob",
+		script = "Units/armada_haven.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
 		sightdistance = 1105,
@@ -73,7 +73,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/armcarry_dead.s3o",
+				object = "Units/armada_haven_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

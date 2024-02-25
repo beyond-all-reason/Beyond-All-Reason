@@ -38,12 +38,12 @@ if gadgetHandler:IsSyncedCode() then
 				isAircon[udid] = true
 			end
 		end
-		if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armliche') then
+		if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armada_liche') then
 			alwaysCrash[UnitDef.id] = true
 		end
 	end
-	--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
-	local nonCrashable = {'armpeep', 'corfink', 'corbw', 'legkam'}
+	--local nonCrashable = {'armada_blink', 'corfink', 'corbw', 'armada_falcon', 'armsfig', 'armada_highwind', 'corveng', 'corsfig', 'corvamp'}
+	local nonCrashable = {'armada_blink', 'corfink', 'corbw', 'legkam'}
 	for udid, ud in pairs(UnitDefs) do
 		for _, unitname in pairs(nonCrashable) do
 			if string.find(ud.name, unitname) then

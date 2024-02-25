@@ -81,8 +81,8 @@ for _, unitName in ipairs(factories) do
 end
 
 local factoryBannedUnits = {
-	"armdfly_scav",
-	"armatlas_scav",
+	"armada_abductor_scav",
+	"armada_stork_scav",
 	"corvalk_scav",
 	"corseah_scav",
 	"corthovr_scav",

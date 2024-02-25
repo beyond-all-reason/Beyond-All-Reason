@@ -43,8 +43,8 @@ return {
 		"corsnap",
 
 		-- Air
-		"armthund",
-		"armfig",
+		"armada_stormbringer",
+		"armada_falcon",
 		"corshad",
 		"corbw",
 		"corveng",
@@ -122,8 +122,8 @@ return {
 
 		-- Air
 		"armsb",
-		"armkam",
-		"armbrawl",
+		"armada_banshee",
+		"armada_roughneck",
 		"armsaber",
 		"armsfig",
 		"corsb",
@@ -137,7 +137,7 @@ return {
 		"armsubk",
 		"armaas",
 		"armcrus",
-		--"armcarry",
+		--"armada_haven",
 		"armserp",
 		"armmship",
 		"armcroc",
@@ -189,12 +189,12 @@ return {
 		"armassimilator",
 
 		-- Air
-		"armhawk",
+		"armada_highwind",
 		"armsb",
-		"armblade",
-		"armstil",
-		"armliche",
-		"armpnix",
+		"armada_hornet",
+		"armada_stiletto",
+		"armada_liche",
+		"armada_blizzard",
 		"corsb",
 		"corvamp",
 		"corhurc",
@@ -239,7 +239,7 @@ return {
 		"corcrwt4",
 		"armfepocht4",
 		"corfblackhyt4",
-		"armthundt4",
+		"armada_stormbringert4",
 
 		-- Sea
 		"armepoch",

@@ -58,11 +58,11 @@ if gameShortName == "BYAR" then
 		-- transports
 		"armthovr",
 		"corthovr",
-		"armatlas",
+		"armada_stork",
 		"armtship",
 		"corvalk",
 		"cortship",
-		"armdfly",
+		"armada_abductor",
 		"corseah",
 		"corint",
 

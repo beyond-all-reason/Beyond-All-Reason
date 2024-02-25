@@ -34,10 +34,10 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo ",
 		buildoptions = {
-			"armaca",
-			"armthundt4",
+			"armada_advancedconstructionaircraft",
+			"armada_stormbringert4",
 			"armfepocht4",
-			"armlichet4",
+			"armada_lichet4",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

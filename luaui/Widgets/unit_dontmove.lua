@@ -99,7 +99,7 @@ local unitNames = {
   --antinukes
   "armada_umbrella",
   "cormabm",
-  "armcarry",
+  "armada_haven",
   "corcarry",
   "armantiship",
   "corantiship",

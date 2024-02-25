@@ -1,11 +1,11 @@
 return {
-	armawac = {
+	armada_oracle = {
 		acceleration = 0.25,
 		blocking = false,
 		maxdec = 0.05,
 		energycost = 8600,
 		metalcost = 175,
-		buildpic = "ARMAWAC.DDS",
+		buildpic = "armada_oracle.DDS",
 		buildtime = 12800,
 		canfly = true,
 		canmove = true,
@@ -27,9 +27,9 @@ return {
 		maxslope = 10,
 		speed = 317.4,
 		maxwaterdepth = 0,
-		objectname = "Units/ARMAWAC.s3o",
+		objectname = "Units/armada_oracle.s3o",
 		radardistance = 2500,
-		script = "Units/ARMAWAC.cob",
+		script = "Units/armada_oracle.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1275,

@@ -1,12 +1,12 @@
 return {
-	armfig = {
+	armada_falcon = {
 		acceleration = 0.3,
 		airsightdistance = 950,
 		blocking = false,
 		maxdec = 0.075,
 		energycost = 2900,
 		metalcost = 73,
-		buildpic = "ARMFIG.DDS",
+		buildpic = "armada_falcon.DDS",
 		buildtime = 3500,
 		canfly = true,
 		canmove = true,
@@ -27,8 +27,8 @@ return {
 		speed = 289.2,
 		maxwaterdepth = 0,
 		nochasecategory = "NOTAIR",
-		objectname = "Units/ARMFIG.s3o",
-		script = "Units/ARMFIG.cob",
+		objectname = "Units/armada_falcon.s3o",
+		script = "Units/armada_falcon.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 210,

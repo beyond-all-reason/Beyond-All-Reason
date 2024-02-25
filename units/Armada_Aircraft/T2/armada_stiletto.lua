@@ -1,11 +1,11 @@
 return {
-	armstil = {
+	armada_stiletto = {
 		acceleration = 0.25,
 		blocking = false,
 		maxdec = 0.04,
 		energycost = 19000,
 		metalcost = 230,
-		buildpic = "ARMSTIL.DDS",
+		buildpic = "armada_stiletto.DDS",
 		buildtime = 21500,
 		canfly = true,
 		canmove = true,
@@ -31,8 +31,8 @@ return {
 		speed = 300.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMSTIL.s3o",
-		script = "Units/ARMSTIL.cob",
+		objectname = "Units/armada_stiletto.s3o",
+		script = "Units/armada_stiletto.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,

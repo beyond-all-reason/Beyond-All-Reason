@@ -253,7 +253,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'corwin', x = 4776, y = 80, z = 168, rot = 32767 , team = 1},
 			{name = 'corwin', x = 4840, y = 84, z = 168, rot = 32767 , team = 1},
 			{name = 'corwin', x = 5288, y = 101, z = 168, rot = 32767 , team = 1},
-			--{name = 'armca', x = 669, y = 199, z = 206, rot = -32576 , team = 0},
+			--{name = 'armada_constructionaircraft', x = 669, y = 199, z = 206, rot = -32576 , team = 0},
 			{name = 'corwin', x = 5352, y = 90, z = 168, rot = 32767 , team = 1},
 			{name = 'corwin', x = 5416, y = 82, z = 168, rot = 32767 , team = 1},
 			{name = 'corwin', x = 5480, y = 79, z = 168, rot = 32767 , team = 1},

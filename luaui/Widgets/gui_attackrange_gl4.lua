@@ -83,7 +83,7 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 
 local mobileAntiUnitDefs = {
 	[UnitDefNames.armada_umbrella.id] = true,
-	[UnitDefNames.armcarry.id] = true,
+	[UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.cormabm.id] = true,
 	[UnitDefNames.corcarry.id] = true,
 }

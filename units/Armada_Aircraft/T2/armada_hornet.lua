@@ -1,11 +1,11 @@
 return {
-	armblade = {
+	armada_hornet = {
 		maxacc = 0.6,
 		blocking = false,
 		maxdec = 0.35,
 		energycost = 22000,
 		metalcost = 1250,
-		buildpic = "ARMBLADE.DDS",
+		buildpic = "armada_hornet.DDS",
 		buildtime = 24000,
 		canfly = true,
 		canmove = true,
@@ -23,8 +23,8 @@ return {
 		speed = 204.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMBLADE.s3o",
-		script = "Units/ARMBLADE.cob",
+		objectname = "Units/armada_hornet.s3o",
+		script = "Units/armada_hornet.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 624,

@@ -1,12 +1,12 @@
 return {
-	armhawk = {
+	armada_highwind = {
 		acceleration = 0.4,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.01125,
 		energycost = 5700,
 		metalcost = 140,
-		buildpic = "ARMHAWK.DDS",
+		buildpic = "armada_highwind.DDS",
 		buildtime = 8900,
 		canfly = true,
 		canmove = true,
@@ -27,8 +27,8 @@ return {
 		speed = 358.8,
 		maxwaterdepth = 0,
 		nochasecategory = "NOTAIR",
-		objectname = "Units/ARMHAWK.s3o",
-		script = "Units/ARMHAWK.cob",
+		objectname = "Units/armada_highwind.s3o",
+		script = "Units/armada_highwind.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 250,

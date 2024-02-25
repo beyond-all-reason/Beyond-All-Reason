@@ -1,5 +1,5 @@
 return {
-	armca = {
+	armada_constructionaircraft = {
 		maxacc = 0.07,
 		blocking = false,
 		maxdec = 0.4275,
@@ -7,7 +7,7 @@ return {
 		metalcost = 110,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMCA.DDS",
+		buildpic = "armada_constructionaircraft.DDS",
 		buildtime = 7960,
 		canfly = true,
 		canmove = true,
@@ -26,8 +26,8 @@ return {
 		maxslope = 10,
 		speed = 208.2,
 		maxwaterdepth = 0,
-		objectname = "Units/ARMCA.s3o",
-		script = "Units/ARMCA.cob",
+		objectname = "Units/armada_constructionaircraft.s3o",
+		script = "Units/armada_constructionaircraft.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 390,

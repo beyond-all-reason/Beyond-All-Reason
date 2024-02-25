@@ -1,11 +1,11 @@
 return {
-	armlichet4 = {
+	armada_lichet4 = {
 		acceleration = 0.15,
 		blocking = false,
 		maxdec = 0.05,
 		energycost = 240000,
 		metalcost = 18000,
-		buildpic = "ARMLICHE.DDS",
+		buildpic = "armada_liche.DDS",
 		buildtime = 240000,
 		canfly = true,
 		canmove = true,
@@ -30,8 +30,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/ARMLICHET4.s3o",
-		script = "Units/ARMLICHE.cob",
+		objectname = "Units/scavboss/armada_licheT4.s3o",
+		script = "Units/armada_liche.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,

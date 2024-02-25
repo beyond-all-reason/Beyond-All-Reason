@@ -135,7 +135,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.experimentalrebalancet2energy == true then
-		if name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
+		if name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armwint2"
 		end
@@ -347,7 +347,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.releasecandidates then
 
 		--Shockwave mex
-		if name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
+		if name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
 		end
@@ -370,7 +370,7 @@ function UnitDef_Post(name, uDef)
 		
 		if name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
+			uDef.buildoptions[numBuildoptions+1] = "armada_dronecarrier"
 		end
 		if name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
@@ -391,7 +391,7 @@ function UnitDef_Post(name, uDef)
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
-			uDef.buildoptions[numBuildoptions+8] = "armdronecarryland"
+			uDef.buildoptions[numBuildoptions+8] = "armada_dronecarrierland"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -434,7 +434,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+3] = "corakt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
-		elseif name == "armca" or name == "armada_constructionbot" or name == "armcv" then
+		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -454,7 +454,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armfgate"
-		elseif name == "armaca" or name == "armada_advancedconstructionbot" or name == "armacv" then
+		elseif name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
@@ -486,7 +486,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armdecadet3"
 			uDef.buildoptions[numBuildoptions+3] = "armpshipt3"
 			uDef.buildoptions[numBuildoptions+4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions+5] = "armcarry2"
+			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
@@ -870,7 +870,7 @@ function UnitDef_Post(name, uDef)
 
 if modOptions.emprework == true then
 
-		if name == "armstil" then
+		if name == "armada_stiletto" then
 			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
@@ -884,8 +884,8 @@ if modOptions.emprework == true then
 			--uDef.weapondefs.spider.damage.default = 1500
 		end
 
-		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 5
+		if name == "armada_abductor" then
+			uDef.weapondefs.armada_abductor_paralyzer.paralyzetime = 5
 		end
 
 
@@ -967,7 +967,7 @@ end
 
 --Air rework
 if modOptions.air_rework == true then
-	if name == "armhawk" then
+	if name == "armada_highwind" then
 		uDef.metalcost = 205
 		uDef.energycost = 6500
 		uDef.buildtime = uDef.buildtime * 1.15
@@ -994,7 +994,7 @@ if modOptions.air_rework == true then
 			vtol = 550,
 		}
 	end
-	if name == "armfig" then
+	if name == "armada_falcon" then
 		uDef.metalcost = 126
 		uDef.energycost = 3700
 		uDef.buildtime = 4350
@@ -1065,7 +1065,7 @@ if modOptions.air_rework == true then
 			vtol = 180,
 		}
 	end
-	if name == "armawac" then
+	if name == "armada_oracle" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.017
@@ -1074,7 +1074,7 @@ if modOptions.air_rework == true then
 		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 250
 	end
-	if name == "armpeep" then
+	if name == "armada_blink" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.health = 133
 		uDef.speed = uDef.speed * 0.7
@@ -1220,14 +1220,14 @@ if modOptions.air_rework == true then
 			vtol = 1000,
 		}
 	end
-	if name == "armbrawl" or name == "armkam" or name == "armdfly" or name == "armatlas" or name == "corvalk" or name == "corseah"  or name == "corape" then
+	if name == "armada_roughneck" or name == "armada_banshee" or name == "armada_abductor" or name == "armada_stork" or name == "corvalk" or name == "corseah"  or name == "corape" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 100
 		uDef.buildtime = uDef.buildtime * 0.8
 	end
-	if name == "armkam" then
+	if name == "armada_banshee" then
 		uDef.weapondefs.med_emg.burstrate = 0.08
 		uDef.weapondefs.med_emg.reloadtime = 1.15
 	end
@@ -1237,7 +1237,7 @@ if modOptions.air_rework == true then
 		--uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 80
 	end
-	if name == "armca" or name == "armaca" or name == "corca" or name == "corcsa" or name == "armcsa" or name == "coraca" then
+	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "corca" or name == "corcsa" or name == "armcsa" or name == "coraca" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1289,7 +1289,7 @@ if modOptions.air_rework == true then
 			vtol = 28,
 		}
 	end
-	if name == "armblade" then
+	if name == "armada_hornet" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1305,7 +1305,7 @@ if modOptions.air_rework == true then
 	if name == "corape" then
 		uDef.weapondefs.vtol_rocket.turnrate = 15000
 	end
-	if name == "cortitan" or name == "corshad" or name == "armthund" or name == "armliche" or name == "armstil" or name == "armlance" then
+	if name == "cortitan" or name == "corshad" or name == "armada_stormbringer" or name == "armada_liche" or name == "armada_stiletto" or name == "armada_cormorant" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.65
 		uDef.maxacc = uDef.maxacc * 1.3
@@ -1328,7 +1328,7 @@ if modOptions.air_rework == true then
 			default = 500
 		}
 	end
-	if name == "armpnix" then
+	if name == "armada_blizzard" then
 		uDef.metalcost = uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3 - (uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3)%1
 		uDef.speed = uDef.speed * 0.55
 		uDef.maxbank = 0.5
@@ -1625,7 +1625,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 94500
 		uDef.buildtime = 94500
 	end
-	if name == "armstil" then
+	if name == "armada_stiletto" then
 		uDef.health = 1300
 		uDef.weapondefs.stiletto_bomb.burst = 3
 		uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
@@ -1633,7 +1633,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 			default = 3000
 		}
 	end
-	if name == "armlance" then
+	if name == "armada_cormorant" then
 		uDef.health = 1750
 	end
 	if name == "cortitan" then
@@ -1665,7 +1665,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.weapondefs.cor_advsam.reloadtime = 11
 		uDef.weapondefs.cor_advsam.stockpile = false
 	end
-	if name == "armfig" then
+	if name == "armada_falcon" then
 		uDef.metalcost = 77
 		uDef.energycost = 3100
 		uDef.buildtime = 3700
@@ -1675,7 +1675,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 4750
 		uDef.buildtime = 5700
 	end
-	if name == "armhawk" then
+	if name == "armada_highwind" then
 		uDef.metalcost = 155
 		uDef.energycost = 6300
 		uDef.buildtime = 9800

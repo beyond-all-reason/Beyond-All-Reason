@@ -133,7 +133,7 @@
 		"importance": [0.5, 0.1],
 		"require_energy": false,
 		"income_tier": [30],
-		"unit":      ["armca", "armfig", "armpeep", "armthund", "armkam"],
+		"unit":      ["armada_constructionaircraft", "armada_falcon", "armada_blink", "armada_stormbringer", "armada_banshee"],
 		"land": {
 			"tier0": [ 0.07,    0.42,     0.05,      0.32,       0.14],
 			"tier1": [ 0.04,    0.39,     0.06,      0.51,       0.00]
@@ -149,7 +149,7 @@
 		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [50],
-		"unit":      ["armaca", "armhawk", "armawac", "armpnix", "armbrawl", "armblade", "armstil", "armliche"],
+		"unit":      ["armada_advancedconstructionaircraft", "armada_highwind", "armada_oracle", "armada_blizzard", "armada_roughneck", "armada_hornet", "armada_stiletto", "armada_liche"],
 		"land": {
 			"tier0": [ 0.62,     0.07,      0.03,      0.14,      0.14,       0.00,       0.00,      0.00],
 			"tier1": [ 0.41,     0.07,      0.04,      0.21,      0.00,       0.17,       0.08,      0.02]
@@ -182,7 +182,7 @@
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
-		"unit":      ["armacsub", "armsubk", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armsubk", "armaas", "armcrus", "armada_haven", "armmship", "armbats", "armepoch"],
 		"land": {
 			"tier0": [ 0.57,       0.12,      0.00,     0.19,      0.00,       0.06,       0.06,      0.00],
 			"tier1": [ 0.35,       0.11,      0.04,     0.07,      0.04,       0.14,       0.18,      0.07]

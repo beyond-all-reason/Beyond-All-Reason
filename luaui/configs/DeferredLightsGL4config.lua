@@ -3595,7 +3595,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armdronecarry'] = {
+	['armada_dronecarrier'] = {
 		tower = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -3624,7 +3624,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armdronecarryland'] = {
+	['armada_dronecarrierland'] = {
 		tower = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -3653,7 +3653,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armcarry'] = {
+	['armada_haven'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nanoemit1',
@@ -9799,7 +9799,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfig'] = {
+	['armada_falcon'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -9855,8 +9855,8 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armca'] = {
-		--nanolightarmca = {
+	['armada_constructionaircraft'] = {
+		--nanolightarmada_constructionaircraft = {
 		--	lightType = 'cone',
 		--	pieceName = 'nano',
 		--	lightConfig = { posx = 0, posy = 0, posz = 0, radius = 120,
@@ -10104,7 +10104,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armthund'] = {
+	['armada_stormbringer'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10223,7 +10223,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armstil'] = {
+	['armada_stiletto'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10297,7 +10297,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armhawk'] = {
+	['armada_highwind'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10344,7 +10344,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armpeep'] = {
+	['armada_blink'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10391,7 +10391,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armkam'] = {
+	['armada_banshee'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -10438,7 +10438,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armlance'] = {
+	['armada_cormorant'] = {
 		thrust = {
 			lightType = 'point',
 			pieceName = 'thrust1',
@@ -10449,7 +10449,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armbrawl'] = {
+	['armada_roughneck'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -10478,7 +10478,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armpnix'] = {
+	['armada_blizzard'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -10570,7 +10570,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armaca'] = {
+	['armada_advancedconstructionaircraft'] = {
 		buildlight = {
 			lightType = 'point',
 			pieceName = 'nanolight',
@@ -10928,7 +10928,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armatlas'] = {
+	['armada_stork'] = {
 		jetm = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11271,7 +11271,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armblade'] = {
+	['armada_hornet'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11300,7 +11300,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armdfly'] = {
+	['armada_abductor'] = {
 		fan1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11756,7 +11756,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armliche'] = {
+	['armada_liche'] = {
 		thruster1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11886,7 +11886,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armawac'] = {
+	['armada_oracle'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -13881,7 +13881,7 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armthundt4'] = {
+	['armada_stormbringert4'] = {
 		tipleft = {
 			lightType = 'point',
 			pieceName = 'blinka',
@@ -19064,7 +19064,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armca'] = {
+		['armada_constructionaircraft'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',
@@ -19182,7 +19182,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armaca'] = {
+		['armada_advancedconstructionaircraft'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',

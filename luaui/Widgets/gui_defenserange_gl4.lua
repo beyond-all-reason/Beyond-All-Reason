@@ -118,7 +118,7 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 
 local mobileAntiUnitDefs = {
 	[UnitDefNames.armada_umbrella.id ] = true,
-	[UnitDefNames.armcarry.id] = true,
+	[UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.cormabm.id ] = true,
 	[UnitDefNames.corcarry.id] = true,
 	[UnitDefNames.armantiship.id] = true,
@@ -246,7 +246,7 @@ local function initUnitList()
 		['corbuzz'] = { weapons = { 4 } },
 
 		['armada_umbrella'] = { weapons = { 3 } },
-		['armcarry'] = { weapons = { 3 } },
+		['armada_haven'] = { weapons = { 3 } },
 		['cormabm'] = { weapons = { 3 } },
 		['corcarry'] = { weapons = { 3 } },
 		['armantiship'] = { weapons = { 3 } },

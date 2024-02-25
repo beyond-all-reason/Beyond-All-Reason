@@ -1,10 +1,10 @@
 return {
-	armlance = {
+	armada_cormorant = {
 		acceleration = 0.2,
 		maxdec = 0.075,
 		energycost = 8000,
 		metalcost = 400,
-		buildpic = "ARMLANCE.DDS",
+		buildpic = "armada_cormorant.DDS",
 		buildtime = 15100,
 		canfly = true,
 		canmove = true,
@@ -27,9 +27,9 @@ return {
 		speed = 285.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMLANCE.s3o",
+		objectname = "Units/armada_cormorant.s3o",
 		radardistance = 800,
-		script = "Units/ARMLANCE.cob",
+		script = "Units/armada_cormorant.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,

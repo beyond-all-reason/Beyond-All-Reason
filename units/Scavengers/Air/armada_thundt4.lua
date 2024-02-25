@@ -1,10 +1,10 @@
 return {
-	armthundt4 = {
+	armada_stormbringert4 = {
 		acceleration = 0.020,
 		maxdec = 0.010,
 		energycost = 150000,
 		metalcost = 15000,
-		buildpic = "ARMTHUNDT4.DDS",
+		buildpic = "armada_stormbringerT4.DDS",
 		buildtime = 150000,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "MOBILE",
-		objectname = "Units/scavboss/ARMTHUNDT4.s3o",
-		script = "Units/scavboss/ARMTHUNDT4.cob",
+		objectname = "Units/scavboss/armada_stormbringerT4.s3o",
+		script = "Units/scavboss/armada_stormbringerT4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 2500,

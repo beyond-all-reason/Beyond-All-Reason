@@ -1,11 +1,11 @@
 return {
-	armpnix = {
+	armada_blizzard = {
 		acceleration = 0.04,
 		blocking = false,
 		maxdec = 0.045,
 		energycost = 12500,
 		metalcost = 230,
-		buildpic = "ARMPNIX.DDS",
+		buildpic = "armada_blizzard.DDS",
 		buildtime = 21000,
 		canfly = true,
 		canmove = true,
@@ -29,8 +29,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMPNIX.s3o",
-		script = "Units/ARMPNIX.cob",
+		objectname = "Units/armada_blizzard.s3o",
+		script = "Units/armada_blizzard.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 260,

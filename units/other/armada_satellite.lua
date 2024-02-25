@@ -1,12 +1,12 @@
 return {
-	armsat = {
+	armada_satellite = {
 		acceleration = 0.05,
 		airhoverfactor = 0.4,
 		blocking = false,
 		maxdec = 0.01,
 		energycost = 40000,
 		metalcost = 4000,
-		buildpic = "ARMAWAC.DDS",
+		buildpic = "armada_oracle.DDS",
 		buildtime = 12800,
 		canfly = true,
 		canmove = true,
@@ -30,11 +30,11 @@ return {
 		maxslope = 10,
 		speed = 30.0,
 		maxwaterdepth = 0,
-		objectname = "Units/ARMSAT.s3o",
+		objectname = "Units/armada_satellite.s3o",
 		radardistance = 700,
 		reclaimable = false,
 		repairable = false,
-		script = "Units/ARMSAT.cob",
+		script = "Units/armada_satellite.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 300,

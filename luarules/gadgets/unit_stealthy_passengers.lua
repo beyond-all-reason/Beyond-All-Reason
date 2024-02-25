@@ -20,7 +20,7 @@ local spSetUnitStealth = Spring.SetUnitStealth
 
 local stealthyUnits = {}
 local stealthyTransports = {
-	[UnitDefNames.armdfly.id] = true,
+	[UnitDefNames.armada_abductor.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(stealthyTransports) do

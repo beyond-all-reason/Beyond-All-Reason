@@ -48,7 +48,7 @@ local fadeStartDistance			= 3500
 
 local arm_anti					= UnitDefNames.armamd.id
 local arm_mobile_anti			= UnitDefNames.armada_umbrella.id
-local arm_mobile_anti_water		= UnitDefNames.armcarry.id
+local arm_mobile_anti_water		= UnitDefNames.armada_haven.id
 local arm_mobile_anti_water_2	= UnitDefNames.armantiship.id
 local cor_anti					= UnitDefNames.corfmd.id
 local cor_mobile_anti			= UnitDefNames.cormabm.id
@@ -75,7 +75,7 @@ local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armamd.weapons[1].weaponD
 local coverageRangeCoreStatic	= WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
 local coverageRangeArm			= WeaponDefs[UnitDefNames.armada_umbrella.weapons[1].weaponDef].coverageRange
 local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef].coverageRange
-local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armcarry.weapons[1].weaponDef].coverageRange
+local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armada_haven.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.corcarry.weapons[1].weaponDef].coverageRange
 local coverageRangeArmWater2	= WeaponDefs[UnitDefNames.armantiship.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater2	= WeaponDefs[UnitDefNames.corantiship.weapons[1].weaponDef].coverageRange

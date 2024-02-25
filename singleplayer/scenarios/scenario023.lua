@@ -31,7 +31,7 @@ local scenariodata = {
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{name = "Bots", playerhandicap = "corak armada_pawn 650 10 2040" , enemyhandicap = 0},
 		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
-		{name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040" , enemyhandicap = 0},
+		{name = "Aircraft", playerhandicap = "corvamp armada_highwind 650 10 2040" , enemyhandicap = 0},
 		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
     },
     allowedsides     = {""}, --these are the permitted factions for this mission

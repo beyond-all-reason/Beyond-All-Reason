@@ -364,11 +364,11 @@ function DrawScavAtlas:Execute(saveDebug)
 			if saveDebug then
 				local gf = Spring.GetGameFrame()
 				self.fbo["arm"].readbuffer  = GL_COLOR_ATTACHMENT0_EXT
-				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armAtlas_%d_0.png", gf))
+				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armada_stork_%d_0.png", gf))
 				self.fbo["arm"].readbuffer  = GL_COLOR_ATTACHMENT1_EXT
-				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armAtlas_%d_1.png", gf))
+				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armada_stork_%d_1.png", gf))
 				self.fbo["arm"].readbuffer  = GL_COLOR_ATTACHMENT2_EXT
-				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armAtlas_%d_2.png", gf))
+				gl.SaveImage(0, 0, self.armTexInfo.xsize, self.armTexInfo.ysize, string.format("armada_stork_%d_2.png", gf))
 
 			end
 		end)

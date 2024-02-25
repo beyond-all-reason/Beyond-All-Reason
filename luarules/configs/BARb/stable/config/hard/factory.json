@@ -182,7 +182,7 @@
 
 		"income_tier": [20, 40, 100],
 
-		"unit":      ["armca", "armfig", "armpeep", "armthund", "armkam"],
+		"unit":      ["armada_constructionaircraft", "armada_falcon", "armada_blink", "armada_stormbringer", "armada_banshee"],
 
 		"land": {
 			"tier0": [ 0.30,    0.10,     0.20,      0.20,       0.50],
@@ -208,7 +208,7 @@
 
 		"income_tier": [70],
 
-		"unit":      ["armaca", "armhawk", "armawac", "armpnix", "armbrawl", "armblade", "armstil", "armliche"],
+		"unit":      ["armada_advancedconstructionaircraft", "armada_highwind", "armada_oracle", "armada_blizzard", "armada_roughneck", "armada_hornet", "armada_stiletto", "armada_liche"],
 
 		"land": {
 			"tier0": [ 0.90,     0.10,       0.10,      0.00,       0.60,      0.00,      0.10,      0.10],
@@ -250,7 +250,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armada_haven", "armmship", "armbats", "armepoch"],
 
 		"water": {
 			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.00,      0.20,        0.10,        0.00],

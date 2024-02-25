@@ -728,8 +728,8 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
 											sustain = 2, lifetime = 3, })
 
---armthundt4
-explosionLights[WeaponDefNames["armthundt4_armbomb"].id] =
+--armada_stormbringert4
+explosionLights[WeaponDefNames["armada_stormbringert4_armbomb"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
 										  sustain = 4, lifetime = 55,
@@ -949,12 +949,12 @@ GetLightClass("MuzzleFlash", nil, "SmallMedium", {r = 0.4, g = 0.4, b = 0.4, sca
 explosionLights[WeaponDefNames["leggat_armmg_weapon"].id] =
 GetLightClass("Explosion", nil, "Micro", {	r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.4})
 
---armkam
-explosionLights[WeaponDefNames["armkam_med_emg"].id] =
+--armada_banshee
+explosionLights[WeaponDefNames["armada_banshee_med_emg"].id] =
 GetLightClass("Explosion", nil, "Micro", {	r = 1.8, g = 1.8, b = 1.8, a = 0.2,
 											colortime = 2.8,
 											sustain = 12, lifetime = 20, scattering = 0.4})
-projectileDefLights[WeaponDefNames["armkam_med_emg"].id] =
+projectileDefLights[WeaponDefNames["armada_banshee_med_emg"].id] =
 GetLightClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
 											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
 

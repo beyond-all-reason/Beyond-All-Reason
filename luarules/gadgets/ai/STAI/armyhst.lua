@@ -23,7 +23,7 @@ function ArmyHST:Init()
 		armch = true,
 		corch = true,
 		armacsub = true,
-		armca = true,
+		armada_constructionaircraft = true,
 		corcsa = true, --plat
 		armcsa = true, --plat
 		armcv = true,
@@ -33,7 +33,7 @@ function ArmyHST:Init()
 		armada_advancedconstructionbot = true,
 		corack = true,
 		corcv = true,
-		armaca = true,
+		armada_advancedconstructionaircraft = true,
 		corcs = true,
 		armcs = true,
 		corck = true,
@@ -87,13 +87,13 @@ function ArmyHST:Init()
 		}
 	self.radars = {
 		corfink = true,--is a scout but is better used as radar cause no weapon
-		armpeep = true,--is a scout but is better used as radar cause no weapon
+		armada_blink = true,--is a scout but is better used as radar cause no weapon
 		corvrad = true,
 		armada_compass = true,
 		armseer = true,
 		corvoyr = true,
 		corawac = true,
-		armawac = true,
+		armada_oracle = true,
 		armsehak = true,
 		corhunt = true,
 
@@ -105,11 +105,11 @@ function ArmyHST:Init()
 		}
 	self.transports = {
 		corvalk = true,
-		armatlas = true,
+		armada_stork = true,
 		armthovr = true,
 		corthovr = true,
 		corintr = true,
-		armdfly = true,
+		armada_abductor = true,
 		cortship = true,
 		armtship = true,
 		corseah = true,
@@ -242,7 +242,7 @@ function ArmyHST:Init()
 	self.paralyzers = {
 		corbw = true,
 		armada_webber = true,
-		armstil = true,
+		armada_stiletto = true,
 
 		}
 	self.subkillers = {
@@ -254,37 +254,37 @@ function ArmyHST:Init()
 		} -- submarine weaponed
 	self.bomberairs = {
 		corshad = true,
-		armthund = true,
+		armada_stormbringer = true,
 		armsb = true, --plat
 		corhurc = true,
-		armpnix = true,
-		armliche = true,
+		armada_blizzard = true,
+		armada_liche = true,
 		corsb = true,--plat
 		}
 
 	self.fighterairs = {
 		corveng = true,
-		armfig = true,
+		armada_falcon = true,
 		corsfig = true, --plat
 		armsfig = true, --plat
 		cortitan = true,
-		armhawk = true,
+		armada_highwind = true,
 		}
 
 	self.tpbombers = {
 		corvamp = true,
-		armlance = true,
+		armada_cormorant = true,
 
 
 		}
 
 	self.airgun = {
-		armkam = true,
+		armada_banshee = true,
 		corcrw = true,
 		corcrwh = true,
 		corape = true,
-		armbrawl = true,
-		armblade = true,
+		armada_roughneck = true,
+		armada_hornet = true,
 		armseap = true, -- but is a torpedo gunship
 		armsaber = true,
 		corseap = true,
@@ -310,7 +310,7 @@ function ArmyHST:Init()
 		}
 
 	self.antinukes = {
-		armcarry = true,
+		armada_haven = true,
 		corcarry = true,
 		cormabm = true,
 		armada_umbrella = true,

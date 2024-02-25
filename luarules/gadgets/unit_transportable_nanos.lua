@@ -41,8 +41,8 @@ local CMD_REMOVE = CMD.REMOVE
 local AirTrans = {
   [UnitDefNames.corvalk.id] = true,
   [UnitDefNames.corseah.id] = true,
-  [UnitDefNames.armatlas.id] = true,
-  [UnitDefNames.armdfly.id] = true,
+  [UnitDefNames.armada_stork.id] = true,
+  [UnitDefNames.armada_abductor.id] = true,
   [UnitDefNames.armthovr.id] = true,
 }
 local Nanos = {

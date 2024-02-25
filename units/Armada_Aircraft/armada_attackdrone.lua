@@ -1,11 +1,11 @@
 return {
-	armdrone = {
+	armada_attackdrone = {
 		maxacc = 0.22,
 		blocking = false,
 		maxdec = 0.5,
 		energycost = 600,
 		metalcost = 25,
-		buildpic = "ARMKAM.DDS",
+		buildpic = "armada_banshee.DDS",
 		buildtime = 1200,
 		canfly = true,
 		canmove = true,
@@ -23,8 +23,8 @@ return {
 		speed = 330.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMDRONE.s3o",
-		script = "Units/ARMDRONE.cob",
+		objectname = "Units/armada_attackdrone.s3o",
+		script = "Units/armada_attackdrone.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 600,

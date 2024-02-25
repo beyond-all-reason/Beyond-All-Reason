@@ -147,9 +147,9 @@ customDefs.corscavdtl = {
 -- 	"armada_lazarus",
 -- 	"cornecro",
 -- 	-- builders
--- 	"armca",
+-- 	"armada_constructionaircraft",
 -- 	"corca",
--- 	"armaca",
+-- 	"armada_advancedconstructionaircraft",
 -- 	"coraca",
 -- 	"armada_constructionbot",
 -- 	"corck",
@@ -652,8 +652,8 @@ customDefs.corscavdtl = {
 -- -- 	},
 -- -- }
 
--- numBuildoptions = #UnitDefs.armca.buildoptions
--- customDefs.armca = {
+-- numBuildoptions = #UnitDefs.armada_constructionaircraft.buildoptions
+-- customDefs.armada_constructionaircraft = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -715,8 +715,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.armaca.buildoptions
--- customDefs.armaca = {
+-- numBuildoptions = #UnitDefs.armada_advancedconstructionaircraft.buildoptions
+-- customDefs.armada_advancedconstructionaircraft = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armapt3",
 -- 		[numBuildoptions+2] = "armminivulc",

@@ -65,8 +65,8 @@ return {
 			-- rezzers
 			"armada_lazarus",
 			-- builders
-			"armca",
-			--"armaca",
+			"armada_constructionaircraft",
+			--"armada_advancedconstructionaircraft",
 			"armada_constructionbot",
 			--"armada_advancedconstructionbot",
 			"armch",

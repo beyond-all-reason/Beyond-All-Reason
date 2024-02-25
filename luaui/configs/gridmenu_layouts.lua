@@ -69,8 +69,8 @@ local labGrids = {
 	},
 	-- T1 air
 	armap = {
-		"armca", "armfig", "armkam", "armthund",           -- T1 con, fig, gunship, bomber
-		"armpeep", "armatlas",                             -- radar, transport,
+		"armada_constructionaircraft", "armada_falcon", "armada_banshee", "armada_stormbringer",           -- T1 con, fig, gunship, bomber
+		"armada_blink", "armada_stork",                             -- radar, transport,
 	},
 	corap = {
 		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
@@ -82,9 +82,9 @@ local labGrids = {
 	},
 	-- T2 air
 	armaap = {
-		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
-		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
+		"armada_advancedconstructionaircraft", "armada_highwind", "armada_roughneck", "armada_blizzard",           -- T2 con, fig, gunship, bomber
+		"armada_oracle", "armada_abductor", "armada_cormorant", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
+		"armada_liche", "armada_hornet", "armada_stiletto",                    -- liche, blade, stiletto
 	},
 
 	coraap = {
@@ -122,7 +122,7 @@ local labGrids = {
 	-- T2 boats
 	armasy = {
 		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
-		"armcarry", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
+		"armada_haven", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
 		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
 	},
 
@@ -593,7 +593,7 @@ local unitGrids = {
 		}
 	},
 	-- T1 air con
-	armca = {
+	armada_constructionaircraft = {
 		{
 			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
@@ -987,7 +987,7 @@ local unitGrids = {
 	},
 
 	--T2 air cons
-	armaca = {
+	armada_advancedconstructionaircraft = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion

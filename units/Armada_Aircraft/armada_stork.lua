@@ -1,11 +1,11 @@
 return {
-	armatlas = {
+	armada_stork = {
 		maxacc = 0.1,
 		blocking = false,
 		maxdec = 0.75,
 		energycost = 1300,
 		metalcost = 68,
-		buildpic = "ARMATLAS.DDS",
+		buildpic = "armada_stork.DDS",
 		buildtime = 3850,
 		canfly = true,
 		canmove = true,
@@ -22,9 +22,9 @@ return {
 		maxslope = 10,
 		speed = 207.0,
 		maxwaterdepth = 0,
-		objectname = "Units/ARMATLAS.s3o",
+		objectname = "Units/armada_stork.s3o",
 		releaseheld = true,
-		script = "Units/ARMATLAS.cob",
+		script = "Units/armada_stork.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,

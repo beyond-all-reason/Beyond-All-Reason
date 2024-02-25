@@ -66,7 +66,7 @@ local effectDefs = {
 	},
 
 	-- scouts
-	["armpeep"] = {
+	["armada_blink"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1", limit = true },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
 	},
@@ -75,7 +75,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb", limit = true  },
 	},
 	-- fighters
-	["armfig"] = {
+	["armada_falcon"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
 	},
 	["corveng"] = {
@@ -94,7 +94,7 @@ local effectDefs = {
 	["corsfig2"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
-	["armhawk"] = {
+	["armada_highwind"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
 	},
 	["corvamp"] = {
@@ -110,7 +110,7 @@ local effectDefs = {
 		{ color = { 0.3, 0.4, 0.6 }, width = 5.5, length = 55, piece = "thrusta", limit = true },
 	},
 	-- radar
-	["armawac"] = {
+	["armada_oracle"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
 	["corawac"] = {
@@ -129,17 +129,17 @@ local effectDefs = {
 	--},
 
 	-- transports
-	["armatlas"] = {
+	["armada_stork"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustr", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
 	},
-	["armdroneold"] = {
+	["armada_attackdroneold"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
 	},
-	["armdrone"] = {
+	["armada_attackdrone"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
 	},
@@ -149,7 +149,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 1 },
 	},
-	["armdfly"] = {
+	["armada_abductor"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", xzVelocity = 1.5, light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrustb", xzVelocity = 1.5, light = 1 },
 	},
@@ -171,11 +171,11 @@ local effectDefs = {
 	},
 
 	-- gunships
-	["armkam"] = {
+	["armada_banshee"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrusta", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrustb", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
 	},
-	["armblade"] = {
+	["armada_hornet"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
 	},
 	["corape"] = {
@@ -220,7 +220,7 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
-	--["armbrawl"] = {
+	--["armada_roughneck"] = {
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust2", light = 1 },
 	--},
@@ -240,25 +240,25 @@ local effectDefs = {
 	},
 
 	-- bombers
-	["armstil"] = {
+	["armada_stiletto"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 40, piece = "thrustb", light = 1 },
 	},
-	["armthund"] = {
+	["armada_stormbringer"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust2" },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust3" },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust4", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrustc", light = 1.3 },
 	},
-	["armthundt4"] = {
+	["armada_stormbringert4"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust2" },
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust3" },
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust4", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 85, piece = "thrustc", light = 1.3 },
 	},
-	["armpnix"] = {
+	["armada_blizzard"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrusta", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrustb", light = 1 },
 	},
@@ -267,12 +267,12 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta2", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 33, piece = "thrustb", light = 1 },
 	},
-	["armliche"] = {
+	["armada_liche"] = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrusta", light = 1 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustb", light = 1 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustc", light = 1 },
 	},
-	["armlichet4"] = {
+	["armada_lichet4"] = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrusta", light = 1.5 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustb", light = 1.5 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustc", light = 1.5 },
@@ -283,7 +283,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrustb1", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrustb2", light = 1 },
 	},
-	["armlance"] = {
+	["armada_cormorant"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 40, piece = "thrust1", light = 1 },
 	},
 	["corhurc"] = {
@@ -327,10 +327,10 @@ local effectDefs = {
 		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
 	},
 	-- construction
-	["armca"] = {
+	["armada_constructionaircraft"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },
 	},
-	["armaca"] = {
+	["armada_advancedconstructionaircraft"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
 	},
 	["corca"] = {

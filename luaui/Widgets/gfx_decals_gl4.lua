@@ -990,7 +990,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 225
 			glowadd = 4.5
 
-			--armliche
+			--armada_liche
 		elseif string.find(weaponDef.name, 'arm_pidr') then
 			textures = { "t_groundcrack_21_a.tga" }
 			radius = radius * 1.8

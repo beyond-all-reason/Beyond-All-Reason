@@ -1,11 +1,11 @@
 return {
-	armdfly = {
+	armada_abductor = {
 		maxacc = 0.2,
 		blocking = false,
 		maxdec = 0.625,
 		energycost = 6600,
 		metalcost = 320,
-		buildpic = "ARMDFLY.DDS",
+		buildpic = "armada_abductor.DDS",
 		buildtime = 16000,
 		canfly = true,
 		canmove = true,
@@ -26,9 +26,9 @@ return {
 		speed = 241.5,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMDFLY.s3o",
+		objectname = "Units/armada_abductor.s3o",
 		releaseheld = true,
-		script = "Units/ARMDFLY.cob",
+		script = "Units/armada_abductor.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 318,
@@ -85,7 +85,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armdfly_paralyzer = {
+			armada_abductor_paralyzer = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				beamdecay = 0.5,
@@ -127,7 +127,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMDFLY_PARALYZER",
+				def = "armada_abductor_PARALYZER",
 				onlytargetcategory = "EMPABLE",
 			},
 		},

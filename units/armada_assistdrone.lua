@@ -27,7 +27,7 @@ return {
 		speed = 210.0,
 		maxwaterdepth = 0,
 		objectname = "Units/scavboss/ARMASSISTDRONE.s3o",
-		script = "Units/ARMCA.cob",
+		script = "Units/armada_constructionaircraft.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 200,

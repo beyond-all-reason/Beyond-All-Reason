@@ -11,7 +11,7 @@ local icontypes = {
 		bitmap = "icons/ship_t2_aa_flak.png",
 		size = 1.73249984
 	},
-	armaca = {
+	armada_advancedconstructionaircraft = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
@@ -131,7 +131,7 @@ local icontypes = {
 		bitmap = "icons/defence_2_naval.png",
 		size = 1.46999991
 	},
-	armatlas = {
+	armada_stork = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
@@ -139,7 +139,7 @@ local icontypes = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
 	},
-	armawac = {
+	armada_oracle = {
 		bitmap = "icons/air_t2_radar.png",
 		size = 1.39649999
 	},
@@ -159,7 +159,7 @@ local icontypes = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
 	},
-	armblade = {
+	armada_hornet = {
 		bitmap = "icons/air_t2_hover_missile.png",
 		size = 1.46999991
 	},
@@ -167,7 +167,7 @@ local icontypes = {
 		bitmap = "icons/botrail.png",
 		size = 3.97000003
 	},
-	armbrawl = {
+	armada_roughneck = {
 		bitmap = "icons/air_t2_hover.png",
 		size = 1.46999991
 	},
@@ -179,15 +179,15 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_tank.png",
 		size = 1.46999991
 	},
-	armca = {
+	armada_constructionaircraft = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
 	},
-	armcarry = {
+	armada_haven = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	armcarry2 = {
+	armada_haven2 = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
@@ -263,7 +263,7 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	armdfly = {
+	armada_abductor = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
@@ -275,19 +275,19 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armdrone = {
+	armada_attackdrone = {
 		bitmap = "icons/air_hover.png",
 		size = 0.34999999
 	},
-	armdronecarry = {
+	armada_dronecarrier = {
 		bitmap = "icons/ship_t2_dronecarry.png",
 		size = 2.45000005
 	},
-	armdronecarryland = {
+	armada_dronecarrierland = {
 		bitmap = "icons/vehicle_t3_dronecarryland.png",
 		size = 2.45000005
 	},
-	armdroneold = {
+	armada_attackdroneold = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
 	},
@@ -363,7 +363,7 @@ local icontypes = {
 		bitmap = "icons/bot_arty_t2.png",
 		size = 1.34399986
 	},
-	armfig = {
+	armada_falcon = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
@@ -435,7 +435,7 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
 	},
-	armhawk = {
+	armada_highwind = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
 	},
@@ -467,7 +467,7 @@ local icontypes = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
-	armkam = {
+	armada_banshee = {
 		bitmap = "icons/air_hover.png",
 		size = 1.25999999
 	},
@@ -479,7 +479,7 @@ local icontypes = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
-	armlance = {
+	armada_cormorant = {
 		bitmap = "icons/air_t2_torpbomber.png",
 		size = 1.67999995
 	},
@@ -487,11 +487,11 @@ local icontypes = {
 		bitmap = "icons/armlatnk_1.3.png",
 		size = 1.36499989
 	},
-	armliche = {
+	armada_liche = {
 		bitmap = "icons/air_liche.png",
 		size = 2.0999999
 	},
-	armlichet4 = {
+	armada_lichet4 = {
 		bitmap = "icons/air_liche.png",
 		size = 4.19999981
 	},
@@ -615,7 +615,7 @@ local icontypes = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
 	},
-	armpeep = {
+	armada_blink = {
 		bitmap = "icons/air_los.png",
 		size = 0.78749996
 	},
@@ -627,7 +627,7 @@ local icontypes = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
 	},
-	armpnix = {
+	armada_blizzard = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
@@ -823,8 +823,8 @@ local icontypes = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
 	},
-	armstil = {
-		bitmap = "icons/armstil_1.66.png",
+	armada_stiletto = {
+		bitmap = "icons/armada_stiletto_1.66.png",
 		size = 1.74299991
 	},
 	armstump = {
@@ -855,12 +855,12 @@ local icontypes = {
 		bitmap = "icons/hovertrans.png",
 		size = 1.78499997
 	},
-	armthund = {
+	armada_stormbringer = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
 	},
-	armthundt4 = {
-		bitmap = "icons/armthundt4.png",
+	armada_stormbringert4 = {
+		bitmap = "icons/armada_stormbringert4.png",
 		size = 3.3599999
 	},
 	armtide = {

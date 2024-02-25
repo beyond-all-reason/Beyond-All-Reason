@@ -67,13 +67,13 @@ return {
 		"coracsub_scav",
 
 		-- Air
-		"armlance_scav",
+		"armada_cormorant_scav",
 		"cortitan_scav",
 	},
 
 	T3 = {
 		"armbats_scav",
-		"armcarry2_scav",
+		"armada_haven2_scav",
 		"armepoch_scav",
 		"armserp_scav",
 		"corbats_scav",

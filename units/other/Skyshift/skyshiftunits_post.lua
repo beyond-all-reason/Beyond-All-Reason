@@ -5,11 +5,11 @@ local function skyshiftUnitTweaks(name, uDef)
 			-----ARMADA AIR-----
 			--------------------
 ---------------------------------------------
-	if name == "armca" then
+	if name == "armada_constructionaircraft" then
 		uDef.health = 720
 	end
 	
-	if name == "armfig" then
+	if name == "armada_falcon" then
 		uDef.acceleration = 0.6
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
@@ -17,7 +17,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxdec = 0.4
 		uDef.buildcostenergy = 1100
 		uDef.buildcostmetal = 95
-		uDef.buildpic = "ARMFIG.DDS"
+		uDef.buildpic = "armada_falcon.DDS"
 		uDef.buildtime = 3500
 		uDef.canfly = true
 		uDef.canmove = true
@@ -39,8 +39,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.speed = 175
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
-		uDef.objectname = "Units/ARMFIG.s3o"
-		uDef.script = "Units/ARMFIG.cob"
+		uDef.objectname = "Units/armada_falcon.s3o"
+		uDef.script = "Units/armada_falcon.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "smallExplosionGenericAir"
 		uDef.sightdistance = 350
@@ -96,12 +96,12 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "armthund" then
+	if name == "armada_stormbringer" then
 		uDef.acceleration = 0.3
 		uDef.maxdec = 0.3
 		uDef.energycost = 2400
 		uDef.metalcost = 220
-		uDef.buildpic = "ARMTHUND.DDS"
+		uDef.buildpic = "armada_stormbringer.DDS"
 		uDef.buildtime = 4780
 		uDef.canfly = true
 		uDef.canmove = true
@@ -125,8 +125,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "MOBILE"
-		uDef.objectname = "Units/ARMTHUND.s3o"
-		uDef.script = "Units/ARMTHUND.cob"
+		uDef.objectname = "Units/armada_stormbringer.s3o"
+		uDef.script = "Units/armada_stormbringer.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 195
@@ -178,12 +178,12 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "armkam" then
+	if name == "armada_banshee" then
 		uDef.airstrafe = false
 		uDef.blocking = false
 		uDef.energycost = 2600
 		uDef.metalcost = 240
-		uDef.buildpic = "ARMKAM.DDS"
+		uDef.buildpic = "armada_banshee.DDS"
 		uDef.buildtime = 5050
 		uDef.canfly = true
 		uDef.canmove = true
@@ -206,8 +206,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxwaterdepth = 0
 		uDef.speed = 75
 		uDef.nochasecategory = "NOTAIR"
-		uDef.objectname = "Units/ARMKAM.s3o"
-		uDef.script = "Units/ARMKAM.cob"
+		uDef.objectname = "Units/armada_banshee.s3o"
+		uDef.script = "Units/armada_banshee.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "smallExplosionGenericSelfd"
 		uDef.sightdistance = 520

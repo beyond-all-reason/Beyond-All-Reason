@@ -1,19 +1,19 @@
 return {
 	T0 = {
-		"armfig_scav",
+		"armada_falcon_scav",
 		"corbw_scav",
 		"corveng_scav",
 	},
 
 	T1 = {
-		"armthund_scav",
-		"armfig_scav",
+		"armada_stormbringer_scav",
+		"armada_falcon_scav",
 		"corshad_scav",
 		"corbw_scav",
 		"corveng_scav",
 
 		-- Constructors
-		"armca_scav",
+		"armada_constructionaircraft_scav",
 		"armcsa_scav",
 		"corca_scav",
 		"corcsa_scav",
@@ -21,8 +21,8 @@ return {
 
 	T2 = {
 		"armsb_scav",
-		"armkam_scav",
-		"armbrawl_scav",
+		"armada_banshee_scav",
+		"armada_roughneck_scav",
 		"armsaber_scav",
 		"armsfig_scav",
 		"corsb_scav",
@@ -30,19 +30,19 @@ return {
 		"corcut_scav",
 
 		-- Constructors
-		"armaca_scav",
+		"armada_advancedconstructionaircraft_scav",
 		"coraca_scav",
 		"armassistdrone",
 		"corassistdrone",
 	},
 
 	T3 = {
-		"armhawk_scav",
+		"armada_highwind_scav",
 		"armsb_scav",
-		"armblade_scav",
-		"armstil_scav",
-		"armliche_scav",
-		"armpnix_scav",
+		"armada_hornet_scav",
+		"armada_stiletto_scav",
+		"armada_liche_scav",
+		"armada_blizzard_scav",
 		"corsb_scav",
 		"corvamp_scav",
 		"corhurc_scav",
@@ -56,7 +56,7 @@ return {
 		"corcrwt4_scav",
 		"armfepocht4_scav",
 		"corfblackhyt4_scav",
-		"armthundt4_scav",
-		"armlichet4_scav",
+		"armada_stormbringert4_scav",
+		"armada_lichet4_scav",
 	},
 }

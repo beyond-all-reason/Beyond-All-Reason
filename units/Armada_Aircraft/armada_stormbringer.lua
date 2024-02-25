@@ -1,10 +1,10 @@
 return {
-	armthund = {
+	armada_stormbringer = {
 		acceleration = 0.05,
 		maxdec = 0.05,
 		energycost = 4200,
 		metalcost = 145,
-		buildpic = "ARMTHUND.DDS",
+		buildpic = "armada_stormbringer.DDS",
 		buildtime = 4780,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMTHUND.s3o",
-		script = "Units/ARMTHUND.cob",
+		objectname = "Units/armada_stormbringer.s3o",
+		script = "Units/armada_stormbringer.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 195,

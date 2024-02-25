@@ -1,11 +1,11 @@
 return {
-	armpeep = {
+	armada_blink = {
 		acceleration = 0.3,
 		blocking = false,
 		maxdec = 0.01125,
 		energycost = 1550,
 		metalcost = 52,
-		buildpic = "ARMPEEP.DDS",
+		buildpic = "armada_blink.DDS",
 		buildtime = 2800,
 		canfly = true,
 		canmove = true,
@@ -27,9 +27,9 @@ return {
 		maxslope = 10,
 		speed = 375.0,
 		maxwaterdepth = 0,
-		objectname = "Units/ARMPEEP.s3o",
+		objectname = "Units/armada_blink.s3o",
 		radardistance = 1140,
-		script = "Units/ARMPEEP.cob",
+		script = "Units/armada_blink.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		selfdestructcountdown = 1,
