@@ -611,7 +611,7 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	armnanot2plat = {
+	armnanotc2plat = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -1583,7 +1583,7 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	cornanot2plat = {
+	cornanotc2plat = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},

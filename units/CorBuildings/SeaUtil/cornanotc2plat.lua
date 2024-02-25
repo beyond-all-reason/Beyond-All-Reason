@@ -1,12 +1,12 @@
 return {
-	armnanot2plat = {
+	cornanotc2plat = {
 		maxacc = 0,
 		maxdec = 4.5,
 		energycost = 12800,
 		metalcost = 840,
 		builddistance = 500,
 		builder = true,
-		buildpic = "armnanot2plat.DDS",
+		buildpic = "cornanotc2plat.DDS",
 		buildtime = 21000,
 		canassist = true,
 		canfight = true,
@@ -33,8 +33,8 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		objectname = "Units/armnanot2plat.s3o",
-		script = "Units/ARMNANOT2.cob",
+		objectname = "Units/cornanotc2plat.s3o",
+		script = "Units/CORNANOT2.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
 		sightdistance = 500,
@@ -44,14 +44,14 @@ return {
 		workertime = 600,
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Beherith, Hornet",
-			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/landutil",
+			normaltex = "unittextures/cor_normal.dds",
+			subfolder = "corbuildings/landutil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

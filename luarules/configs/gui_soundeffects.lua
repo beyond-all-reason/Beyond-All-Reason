@@ -159,7 +159,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	armnanot2plat = {
+	armnanotc2plat = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
@@ -1311,7 +1311,7 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	cornanot2plat = {
+	cornanotc2plat = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
