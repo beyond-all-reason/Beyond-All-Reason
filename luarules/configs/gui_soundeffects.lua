@@ -153,6 +153,17 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
+	armnanotct2 = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+
+	armnanotc2plat = {
+		BaseSoundSelectType = "arm-bld-select-large-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
 
 	armfdrag = {
 		BaseSoundSelectType = "arm-bld-select",
@@ -1290,6 +1301,17 @@ GUIUnitSoundEffects = {
 	},
 
 	cornanotcplat = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+
+	cornanotct2 = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+	cornanotc2plat = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",

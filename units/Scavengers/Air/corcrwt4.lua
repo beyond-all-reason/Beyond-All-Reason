@@ -242,6 +242,7 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrhvy3",
+				soundstartvolume = 35,
 				soundtrigger = 1,
 				targetmoveerror = 0.15,
 				thickness = 6.7,

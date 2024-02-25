@@ -611,6 +611,10 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
+	armnanotc2plat = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
 	armpb = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
@@ -1576,6 +1580,10 @@ local icontypes = {
 		size = 0.96599996
 	},
 	cornanotct2 = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
+	cornanotc2plat = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
