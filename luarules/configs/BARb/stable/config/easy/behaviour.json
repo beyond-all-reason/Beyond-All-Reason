@@ -482,15 +482,15 @@
 	"armmar": {
 		"role": ["raider", "heavy"]
 	},
-	"armraz": {
+	"armada_razorback": {
 		"role": ["skirmish", "heavy"],
 		"power": 2.5
 	},
-	"armvang": {
+	"armada_vanguard": {
 		"role": ["artillery", "heavy"],
 		"power": 2.0
 	},
-	"armbanth": {
+	"armada_titan": {
 		"role": ["assault", "heavy"],
 		"attribute": ["melee"],
 		"power": 2.0
@@ -559,7 +559,7 @@
 		"role": ["anti_heavy"],
 		"attribute": ["artillery"]
 	},
-	"armmart": {
+	"armada_mauser": {
 		"role": ["artillery"],
 		"attribute": ["siege"]
 	},
@@ -701,22 +701,22 @@
 	},
 
 	// ARMADA HOVERS
-	"armch": {
+	"armada_constructionhovercraft": {
 		"role": ["builder"],
 		"limit": 10,
 		"build_speed": 8.0
 	},
-	"armsh": {
+	"armada_seeker": {
 		"role": ["scout"]
 	},
-	"armanac": {
+	"armada_crocodile": {
 		"role": ["assault"]
 	},
-	"armmh": {
+	"armada_possum": {
 		"role": ["artillery"],
 		"limit": 10
 	},
-	"armah": {
+	"armada_sweeper": {
 		"role": ["anti_air"],
 		"attribute": ["skirmish"]
 	},

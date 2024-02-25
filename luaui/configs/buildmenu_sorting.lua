@@ -25,7 +25,7 @@ local unitOrderTable = {
 	['armcs']          = 001180, --SHIPS
 	['corcs']          = 001190,
 
-	['armch']          = 002000, --HOVER
+	['armada_constructionhovercraft']          = 002000, --HOVER
 	['corch']          = 002050,
 
 	['armada_lazarus']       = 002100, --REZ BOTS
@@ -141,7 +141,7 @@ local unitOrderTable = {
 	['armfav']         = 004410, --VEH
 	['corfav']         = 004420,
 
-	['armsh']          = 004500, --HOVER
+	['armada_seeker']          = 004500, --HOVER
 	['corsh']          = 004510,
 
 	-- EMP
@@ -162,7 +162,7 @@ local unitOrderTable = {
 	['corlevlr']       = 005210,
 	['armstump']       = 005220,
 	['corraid']        = 005230,
-	['armanac']        = 005240,
+	['armada_crocodile']        = 005240,
 	['corsnap']        = 005250,
 	['leghelios']	   = 005251,
 	['leggat']		   = 005252,
@@ -175,7 +175,7 @@ local unitOrderTable = {
 	['corthud']        = 005410,
 	['armart']         = 005420,
 	['corwolv']        = 005430,
-	['armmh']          = 005420,
+	['armada_possum']          = 005420,
 	['cormh']          = 005430,
 	['legbar']         = 005440,
 
@@ -218,7 +218,7 @@ local unitOrderTable = {
 	['cormort']        = 006510,
 	['legbart']        = 006515,
 	['legvcarry']      = 006516,
-	['armmart']        = 006520,
+	['armada_mauser']        = 006520,
 	['cormart']        = 006530,
 	['cortrem']        = 006540,
 	['leginf']         = 006550,
@@ -254,25 +254,25 @@ local unitOrderTable = {
 	--T3 LAND ATTACK
 	['armmar']         = 007000,
 	['corcat']         = 007010,
-	['armraz']         = 007020,
+	['armada_razorback']         = 007020,
 	['corkarg']        = 007030,
-	['armvang']        = 007040,
+	['armada_vanguard']        = 007040,
 	['corshiva']       = 007050,
 	['legkeres']	   = 007051,
 	['legpede']        = 007055,
-	['armthor']        = 007060,
+	['armada_thor']        = 007060,
 	['leegmech']       = 007065,
 	['corkorg']        = 007070,
-	['armbanth']       = 007080,
+	['armada_titan']       = 007080,
 	['corjugg']        = 007090,
 
 	--T3 HOVER
-	['armlun']         = 007100, --hover
+	['armada_lunkhead']         = 007100, --hover
 	['corsok']         = 007110, --hover
 
 	--T4 LAND ATTACK (SCAVS)
 	['armmeatball']    = 007200,
-	['armlunchbox']    = 007210,
+	['armada_lunchbox']    = 007210,
 	['armassimilator'] = 007220,
 
 	['armada_pawnt4']        = 007300,
@@ -300,7 +300,7 @@ local unitOrderTable = {
 	['armyork']        = 008200,
 	['corsent']        = 008210,
 
-	['armah']          = 008300,
+	['armada_sweeper']          = 008300,
 	['corah']          = 008310,
 
 	-- -- T2 AA
@@ -381,7 +381,7 @@ local unitOrderTable = {
 	['armtship']       = 010540,
 	['cortship']       = 010550,
 
-	['armthovr']       = 010560,
+	['armada_bearer']       = 010560,
 	['corthovr']       = 010570,
 
 	['corintr']        = 010600,

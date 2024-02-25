@@ -20,7 +20,7 @@ function ArmyHST:Init()
 
 	self.techs = {
 		corca = true,
-		armch = true,
+		armada_constructionhovercraft = true,
 		corch = true,
 		armacsub = true,
 		armada_constructionaircraft = true,
@@ -106,7 +106,7 @@ function ArmyHST:Init()
 	self.transports = {
 		corvalk = true,
 		armada_stork = true,
-		armthovr = true,
+		armada_bearer = true,
 		corthovr = true,
 		corintr = true,
 		armada_abductor = true,
@@ -136,13 +136,13 @@ function ArmyHST:Init()
 		corseal = true,
 		corpyro = true,
 		armada_welder = true,
-		armsh = true,
+		armada_seeker = true,
 		corsh = true,
 		corsub = true,
 		armsub = true,
 		armsubk = true,
 		corshark = true,
-		armraz = true,
+		armada_razorback = true,
 		corkarg = true,
 
 		}
@@ -153,9 +153,9 @@ function ArmyHST:Init()
 		corwolv = true,
 		armada_hound = true,
 		cormort = true,
-		armmart = true,
+		armada_mauser = true,
 		cormart = true,
-		armvang = true,--t3a
+		armada_vanguard = true,--t3a
 		corcat = true,--t3c
 		corbats = true,
 		armbats = true,
@@ -171,7 +171,7 @@ function ArmyHST:Init()
 		corhrk = true,
 		cormship = true,
 		armmship = true,
-		armmh = true,
+		armada_possum = true,
 		cormh = true,
 		}
 
@@ -184,13 +184,13 @@ function ArmyHST:Init()
 		corcan = true,
 		armbull = true,
 		correap = true,
-		armanac = true,--ha
+		armada_crocodile = true,--ha
 		corsnap = true,--hc
 		armpship = true,--t1a
 		corpship = true,--t1c
 		corcrus = true,
 		armcrus = true,
-		armbanth = true,--t3a
+		armada_titan = true,--t3a
 
 
 
@@ -209,7 +209,7 @@ function ArmyHST:Init()
 		corsumo = true,
 		corgol = true,
 		armmanni = true,
-		armlun = true,--hover
+		armada_lunkhead = true,--hover
 		corsok = true,--hover
 		armroy = true,
 		corroy = true,
@@ -218,7 +218,7 @@ function ArmyHST:Init()
 
 		corblackhy = true,
 		armepoch = true,
-		armthor = true, --t3a
+		armada_thor = true, --t3a
 		corkorg = true,--t3c
 
 		}
@@ -293,7 +293,7 @@ function ArmyHST:Init()
 		}
 
 	self.antiairs = {
-		armah = true,
+		armada_sweeper = true,
 		corah = true,
 		armaas = true,
 		armsam = true,
@@ -890,7 +890,7 @@ ArmyHST.mobUnitExampleName = {
 	veh = "armcv",
 	bot = "armada_constructionbot",
 	amp = "armbeaver",
-	hov = "armch",
+	hov = "armada_constructionhovercraft",
 	shp = "armcs",
 	sub = "armacsub"
 }

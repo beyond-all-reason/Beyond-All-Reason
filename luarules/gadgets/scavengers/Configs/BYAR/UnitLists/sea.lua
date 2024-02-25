@@ -19,10 +19,10 @@ return {
 		"corgarp_scav",
 
 		-- Hovercraft
-		"armsh_scav",
-		"armmh_scav",
-		"armah_scav",
-		"armanac_scav",
+		"armada_seeker_scav",
+		"armada_possum_scav",
+		"armada_sweeper_scav",
+		"armada_crocodile_scav",
 		"corsh_scav",
 		"cormh_scav",
 		"corah_scav",
@@ -30,7 +30,7 @@ return {
 
 		-- Constructors
 		"armbeaver_scav",
-		"armch_scav",
+		"armada_constructionhovercraft_scav",
 		"armcs_scav",
 		"cormuskrat_scav",
 		"corcs_scav",
@@ -85,7 +85,7 @@ return {
 		"armptt2_scav",
 
 		-- Hovercraft
-		"armlun_scav",
+		"armada_lunkhead_scav",
 		"corsok_scav",
 	},
 
@@ -95,7 +95,7 @@ return {
 		"corblackhy_scav",
 		"armada_tumbleweedt4_scav",
 		"corkorg_scav",
-		"armbanth_scav",
+		"armada_titan_scav",
 		"coresuppt3_scav",
 	},
 }

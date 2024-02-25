@@ -1,10 +1,10 @@
 return {
-	armmart = {
+	armada_mauser = {
 		maxacc = 0.02159,
 		maxdec = 0.04319,
 		energycost = 4900,
 		metalcost = 320,
-		buildpic = "ARMMART.DDS",
+		buildpic = "armada_mauser.DDS",
 		buildtime = 6500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMMART.s3o",
-		script = "Units/ARMMART.cob",
+		objectname = "Units/armada_mauser.s3o",
+		script = "Units/armada_mauser.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 286,
@@ -74,7 +74,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 198,
-				object = "Units/armmart_dead.s3o",
+				object = "Units/armada_mauser_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

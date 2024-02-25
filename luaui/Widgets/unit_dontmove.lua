@@ -29,7 +29,7 @@ local unitNames = {
   "cormist",
   "corsent",
 
-  "armah",
+  "armada_sweeper",
   "corah",
   "armmls",
   "cormls",
@@ -41,7 +41,7 @@ local unitNames = {
   "armada_mace",
   "corwolv",
 
-  "armmart",
+  "armada_mauser",
   "armmerl",
   "cormart",
   "corvroc",
@@ -49,7 +49,7 @@ local unitNames = {
   "armada_sharpshooter",
   "corhrk",
 
-  "armmh",
+  "armada_possum",
   "cormh",
   "armroy",
   "corroy",
@@ -65,7 +65,7 @@ local unitNames = {
   "corblackhy",
 
   "corcat",
-  "armvang",
+  "armada_vanguard",
 
   --skirmishers/fire support
   "armjanus",

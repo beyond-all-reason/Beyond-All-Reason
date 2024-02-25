@@ -76,7 +76,7 @@ Scoring:
 		armada_keeper = 10,
 		armada_mercury = 0,
 		armada_paralyzer = 1,
-		armlun = 0,
+		armada_lunkhead = 0,
     } ,
 
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game

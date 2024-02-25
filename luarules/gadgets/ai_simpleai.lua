@@ -56,7 +56,7 @@ local BadUnitsList = {}
 if gameShortName == "BYAR" then
 	BadUnitsList = {
 		-- transports
-		"armthovr",
+		"armada_bearer",
 		"corthovr",
 		"armada_stork",
 		"armtship",

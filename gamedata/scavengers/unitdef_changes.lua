@@ -155,7 +155,7 @@ customDefs.corscavdtl = {
 -- 	"corck",
 -- 	"armada_advancedconstructionbot",
 -- 	"corack",
--- 	"armch",
+-- 	"armada_constructionhovercraft",
 -- 	"corch",
 -- 	"armcsa",
 -- 	"corcsa",
@@ -576,7 +576,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "armada_recluset4",
 -- 		[numBuildoptions+3] = "armada_pawnt4",
 -- 		[numBuildoptions+4] = "armada_tumbleweedt4",
--- 		[numBuildoptions+5] = "armlunchbox",
+-- 		[numBuildoptions+5] = "armada_lunchbox",
 -- 		[numBuildoptions+6] = "armmeatball",
 -- 		[numBuildoptions+7] = "armassimilator",
 -- 	},
@@ -1196,9 +1196,9 @@ customDefs.armbotrail = {
 -- 	},
 -- }
 
--- customDefs.armmh = {
+-- customDefs.armada_possum = {
 -- 	weapondefs = {
--- 		armmh_weapon = {
+-- 		armada_possum_weapon = {
 -- 			range = 532,
 -- 			reloadtime = 4,
 -- 			damage = {

@@ -1,10 +1,10 @@
 return {
-	armanac = {
+	armada_crocodile = {
 		maxacc = 0.05333,
 		maxdec = 0.05333,
 		energycost = 2600,
 		metalcost = 290,
-		buildpic = "ARMANAC.DDS",
+		buildpic = "armada_crocodile.DDS",
 		buildtime = 3200,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMANAC.s3o",
-		script = "Units/ARMANAC.cob",
+		objectname = "Units/armada_crocodile.s3o",
+		script = "Units/armada_crocodile.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 509,
@@ -53,7 +53,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 175,
-				object = "Units/armanac_dead.s3o",
+				object = "Units/armada_crocodile_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armanac_weapon = {
+			armada_crocodile_weapon = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMANAC_WEAPON",
+				def = "armada_crocodile_WEAPON",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -1,12 +1,12 @@
 return {
-	armlun = {
+	armada_lunkhead = {
 		activatewhenbuilt = true,
 		maxacc = 0.01788,
 		maxdec = 0.01788,
 		energycost = 23000,
 		metalcost = 1150,
 		builder = false,
-		buildpic = "ARMLUN.DDS",
+		buildpic = "armada_lunkhead.DDS",
 		buildtime = 32000,
 		canattack = true,
 		canguard = true,
@@ -27,9 +27,9 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMLUN.s3o",
+		objectname = "Units/armada_lunkhead.s3o",
 		radardistance = 0,
-		script = "Units/armlun.cob",
+		script = "Units/armada_lunkhead.cob",
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 620,
 		sonardistance = 550,
@@ -56,7 +56,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 514,
-				object = "Units/armlun_dead.s3o",
+				object = "Units/armada_lunkhead_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
@@ -142,7 +142,7 @@ return {
 				weaponvelocity = 300,
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
-					def = "armlun_cannonuw",
+					def = "armada_lunkhead_cannonuw",
 					model = "airbombt2",
 					--speceffect = "cannonwaterpen",
 					--waterpenceg = "genericshellexplosion-medium",
@@ -187,7 +187,7 @@ return {
 					vtol = 60,
 				},
 			},
-			armlun_rocket = {
+			armada_lunkhead_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall",

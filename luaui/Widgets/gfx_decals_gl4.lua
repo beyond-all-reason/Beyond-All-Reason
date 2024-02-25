@@ -1407,9 +1407,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armraz'] = {
+	['armada_razorback'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armraz_a.png',
+			texture = footprintsPath..'f_armada_razorback_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1427,9 +1427,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armvang'] = {
+	['armada_vanguard'] = {
 		[1] = { -- FOOT
-			texture = footprintsPath..'f_armvang_a.png',
+			texture = footprintsPath..'f_armada_vanguard_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.8, -- in radians
@@ -1447,7 +1447,7 @@ local UnitScriptDecalsNames = {
 			},
 
 		[2] = { -- ankle
-			texture = footprintsPath..'f_armvang_a.png',
+			texture = footprintsPath..'f_armada_vanguard_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
@@ -1465,9 +1465,9 @@ local UnitScriptDecalsNames = {
 			},
 		},
 
-	['armbanth'] = {
+	['armada_titan'] = {
 		[1] = {
-			texture = footprintsPath..'f_armbanth_a.png',
+			texture = footprintsPath..'f_armada_titan_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -7, --
 			offsetrot = 0, -- in radians

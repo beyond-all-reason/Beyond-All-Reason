@@ -535,9 +535,9 @@ FirePrimary()
 	}
 }
 
-// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armraz_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
+// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armada_razorback_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armraz_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
+DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armada_razorback_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
 	signal SIG_WALK;
 	signal SIG_AIM;
 	call-script StopWalking();

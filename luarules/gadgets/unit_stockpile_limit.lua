@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['armada_mercury'].id] = 5,
 		[UnitDefNames['corscreamer'].id] = 5,
 
-		[UnitDefNames['armthor'].id] = 2,
+		[UnitDefNames['armada_thor'].id] = 2,
 
 		[UnitDefNames['legmos'].id] = 8,
 		[UnitDefNames['legmineb'].id] = 1,

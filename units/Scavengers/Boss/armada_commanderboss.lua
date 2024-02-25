@@ -59,7 +59,7 @@ return {
 		upright = true,
 		workertime = 2000,
 		buildoptions = {
-			[1] = "armbanth",
+			[1] = "armada_titan",
 			[2] = "corkorg",
 		},
 		customparams = {

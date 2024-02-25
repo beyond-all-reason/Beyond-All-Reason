@@ -69,7 +69,7 @@ return {
 			--"armada_advancedconstructionaircraft",
 			"armada_constructionbot",
 			--"armada_advancedconstructionbot",
-			"armch",
+			"armada_constructionhovercraft",
 			"armcsa",
 			"armcs",
 			--"armacsub",

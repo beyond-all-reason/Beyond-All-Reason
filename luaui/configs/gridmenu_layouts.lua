@@ -52,7 +52,7 @@ local labGrids = {
 	},
 	-- T2 vehicle
 	armada_advancedvehicleplant = {
-		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
+		"armacv", "armconsul", "armbull", "armada_mauser",           -- T2 con, consul, bulldog, luger
 		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
 		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
 	},
@@ -145,9 +145,9 @@ local labGrids = {
 	},
 	-- hover labs
 	armada_hovercraftplatform = {
-		"armch", "", "armsh", "",
-		"armanac", "armmh", "", "",
-		"", "", "armah",
+		"armada_constructionhovercraft", "", "armada_seeker", "",
+		"armada_crocodile", "armada_possum", "", "",
+		"", "", "armada_sweeper",
 	},
 
 	corhp = {
@@ -156,9 +156,9 @@ local labGrids = {
 		"", "", "corah",
 	},
 	armada_navalhovercraftplatform = {
-		"armch", "", "armsh", "",
-		"armanac", "armmh", "", "",
-		"", "", "armah",
+		"armada_constructionhovercraft", "", "armada_seeker", "",
+		"armada_crocodile", "armada_possum", "", "",
+		"", "", "armada_sweeper",
 	},
 
 	corfhp = {
@@ -169,8 +169,8 @@ local labGrids = {
 
 	-- T3 labs
 	armada_experimentalgantry = {
-		"armmar", "armraz", "armvang", "armthor",
-		"armbanth", "armlun"
+		"armmar", "armada_razorback", "armada_vanguard", "armada_thor",
+		"armada_titan", "armada_lunkhead"
 	},
 
 	corgant = {
@@ -706,7 +706,7 @@ local unitGrids = {
 	},
 
 	-- Hover cons
-	armch = {
+	armada_constructionhovercraft = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", "armada_advancedsolarcollector", },  -- mex, solar, wind, adv. solar
 			{ "armada_energyconverter", "armada_geothermalpowerplant", "armada_twilight", "armada_tidalgenerator",  },   -- T1 converter, geo, twilight, (tidal)

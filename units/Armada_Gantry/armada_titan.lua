@@ -1,11 +1,11 @@
 return {
-	armbanth = {
+	armada_titan = {
 		maxacc = 0.11845,
 		airsightdistance = 1100,
 		maxdec = 0.7521,
 		energycost = 286000,
 		metalcost = 13500,
-		buildpic = "ARMBANTH.DDS",
+		buildpic = "armada_titan.DDS",
 		buildtime = 276000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -25,9 +25,9 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "VBOT5",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMBANTH.s3o",
+		objectname = "Units/armada_titan.s3o",
 		pushresistant = true,
-		script = "Units/ARMBANTH.cob",
+		script = "Units/armada_titan.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		selfdestructcountdown = 10,
@@ -62,7 +62,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 8249,
-				object = "Units/armbanth_dead.s3o",
+				object = "Units/armada_titan_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -118,7 +118,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armbantha_fire = {
+			armada_titana_fire = {
 				accuracy = 100,
 				areaofeffect = 64,
 				avoidfeature = false,
@@ -267,7 +267,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMBANTHA_FIRE",
+				def = "armada_titanA_FIRE",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {

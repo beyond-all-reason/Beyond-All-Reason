@@ -12,7 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "137 75 145",
 		collisionvolumetype = "Box",
-		corpse = "ARMSHLT_DEAD",
+		corpse = "armada_seekerLT_DEAD",
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 9,
@@ -32,12 +32,12 @@ return {
 		workertime = 600,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooocccccccccccccccccccccccccccccccccccc",
 		buildoptions = {
-			[1] = "armbanth",
-			[2] = "armraz",
+			[1] = "armada_titan",
+			[2] = "armada_razorback",
 			[3] = "armmar",
-			[4] = "armvang",
-			[5] = "armlun",
-			[6] = "armthor",
+			[4] = "armada_vanguard",
+			[5] = "armada_lunkhead",
+			[6] = "armada_thor",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -52,7 +52,7 @@ return {
 			techlevel = 3,
 		},
 		featuredefs = {
-			armshlt_dead = {
+			armada_seekerlt_dead = {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
@@ -60,7 +60,7 @@ return {
 				collisionvolumetype = "Box",
 				damage = 8640,
 				energy = 0,
-				featuredead = "ARMSHLT_HEAP",
+				featuredead = "armada_seekerLT_HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 9,
 				footprintz = 9,
@@ -72,7 +72,7 @@ return {
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
-			armshlt_heap = {
+			armada_seekerlt_heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 4320,

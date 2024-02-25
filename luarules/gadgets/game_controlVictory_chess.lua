@@ -181,7 +181,7 @@ local starterLandUnitsList = {
         table = {
             -- "armada_crossbow",
             -- "corcrash",
-            -- "armah",
+            -- "armada_sweeper",
             -- "corah",
             "armsam",
             "cormist",
@@ -227,10 +227,10 @@ local landUnitsList = {
                 "legrail",
 
                 -- Hovercraft
-                "armsh",
-                "armmh",
-                --"armah",
-                "armanac",
+                "armada_seeker",
+                "armada_possum",
+                --"armada_sweeper",
+                "armada_crocodile",
                 "corsh",
                 "cormh",
                 --"corah",
@@ -250,7 +250,7 @@ local landUnitsList = {
         --         "armada_constructionbot",
         --         "armcv",
         --         "armbeaver",
-        --         "armch",
+        --         "armada_constructionhovercraft",
         --         "corck",
         --         "corcv",
         --         "cormuskrat",
@@ -289,7 +289,7 @@ local landUnitsList = {
 
                 -- Vehicles
                 "armgremlin",
-                "armmart",
+                "armada_mauser",
                 "armlatnk",
                 --"armyork",
                 "armcroc",
@@ -345,20 +345,20 @@ local landUnitsList = {
 
                 -- Bots
                 "armmar",
-                "armvang",
-                "armraz",
+                "armada_vanguard",
+                "armada_razorback",
                 "corshiva",
                 "corkarg",
                 "corcat",
-                "armlunchbox",
+                "armada_lunchbox",
                 "armmeatball",
                 "armassimilator",
 
                 -- Vehicles
-                "armthor",
+                "armada_thor",
 
                 -- Hovercraft
-                "armlun",
+                "armada_lunkhead",
                 "corsok",
                 "armada_recluset4",
             },
@@ -391,8 +391,8 @@ local landUnitsList = {
             table = {
                 "corkorg",
                 "corjugg",
-                "armbanth",
-                "armthor",
+                "armada_titan",
+                "armada_thor",
 
                 -- Superboss
                 "armada_pawnt4",
@@ -468,10 +468,10 @@ local seaUnitsList = {
                 "corgarp",
 
                 -- Hovercraft
-                "armsh",
-                "armmh",
-                --"armah",
-                "armanac",
+                "armada_seeker",
+                "armada_possum",
+                --"armada_sweeper",
+                "armada_crocodile",
                 "corsh",
                 "cormh",
                 --"corah",
@@ -489,7 +489,7 @@ local seaUnitsList = {
         -- [2] = {
         --     table = {
         --         "armbeaver",
-        --         "armch",
+        --         "armada_constructionhovercraft",
         --         "armcs",
         --         "cormuskrat",
         --         "corcs",
@@ -556,7 +556,7 @@ local seaUnitsList = {
                 "armptt2",
 
                 -- Hovercraft
-                "armlun",
+                "armada_lunkhead",
                 "corsok",
             },
             quantity = 3,
@@ -588,7 +588,7 @@ local seaUnitsList = {
                 "corblackhy",
                 "armada_tumbleweedt4",
                 "corkorg",
-                "armbanth",
+                "armada_titan",
                 "coresuppt3",
             },
             quantity = 1,

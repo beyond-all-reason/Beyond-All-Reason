@@ -13,14 +13,14 @@ static-var  bMoving, bAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthea
 #define SIG_WALK			2
 #define SIG_AIM				4
 
-// Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
+// Generated for N:\animations\armada_vanguard_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 // (c) CC BY NC ND Beherith mysterme@gmail.com
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armvang_anim_walk_2legs_v2.blend
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armada_vanguard_anim_walk_2legs_v2.blend
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:6
 			move base to y-axis [-0.688000] speed [20.639999] / animSpeed; //delta=-0.69

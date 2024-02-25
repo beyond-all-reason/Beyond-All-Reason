@@ -303,7 +303,7 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
+				elseif unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'armada_vanguard' or unitDef.name == 'corkarg' then
 					unitExempt = true
 					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)
@@ -364,7 +364,7 @@ local function refreshUnitInfo()
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
 					end
 
-				elseif weaponDef.paralyzer == true and unitDef.name ~= 'armthor' then -- exclude thor emp missile
+				elseif weaponDef.paralyzer == true and unitDef.name ~= 'armada_thor' then -- exclude thor emp missile
 					local defDmg = weaponDef.damages[0]      		--Damage to default armor category
 					local emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
 					unitDefInfo[unitDefID].minemp = emp

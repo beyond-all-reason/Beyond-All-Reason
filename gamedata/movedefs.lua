@@ -118,7 +118,7 @@ local moveDatas = {
 		footprintz = 3,
 		minwaterdepth = 8,
 	},
-	--armmls armroy armaas corrsub corroy armship coracsub armserp  corpship  corarch
+	--armmls armroy armaas corrsub corroy armada_seekerip coracsub armserp  corpship  corarch
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
@@ -186,7 +186,7 @@ local moveDatas = {
 	-- },
 	--break line
 
-	--corsh armah armch armsh
+	--corsh armada_sweeper armada_constructionhovercraft armada_seeker
 	HOVER2 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -198,7 +198,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
+	-- corch cormh armada_possum corah corsnap armada_crocodile corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -239,7 +239,7 @@ local moveDatas = {
 	-- lun/sokolov
 	--break line
 	--
-	-- corsok armlun corthovr armthovr
+	-- corsok armada_lunkhead corthovr armada_bearer
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -305,7 +305,7 @@ local moveDatas = {
 		}
 	},
 	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
-	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
+	--armcv armart coracv corlevlr leggat legbar armseer armada_mauser armyork corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
 		footprintx = 3,
@@ -378,7 +378,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armthor
+	-- armada_thor
 	HTANK5 = {
 		crushstrength = 1400,
 		footprintx = 5,
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armada_fatboy corsumo legmech cordemon
+	-- armada_razorback legpede corcat leginc armada_fatboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -499,7 +499,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- review this
-	-- armvang corkarg corthermite
+	-- armada_vanguard corkarg corthermite
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -524,7 +524,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 30,
 	-- },
 	-- review this as there is a possible set of merges
-	-- corkorg armbanth
+	-- corkorg armada_titan
 	VBOT5 = {
 		crushstrength = 1400,
 		depthmod = 0,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armada_pawnt4 corakt4 armmeatball armassimilator armlunchbox
+	-- armada_pawnt4 corakt4 armmeatball armassimilator armada_lunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,

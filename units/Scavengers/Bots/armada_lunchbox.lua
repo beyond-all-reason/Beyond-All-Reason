@@ -1,10 +1,10 @@
 return {
-	armlunchbox = {
+	armada_lunchbox = {
 		maxacc = 0.02645,
 		maxdec = 0.345,
 		energycost = 71000,
 		metalcost = 3300,
-		buildpic = "ARMLUNCHBOX.DDS",
+		buildpic = "armada_lunchbox.DDS",
 		buildtime = 71000,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armlunchbox.s3o",
-		script = "Units/scavboss/armlunchbox.cob",
+		objectname = "Units/scavboss/armada_lunchbox.s3o",
+		script = "Units/scavboss/armada_lunchbox.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 625,
@@ -57,7 +57,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2028,
-				object = "Units/scavboss/armlunchbox_dead.s3o",
+				object = "Units/scavboss/armada_lunchbox_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

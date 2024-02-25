@@ -2,7 +2,7 @@ return {
 	T0 = {
 		"armada_pawn_scav",
 		"corak_scav",
-		"armsh_scav",
+		"armada_seeker_scav",
 		"corsh_scav",
 
 		-- Vehicles
@@ -45,10 +45,10 @@ return {
 		"legrail_scav",
 
 		-- Hovercraft
-		"armsh_scav",
-		"armmh_scav",
-		"armah_scav",
-		"armanac_scav",
+		"armada_seeker_scav",
+		"armada_possum_scav",
+		"armada_sweeper_scav",
+		"armada_crocodile_scav",
 		"corsh_scav",
 		"cormh_scav",
 		"corah_scav",
@@ -58,7 +58,7 @@ return {
 		"armada_constructionbot_scav",
 		"armcv_scav",
 		"armbeaver_scav",
-		"armch_scav",
+		"armada_constructionhovercraft_scav",
 		"corck_scav",
 		"corcv_scav",
 		"cormuskrat_scav",
@@ -97,7 +97,7 @@ return {
 
 		-- Vehicles
 		"armgremlin_scav",
-		"armmart_scav",
+		"armada_mauser_scav",
 		"armlatnk_scav",
 		"armyork_scav",
 		"armcroc_scav",
@@ -143,22 +143,22 @@ return {
 
 		-- Bots
 		"armmar_scav",
-		"armvang_scav",
-		"armraz_scav",
+		"armada_vanguard_scav",
+		"armada_razorback_scav",
 		"corshiva_scav",
 		"corkarg_scav",
 		"corcat_scav",
-		"armlunchbox_scav",
+		"armada_lunchbox_scav",
 		"armmeatball_scav",
 		"armassimilator_scav",
 		"legpede_scav",
 		"leegmech_scav",
 
 		-- Vehicles
-		"armthor_scav",
+		"armada_thor_scav",
 
 		-- Hovercraft
-		"armlun_scav",
+		"armada_lunkhead_scav",
 		"corsok_scav",
 		"armada_recluset4_scav",
 	},
@@ -166,8 +166,8 @@ return {
 	T4 = {
 		"corkorg_scav",
 		"corjugg_scav",
-		"armbanth_scav",
-		"armthor_scav",
+		"armada_titan_scav",
+		"armada_thor_scav",
 
 		-- Superboss
 		"armpw_scav",

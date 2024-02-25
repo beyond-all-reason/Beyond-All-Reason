@@ -32,11 +32,11 @@ return {
 		workertime = 100,
 		yardmap = "wCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCw",
 		buildoptions = {
-			[1] = "armch",
-			[2] = "armsh",
-			[3] = "armanac",
-			[4] = "armah",
-			[5] = "armmh",
+			[1] = "armada_constructionhovercraft",
+			[2] = "armada_seeker",
+			[3] = "armada_crocodile",
+			[4] = "armada_sweeper",
+			[5] = "armada_possum",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -33,10 +33,10 @@ return {
 		"leggat",
 
 		-- Hovercraft
-		"armsh",
-		"armmh",
-		"armah",
-		"armanac",
+		"armada_seeker",
+		"armada_possum",
+		"armada_sweeper",
+		"armada_crocodile",
 		"corsh",
 		"cormh",
 		"corah",
@@ -98,7 +98,7 @@ return {
 
 		-- Vehicles
 		"armgremlin",
-		"armmart",
+		"armada_mauser",
 		"armlatnk",
 		"armyork",
 		"armcroc",
@@ -169,8 +169,8 @@ return {
 
 		-- Bots
 		"armmar",
-		"armvang",
-		"armraz",
+		"armada_vanguard",
+		"armada_razorback",
 		"corshiva",
 		"corkarg",
 		"corcat",
@@ -178,13 +178,13 @@ return {
 
 		-- Vehicles
 		"legkeres",
-		"armthor_scav",
+		"armada_thor_scav",
 
 		-- Hovercraft
-		"armlun",
+		"armada_lunkhead",
 		"corsok",
 		"armada_recluset4",
-		"armlunchbox",
+		"armada_lunchbox",
 		"armmeatball",
 		"armassimilator",
 
@@ -212,15 +212,15 @@ return {
 		"armptt2",
 
 		-- Hovercraft
-		"armlun",
+		"armada_lunkhead",
 		"corsok",
 	},
 
 	T4 = {
 		"corkorg",
 		"corjugg",
-		"armbanth",
-		"armthor",
+		"armada_titan",
+		"armada_thor",
 		"leegmech",
 
 		-- Superboss
@@ -249,7 +249,7 @@ return {
 		"corfblackhyt4",
 		"armada_tumbleweedt4",
 		"corkorg",
-		"armbanth",
+		"armada_titan",
 		"armserpt3",
 		"coresuppt3",
 	},

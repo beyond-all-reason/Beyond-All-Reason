@@ -61,13 +61,13 @@ local convertedUnits = {
 	[UnitDefNames.corpyro.id] = 2,
 	--[UnitDefNames.corsumo.id] = true,
 	[UnitDefNames.cortermite.id] = 2,
-	[UnitDefNames.armraz.id] = 2,
+	[UnitDefNames.armada_razorback.id] = 2,
 	[UnitDefNames.armmar.id] = 3,
-	[UnitDefNames.armbanth.id] = 1,
+	[UnitDefNames.armada_titan.id] = 1,
 	[UnitDefNames.corkorg.id] = 1,
 	--[UnitDefNames.corkarg.id] = true,
 	--[UnitDefNames.corjugg.id] = true,
-	[UnitDefNames.armvang.id] = 3,
+	[UnitDefNames.armada_vanguard.id] = 3,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	[UnitDefNames.armflash.id] = 6,

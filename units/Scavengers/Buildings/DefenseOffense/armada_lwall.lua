@@ -163,7 +163,7 @@ return {
 					spark_range = "80", --66% more than armada_dragonsclaw
 				},
 				damage = {
-					default = 64, --1/2 of armthor | 2.66x armada_dragonsclaw
+					default = 64, --1/2 of armada_thor | 2.66x armada_dragonsclaw
 				},
 			},
 			-- banisher = {

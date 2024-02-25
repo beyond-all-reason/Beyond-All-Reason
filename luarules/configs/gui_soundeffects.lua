@@ -619,38 +619,38 @@ GUIUnitSoundEffects = {
 
 	-- ARMADA HOVERCRAFT
 
-	armsh = {
+	armada_seeker = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		--BaseSoundMovementVol = 0.6,
 		BaseSoundWeaponType = "laser-tiny",
 	},
-	armmh = {
+	armada_possum = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "rocket-small",
 	},
-	armch = {
+	armada_constructionhovercraft = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	armah = {
+	armada_sweeper = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	armanac = {
+	armada_crocodile = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	armthovr = {
+	armada_bearer = {
 		BaseSoundSelectType = "arm-hov-large-sel",
 		BaseSoundMovementType = "arm-hov-large-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
-	armlun = {
+	armada_lunkhead = {
 		BaseSoundSelectType = "arm-hov-large-sel",
 		BaseSoundMovementType = "arm-hov-large-ok",
 		BaseSoundWeaponType = "laser-large",
@@ -794,22 +794,22 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-bot-huge-ok",
 		BaseSoundWeaponType = "plasma-large-alt",
 	},
-	armvang = {
+	armada_vanguard = {
 		BaseSoundSelectType = "arm-bot-t3-sel",
 		BaseSoundMovementType = "arm-bot-t3-ok",
 		BaseSoundWeaponType = "lrpc",
 	},
-	armraz = {
+	armada_razorback = {
 		BaseSoundSelectType = "arm-bot-t3-sel",
 		BaseSoundMovementType = "arm-bot-t3-ok-alt",
 		BaseSoundWeaponType = "laser-large",
 	},
-	armbanth = {
+	armada_titan = {
 		BaseSoundSelectType = "arm-banth-sel",
 		BaseSoundMovementType = "arm-banth-ok",
 		BaseSoundWeaponType = "arty-medium",
 	},
-	armthor = {
+	armada_thor = {
 		BaseSoundSelectType = "arm-bot-t3-sel",
 		BaseSoundMovementType = "arm-tnk-largealt-ok",
 		BaseSoundWeaponType = "lightning",
@@ -890,7 +890,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-tnk-small-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
-	armmart = {
+	armada_mauser = {
 		BaseSoundSelectType = "arm-tnk-medium-sel",
 		BaseSoundMovementType = "arm-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-medium",

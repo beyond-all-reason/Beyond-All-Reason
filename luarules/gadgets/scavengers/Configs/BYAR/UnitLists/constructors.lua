@@ -99,7 +99,7 @@ local collectors = {
 	"armada_advancedconstructionaircraft_scav",
 	"armcs_scav",
 	"armacsub_scav",
-	"armch_scav",
+	"armada_constructionhovercraft_scav",
 	"corck_scav",
 	"corack_scav",
 	"cortex_decoycommander_scav",

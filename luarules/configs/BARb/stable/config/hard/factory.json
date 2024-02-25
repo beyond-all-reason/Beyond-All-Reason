@@ -125,7 +125,7 @@
 
 		"income_tier": [40, 60, 100],
 
-		"unit":      ["armacv", "armconsul", "armgremlin", "armlatnk", "armbull", "armmanni", "armmart", "armmerl", "armyork", "armseer", "armjam", "armcroc"],
+		"unit":      ["armacv", "armconsul", "armgremlin", "armlatnk", "armbull", "armmanni", "armada_mauser", "armmerl", "armyork", "armseer", "armjam", "armcroc"],
 
 		"land": {
 			"tier0": [ 0.40,   	 0.00,			0.00,		0.20,       0.20,      0.00,       0.00,      0.00,      0.00,      0.05,		0.00,		0.00],
@@ -156,7 +156,7 @@
 
 		"income_tier": [100, 200],
 
-		"unit":      ["armmar", "armraz", "armvang", "armbanth", "armlun", "armthor"],
+		"unit":      ["armmar", "armada_razorback", "armada_vanguard", "armada_titan", "armada_lunkhead", "armada_thor"],
 
 		"land": {
 			"tier0": [ 0.05,     0.40,     0.45,      0.00,     0.00,        0.10],
@@ -270,7 +270,7 @@
 
 		"income_tier": [20, 40],
 
-		"unit":      ["armch", "armsh", "armanac", "armmh", "armah"],
+		"unit":      ["armada_constructionhovercraft", "armada_seeker", "armada_crocodile", "armada_possum", "armada_sweeper"],
 
 		"land": {
 			"tier0": [ 0.20,     0.80,     0.20,       0.00,     0.00],
@@ -295,7 +295,7 @@
 
 		"income_tier": [20, 40],
 
-		"unit":      ["armch",  "armsh", "armanac", "armmh", "armah"],
+		"unit":      ["armada_constructionhovercraft",  "armada_seeker", "armada_crocodile", "armada_possum", "armada_sweeper"],
 
 		"land": {
 			"tier0": [ 0.20,     0.80,     0.20,       0.00,     0.00],

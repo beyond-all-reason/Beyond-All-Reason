@@ -338,7 +338,7 @@ local unitLights = {
 		},
 	},
 
-	['armmart'] = {
+	['armada_mauser'] = {
 		front = {
 			lightType = 'point',
 			pieceName = 'sleeve',
@@ -7769,7 +7769,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armbanth'] = {
+	['armada_titan'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'turret',
@@ -8000,7 +8000,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armvang'] = {
+	['armada_vanguard'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'sleeve',
@@ -13843,7 +13843,7 @@ local unitLights = {
 		-- },
 	},
 
-	['armthor'] = {
+	['armada_thor'] = {
 		weaponglowrt = {
 			lightType = 'point',
 			pieceName = 'rtbarrel',
@@ -16924,7 +16924,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armraz'] = {
+	['armada_razorback'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -18065,7 +18065,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armch'] = {
+	['armada_constructionhovercraft'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -18244,7 +18244,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armah'] = {
+	['armada_sweeper'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18273,7 +18273,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armanac'] = {
+	['armada_crocodile'] = {
 		front = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18338,7 +18338,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armmh'] = {
+	['armada_possum'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18376,7 +18376,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armsh'] = {
+	['armada_seeker'] = {
 		gun = {
 			lightType = 'point',
 			pieceName = 'gun',
@@ -18911,11 +18911,11 @@ local unitEventLights = {
 
 		},
 
-		['armraz'] = {
+		['armada_razorback'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lcannon',
-				lightName = 'armrazlbarrelglow',
+				lightName = 'armada_razorbacklbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = 31, radius = 22,
 					color2r = 1, color2g = 0.2, color2b = 0, colortime = 200,
@@ -18926,7 +18926,7 @@ local unitEventLights = {
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'rcannon',
-				lightName = 'armrazrbarrelglow',
+				lightName = 'armada_razorbackrbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = 31, radius = 22,
 					color2r = 1, color2g = 0.2, color2b = 0, colortime = 200,
@@ -19129,7 +19129,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
-		['armch'] = {
+		['armada_constructionhovercraft'] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'base',

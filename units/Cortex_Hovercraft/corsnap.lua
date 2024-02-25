@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armanac_weapon = {
+			armada_crocodile_weapon = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMANAC_WEAPON",
+				def = "armada_crocodile_WEAPON",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

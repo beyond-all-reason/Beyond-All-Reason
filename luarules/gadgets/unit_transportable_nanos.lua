@@ -43,7 +43,7 @@ local AirTrans = {
   [UnitDefNames.corseah.id] = true,
   [UnitDefNames.armada_stork.id] = true,
   [UnitDefNames.armada_abductor.id] = true,
-  [UnitDefNames.armthovr.id] = true,
+  [UnitDefNames.armada_bearer.id] = true,
 }
 local Nanos = {
 	[UnitDefNames.cornanotc.id] = true,

@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armsh_weapon = {
+			armada_seeker_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -146,7 +146,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMSH_WEAPON",
+				def = "armada_seeker_WEAPON",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -540,8 +540,8 @@ GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime 
 projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
 GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
 
---armthor
-explosionLights[WeaponDefNames["armthor_thunder"].id] =
+--armada_thor
+explosionLights[WeaponDefNames["armada_thor_thunder"].id] =
 GetLightClass("Explosion", nil, "Smallish", {r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,
 										 color2r = 0.3, color2g = 0.3, color2b = 0.4, colortime = 5,
 										 sustain = 1.5, lifetime = 5,

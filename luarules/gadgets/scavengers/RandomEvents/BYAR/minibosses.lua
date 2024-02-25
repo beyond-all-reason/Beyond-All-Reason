@@ -2,8 +2,8 @@
 local function miniboss1(currentFrame)
 	if currentFrame > scavconfig.gracePeriod*2 then
 		local T2bosses = {"corgol_scav","corparrow_scav","armada_fatboy_scav","armmanni_scav",} --"corsumo_scav",
-		local T3bosses = {"armmar_scav","armvang_scav","armraz_scav","corshiva_scav","corkarg_scav","corcat_scav","armlun_scav","corsok_scav","armada_recluset4_scav",}
-		local T4bosses = {"corkorg_scav", "corjugg_scav", "armbanth_scav","armada_pawnt4_scav","armrattet4_scav","armada_tumbleweedt4_scav","cordemon_scav","corkarganetht4_scav",}
+		local T3bosses = {"armmar_scav","armada_vanguard_scav","armada_razorback_scav","corshiva_scav","corkarg_scav","corcat_scav","armada_lunkhead_scav","corsok_scav","armada_recluset4_scav",}
+		local T4bosses = {"corkorg_scav", "corjugg_scav", "armada_titan_scav","armada_pawnt4_scav","armrattet4_scav","armada_tumbleweedt4_scav","cordemon_scav","corkarganetht4_scav",}
 		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.5
 		for i = 1,1000 do
 			local posx = math_random(300,mapsizeX-300)

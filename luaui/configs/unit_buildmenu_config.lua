@@ -28,7 +28,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end
-	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
+	if unitDef.name == 'armada_bearer' or unitDef.name == 'corintr' then
 		isWaterUnit[unitDefID] = nil
 	end
 

@@ -1,10 +1,10 @@
 return {
-	armthor = {
+	armada_thor = {
 		maxacc = 0.015,
 		maxdec = 0.03,
 		energycost = 240000,
 		metalcost = 9000,
-		buildpic = "ARMTHOR.DDS",
+		buildpic = "armada_thor.DDS",
 		buildtime = 250000,
 		canManualFire = true,
 		canmove = true,
@@ -26,9 +26,9 @@ return {
 		maxwaterdepth = 20,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMTHOR.s3o",
+		objectname = "Units/armada_thor.s3o",
 		pushresistant = true,
-		script = "Units/ARMTHOR.cob",
+		script = "Units/armada_thor.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 600,
@@ -66,7 +66,7 @@ return {
 				height = 25,
 				hitdensity = 100,
 				metal = 5500,
-				object = "Units/armthor_dead.s3o",
+				object = "Units/armada_thor_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

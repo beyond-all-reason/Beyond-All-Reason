@@ -86,7 +86,7 @@ local factoryBannedUnits = {
 	"corvalk_scav",
 	"corseah_scav",
 	"corthovr_scav",
-	"armthovr_scav",
+	"armada_bearer_scav",
 	"armtship_scav",
 	"cortship_scav",
 	"corintr_scav",

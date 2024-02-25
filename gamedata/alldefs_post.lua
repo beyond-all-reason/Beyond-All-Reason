@@ -388,7 +388,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armada_recluset4"
 			uDef.buildoptions[numBuildoptions+3] = "armada_pawnt4"
 			uDef.buildoptions[numBuildoptions+4] = "armada_tumbleweedt4"
-			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
+			-- uDef.buildoptions[numBuildoptions+5] = "armada_lunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 			uDef.buildoptions[numBuildoptions+8] = "armada_dronecarrierland"
@@ -906,7 +906,7 @@ if modOptions.emprework == true then
 		end
 
 
-		if name == "armthor" then
+		if name == "armada_thor" then
 			uDef.weapondefs.empmissile.areaofeffect = 250
 			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
 			uDef.weapondefs.empmissile.damage.default = 20000
@@ -929,18 +929,18 @@ if modOptions.emprework == true then
 			uDef.customparams.paralyzemultiplier = 1.3
 		end
 
-		if name == "armbanth" then
+		if name == "armada_titan" then
 			uDef.customparams.paralyzemultiplier = 2
 		end
 
-		if name == "armraz" then
+		if name == "armada_razorback" then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
-		if name == "armvang" then
+		if name == "armada_vanguard" then
 			uDef.customparams.paralyzemultiplier = 1.1
 		end
 
-		if name == "armlun" then
+		if name == "armada_lunkhead" then
 			uDef.customparams.paralyzemultiplier = 1.05
 		end
 
@@ -1597,12 +1597,12 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 23000
 		uDef.buildtime = 28700
 	end
-	if name == "armraz" then
+	if name == "armada_razorback" then
 		uDef.metalcost = 4200
 		uDef.energycost = 75000
 		uDef.buildtime = 97000
 	end
-	if name == "armthor" then
+	if name == "armada_thor" then
 		uDef.metalcost = 9450
 		uDef.energycost = 255000
 		uDef.buildtime = 265000

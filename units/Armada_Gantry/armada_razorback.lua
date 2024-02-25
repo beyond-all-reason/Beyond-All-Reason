@@ -1,10 +1,10 @@
 return {
-	armraz = {
+	armada_razorback = {
 		maxacc = 0.2369,
 		maxdec = 0.9039,
 		energycost = 68000,
 		metalcost = 3800,
-		buildpic = "ARMRAZ.DDS",
+		buildpic = "armada_razorback.DDS",
 		buildtime = 88600,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		speed = 69.0,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
-		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/armraz.cob",
+		objectname = "Units/armada_razorback.s3o",
+		script = "Units/armada_razorback.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 450,
@@ -59,7 +59,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2325,
-				object = "Units/armraz_dead.s3o",
+				object = "Units/armada_razorback_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

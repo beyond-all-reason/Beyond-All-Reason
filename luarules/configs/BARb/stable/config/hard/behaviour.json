@@ -917,7 +917,7 @@
 			"retreat": 0.75,
             "limit":2
         },
-		"armch": {
+		"armada_constructionhovercraft": {
 			"role": ["builder"],
 			"limit": 10,
 			"build_speed": 6.0  //bp 110
@@ -1086,30 +1086,30 @@
 			"role": ["raider", "heavy"],
 			"threat": {"air": 0.5, "water": 0.0, "surf": 0.5}	
 		},
-		"armlun": {
+		"armada_lunkhead": {
 			"role": ["skirmish", "heavy"], 
 			"threat": {"air": 0.0, "water": 1.0} 
 		},
-		"armraz": {
+		"armada_razorback": {
 			"role": ["riot", "heavy"],
 			"attribute": ["melee"],
 			"threat": {"air": 0.5, "water": 0.0, "surf":1.0},
 			"power": 1.0,
 			"retreat": 0.6
 		},
-		"armvang": {
+		"armada_vanguard": {
 			"role": ["artillery"],
 			//"attribute": ["siege", "support"],
 			"threat": {"air": 0.0, "water": 0.0} 
 		},
-		"armbanth": {
+		"armada_titan": {
 			"role": ["super"],
 			"attribute": ["melee"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
             "power": 1.5,
             "retreat": 0.3
 		},
-		"armthor":{
+		"armada_thor":{
 			"role":["super"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
 			"power": 0.1, //cause of its paralyzer weaponry
@@ -1201,7 +1201,7 @@
 				"vs":{"anti_air": 2.0, "raider": 0.5, "heavy":2.0}	
 			}
 		},
-		"armmart": {
+		"armada_mauser": {
 			"role": ["artillery"],
 			"attribute":["siege"],
 			"threat":{"air":0.0, "water":0.0}
@@ -1389,17 +1389,17 @@
 
 		// ARMADA HOVERS
 
-		"armsh": {
+		"armada_seeker": {
 			"role": ["raider"]
 		},
-		"armanac": {
+		"armada_crocodile": {
 			"role": ["assault"]
 		},
-		"armmh": {
+		"armada_possum": {
 			"role": ["artillery"],
             "limit": 6
 		},
-		"armah": {
+		"armada_sweeper": {
 			"role": ["anti_air"],
 			"attribute": ["skirmish"]
 		},

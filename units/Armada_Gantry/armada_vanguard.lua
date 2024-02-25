@@ -1,11 +1,11 @@
 return {
-	armvang = {
+	armada_vanguard = {
 		maxacc = 0.02645,
 		activatewhenbuilt = false,
 		maxdec = 0.345,
 		energycost = 71000,
 		metalcost = 3300,
-		buildpic = "ARMVANG.DDS",
+		buildpic = "armada_vanguard.DDS",
 		buildtime = 91000,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
@@ -26,8 +26,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HTBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMVANG.s3o",
-		script = "Units/ARMVANG.cob",
+		objectname = "Units/armada_vanguard.s3o",
+		script = "Units/armada_vanguard.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 625,
@@ -59,7 +59,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2028,
-				object = "Units/armvang_dead.s3o",
+				object = "Units/armada_vanguard_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
