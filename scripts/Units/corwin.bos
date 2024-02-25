@@ -55,7 +55,7 @@ SetSpeed(windOrMetal) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir;
