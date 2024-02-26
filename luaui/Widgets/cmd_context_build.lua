@@ -56,7 +56,7 @@ local unitlist = {
 	{'armada_fusionreactor','armada_navalfusionreactor'},
 	{'cortex_fusionreactor','cortex_navalfusionreactor'},
 	{'armada_arbalest','armada_navalarbalest'},
-	{'corflak','cortex_navalbirdshot'},
+	{'cortex_birdshot','cortex_navalbirdshot'},
 	{'armada_advancedmetalextractor','armada_navaladvancedmetalextractor'},
 	{'cortex_advancedmetalextractor','cortex_navaladvancedmetalextractor'},
 	{'armada_solarcollector','armada_tidalgenerator'},
@@ -259,15 +259,17 @@ function widget:Initialize()
 	local uDefNames = UnitDefNames
 	for _,unitNames in ipairs(unitlist) do
 		for i, unitName in ipairs(unitNames) do
-			local unitDefID = uDefNames[unitName].id
-			local isWater = i % 2 == 0
+			if uDefNames[unitName] then
+				local unitDefID = uDefNames[unitName].id
+				local isWater = i % 2 == 0
 
-			-- Break the unit list into two matching arrays
-			if unitDefID then
-				if isWater then
-					table.insert(waterBuildings, unitDefID)
-				else
-					table.insert(groundBuildings, unitDefID)
+				-- Break the unit list into two matching arrays
+				if unitDefID then
+					if isWater then
+						table.insert(waterBuildings, unitDefID)
+					else
+						table.insert(groundBuildings, unitDefID)
+					end
 				end
 			end
 		end

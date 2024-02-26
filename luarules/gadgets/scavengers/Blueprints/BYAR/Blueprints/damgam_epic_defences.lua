@@ -491,10 +491,10 @@ local function EpicDefence6()
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = 5, zOffset = 104, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = -43, zOffset = 104, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = -43, zOffset = -104, direction = 1},
-			{ unitDefID = UnitDefNames.corfmd_scav.id, xOffset = -35, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_prevailer_scav.id, xOffset = -35, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 77, zOffset = 96, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 77, zOffset = -96, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamityt3_scav.id, xOffset = 61, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwark_scav.id, xOffset = 77, zOffset = -96, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 61, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -568,14 +568,14 @@ local function EpicDefence7()
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = -72, zOffset = 168, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = 56, zOffset = 88, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = 56, zOffset = 136, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 0, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 112, zOffset = -80, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 0, zOffset = 64, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 112, zOffset = 80, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 0, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 112, zOffset = -80, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 0, zOffset = 64, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 112, zOffset = 80, direction = 1},
 			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 104, zOffset = -136, direction = 1},
 			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 104, zOffset = 136, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamityt3_scav.id, xOffset = 80, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 80, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -651,8 +651,8 @@ local function EpicDefence8()
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -13, zOffset = 168, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -77, zOffset = 104, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -77, zOffset = -104, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamityt3_scav.id, xOffset = 83, zOffset = -104, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamityt3_scav.id, xOffset = 83, zOffset = 104, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 83, zOffset = -104, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 83, zOffset = 104, direction = 1},
 		},
 	}
 end
@@ -832,7 +832,7 @@ local function EpicDefence12()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamityt3_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -997,7 +997,7 @@ local function EpicDefence14()
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = -111, zOffset = -32, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = 113, zOffset = 80, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_overseer_scav.id, xOffset = -215, zOffset = 40, direction = 1},
-			{ unitDefID = UnitDefNames.corfmd_scav.id, xOffset = -215, zOffset = -40, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_prevailer_scav.id, xOffset = -215, zOffset = -40, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_basilisk_scav.id, xOffset = -15, zOffset = -160, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_basilisk_scav.id, xOffset = -15, zOffset = 160, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_basilisk_scav.id, xOffset = 33, zOffset = 80, direction = 1},
@@ -1077,10 +1077,10 @@ local function EpicDefence15()
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = 80, zOffset = 184, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = 144, zOffset = -120, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = 144, zOffset = 120, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -104, zOffset = 176, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -104, zOffset = -176, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -152, zOffset = 176, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -152, zOffset = -176, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -104, zOffset = 176, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -104, zOffset = -176, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -152, zOffset = 176, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -152, zOffset = -176, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_overseer_scav.id, xOffset = -8, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -88, zOffset = 112, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = 72, zOffset = 0, direction = 1},
@@ -1089,7 +1089,7 @@ local function EpicDefence15()
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = 72, zOffset = 112, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = 72, zOffset = -112, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -8, zOffset = -112, direction = 1},
-			{ unitDefID = UnitDefNames.corfmd_scav.id, xOffset = -88, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_prevailer_scav.id, xOffset = -88, zOffset = 0, direction = 1},
 		},
 	}
 end

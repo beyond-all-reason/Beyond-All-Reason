@@ -389,7 +389,7 @@ function ArmyHST:Init()
 	self._flak_ = {
 		armada_navalarbalest = true ,
 		armada_arbalest = true ,
-		corflak = true ,
+		cortex_birdshot = true ,
 		cortex_navalbirdshot = true ,
 		}
 
@@ -509,7 +509,7 @@ function ArmyHST:Init()
 		}
 
 	self._laser2_ = {
-		cortex_calamity = true ,
+		cortex_bulwark = true ,
 		armada_pulsar = true ,
 		}
 
@@ -578,7 +578,7 @@ function ArmyHST:Init()
 
 	self._antinuke_ = {
 		armada_citadel = true ,
-		corfmd = true ,
+		cortex_prevailer = true ,
 		}
 
 	self._airPlat_ = {

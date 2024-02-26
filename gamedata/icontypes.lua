@@ -1203,11 +1203,11 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	cortex_calamity = {
-		bitmap = "icons/cortex_calamity.png",
+	cortex_bulwark = {
+		bitmap = "icons/cortex_bulwark.png",
 		size = 2.0474999
 	},
-	cortex_calamityt3 = {
+	cortex_bulwarkt3 = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
@@ -1284,7 +1284,7 @@ local icontypes = {
 		size = 3.3599999
 	},
 	cortex_devastator = {
-		bitmap = "icons/cortex_calamity.png",
+		bitmap = "icons/cortex_devastator.png",
 		size = 1.5
 	},
 	cortex_sharksteeth = {
@@ -1307,11 +1307,11 @@ local icontypes = {
 		bitmap = "icons/air_los.png",
 		size = 0.78749996
 	},
-	corflak = {
+	cortex_birdshot = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
 	},
-	corfmd = {
+	cortex_prevailer = {
 		bitmap = "icons/antinuke.png",
 		size = 1.67999995
 	},
@@ -2028,7 +2028,7 @@ local icontypes = {
 		size = 1.60000002
 	},
 	legbastion = {
-		bitmap = "icons/cortex_calamity.png",
+		bitmap = "icons/cortex_bulwark.png",
 		size = 2.0474999
 	},
 	legca = {

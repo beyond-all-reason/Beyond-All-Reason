@@ -19,7 +19,7 @@ local friendlySpawnEffectUnitID = UnitDefNames[friendlySpawnEffectUnit].id
 local noSelfDestruct = {
 	"cortex_dragonsmaw_scav",
 	"armada_dragonsclaw_scav",
-	"corfmd_scav",
+	"cortex_prevailer_scav",
 	"armada_citadel_scav",
 	"lootboxgold_scav",
 	"lootboxplatinum_scav",
@@ -49,7 +49,7 @@ local stockpilers = {
 	"cortex_catalyst_scav",
 	"armada_paralyzer_scav",
 	"armada_citadel_scav",
-	"corfmd_scav",
+	"cortex_prevailer_scav",
 	"cortex_screamer_scav",
 	"armada_mercury_scav",
 	"cortex_juno_scav",
@@ -149,7 +149,7 @@ local beaconDefencesLand = {
 		"corscavdtl_scav",
 		"corscavdtf_scav",
 		"corscavdtm_scav",
-		
+
 		-- Nanos
 		"armada_constructionturret_scav",
 		"cortex_constructionturret_scav",
@@ -171,7 +171,7 @@ local beaconDefencesLand = {
 		"corhllllt_scav",
 		"cortex_scorpion_scav",
 		"cortex_persecutor_scav",
-		"corflak_scav",
+		"cortex_birdshot_scav",
 	},
 
 	T3 = {
@@ -196,7 +196,7 @@ local beaconDefencesLand = {
 		"corhllllt_scav",
 		"cortex_scorpion_scav",
 		"cortex_persecutor_scav",
-		"corflak_scav",
+		"cortex_birdshot_scav",
 
 		-- Nanos
 		"armada_constructionturret_scav",
@@ -209,12 +209,12 @@ local beaconDefencesLand = {
 		"armada_mercury_scav",
 		"armada_paralyzer_scav",
 		"armada_citadel_scav",
-		"cortex_calamity_scav",
+		"cortex_bulwark_scav",
 		"cortex_basilisk_scav",
 		"corminibuzz_scav",
 		"cortex_screamer_scav",
 		"cortex_catalyst_scav",
-		"corfmd_scav",
+		"cortex_prevailer_scav",
 	},
 
 	T4 = {
@@ -239,7 +239,7 @@ local beaconDefencesLand = {
 		"corhllllt_scav",
 		"cortex_scorpion_scav",
 		"cortex_persecutor_scav",
-		"corflak_scav",
+		"cortex_birdshot_scav",
 
 		-- Nanos
 		"armada_constructionturret_scav",
@@ -257,8 +257,8 @@ local beaconDefencesLand = {
 		"corminibuzz_scav",
 		"cortex_screamer_scav",
 		"cortex_catalyst_scav",
-		"corfmd_scav",
-		
+		"cortex_prevailer_scav",
+
 		-- Nanos
 		"armada_constructionturret_scav",
 		"cortex_constructionturret_scav",
@@ -268,7 +268,7 @@ local beaconDefencesLand = {
 		"armada_ragnarok_scav",
 		"armbotrail_scav",
 		"armada_armageddon_scav",
-		"cortex_calamityt3_scav",
+		"cortex_bulwarkt3_scav",
 		"cortex_calamity_scav",
 		"cortex_apocalypse_scav",
 	},
@@ -279,7 +279,7 @@ local beaconDefencesSea = {
 		-- Nanos
 		"armada_navalconstructionturret_scav",
 		"cortex_navalconstructionturret_scav",
-		
+
 		-- T0
 		"armada_harpoon_scav",
 		"armada_navalnettle_scav",
@@ -291,7 +291,7 @@ local beaconDefencesSea = {
 		-- Nanos
 		"armada_navalconstructionturret_scav",
 		"cortex_navalconstructionturret_scav",
-		
+
 		-- T1
 		"armada_navalradarsonar_scav",
 		"armada_manta_scav",
@@ -303,7 +303,7 @@ local beaconDefencesSea = {
 		-- Nanos
 		"armada_navalconstructionturret_scav",
 		"cortex_navalconstructionturret_scav",
-		
+
 		-- T2
 		"armada_gorgon_scav",
 		"armada_navalarbalest_scav",
@@ -314,12 +314,12 @@ local beaconDefencesSea = {
 		"cortex_lamprey_scav",
 		"cortex_navalpinpointer_scav",
 	},
-  
+
 	T3 = {
 		-- Nanos
 		"armada_navalconstructionturret_scav",
 		"cortex_navalconstructionturret_scav",
-		
+
 		-- T2 -- There's nothing to put in T3 :(
 		"armada_gorgon_scav",
 		"armada_navalarbalest_scav",
@@ -335,7 +335,7 @@ local beaconDefencesSea = {
 		-- Nanos
 		"armada_navalconstructionturret_scav",
 		"cortex_navalconstructionturret_scav",
-		
+
 		-- T2 -- There's nothing to put in T4 either :(
 		"armada_gorgon_scav",
 		"armada_navalarbalest_scav",

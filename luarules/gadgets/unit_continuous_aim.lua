@@ -76,7 +76,7 @@ local convertedUnits = {
 	[UnitDefNames.cortex_supporter.id] = 6,
 	[UnitDefNames.cortex_warden.id] = 5,
 	[UnitDefNames.cortex_coral.id] = 5,
-	[UnitDefNames.cortex_calamity.id] = 5,
+	[UnitDefNames.cortex_bulwark.id] = 5,
 	[UnitDefNames.cortex_shiva.id] = 5,
 	[UnitDefNames.cortex_catapult.id] = 5,
 	[UnitDefNames.cortex_karganeth.id] = 5,
@@ -137,7 +137,7 @@ local spamUnitsTeamsReaimTimes = {} --{unitDefID = {teamID = currentReAimTime,..
 
 
 -- for every spamThreshold'th spammable unit type built by this team, increase reaimtime by 1 for that team
-local spamThreshold = 100 
+local spamThreshold = 100
 local maxReAimTime = 15
 
 -- add for scavengers copies
@@ -149,27 +149,27 @@ for id, v in pairs(convertedUnitsCopy) do
 end
 
 local spamUnitsTeamsCopy = table.copy(spamUnitsTeams)
-for id,v in pairs(spamUnitsTeamsCopy) do 
+for id,v in pairs(spamUnitsTeamsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		spamUnitsTeams[UnitDefNames[UnitDefs[id].name..'_scav'].id] = {}
 	end
 end
 
-for unitDefID, _ in pairs(spamUnitsTeams) do 
+for unitDefID, _ in pairs(spamUnitsTeams) do
 	spamUnitsTeamsReaimTimes[unitDefID] = {}
 end
 
 local unitWeapons = {}
-for unitDefID, _ in pairs(convertedUnits) do 
-	local unitDef = UnitDefs[unitDefID] 
-	if unitDef then 
+for unitDefID, _ in pairs(convertedUnits) do
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef then
 		local weapons = unitDef.weapons
 		if #weapons > 0 then
 			unitWeapons[unitDefID] = {}
 			for id, _ in pairs(weapons) do
 				unitWeapons[unitDefID][id] = true	-- no need to store weapondefid
 			end
-		else 
+		else
 			-- units with no weapons shouldnt even be here
 			convertedUnits[unitDefID] = nil
 		end
@@ -179,9 +179,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if convertedUnits[unitDefID] then
 		local currentReaimTime = convertedUnits[unitDefID]
-		
-		if spamUnitsTeams[unitDefID] then 
-			if not spamUnitsTeams[unitDefID][teamID] then 
+
+		if spamUnitsTeams[unitDefID] then
+			if not spamUnitsTeams[unitDefID][teamID] then
 				-- initialize for this team at base defaults
 				spamUnitsTeams[unitDefID][teamID] = 1
 				spamUnitsTeamsReaimTimes[unitDefID][teamID] = convertedUnits[unitDefID]
@@ -189,13 +189,13 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				local spamCount = spamUnitsTeams[unitDefID][teamID] + 1
 				spamUnitsTeams[unitDefID][teamID] = spamCount
 				currentReaimTime = spamUnitsTeamsReaimTimes[unitDefID][teamID]
-				if spamCount % spamThreshold == 0 and currentReaimTime < maxReAimTime then 
+				if spamCount % spamThreshold == 0 and currentReaimTime < maxReAimTime then
 					spamUnitsTeamsReaimTimes[unitDefID][teamID] = currentReaimTime + 1
 					--Spring.Echo("Unit type", unitDefID,'has been built', spamCount, 'times by team', teamID,'increasing reaimtime to ', currentReaimTime + 1)
 				end
 			end
 		end
-		if currentReaimTime < 15 then 
+		if currentReaimTime < 15 then
 			for id, _ in pairs(unitWeapons[unitDefID]) do
 				-- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
 				-- So you have to manually check in script if it is at the desired heading

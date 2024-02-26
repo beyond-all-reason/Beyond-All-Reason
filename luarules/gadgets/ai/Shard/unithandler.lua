@@ -77,10 +77,10 @@ local inactive = {
 
 	-- cortex_cerberus = true,
 	-- cortex_calamity = true,
-	-- cortex_calamity = true,
+	-- cortex_bulwark = true,
 	cortex_eradicator = true,
 	cortex_exploiter = true,
-	corflak = true,
+	cortex_birdshot = true,
 	cortex_twinguard = true,
 	cortex_warden = true,
 	-- cortex_basilisk = true,

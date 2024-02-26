@@ -106,11 +106,11 @@ unitCollisionVolume['armada_vehicleplant'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
 }
-unitCollisionVolume['cortex_calamity'] = {
+unitCollisionVolume['cortex_bulwark'] = {
 	on={63,112,63,0,12,0,1,1,1},
 	off={45,87,45,0,0,0,2,1,0},
 }
-unitCollisionVolume['cortex_calamityt3'] = {
+unitCollisionVolume['cortex_bulwarkt3'] = {
 	on={95,168,95,0,18,0,2,1,1},
 	off={68,131,68,0,0,0,3,1,0},
 }
@@ -209,7 +209,7 @@ end
 dynamicPieceCollisionVolume['cortex_scorpion'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
-		['5']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 
+		['5']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door
 		['offsets']={0,23,0},
 	},
 	off = {

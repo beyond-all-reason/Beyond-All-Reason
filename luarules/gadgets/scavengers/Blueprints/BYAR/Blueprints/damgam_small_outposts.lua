@@ -232,7 +232,7 @@ local function minefield3()
 		},
 	}
 end
-		
+
 local function randomNanoTowerDuo()
 	local unitID = getRandomNanoTowerID()
 
@@ -246,7 +246,7 @@ local function randomNanoTowerDuo()
 		},
 	}
 end
-		
+
 local function randomNanoTowerQuad()
 	local unitID = getRandomNanoTowerID()
 
@@ -262,7 +262,7 @@ local function randomNanoTowerQuad()
 		},
 	}
 end
-		
+
 local function t3Gantry1()
 	local buildings
 	local r = math.random(0,1)
@@ -284,7 +284,7 @@ local function t3Gantry1()
 			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset =  112,  zOffset =  -32, direction = 0 },
 			{ unitDefID = UDN.cortex_experimentalgantry_scav.id,   xOffset =    0,  zOffset =   80, direction = 0 },
 			{ unitDefID = UDN.cortex_overseer_scav.id,   xOffset =   40,  zOffset =  -24, direction = 0 },
-			{ unitDefID = UDN.corfmd_scav.id,    xOffset =  -40,  zOffset =  -24, direction = 0 },
+			{ unitDefID = UDN.cortex_prevailer_scav.id,    xOffset =  -40,  zOffset =  -24, direction = 0 },
 		}
 	end
 
@@ -297,7 +297,7 @@ local function t3Gantry1()
 end
 
 local function t3Gantry2()
-	local buildings	
+	local buildings
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
@@ -326,16 +326,16 @@ local function t3Gantry2()
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =  192,  zOffset =  -60, direction = 0 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset = -192,  zOffset =  -60, direction = 0 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =   96,  zOffset = -140, direction = 0 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,     xOffset =  104,  zOffset =  172, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,     xOffset =  104,  zOffset =  172, direction = 0 },
 			{ unitDefID = UDN.cortex_basilisk_scav.id,      xOffset =    0,  zOffset =  180, direction = 0 },
-			{ unitDefID = UDN.corflak_scav.id,     xOffset = -200,  zOffset =   76, direction = 3 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,     xOffset = -200,  zOffset =   76, direction = 3 },
 			{ unitDefID = UDN.cortex_screamer_scav.id, xOffset = -184,  zOffset =   28, direction = 3 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,     xOffset = -104,  zOffset =  172, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,     xOffset = -104,  zOffset =  172, direction = 0 },
 			{ unitDefID = UDN.cortex_persecutor_scav.id,    xOffset =   32,  zOffset = -140, direction = 2 },
-			{ unitDefID = UDN.corflak_scav.id,     xOffset =  200,  zOffset =  -20, direction = 1 },
-			{ unitDefID = UDN.corflak_scav.id,     xOffset =  200,  zOffset =   76, direction = 1 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,     xOffset =  200,  zOffset =  -20, direction = 1 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,     xOffset =  200,  zOffset =   76, direction = 1 },
 			{ unitDefID = UDN.cortex_overseer_scav.id,     xOffset =  -24,  zOffset = -148, direction = 0 },
-			{ unitDefID = UDN.corflak_scav.id,     xOffset = -200,  zOffset =  -20, direction = 3 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,     xOffset = -200,  zOffset =  -20, direction = 3 },
 			{ unitDefID = UDN.cortex_screamer_scav.id, xOffset =  184,  zOffset =   28, direction = 1 },
 		}
 	end
@@ -354,7 +354,7 @@ local function t2HeavyFirebase1()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 134,
 		buildings = {
-			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14,  zOffset =   13, direction = 0 },		
+			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14,  zOffset =   13, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   26,  zOffset =  -91, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   90,  zOffset =  -59, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   26,  zOffset =  101, direction = 2 },

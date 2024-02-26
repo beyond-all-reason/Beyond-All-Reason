@@ -206,7 +206,7 @@ unitConfigs = {
 		unfold = true,
 		wait = 60,
 	},
-	[UnitDefNames.cortex_calamity.id] = {
+	[UnitDefNames.cortex_bulwark.id] = {
 		unfold = true,
 	},
 
@@ -231,7 +231,7 @@ unitConfigs = {
 	[UnitDefNames.cortex_constructionship.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corfmd.id] = {
+	[UnitDefNames.cortex_prevailer.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.cortex_oldurchin.id] = {

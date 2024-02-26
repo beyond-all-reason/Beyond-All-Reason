@@ -86,16 +86,16 @@ modConfig["BYAR"]["unitList"] = {
 	cortex_persecutor = { weapons = { 1 } },
 	cortex_scorpion = { weapons = { 1 } },
 	cortex_calamity = { weapons = { 1 } },
-	corflak = { weapons = { 2 } },
+	cortex_birdshot = { weapons = { 2 } },
 	cortex_screamer = { weapons = { 2 } },
 	cortex_catalyst = { weapons = { 1 } },
-	corfmd = { weapons = { 3 } },
+	cortex_prevailer = { weapons = { 3 } },
 	cortex_basilisk = { weapons = { 1 } },
-	cortex_calamity = { weapons = { 1 } },
-	
+	cortex_bulwark = { weapons = { 1 } },
+
 	--LEGION
 	legstarfall = { weapons = { 1 } },
-	
+
 	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },
 
@@ -104,7 +104,7 @@ modConfig["BYAR"]["unitList"] = {
 	armminivulc = { weapons = { 1 } },
 	legministarfall = { weapons = { 1 } },
 
-	cortex_calamityt3 = { weapons = { 1 } },
+	cortex_bulwarkt3 = { weapons = { 1 } },
 	corhllllt = { weapons = { 1 } },
 	corminibuzz = { weapons = { 1 } }
 }

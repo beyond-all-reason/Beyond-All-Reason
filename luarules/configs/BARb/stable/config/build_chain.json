@@ -7,7 +7,7 @@
 		           "armada_arbalest", "armada_rattlesnake", "armada_pulsar", "armada_gauntlet",  "armada_citadel", "armada_pinpointer", "armada_keeper", "armada_harpoon2"],
 	//              0          1           2          3          4         5          6            7          8          9
 		"cortex": ["cortex_guard",  "cortex_urchin",    "cortex_thistle",   "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw",  "cortex_sam", "cortex_eradicator", "cortex_scorpion", "cortex_lamprey",
-		           "corflak", "cortex_persecutor", "cortex_calamity", "cortex_agitator",  "corfmd", "cortex_pinpointer", "cortex_overseer",   "cortex_oldurchin"]
+		           "cortex_birdshot", "cortex_persecutor", "cortex_bulwark", "cortex_agitator",  "cortex_prevailer", "cortex_pinpointer", "cortex_overseer",   "cortex_oldurchin"]
 	},
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
 	"land":  [0, 2, 3, 5, 6, 4, 7, 13, 8, 10, 11, 12],
@@ -29,7 +29,7 @@
 	"superweapon": {
 		"unit": {
 			"armada": ["armada_mercury",  "armada_paralyzer",  "armada_basilica", "armada_ragnarok", "armada_citadel", "armada_armageddon"],
-			"cortex": ["cortex_screamer", "cortex_catalyst", "cortex_basilisk",   "cortex_calamity", "corfmd", "cortex_apocalypse"]
+			"cortex": ["cortex_screamer", "cortex_catalyst", "cortex_basilisk",   "cortex_calamity", "cortex_prevailer", "cortex_apocalypse"]
 		},
 		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
 
@@ -157,7 +157,7 @@
 				[  // chain1
 //					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [0, 60]},
 //					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [0, 100]},
-					{"unit": "corfmd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "cortex_prevailer", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
 					{"unit": "cortex_sam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
@@ -170,8 +170,8 @@
 //					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [150, 120]},
 //					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [120, 150]},
 //					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [150, 150]},
-					{"unit": "corfmd", "category": "defence", "offset": [180, -180], "condition": {"chance": 0.5}},
-					{"unit": "cortex_calamity", "category": "defence", "offset": [-180, 180]},
+					{"unit": "cortex_prevailer", "category": "defence", "offset": [180, -180], "condition": {"chance": 0.5}},
+					{"unit": "cortex_bulwark", "category": "defence", "offset": [-180, 180]},
 					{"unit": "cortex_scorpion", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
 					{"unit": "cortex_sam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]

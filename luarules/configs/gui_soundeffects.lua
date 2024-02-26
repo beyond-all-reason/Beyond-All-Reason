@@ -1528,7 +1528,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
-	corflak = {
+	cortex_birdshot = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flak",
@@ -1570,7 +1570,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "torpedo-medium",
 	},
 
-	corfmd = {
+	cortex_prevailer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "nuke-anti",
@@ -1608,7 +1608,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "nuke",
 	},
 
-	cortex_calamity = {
+	cortex_bulwark = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",

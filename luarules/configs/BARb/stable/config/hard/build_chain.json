@@ -9,7 +9,7 @@
 		//	
 		//              0          		1          		2          		3            	4           	5          		6				7				8				9
 			"cortex":  ["cortex_guard",		"cortex_urchin",   		"cortex_thistle",  		"cortex_twinguard",   	"cortex_warden",   	"cortex_dragonsmaw",  		"cortex_sam",  	"cortex_eradicator",		"cortex_scorpion", 		"cortex_lamprey", 
-						"corflak",   	"cortex_persecutor", 	"cortex_calamity", 		"cortex_agitator",    	"corfmd",		"cortex_radartower",		"cortex_castro",		"cortex_energystorage",		"cortex_metalstorage",		"cortex_advancedsolarcollector", 
+						"cortex_birdshot",   	"cortex_persecutor", 	"cortex_bulwark", 		"cortex_agitator",    	"cortex_prevailer",		"cortex_radartower",		"cortex_castro",		"cortex_energystorage",		"cortex_metalstorage",		"cortex_advancedsolarcollector",
 						"cortex_constructionturret",	"cortex_advancedradartower",		"cortex_pinpointer",		"cortex_hardenedenergystorage",	"cortex_catalyst", 		"cortex_shroud",	"cortex_fusionreactor",       "cortex_solarcollector",     "cortex_overseer",      "cortex_coral"]
 		},
 		
@@ -34,7 +34,7 @@
 	"superweapon": {
 		"unit": {
 			"armada": [ "armada_basilica",  "armada_ragnarok"], //"armada_mercury", "armada_citadel", "armada_paralyzer", "armada_armageddon"
-			"cortex": [ "cortex_basilisk",  "cortex_calamity" ] //"cortex_screamer", "corfmd", "cortex_catalyst", "cortex_apocalypse"
+			"cortex": [ "cortex_basilisk",  "cortex_calamity" ] //"cortex_screamer", "cortex_prevailer", "cortex_catalyst", "cortex_apocalypse"
 		},
 		"weight":     [    0.5,      0.1  ],
 
@@ -149,7 +149,7 @@
 		"cortex_advancedfusionreactor": {
 			"hub": [
 				[
-					{"unit": "cortex_calamity", "category": "defence", "offset": [-180, 180]},
+					{"unit": "cortex_bulwark", "category": "defence", "offset": [-180, 180]},
 					{"unit": "cortex_sam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
@@ -321,8 +321,8 @@
 				[{"unit": "cortex_scorpion", "category": "defence", "offset": [100, -100], "priority": "normal"}],
 				[{"unit": "cortex_persecutor", "category": "defence", "offset": [120, 100], "priority": "high"}],
 				[
-					//{"unit": "cortex_calamity", "category": "defence", "offset": [80, -100], "priority": "normal"},
-					{"unit": "cortex_calamity", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}],
+					//{"unit": "cortex_bulwark", "category": "defence", "offset": [80, -100], "priority": "normal"},
+					{"unit": "cortex_bulwark", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}],
 				[
 					{"unit": "cortex_castro", "category": "defence", "offset": [-60, 0], "priority": "low"},
 					{"unit": "cortex_advancedradartower", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
@@ -365,7 +365,7 @@
 				[{"unit": "cortex_basilisk", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}],
 
 				[
-					{"unit": "corfmd", "category": "defence", "offset": [-100, 100], "condition": {"chance":0.5}, "priority": "low"},
+					{"unit": "cortex_prevailer", "category": "defence", "offset": [-100, 100], "condition": {"chance":0.5}, "priority": "low"},
 					{"unit": "cortex_castro", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}
 				],
 

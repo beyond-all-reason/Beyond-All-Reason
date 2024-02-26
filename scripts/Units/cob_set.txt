@@ -3163,24 +3163,24 @@ cortex_jellyfish.bos:              corpsetype = 3 ;
 cortex_jellyfish.bos:              return(corpsetype);
 cortex_jellyfish.bos:      corpsetype = 3 ;
 cortex_jellyfish.bos:      return corpsetype;
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
-cortex_calamity.bos:SetMaxReloadTime(Func_Var_1)
-cortex_calamity.bos:    set-signal-mask SIG_AIM;
-cortex_calamity.bos:    set-signal-mask SIG_AIM_2;
-cortex_calamity.bos:    set-signal-mask SIG_AIM;
-cortex_calamity.bos:    set-signal-mask SIG_AIM_2;
-cortex_calamity.bos:    set-signal-mask SIG_AIM_3;
-cortex_calamity.bos:Killed(severity, corpsetype)
-cortex_calamity.bos:            corpsetype = 1 ;
-cortex_calamity.bos:            return(corpsetype);
-cortex_calamity.bos:            corpsetype = 2 ;
-cortex_calamity.bos:            return(corpsetype);
-cortex_calamity.bos:            corpsetype = 3 ;
-cortex_calamity.bos:            return(corpsetype);
-cortex_calamity.bos:    corpsetype = 3 ;
-cortex_calamity.bos:    return corpsetype;
-Binary file cortex_calamity.cob matches
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
+cortex_bulwark.bos:SetMaxReloadTime(Func_Var_1)
+cortex_bulwark.bos:    set-signal-mask SIG_AIM;
+cortex_bulwark.bos:    set-signal-mask SIG_AIM_2;
+cortex_bulwark.bos:    set-signal-mask SIG_AIM;
+cortex_bulwark.bos:    set-signal-mask SIG_AIM_2;
+cortex_bulwark.bos:    set-signal-mask SIG_AIM_3;
+cortex_bulwark.bos:Killed(severity, corpsetype)
+cortex_bulwark.bos:            corpsetype = 1 ;
+cortex_bulwark.bos:            return(corpsetype);
+cortex_bulwark.bos:            corpsetype = 2 ;
+cortex_bulwark.bos:            return(corpsetype);
+cortex_bulwark.bos:            corpsetype = 3 ;
+cortex_bulwark.bos:            return(corpsetype);
+cortex_bulwark.bos:    corpsetype = 3 ;
+cortex_bulwark.bos:    return corpsetype;
+Binary file cortex_bulwark.cob matches
 cortex_dragonsteeth.bos:// OffsetToScriptCodeIndexArray        38
 cortex_dragonsteeth.bos:// OffsetToScriptNameOffsetArray       3c
 cortex_dragonsteeth.bos:// OffsetToPieceNameOffsetArray        40
@@ -3366,30 +3366,30 @@ corfink.bos:            corpsetype = 3 ;
 corfink.bos:            return(corpsetype);
 corfink.bos:    corpsetype = 3 ;
 corfink.bos:    return corpsetype;
-corflak.bos:SetStunned(State)
-corflak.bos:    set-signal-mask SIG_AIM;
-corflak.bos:Killed(severity, corpsetype)
-corflak.bos:            corpsetype = 1 ;
-corflak.bos:            return(corpsetype);
-corflak.bos:            corpsetype = 2 ;
-corflak.bos:            return(corpsetype);
-corflak.bos:            corpsetype = 3 ;
-corflak.bos:            return(corpsetype);
-corflak.bos:    corpsetype = 3 ;
-corflak.bos:    return corpsetype;
-Binary file corflak.cob matches
-corfmd.bos:SetMaxReloadTime(Func_Var_1)
-corfmd.bos:/*   1d4:*/  set-signal-mask SIG_AIM;
-corfmd.bos:Killed(severity, corpsetype)
-corfmd.bos:             corpsetype = 1 ;
-corfmd.bos:             return(corpsetype);
-corfmd.bos:             corpsetype = 2 ;
-corfmd.bos:             return(corpsetype);
-corfmd.bos:             corpsetype = 3 ;
-corfmd.bos:             return(corpsetype);
-corfmd.bos:     corpsetype = 3 ;
-corfmd.bos:     return corpsetype;
-Binary file corfmd.cob matches
+cortex_birdshot.bos:SetStunned(State)
+cortex_birdshot.bos:    set-signal-mask SIG_AIM;
+cortex_birdshot.bos:Killed(severity, corpsetype)
+cortex_birdshot.bos:            corpsetype = 1 ;
+cortex_birdshot.bos:            return(corpsetype);
+cortex_birdshot.bos:            corpsetype = 2 ;
+cortex_birdshot.bos:            return(corpsetype);
+cortex_birdshot.bos:            corpsetype = 3 ;
+cortex_birdshot.bos:            return(corpsetype);
+cortex_birdshot.bos:    corpsetype = 3 ;
+cortex_birdshot.bos:    return corpsetype;
+Binary file cortex_birdshot.cob matches
+cortex_prevailer.bos:SetMaxReloadTime(Func_Var_1)
+cortex_prevailer.bos:/*   1d4:*/  set-signal-mask SIG_AIM;
+cortex_prevailer.bos:Killed(severity, corpsetype)
+cortex_prevailer.bos:             corpsetype = 1 ;
+cortex_prevailer.bos:             return(corpsetype);
+cortex_prevailer.bos:             corpsetype = 2 ;
+cortex_prevailer.bos:             return(corpsetype);
+cortex_prevailer.bos:             corpsetype = 3 ;
+cortex_prevailer.bos:             return(corpsetype);
+cortex_prevailer.bos:     corpsetype = 3 ;
+cortex_prevailer.bos:     return corpsetype;
+Binary file cortex_prevailer.cob matches
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 1;
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 0;
 cortex_navalenergyconverter.bos:Killed(severity, corpsetype)
@@ -5723,8 +5723,8 @@ cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
 cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 1;
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 cortex_obscurer.bos:            set ACTIVATION to 0;
 cortex_obscurer.bos:            set ACTIVATION to 0;
@@ -6575,8 +6575,8 @@ cortex_jellyfish.bos:// OffsetToPieceNameOffsetArray        7bc
 cortex_jellyfish.bos:// OffsetToScriptCode                  2c
 cortex_jellyfish.bos:// OffsetToNameArray                   7cc
 cortex_jellyfish.bos:// OffsetToFirstName                   7cc
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
 cortex_dragonsteeth.bos:// OffsetToScriptCodeIndexArray        38
 cortex_dragonsteeth.bos:// OffsetToScriptNameOffsetArray       3c
 cortex_dragonsteeth.bos:// OffsetToPieceNameOffsetArray        40
@@ -6616,7 +6616,7 @@ cortex_navalhovercraftplatform.bos:/*   196:*/          set YARD_OPEN to 0;
 cortex_navalhovercraftplatform.bos:/*   19d:*/  set BUGGER_OFF to 0;
 cortex_navalhovercraftplatform.bos:/*   1bb:*/  set INBUILDSTANCE to 1;
 cortex_navalhovercraftplatform.bos:/*   1c3:*/  set INBUILDSTANCE to 0;
-Binary file corflak.cob matches
+Binary file cortex_birdshot.cob matches
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 1;
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 0;
 Binary file cortex_janitor.cob matches
@@ -7314,8 +7314,8 @@ cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
 cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 1;
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 cortex_obscurer.bos:            set ACTIVATION to 0;
 cortex_obscurer.bos:            set ACTIVATION to 0;
@@ -7965,8 +7965,8 @@ cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 Binary file cortex_cutlass.cob matches
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 1;
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
 Binary file cortex_navalbirdshot.cob matches
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 Binary file cortex_eradicator.cob matches
@@ -7988,7 +7988,7 @@ cortex_navalhovercraftplatform.bos:/*   196:*/          set YARD_OPEN to 0;
 cortex_navalhovercraftplatform.bos:/*   19d:*/  set BUGGER_OFF to 0;
 cortex_navalhovercraftplatform.bos:/*   1bb:*/  set INBUILDSTANCE to 1;
 cortex_navalhovercraftplatform.bos:/*   1c3:*/  set INBUILDSTANCE to 0;
-Binary file corflak.cob matches
+Binary file cortex_birdshot.cob matches
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 1;
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 0;
 Binary file cortex_janitor.cob matches
@@ -8741,8 +8741,8 @@ cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 Binary file cortex_cutlass.cob matches
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 0;
 cortex_constructionvehicle.bos:      set INBUILDSTANCE to 1;
-cortex_calamity.bos:    set ARMORED to 0;
-cortex_calamity.bos:    set ARMORED to 1;
+cortex_bulwark.bos:    set ARMORED to 0;
+cortex_bulwark.bos:    set ARMORED to 1;
 Binary file cortex_navalbirdshot.cob matches
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 Binary file cortex_eradicator.cob matches
@@ -8764,7 +8764,7 @@ cortex_navalhovercraftplatform.bos:/*   196:*/          set YARD_OPEN to 0;
 cortex_navalhovercraftplatform.bos:/*   19d:*/  set BUGGER_OFF to 0;
 cortex_navalhovercraftplatform.bos:/*   1bb:*/  set INBUILDSTANCE to 1;
 cortex_navalhovercraftplatform.bos:/*   1c3:*/  set INBUILDSTANCE to 0;
-Binary file corflak.cob matches
+Binary file cortex_birdshot.cob matches
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 1;
 cortex_navalenergyconverter.bos:                    set ACTIVATION to 0;
 Binary file cortex_janitor.cob matches

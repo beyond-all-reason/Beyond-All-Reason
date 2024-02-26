@@ -94,7 +94,7 @@ local function IRON_BEAM_RING()
 			{ unitDefID = UnitDefNames.armada_beamer_scav.id, xOffset = -48, zOffset = -144, direction = 1},
 			{ unitDefID = UnitDefNames.armada_beamer_scav.id, xOffset = 48, zOffset = 144, direction = 1},
 			{ unitDefID = UnitDefNames.armada_beamer_scav.id, xOffset = 144, zOffset = -48, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwark_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -189,7 +189,7 @@ local function VIPER_PIT()
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = 78, zOffset = -13, direction = 2},
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = -18, zOffset = 83, direction = 2},
 			{ unitDefID = UnitDefNames.cortex_scorpion_scav.id, xOffset = -114, zOffset = -13, direction = 2},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 6, zOffset = -21, direction = 0},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 6, zOffset = -21, direction = 0},
 		},
 	}
 end
@@ -564,9 +564,9 @@ local function Power_fort_2()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -212, zOffset = -36, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -180, zOffset = 28, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -180, zOffset = -36, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -196, zOffset = -4, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 76, zOffset = -116, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 76, zOffset = 124, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -196, zOffset = -4, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwark_scav.id, xOffset = 76, zOffset = -116, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_bulwark_scav.id, xOffset = 76, zOffset = 124, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -52, zOffset = -4, direction = 1},
 		},
 	}
@@ -676,8 +676,8 @@ local function Rocket_AA_R()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -41, zOffset = 87, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -9, zOffset = 55, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_advancedradartower_scav.id, xOffset = -73, zOffset = -73, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -41, zOffset = 55, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 55, zOffset = -41, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -41, zOffset = 55, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 55, zOffset = -41, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = 7, zOffset = 7, direction = 1},
 		},
 	}

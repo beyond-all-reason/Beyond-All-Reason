@@ -36,7 +36,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['cortex_apocalypse'].id] = 10,
 
 		[UnitDefNames['armada_citadel'].id] = 20,
-		[UnitDefNames['corfmd'].id] = 20,
+		[UnitDefNames['cortex_prevailer'].id] = 20,
 		[UnitDefNames['raptor_turret_antinuke_t2_v1'].id] = 5,
 		[UnitDefNames['raptor_turret_antinuke_t3_v1'].id] = 10,
 

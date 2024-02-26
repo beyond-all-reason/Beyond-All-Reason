@@ -358,7 +358,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'cortex_geothermalpowerplant', x = 4816, y = 398, z = 1808, rot = 32767 , team = 1},
 			--{name = 'cortex_advancedconstructionaircraft', x = 4745, y = 96, z = 1008, rot = -12630 , team = 1},
 			{name = 'cortex_scorpion', x = 5464, y = 125, z = 1128, rot = 32767 , team = 1},
-			{name = 'corflak', x = 4896, y = 180, z = 864, rot = 32767 , team = 1},
+			{name = 'cortex_birdshot', x = 4896, y = 180, z = 864, rot = 32767 , team = 1},
 			{name = 'cortex_twinguard', x = 5056, y = 179, z = 864, rot = 32767 , team = 1},
 			{name = 'cortex_twinguard', x = 5232, y = 149, z = 880, rot = 32767 , team = 1},
 			{name = 'cortex_twinguard', x = 5360, y = 118, z = 944, rot = 32767 , team = 1},

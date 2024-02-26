@@ -803,7 +803,7 @@ local Turrets = {
 		["armada_keeper_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		["cortex_overseer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		--T2 AA
-		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
+		["cortex_birdshot_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 		["armada_arbalest_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 	},
 	[4] = {
@@ -812,13 +812,13 @@ local Turrets = {
 		["cortex_persecutor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		-- Pulsar and Bulwark normals
 		["armada_pulsar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["cortex_calamity_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_bulwark_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--LRPC
 		["armada_basilica_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["cortex_basilisk_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--antinukes
 		["armada_citadel_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_prevailer_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--Tactical Weapons
 		["cortex_catalyst_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["armada_paralyzer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
@@ -838,7 +838,7 @@ local Turrets = {
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal
 		["armada_pulsart3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["cortex_calamityt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["cortex_bulwarkt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armada_ragnarok_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["cortex_calamity_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1164,7 +1164,7 @@ local highValueTargets = { -- Priority targets for Scav. Must be immobile to pre
 	[UnitDefNames["armada_armageddon"].id] 	= true,
 	-- Antinukes
 	[UnitDefNames["armada_citadel"].id] 	= true,
-	[UnitDefNames["corfmd"].id] 	= true,
+	[UnitDefNames["cortex_prevailer"].id] 	= true,
 }
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

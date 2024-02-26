@@ -706,7 +706,7 @@ GetLightClass("Explosion", "Fire", "Medium", {r = 0.26, g = 0.22, b = 0.06, a = 
 explosionLights[WeaponDefNames["legbastion_pineappleofdoom"].id].yOffset = 38
 
 projectileDefLights[WeaponDefNames["legbastion_pineappleofdoom"].id] =
-GetLightClass("LaserProjectile", "Warm", "Smaller", {r = 1.0, g = 0.65, b = 0.1, a = 0.18, 
+GetLightClass("LaserProjectile", "Warm", "Smaller", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
 											color2r = 0.15, color2g = 0.04, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.3, lensflare = 0,
@@ -780,8 +780,8 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---cortex_calamityt3
-projectileDefLights[WeaponDefNames["cortex_calamityt3_armagmheat"].id] =
+--cortex_bulwarkt3
+projectileDefLights[WeaponDefNames["cortex_bulwarkt3"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
@@ -896,28 +896,28 @@ GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
 
 
 --cortex_calamity
-projectileDefLights[WeaponDefNames["cortex_calamity_atadr"].id] =
+projectileDefLights[WeaponDefNames["cortex_bulwark_atadr"].id] =
 GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
 --cortex_calamity_scav
-projectileDefLights[WeaponDefNames["cortex_calamity_scav_atadr"].id] =
+projectileDefLights[WeaponDefNames["cortex_bulwark_scav_atadr"].id] =
 GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cortex_calamityt3
-projectileDefLights[WeaponDefNames["cortex_calamityt3_armagmheat"].id] =
+--cortex_bulwarkt3
+projectileDefLights[WeaponDefNames["cortex_bulwarkt3"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cortex_calamityt3_scav
-projectileDefLights[WeaponDefNames["cortex_calamityt3_scav_armagmheat"].id] =
+--cortex_bulwarkt3_scav
+projectileDefLights[WeaponDefNames["cortex_bulwarkt3_scav_armagmheat"].id] =
 GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,

@@ -759,7 +759,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_calamityt3",
+-- 		[numBuildoptions+6] = "cortex_bulwarkt3",
 -- 	},
 -- }
 
@@ -771,7 +771,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_calamityt3",
+-- 		[numBuildoptions+6] = "cortex_bulwarkt3",
 -- 	},
 -- }
 
@@ -783,7 +783,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_calamityt3",
+-- 		[numBuildoptions+6] = "cortex_bulwarkt3",
 -- 	},
 -- }
 

@@ -59,7 +59,7 @@ Scoring:
 		armada_experimentalgantry = 0,
 		armada_vehicleplant = 0,
 		cortex_eradicator = 0,
-		corflak = 0,
+		cortex_birdshot = 0,
 		cortex_sam = 0,
 		cortex_thistle = 0,
 		cortex_screamer = 0,

@@ -222,7 +222,7 @@
 	"cortex_eradicator": {
 		"role": ["anti_air"]
 	},
-	"corflak": {
+	"cortex_birdshot": {
 		"role": ["anti_air"]
 	},
 	"cortex_screamer": {
@@ -243,7 +243,7 @@
 		"attribute": ["artillery"],
 		"on": false
 	},
-	"cortex_calamity": {
+	"cortex_bulwark": {
 		"role": ["static"],
 		"attribute": ["heavy", "anti_heavy"]
 	},

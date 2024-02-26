@@ -430,8 +430,8 @@ local function Jammer17()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -16, zOffset = -32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 16, zOffset = -32, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -32, zOffset = 0, direction = 3},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 32, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -32, zOffset = 0, direction = 3},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 32, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -465,8 +465,8 @@ local function Jammer18()
 			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = -64, zOffset = 24, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = 64, zOffset = -24, direction = 1},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -80, zOffset = -48, direction = 3},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 80, zOffset = 48, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -80, zOffset = -48, direction = 3},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 80, zOffset = 48, direction = 1},
 		},
 	}
 end

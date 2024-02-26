@@ -295,13 +295,13 @@ function UnitDef_Post(name, uDef)
 				armada_citadel = true,
 				armada_armageddon = true,
 				armada_umbrella = true,
-				corfmd = true,
+				cortex_prevailer = true,
 				cortex_apocalypse = true,
 				cortex_saviour = true,
 				armada_citadel_scav = true,
 				armada_armageddon_scav = true,
 				armada_umbrella_scav = true,
-				corfmd_scav = true,
+				cortex_prevailer_scav = true,
 				cortex_apocalypse_scav = true,
 				cortex_saviour_scav = true,
 			}
@@ -469,7 +469,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cortex_calamityt3"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_bulwarkt3"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "cormwall"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
@@ -478,7 +478,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cortex_calamityt3"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_bulwarkt3"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
@@ -1480,7 +1480,7 @@ if modOptions.air_rework == true then
 	if name == "armada_arbalest" then
 		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
-	if name == "corflak" then
+	if name == "cortex_birdshot" then
 		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
 	if name == "armada_whistler" then
@@ -1654,7 +1654,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armada_arbalest" then
 		uDef.weapondefs.armada_arbalest_gun.reloadtime = 0.6
 	end
-	if name == "corflak" then
+	if name == "cortex_birdshot" then
 		uDef.weapondefs.armada_arbalest_gun.reloadtime = 0.6
 	end
 	if name == "armada_mercury" then

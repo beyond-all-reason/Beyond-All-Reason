@@ -186,12 +186,12 @@ local Interest = {
 	cortex_advancedbotlab = true,
 	cortex_advancedaircraftplant = true,
 	cortex_advancedvehicleplant = true,
-	corfmd = true,
+	cortex_prevailer = true,
 	cortex_basilisk = true,
 	cortex_catalyst = true,
 	cortex_apocalypse = true,
 	cortex_calamity = true,
-	cortex_calamity = true,
+	cortex_bulwark = true,
 	cortex_experimentalgantry = true,
 	-- cortex_constructionturret = true,
 	cortex_overseer = true,
@@ -208,7 +208,7 @@ local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
 	for ct=1,#unitsNear do
 		local id = unitsNear[ct]
-		if (unitNames[Spring.GetUnitDefID(id)] == "armada_citadel" or unitNames[Spring.GetUnitDefID(id)] == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
+		if (unitNames[Spring.GetUnitDefID(id)] == "armada_citadel" or unitNames[Spring.GetUnitDefID(id)] == "cortex_prevailer") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
 			if SeenBuildings[attackerTeamID][unitID] then
 				return true
 			end

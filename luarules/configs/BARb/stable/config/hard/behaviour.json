@@ -474,7 +474,7 @@
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
-		"corflak": {
+		"cortex_birdshot": {
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
@@ -498,7 +498,7 @@
 			"on": false,
 			"threat": {"air": 0.0, "water": 0.1,"surf": 1.0}
 		},
-		"cortex_calamity": {
+		"cortex_bulwark": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
         },

@@ -181,7 +181,7 @@
 		"converter": ["armada_energyconverter", "cortex_energyconverter", "armada_advancedenergyconverter", "cortex_advancedenergyconverter", "armada_navalenergyconverter", "cortex_navalenergyconverter", "armada_navaladvancedenergyconverter", "cortex_navaladvancedenergyconverter"],
 		"def_low": ["armada_sentry", "cortex_guard", "armada_beamer", "cortex_twinguard"],
 		"def_mid": ["armada_dragonsclaw", "cortex_dragonsmaw", "armada_pitbull", "cortex_scorpion", "armada_overwatch", "cortex_warden"],
-		"def_hvy":  ["armada_rattlesnake", "armada_pulsar", "cortex_persecutor", "cortex_calamity", "armada_gauntlet", "cortex_agitator", "armada_gorgon", "cortex_devastator"],
+		"def_hvy":  ["armada_rattlesnake", "armada_pulsar", "cortex_persecutor", "cortex_bulwark", "armada_gauntlet", "cortex_agitator", "armada_gorgon", "cortex_devastator"],
 		"def_air": ["armada_ferret", "armada_chainsaw", "cortex_thistle", "cortex_sam", "cortex_eradicator"],
 		"caretaker": ["armada_constructionturret", "armada_airrepairpad", "cortex_constructionturret", "cortex_airrepairpad"],
 		"small": ["armada_radartower", "cortex_radartower"]

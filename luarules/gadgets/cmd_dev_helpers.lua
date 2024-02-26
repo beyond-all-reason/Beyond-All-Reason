@@ -436,7 +436,7 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 							offset = offset or 0
-							
+
 							commandProc[k] = sampleMode(modePtr) + offset
 						else
 							commandProc[k] = command[j]
@@ -449,7 +449,7 @@ if gadgetHandler:IsSyncedCode() then
 				func(commandProc)
 			end
 		end
-		
+
 		-- finishing touches
 		do
 			-- Edge patchwork, something is not right with map edges, i don't know if its the above functions that fail, or if it is during map making
@@ -500,7 +500,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- we only need to find 1 command to pass over, cancel actual debug commands
 				return
 			end
-			
+
 
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
@@ -834,7 +834,7 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
+		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cortex|armada|scav|raptor]
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -1248,10 +1248,10 @@ else	-- UNSYNCED
 		}
 		for t, suffix in pairs(facSuffix) do
 			local acceptableUDIDs = {}
-			for _, uDID in ipairs(UnitDefNames["cor" .. suffix].buildOptions) do
+			for _, uDID in ipairs(UnitDefNames["cortex_" .. suffix].buildOptions) do
 				acceptableUDIDs[uDID] = true
 			end
-			for _, uDID in ipairs(UnitDefNames["arm" .. suffix].buildOptions) do
+			for _, uDID in ipairs(UnitDefNames["armada_" .. suffix].buildOptions) do
 				acceptableUDIDs[uDID] = true
 			end
 			if t ~= "hover" then
@@ -1269,10 +1269,10 @@ else	-- UNSYNCED
 			local acceptableUDIDs = {}
 			for t2, facSuffix in pairs(facSuffix) do
 				if not (t == "t2" and t2 == "hover") then
-					for _, uDID in ipairs(UnitDefNames["cor" .. techSuffix .. facSuffix].buildOptions) do
+					for _, uDID in ipairs(UnitDefNames["cortex_" .. techSuffix .. facSuffix].buildOptions) do
 						acceptableUDIDs[uDID] = true
 					end
-					for _, uDID in ipairs(UnitDefNames["arm" .. techSuffix .. facSuffix].buildOptions) do
+					for _, uDID in ipairs(UnitDefNames["armada_" .. techSuffix .. facSuffix].buildOptions) do
 						acceptableUDIDs[uDID] = true
 					end
 				end
@@ -1292,15 +1292,15 @@ else	-- UNSYNCED
 		local Accept = {} -- table of conditions that must be satisfied for the unitDef to be given
 
 		-- factions
-		if string.find(line, "arm") then
+		if string.find(line, "armada") then
 			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "arm" and not string.find(ud.name, '_scav')
+				return ud.name:sub(1, 6) == "armada" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
-		if string.find(line, "cor") then
+		if string.find(line, "cortex_") then
 			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+				return ud.name:sub(1, 6) == "cortex" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end

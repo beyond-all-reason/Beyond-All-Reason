@@ -52,7 +52,7 @@ return {
 			[11] = "cortex_twinguard",
 			[12] = "cortex_persecutor",
 			[13] = "cortex_sam",
-			[14] = "corflak",
+			[14] = "cortex_birdshot",
 			[15] = "cortex_constructionbot",
 			[16] = "cortex_grunt",
 			[17] = "cortex_trasher",

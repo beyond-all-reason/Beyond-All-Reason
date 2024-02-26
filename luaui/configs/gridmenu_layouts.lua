@@ -877,8 +877,8 @@ local unitGrids = {
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_scorpion", "cortex_bulwark", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -901,7 +901,7 @@ local unitGrids = {
 		},
 		{
 			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -947,8 +947,8 @@ local unitGrids = {
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_scorpion", "cortex_bulwark", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -971,7 +971,7 @@ local unitGrids = {
 		},
 		{
 			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1017,8 +1017,8 @@ local unitGrids = {
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus" }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_scorpion", "cortex_bulwark", "cortex_persecutor", "cortex_catalyst" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus" }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse" },                 -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1040,7 +1040,7 @@ local unitGrids = {
 		},
 		{
 			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_birdshot", "cortex_screamer", "cortex_prevailer", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1228,7 +1228,7 @@ local unitGrids = {
 		},
 		{
 			{ "cortex_twinguard", "cortex_fiend", "cortex_persecutor", },                    -- HLLT, pyro, toaster
-			{ "corflak", "cortex_sam", "cortex_trasher", "cortex_grunt", },         -- flak, SAM, T1 aa bot, AK
+			{ "cortex_birdshot", "cortex_sam", "cortex_trasher", "cortex_grunt", },         -- flak, SAM, T1 aa bot, AK
 			{ "cortex_jellyfish", "cortex_oppressor", "cortex_termite", "cortex_duck", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{

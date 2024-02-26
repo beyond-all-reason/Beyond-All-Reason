@@ -238,12 +238,12 @@ local function initUnitList()
 		['cortex_persecutor'] = { weapons = { 4 } },
 		['cortex_scorpion'] = { weapons = { 1 } },
 		['cortex_calamity'] = { weapons = { 1, 1, 1} },
-		['corflak'] = { weapons = { 2 } },
+		['cortex_birdshot'] = { weapons = { 2 } },
 		['cortex_screamer'] = { weapons = { 2 } },
 		['cortex_catalyst'] = { weapons = { 1 } },
-		['corfmd'] = { weapons = { 3 } },
+		['cortex_prevailer'] = { weapons = { 3 } },
 		['cortex_basilisk'] = { weapons = { 4 } },
-		['cortex_calamity'] = { weapons = { 4 } },
+		['cortex_bulwark'] = { weapons = { 4 } },
 
 		['armada_umbrella'] = { weapons = { 3 } },
 		['armada_haven'] = { weapons = { 3 } },
@@ -258,7 +258,7 @@ local function initUnitList()
 		['armada_pulsart3'] = { weapons = { 1 } },
 		['armminivulc'] = { weapons = { 1 } },
 
-		['cortex_calamityt3'] = { weapons = { 1 } },
+		['cortex_bulwarkt3'] = { weapons = { 1 } },
 		['corhllllt'] = { weapons = { 1 } },
 		['corminibuzz'] = { weapons = { 1 } }
 	}
@@ -294,7 +294,7 @@ local function initUnitList()
 		scavlist[k] = true
 	end
 	for k,v in pairs(scavlist) do
-		if UnitDefNames[unitName[k] .. '_scav'] then 
+		if UnitDefNames[unitName[k] .. '_scav'] then
 			mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
 		end
 	end

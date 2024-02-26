@@ -189,8 +189,8 @@ bind sc_c buildunit_armada_arbalest
 bind Shift+sc_c buildunit_armada_arbalest
 bind sc_c buildunit_cortex_scorpion
 bind Shift+sc_c buildunit_cortex_scorpion
-bind sc_c buildunit_corflak
-bind Shift+sc_c buildunit_corflak
+bind sc_c buildunit_cortex_birdshot
+bind Shift+sc_c buildunit_cortex_birdshot
 bind sc_c buildunit_armada_gunplatform
 bind Shift+sc_c buildunit_armada_gunplatform
 bind sc_c buildunit_cortex_gunplatform

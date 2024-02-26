@@ -329,13 +329,13 @@ local unitOrderTable = {
 	-- T2 WATER ATTACK
 	['armada_lightningship']       = 009280, --ANTISWARM
 	['cortex_flamethrowership']       = 009290,
-	
+
 	['armada_paladin']        = 009300, --MAIN BATTLE
 	['cortex_buccaneer']        = 009310,
 
 	['armada_longbow']       = 009340, --ROCKETS
 	['cortex_messenger']       = 009350,
-	
+
 	['armada_dronecarrier']  = 009360, --DRONE CARRIERS
 	['cortex_dronecarrier']  = 009361,
 
@@ -563,10 +563,10 @@ local unitOrderTable = {
    ['armada_rattlesnake']         = 107300,
    ['cortex_persecutor']       = 107400,
    ['armada_pulsar']        = 107500,
-   ['cortex_calamity']        = 107600,
+   ['cortex_bulwark']        = 107600,
    ['legbastion']     = 107650,
    ['armada_pulsart3']      = 107700, --scavengers
-   ['cortex_calamityt3']      = 107800, --scavengers
+   ['cortex_bulwarkt3']      = 107800, --scavengers
 
    --DEFENSES LAND LRPC
    ['armada_basilica']       = 110100,
@@ -588,7 +588,7 @@ local unitOrderTable = {
    ['cortex_eradicator']        = 130600,
 
    ['armada_arbalest']        = 153000,
-   ['corflak']        = 153500,
+   ['cortex_birdshot']        = 153500,
    ['armada_mercury']     = 154000,
    ['cortex_screamer']    = 154500,
 
@@ -600,7 +600,7 @@ local unitOrderTable = {
    ['armada_paralyzer']         = 165000,
    ['cortex_catalyst']        = 165500,
    ['armada_citadel']         = 166000,
-   ['corfmd']         = 166500,
+   ['cortex_prevailer']         = 166500,
    ['armada_armageddon']        = 180000,
    ['cortex_apocalypse']        = 180500,
 

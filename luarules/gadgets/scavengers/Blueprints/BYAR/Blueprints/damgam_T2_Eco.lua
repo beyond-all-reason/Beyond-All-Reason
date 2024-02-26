@@ -369,8 +369,8 @@ local function T2Eco9()
 			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = -112, zOffset = -9, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = 56, zOffset = 119, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = -56, zOffset = 119, direction = 0},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -112, zOffset = 55, direction = 0},
-			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 112, zOffset = 55, direction = 0},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = -112, zOffset = 55, direction = 0},
+			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 112, zOffset = 55, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_advancedfusionreactor_scav.id, xOffset = 0, zOffset = -9, direction = 0},
 		},
 	}

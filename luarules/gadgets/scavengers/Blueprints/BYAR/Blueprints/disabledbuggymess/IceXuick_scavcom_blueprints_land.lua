@@ -456,7 +456,7 @@ local function t2Firebase1()
 			{ unitDefID = unitoptions[math.random(1, #unitoptions)], xOffset =    0,  zOffset =   0, direction = 0 },
 			{ unitDefID = UDN.cortex_warden_scav.id,                        xOffset =  -50,  zOffset =  32, direction = 0 },
 			{ unitDefID = unitoptions[math.random(1, #unitoptions)], xOffset = -100,  zOffset =  60, direction = 0 },
-		}		
+		}
 	else
 		buildings = {
 			{ unitDefID = unitoptions[math.random(1, #unitoptions)], xOffset =  60,  zOffset = -100, direction = 0 },
@@ -530,7 +530,7 @@ local function t1IntelBase2()
 
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -128,  zOffset =   0, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -96,  zOffset = -32, direction = 0 },
-			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -96,  zOffset =  32, direction = 0 },			
+			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -96,  zOffset =  32, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  128,  zOffset =   0, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   96,  zOffset = -32, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   96,  zOffset =  32, direction = 0 },
@@ -590,8 +590,8 @@ local function t2Firebase3()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corflak_scav.id,   xOffset = -48,  zOffset = -48, direction = 3 },
-			{ unitDefID = UDN.corflak_scav.id,   xOffset =  48,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,   xOffset = -48,  zOffset = -48, direction = 3 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,   xOffset =  48,  zOffset =  48, direction = 1 },
 			{ unitDefID = UDN.cortex_shroud_scav.id, xOffset = -48,  zOffset =  48, direction = 0 },
 
 			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset =   48,  zOffset =  -48, direction = 2 },
@@ -605,7 +605,7 @@ local function t2Firebase3()
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.corfmd_scav.id,     xOffset =  -93,  zOffset =   -1, direction = 1 },
+			{ unitDefID = UDN.cortex_prevailer_scav.id,     xOffset =  -93,  zOffset =   -1, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),  xOffset =   35,  zOffset =   15, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),  xOffset =  -77,  zOffset =  -49, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),  xOffset =   35,  zOffset =  111, direction = 1 },
@@ -674,7 +674,7 @@ local function t2HeavyFirebase1()
 	if r == 0 then
 		buildings = {
 			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset =  -56,  zOffset =   56, direction = 0 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,                           xOffset =   40,  zOffset =  -16, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,                           xOffset =   40,  zOffset =  -16, direction = 0 },
 			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = -100,  zOffset = -140, direction = 2 },
 			{ unitDefID = randomIntel[math.random(1, #randomIntel)],     xOffset =  -20,  zOffset = -100, direction = 2 },
 			{ unitDefID = randomIntel[math.random(1, #randomIntel)],     xOffset =   60,  zOffset = -100, direction = 2 },
@@ -698,7 +698,7 @@ local function t2HeavyFirebase1()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -32,  zOffset =   51, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -48,  zOffset =  -13, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   48,  zOffset =  -13, direction = 0 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,   xOffset =    0,  zOffset =    3, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,   xOffset =    0,  zOffset =    3, direction = 0 },
 			{ unitDefID = UDN.cortex_heavymine_scav.id,  xOffset = -104,  zOffset =   91, direction = 0 },
 			{ unitDefID = UDN.cortex_heavymine_scav.id,  xOffset =  104,  zOffset = -101, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   48,  zOffset =   19, direction = 0 },
@@ -728,7 +728,7 @@ local function t2HeavyFirebase1()
 			{ unitDefID = UDN.cortex_agitator_scav.id,    xOffset =  192,  zOffset =  128, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   16,  zOffset =  -48, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -144,  zOffset =  176, direction = 2 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,   xOffset =  128,  zOffset =  128, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,   xOffset =  128,  zOffset =  128, direction = 0 },
 			{ unitDefID = UDN.cortex_twinguard_scav.id,   xOffset =  -16,  zOffset =  176, direction = 0 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset =  -56,  zOffset =  -56, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -208,  zOffset = -176, direction = 2 },
@@ -759,7 +759,7 @@ local function t2HeavyFirebase1()
 			{ unitDefID = UDN.cortex_warden_scav.id,    xOffset =  176,  zOffset =  -16, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -208,  zOffset =  -16, direction = 3 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -144,  zOffset =  -16, direction = 3 },
-			{ unitDefID = UDN.cortex_calamity_scav.id,   xOffset = -128,  zOffset = -128, direction = 2 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id,   xOffset = -128,  zOffset = -128, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -208,  zOffset =   16, direction = 3 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   16,  zOffset =   48, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  176,  zOffset =  176, direction = 2 },
@@ -806,7 +806,7 @@ local function t2HeavyFirebase2()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -78,  zOffset = -120, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   50,  zOffset =  136, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -94,  zOffset =  -88, direction = 1 },
-			{ unitDefID = UDN.corflak_scav.id,   xOffset =   66,  zOffset =  -24, direction = 2 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,   xOffset =   66,  zOffset =  -24, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -94,  zOffset =  -56, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   18,  zOffset =  136, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   82,  zOffset =  120, direction = 0 },
@@ -870,16 +870,16 @@ end
 -- HEAVY DEFENSIVE BASES
 
 local function t2HeavyFirebase5()
-	local randomTurrets = {UDN.cortex_scorpion_scav.id, UDN.cortex_scorpion_scav.id, UDN.corflak_scav.id,}
+	local randomTurrets = {UDN.cortex_scorpion_scav.id, UDN.cortex_scorpion_scav.id, UDN.cortex_birdshot_scav.id,}
 
 	return {
 		type = types.Land,
 		tiers = { tiers.T3, },
 		radius = 120,
 		buildings = {
-			{ unitDefID = UDN.cortex_calamity_scav.id, xOffset =    0,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_bulwark_scav.id, xOffset =    0,  zOffset =   0, direction = 0 },
 			{ unitDefID = UDN.cortex_advancedradartower_scav.id, xOffset = -120,  zOffset = -32, direction = 3 },
-			
+
 			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = 120,  zOffset = 32, direction = 1 },
 		},
 	}
@@ -888,7 +888,7 @@ end
 -- HEAVY DEFENSIVE AIRREPAIR BASES
 
 local function t2Firebase5()
-	local randomTurrets = {UDN.cortex_scorpion_scav.id, UDN.cortex_scorpion_scav.id, UDN.corflak_scav.id,}
+	local randomTurrets = {UDN.cortex_scorpion_scav.id, UDN.cortex_scorpion_scav.id, UDN.cortex_birdshot_scav.id,}
 
 	return {
 		type = types.Land,
@@ -915,11 +915,11 @@ local function t2Firebase5()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =    7,  zOffset = -182, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   87,  zOffset =  -54, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -89,  zOffset =   42, direction = 0 },
-			{ unitDefID = UDN.corflak_scav.id,   xOffset = -137,  zOffset =   42, direction = 3 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,   xOffset = -137,  zOffset =   42, direction = 3 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -169,  zOffset =   58, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -137,  zOffset =   74, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  -89,  zOffset =   10, direction = 0 },
-			{ unitDefID = UDN.corflak_scav.id,   xOffset =  135,  zOffset =   42, direction = 1 },
+			{ unitDefID = UDN.cortex_birdshot_scav.id,   xOffset =  135,  zOffset =   42, direction = 1 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset =  -49,  zOffset =  130, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   71,  zOffset = -182, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   87,  zOffset =   74, direction = 0 },
@@ -942,7 +942,7 @@ end
 -- HEAVY POWERPLANT BASES
 
 local function t2Energy1()
-	local randomTurrets = {UDN.cortex_warden_scav.id, UDN.corflak_scav.id, UDN.cortex_shroud_scav.id, UDN.cortex_pinpointer_scav.id, BPWallOrPopup('scav', 1), BPWallOrPopup('scav', 1),}
+	local randomTurrets = {UDN.cortex_warden_scav.id, UDN.cortex_birdshot_scav.id, UDN.cortex_shroud_scav.id, UDN.cortex_pinpointer_scav.id, BPWallOrPopup('scav', 1), BPWallOrPopup('scav', 1),}
 	local buildings
 	local r = math.random(0,4)
 	if r == 0 then
