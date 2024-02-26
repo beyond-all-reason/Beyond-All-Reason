@@ -573,7 +573,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
 	},
 
-	armasp = {
+	armada_airrepairpad = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
@@ -2093,57 +2093,57 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX SHIPS-SUBS
 
-	coresupp = {
+	cortex_supporter = {
 		BaseSoundSelectType = "cor-shp-small-sel",
 		BaseSoundMovementType = "cor-shp-small-ok",
 		BaseSoundWeaponType = "fastemg-small",
 	},
-	corpt = {
+	cortex_herring = {
 		BaseSoundSelectType = "cor-shp-small-sel",
 		BaseSoundMovementType = "cor-shp-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	corcs = {
+	cortex_constructionship = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	correcl = {
+	cortex_deathcavalry = {
 		BaseSoundSelectType = "cor-sub-small-sel",
 		BaseSoundMovementType = "cor-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
 	},
-	cortship = {
+	cortex_coffin = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
-	corpship = {
+	cortex_riptide = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	corsub = {
+	cortex_orca = {
 		BaseSoundSelectType = "cor-sub-small-sel",
 		BaseSoundMovementType = "cor-sub-small-ok",
 		BaseSoundWeaponType = "torpedo-small",
 	},
-	corroy = {
+	cortex_oppressor = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
 		BaseSoundWeaponType = "plasma-medium-torpedo",
 	},
-	corsjam = {
+	cortex_phantasm = {
 		BaseSoundSelectType = "cor-shp-small-sel",
 		BaseSoundMovementType = "cor-shp-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	cormls = {
+	cortex_pathfinder = {
 		BaseSoundSelectType = "cor-shp-small-sel",
 		BaseSoundMovementType = "cor-shp-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	coracsub = {
+	cortex_advancedconstructionsub = {
 		BaseSoundSelectType = "cor-sub-medium-sel",
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "conalt-medium",
@@ -2153,12 +2153,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
-	corarch = {
+	cortex_arrowstorm = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
 		BaseSoundWeaponType = "flak",
 	},
-	corcrus = {
+	cortex_buccaneer = {
 		BaseSoundSelectType = "cor-shp-large-sel",
 		BaseSoundMovementType = "cor-shp-large-ok",
 		BaseSoundWeaponType = "plasma-medium-torpedo",
@@ -2168,22 +2168,22 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-shp-large-ok",
 		BaseSoundWeaponType = "radar-support",
 	},
-	corssub = {
+	cortex_kraken = {
 		BaseSoundSelectType = "cor-sub-medium-sel",
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
-	cormship = {
+	cortex_messenger = {
 		BaseSoundSelectType = "cor-shp-large-sel",
 		BaseSoundMovementType = "cor-shp-large-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	corbats = {
+	cortex_despot = {
 		BaseSoundSelectType = "cor-shp-large-sel",
 		BaseSoundMovementType = "cor-shp-large-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
-	corblackhy = {
+	cortex_blackhydra = {
 		BaseSoundSelectType = "cor-shp-huge-sel",
 		BaseSoundMovementType = "cor-shp-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",
@@ -2211,7 +2211,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "aarocket-air",
 	},
-	corsfig = {
+	cortex_bat = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "aarocket-air",
@@ -2221,7 +2221,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	corhunt = {
+	cortex_watcher = {
 		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "radar",
@@ -2236,22 +2236,22 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-bomber-ok",
 		BaseSoundWeaponType = "air-bomb-small",
 	},
-	corcsa = {
+	cortex_constructionseaplane = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	corcut = {
+	cortex_cutlass = {
 		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
-	corsb = {
+	cortex_dambuster = {
 		BaseSoundSelectType = "arm-air-bomber-sel",
 		BaseSoundMovementType = "arm-air-bomber-ok",
 		BaseSoundWeaponType = "air-bomb-small",
 	},
-	corseap = {
+	cortex_monsoon = {
 		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "air-bomb-small-torp",

@@ -88,10 +88,10 @@ local effectDefs = {
 	["armada_cyclone2"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
-	["corsfig"] = {
+	["cortex_bat"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
 	},
-	["corsfig2"] = {
+	["cortex_bat2"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
 	["armada_highwind"] = {
@@ -121,7 +121,7 @@ local effectDefs = {
 	["legwhisper"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
-	["corhunt"] = {
+	["cortex_watcher"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},
 	--["armada_horizon"] = {
@@ -189,7 +189,7 @@ local effectDefs = {
 	["armada_puffin"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 35, piece = "thrustm", light = 1 },
 	},
-	["corseap"] = {
+	["cortex_monsoon"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
 	["cortex_dragonold"] = {
@@ -216,7 +216,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
-	["corcut"] = {
+	["cortex_cutlass"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
@@ -307,7 +307,7 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrustb", light = 1 },
 	},
-	["corsb"] = {
+	["cortex_dambuster"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},
@@ -343,7 +343,7 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrusta" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
 	},
-	["corcsa"] = {
+	["cortex_constructionseaplane"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust1" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust2" },
 	},

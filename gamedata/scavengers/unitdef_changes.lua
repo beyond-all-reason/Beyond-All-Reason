@@ -158,11 +158,11 @@ customDefs.corscavdtl = {
 -- 	"armada_constructionhovercraft",
 -- 	"cortex_constructionhovercraft",
 -- 	"armada_constructionseaplane",
--- 	"corcsa",
+-- 	"cortex_constructionseaplane",
 -- 	"armada_constructionship",
--- 	"corcs",
+-- 	"cortex_constructionship",
 -- 	"armada_advancedconstructionsub",
--- 	"coracsub",
+-- 	"cortex_advancedconstructionsub",
 -- 	"armada_constructionvehicle",
 -- 	"corcv",
 -- 	"armada_advancedconstructionvehicle",
@@ -596,7 +596,7 @@ customDefs.corscavdtl = {
 -- customDefs.cortex_experimentalgantry = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "cortex_demon",
--- 		[numBuildoptions+2] = "cortex_karganethanetht4",
+-- 		[numBuildoptions+2] = "cortex_karganetht4",
 -- 		[numBuildoptions+3] = "corgolt4",
 -- 		[numBuildoptions+4] = "cortex_gruntt4",
 -- 	},
@@ -625,7 +625,7 @@ customDefs.corscavdtl = {
 -- customDefs.cortex_advancedshipyard = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corslrpc",
--- 		[numBuildoptions+2] = "coresuppt3",
+-- 		[numBuildoptions+2] = "cortex_supportert3",
 -- 	},
 -- }
 

@@ -177,7 +177,7 @@
 		"mex2": ["armada_advancedmetalextractor", "cortex_advancedmetalextractor", "armada_navaladvancedmetalextractor", "cortex_navaladvancedmetalextractor"],
 		"converter": ["armada_energyconverter", "cortex_energyconverter", "armada_advancedenergyconverter", "cortex_advancedenergyconverter", "armada_navalenergyconverter", "cortex_navalenergyconverter", "armada_navaladvancedenergyconverter", "cortex_navaladvancedenergyconverter"],
 		"def_low": ["armada_sentry", "armada_dragonsclaw", "cortex_guard", "cortex_dragonsmaw"],
-		"caretaker": ["armada_constructionturret", "armada_navalconstructionturret", "armasp", "cortex_constructionturret", "cortex_navalconstructionturret", "cortex_airrepairpad"],
+		"caretaker": ["armada_constructionturret", "armada_navalconstructionturret", "armada_airrepairpad", "cortex_constructionturret", "cortex_navalconstructionturret", "cortex_airrepairpad"],
 		"small": ["armada_radartower", "cortex_radartower", "armada_navalradarsonar", "cortex_radarsonartower"],
 		"wall": ["armada_dragonsteeth", "cortex_dragonsteeth"]
 	}

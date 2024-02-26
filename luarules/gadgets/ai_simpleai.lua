@@ -61,7 +61,7 @@ if gameShortName == "BYAR" then
 		"armada_stork",
 		"armada_convoy",
 		"cortex_hercules",
-		"cortship",
+		"cortex_coffin",
 		"armada_abductor",
 		"cortex_skyhook",
 		"cortex_basilisk",

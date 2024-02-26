@@ -430,7 +430,7 @@ function UnitDef_Post(name, uDef)
 			end
 		elseif name == "cortex_experimentalgantry" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cortex_karganethanetht4"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_karganetht4"
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_gruntt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
@@ -440,7 +440,7 @@ function UnitDef_Post(name, uDef)
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "corcs" or name == "corcsa" then
+		elseif name == "cortex_constructionship" or name == "cortex_constructionseaplane" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_gunplatform"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_janitor"
@@ -448,7 +448,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_gunplatform"
 			uDef.buildoptions[numBuildoptions+2] = "armada_scumbag"
-		elseif name == "coracsub" then
+		elseif name == "cortex_advancedconstructionsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_atoll"
 		elseif name == "armada_advancedconstructionsub" then
@@ -490,7 +490,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "cortex_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
-			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_supportert3"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_oasis2"
 		end
 	end
@@ -1100,7 +1100,7 @@ if modOptions.air_rework == true then
 		uDef.maxbank = 0.66
 		uDef.maxacc = 0.4
 	end
-	if name == "corhunt" then
+	if name == "cortex_watcher" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.015
@@ -1177,7 +1177,7 @@ if modOptions.air_rework == true then
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "corsfig2" then
+	if name == "cortex_bat2" then
 		uDef.metalcost = 520
 		uDef.energycost = 8000
 		uDef.buildtime = 11000
@@ -1191,31 +1191,31 @@ if modOptions.air_rework == true then
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		uDef.turnradius = 128
-		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
-		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
-		uDef.weapondefs.corsfig_weapon.range = 680
-		uDef.weapondefs.corsfig_weapon.areaofeffect = 200
-		uDef.weapondefs.corsfig_weapon.edgeeffectiveness = 0.55
-		uDef.weapondefs.corsfig_weapon.reloadtime = 6.1
-		uDef.weapondefs.corsfig_weapon.startvelocity = 100
-		uDef.weapondefs.corsfig_weapon.tolerance = 12500
-		uDef.weapondefs.corsfig_weapon.turnrate = 19000
-		uDef.weapondefs.corsfig_weapon.weaponacceleration = 250
-		uDef.weapondefs.corsfig_weapon.cegtag = "missiletraillarge-red"
-		uDef.weapondefs.corsfig_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
-		uDef.weapondefs.corsfig_weapon.model = "banishermissile.s3o"
-		uDef.weapondefs.corsfig_weapon.smoketrail = true
-		uDef.weapondefs.corsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.corsfig_weapon.smoketime = 48
-		uDef.weapondefs.corsfig_weapon.smokesize = 11.3
-		uDef.weapondefs.corsfig_weapon.smokecolor = 0.82
-		uDef.weapondefs.corsfig_weapon.soundhit = "corban_b"
-		uDef.weapondefs.corsfig_weapon.soundhitwet = "splsmed"
-		uDef.weapondefs.corsfig_weapon.soundstart = "corban_a"
-		uDef.weapondefs.corsfig_weapon.texture1 = "null"
-		uDef.weapondefs.corsfig_weapon.texture2 = "railguntrail"
-		uDef.weapondefs.corsfig_weapon.weaponvelocity = 650
-		uDef.weapondefs.corsfig_weapon.damage = {
+		uDef.weapondefs.cortex_bat_weapon.proximitypriority = -1
+		uDef.weapondefs.cortex_bat_weapon.flighttime = 1.7
+		uDef.weapondefs.cortex_bat_weapon.range = 680
+		uDef.weapondefs.cortex_bat_weapon.areaofeffect = 200
+		uDef.weapondefs.cortex_bat_weapon.edgeeffectiveness = 0.55
+		uDef.weapondefs.cortex_bat_weapon.reloadtime = 6.1
+		uDef.weapondefs.cortex_bat_weapon.startvelocity = 100
+		uDef.weapondefs.cortex_bat_weapon.tolerance = 12500
+		uDef.weapondefs.cortex_bat_weapon.turnrate = 19000
+		uDef.weapondefs.cortex_bat_weapon.weaponacceleration = 250
+		uDef.weapondefs.cortex_bat_weapon.cegtag = "missiletraillarge-red"
+		uDef.weapondefs.cortex_bat_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
+		uDef.weapondefs.cortex_bat_weapon.model = "banishermissile.s3o"
+		uDef.weapondefs.cortex_bat_weapon.smoketrail = true
+		uDef.weapondefs.cortex_bat_weapon.smokePeriod = 7
+		uDef.weapondefs.cortex_bat_weapon.smoketime = 48
+		uDef.weapondefs.cortex_bat_weapon.smokesize = 11.3
+		uDef.weapondefs.cortex_bat_weapon.smokecolor = 0.82
+		uDef.weapondefs.cortex_bat_weapon.soundhit = "corban_b"
+		uDef.weapondefs.cortex_bat_weapon.soundhitwet = "splsmed"
+		uDef.weapondefs.cortex_bat_weapon.soundstart = "corban_a"
+		uDef.weapondefs.cortex_bat_weapon.texture1 = "null"
+		uDef.weapondefs.cortex_bat_weapon.texture2 = "railguntrail"
+		uDef.weapondefs.cortex_bat_weapon.weaponvelocity = 650
+		uDef.weapondefs.cortex_bat_weapon.damage = {
 			default = 1,
 			vtol = 1000,
 		}
@@ -1237,7 +1237,7 @@ if modOptions.air_rework == true then
 		--uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 80
 	end
-	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "cortex_constructionaircraft" or name == "corcsa" or name == "armada_constructionseaplane" or name == "cortex_advancedconstructionaircraft" then
+	if name == "armada_constructionaircraft" or name == "armada_advancedconstructionaircraft" or name == "cortex_constructionaircraft" or name == "cortex_constructionseaplane" or name == "armada_constructionseaplane" or name == "cortex_advancedconstructionaircraft" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1249,7 +1249,7 @@ if modOptions.air_rework == true then
 		uDef.speed = 210
 		uDef.cruisealtitude = 80
 	end
-	if name == "armada_puffin" or name == "corseap" then
+	if name == "armada_puffin" or name == "cortex_monsoon" then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.65
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -1267,7 +1267,7 @@ if modOptions.air_rework == true then
 			vtol = 20,
 		}
 	end
-	if name == "corcut" then
+	if name == "cortex_cutlass" then
 		uDef.health = uDef.health * 2
 		uDef.metalcost = 370
 		uDef.energycost = 9500
@@ -1340,7 +1340,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armadvbomb.burst = 6
 		uDef.weapondefs.armadvbomb.areaofeffect = 220
 	end
-	if name == "corsb" or name == "armada_tsunami" then
+	if name == "cortex_dambuster" or name == "armada_tsunami" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.78
 		uDef.maxacc = 0.35
@@ -1359,13 +1359,13 @@ if modOptions.air_rework == true then
 	end
 	if name == "cortex_advancedaircraftplant" then
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "corsb"
-		uDef.buildoptions[numBuildoptions+2] = "corsfig2"
-		uDef.buildoptions[numBuildoptions+3] = "corcut"
-		uDef.buildoptions[numBuildoptions+4] = "corseap"
+		uDef.buildoptions[numBuildoptions+1] = "cortex_dambuster"
+		uDef.buildoptions[numBuildoptions+2] = "cortex_bat2"
+		uDef.buildoptions[numBuildoptions+3] = "cortex_cutlass"
+		uDef.buildoptions[numBuildoptions+4] = "cortex_monsoon"
 	end
 	if name == "cortex_seaplaneplatform" then
-		uDef.buildoptions[5] = "corsfig2"
+		uDef.buildoptions[5] = "cortex_bat2"
 	end
 	if name == "armada_seaplaneplatform" then
 		uDef.buildoptions[5] = "armada_cyclone2"
@@ -1493,7 +1493,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cortruck_missile.weaponacceleration = 230
 		uDef.weapondefs.cortruck_missile.damage.vtol = 150
 	end
-	if name == "corpt" then
+	if name == "cortex_herring" then
 		uDef.weapondefs.cortruck_missile.startvelocity = 135
 		uDef.weapondefs.cortruck_missile.weaponacceleration = 250
 		uDef.weapondefs.cortruck_missile.damage.vtol = 150
@@ -1530,7 +1530,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.ga2.flighttime = 2.5
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
-	if name == "corarch" then
+	if name == "cortex_arrowstorm" then
 		uDef.weapondefs.ga2.startvelocity = 150
 		uDef.weapondefs.ga2.weaponacceleration = 230
 		uDef.weapondefs.ga2.flighttime = 2.5
@@ -1648,7 +1648,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armada_dragonslayer" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
-	if name == "corarch" then
+	if name == "cortex_arrowstorm" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
 	if name == "armada_arbalest" then
@@ -1685,7 +1685,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 3000
 		uDef.buildtime = 3600
 	end
-	if name == "corsfig" then
+	if name == "cortex_bat" then
 		uDef.metalcost = 95
 		uDef.energycost = 4850
 		uDef.buildtime = 5400

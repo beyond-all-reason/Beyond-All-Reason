@@ -1,11 +1,11 @@
 return {
-	corsb = {
+	cortex_dambuster = {
 		acceleration = 0.055,
 		blocking = false,
 		maxdec = 0.045,
 		energycost = 8200,
 		metalcost = 200,
-		buildpic = "CORSB.DDS",
+		buildpic = "cortex_dambuster.DDS",
 		buildtime = 7000,
 		canfly = true,
 		canmove = true,
@@ -30,8 +30,8 @@ return {
 		maxwaterdepth = 255,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSB.s3o",
-		script = "Units/CORSB.cob",
+		objectname = "Units/cortex_dambuster.s3o",
+		script = "Units/cortex_dambuster.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,

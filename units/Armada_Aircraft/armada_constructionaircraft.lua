@@ -45,7 +45,7 @@ return {
 			[7] = "armada_metalextractor",
 			[8] = "armada_twilight",
 			[9] = "armada_energyconverter",
-			[10] = "armasp",
+			[10] = "armada_airrepairpad",
 			[11] = "armada_advancedaircraftplant",
 			[12] = "armada_botlab",
 			[13] = "armada_vehicleplant",

@@ -1,11 +1,11 @@
 return {
-	corssub = {
+	cortex_kraken = {
 		maxacc = 0.018,
 		activatewhenbuilt = true,
 		maxdec = 0.018,
 		energycost = 29000,
 		metalcost = 1900,
-		buildpic = "CORSSUB.DDS",
+		buildpic = "cortex_kraken.DDS",
 		buildtime = 24750,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -23,8 +23,8 @@ return {
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSSUB.s3o",
-		script = "Units/CORSSUB.cob",
+		objectname = "Units/cortex_kraken.s3o",
+		script = "Units/cortex_kraken.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd-uw",
 		sightdistance = 570,
@@ -57,7 +57,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1050,
-				object = "Units/corssub_dead.s3o",
+				object = "Units/cortex_kraken_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

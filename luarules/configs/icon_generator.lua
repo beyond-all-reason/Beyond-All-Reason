@@ -228,7 +228,7 @@ unitConfigs = {
 	[UnitDefNames.armada_harpoon2.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corcs.id] = {
+	[UnitDefNames.cortex_constructionship.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.corfmd.id] = {

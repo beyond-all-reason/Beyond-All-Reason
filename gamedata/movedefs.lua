@@ -111,14 +111,14 @@ local moveDatas = {
 
 	-- break line
 
-	-- corcs armada_bermuda corpt armada_dolphin armada_torpedoship cortex_predator critter_goldfish armada_constructionship correcl armada_grimreaper  corsupp  corsjam cormls armada_skater
+	-- cortex_constructionship armada_bermuda cortex_herring armada_dolphin armada_torpedoship cortex_predator critter_goldfish armada_constructionship cortex_deathcavalry armada_grimreaper  corsupp  cortex_phantasm cortex_pathfinder armada_skater
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
 		footprintz = 3,
 		minwaterdepth = 8,
 	},
-	--armada_voyager armada_corsair armada_dragonslayer corrsub corroy armada_seekerip coracsub armada_serpent  corpship  corarch
+	--armada_voyager armada_corsair armada_dragonslayer corrsub cortex_oppressor armada_seekerip cortex_advancedconstructionsub armada_serpent  cortex_riptide  cortex_arrowstorm
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
@@ -126,7 +126,7 @@ local moveDatas = {
 		minwaterdepth = 8,
 	},
 	-- cruisers / missile ships / transport ships
-	-- armada_convoy cormship corcrus armada_longbow cortship armada_paladin
+	-- armada_convoy cortex_messenger cortex_buccaneer armada_longbow cortex_coffin armada_paladin
 	BOAT5 = {
 		crushstrength = 16,
 		footprintx = 5,
@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armada_haven armada_epoch corblackhy armada_haven2 armada_dreadnought corbats cortex_oasis cortex_oasis2
+	-- armada_haven armada_epoch cortex_blackhydra armada_haven2 armada_dreadnought cortex_despot cortex_oasis cortex_oasis2
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -168,7 +168,7 @@ local moveDatas = {
 	-- 	subMarine = 1,
 	-- },
 	-- Battle Subs
-	--critter_goldfish coracsub armada_advancedconstructionsub armada_serpent corrsub armada_barracuda correcl cortex_predator corsub
+	--critter_goldfish cortex_advancedconstructionsub armada_advancedconstructionsub armada_serpent corrsub armada_barracuda cortex_deathcavalry cortex_predator cortex_orca
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- corslrpc coresuppt3 armada_dolphint3 armada_skatert2 armada_ellysawt3
+	-- corslrpc cortex_supportert3 armada_dolphint3 armada_skatert2 armada_ellysawt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,

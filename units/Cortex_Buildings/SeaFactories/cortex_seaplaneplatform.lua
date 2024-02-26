@@ -31,12 +31,12 @@ return {
 		workertime = 200,
 		yardmap = "wwwwwwwwCCCCCwwCCCCCwwCCCCCwwCCCCCwwCCCCCwwwwwwww",
 		buildoptions = {
-			[1] = "corcsa",
-			[2] = "corcut",
-			[3] = "corsb",
-			[4] = "corseap",
-			[5] = "corsfig",
-			[6] = "corhunt",
+			[1] = "cortex_constructionseaplane",
+			[2] = "cortex_cutlass",
+			[3] = "cortex_dambuster",
+			[4] = "cortex_monsoon",
+			[5] = "cortex_bat",
+			[6] = "cortex_watcher",
 		},
 		customparams = {
 			unitgroup = 'builder',

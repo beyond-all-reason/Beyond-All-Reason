@@ -26,7 +26,7 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+local COR_SEAADVBOMB = WeaponDefNames['cortex_dambuster_cor_seaadvbomb'].id --cortex_dambuster gets a special ceg with less particles, because it has lots of bouncing bombs
 local ARM_JUNO = WeaponDefNames['armada_juno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['cortex_juno_juno_pulse'].id --juno can explode on water
 local COR_TRON = WeaponDefNames['cortex_catalyst_cortex_catalyst_weapon'].id

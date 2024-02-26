@@ -28,10 +28,10 @@ local PWN_UNITS = {
   [UnitDefNames.armada_rover.id] = true,
   [UnitDefNames.corfav.id] = true,
   [UnitDefNames.cortex_grunt.id] = true,
-  [UnitDefNames.corpt.id] = true,
+  [UnitDefNames.cortex_herring.id] = true,
   [UnitDefNames.armada_skater.id] = true,
   [UnitDefNames.armada_dolphin.id] = true,
-  [UnitDefNames.coresupp.id] = true,
+  [UnitDefNames.cortex_supporter.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
   for id, v in pairs(PWN_UNITS) do

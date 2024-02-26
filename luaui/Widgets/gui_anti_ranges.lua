@@ -53,7 +53,7 @@ local arm_mobile_anti_water_2	= UnitDefNames.armada_t2supportship.id
 local cor_anti					= UnitDefNames.corfmd.id
 local cor_mobile_anti			= UnitDefNames.cormabm.id
 local cor_mobile_anti_water		= UnitDefNames.cortex_oasis.id
-local cor_mobile_anti_water_2	= UnitDefNames.corantiship.id
+local cor_mobile_anti_water_2	= UnitDefNames.cortex_t2supportship.id
 
 local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
@@ -78,7 +78,7 @@ local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef
 local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armada_haven.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.cortex_oasis.weapons[1].weaponDef].coverageRange
 local coverageRangeArmWater2	= WeaponDefs[UnitDefNames.armada_t2supportship.weapons[1].weaponDef].coverageRange
-local coverageRangeCoreWater2	= WeaponDefs[UnitDefNames.corantiship.weapons[1].weaponDef].coverageRange
+local coverageRangeCoreWater2	= WeaponDefs[UnitDefNames.cortex_t2supportship.weapons[1].weaponDef].coverageRange
 
 local diag = math.diag
 

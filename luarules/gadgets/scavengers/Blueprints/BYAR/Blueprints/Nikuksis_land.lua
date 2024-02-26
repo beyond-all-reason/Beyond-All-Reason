@@ -98,7 +98,7 @@ local function Nikuksis_land4()
 		tiers = { tiers.T2, tiers.T3 },
 		radius = 104,
 		buildings = {
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 4, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = 4, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 92, zOffset = -88, direction = 1},
 			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = 92, zOffset = 72, direction = 1},
 			{ unitDefID = UnitDefNames.armada_arbalest_scav.id, xOffset = -84, zOffset = -88, direction = 1},

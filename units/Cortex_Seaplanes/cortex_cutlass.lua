@@ -1,11 +1,11 @@
 return {
-	corcut = {
+	cortex_cutlass = {
 		maxacc = 0.18,
 		blocking = false,
 		maxdec = 0.3938,
 		energycost = 5400,
 		metalcost = 230,
-		buildpic = "CORCUT.DDS",
+		buildpic = "cortex_cutlass.DDS",
 		buildtime = 9470,
 		canfly = true,
 		canmove = true,
@@ -24,8 +24,8 @@ return {
 		speed = 152.4,
 		maxwaterdepth = 255,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORCUT.s3o",
-		script = "Units/CORCUT.cob",
+		objectname = "Units/cortex_cutlass.s3o",
+		script = "Units/cortex_cutlass.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,

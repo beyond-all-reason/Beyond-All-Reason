@@ -154,7 +154,7 @@ local function FactoryCenter2()
 			{ unitDefID = UnitDefNames.armada_ferret_scav.id, xOffset = -96, zOffset = -11, direction = 2},
 			{ unitDefID = UnitDefNames.armada_ferret_scav.id, xOffset = 96, zOffset = -11, direction = 2},
 			{ unitDefID = UnitDefNames.armada_aircraftplant_scav.id, xOffset = 0, zOffset = 61, direction = 0},
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 0, zOffset = -59, direction = 2},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = 0, zOffset = -59, direction = 2},
 		},
 	}
 end

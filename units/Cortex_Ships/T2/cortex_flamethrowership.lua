@@ -1,5 +1,5 @@
 return {
-	corfship = {
+	cortex_flamethrowership = {
 		maxacc = 0.04,
 		airsightdistance = 470,
 		autoheal = 1.5,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.04,
 		energycost = 12600,
 		metalcost = 840,
-		buildpic = "CORFSHIP.DDS",
+		buildpic = "cortex_flamethrowership.DDS",
 		buildtime = 12600,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,8 +26,8 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/CORFSHIP.s3o",
-		script = "Units/CORFSHIP.cob",
+		objectname = "Units/cortex_flamethrowership.s3o",
+		script = "Units/cortex_flamethrowership.cob",
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		sightdistance = 500,
@@ -56,7 +56,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 205,
-				object = "Units/corfship_dead.s3o",
+				object = "Units/cortex_flamethrowership_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

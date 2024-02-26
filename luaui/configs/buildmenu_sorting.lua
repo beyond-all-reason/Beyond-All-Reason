@@ -20,10 +20,10 @@ local unitOrderTable = {
 	['corassistdrone'] = 001169,
 
 	['armada_constructionseaplane']         = 001170, --SEAPLANES
-	['corcsa']         = 001175,
+	['cortex_constructionseaplane']         = 001175,
 
 	['armada_constructionship']          = 001180, --SHIPS
-	['corcs']          = 001190,
+	['cortex_constructionship']          = 001190,
 
 	['armada_constructionhovercraft']          = 002000, --HOVER
 	['cortex_constructionhovercraft']          = 002050,
@@ -35,7 +35,7 @@ local unitOrderTable = {
 	['cormlv']         = 002250,
 
 	['armada_grimreaper']        = 002300, --REZ SUBS
-	['correcl']        = 002350,
+	['cortex_deathcavalry']        = 002350,
 
 	['armada_advancedconstructionbot']         = 002400,
 	['cortex_advancedconstructionbot']         = 002450,
@@ -50,7 +50,7 @@ local unitOrderTable = {
 	['legaca']         = 002660,
 
 	['armada_advancedconstructionsub']       = 002700,
-	['coracsub']       = 002750,
+	['cortex_advancedconstructionsub']       = 002750,
 
 	--NANO SUPPORT
 	['armada_butler']        = 003100, --BOTS
@@ -63,7 +63,7 @@ local unitOrderTable = {
 	['corforge']       = 003350, --VEH
 
 	['armada_voyager']         = 003400, --SHIP
-	['cormls']         = 003500, --SHIP
+	['cortex_pathfinder']         = 003500, --SHIP
 
 	['armada_decoycommander']       = 003600, --SUPPORT COMS
 	['cortex_decoycommander']       = 003700,
@@ -77,7 +77,7 @@ local unitOrderTable = {
 	['armada_blink']        = 004030, --AIR
 	['corfink']        = 004040,
 	['armada_horizon']       = 004050, --SEAPLANES
-	['corhunt']        = 004060,
+	['cortex_watcher']        = 004060,
 	['armada_oracle']        = 004050,
 	['cortex_condor']        = 004060,
 
@@ -93,7 +93,7 @@ local unitOrderTable = {
 	['coreter']        = 004230,
 
 	['armada_bermuda']        = 004250,
-	['corsjam']        = 004260,
+	['cortex_phantasm']        = 004260,
 
 	-- AIRCRAFT
 	['armada_falcon']         = 004300, --FIGHTERS
@@ -104,12 +104,12 @@ local unitOrderTable = {
 	['legionnaire']    = 004316,
 	['legvenator']     = 004317,
 	['armada_cyclone2']       = 004316, -- T2 Heavy Fighter (air rework mod)
-	['corsfig2']       = 004317,
+	['cortex_bat2']       = 004317,
 
 	['armada_banshee']         = 004320, --GUNSHIPS
 	['legmos']         = 004322,
 	['armada_sabre']       = 004325,
-	['corcut']         = 004330,
+	['cortex_cutlass']         = 004330,
 	['legstronghold']  = 004331,
 
 	['armada_roughneck']       = 004335, --GUNSHIPS T2
@@ -124,7 +124,7 @@ local unitOrderTable = {
 	['legcib']         = 004356,
 	['legkam']         = 004357,
 	['armada_tsunami']          = 004360,
-	['corsb']          = 004365,
+	['cortex_dambuster']          = 004365,
 	['legphoenix']     = 004366,
 
 	['armada_blizzard']        = 004370, --BOMBERS T2
@@ -279,7 +279,7 @@ local unitOrderTable = {
    ['cortex_gruntt4']        = 007310,
 	['armada_recluset4']      = 007320,
 	['cortex_demon']     = 007330,
-	['cortex_karganethanetht4'] = 007340,
+	['cortex_karganetht4'] = 007340,
 	['corthermite'] = 007341,
 
 	['armada_tumbleweedt4']     = 007400,
@@ -315,61 +315,61 @@ local unitOrderTable = {
 
 	-- WATER SCOUTS
 	['armada_skater']          = 009000, --SCOUTS AA
-	['coresupp']       = 009010,
+	['cortex_supporter']       = 009010,
 
 	-- T1 WATER ATTACK
 	['armada_dolphin']      = 009100, --FAST
-	['corpt']          = 009110,
+	['cortex_herring']          = 009110,
 
 	['armada_ellysaw']       = 009200, --MAIN BATTLE
-	['corpship']       = 009210,
+	['cortex_riptide']       = 009210,
 	['armada_corsair']         = 009220,
-	['corroy']         = 009230,
+	['cortex_oppressor']         = 009230,
 
 	-- T2 WATER ATTACK
 	['armada_lightningship']       = 009280, --ANTISWARM
-	['corfship']       = 009290,
+	['cortex_flamethrowership']       = 009290,
 	
 	['armada_paladin']        = 009300, --MAIN BATTLE
-	['corcrus']        = 009310,
+	['cortex_buccaneer']        = 009310,
 
 	['armada_longbow']       = 009340, --ROCKETS
-	['cormship']       = 009350,
+	['cortex_messenger']       = 009350,
 	
 	['armada_dronecarrier']  = 009360, --DRONE CARRIERS
 	['cortex_dronecarrier']  = 009361,
 
 	['armada_dreadnought']        = 009370, --STRONK
-	['corbats']        = 009380,
+	['cortex_despot']        = 009380,
 
 	['armada_epoch']       = 009400, --FLAGSHIPS
-	['corblackhy']     = 009410,
+	['cortex_blackhydra']     = 009410,
 
 	['armada_dolphint3']    = 009450, --SCAV SHIPS
-	['coresuppt3']     = 009460,
+	['cortex_supportert3']     = 009460,
 	['armada_ellysawt3']     = 009470,
 	['corslrpc']       = 009480,
 
 	-- T1 AA
 	['armada_cyclone']        = 009500,
-	['corsfig']        = 009510,
+	['cortex_bat']        = 009510,
 
 	-- T2 AA
 	['armada_dragonslayer']         = 009600,
-	['corarch']        = 009610,
+	['cortex_arrowstorm']        = 009610,
 
 	-- UNDERWATER ATTACK
 	['armada_puffin']        = 009800,
-	['corseap']        = 009810,
+	['cortex_monsoon']        = 009810,
 	['armada_eel']         = 009820,
-	['corsub']         = 009830,
+	['cortex_orca']         = 009830,
 
 	['armada_cormorant']       = 009900,
 	['cortex_angler']       = 009910,
 	['armada_barracuda']        = 009920,
 	['cortex_predator']       = 009930,
 	['armada_serpent']        = 009940,
-	['corssub']        = 009950,
+	['cortex_kraken']        = 009950,
 
 	['armada_serpentt3']      = 009960,
 	['armada_skatert2']        = 009962,
@@ -379,7 +379,7 @@ local unitOrderTable = {
 	['cortex_hercules']        = 010510,
 
 	['armada_convoy']       = 010540,
-	['cortship']       = 010550,
+	['cortex_coffin']       = 010550,
 
 	['armada_bearer']       = 010560,
 	['cortex_caravan']       = 010570,
@@ -397,7 +397,7 @@ local unitOrderTable = {
 	['armada_t2supportship']	   = 020101,
 	['armada_haven2']      = 020105,
 	['cortex_oasis']       = 020110,
-	['corantiship']    = 020111,
+	['cortex_t2supportship']    = 020111,
 	['cortex_oasis2']      = 020115,
 
 -- BUILDINGS
@@ -495,7 +495,7 @@ local unitOrderTable = {
    ['cortex_experimentalaircraftplant']        = 102725, --scavengers
 
    --UTILITIES
-   ['armasp']         = 102800, --AIR REPAIR PADS
+   ['armada_airrepairpad']         = 102800, --AIR REPAIR PADS
    ['cortex_airrepairpad']         = 102825,
    ['cortex_floatingairrepairpad']         = 102826,
 

@@ -1,5 +1,5 @@
 return {
-	corpt = {
+	cortex_herring = {
 		maxacc = 0.05,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
@@ -7,7 +7,7 @@ return {
 		maxdec = 0.06473,
 		energycost = 1400,
 		metalcost = 210,
-		buildpic = "CORPT.DDS",
+		buildpic = "cortex_herring.DDS",
 		buildtime = 2500,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,10 +26,10 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/CORPT.s3o",
+		objectname = "Units/cortex_herring.s3o",
 		radardistance = 1000,
 		radaremitheight = 25,
-		script = "Units/CORPT.cob",
+		script = "Units/cortex_herring.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 670,
@@ -60,7 +60,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 97.5,
-				object = "Units/corpt_dead.s3o",
+				object = "Units/cortex_herring_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

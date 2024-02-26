@@ -943,7 +943,7 @@ local function t1Eco12()
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 96, zOffset = -96, direction = 1},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 96, zOffset = 96, direction = 1},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = -96, zOffset = -96, direction = 1},
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end

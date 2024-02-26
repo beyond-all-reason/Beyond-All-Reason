@@ -586,7 +586,7 @@
 		"attribute": ["siege"],
 		"retreat": 0.6
 	},
-	"armasp": {
+	"armada_airrepairpad": {
 		"role": ["static"],
 		"limit": 1
 	},
@@ -889,33 +889,33 @@
 	},
 
 	// ships - cortex_shipyard
-	"corcs": {
+	"cortex_constructionship": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
 		"limit": 6,
 		"build_speed": 7.0
 	},
-	"corpt": {
+	"cortex_herring": {
 		"role": ["scout", "anti_air", "raider"]
 	},
-	"coresupp": {
+	"cortex_supporter": {
 		"role": ["raider", "skirmish"]
 	},
-	"corpship": {
+	"cortex_riptide": {
 		"role": ["assault", "skirmish"]
 	},
-	"corsub": {
+	"cortex_orca": {
 		"role": ["sub"],
 		"attribute": ["anti_sub"]
 	},
-	"corroy": {
+	"cortex_oppressor": {
 		"role": ["artillery", "assault"],
 		"attribute": ["siege"],
 		"retreat": 0.5
 	},
 
 	// adv shipyard - cortex_advancedshipyard
-	"coracsub": {
+	"cortex_advancedconstructionsub": {
 		"role": ["builderT2", "sub"],
 		"attribute": ["solo"],
 		"retreat": 0.3,
@@ -926,10 +926,10 @@
 		"role": ["sub"],
 		"attribute": ["anti_sub"]
 	},
-	"corarch": {
+	"cortex_arrowstorm": {
 		"role": ["anti_air"]
 	},
-	"corcrus": {
+	"cortex_buccaneer": {
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
@@ -937,16 +937,16 @@
 		"role": ["support", "heavy"],
 		"retreat": 0.75
 	},
-	"cormship": {
+	"cortex_messenger": {
 		"role": ["artillery"],
 		"attribute": ["siege"],
 		"retreat": 0.5
 	},
-	"corbats": {
+	"cortex_despot": {
 		"role": ["heavy"],
 		"attribute": ["assault"],
 	},
-	"corblackhy": {
+	"cortex_blackhydra": {
 		"role": ["heavy"],
 		"attribute": ["artillery"],
 		"retreat": 0.3

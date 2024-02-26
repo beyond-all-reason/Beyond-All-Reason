@@ -122,7 +122,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.cormabm.id ] = true,
 	[UnitDefNames.cortex_oasis.id] = true,
 	[UnitDefNames.armada_t2supportship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
+	[UnitDefNames.cortex_t2supportship.id] = true,
 }
 
 local defensePosHash = {} -- key: {poshash=unitID}
@@ -250,7 +250,7 @@ local function initUnitList()
 		['cormabm'] = { weapons = { 3 } },
 		['cortex_oasis'] = { weapons = { 3 } },
 		['armada_t2supportship'] = { weapons = { 3 } },
-		['corantiship'] = { weapons = { 3 } },
+		['cortex_t2supportship'] = { weapons = { 3 } },
 
 		-- SCAVENGERS
 		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },

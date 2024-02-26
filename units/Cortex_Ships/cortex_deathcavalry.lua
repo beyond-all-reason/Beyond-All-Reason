@@ -1,5 +1,5 @@
 return {
-	correcl = {
+	cortex_deathcavalry = {
 		maxacc = 0.05333,
 		autoheal = 2,
 		maxdec = 0.05333,
@@ -7,7 +7,7 @@ return {
 		metalcost = 200,
 		builddistance = 140,
 		builder = true,
-		buildpic = "CORRECL.DDS",
+		buildpic = "cortex_deathcavalry.DDS",
 		buildtime = 5960,
 		canassist = false,
 		canmove = true,
@@ -25,9 +25,9 @@ return {
 		speed = 66.9,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
-		objectname = "Units/CORRECL.s3o",
+		objectname = "Units/cortex_deathcavalry.s3o",
 		reclaimspeed = 100,
-		script = "Units/CORRECL.cob",
+		script = "Units/cortex_deathcavalry.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,

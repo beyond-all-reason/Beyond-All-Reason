@@ -175,7 +175,7 @@ return {
 		"armada_tumbleweedt4_scav",
 		"cortex_gruntt4_scav",
 		"cortex_demon_scav",
-		"cortex_karganethanetht4_scav",
+		"cortex_karganetht4_scav",
 		"corgolt4_scav",
 	},
 }

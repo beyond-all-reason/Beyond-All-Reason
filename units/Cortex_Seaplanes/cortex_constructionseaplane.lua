@@ -1,5 +1,5 @@
 return {
-	corcsa = {
+	cortex_constructionseaplane = {
 		maxacc = 0.072,
 		blocking = false,
 		maxdec = 0.4275,
@@ -7,7 +7,7 @@ return {
 		metalcost = 140,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORCSA.DDS",
+		buildpic = "cortex_constructionseaplane.DDS",
 		buildtime = 12000,
 		canfly = true,
 		canmove = true,
@@ -27,8 +27,8 @@ return {
 		maxslope = 10,
 		speed = 217.5,
 		maxwaterdepth = 255,
-		objectname = "Units/CORCSA.s3o",
-		script = "Units/CORCSA.cob",
+		objectname = "Units/cortex_constructionseaplane.s3o",
+		script = "Units/cortex_constructionseaplane.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 351,

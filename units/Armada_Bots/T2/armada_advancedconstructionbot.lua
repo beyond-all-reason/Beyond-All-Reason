@@ -54,7 +54,7 @@ return {
 			"armada_advancedradartower",
 			"armada_veil",
 			"armada_fortificationwall",
-			"armasp",
+			"armada_airrepairpad",
 			"armada_pinpointer",
 			"armada_tracer",
 			"armada_keeper",

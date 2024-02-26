@@ -1,11 +1,11 @@
 return {
-	corseap = {
+	cortex_monsoon = {
 		maxacc = 0.22,
 		blocking = false,
 		maxdec = 0.375,
 		energycost = 5500,
 		metalcost = 230,
-		buildpic = "CORSEAP.DDS",
+		buildpic = "cortex_monsoon.DDS",
 		buildtime = 10700,
 		canfly = true,
 		canmove = true,
@@ -24,8 +24,8 @@ return {
 		speed = 266.1,
 		maxwaterdepth = 255,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSEAP.s3o",
-		script = "Units/CORSEAP.cob",
+		objectname = "Units/cortex_monsoon.s3o",
+		script = "Units/cortex_monsoon.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 535,

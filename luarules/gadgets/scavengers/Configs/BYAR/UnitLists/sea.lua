@@ -1,7 +1,7 @@
 return {
 	T0 = {
 	"armada_skater_scav",
-	"corpt_scav",
+	"cortex_herring_scav",
 	},
 
 	T1 = {
@@ -11,11 +11,11 @@ return {
 		"armada_ellysaw_scav",
 		"armada_eel_scav",
 		"armada_pincer_scav",
-		"corpt_scav",
-		"coresupp_scav",
-		"correcl_scav",
-		"corpship_scav",
-		"corsub_scav",
+		"cortex_herring_scav",
+		"cortex_supporter_scav",
+		"cortex_deathcavalry_scav",
+		"cortex_riptide_scav",
+		"cortex_orca_scav",
 		"corgarp_scav",
 
 		-- Hovercraft
@@ -33,11 +33,11 @@ return {
 		"armada_constructionhovercraft_scav",
 		"armada_constructionship_scav",
 		"cormuskrat_scav",
-		"corcs_scav",
+		"cortex_constructionship_scav",
 
 		-- Air
 		"armada_puffin_scav",
-		"corseap_scav",
+		"cortex_monsoon_scav",
 	},
 
 	T2 = {
@@ -48,13 +48,13 @@ return {
 		"armada_paladin_scav",
 		"armada_longbow_scav",
 		"armada_turtle_scav",
-		"corroy_scav",
-		"cormls_scav",
+		"cortex_oppressor_scav",
+		"cortex_pathfinder_scav",
 		"cortex_predator_scav",
-		"corarch_scav",
-		"corcrus_scav",
-		"corssub_scav",
-		"cormship_scav",
+		"cortex_arrowstorm_scav",
+		"cortex_buccaneer_scav",
+		"cortex_kraken_scav",
+		"cortex_messenger_scav",
 		"corseal_scav",
 
 		-- Hovercraft
@@ -63,8 +63,8 @@ return {
 		-- Constructors
 		"armada_voyager_scav",
 		"armada_advancedconstructionsub_scav",
-		"cormls_scav",
-		"coracsub_scav",
+		"cortex_pathfinder_scav",
+		"cortex_advancedconstructionsub_scav",
 
 		-- Air
 		"armada_cormorant_scav",
@@ -76,9 +76,9 @@ return {
 		"armada_haven2_scav",
 		"armada_epoch_scav",
 		"armada_serpent_scav",
-		"corbats_scav",
+		"cortex_despot_scav",
 		"cortex_oasis2_scav",
-		"corblackhy_scav",
+		"cortex_blackhydra_scav",
 		"corslrpc_scav",
 		"armada_dolphint3_scav",
 		"armada_ellysawt3_scav",
@@ -92,10 +92,10 @@ return {
 	T4 = {
 		"armada_serpentt3_scav",
 		"armada_epoch_scav",
-		"corblackhy_scav",
+		"cortex_blackhydra_scav",
 		"armada_tumbleweedt4_scav",
 		"cortex_juggernaut_scav",
 		"armada_titan_scav",
-		"coresuppt3_scav",
+		"cortex_supportert3_scav",
 	},
 }

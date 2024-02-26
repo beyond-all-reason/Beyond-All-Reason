@@ -209,15 +209,15 @@ armada_advancedsonarstation.bos:            corpsetype = 3 ;
 armada_advancedsonarstation.bos:            return(corpsetype);
 armada_advancedsonarstation.bos:    corpsetype = 3 ;
 armada_advancedsonarstation.bos:    return corpsetype;
-armasp.bos:Killed(severity, corpsetype)
-armasp.bos:             corpsetype = 1 ;
-armasp.bos:             return(corpsetype);
-armasp.bos:             corpsetype = 2 ;
-armasp.bos:             return(corpsetype);
-armasp.bos:             corpsetype = 3 ;
-armasp.bos:             return(corpsetype);
-armasp.bos:     corpsetype = 3 ;
-armasp.bos:     return corpsetype;
+armada_airrepairpad.bos:Killed(severity, corpsetype)
+armada_airrepairpad.bos:             corpsetype = 1 ;
+armada_airrepairpad.bos:             return(corpsetype);
+armada_airrepairpad.bos:             corpsetype = 2 ;
+armada_airrepairpad.bos:             return(corpsetype);
+armada_airrepairpad.bos:             corpsetype = 3 ;
+armada_airrepairpad.bos:             return(corpsetype);
+armada_airrepairpad.bos:     corpsetype = 3 ;
+armada_airrepairpad.bos:     return corpsetype;
 armada_advancedshipyard.bos:     set YARD_OPEN to 1;
 armada_advancedshipyard.bos:             set BUGGER_OFF to 1;
 armada_advancedshipyard.bos:             set YARD_OPEN to 1;
@@ -2513,20 +2513,20 @@ cortex_advancedconstructionbot.bos:             corpsetype = 3 ;
 cortex_advancedconstructionbot.bos:             return(corpsetype);
 cortex_advancedconstructionbot.bos:     corpsetype = 3 ;
 cortex_advancedconstructionbot.bos:     return corpsetype;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set-signal-mask SIG_MOVE;
-coracsub.bos:   set INBUILDSTANCE to 1;
-coracsub.bos:   set-signal-mask SIG_BUILD;
-coracsub.bos:   set-signal-mask 0;
-coracsub.bos:Killed(severity, corpsetype)
-coracsub.bos:           corpsetype = 1 ;
-coracsub.bos:           return(corpsetype);
-coracsub.bos:           corpsetype = 2 ;
-coracsub.bos:           return(corpsetype);
-coracsub.bos:           corpsetype = 3 ;
-coracsub.bos:           return(corpsetype);
-coracsub.bos:   corpsetype = 3 ;
-coracsub.bos:   return corpsetype;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set-signal-mask SIG_MOVE;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set-signal-mask SIG_BUILD;
+cortex_advancedconstructionsub.bos:   set-signal-mask 0;
+cortex_advancedconstructionsub.bos:Killed(severity, corpsetype)
+cortex_advancedconstructionsub.bos:           corpsetype = 1 ;
+cortex_advancedconstructionsub.bos:           return(corpsetype);
+cortex_advancedconstructionsub.bos:           corpsetype = 2 ;
+cortex_advancedconstructionsub.bos:           return(corpsetype);
+cortex_advancedconstructionsub.bos:           corpsetype = 3 ;
+cortex_advancedconstructionsub.bos:           return(corpsetype);
+cortex_advancedconstructionsub.bos:   corpsetype = 3 ;
+cortex_advancedconstructionsub.bos:   return corpsetype;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:setSFXoccupy(state)
 coracv.bos:     set INBUILDSTANCE to 1;
@@ -2723,22 +2723,22 @@ cortex_advancedradartower.bos:            corpsetype = 3 ;
 cortex_advancedradartower.bos:            return(corpsetype);
 cortex_advancedradartower.bos:    corpsetype = 3 ;
 cortex_advancedradartower.bos:    return corpsetype;
-corarch.bos:SetMaxReloadTime(Func_Var_1)
-corarch.bos:    set-signal-mask 0;
-corarch.bos:SetStunned(State)
-corarch.bos:    set-signal-mask SIG_MOVE;
-corarch.bos:    set-signal-mask SIG_AIM_2;
-corarch.bos:    set-signal-mask SIG_AIM_3;
-corarch.bos:Killed(severity, corpsetype)
-corarch.bos:            corpsetype = 1 ;
-corarch.bos:            return(corpsetype);
-corarch.bos:            corpsetype = 2 ;
-corarch.bos:            return(corpsetype);
-corarch.bos:            corpsetype = 3 ;
-corarch.bos:            return(corpsetype);
-corarch.bos:    corpsetype = 3 ;
-corarch.bos:    return corpsetype;
-Binary file corarch.cob matches
+cortex_arrowstorm.bos:SetMaxReloadTime(Func_Var_1)
+cortex_arrowstorm.bos:    set-signal-mask 0;
+cortex_arrowstorm.bos:SetStunned(State)
+cortex_arrowstorm.bos:    set-signal-mask SIG_MOVE;
+cortex_arrowstorm.bos:    set-signal-mask SIG_AIM_2;
+cortex_arrowstorm.bos:    set-signal-mask SIG_AIM_3;
+cortex_arrowstorm.bos:Killed(severity, corpsetype)
+cortex_arrowstorm.bos:            corpsetype = 1 ;
+cortex_arrowstorm.bos:            return(corpsetype);
+cortex_arrowstorm.bos:            corpsetype = 2 ;
+cortex_arrowstorm.bos:            return(corpsetype);
+cortex_arrowstorm.bos:            corpsetype = 3 ;
+cortex_arrowstorm.bos:            return(corpsetype);
+cortex_arrowstorm.bos:    corpsetype = 3 ;
+cortex_arrowstorm.bos:    return corpsetype;
+Binary file cortex_arrowstorm.cob matches
 cortex_advancedsonarstation.bos:Killed(severity, corpsetype)
 cortex_advancedsonarstation.bos:            corpsetype = 1 ;
 cortex_advancedsonarstation.bos:            return(corpsetype);
@@ -2859,23 +2859,23 @@ corban.bos:             return(corpsetype);
 corban.bos:     corpsetype = 3 ;
 corban.bos:     return corpsetype;
 Binary file corban.cob matches
-corbats.bos:    set-signal-mask 16;
-corbats.bos:SetMaxReloadTime(Func_Var_1)
-corbats.bos:SetStunned(State)
-corbats.bos:    set-signal-mask SIG_AIM;
-corbats.bos:    set-signal-mask 0;
-corbats.bos:    set-signal-mask SIG_MOVE;
-corbats.bos:    set-signal-mask SIG_AIM_2;
-corbats.bos:Killed(severity, corpsetype)
-corbats.bos:            corpsetype = 1 ;
-corbats.bos:            return(corpsetype);
-corbats.bos:            corpsetype = 2 ;
-corbats.bos:            return(corpsetype);
-corbats.bos:            corpsetype = 3 ;
-corbats.bos:            return(corpsetype);
-corbats.bos:    corpsetype = 3 ;
-corbats.bos:    return corpsetype;
-Binary file corbats.cob matches
+cortex_despot.bos:    set-signal-mask 16;
+cortex_despot.bos:SetMaxReloadTime(Func_Var_1)
+cortex_despot.bos:SetStunned(State)
+cortex_despot.bos:    set-signal-mask SIG_AIM;
+cortex_despot.bos:    set-signal-mask 0;
+cortex_despot.bos:    set-signal-mask SIG_MOVE;
+cortex_despot.bos:    set-signal-mask SIG_AIM_2;
+cortex_despot.bos:Killed(severity, corpsetype)
+cortex_despot.bos:            corpsetype = 1 ;
+cortex_despot.bos:            return(corpsetype);
+cortex_despot.bos:            corpsetype = 2 ;
+cortex_despot.bos:            return(corpsetype);
+cortex_despot.bos:            corpsetype = 3 ;
+cortex_despot.bos:            return(corpsetype);
+cortex_despot.bos:    corpsetype = 3 ;
+cortex_despot.bos:    return corpsetype;
+Binary file cortex_despot.cob matches
 cortex_cerberus.bos:   set-signal-mask 4;
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
@@ -2895,28 +2895,28 @@ cortex_cerberus.bos:           return(corpsetype);
 cortex_cerberus.bos:   corpsetype = 3 ;
 cortex_cerberus.bos:   return corpsetype;
 Binary file cortex_cerberus.cob matches
-corblackhy.bos: set-signal-mask 16;
-corblackhy.bos: set ARMORED to 1;
-corblackhy.bos:SetMaxReloadTime(Func_Var_1)
-corblackhy.bos:SetStunned(State)
-corblackhy.bos: set-signal-mask SIG_MOVE;
-corblackhy.bos: set-signal-mask SIG_AIM;
-corblackhy.bos: set-signal-mask 2;
-corblackhy.bos: set-signal-mask 4;
-corblackhy.bos: set-signal-mask 8;
-corblackhy.bos: set-signal-mask 16;
-corblackhy.bos: set-signal-mask 32;
-corblackhy.bos: set-signal-mask 64;
-corblackhy.bos:Killed(severity, corpsetype)
-corblackhy.bos:         corpsetype = 1 ;
-corblackhy.bos:         return(corpsetype);
-corblackhy.bos:         corpsetype = 2 ;
-corblackhy.bos:         return(corpsetype);
-corblackhy.bos:         corpsetype = 3 ;
-corblackhy.bos:         return(corpsetype);
-corblackhy.bos: corpsetype = 3 ;
-corblackhy.bos: return corpsetype;
-Binary file corblackhy.cob matches
+cortex_blackhydra.bos: set-signal-mask 16;
+cortex_blackhydra.bos: set ARMORED to 1;
+cortex_blackhydra.bos:SetMaxReloadTime(Func_Var_1)
+cortex_blackhydra.bos:SetStunned(State)
+cortex_blackhydra.bos: set-signal-mask SIG_MOVE;
+cortex_blackhydra.bos: set-signal-mask SIG_AIM;
+cortex_blackhydra.bos: set-signal-mask 2;
+cortex_blackhydra.bos: set-signal-mask 4;
+cortex_blackhydra.bos: set-signal-mask 8;
+cortex_blackhydra.bos: set-signal-mask 16;
+cortex_blackhydra.bos: set-signal-mask 32;
+cortex_blackhydra.bos: set-signal-mask 64;
+cortex_blackhydra.bos:Killed(severity, corpsetype)
+cortex_blackhydra.bos:         corpsetype = 1 ;
+cortex_blackhydra.bos:         return(corpsetype);
+cortex_blackhydra.bos:         corpsetype = 2 ;
+cortex_blackhydra.bos:         return(corpsetype);
+cortex_blackhydra.bos:         corpsetype = 3 ;
+cortex_blackhydra.bos:         return(corpsetype);
+cortex_blackhydra.bos: corpsetype = 3 ;
+cortex_blackhydra.bos: return corpsetype;
+Binary file cortex_blackhydra.cob matches
 cortex_calamity.lua:    SetSignalMask( SIG_AIM)
 cortex_calamity.lua:                    return 1 -- corpsetype
 cortex_calamity.lua:                    return 2 -- corpsetype
@@ -3066,23 +3066,23 @@ cortex_trasher.bos:           return(corpsetype);
 cortex_trasher.bos:   corpsetype = 3 ;
 cortex_trasher.bos:   return corpsetype;
 Binary file cortex_trasher.cob matches
-corcrus.bos:SetMaxReloadTime(Func_Var_1)
-corcrus.bos:    set-signal-mask 0;
-corcrus.bos:SetStunned(State)
-corcrus.bos:    set-signal-mask 0;
-corcrus.bos:    set-signal-mask SIG_MOVE;
-corcrus.bos:    set-signal-mask SIG_AIM_2;
-corcrus.bos:    set-signal-mask SIG_AIM;
-corcrus.bos:Killed(severity, corpsetype)
-corcrus.bos:            corpsetype = 1 ;
-corcrus.bos:            return(corpsetype);
-corcrus.bos:            corpsetype = 2 ;
-corcrus.bos:            return(corpsetype);
-corcrus.bos:            corpsetype = 3 ;
-corcrus.bos:            return(corpsetype);
-corcrus.bos:    corpsetype = 3 ;
-corcrus.bos:    return corpsetype;
-Binary file corcrus.cob matches
+cortex_buccaneer.bos:SetMaxReloadTime(Func_Var_1)
+cortex_buccaneer.bos:    set-signal-mask 0;
+cortex_buccaneer.bos:SetStunned(State)
+cortex_buccaneer.bos:    set-signal-mask 0;
+cortex_buccaneer.bos:    set-signal-mask SIG_MOVE;
+cortex_buccaneer.bos:    set-signal-mask SIG_AIM_2;
+cortex_buccaneer.bos:    set-signal-mask SIG_AIM;
+cortex_buccaneer.bos:Killed(severity, corpsetype)
+cortex_buccaneer.bos:            corpsetype = 1 ;
+cortex_buccaneer.bos:            return(corpsetype);
+cortex_buccaneer.bos:            corpsetype = 2 ;
+cortex_buccaneer.bos:            return(corpsetype);
+cortex_buccaneer.bos:            corpsetype = 3 ;
+cortex_buccaneer.bos:            return(corpsetype);
+cortex_buccaneer.bos:    corpsetype = 3 ;
+cortex_buccaneer.bos:    return corpsetype;
+Binary file cortex_buccaneer.cob matches
 cortex_dragonold.bos:SetMaxReloadTime(Func_Var_1)
 cortex_dragonold.bos:SetStunned(State)
 cortex_dragonold.bos:     set-signal-mask SIG_AIM;
@@ -3098,42 +3098,42 @@ cortex_dragonold.bos:             return(corpsetype);
 cortex_dragonold.bos:     corpsetype = 3 ;
 cortex_dragonold.bos:     return corpsetype;
 Binary file cortex_dragonold.cob matches
-corcs.bos:      set-signal-mask SIG_MOVE;
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcs.bos:Killed(severity, corpsetype)
-corcs.bos:              corpsetype = 1 ;
-corcs.bos:              return(corpsetype);
-corcs.bos:              corpsetype = 2 ;
-corcs.bos:              return(corpsetype);
-corcs.bos:              corpsetype = 3 ;
-corcs.bos:              return(corpsetype);
-corcs.bos:      corpsetype = 3 ;
-corcs.bos:      return corpsetype;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
-corcsa.bos:Killed(severity, corpsetype)
-corcsa.bos:             corpsetype = 1 ;
-corcsa.bos:             return(corpsetype);
-corcsa.bos:             corpsetype = 2 ;
-corcsa.bos:             return(corpsetype);
-corcsa.bos:             corpsetype = 3 ;
-corcsa.bos:             return(corpsetype);
-corcsa.bos:     corpsetype = 3 ;
-corcsa.bos:     return corpsetype;
-corcut.bos:     set-signal-mask 0;
-corcut.bos:SetStunned(State)
-corcut.bos:setSFXoccupy(Func_Var_1)
-corcut.bos:Killed(severity, corpsetype)
-corcut.bos:             corpsetype = 1 ;
-corcut.bos:             return(corpsetype);
-corcut.bos:             corpsetype = 2 ;
-corcut.bos:             return(corpsetype);
-corcut.bos:             corpsetype = 3 ;
-corcut.bos:             return(corpsetype);
-corcut.bos:     corpsetype = 3 ;
-corcut.bos:     return corpsetype;
-Binary file corcut.cob matches
+cortex_constructionship.bos:      set-signal-mask SIG_MOVE;
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionship.bos:Killed(severity, corpsetype)
+cortex_constructionship.bos:              corpsetype = 1 ;
+cortex_constructionship.bos:              return(corpsetype);
+cortex_constructionship.bos:              corpsetype = 2 ;
+cortex_constructionship.bos:              return(corpsetype);
+cortex_constructionship.bos:              corpsetype = 3 ;
+cortex_constructionship.bos:              return(corpsetype);
+cortex_constructionship.bos:      corpsetype = 3 ;
+cortex_constructionship.bos:      return corpsetype;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:Killed(severity, corpsetype)
+cortex_constructionseaplane.bos:             corpsetype = 1 ;
+cortex_constructionseaplane.bos:             return(corpsetype);
+cortex_constructionseaplane.bos:             corpsetype = 2 ;
+cortex_constructionseaplane.bos:             return(corpsetype);
+cortex_constructionseaplane.bos:             corpsetype = 3 ;
+cortex_constructionseaplane.bos:             return(corpsetype);
+cortex_constructionseaplane.bos:     corpsetype = 3 ;
+cortex_constructionseaplane.bos:     return corpsetype;
+cortex_cutlass.bos:     set-signal-mask 0;
+cortex_cutlass.bos:SetStunned(State)
+cortex_cutlass.bos:setSFXoccupy(Func_Var_1)
+cortex_cutlass.bos:Killed(severity, corpsetype)
+cortex_cutlass.bos:             corpsetype = 1 ;
+cortex_cutlass.bos:             return(corpsetype);
+cortex_cutlass.bos:             corpsetype = 2 ;
+cortex_cutlass.bos:             return(corpsetype);
+cortex_cutlass.bos:             corpsetype = 3 ;
+cortex_cutlass.bos:             return(corpsetype);
+cortex_cutlass.bos:     corpsetype = 3 ;
+cortex_cutlass.bos:     return corpsetype;
+Binary file cortex_cutlass.cob matches
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 corcv.bos:      set-signal-mask SIG_BUILD;
@@ -3228,21 +3228,21 @@ cortex_energystorage.bos:           corpsetype = 3 ;
 cortex_energystorage.bos:           return(corpsetype);
 cortex_energystorage.bos:   corpsetype = 3 ;
 cortex_energystorage.bos:   return corpsetype;
-coresupp.bos:SetMaxReloadTime(Func_Var_1)
-coresupp.bos:SetStunned(State)
-coresupp.bos:   set-signal-mask SIG_MOVE;
-coresupp.bos:   set-signal-mask SIG_AIM;
-coresupp.bos:   set-signal-mask SIG_AIM_2;
-coresupp.bos:Killed(severity, corpsetype)
-coresupp.bos:           corpsetype = 1 ;
-coresupp.bos:           return(corpsetype);
-coresupp.bos:           corpsetype = 2 ;
-coresupp.bos:           return(corpsetype);
-coresupp.bos:           corpsetype = 3 ;
-coresupp.bos:           return(corpsetype);
-coresupp.bos:   corpsetype = 3 ;
-coresupp.bos:   return corpsetype;
-Binary file coresupp.cob matches
+cortex_supporter.bos:SetMaxReloadTime(Func_Var_1)
+cortex_supporter.bos:SetStunned(State)
+cortex_supporter.bos:   set-signal-mask SIG_MOVE;
+cortex_supporter.bos:   set-signal-mask SIG_AIM;
+cortex_supporter.bos:   set-signal-mask SIG_AIM_2;
+cortex_supporter.bos:Killed(severity, corpsetype)
+cortex_supporter.bos:           corpsetype = 1 ;
+cortex_supporter.bos:           return(corpsetype);
+cortex_supporter.bos:           corpsetype = 2 ;
+cortex_supporter.bos:           return(corpsetype);
+cortex_supporter.bos:           corpsetype = 3 ;
+cortex_supporter.bos:           return(corpsetype);
+cortex_supporter.bos:   corpsetype = 3 ;
+cortex_supporter.bos:   return corpsetype;
+Binary file cortex_supporter.cob matches
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:SetStunned(State)
 coreter.bos:            set-signal-mask 2;
@@ -3612,15 +3612,15 @@ cortex_arbiter.bos:             return(corpsetype);
 cortex_arbiter.bos:     corpsetype = 3 ;
 cortex_arbiter.bos:     return corpsetype;
 Binary file cortex_arbiter.cob matches
-corhunt.bos:Killed(severity, corpsetype)
-corhunt.bos:            corpsetype = 1 ;
-corhunt.bos:            return(corpsetype);
-corhunt.bos:            corpsetype = 2 ;
-corhunt.bos:            return(corpsetype);
-corhunt.bos:            corpsetype = 3 ;
-corhunt.bos:            return(corpsetype);
-corhunt.bos:    corpsetype = 3 ;
-corhunt.bos:    return corpsetype;
+cortex_watcher.bos:Killed(severity, corpsetype)
+cortex_watcher.bos:            corpsetype = 1 ;
+cortex_watcher.bos:            return(corpsetype);
+cortex_watcher.bos:            corpsetype = 2 ;
+cortex_watcher.bos:            return(corpsetype);
+cortex_watcher.bos:            corpsetype = 3 ;
+cortex_watcher.bos:            return(corpsetype);
+cortex_watcher.bos:    corpsetype = 3 ;
+cortex_watcher.bos:    return corpsetype;
 cortex_hailstorm.bos:Killed(severity, corpsetype)
 cortex_hailstorm.bos:            corpsetype = 1 ;
 cortex_hailstorm.bos:            return(corpsetype);
@@ -3926,18 +3926,18 @@ cormist.bos:            return(corpsetype);
 cormist.bos:    corpsetype = 3 ;
 cormist.bos:    return corpsetype;
 Binary file cormist.cob matches
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
-cormls.bos:     set-signal-mask SIG_MOVE;
-cormls.bos:Killed(severity, corpsetype)
-cormls.bos:             corpsetype = 1 ;
-cormls.bos:             return(corpsetype);
-cormls.bos:             corpsetype = 2 ;
-cormls.bos:             return(corpsetype);
-cormls.bos:             corpsetype = 3 ;
-cormls.bos:             return(corpsetype);
-cormls.bos:     corpsetype = 3 ;
-cormls.bos:     return corpsetype;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set-signal-mask SIG_MOVE;
+cortex_pathfinder.bos:Killed(severity, corpsetype)
+cortex_pathfinder.bos:             corpsetype = 1 ;
+cortex_pathfinder.bos:             return(corpsetype);
+cortex_pathfinder.bos:             corpsetype = 2 ;
+cortex_pathfinder.bos:             return(corpsetype);
+cortex_pathfinder.bos:             corpsetype = 3 ;
+cortex_pathfinder.bos:             return(corpsetype);
+cortex_pathfinder.bos:     corpsetype = 3 ;
+cortex_pathfinder.bos:     return corpsetype;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cormlv.bos:     set-signal-mask SIG_BUILD;
@@ -3992,21 +3992,21 @@ cortex_sheldon.bos:            return(corpsetype);
 cortex_sheldon.bos:    corpsetype = 3 ;
 cortex_sheldon.bos:    return corpsetype;
 Binary file cortex_sheldon.cob matches
-cormship.bos:SetMaxReloadTime(Func_Var_1)
-cormship.bos:SetStunned(State)
-cormship.bos:   set-signal-mask SIG_MOVE;
-cormship.bos:   set-signal-mask SIG_AIM;
-cormship.bos:   set-signal-mask SIG_AIM_3;
-cormship.bos:Killed(severity, corpsetype)
-cormship.bos:           corpsetype = 1 ;
-cormship.bos:           return(corpsetype);
-cormship.bos:           corpsetype = 2 ;
-cormship.bos:           return(corpsetype);
-cormship.bos:           corpsetype = 3 ;
-cormship.bos:           return(corpsetype);
-cormship.bos:   corpsetype = 3 ;
-cormship.bos:   return corpsetype;
-Binary file cormship.cob matches
+cortex_messenger.bos:SetMaxReloadTime(Func_Var_1)
+cortex_messenger.bos:SetStunned(State)
+cortex_messenger.bos:   set-signal-mask SIG_MOVE;
+cortex_messenger.bos:   set-signal-mask SIG_AIM;
+cortex_messenger.bos:   set-signal-mask SIG_AIM_3;
+cortex_messenger.bos:Killed(severity, corpsetype)
+cortex_messenger.bos:           corpsetype = 1 ;
+cortex_messenger.bos:           return(corpsetype);
+cortex_messenger.bos:           corpsetype = 2 ;
+cortex_messenger.bos:           return(corpsetype);
+cortex_messenger.bos:           corpsetype = 3 ;
+cortex_messenger.bos:           return(corpsetype);
+cortex_messenger.bos:   corpsetype = 3 ;
+cortex_messenger.bos:   return corpsetype;
+Binary file cortex_messenger.cob matches
 cortex_metalstorage.bos:// OffsetToScriptCodeIndexArray        2f8
 cortex_metalstorage.bos:// OffsetToScriptNameOffsetArray       308
 cortex_metalstorage.bos:// OffsetToPieceNameOffsetArray        318
@@ -4114,37 +4114,37 @@ cortex_seaplaneplatform.bos:            corpsetype = 3 ;
 cortex_seaplaneplatform.bos:            return(corpsetype);
 cortex_seaplaneplatform.bos:    corpsetype = 3 ;
 cortex_seaplaneplatform.bos:    return corpsetype;
-corpship.bos:SetDirection(heading)
-corpship.bos:   set-signal-mask 4096;
-corpship.bos:SetMaxReloadTime(Func_Var_1)
-corpship.bos:SetStunned(State)
-corpship.bos:   set-signal-mask 0;
-corpship.bos:   set-signal-mask SIG_MOVE;
-corpship.bos:   set-signal-mask SIG_AIM;
-corpship.bos:Killed(severity, corpsetype)
-corpship.bos:           corpsetype = 1;
-corpship.bos:           return (corpsetype);
-corpship.bos:           corpsetype = 2;
-corpship.bos:           return (corpsetype);
-corpship.bos:   corpsetype = 3;
-corpship.bos:   return corpsetype;
-Binary file corpship.cob matches
-corpt.bos:SetMaxReloadTime(Func_Var_1)
-corpt.bos:      set-signal-mask 0;
-corpt.bos:SetStunned(State)
-corpt.bos:      set-signal-mask SIG_MOVE;
-corpt.bos:      set-signal-mask SIG_AIM_3;
-corpt.bos:      set-signal-mask SIG_AIM;
-corpt.bos:Killed(severity, corpsetype)
-corpt.bos:              corpsetype = 1 ;
-corpt.bos:              return(corpsetype);
-corpt.bos:              corpsetype = 2 ;
-corpt.bos:              return(corpsetype);
-corpt.bos:              corpsetype = 3 ;
-corpt.bos:              return(corpsetype);
-corpt.bos:      corpsetype = 3 ;
-corpt.bos:      return corpsetype;
-Binary file corpt.cob matches
+cortex_riptide.bos:SetDirection(heading)
+cortex_riptide.bos:   set-signal-mask 4096;
+cortex_riptide.bos:SetMaxReloadTime(Func_Var_1)
+cortex_riptide.bos:SetStunned(State)
+cortex_riptide.bos:   set-signal-mask 0;
+cortex_riptide.bos:   set-signal-mask SIG_MOVE;
+cortex_riptide.bos:   set-signal-mask SIG_AIM;
+cortex_riptide.bos:Killed(severity, corpsetype)
+cortex_riptide.bos:           corpsetype = 1;
+cortex_riptide.bos:           return (corpsetype);
+cortex_riptide.bos:           corpsetype = 2;
+cortex_riptide.bos:           return (corpsetype);
+cortex_riptide.bos:   corpsetype = 3;
+cortex_riptide.bos:   return corpsetype;
+Binary file cortex_riptide.cob matches
+cortex_herring.bos:SetMaxReloadTime(Func_Var_1)
+cortex_herring.bos:      set-signal-mask 0;
+cortex_herring.bos:SetStunned(State)
+cortex_herring.bos:      set-signal-mask SIG_MOVE;
+cortex_herring.bos:      set-signal-mask SIG_AIM_3;
+cortex_herring.bos:      set-signal-mask SIG_AIM;
+cortex_herring.bos:Killed(severity, corpsetype)
+cortex_herring.bos:              corpsetype = 1 ;
+cortex_herring.bos:              return(corpsetype);
+cortex_herring.bos:              corpsetype = 2 ;
+cortex_herring.bos:              return(corpsetype);
+cortex_herring.bos:              corpsetype = 3 ;
+cortex_herring.bos:              return(corpsetype);
+cortex_herring.bos:      corpsetype = 3 ;
+cortex_herring.bos:      return corpsetype;
+Binary file cortex_herring.cob matches
 cortex_oldurchin.bos:     set-signal-mask SIG_AIM;
 cortex_oldurchin.bos:Killed(severity, corpsetype)
 cortex_oldurchin.bos:             corpsetype = 1;
@@ -4216,18 +4216,18 @@ correap.bos:            return(corpsetype);
 correap.bos:    corpsetype = 3 ;
 correap.bos:    return corpsetype;
 Binary file correap.cob matches
-correcl.bos:    set-signal-mask SIG_MOVE;
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
-correcl.bos:Killed(severity, corpsetype)
-correcl.bos:            corpsetype = 1 ;
-correcl.bos:            return(corpsetype);
-correcl.bos:            corpsetype = 2 ;
-correcl.bos:            return(corpsetype);
-correcl.bos:            corpsetype = 3 ;
-correcl.bos:            return(corpsetype);
-correcl.bos:    corpsetype = 3 ;
-correcl.bos:    return corpsetype;
+cortex_deathcavalry.bos:    set-signal-mask SIG_MOVE;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:Killed(severity, corpsetype)
+cortex_deathcavalry.bos:            corpsetype = 1 ;
+cortex_deathcavalry.bos:            return(corpsetype);
+cortex_deathcavalry.bos:            corpsetype = 2 ;
+cortex_deathcavalry.bos:            return(corpsetype);
+cortex_deathcavalry.bos:            corpsetype = 3 ;
+cortex_deathcavalry.bos:            return(corpsetype);
+cortex_deathcavalry.bos:    corpsetype = 3 ;
+cortex_deathcavalry.bos:    return corpsetype;
 cortex_thistle.bos:// OffsetToScriptCodeIndexArray        9cc
 cortex_thistle.bos:// OffsetToScriptNameOffsetArray       9ec
 cortex_thistle.bos:// OffsetToPieceNameOffsetArray        a0c
@@ -4254,32 +4254,32 @@ cortex_bedbug.bos:           corpsetype = 3 ;
 cortex_bedbug.bos:           return(corpsetype);
 cortex_bedbug.bos:   corpsetype = 3 ;
 cortex_bedbug.bos:   return corpsetype;
-corroy.bos:SetMaxReloadTime(Func_Var_1)
-corroy.bos:SetStunned(State)
-corroy.bos:     set-signal-mask SIG_MOVE;
-corroy.bos:     set-signal-mask 2;
-corroy.bos:     set-signal-mask 4;
-corroy.bos:Killed(severity, corpsetype)
-corroy.bos:             corpsetype = 1 ;
-corroy.bos:             return(corpsetype);
-corroy.bos:             corpsetype = 2 ;
-corroy.bos:             return(corpsetype);
-corroy.bos:             corpsetype = 3 ;
-corroy.bos:             return(corpsetype);
-corroy.bos:     corpsetype = 3 ;
-corroy.bos:     return corpsetype;
-Binary file corroy.cob matches
-corsb.bos:setSFXoccupy(Func_Var_1)
-corsb.bos:Killed(severity, corpsetype)
-corsb.bos:              corpsetype = 1 ;
-corsb.bos:              return(corpsetype);
-corsb.bos:              corpsetype = 2 ;
-corsb.bos:              return(corpsetype);
-corsb.bos:              corpsetype = 3 ;
-corsb.bos:              return(corpsetype);
-corsb.bos:      corpsetype = 3 ;
-corsb.bos:      return corpsetype;
-Binary file corsb.cob matches
+cortex_oppressor.bos:SetMaxReloadTime(Func_Var_1)
+cortex_oppressor.bos:SetStunned(State)
+cortex_oppressor.bos:     set-signal-mask SIG_MOVE;
+cortex_oppressor.bos:     set-signal-mask 2;
+cortex_oppressor.bos:     set-signal-mask 4;
+cortex_oppressor.bos:Killed(severity, corpsetype)
+cortex_oppressor.bos:             corpsetype = 1 ;
+cortex_oppressor.bos:             return(corpsetype);
+cortex_oppressor.bos:             corpsetype = 2 ;
+cortex_oppressor.bos:             return(corpsetype);
+cortex_oppressor.bos:             corpsetype = 3 ;
+cortex_oppressor.bos:             return(corpsetype);
+cortex_oppressor.bos:     corpsetype = 3 ;
+cortex_oppressor.bos:     return corpsetype;
+Binary file cortex_oppressor.cob matches
+cortex_dambuster.bos:setSFXoccupy(Func_Var_1)
+cortex_dambuster.bos:Killed(severity, corpsetype)
+cortex_dambuster.bos:              corpsetype = 1 ;
+cortex_dambuster.bos:              return(corpsetype);
+cortex_dambuster.bos:              corpsetype = 2 ;
+cortex_dambuster.bos:              return(corpsetype);
+cortex_dambuster.bos:              corpsetype = 3 ;
+cortex_dambuster.bos:              return(corpsetype);
+cortex_dambuster.bos:      corpsetype = 3 ;
+cortex_dambuster.bos:      return corpsetype;
+Binary file cortex_dambuster.cob matches
 cortex_screamer.bos:SetStunned(State)
 cortex_screamer.bos:        set-signal-mask SIG_AIM;
 cortex_screamer.bos:Killed(severity, corpsetype)
@@ -4333,15 +4333,15 @@ corseal.bos:            return(corpsetype);
 corseal.bos:    corpsetype = 3 ;
 corseal.bos:    return corpsetype;
 Binary file corseal.cob matches
-corseap.bos:Killed(severity, corpsetype)
-corseap.bos:            corpsetype = 1 ;
-corseap.bos:            return(corpsetype);
-corseap.bos:            corpsetype = 2 ;
-corseap.bos:            return(corpsetype);
-corseap.bos:            corpsetype = 3 ;
-corseap.bos:            return(corpsetype);
-corseap.bos:    corpsetype = 3 ;
-corseap.bos:    return corpsetype;
+cortex_monsoon.bos:Killed(severity, corpsetype)
+cortex_monsoon.bos:            corpsetype = 1 ;
+cortex_monsoon.bos:            return(corpsetype);
+cortex_monsoon.bos:            corpsetype = 2 ;
+cortex_monsoon.bos:            return(corpsetype);
+cortex_monsoon.bos:            corpsetype = 3 ;
+cortex_monsoon.bos:            return(corpsetype);
+cortex_monsoon.bos:    corpsetype = 3 ;
+cortex_monsoon.bos:    return corpsetype;
 corsent.bos:SetMaxReloadTime(Func_Var_1)
 corsent.bos:    set-signal-mask 0;
 corsent.bos:SetStunned(State)
@@ -4356,16 +4356,16 @@ corsent.bos:            return(corpsetype);
 corsent.bos:    corpsetype = 3 ;
 corsent.bos:    return corpsetype;
 Binary file corsent.cob matches
-corsfig.bos:    set-signal-mask SIG_MOVE;
-corsfig.bos:Killed(severity, corpsetype)
-corsfig.bos:            corpsetype = 1 ;
-corsfig.bos:            return(corpsetype);
-corsfig.bos:            corpsetype = 2 ;
-corsfig.bos:            return(corpsetype);
-corsfig.bos:            corpsetype = 3 ;
-corsfig.bos:            return(corpsetype);
-corsfig.bos:    corpsetype = 3 ;
-corsfig.bos:    return corpsetype;
+cortex_bat.bos:    set-signal-mask SIG_MOVE;
+cortex_bat.bos:Killed(severity, corpsetype)
+cortex_bat.bos:            corpsetype = 1 ;
+cortex_bat.bos:            return(corpsetype);
+cortex_bat.bos:            corpsetype = 2 ;
+cortex_bat.bos:            return(corpsetype);
+cortex_bat.bos:            corpsetype = 3 ;
+cortex_bat.bos:            return(corpsetype);
+cortex_bat.bos:    corpsetype = 3 ;
+cortex_bat.bos:    return corpsetype;
 cortex_goon.bos:              // Set values for tilt
 cortex_goon.bos:      set-signal-mask SIG_MOVE;
 cortex_goon.bos:setSFXoccupy(Func_Var_1)
@@ -4461,20 +4461,20 @@ cortex_apocalypse.bos:            return(corpsetype);
 cortex_apocalypse.bos:    corpsetype = 3 ;
 cortex_apocalypse.bos:    return corpsetype;
 Binary file cortex_apocalypse.cob matches
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set-signal-mask 4;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
-corsjam.bos:    set-signal-mask SIG_MOVE;
-corsjam.bos:Killed(severity, corpsetype)
-corsjam.bos:            corpsetype = 1 ;
-corsjam.bos:            return(corpsetype);
-corsjam.bos:            corpsetype = 2 ;
-corsjam.bos:            return(corpsetype);
-corsjam.bos:            corpsetype = 3 ;
-corsjam.bos:            return(corpsetype);
-corsjam.bos:    corpsetype = 3 ;
-corsjam.bos:    return corpsetype;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set-signal-mask 4;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:    set-signal-mask SIG_MOVE;
+cortex_phantasm.bos:Killed(severity, corpsetype)
+cortex_phantasm.bos:            corpsetype = 1 ;
+cortex_phantasm.bos:            return(corpsetype);
+cortex_phantasm.bos:            corpsetype = 2 ;
+cortex_phantasm.bos:            return(corpsetype);
+cortex_phantasm.bos:            corpsetype = 3 ;
+cortex_phantasm.bos:            return(corpsetype);
+cortex_phantasm.bos:    corpsetype = 3 ;
+cortex_phantasm.bos:    return corpsetype;
 cortex_skuttle.bos:Killed(severity, corpsetype)
 cortex_skuttle.bos:            corpsetype = 1 ;
 cortex_skuttle.bos:            return(corpsetype);
@@ -4586,16 +4586,16 @@ cortex_spectre.bos:             return(corpsetype);
 cortex_spectre.bos:     corpsetype = 3 ;
 cortex_spectre.bos:     return corpsetype;
 Binary file cortex_spectre.cob matches
-corssub.bos:    set-signal-mask SIG_MOVE;
-corssub.bos:Killed(severity, corpsetype)
-corssub.bos:            corpsetype = 1 ;
-corssub.bos:            return(corpsetype);
-corssub.bos:            corpsetype = 2 ;
-corssub.bos:            return(corpsetype);
-corssub.bos:            corpsetype = 3 ;
-corssub.bos:            return(corpsetype);
-corssub.bos:    corpsetype = 3 ;
-corssub.bos:    return corpsetype;
+cortex_kraken.bos:    set-signal-mask SIG_MOVE;
+cortex_kraken.bos:Killed(severity, corpsetype)
+cortex_kraken.bos:            corpsetype = 1 ;
+cortex_kraken.bos:            return(corpsetype);
+cortex_kraken.bos:            corpsetype = 2 ;
+cortex_kraken.bos:            return(corpsetype);
+cortex_kraken.bos:            corpsetype = 3 ;
+cortex_kraken.bos:            return(corpsetype);
+cortex_kraken.bos:    corpsetype = 3 ;
+cortex_kraken.bos:    return corpsetype;
 cortex_aggravator.bos:   set-signal-mask SIG_WALK;       if (bMoving) { //Frame:4
 cortex_aggravator.bos:   set-signal-mask SIG_MOVE;
 cortex_aggravator.bos:SetStunned(State)
@@ -4610,16 +4610,16 @@ cortex_aggravator.bos:           return(corpsetype);
 cortex_aggravator.bos:   corpsetype = 3 ;
 cortex_aggravator.bos:   return corpsetype;
 Binary file cortex_aggravator.cob matches
-corsub.bos:     set-signal-mask SIG_MOVE;
-corsub.bos:Killed(severity, corpsetype)
-corsub.bos:             corpsetype = 1 ;
-corsub.bos:             return(corpsetype);
-corsub.bos:             corpsetype = 2 ;
-corsub.bos:             return(corpsetype);
-corsub.bos:             corpsetype = 3 ;
-corsub.bos:             return(corpsetype);
-corsub.bos:     corpsetype = 3 ;
-corsub.bos:     return corpsetype;
+cortex_orca.bos:     set-signal-mask SIG_MOVE;
+cortex_orca.bos:Killed(severity, corpsetype)
+cortex_orca.bos:             corpsetype = 1 ;
+cortex_orca.bos:             return(corpsetype);
+cortex_orca.bos:             corpsetype = 2 ;
+cortex_orca.bos:             return(corpsetype);
+cortex_orca.bos:             corpsetype = 3 ;
+cortex_orca.bos:             return(corpsetype);
+cortex_orca.bos:     corpsetype = 3 ;
+cortex_orca.bos:     return corpsetype;
 cortex_mammoth.bos:    set-signal-mask SIG_WALK;
 cortex_mammoth.bos:SetMaxReloadTime(Func_Var_1)
 cortex_mammoth.bos:    set-signal-mask SIG_AIM;
@@ -4800,26 +4800,26 @@ cortex_catalyst.bos:            return(corpsetype);
 cortex_catalyst.bos:    corpsetype = 3 ;
 cortex_catalyst.bos:    return corpsetype;
 Binary file cortex_catalyst.cob matches
-cortship.bos:SetDirection(heading)
-cortship.bos:   set-signal-mask SIG_MOVE;
-cortship.bos:   set-signal-mask 4;
-cortship.bos:BoomReset()
-cortship.bos:           set BUSY to 1;
-cortship.bos:           call-script BoomReset();
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           call-script BoomReset();
-cortship.bos:           set BUSY to 0;
-cortship.bos:Killed(severity, corpsetype)
-cortship.bos:           corpsetype = 1 ;
-cortship.bos:           return(corpsetype);
-cortship.bos:           corpsetype = 2 ;
-cortship.bos:           return(corpsetype);
-cortship.bos:           corpsetype = 3 ;
-cortship.bos:           return(corpsetype);
-cortship.bos:   corpsetype = 3 ;
-cortship.bos:   return corpsetype;
-Binary file cortship.cob matches
+cortex_coffin.bos:SetDirection(heading)
+cortex_coffin.bos:   set-signal-mask SIG_MOVE;
+cortex_coffin.bos:   set-signal-mask 4;
+cortex_coffin.bos:BoomReset()
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           call-script BoomReset();
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           call-script BoomReset();
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:Killed(severity, corpsetype)
+cortex_coffin.bos:           corpsetype = 1 ;
+cortex_coffin.bos:           return(corpsetype);
+cortex_coffin.bos:           corpsetype = 2 ;
+cortex_coffin.bos:           return(corpsetype);
+cortex_coffin.bos:           corpsetype = 3 ;
+cortex_coffin.bos:           return(corpsetype);
+cortex_coffin.bos:   corpsetype = 3 ;
+cortex_coffin.bos:   return corpsetype;
+Binary file cortex_coffin.cob matches
 cortex_hardenedenergystorage.bos:// OffsetToScriptCodeIndexArray        5b0
 cortex_hardenedenergystorage.bos:// OffsetToScriptNameOffsetArray       5c0
 cortex_hardenedenergystorage.bos:// OffsetToPieceNameOffsetArray        5d0
@@ -5638,8 +5638,8 @@ cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 1;
 cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedsolarcollector.bos:/*    57:*/       set ARMORED to 0;
@@ -5701,7 +5701,7 @@ cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 1;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 0;
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
-corblackhy.bos: set ARMORED to 1;
+cortex_blackhydra.bos: set ARMORED to 1;
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNK
 NOWN_UNIT_VALUE(82);
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN
@@ -5717,10 +5717,10 @@ cortex_commander.bos:     set INBUILDSTANCE to 1;
 cortex_commander.bos:     set INBUILDSTANCE to 0;
 cortex_commanderboss.bos: set INBUILDSTANCE to 1;
 cortex_commanderboss.bos: set INBUILDSTANCE to 0;
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 cortex_calamity.bos:    set ARMORED to 0;
@@ -5787,8 +5787,8 @@ cortex_advancedexploiter.bos:    set ACTIVATION to 100;
 cortex_advancedexploiter.bos:            set ACTIVATION to 0;
 cortex_advancedexploiter.bos:    set ARMORED to 0;
 cortex_mangonel.bos:              // Set values for tilt
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedenergyconverter.bos:    set ARMORED to 0;  //Not needed as MM in BAR have no damage modi
@@ -5819,8 +5819,8 @@ cortex_seaplaneplatform.bos:    set BUGGER_OFF to 0;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 1;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 0;
 cortex_seaplaneplatform.bos:    set ARMORED to 1;
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
 cortex_goon.bos:              // Set values for tilt
 cortex_shiva.bos:   set ARMORED to 1;
 cortex_shiva.bos:   set ARMORED to 0;
@@ -5828,9 +5828,9 @@ cortex_shiva.bos:   set ARMORED to 1;
 cortex_shroud.bos:/*    80:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   138:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   144:*/               set ACTIVATION to 100;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
 cortex_cayman.bos:            // Set values for tilt
 cortex_solarcollector.bos:   set YARD_OPEN to 1;
 cortex_solarcollector.bos:           set BUGGER_OFF to 1;
@@ -5870,10 +5870,10 @@ cortex_caravan.bos:           set BUSY to 1;
 cortex_caravan.bos:           set BUSY to 0;
 cortex_persecutor.bos:   set ARMORED to 0;
 cortex_persecutor.bos:   set ARMORED to 1;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
@@ -6434,8 +6434,8 @@ cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 1;
 cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:     set INBUILDSTANCE to 1;
 Binary file coracv.cob matches
@@ -6498,7 +6498,7 @@ cortex_advancedradartower.bos:// OffsetToPieceNameOffsetArray        674
 cortex_advancedradartower.bos:// OffsetToScriptCode                  2c
 cortex_advancedradartower.bos:// OffsetToNameArray                   680
 cortex_advancedradartower.bos:// OffsetToFirstName                   680
-Binary file corarch.cob matches
+Binary file cortex_arrowstorm.cob matches
 cortex_airrepairpad.bos:// OffsetToScriptCodeIndexArray        a94
 cortex_airrepairpad.bos:// OffsetToScriptNameOffsetArray       aac
 cortex_airrepairpad.bos:// OffsetToPieceNameOffsetArray        ac4
@@ -6536,11 +6536,11 @@ cortex_advancedvehicleplant.bos:     set BUGGER_OFF to 0;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 1;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 0;
 Binary file corban.cob matches
-Binary file corbats.cob matches
+Binary file cortex_despot.cob matches
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
-corblackhy.bos: set ARMORED to 1;
-Binary file corblackhy.cob matches
+cortex_blackhydra.bos: set ARMORED to 1;
+Binary file cortex_blackhydra.cob matches
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNK
 NOWN_UNIT_VALUE(82);
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN
@@ -6560,13 +6560,13 @@ cortex_commander.bos:     set INBUILDSTANCE to 0;
 cortex_commanderboss.bos: set INBUILDSTANCE to 1;
 cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file cortex_trasher.cob matches
-Binary file corcrus.cob matches
+Binary file cortex_buccaneer.cob matches
 Binary file cortex_dragonold.cob matches
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
-Binary file corcut.cob matches
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
+Binary file cortex_cutlass.cob matches
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 cortex_jellyfish.bos:// OffsetToScriptCodeIndexArray        77c
@@ -6592,7 +6592,7 @@ cortex_energystorage.bos:// OffsetToPieceNameOffsetArray        408
 cortex_energystorage.bos:// OffsetToScriptCode                  2c
 cortex_energystorage.bos:// OffsetToNameArray                   414
 cortex_energystorage.bos:// OffsetToFirstName                   414
-Binary file coresupp.cob matches
+Binary file cortex_supporter.cob matches
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 100;
@@ -6707,8 +6707,8 @@ Binary file cortex_advancedexploiter.cob matches
 cortex_mangonel.bos:      set-signal-mask SIG_RESTORE;
 Binary file cortex_mangonel.cob matches
 Binary file cormist.cob matches
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedenergyconverter.bos:    set ARMORED to 0;  //Not needed as MM in BAR have no damage modi
@@ -6718,7 +6718,7 @@ cortex_advancedmetalextractor.bos:    set ARMORED to 0;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 Binary file cortex_sheldon.cob matches
-Binary file cormship.cob matches
+Binary file cortex_messenger.cob matches
 cortex_metalstorage.bos:// OffsetToScriptCodeIndexArray        2f8
 cortex_metalstorage.bos:// OffsetToScriptNameOffsetArray       308
 cortex_metalstorage.bos:// OffsetToPieceNameOffsetArray        318
@@ -6750,8 +6750,8 @@ cortex_seaplaneplatform.bos:    set BUGGER_OFF to 0;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 1;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 0;
 cortex_seaplaneplatform.bos:    set ARMORED to 1;
-Binary file corpship.cob matches
-Binary file corpt.cob matches
+Binary file cortex_riptide.cob matches
+Binary file cortex_herring.cob matches
 Binary file cortex_fiend.cob matches
 cortex_radartower.bos:// OffsetToScriptCodeIndexArray        54c
 cortex_radartower.bos:// OffsetToScriptNameOffsetArray       574
@@ -6761,8 +6761,8 @@ cortex_radartower.bos:// OffsetToNameArray                   5a4
 cortex_radartower.bos:// OffsetToFirstName                   5a4
 Binary file corraid.cob matches
 Binary file correap.cob matches
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
 cortex_thistle.bos:// OffsetToScriptCodeIndexArray        9cc
 cortex_thistle.bos:// OffsetToScriptNameOffsetArray       9ec
 cortex_thistle.bos:// OffsetToPieceNameOffsetArray        a0c
@@ -6770,8 +6770,8 @@ cortex_thistle.bos:// OffsetToScriptCode                  2c
 cortex_thistle.bos:// OffsetToNameArray                   a2c
 cortex_thistle.bos:// OffsetToFirstName                   a2c
 Binary file cortex_thistle.cob matches
-Binary file corroy.cob matches
-Binary file corsb.cob matches
+Binary file cortex_oppressor.cob matches
+Binary file cortex_dambuster.cob matches
 Binary file cortex_screamer.cob matches
 cortex_nemesis.bos:// OffsetToScriptCodeIndexArray        43c
 cortex_nemesis.bos:// OffsetToScriptNameOffsetArray       44c
@@ -6804,9 +6804,9 @@ cortex_apocalypse.bos:// OffsetToScriptCode                  2c
 cortex_apocalypse.bos:// OffsetToNameArray                   ca4
 cortex_apocalypse.bos:// OffsetToFirstName                   ca4
 Binary file cortex_apocalypse.cob matches
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
 Binary file cortex_cayman.cob matches
 Binary file cortex_cataphract.cob matches
 cortex_solarcollector.bos:   set YARD_OPEN to 1;
@@ -6874,11 +6874,11 @@ cortex_catalyst.bos:// OffsetToScriptCode                  2c
 cortex_catalyst.bos:// OffsetToNameArray                   ca4
 cortex_catalyst.bos:// OffsetToFirstName                   ca4
 Binary file cortex_catalyst.cob matches
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-Binary file cortship.cob matches
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+Binary file cortex_coffin.cob matches
 cortex_hardenedenergystorage.bos:// OffsetToScriptCodeIndexArray        5b0
 cortex_hardenedenergystorage.bos:// OffsetToScriptNameOffsetArray       5c0
 cortex_hardenedenergystorage.bos:// OffsetToPieceNameOffsetArray        5d0
@@ -7231,8 +7231,8 @@ cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 1;
 cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedsolarcollector.bos:/*    57:*/       set ARMORED to 0;
@@ -7293,7 +7293,7 @@ cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 1;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 0;
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
-corblackhy.bos: set ARMORED to 1;
+cortex_blackhydra.bos: set ARMORED to 1;
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNK
 NOWN_UNIT_VALUE(82);
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN
@@ -7308,10 +7308,10 @@ cortex_commander.bos:     set INBUILDSTANCE to 1;
 cortex_commander.bos:     set INBUILDSTANCE to 0;
 cortex_commanderboss.bos: set INBUILDSTANCE to 1;
 cortex_commanderboss.bos: set INBUILDSTANCE to 0;
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 cortex_calamity.bos:    set ARMORED to 0;
@@ -7379,8 +7379,8 @@ cortex_advancedexploiter.bos:    set ACTIVATION to 100;
 cortex_advancedexploiter.bos:            set ACTIVATION to 0;
 cortex_advancedexploiter.bos:    set ARMORED to 0;
 cortex_mangonel.bos:      set-signal-mask SIG_RESTORE;
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedenergyconverter.bos:    set ARMORED to 0;  //Not needed as MM in BAR have no damage modi
@@ -7411,17 +7411,17 @@ cortex_seaplaneplatform.bos:    set BUGGER_OFF to 0;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 1;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 0;
 cortex_seaplaneplatform.bos:    set ARMORED to 1;
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
 cortex_shiva.bos:   set ARMORED to 1;
 cortex_shiva.bos:   set ARMORED to 0;
 cortex_shiva.bos:   set ARMORED to 1;
 cortex_shroud.bos:/*    80:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   138:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   144:*/               set ACTIVATION to 100;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
 cortex_solarcollector.bos:   set YARD_OPEN to 1;
 cortex_solarcollector.bos:           set BUGGER_OFF to 1;
 cortex_solarcollector.bos:           set YARD_OPEN to 1;
@@ -7459,10 +7459,10 @@ cortex_caravan.bos:           set BUSY to 1;
 cortex_caravan.bos:           set BUSY to 0;
 cortex_persecutor.bos:   set ARMORED to 0;
 cortex_persecutor.bos:   set ARMORED to 1;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
@@ -7866,8 +7866,8 @@ cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 1;
 cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:     set INBUILDSTANCE to 1;
 Binary file coracv.cob matches
@@ -7900,7 +7900,7 @@ cortex_aircraftplant.bos:/*   1b2:*/           set YARD_OPEN to 0;
 cortex_aircraftplant.bos:/*   1b9:*/   set BUGGER_OFF to 0;
 cortex_aircraftplant.bos:/*   1d5:*/   set INBUILDSTANCE to 1;
 cortex_aircraftplant.bos:/*   1dd:*/   set INBUILDSTANCE to 0;
-Binary file corarch.cob matches
+Binary file cortex_arrowstorm.cob matches
 cortex_advancedshipyard.bos:     set YARD_OPEN to 1;
 cortex_advancedshipyard.bos:             set BUGGER_OFF to 1;
 cortex_advancedshipyard.bos:             set YARD_OPEN to 1;
@@ -7932,11 +7932,11 @@ cortex_advancedvehicleplant.bos:     set BUGGER_OFF to 0;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 1;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 0;
 Binary file corban.cob matches
-Binary file corbats.cob matches
+Binary file cortex_despot.cob matches
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
-corblackhy.bos: set ARMORED to 1;
-Binary file corblackhy.cob matches
+cortex_blackhydra.bos: set ARMORED to 1;
+Binary file cortex_blackhydra.cob matches
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNK
 NOWN_UNIT_VALUE(82);
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN
@@ -7956,13 +7956,13 @@ cortex_commander.bos:     set INBUILDSTANCE to 0;
 cortex_commanderboss.bos: set INBUILDSTANCE to 1;
 cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file cortex_trasher.cob matches
-Binary file corcrus.cob matches
+Binary file cortex_buccaneer.cob matches
 Binary file cortex_dragonold.cob matches
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
-Binary file corcut.cob matches
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
+Binary file cortex_cutlass.cob matches
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 cortex_calamity.bos:    set ARMORED to 0;
@@ -7970,7 +7970,7 @@ cortex_calamity.bos:    set ARMORED to 1;
 Binary file cortex_navalbirdshot.cob matches
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 Binary file cortex_eradicator.cob matches
-Binary file coresupp.cob matches
+Binary file cortex_supporter.cob matches
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 100;
@@ -8055,8 +8055,8 @@ Binary file cortex_advancedexploiter.cob matches
 cortex_mangonel.bos:      set-signal-mask SIG_RESTORE;
 Binary file cortex_mangonel.cob matches
 Binary file cormist.cob matches
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedenergyconverter.bos:    set ARMORED to 0;  //Not needed as MM in BAR have no damage modi
@@ -8066,7 +8066,7 @@ cortex_advancedmetalextractor.bos:    set ARMORED to 0;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 Binary file cortex_sheldon.cob matches
-Binary file cormship.cob matches
+Binary file cortex_messenger.cob matches
 cormuskrat.bos: set INBUILDSTANCE to 1;
 cormuskrat.bos: set INBUILDSTANCE to 0;
 cormuskrat.bos: set INBUILDSTANCE to 1;
@@ -8092,16 +8092,16 @@ cortex_seaplaneplatform.bos:    set BUGGER_OFF to 0;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 1;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 0;
 cortex_seaplaneplatform.bos:    set ARMORED to 1;
-Binary file corpship.cob matches
-Binary file corpt.cob matches
+Binary file cortex_riptide.cob matches
+Binary file cortex_herring.cob matches
 Binary file cortex_fiend.cob matches
 Binary file corraid.cob matches
 Binary file correap.cob matches
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
 Binary file cortex_thistle.cob matches
-Binary file corroy.cob matches
-Binary file corsb.cob matches
+Binary file cortex_oppressor.cob matches
+Binary file cortex_dambuster.cob matches
 Binary file cortex_screamer.cob matches
 Binary file corseal.cob matches
 Binary file corsent.cob matches
@@ -8116,9 +8116,9 @@ cortex_shroud.bos:/*    80:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   138:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   144:*/               set ACTIVATION to 100;
 Binary file cortex_apocalypse.cob matches
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
 Binary file cortex_cayman.cob matches
 Binary file cortex_cataphract.cob matches
 cortex_solarcollector.bos:   set YARD_OPEN to 1;
@@ -8168,11 +8168,11 @@ cortex_persecutor.bos:   set ARMORED to 1;
 Binary file cortex_persecutor.cob matches
 Binary file cortrem.cob matches
 Binary file cortex_catalyst.cob matches
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-Binary file cortship.cob matches
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+Binary file cortex_coffin.cob matches
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
@@ -8642,8 +8642,8 @@ cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 1;
 cortex_advancedconstructionaircraft.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 0;
 cortex_advancedconstructionbot.bos:     set INBUILDSTANCE to 1;
-coracsub.bos:   set INBUILDSTANCE to 0;
-coracsub.bos:   set INBUILDSTANCE to 1;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 0;
+cortex_advancedconstructionsub.bos:   set INBUILDSTANCE to 1;
 coracv.bos:     set INBUILDSTANCE to 0;
 coracv.bos:     set INBUILDSTANCE to 1;
 Binary file coracv.cob matches
@@ -8676,7 +8676,7 @@ cortex_aircraftplant.bos:/*   1b2:*/           set YARD_OPEN to 0;
 cortex_aircraftplant.bos:/*   1b9:*/   set BUGGER_OFF to 0;
 cortex_aircraftplant.bos:/*   1d5:*/   set INBUILDSTANCE to 1;
 cortex_aircraftplant.bos:/*   1dd:*/   set INBUILDSTANCE to 0;
-Binary file corarch.cob matches
+Binary file cortex_arrowstorm.cob matches
 cortex_advancedshipyard.bos:     set YARD_OPEN to 1;
 cortex_advancedshipyard.bos:             set BUGGER_OFF to 1;
 cortex_advancedshipyard.bos:             set YARD_OPEN to 1;
@@ -8708,11 +8708,11 @@ cortex_advancedvehicleplant.bos:     set BUGGER_OFF to 0;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 1;
 cortex_advancedvehicleplant.bos:     set INBUILDSTANCE to 0;
 Binary file corban.cob matches
-Binary file corbats.cob matches
+Binary file cortex_despot.cob matches
 cortex_cerberus.bos:   set ACTIVATION to 100;
 cortex_cerberus.bos:   set ACTIVATION to 0;
-corblackhy.bos: set ARMORED to 1;
-Binary file corblackhy.cob matches
+cortex_blackhydra.bos: set ARMORED to 1;
+Binary file cortex_blackhydra.cob matches
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNK
 NOWN_UNIT_VALUE(82);
 cortex_shuriken.bos:                      set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN
@@ -8732,13 +8732,13 @@ cortex_commander.bos:     set INBUILDSTANCE to 0;
 cortex_commanderboss.bos: set INBUILDSTANCE to 1;
 cortex_commanderboss.bos: set INBUILDSTANCE to 0;
 Binary file cortex_trasher.cob matches
-Binary file corcrus.cob matches
+Binary file cortex_buccaneer.cob matches
 Binary file cortex_dragonold.cob matches
-corcs.bos:      set INBUILDSTANCE to 1;
-corcs.bos:      set INBUILDSTANCE to 0;
-corcsa.bos:     set INBUILDSTANCE to 1;
-corcsa.bos:     set INBUILDSTANCE to 0;
-Binary file corcut.cob matches
+cortex_constructionship.bos:      set INBUILDSTANCE to 1;
+cortex_constructionship.bos:      set INBUILDSTANCE to 0;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 1;
+cortex_constructionseaplane.bos:     set INBUILDSTANCE to 0;
+Binary file cortex_cutlass.cob matches
 corcv.bos:      set INBUILDSTANCE to 0;
 corcv.bos:      set INBUILDSTANCE to 1;
 cortex_calamity.bos:    set ARMORED to 0;
@@ -8746,7 +8746,7 @@ cortex_calamity.bos:    set ARMORED to 1;
 Binary file cortex_navalbirdshot.cob matches
 cortex_eradicator.bos:            set CHANGE_TARGET to 1;
 Binary file cortex_eradicator.cob matches
-Binary file coresupp.cob matches
+Binary file cortex_supporter.cob matches
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 0;
 coreter.bos:            set ACTIVATION to 100;
@@ -8831,8 +8831,8 @@ Binary file cortex_advancedexploiter.cob matches
 cortex_mangonel.bos:      set-signal-mask SIG_RESTORE;
 Binary file cortex_mangonel.cob matches
 Binary file cormist.cob matches
-cormls.bos:     set INBUILDSTANCE to 1;
-cormls.bos:     set INBUILDSTANCE to 0;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 1;
+cortex_pathfinder.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 0;
 cormlv.bos:     set INBUILDSTANCE to 1;
 cortex_advancedenergyconverter.bos:    set ARMORED to 0;  //Not needed as MM in BAR have no damage modi
@@ -8842,7 +8842,7 @@ cortex_advancedmetalextractor.bos:    set ARMORED to 0;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 cortex_advancedmetalextractor.bos:    set ARMORED to 1;
 Binary file cortex_sheldon.cob matches
-Binary file cormship.cob matches
+Binary file cortex_messenger.cob matches
 cormuskrat.bos: set INBUILDSTANCE to 1;
 cormuskrat.bos: set INBUILDSTANCE to 0;
 cormuskrat.bos: set INBUILDSTANCE to 1;
@@ -8868,16 +8868,16 @@ cortex_seaplaneplatform.bos:    set BUGGER_OFF to 0;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 1;
 cortex_seaplaneplatform.bos:    set INBUILDSTANCE to 0;
 cortex_seaplaneplatform.bos:    set ARMORED to 1;
-Binary file corpship.cob matches
-Binary file corpt.cob matches
+Binary file cortex_riptide.cob matches
+Binary file cortex_herring.cob matches
 Binary file cortex_fiend.cob matches
 Binary file corraid.cob matches
 Binary file correap.cob matches
-correcl.bos:    set INBUILDSTANCE to 1;
-correcl.bos:    set INBUILDSTANCE to 0;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 1;
+cortex_deathcavalry.bos:    set INBUILDSTANCE to 0;
 Binary file cortex_thistle.cob matches
-Binary file corroy.cob matches
-Binary file corsb.cob matches
+Binary file cortex_oppressor.cob matches
+Binary file cortex_dambuster.cob matches
 Binary file cortex_screamer.cob matches
 Binary file corseal.cob matches
 Binary file corsent.cob matches
@@ -8892,9 +8892,9 @@ cortex_shroud.bos:/*    80:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   138:*/               set ACTIVATION to 0;
 cortex_shroud.bos:/*   144:*/               set ACTIVATION to 100;
 Binary file cortex_apocalypse.cob matches
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 0;
-corsjam.bos:            set ACTIVATION to 100;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 0;
+cortex_phantasm.bos:            set ACTIVATION to 100;
 Binary file cortex_cayman.cob matches
 Binary file cortex_cataphract.cob matches
 cortex_solarcollector.bos:   set YARD_OPEN to 1;
@@ -8944,11 +8944,11 @@ cortex_persecutor.bos:   set ARMORED to 1;
 Binary file cortex_persecutor.cob matches
 Binary file cortrem.cob matches
 Binary file cortex_catalyst.cob matches
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-cortship.bos:           set BUSY to 1;
-cortship.bos:           set BUSY to 0;
-Binary file cortship.cob matches
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+cortex_coffin.bos:           set BUSY to 1;
+cortex_coffin.bos:           set BUSY to 0;
+Binary file cortex_coffin.cob matches
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 0;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;
 cortex_navaladvancedmetalextractor.bos:   set ARMORED to 1;

@@ -1,4 +1,4 @@
--- "missiletrailcorroyspecial"
+-- "missiletrailcortex_oppressorspecial"
 
 return {
   ["missiletrailmship"] = {
@@ -136,7 +136,7 @@ return {
   },
 
 
-  ["missiletrailcorroyspecial"] = {
+  ["missiletrailcortex_oppressorspecial"] = {
     fire = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

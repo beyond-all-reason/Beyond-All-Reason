@@ -41,7 +41,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.cortex_castro.id] = true,
 		[UnitDefNames.cortex_radartower.id] = true,
 		[UnitDefNames.cortex_shroud.id] = true,
-		[UnitDefNames.corsjam.id] = true,
+		[UnitDefNames.cortex_phantasm.id] = true,
 		[UnitDefNames.cortex_sonarstation.id] = true,
 		[UnitDefNames.cortex_deceiver.id] = true,
 		[UnitDefNames.cortex_augur.id] = true,

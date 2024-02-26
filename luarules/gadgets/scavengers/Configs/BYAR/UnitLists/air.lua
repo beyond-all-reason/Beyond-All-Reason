@@ -16,7 +16,7 @@ return {
 		"armada_constructionaircraft_scav",
 		"armada_constructionseaplane_scav",
 		"cortex_constructionaircraft_scav",
-		"corcsa_scav",
+		"cortex_constructionseaplane_scav",
 	},
 
 	T2 = {
@@ -25,9 +25,9 @@ return {
 		"armada_roughneck_scav",
 		"armada_sabre_scav",
 		"armada_cyclone_scav",
-		"corsb_scav",
-		"corsfig_scav",
-		"corcut_scav",
+		"cortex_dambuster_scav",
+		"cortex_bat_scav",
+		"cortex_cutlass_scav",
 
 		-- Constructors
 		"armada_advancedconstructionaircraft_scav",
@@ -43,7 +43,7 @@ return {
 		"armada_stiletto_scav",
 		"armada_liche_scav",
 		"armada_blizzard_scav",
-		"corsb_scav",
+		"cortex_dambuster_scav",
 		"cortex_nighthawk_scav",
 		"cortex_hailstorm_scav",
 		"cortex_wasp_scav",

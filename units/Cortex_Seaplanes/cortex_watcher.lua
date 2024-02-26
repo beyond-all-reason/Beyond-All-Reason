@@ -1,11 +1,11 @@
 return {
-	corhunt = {
+	cortex_watcher = {
 		acceleration = 0.22,
 		blocking = false,
 		maxdec = 0.0375,
 		energycost = 6900,
 		metalcost = 130,
-		buildpic = "CORHUNT.DDS",
+		buildpic = "cortex_watcher.DDS",
 		buildtime = 9500,
 		canfly = true,
 		canmove = true,
@@ -28,9 +28,9 @@ return {
 		maxslope = 10,
 		speed = 324.3,
 		maxwaterdepth = 255,
-		objectname = "Units/CORHUNT.s3o",
+		objectname = "Units/cortex_watcher.s3o",
 		radardistance = 2200,
-		script = "Units/CORHUNT.cob",
+		script = "Units/cortex_watcher.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1130,

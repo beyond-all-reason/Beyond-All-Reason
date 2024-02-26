@@ -400,7 +400,7 @@ local landUnitsList = {
                 "armada_tumbleweedt4",
                 "cortex_gruntt4",
                 "cortex_demon",
-                "cortex_karganethanetht4",
+                "cortex_karganetht4",
                 "corgolt4",
             },
             quantity = 1,
@@ -431,14 +431,14 @@ local starterSeaUnitsList = {
     [1] = {
         table = {
             "armada_skater",
-            "corpt",
+            "cortex_herring",
         },
         quantity = 10,
     },
     [2] = {
         table = {
             "armada_grimreaper",
-            "correcl",
+            "cortex_deathcavalry",
         },
         quantity = 4,
     },
@@ -461,10 +461,10 @@ local seaUnitsList = {
                 "armada_ellysaw",
                 "armada_eel",
                 "armada_pincer",
-                "corpt",
-                "coresupp",
-                "corpship",
-                "corsub",
+                "cortex_herring",
+                "cortex_supporter",
+                "cortex_riptide",
+                "cortex_orca",
                 "corgarp",
 
                 -- Hovercraft
@@ -482,7 +482,7 @@ local seaUnitsList = {
         [2] = {
             table = {
                 "armada_grimreaper",
-                "correcl",
+                "cortex_deathcavalry",
             },
             quantity = 4,
         },
@@ -492,7 +492,7 @@ local seaUnitsList = {
         --         "armada_constructionhovercraft",
         --         "armada_constructionship",
         --         "cormuskrat",
-        --         "corcs",
+        --         "cortex_constructionship",
         --     },
         --     quantity = 1,
         -- },
@@ -509,13 +509,13 @@ local seaUnitsList = {
                 "armada_paladin",
                 "armada_longbow",
                 "armada_turtle",
-                "corroy",
-                "cormls",
+                "cortex_oppressor",
+                "cortex_pathfinder",
                 "cortex_predator",
-                "corarch",
-                "corcrus",
-                "corssub",
-                "cormship",
+                "cortex_arrowstorm",
+                "cortex_buccaneer",
+                "cortex_kraken",
+                "cortex_messenger",
                 "corseal",
 
                 -- Hovercraft
@@ -526,7 +526,7 @@ local seaUnitsList = {
         [2] = {
             table = {
                 "armada_grimreaper",
-                "correcl",
+                "cortex_deathcavalry",
             },
             quantity = 3,
         },
@@ -534,8 +534,8 @@ local seaUnitsList = {
         --     table = {
         --         "armada_voyager",
         --         "armada_advancedconstructionsub",
-        --         "cormls",
-        --         "coracsub",
+        --         "cortex_pathfinder",
+        --         "cortex_advancedconstructionsub",
         --     },
         --     quantity = 1,
         -- },
@@ -548,8 +548,8 @@ local seaUnitsList = {
                 "armada_dreadnought",
                 "armada_epoch",
                 "armada_serpent",
-                "corbats",
-                "corblackhy",
+                "cortex_despot",
+                "cortex_blackhydra",
                 "corslrpc",
                 "armada_dolphint3",
                 "armada_ellysawt3",
@@ -564,7 +564,7 @@ local seaUnitsList = {
         [2] = {
             table = {
                 "armada_grimreaper",
-                "correcl",
+                "cortex_deathcavalry",
             },
             quantity = 2,
         },
@@ -572,8 +572,8 @@ local seaUnitsList = {
         --     table = {
         --         "armada_voyager",
         --         "armada_advancedconstructionsub",
-        --         "cormls",
-        --         "coracsub",
+        --         "cortex_pathfinder",
+        --         "cortex_advancedconstructionsub",
         --     },
         --     quantity = 1,
         -- },
@@ -585,18 +585,18 @@ local seaUnitsList = {
             table = {
                 "armada_serpentt3",
                 "armada_epoch",
-                "corblackhy",
+                "cortex_blackhydra",
                 "armada_tumbleweedt4",
                 "cortex_juggernaut",
                 "armada_titan",
-                "coresuppt3",
+                "cortex_supportert3",
             },
             quantity = 1,
         },
         [2] = {
             table = {
                 "armada_grimreaper",
-                "correcl",
+                "cortex_deathcavalry",
             },
             quantity = 1,
         },
@@ -604,8 +604,8 @@ local seaUnitsList = {
         --     table = {
         --         "armada_voyager",
         --         "armada_advancedconstructionsub",
-        --         "cormls",
-        --         "coracsub",
+        --         "cortex_pathfinder",
+        --         "cortex_advancedconstructionsub",
         --     },
         --     quantity = 1,
         -- },

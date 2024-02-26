@@ -1,12 +1,12 @@
 return {
-	corsfig2 = {
+	cortex_bat2 = {
 		acceleration = 0.37,
 		airsightdistance = 950,
 		blocking = false,
 		maxdec = 0.1,
 		energycost = 4600,
 		metalcost = 90,
-		buildpic = "CORSFIG2.DDS",
+		buildpic = "cortex_bat2.DDS",
 		buildtime = 5200,
 		canfly = true,
 		canmove = true,
@@ -28,8 +28,8 @@ return {
 		speed = 315.6,
 		maxwaterdepth = 255,
 		nochasecategory = "NOTAIR",
-		objectname = "Units/CORSFIG2.s3o",
-		script = "Units/CORSFIG2.cob",
+		objectname = "Units/cortex_bat2.s3o",
+		script = "Units/cortex_bat2.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
@@ -82,7 +82,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corsfig_weapon = {
+			cortex_bat_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -186,7 +186,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR",
-				def = "CORSFIG_WEAPON",
+				def = "cortex_bat_WEAPON",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {

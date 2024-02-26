@@ -422,7 +422,7 @@
 		"importance": [5.5, 5.5],
 		"require_energy": false,
 		"income_tier": [20],
-		"unit":      ["corcs", "corpt", "coresupp", "corpship", "corsub", "corroy"],
+		"unit":      ["cortex_constructionship", "cortex_herring", "cortex_supporter", "cortex_riptide", "cortex_orca", "cortex_oppressor"],
 		"land": {
 			"tier0": [ 0.09,    0.27,    0.23,       0.14,       0.18,     0.09],
 			"tier1": [ 0.07,    0.09,    0.14,       0.24,       0.23,     0.23]
@@ -438,7 +438,7 @@
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
-		"unit":      ["coracsub", "cortex_predator", "corarch", "corcrus", "cortex_oasis", "cormship", "corbats", "corblackhy"],
+		"unit":      ["cortex_advancedconstructionsub", "cortex_predator", "cortex_arrowstorm", "cortex_buccaneer", "cortex_oasis", "cortex_messenger", "cortex_despot", "cortex_blackhydra"],
 		"land": {
 			"tier0": [ 0.01,       0.28,       0.00,      0.43,      0.00,       0.14,       0.14,      0.00],
 			"tier1": [ 0.02,       0.16,       0.05,      0.11,      0.05,       0.22,       0.28,      0.11]
@@ -487,7 +487,7 @@
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["corcsa", "corcut", "corsb", "corseap", "corsfig", "corhunt"],
+		"unit":      ["cortex_constructionseaplane", "cortex_cutlass", "cortex_dambuster", "cortex_monsoon", "cortex_bat", "cortex_watcher"],
 		"land": {
 			"tier0": [ 0.17,     0.17,     0.17,    0.17,      0.16,      0.16],
 			"tier1": [ 0.01,     0.01,     0.95,    0.01,      0.01,      0.01]

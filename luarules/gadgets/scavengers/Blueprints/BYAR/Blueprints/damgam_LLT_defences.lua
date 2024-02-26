@@ -725,9 +725,9 @@ local function lltAirbaseCor1()
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 32, zOffset = 48, direction = 0},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 32, zOffset = -48, direction = 0},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = -64, zOffset = 0, direction = 0},
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = -64, zOffset = -96, direction = 2},
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = -64, zOffset = 96, direction = 2},
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 128, zOffset = 0, direction = 2},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = -64, zOffset = -96, direction = 2},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = -64, zOffset = 96, direction = 2},
+			{ unitDefID = UnitDefNames.armada_airrepairpad_scav.id, xOffset = 128, zOffset = 0, direction = 2},
 		},
 	}
 end

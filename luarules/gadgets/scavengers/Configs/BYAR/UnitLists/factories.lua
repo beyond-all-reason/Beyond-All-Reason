@@ -88,7 +88,7 @@ local factoryBannedUnits = {
 	"cortex_caravan_scav",
 	"armada_bearer_scav",
 	"armada_convoy_scav",
-	"cortship_scav",
+	"cortex_coffin_scav",
 	"cortex_intruder_scav",
 }
 

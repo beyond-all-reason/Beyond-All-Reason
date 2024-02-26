@@ -3044,7 +3044,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armasp'] = {
+	['armada_airrepairpad'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -3425,7 +3425,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corpt'] = {
+	['cortex_herring'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -3436,7 +3436,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcs'] = {
+	['cortex_constructionship'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -3539,7 +3539,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcsa'] = {
+	['cortex_constructionseaplane'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano',
@@ -4051,7 +4051,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corantiship'] = {
+	['cortex_t2supportship'] = {
 		eyestop = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4098,7 +4098,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfship'] = {
+	['cortex_flamethrowership'] = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'sleeve',
@@ -4199,7 +4199,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coracsub'] = {
+	['cortex_advancedconstructionsub'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'flare',
@@ -4284,7 +4284,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormls'] = {
+	['cortex_pathfinder'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano',
@@ -4324,7 +4324,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corblackhy'] = {
+	['cortex_blackhydra'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4526,7 +4526,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormship'] = {
+	['cortex_messenger'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4564,7 +4564,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corbats'] = {
+	['cortex_despot'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4611,7 +4611,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corssub'] = {
+	['cortex_kraken'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4640,7 +4640,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corarch'] = {
+	['cortex_arrowstorm'] = {
 		turret1 = {
 			lightType = 'point',
 			pieceName = 'boxa',
@@ -5276,7 +5276,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['correcl'] = {
+	['cortex_deathcavalry'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -5582,7 +5582,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['correcl'] = {
+	['cortex_deathcavalry'] = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -5723,7 +5723,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsub'] = {
+	['cortex_orca'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -5743,7 +5743,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corpship'] = {
+	['cortex_riptide'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -5781,7 +5781,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsjam'] = {
+	['cortex_phantasm'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -5792,7 +5792,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corroy'] = {
+	['cortex_oppressor'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9131,7 +9131,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsb'] = {
+	['cortex_dambuster'] = {
 		thrustera = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9378,7 +9378,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsfig'] = {
+	['cortex_bat'] = {
 		thruster = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9416,7 +9416,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corseap'] = {
+	['cortex_monsoon'] = {
 		thruster = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9454,7 +9454,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corhunt'] = {
+	['cortex_watcher'] = {
 		thruster = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9483,7 +9483,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corcut'] = {
+	['cortex_cutlass'] = {
 		thruster1 = {
 			lightType = 'point',
 			pieceName = 'base',

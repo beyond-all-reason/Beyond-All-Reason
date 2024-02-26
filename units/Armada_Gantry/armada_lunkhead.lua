@@ -118,7 +118,7 @@ return {
 			cannon = {
 				areaofeffect = 160,
 				avoidfeature = false,
-				cegtag = "missiletrailcorroyspecial",
+				cegtag = "missiletrailcortex_oppressorspecial",
 				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
@@ -141,7 +141,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					cegtag = "missiletrailcorroyspecial",
+					cegtag = "missiletrailcortex_oppressorspecial",
 					def = "armada_lunkhead_cannonuw",
 					model = "airbombt2",
 					--speceffect = "cannonwaterpen",
@@ -157,7 +157,7 @@ return {
 			cannonuw = {
 				areaofeffect = 160,
 				avoidfeature = false,
-				cegtag = "missiletrailcorroyspecial",
+				cegtag = "missiletrailcortex_oppressorspecial",
 				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,

@@ -195,7 +195,7 @@ local function HOVER_FACTORY()
 			{ unitDefID = UnitDefNames.cortex_urchin_scav.id, xOffset = -214, zOffset = -12, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_urchin_scav.id, xOffset = 218, zOffset = -60, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_urchin_scav.id, xOffset = -214, zOffset = -60, direction = 0},
-			{ unitDefID = UnitDefNames.corcsa_scav.id, xOffset = -34, zOffset = -69, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_constructionseaplane_scav.id, xOffset = -34, zOffset = -69, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_navalhovercraftplatform_scav.id, xOffset = 130, zOffset = 20, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_navalhovercraftplatform_scav.id, xOffset = -126, zOffset = 20, direction = 0},
 			{ unitDefID = UnitDefNames.cortex_coral_scav.id, xOffset = -38, zOffset = 36, direction = 0},

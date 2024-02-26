@@ -183,7 +183,7 @@
 		"def_mid": ["armada_dragonsclaw", "cortex_dragonsmaw", "armada_pitbull", "cortex_scorpion", "armada_overwatch", "cortex_warden"],
 		"def_hvy":  ["armada_rattlesnake", "armada_pulsar", "cortex_persecutor", "cortex_calamity", "armada_gauntlet", "cortex_agitator", "armada_gorgon", "cortex_devastator"],
 		"def_air": ["armada_ferret", "armada_chainsaw", "cortex_thistle", "cortex_sam", "cortex_eradicator"],
-		"caretaker": ["armada_constructionturret", "armasp", "cortex_constructionturret", "cortex_airrepairpad"],
+		"caretaker": ["armada_constructionturret", "armada_airrepairpad", "cortex_constructionturret", "cortex_airrepairpad"],
 		"small": ["armada_radartower", "cortex_radartower"]
 		
 //engy_low: wind

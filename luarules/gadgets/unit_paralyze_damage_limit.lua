@@ -28,7 +28,7 @@ local excluded = {
     [UnitDefNames.cortex_oasis.id] = true,
     [UnitDefNames.armada_haven.id] = true,
 	[UnitDefNames.armada_t2supportship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
+	[UnitDefNames.cortex_t2supportship.id] = true,
 }
 
 

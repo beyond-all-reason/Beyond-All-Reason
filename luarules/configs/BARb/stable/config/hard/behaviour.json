@@ -885,7 +885,7 @@
 			"limit": 8,
 			"build_speed": 6  //bp 125
 		},
-		"corcs": {
+		"cortex_constructionship": {
 			"role": ["builder"],
 			"retreat": 0.6,
 			"limit": 6,
@@ -898,7 +898,7 @@
 			"limit": 8,
 			"build_speed": 15.0 //bp 300
 		},
-		"coracsub": {
+		"cortex_advancedconstructionsub": {
 			"role": ["builderT2", "sub"],
             "attribute": ["solo"],
 			"retreat": 0.3,
@@ -911,7 +911,7 @@
 			"limit": 2,
 			"build_speed": 10.0  //bp 200
 		},
-        "cormls": {
+        "cortex_pathfinder": {
 			"role": ["builder"],
 			"build_speed": 10.0,  
 			"retreat": 0.75,
@@ -1649,23 +1649,23 @@
 
 		// CORE SHIPS - cortex_shipyard
 
-		"correcl": {
+		"cortex_deathcavalry": {
 			"role": ["support"],
 			"retreat": 0.6,
 			"limit": 10
 		},
-		"corpt": {
+		"cortex_herring": {
 			"role": ["anti_air"],
 			"attribute": ["siege"],
 			"limit": 10
 		},
-		"coresupp": {
+		"cortex_supporter": {
 			"role": ["scout"]
 		},
-		"corpship": {
+		"cortex_riptide": {
 			"role": ["riot"]
 		},
-		"corroy": {
+		"cortex_oppressor": {
 			"role": ["anti_sub"], 				//assault
 			"attribute": ["siege", "support"],
 			"threat": {
@@ -1675,7 +1675,7 @@
 			"retreat": 0.5,
 			"limit": 10
 		},
-		"corsub": {
+		"cortex_orca": {
 			"role": ["raider", "sub"]		
 		},
 	
@@ -1688,20 +1688,20 @@
 			"role": ["anti_sub", "sub"],
 			"attribute": ["anti_sub"]
 		},
-		"corssub": {
+		"cortex_kraken": {
 			"role": ["sub"],
 			"attribute": ["siege"]
 		},
-		"corarch": {
+		"cortex_arrowstorm": {
 			"role": ["anti_air"],
 			"limit": 5
 		},
-		"corcrus": {
+		"cortex_buccaneer": {
 			"role": ["skirmish"],
 			"threat": {
 				"air": 0.0, "surf": 1.0, "water": 0.5}	
 		},
-		"corsjam": {
+		"cortex_phantasm": {
 			"role": ["support"],
 			"retreat": 0.75
 		},
@@ -1710,16 +1710,16 @@
 			"retreat": 0.75,
             "limit": 2
 		},
-		"cormship": {
+		"cortex_messenger": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
 			"retreat": 0.5
 		},
-		"corbats": {
+		"cortex_despot": {
 			"role": ["heavy"],
 			"attribute": ["siege"]
 		},
-		"corblackhy": {
+		"cortex_blackhydra": {
 			"role": ["super"],
             "attribute": ["siege"],
 			"retreat": 0.5
@@ -1781,7 +1781,7 @@
 
 
 		// CORE NAVAL AIRCRAFT - cortex_seaplaneplatform
-		"corcut": {
+		"cortex_cutlass": {
 			"role": ["raider", "air"],
 			"retreat": 0.8
 		},

@@ -59,8 +59,8 @@ return {
 			[18] = "cortex_commando",
 			[19] = "cortex_fiend",
 			[20] = "cortex_duck",
-			[21] = "corcs",
-			[22] = "corroy",
+			[21] = "cortex_constructionship",
+			[22] = "cortex_oppressor",
 			[23] = "cortex_termite",
 		},
 		customparams = {

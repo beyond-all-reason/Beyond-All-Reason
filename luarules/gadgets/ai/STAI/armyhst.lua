@@ -24,7 +24,7 @@ function ArmyHST:Init()
 		cortex_constructionhovercraft = true,
 		armada_advancedconstructionsub = true,
 		armada_constructionaircraft = true,
-		corcsa = true, --plat
+		cortex_constructionseaplane = true, --plat
 		armada_constructionseaplane = true, --plat
 		armada_constructionvehicle = true,
 		coracv = true,
@@ -34,7 +34,7 @@ function ArmyHST:Init()
 		cortex_advancedconstructionbot = true,
 		corcv = true,
 		armada_advancedconstructionaircraft = true,
-		corcs = true,
+		cortex_constructionship = true,
 		armada_constructionship = true,
 		cortex_constructionbot = true,
 		armada_constructionbot = true,
@@ -47,7 +47,7 @@ function ArmyHST:Init()
 		armada_butler = true,
 		armada_consul = true,
 		cortex_twitcher = true,
-		cormls = true,
+		cortex_pathfinder = true,
 
 		}
 	self.wartechs = {
@@ -61,7 +61,7 @@ function ArmyHST:Init()
 		armada_lazarus = true,
 		cortex_graverobber = true,
 		armada_grimreaper = true,
-		correcl = true,
+		cortex_deathcavalry = true,
 
 		}
 	self.amptechs = {
@@ -80,7 +80,7 @@ function ArmyHST:Init()
 		coreter = true,
 		armada_radarjammerbot = true,
 		armada_umbra = true,
-		corsjam = true,
+		cortex_phantasm = true,
 		cortex_deceiver = true,
 
 
@@ -95,7 +95,7 @@ function ArmyHST:Init()
 		cortex_condor = true,
 		armada_oracle = true,
 		armada_horizon = true,
-		corhunt = true,
+		cortex_watcher = true,
 
 
 		}
@@ -110,7 +110,7 @@ function ArmyHST:Init()
 		cortex_caravan = true,
 		cortex_intruder = true,
 		armada_abductor = true,
-		cortship = true,
+		cortex_coffin = true,
 		armada_convoy = true,
 		cortex_skyhook = true,
 
@@ -122,7 +122,7 @@ function ArmyHST:Init()
 		armada_tick = true,
 		armada_sprinter = true,
 		armada_dolphin = true,
-		coresupp = true,
+		cortex_supporter = true,
 
 
 
@@ -138,7 +138,7 @@ function ArmyHST:Init()
 		armada_welder = true,
 		armada_seeker = true,
 		cortex_goon = true,
-		corsub = true,
+		cortex_orca = true,
 		armada_eel = true,
 		armada_barracuda = true,
 		cortex_predator = true,
@@ -157,7 +157,7 @@ function ArmyHST:Init()
 		cormart = true,
 		armada_vanguard = true,--t3a
 		cortex_catapult = true,--t3c
-		corbats = true,
+		cortex_despot = true,
 		armada_dreadnought = true,
 
 		--cortrem = true,
@@ -169,7 +169,7 @@ function ArmyHST:Init()
 		corvroc = true, -- T2C
 -- 		corban = true,T2C
 		cortex_arbiter = true,
-		cormship = true,
+		cortex_messenger = true,
 		armada_longbow = true,
 		armada_possum = true,
 		cortex_mangonel = true,
@@ -187,8 +187,8 @@ function ArmyHST:Init()
 		armada_crocodile = true,--ha
 		cortex_cayman = true,--hc
 		armada_ellysaw = true,--t1a
-		corpship = true,--t1c
-		corcrus = true,
+		cortex_riptide = true,--t1c
+		cortex_buccaneer = true,
 		armada_paladin = true,
 		armada_titan = true,--t3a
 
@@ -212,11 +212,11 @@ function ArmyHST:Init()
 		armada_lunkhead = true,--hover
 		cortex_cataphract = true,--hover
 		armada_corsair = true,
-		corroy = true,
+		cortex_oppressor = true,
 
 
 
-		corblackhy = true,
+		cortex_blackhydra = true,
 		armada_epoch = true,
 		armada_thor = true, --t3a
 		cortex_juggernaut = true,--t3c
@@ -247,7 +247,7 @@ function ArmyHST:Init()
 		}
 	self.subkillers = {
 		armada_serpent = true,
-		corssub = true,
+		cortex_kraken = true,
 
 
 
@@ -259,13 +259,13 @@ function ArmyHST:Init()
 		cortex_hailstorm = true,
 		armada_blizzard = true,
 		armada_liche = true,
-		corsb = true,--plat
+		cortex_dambuster = true,--plat
 		}
 
 	self.fighterairs = {
 		cortex_valiant = true,
 		armada_falcon = true,
-		corsfig = true, --plat
+		cortex_bat = true, --plat
 		armada_cyclone = true, --plat
 		cortex_angler = true,
 		armada_highwind = true,
@@ -287,8 +287,8 @@ function ArmyHST:Init()
 		armada_hornet = true,
 		armada_puffin = true, -- but is a torpedo gunship
 		armada_sabre = true,
-		corseap = true,
-		corcut = true,
+		cortex_monsoon = true,
+		cortex_cutlass = true,
 
 		}
 
@@ -304,9 +304,9 @@ function ArmyHST:Init()
 		cortex_trasher = true,
 		armada_crossbow = true,
 		cortex_manticore = true,
-		corarch = true,
+		cortex_arrowstorm = true,
 		armada_skater = true, --aa+scout
-		corpt = true, --aa+scout
+		cortex_herring = true, --aa+scout
 		}
 
 	self.antinukes = {
@@ -582,7 +582,7 @@ function ArmyHST:Init()
 		}
 
 	self._airPlat_ = {
-		armasp = true ,
+		armada_airrepairpad = true ,
 		armada_airrepairpad = true ,
 		cortex_airrepairpad = true ,
 		cortex_floatingairrepairpad = true ,
@@ -881,8 +881,8 @@ ArmyHST.mobUnitNames = {
 	bot = {"cortex_constructionbot", "armada_beholder"},
 	amp = {"cormuskrat"},
 	hov = {"cortex_goon", "armada_sharksteeth"},
-	shp = {"corcs"},
-	sub = {"coracsub"},
+	shp = {"cortex_constructionship"},
+	sub = {"cortex_advancedconstructionsub"},
 	}
 
 -- tests move orders of these units to determine mobility there

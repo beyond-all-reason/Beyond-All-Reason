@@ -198,7 +198,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cegtag = "missiletrailcorroyspecial",
+					cegtag = "missiletrailcortex_oppressorspecial",
 					def = "armada_longbow_rocket_split",
 					model = "airbomb",
 					number = "6",
@@ -218,7 +218,7 @@ return {
 				burnblow = true,
 				burst = 6,
 				burstrate = 0.1,
-				cegtag = "missiletrailcorroyspecial",
+				cegtag = "missiletrailcortex_oppressorspecial",
 				craterareaofeffect = 75,
 				craterboost = 0,
 				cratermult = 0,

@@ -1,11 +1,11 @@
 return {
-	corbats = {
+	cortex_despot = {
 		maxacc = 0.01427,
 		maxdec = 0.01427,
 		buildangle = 16000,
 		energycost = 23000,
 		metalcost = 3400,
-		buildpic = "CORBATS.DDS",
+		buildpic = "cortex_despot.DDS",
 		buildtime = 36000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORBATS.s3o",
-		script = "Units/CORBATS.cob",
+		objectname = "Units/cortex_despot.s3o",
+		script = "Units/cortex_despot.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1650,
-				object = "Units/corbats_dead.s3o",
+				object = "Units/cortex_despot_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

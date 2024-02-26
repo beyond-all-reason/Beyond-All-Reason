@@ -132,7 +132,7 @@ local unitsOfInterestNames = {
 	['cortex_juggernaut'] = 'KorgothDetected',
 	['armada_titan'] = 'BanthaDetected',
 	['armada_epoch'] = 'FlagshipDetected',
-	['corblackhy'] = 'FlagshipDetected',
+	['cortex_blackhydra'] = 'FlagshipDetected',
 	['cortex_commando'] = 'CommandoDetected',
 	['armada_bearer'] = 'TransportDetected',
 	['cortex_caravan'] = 'TransportDetected',
@@ -142,7 +142,7 @@ local unitsOfInterestNames = {
 	['armada_abductor'] = 'AirTransportDetected',
 	['cortex_skyhook'] = 'AirTransportDetected',
 	['armada_convoy'] = 'SeaTransportDetected',
-	['cortship'] = 'SeaTransportDetected',
+	['cortex_coffin'] = 'SeaTransportDetected',
 }
 -- convert unitname -> unitDefID
 local unitsOfInterest = {}

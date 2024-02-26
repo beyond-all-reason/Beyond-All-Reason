@@ -1,5 +1,5 @@
 return {
-	armasp = {
+	armada_airrepairpad = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
@@ -8,7 +8,7 @@ return {
 		metalcost = 400,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMASP.DDS",
+		buildpic = "armada_airrepairpad.DDS",
 		buildtime = 9100,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,9 +25,9 @@ return {
 		health = 1670,
 		maxslope = 10,
 		maxwaterdepth = 1,
-		objectname = "Units/ARMASP.s3o",
+		objectname = "Units/armada_airrepairpad.s3o",
 		onoffable = true,
-		script = "Units/ARMASP.cob",
+		script = "Units/armada_airrepairpad.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,
@@ -36,7 +36,7 @@ return {
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armasp_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_airrepairpad_aoplane.dds",
 			buildinggrounddecalsizey = 11.5,
 			buildinggrounddecalsizex = 11.5,
 			buildinggrounddecaldecayspeed = 30,
@@ -64,7 +64,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 366,
-				object = "Units/armasp_dead.s3o",
+				object = "Units/armada_airrepairpad_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

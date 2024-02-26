@@ -81,7 +81,7 @@ return {
 			[42] = "armada_navalnettle",
 			[43] = "armada_harpoon",
 			[44] = "armada_geothermalpowerplant",
-			[45] = "armasp",
+			[45] = "armada_airrepairpad",
 			[46] = "armada_airrepairpad",
 		},
 		customparams = {

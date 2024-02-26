@@ -639,14 +639,14 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "corcut" then
+	if name == "cortex_cutlass" then
 		uDef.acceleration = 1
 		uDef.airstrafe = false
 		uDef.blocking = false
 		uDef.maxdec = 0.85
 		uDef.energycost = 2600
 		uDef.metalcost = 240
-		uDef.buildpic = "CORCUT.DDS"
+		uDef.buildpic = "cortex_cutlass.DDS"
 		uDef.buildtime = 9470
 		uDef.canfly = true
 		uDef.canmove = true
@@ -671,8 +671,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxwaterdepth = 0
 		uDef.speed = 75
 		uDef.nochasecategory = "NOTAIR"
-		uDef.objectname = "Units/CORCUT.s3o"
-		uDef.script = "Units/CORCUT.cob"
+		uDef.objectname = "Units/cortex_cutlass.s3o"
+		uDef.script = "Units/cortex_cutlass.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 595
@@ -737,7 +737,7 @@ local function skyshiftUnitTweaks(name, uDef)
 ---------------------------------------------
 
 
-	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armada_stout" or name == "armada_rover" or name == "armada_shellshocker" or name == "armada_blitz" or name == "armada_pincer" or name == "armada_janus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "cortex_aggravator" or name == "cortex_thug" or name == "cortex_grunt" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "cortex_guard" or name == "cortex_warden" or name == "cortex_twinguard" or name == "cortex_dragonsmaw" or name == "cortex_agitator" or name == "corpship" or name == "corroy" or name == "coresupp" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "cortex_coral" then
+	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armada_stout" or name == "armada_rover" or name == "armada_shellshocker" or name == "armada_blitz" or name == "armada_pincer" or name == "armada_janus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "cortex_aggravator" or name == "cortex_thug" or name == "cortex_grunt" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "cortex_guard" or name == "cortex_warden" or name == "cortex_twinguard" or name == "cortex_dragonsmaw" or name == "cortex_agitator" or name == "cortex_riptide" or name == "cortex_oppressor" or name == "cortex_supporter" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "cortex_coral" then
 		for weapons, weaponDef in pairs(uDef.weapondefs) do
         -- Assuming weaponDef is a table that directly contains the damage table
 			if weaponDef.damage and weaponDef.damage.default then
@@ -798,7 +798,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "cortex_aircraftplant" then
-		uDef.buildoptions[7] = "corcut"
+		uDef.buildoptions[7] = "cortex_cutlass"
 	end
 	
 	return uDef

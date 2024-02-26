@@ -145,12 +145,12 @@ local flyByUnits = {
     "cortex_skyhook",
     "cortex_angler",
     "cortex_nighthawk",
-    "corcsa",
-    "corcut",
-    "corhunt",
-    "corsb",
-    "corseap",
-    "corsfig",
+    "cortex_constructionseaplane",
+    "cortex_cutlass",
+    "cortex_watcher",
+    "cortex_dambuster",
+    "cortex_monsoon",
+    "cortex_bat",
 }
 
 function gadget:GameFrame(n)

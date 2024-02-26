@@ -1,11 +1,11 @@
 return {
-	coresupp = {
+	cortex_supporter = {
 		maxacc = 0.11054,
 		maxdec = 0.11054,
 		buildangle = 16384,
 		energycost = 1000,
 		metalcost = 100,
-		buildpic = "CORESUPP.DDS",
+		buildpic = "cortex_supporter.DDS",
 		buildtime = 1400,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		minwaterdepth = 4,
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",
-		objectname = "Units/CORESUPP.s3o",
-		script = "Units/CORESUPP.cob",
+		objectname = "Units/cortex_supporter.s3o",
+		script = "Units/cortex_supporter.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 50,
-				object = "Units/coresupp_dead.s3o",
+				object = "Units/cortex_supporter_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
