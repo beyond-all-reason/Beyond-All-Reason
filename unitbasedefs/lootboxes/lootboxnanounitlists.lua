@@ -24,11 +24,11 @@ return {
 		"armada_whistler",
 		"armada_pincer",
 		"armada_janus",
-		"corgator",
-		"cormist",
-		"corwolv",
-		"corlevlr",
-		"corraid",
+		"cortex_incisor",
+		"cortex_lasher",
+		"cortex_wolverine",
+		"cortex_pounder",
+		"cortex_brute",
 		"legrail",
 		"leggat",
 
@@ -61,7 +61,7 @@ return {
 		"cortex_deathcavalry",
 		"cortex_riptide",
 		"cortex_orca",
-		"corgarp",
+		"cortex_garpike",
 	},
 
 	T2 = {
@@ -105,14 +105,14 @@ return {
 		"armada_ambassador",
 		"armada_bull",
 		"corforge",
-		"cormart",
-		"corsent",
-		"corseal",
-		"correap",
+		"cortex_quaker",
+		"cortex_fury",
+		"cortex_alligator",
+		"cortex_tiger",
 		"corgatreap",
-		"corvroc",
-		"corban",
-		"corparrow",
+		"cortex_negotiator",
+		"cortex_banisher",
+		"cortex_poisonarrow",
 		"legmrv",
 		"legsco",
 
@@ -150,7 +150,7 @@ return {
 		--"cortex_oasis",
 		"cortex_kraken",
 		"cortex_messenger",
-		"corseal",
+		"cortex_alligator",
 
 		-- Hovercraft
 		"cortex_halberd",
@@ -158,11 +158,11 @@ return {
 
 	T3 = {
 		-- Heavy T2s
-		"corgol",
+		"cortex_tzar",
 		"cortex_mammoth",
 		"armada_fatboy",
 		"armada_starlight",
-		"cortrem",
+		"cortex_tremor",
 		"cortex_arbiter",
 		"leginc",
 		"leginf",
@@ -232,7 +232,7 @@ return {
 		"cortex_dragont4",
 		"cortex_demon",
 		"cortex_karganetht4",
-		"corgolt4",
+		"cortex_tzart4",
 		"cortex_gruntt4",
 
 		-- Air

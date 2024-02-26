@@ -801,73 +801,73 @@
 	},
 
 	// vehicles - cortex_vehicleplant
-	"corcv": {
+	"cortex_constructionvehicle": {
 		"role": ["builder"],
 		"limit": 20,
 		"build_speed": 7.0
 	},
-	"cormuskrat": {
+	"cortex_muskrat": {
 		"role": ["builder"],
 		"limit": 10,
 		"build_speed": 8.0
 	},
-	// "cormlv": {
+	// "cortex_trapper": {
 	// 	"role": ["support"]
 	// },
-	"corfav": {
+	"cortex_rascal": {
 		"role": ["scout"]
 	},
-	"corgator": {
+	"cortex_incisor": {
 		"role": ["raider"],
 		"attribute": ["scout"]
 	},
-	"corgarp": {
+	"cortex_garpike": {
 		"role": ["assault"],
 		"limit": 30
 	},
-	"corraid": {
+	"cortex_brute": {
 		"role": ["assault"]
 	},
-	"corlevlr": {
+	"cortex_pounder": {
 		"role": ["riot"]
 	},
-	"corwolv": {
+	"cortex_wolverine": {
 		"role": ["artillery"]
 	},
-	"cormist": {
+	"cortex_lasher": {
 		"role": ["anti_air"],
 		"attribute": ["skirmish"]
 	},
 
 	// adv vehicles - cortex_advancedvehicleplant
-	"coracv": {
+	"cortex_advancedconstructionvehicle": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
 		"limit": 10,
 		"build_speed": 10.0
 	},
-	"correap": {
+	"cortex_tiger": {
 		"role": ["assault"]
 	},
-	"corgol": {
+	"cortex_tzar": {
 		"role": ["heavy"]
 	},
-	"cormart": {
+	"cortex_quaker": {
 		"role": ["artillery"]
 	},
-	"corsent": {
+	"cortex_fury": {
 		"role": ["anti_air"]
 	},
-	"corvroc": {
+	"cortex_negotiator": {
 		"role": ["artillery"]
 	},
-	"corban": {
+	"cortex_banisher": {
 		"role": ["skirmish"]
 	},
-	"cortrem": {
+	"cortex_tremor": {
 		"role": ["artillery", "heavy"]
 	},
-	"corvrad": {
+	"cortex_omen": {
 		"role": ["assault"],
 		"attribute": ["support"],
 		"limit": 1

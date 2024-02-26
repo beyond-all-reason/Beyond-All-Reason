@@ -16,7 +16,7 @@ return {
 		"cortex_deathcavalry_scav",
 		"cortex_riptide_scav",
 		"cortex_orca_scav",
-		"corgarp_scav",
+		"cortex_garpike_scav",
 
 		-- Hovercraft
 		"armada_seeker_scav",
@@ -32,7 +32,7 @@ return {
 		"armada_beaver_scav",
 		"armada_constructionhovercraft_scav",
 		"armada_constructionship_scav",
-		"cormuskrat_scav",
+		"cortex_muskrat_scav",
 		"cortex_constructionship_scav",
 
 		-- Air
@@ -55,7 +55,7 @@ return {
 		"cortex_buccaneer_scav",
 		"cortex_kraken_scav",
 		"cortex_messenger_scav",
-		"corseal_scav",
+		"cortex_alligator_scav",
 
 		-- Hovercraft
 		"cortex_halberd_scav",

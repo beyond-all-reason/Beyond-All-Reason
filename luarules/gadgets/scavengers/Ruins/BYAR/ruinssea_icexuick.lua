@@ -236,7 +236,7 @@ local function ixuwamsub()
 			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,    xOffset =  -22, zOffset =  -51, direction = 2 },
 			{ unitDefID = UnitDefNames.cortex_amphibiouscomplex.id,   xOffset =   10, zOffset =   77, direction = 0 },
 			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,    xOffset =  170, zOffset =   45, direction = 2 },
-			{ unitDefID = UnitDefNames.cormuskrat.id, xOffset = -126, zOffset =  139, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_muskrat.id, xOffset = -126, zOffset =  139, direction = 0 },
 			{ unitDefID = UnitDefNames.cortex_sonarstation.id,   xOffset = -123, zOffset =   13, direction = 0 },
 		},
 	}

@@ -529,11 +529,11 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
---cortrem
-explosionLights[WeaponDefNames["cortrem_tremor_focus_fire"].id] =
+--cortex_tremor
+explosionLights[WeaponDefNames["cortex_tremor_tremor_focus_fire"].id] =
 GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
-explosionLights[WeaponDefNames["cortrem_tremor_spread_fire"].id] =
+explosionLights[WeaponDefNames["cortex_tremor_tremor_spread_fire"].id] =
 GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 --corforge
@@ -741,7 +741,7 @@ GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
 --armada_ambassador
-projectileDefLights[WeaponDefNames["corvroc_cortruck_rocket"].id] =
+projectileDefLights[WeaponDefNames["cortex_negotiator_cortruck_rocket"].id] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 

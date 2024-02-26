@@ -108,7 +108,7 @@ return {
 				reloadtime = 0.5,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
-				soundstart = "corraid",
+				soundstart = "cortex_brute",
 				soundstartvolume = 9.5,
 				turret = true,
 				weapontype = "Cannon",

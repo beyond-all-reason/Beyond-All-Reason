@@ -27,12 +27,12 @@ function ArmyHST:Init()
 		cortex_constructionseaplane = true, --plat
 		armada_constructionseaplane = true, --plat
 		armada_constructionvehicle = true,
-		coracv = true,
+		cortex_advancedconstructionvehicle = true,
 		cortex_advancedconstructionaircraft = true,
 		armada_advancedconstructionvehicle = true,
 		armada_advancedconstructionbot = true,
 		cortex_advancedconstructionbot = true,
-		corcv = true,
+		cortex_constructionvehicle = true,
 		armada_advancedconstructionaircraft = true,
 		cortex_constructionship = true,
 		armada_constructionship = true,
@@ -66,18 +66,18 @@ function ArmyHST:Init()
 		}
 	self.amptechs = {
 		armada_beaver = true,
-		cormuskrat = true,
+		cortex_muskrat = true,
 
 
 		} --amphibious builders
 	self.miners = {
 		armada_groundhog = true,
-		cormlv = true,
+		cortex_trapper = true,
 		}
 
 	self.jammers = {
 		armada_bermuda = true,
-		coreter = true,
+		cortex_obscurer = true,
 		armada_radarjammerbot = true,
 		armada_umbra = true,
 		cortex_phantasm = true,
@@ -88,7 +88,7 @@ function ArmyHST:Init()
 	self.radars = {
 		corfink = true,--is a scout but is better used as radar cause no weapon
 		armada_blink = true,--is a scout but is better used as radar cause no weapon
-		corvrad = true,
+		cortex_omen = true,
 		armada_compass = true,
 		armada_prophet = true,
 		cortex_augur = true,
@@ -118,7 +118,7 @@ function ArmyHST:Init()
 
 	self.scouts = {
 		armada_rover = true,
-		corfav = true,
+		cortex_rascal = true,
 		armada_tick = true,
 		armada_sprinter = true,
 		armada_dolphin = true,
@@ -129,11 +129,11 @@ function ArmyHST:Init()
 		}
 	self.raiders = {
 		armada_blitz = true,
-		corgator = true,
+		cortex_incisor = true,
 		cortex_grunt = true,
 		armada_pawn = true,
 		armada_jaguar = true,
-		corseal = true,
+		cortex_alligator = true,
 		cortex_fiend = true,
 		armada_welder = true,
 		armada_seeker = true,
@@ -150,24 +150,24 @@ function ArmyHST:Init()
 		armada_rocketeer = true,
 		cortex_aggravator = true,
 		armada_shellshocker = true,
-		corwolv = true,
+		cortex_wolverine = true,
 		armada_hound = true,
 		cortex_sheldon = true,
 		armada_mauser = true,
-		cormart = true,
+		cortex_quaker = true,
 		armada_vanguard = true,--t3a
 		cortex_catapult = true,--t3c
 		cortex_despot = true,
 		armada_dreadnought = true,
 
-		--cortrem = true,
+		--cortex_tremor = true,
 		cortex_behemoth = true,
 
 		}
 	self.rocketers = {
 		armada_ambassador = true,
-		corvroc = true, -- T2C
--- 		corban = true,T2C
+		cortex_negotiator = true, -- T2C
+-- 		cortex_banisher = true,T2C
 		cortex_arbiter = true,
 		cortex_messenger = true,
 		armada_longbow = true,
@@ -179,11 +179,11 @@ function ArmyHST:Init()
 		armada_mace = true,
 		cortex_thug = true,
 		armada_stout = true,
-		corraid = true,
+		cortex_brute = true,
 		armada_gunslinger = true,
 		cortex_sumo = true,
 		armada_bull = true,
-		correap = true,
+		cortex_tiger = true,
 		armada_crocodile = true,--ha
 		cortex_cayman = true,--hc
 		armada_ellysaw = true,--t1a
@@ -204,10 +204,10 @@ function ArmyHST:Init()
 	self.breaks = {
 		armada_centurion = true,
 		armada_janus = true,
-		corlevlr = true,
+		cortex_pounder = true,
 		armada_fatboy = true,
 		cortex_mammoth = true,
-		corgol = true,
+		cortex_tzar = true,
 		armada_starlight = true,
 		armada_lunkhead = true,--hover
 		cortex_cataphract = true,--hover
@@ -224,10 +224,10 @@ function ArmyHST:Init()
 		}
 	self.amphibious = {
 		armada_pincer = true,
-		corparrow = true,
+		cortex_poisonarrow = true,
 		armada_turtle = true,
 		armada_amphibiousbot = true,
-		corgarp = true,
+		cortex_garpike = true,
 		cortex_duck = true,
 		armada_marauder = true,
 		cortex_shiva = true,
@@ -297,10 +297,10 @@ function ArmyHST:Init()
 		cortex_birdeater = true,
 		armada_dragonslayer = true,
 		armada_whistler = true,
-		corsent = true,
+		cortex_fury = true,
 		armada_archangel = true,
 		armada_shredder = true,
-		cormist = true,
+		cortex_lasher = true,
 		cortex_trasher = true,
 		armada_crossbow = true,
 		cortex_manticore = true,
@@ -312,7 +312,7 @@ function ArmyHST:Init()
 	self.antinukes = {
 		armada_haven = true,
 		cortex_oasis = true,
-		cormabm = true,
+		cortex_saviour = true,
 		armada_umbrella = true,
 		}
 
@@ -877,9 +877,9 @@ ArmyHST.UWMetalSpotCheckUnit = "cortex_navalmetalextractor"
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
 ArmyHST.mobUnitNames = {
-	veh = {"corcv", "armada_sentry"},
+	veh = {"cortex_constructionvehicle", "armada_sentry"},
 	bot = {"cortex_constructionbot", "armada_beholder"},
-	amp = {"cormuskrat"},
+	amp = {"cortex_muskrat"},
 	hov = {"cortex_goon", "armada_sharksteeth"},
 	shp = {"cortex_constructionship"},
 	sub = {"cortex_advancedconstructionsub"},

@@ -1,10 +1,10 @@
 return {
-	corfav = {
+	cortex_rascal = {
 		maxacc = 0.2,
 		maxdec = 0.4,
 		energycost = 270,
 		metalcost = 26,
-		buildpic = "CORFAV.DDS",
+		buildpic = "cortex_rascal.DDS",
 		buildtime = 1150,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORFAV.s3o",
-		script = "Units/CORFAV.cob",
+		objectname = "Units/cortex_rascal.s3o",
+		script = "Units/cortex_rascal.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 600,
@@ -71,7 +71,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 16,
-				object = "Units/corfav_dead.s3o",
+				object = "Units/cortex_rascal_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

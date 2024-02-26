@@ -1,5 +1,5 @@
 return {
-	cormlv = {
+	cortex_trapper = {
 		maxacc = 0.05681,
 		activatewhenbuilt = true,
 		maxdec = 0.11362,
@@ -7,7 +7,7 @@ return {
 		metalcost = 61,
 		builddistance = 96,
 		builder = true,
-		buildpic = "CORMLV.DDS",
+		buildpic = "cortex_trapper.DDS",
 		buildtime = 3640,
 		canassist = false,
 		canguard = false,
@@ -34,9 +34,9 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
 		nochasecategory = "ALL",
-		objectname = "Units/CORMLV.s3o",
+		objectname = "Units/cortex_trapper.s3o",
 		radardistancejam = 64,
-		script = "Units/CORMLV.cob",
+		script = "Units/cortex_trapper.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 188,
@@ -80,7 +80,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 37,
-				object = "Units/cormlv_dead.s3o",
+				object = "Units/cortex_trapper_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

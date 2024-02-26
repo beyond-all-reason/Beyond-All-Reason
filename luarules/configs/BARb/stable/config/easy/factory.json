@@ -309,7 +309,7 @@
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [20, 40],
-		"unit":      ["corcv", "cormuskrat", "cormlv", "corfav", "corgator", "corgarp", "corraid", "corlevlr", "corwolv", "cormist"],
+		"unit":      ["cortex_constructionvehicle", "cortex_muskrat", "cortex_trapper", "cortex_rascal", "cortex_incisor", "cortex_garpike", "cortex_brute", "cortex_pounder", "cortex_wolverine", "cortex_lasher"],
 		"land": {
 			"tier0": [ 0.16,    0.04,         0.00,     0.00,     0.40,       0.00,      0.00,      0.00,       0.20,      0.10],
 			"tier1": [ 0.13,    0.03,         0.00,     0.10,     0.20,       0.05,      0.20,      0.00,       0.20,      0.20],
@@ -332,7 +332,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [40],
-		"unit":      ["coracv", "correap", "corgol", "cormart", "corsent", "corvroc", "corban", "cortrem", "corvrad"],
+		"unit":      ["cortex_advancedconstructionvehicle", "cortex_tiger", "cortex_tzar", "cortex_quaker", "cortex_fury", "cortex_negotiator", "cortex_banisher", "cortex_tremor", "cortex_omen"],
 		"land": {
 			"tier0": [ 0.01,     0.61,      0.07,     0.13,      0.00,      0.06,      0.07,     0.01,      0.04],
 			"tier1": [ 0.02,     0.37,      0.31,     0.09,      0.00,      0.05,      0.10,     0.04,      0.02]
@@ -448,7 +448,7 @@
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "cortex_trasher", "cortex_manticore", "cortex_decoycommander", "cortex_intruder"],
+		"unit":      ["cortex_muskrat", "cortex_garpike", "cortex_alligator", "cortex_poisonarrow", "cortex_trasher", "cortex_manticore", "cortex_decoycommander", "cortex_intruder"],
 		"land": {
 			"tier0": [ 0.13,         0.13,      0.13,      0.13,        0.12,       0.12,     0.12,       0.12],
 			"tier1": [ 0.01,         0.01,      0.93,      0.01,        0.01,       0.01,     0.01,       0.01]
@@ -492,7 +492,7 @@
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
-		"unit":      ["cortex_shiva", "corseal", "cortex_juggernaut", "corparrow"],
+		"unit":      ["cortex_shiva", "cortex_alligator", "cortex_juggernaut", "cortex_poisonarrow"],
 		"land": {
 			"tier0": [ 0.18,       0.53,      0.00,      0.29],
 			"tier1": [ 0.16,       0.00,      0.57,      0.27]

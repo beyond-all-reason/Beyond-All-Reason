@@ -35,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armada_veil.id] = true,
 		[UnitDefNames.cortex_advancedradartower.id] = true,
 		[UnitDefNames.cortex_advancedsonarstation.id] = true,
-		[UnitDefNames.coreter.id] = true,
+		[UnitDefNames.cortex_obscurer.id] = true,
 		[UnitDefNames.cortex_beholder.id] = true,
 		[UnitDefNames.cortex_radarsonartower.id] = true,
 		[UnitDefNames.cortex_castro.id] = true,
@@ -45,9 +45,9 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.cortex_sonarstation.id] = true,
 		[UnitDefNames.cortex_deceiver.id] = true,
 		[UnitDefNames.cortex_augur.id] = true,
-		[UnitDefNames.corvrad.id] = true,
+		[UnitDefNames.cortex_omen.id] = true,
 
-		[UnitDefNames.corfav.id] = true,
+		[UnitDefNames.cortex_rascal.id] = true,
 		[UnitDefNames.armada_rover.id] = true,
 		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
@@ -58,7 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 		
 	}
 	local todenyUnits = {
-		[UnitDefNames.corfav.id] = true,
+		[UnitDefNames.cortex_rascal.id] = true,
 		[UnitDefNames.armada_rover.id] = true,
 		[UnitDefNames.armada_tick.id] = true,
 		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,

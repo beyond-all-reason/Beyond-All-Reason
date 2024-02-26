@@ -76,7 +76,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 236,
-				object = "Units/corseal_dead.s3o",
+				object = "Units/cortex_alligator_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -813,7 +813,7 @@
 			"limit": 10,
 			"build_speed": 4.5  //bp 90
 		},
-        "corcv": {
+        "cortex_constructionvehicle": {
 			"role": ["builder"],
 			"limit": 10,
 			"build_speed": 4.5  //bp 90
@@ -824,13 +824,13 @@
 			"limit": 6,
 			"build_speed": 4.0  //bp 80
 		},
-        "cormuskrat": {
+        "cortex_muskrat": {
 			"role": ["builder"],
 			"attribute": ["solo"],
 			"limit": 6,
 			"build_speed": 4.0
 		},
-        "cormlv": {
+        "cortex_trapper": {
 			"role": ["support"],
 			"limit": 0
 		},
@@ -840,7 +840,7 @@
 			"limit": 15,
 			"build_speed": 12.5  //bp 250
 		},
-        "coracv": {
+        "cortex_advancedconstructionvehicle": {
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 15,
@@ -1554,36 +1554,36 @@
 
 		// CORE T1 VEHICLE - cortex_vehicleplant
 
-		"corfav": {
+		"cortex_rascal": {
 			"role": ["scout"],
 			"threat":{"vs":{"artillery": 2.0}}
 		},
-		"corgator": {
+		"cortex_incisor": {
 			"role": ["raider"],
 			"attribute": ["scout"],
 			"threat":{"vs":{"artillery": 2.0}},
 			"limit": 30
 		},
-		"corgarp": {
+		"cortex_garpike": {
 			"role": ["raider"],
 			"threat":{"vs":{"artillery": 2.0}},
 			"limit": 25
 		},
-		"corraid": {
+		"cortex_brute": {
 			"role": ["skirmish"],
 			"threat":{"vs":{"artillery": 2.0}}
 		},
-		"corlevlr": {
+		"cortex_pounder": {
 			"role": ["riot"],
 			"threat": {"surf": 1.2, "vs":{"raider": 2.0}},
 			"retreat": 0.5
 		},
-		"corwolv": {
+		"cortex_wolverine": {
 			"role": ["artillery"],
 			"attribute":["siege"],
 			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}}
 		},
-		"cormist": {
+		"cortex_lasher": {
 			"role": ["anti_air"],
 			"attribute": ["support", "siege"]
 		},
@@ -1592,53 +1592,53 @@
 
 
 		// 	CORE ADV VELICLE PLANT
-		"corseal": {
+		"cortex_alligator": {
 			"role": ["raider"]
 		},
-		"corparrow": {
+		"cortex_poisonarrow": {
 			"role": ["raider"]
 		},
-		"correap": {
+		"cortex_tiger": {
 			"role": ["skirmish"]
 		},
-		"corgol": {
+		"cortex_tzar": {
 			"role": ["heavy"],
 			"attribute":["siege"],
 			"threat": {"surf": 1.5}
 		},
-		"cormart": {
+		"cortex_quaker": {
 			"role": ["artillery"],
 			"threat": {"surf": 0.5, "vs":{"static":2.0, "artillery":2.0}},
 			"retreat": 0.6
 		},
-		"corsent": {
+		"cortex_fury": {
 			"role": ["anti_air"],
 			"retreat": 0.6
 		},
-		"corvroc": {
+		"cortex_negotiator": {
 			"role": ["artillery"],
 			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
 			"retreat": 0.6
 		},
-		"corban": {
+		"cortex_banisher": {
 			"role":	["assault"], 
 			"attribute": ["siege"],  
 			"retreat": 0.5
 		},
-		"cortrem": {
+		"cortex_tremor": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
 			"retreat": 0.5
 		},
-		"corvrad": {
+		"cortex_omen": {
 			"role": ["support"],
 			"limit": 2
 		},
-		"coreter": {
+		"cortex_obscurer": {
 			"role": ["support"],
 			"limit": 3
 		},
-		"cormabm": {
+		"cortex_saviour": {
 			"role": ["support"],
 			"attribute": ["siege"],
 			"limit": 1

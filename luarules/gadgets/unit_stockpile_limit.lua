@@ -50,7 +50,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['cortex_t2supportship'].id] = 20,
 
 		[UnitDefNames['armada_umbrella'].id] = 20,
-		[UnitDefNames['cormabm'].id] = 20,
+		[UnitDefNames['cortex_saviour'].id] = 20,
 
 		[UnitDefNames['armada_paralyzer'].id] = 10,
 		[UnitDefNames['cortex_catalyst'].id] = 10,

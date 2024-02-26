@@ -41,12 +41,12 @@ local labGrids = {
 	},
 
 	cortex_vehicleplant = {
-		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
-		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"cortex_constructionvehicle", "cortex_trapper", "cortex_incisor", "cortex_rascal",       -- T1 con, minelayer, gator, scout
+		"cortex_brute", "cortex_pounder", "cortex_wolverine", "",         -- raider, leveler, art
+		"cortex_muskrat", "cortex_garpike", "cortex_lasher", "",       -- amphib con, amphib tank, missile truck
 	},
 	legvp = {
-		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
+		"legcv", "", "leghades", "cortex_rascal",       -- T1 con, minelayer, gator, scout
 		"leggat", "leghelios", "legbar", "",         -- raider, leveler, art
 		"", "", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
@@ -58,14 +58,14 @@ local labGrids = {
 	},
 
 	cortex_advancedvehicleplant = {
-		"coracv", "corban", "correap", "cormart",              -- T2 con, banisher, reaper, pillager
-		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
-		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+		"cortex_advancedconstructionvehicle", "cortex_banisher", "cortex_tiger", "cortex_quaker",              -- T2 con, banisher, reaper, pillager
+		"cortex_omen", "cortex_obscurer", "cortex_tzar", "cortex_tremor",             -- radar, jammer, goli, tremor
+		"cortex_alligator", "cortex_poisonarrow", "cortex_fury", "cortex_negotiator",          -- croc, poison arrow, AA, diplomat
 	},
 	legavp = {
-		"legacv", "legmrv", "legsco", "cormart",              -- T2 con, Quickshot, scorpion, pillager
-		"corvrad", "coreter", "corgol", "leginf",             -- radar, jammer, goli, inferno
-		"legfloat", "corban", "corsent", "corvroc",           -- croc, poison arrow, AA, diplomat
+		"legacv", "legmrv", "legsco", "cortex_quaker",              -- T2 con, Quickshot, scorpion, pillager
+		"cortex_omen", "cortex_obscurer", "cortex_tzar", "leginf",             -- radar, jammer, goli, inferno
+		"legfloat", "cortex_banisher", "cortex_fury", "cortex_negotiator",           -- croc, poison arrow, AA, diplomat
 	},
 	-- T1 air
 	armada_aircraftplant = {
@@ -139,8 +139,8 @@ local labGrids = {
 	},
 
 	cortex_amphibiouscomplex = {
-		"cormuskrat", "cortex_decoycommander", "corgarp", "",
-		"corseal", "corparrow", "", "",
+		"cortex_muskrat", "cortex_decoycommander", "cortex_garpike", "",
+		"cortex_alligator", "cortex_poisonarrow", "", "",
 		"", "cortex_trasher", "cortex_manticore",
 	},
 	-- hover labs
@@ -548,7 +548,7 @@ local unitGrids = {
 		}
 	},
 
-	corcv = {
+	cortex_constructionvehicle = {
 		{
 			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
 			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", },                 -- T1 converter, geo, exploiter, (tidal)
@@ -823,7 +823,7 @@ local unitGrids = {
 		}
 	},
 
-	cormuskrat = {
+	cortex_muskrat = {
 		{
 			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
 			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", "cortex_tidalgenerator", },      -- T1 converter, geo, exploiter, (tidal)
@@ -940,7 +940,7 @@ local unitGrids = {
 		}
 	},
 
-	coracv = {
+	cortex_advancedconstructionvehicle = {
 		{
 			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
 			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter", },               -- T2 converter, T2 geo, armed moho
@@ -1125,7 +1125,7 @@ local unitGrids = {
 		}
 	},
 
-	cormlv = {
+	cortex_trapper = {
 		{
 			{ }, --
 			{ },            --

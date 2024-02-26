@@ -72,8 +72,8 @@ return {
 			"cortex_constructionseaplane",
 			"cortex_constructionship",
 			--"cortex_advancedconstructionsub",
-			"corcv",
-			--"coracv",
+			"cortex_constructionvehicle",
+			--"cortex_advancedconstructionvehicle",
 		},
 		customparams = {
 			unitgroup = 'builder',

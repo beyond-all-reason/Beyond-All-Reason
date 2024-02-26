@@ -83,7 +83,7 @@ local unitlist = {
 
 local ptlCons = {
 	['armada_beaver'] = true,
-	['cormuskrat'] = true,
+	['cortex_muskrat'] = true,
 }
 
 local groundBuildings = {}

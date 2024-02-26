@@ -1,11 +1,11 @@
 return {
-	corseal = {
+	cortex_alligator = {
 		maxacc = 0.05125,
 		activatewhenbuilt = true,
 		maxdec = 0.1025,
 		energycost = 9100,
 		metalcost = 480,
-		buildpic = "CORSEAL.DDS",
+		buildpic = "cortex_alligator.DDS",
 		buildtime = 12050,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSEAL.s3o",
-		script = "Units/CORSEAL.cob",
+		objectname = "Units/cortex_alligator.s3o",
+		script = "Units/cortex_alligator.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 399,
@@ -75,7 +75,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 236,
-				object = "Units/corseal_dead.s3o",
+				object = "Units/cortex_alligator_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

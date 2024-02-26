@@ -32,13 +32,13 @@ local convertedUnits = {
 	[UnitDefNames.armada_mace.id] = 2,
 	[UnitDefNames.armada_centurion.id] = 2,
 	[UnitDefNames.armada_crossbow.id] = 2,
-	[UnitDefNames.corfav.id] = 3,
-	--[UnitDefNames.corgarp.id] = true,
-	--[UnitDefNames.corgator.id] = true,
-	--[UnitDefNames.corlevlr.id] = true,
-	--[UnitDefNames.cormist.id] = true,
-	--[UnitDefNames.corraid.id] = true,
-	--[UnitDefNames.corwolv.id] = true,
+	[UnitDefNames.cortex_rascal.id] = 3,
+	--[UnitDefNames.cortex_garpike.id] = true,
+	--[UnitDefNames.cortex_incisor.id] = true,
+	--[UnitDefNames.cortex_pounder.id] = true,
+	--[UnitDefNames.cortex_lasher.id] = true,
+	--[UnitDefNames.cortex_brute.id] = true,
+	--[UnitDefNames.cortex_wolverine.id] = true,
 	[UnitDefNames.cortex_grunt.id] = 2,
 	[UnitDefNames.cortex_thug.id] = 2,
 	[UnitDefNames.cortex_aggravator.id] = 2,
@@ -71,7 +71,7 @@ local convertedUnits = {
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	[UnitDefNames.armada_blitz.id] = 6,
-	[UnitDefNames.corgator.id] = 6,
+	[UnitDefNames.cortex_incisor.id] = 6,
 	[UnitDefNames.armada_dolphin.id] = 6,
 	[UnitDefNames.cortex_supporter.id] = 6,
 	[UnitDefNames.cortex_warden.id] = 5,
@@ -130,7 +130,7 @@ local spamUnitsTeams = { --{unitDefID = {teamID = totalcreated,...}}
 	[UnitDefNames.armada_tick.id]  = {},
 	[UnitDefNames.armada_rover.id]  = {},
 	[UnitDefNames.cortex_grunt.id]  = {},
-	[UnitDefNames.corfav.id]  = {},
+	[UnitDefNames.cortex_rascal.id]  = {},
 }
 
 local spamUnitsTeamsReaimTimes = {} --{unitDefID = {teamID = currentReAimTime,...}}

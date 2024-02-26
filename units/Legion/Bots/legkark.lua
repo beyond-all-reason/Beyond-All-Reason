@@ -151,7 +151,7 @@ return {
 					vtol = 25,
 				},
 			},
-			corlevlr_weapon = {
+			cortex_pounder_weapon = {
 				areaofeffect = 144,
 				avoidfeature = false,
 				burnblow = true,
@@ -189,7 +189,7 @@ return {
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "CORLEVLR_WEAPON",
+				def = "cortex_pounder_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},

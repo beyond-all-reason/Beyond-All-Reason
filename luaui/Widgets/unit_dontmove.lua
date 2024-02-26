@@ -26,8 +26,8 @@ local unitNames = {
 
   "armada_whistler",
   "armada_shredder",
-  "cormist",
-  "corsent",
+  "cortex_lasher",
+  "cortex_fury",
 
   "armada_sweeper",
   "cortex_birdeater",
@@ -39,13 +39,13 @@ local unitNames = {
   --arty
   "armada_shellshocker",
   "armada_mace",
-  "corwolv",
+  "cortex_wolverine",
 
   "armada_mauser",
   "armada_ambassador",
-  "cormart",
-  "corvroc",
-  "cortrem",
+  "cortex_quaker",
+  "cortex_negotiator",
+  "cortex_tremor",
   "armada_sharpshooter",
   "cortex_arbiter",
 
@@ -72,14 +72,14 @@ local unitNames = {
   "armada_rocketeer",
   "cortex_aggravator",
 
-  "corban",
+  "cortex_banisher",
   "armada_starlight",
   "cortex_sheldon",
 
   --scouts
   "armada_tick",
   "armada_rover",
-  "corfav",
+  "cortex_rascal",
   "armada_ghost",
   "armada_gremlin",
 
@@ -93,12 +93,12 @@ local unitNames = {
 
   "armada_prophet",
   "armada_compass",
-  "corvrad",
+  "cortex_omen",
   "cortex_augur",
 
   --antinukes
   "armada_umbrella",
-  "cormabm",
+  "cortex_saviour",
   "armada_haven",
   "cortex_oasis",
   "armada_t2supportship",

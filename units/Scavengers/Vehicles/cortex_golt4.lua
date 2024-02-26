@@ -1,10 +1,10 @@
 return {
-	corgolt4 = {
+	cortex_tzart4 = {
 		maxacc = 0.0138,
 		maxdec = 0.08759,
 		energycost = 250000,
 		metalcost = 25000,
-		buildpic = "CORGOLT4.DDS",
+		buildpic = "cortex_tzarT4.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "EPICVEH",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/corgolt4.s3o",
-		script = "Units/scavboss/corgolt4.cob",
+		objectname = "Units/scavboss/cortex_tzart4.s3o",
+		script = "Units/scavboss/cortex_tzart4.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
@@ -73,7 +73,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 12500,
-				object = "Units/scavboss/corgolt4_dead.s3o",
+				object = "Units/scavboss/cortex_tzart4_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -131,7 +131,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corlevlr_weapon = {
+			cortex_pounder_weapon = {
 				areaofeffect = 350,
 				avoidfeature = false,
 				craterareaofeffect = 350,
@@ -167,7 +167,7 @@ return {
 				},
 			},
 			
-			corgol_sidelaser = {
+			cortex_tzar_sidelaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.16,
@@ -210,20 +210,20 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORLEVLR_WEAPON",
+				def = "cortex_pounder_WEAPON",
 				onlytargetcategory = "SURFACE",
 				weaponAimAdjustPriority = 9,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "corgol_sidelaser",
+				def = "cortex_tzar_sidelaser",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 0 0",
 				maxangledif = 180,
 			},
 			[3] = {
 				badtargetcategory = "VTOL",
-				def = "corgol_sidelaser",
+				def = "cortex_tzar_sidelaser",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 0 0",
 				maxangledif = 180,

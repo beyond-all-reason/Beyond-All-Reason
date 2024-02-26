@@ -192,7 +192,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corlevlr_weapon = {
+			cortex_pounder_weapon = {
 				areaofeffect = 144,
 				avoidfeature = false,
 				burnblow = true,
@@ -205,9 +205,9 @@ return {
 				noselfdamage = true,
 				range = 315,
 				reloadtime = 1.8,
-				soundhit = "corlevlrhit",
+				soundhit = "cortex_pounderhit",
 				soundhitwet = "splsmed",
-				soundstart = "corlevlr",
+				soundstart = "cortex_pounder",
 				soundhitvolume = 11.5,
 				soundstartvolume = 13.0,
 				separation = 2.0,
@@ -383,7 +383,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORLEVLR_WEAPON",
+				def = "cortex_pounder_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

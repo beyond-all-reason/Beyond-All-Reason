@@ -1946,52 +1946,52 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T1 VEHICLES
 
-	corfav = {
+	cortex_rascal = {
 		BaseSoundSelectType = "cor-veh-tiny-sel",
 		BaseSoundMovementType = "cor-veh-tiny-ok",
 		BaseSoundWeaponType = "laser-tiny",
 	},
-	corgator = {
+	cortex_incisor = {
 		BaseSoundSelectType = "cor-veh-small-sel",
 		BaseSoundMovementType = "cor-veh-small-ok",
 		BaseSoundWeaponType = "laser-small-cor",
 	},
-	corwolv = {
+	cortex_wolverine = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "arty-small",
 	},
-	cormist = {
+	cortex_lasher = {
 		BaseSoundSelectType = "cor-veh-small-sel",
 		BaseSoundMovementType = "cor-veh-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
-	corgarp = {
+	cortex_garpike = {
 		BaseSoundSelectType = "cor-tnk-small-amph-sel",
 		BaseSoundMovementType = "cor-tnk-small-amph-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	corraid = {
+	cortex_brute = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
-	corlevlr = {
+	cortex_pounder = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "rocket-medium",
 	},
-	corcv = {
+	cortex_constructionvehicle = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	cormuskrat = {
+	cortex_muskrat = {
 		BaseSoundSelectType = "cor-tnk-small-amph-sel",
 		BaseSoundMovementType = "cor-tnk-small-amph-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
-	cormlv = {
+	cortex_trapper = {
 		BaseSoundSelectType = "cor-veh-tiny-sel",
 		BaseSoundMovementType = "cor-veh-tiny-ok",
 		BaseSoundWeaponType = "mine-small",
@@ -1999,57 +1999,57 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T2 VEHICLES
 
-	coreter = {
+	cortex_obscurer = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "jammer",
 	},
-	corvrad = {
+	cortex_omen = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "radar",
 	},
-	cormart = {
+	cortex_quaker = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-medium",
 	},
-	corsent = {
+	cortex_fury = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "flak",
 	},
-	corseal = {
+	cortex_alligator = {
 		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	coracv = {
+	cortex_advancedconstructionvehicle = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
-	corvroc = {
+	cortex_negotiator = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	correap = {
+	cortex_tiger = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
-	corban = {
+	cortex_banisher = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "arty-large",
 	},
-	corparrow = {
+	cortex_poisonarrow = {
 		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
-	cormabm = {
+	cortex_saviour = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "nuke-anti",
@@ -2059,12 +2059,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
-	corgol = {
+	cortex_tzar = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
-	cortrem = {
+	cortex_tremor = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "arty-large",
@@ -2080,12 +2080,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "con-assist",
 	},
 	-- FUN MODE - made possible by Teifion and Basic
-	-- corfav = {
+	-- cortex_rascal = {
 	-- BaseSoundSelectType   = "cor-veh-tiny-sel",
 	-- BaseSoundMovementType = "cor-veh-tiny-ok",
 	-- BaseSoundWeaponType   = "laser-small",
 	-- },
-	-- corgol = {
+	-- cortex_tzar = {
 	-- BaseSoundSelectType   = "cor-tnk-large-sel",
 	-- BaseSoundMovementType = "cor-tnk-large-ok",
 	-- BaseSoundWeaponType   = "plasma-huge",
@@ -2668,7 +2668,7 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
-	corgolt4 = {
+	cortex_tzart4 = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",

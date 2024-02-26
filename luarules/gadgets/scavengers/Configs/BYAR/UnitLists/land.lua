@@ -7,7 +7,7 @@ return {
 
 		-- Vehicles
 		"armada_rover_scav",
-		"corfav_scav",
+		"cortex_rascal_scav",
 	},
 
 	T1 = {
@@ -36,11 +36,11 @@ return {
 		"armada_pincer_scav",
 		"armada_janus_scav",
 		"armzapper_scav",
-		"corgator_scav",
-		"cormist_scav",
-		"corwolv_scav",
-		"corlevlr_scav",
-		"corraid_scav",
+		"cortex_incisor_scav",
+		"cortex_lasher_scav",
+		"cortex_wolverine_scav",
+		"cortex_pounder_scav",
+		"cortex_brute_scav",
 		"leggat_scav",
 		"legrail_scav",
 
@@ -60,8 +60,8 @@ return {
 		"armada_beaver_scav",
 		"armada_constructionhovercraft_scav",
 		"cortex_constructionbot_scav",
-		"corcv_scav",
-		"cormuskrat_scav",
+		"cortex_constructionvehicle_scav",
+		"cortex_muskrat_scav",
 	},
 
 	T2 = {
@@ -105,15 +105,15 @@ return {
 		"armada_bull_scav",
 		"corforge_scav",
 		"corftiger_scav",
-		"cormart_scav",
-		"corsent_scav",
-		"corseal_scav",
+		"cortex_quaker_scav",
+		"cortex_fury_scav",
+		"cortex_alligator_scav",
 		"corsala_scav",
-		"correap_scav",
+		"cortex_tiger_scav",
 		"corgatreap_scav",
-		"corvroc_scav",
-		"corban_scav",
-		"corparrow_scav",
+		"cortex_negotiator_scav",
+		"cortex_banisher_scav",
+		"cortex_poisonarrow_scav",
 		"cortorch_scav",
 
 		-- Hovercraft
@@ -126,18 +126,18 @@ return {
 		"armada_consul_scav",
 		"cortex_advancedconstructionbot_scav",
 		"cortex_decoycommander_scav",
-		"coracv_scav",
+		"cortex_advancedconstructionvehicle_scav",
 		"corprinter_scav",
 		"corvac_scav",
 	},
 
 	T3 = {
 		-- Heavy T2s
-		"corgol_scav",
+		"cortex_tzar_scav",
 		"cortex_mammoth_scav",
 		"armada_fatboy_scav",
 		"armada_starlight_scav",
-		"cortrem_scav",
+		"cortex_tremor_scav",
 		"cortex_arbiter_scav",
 		"leginc_scav",
 
@@ -176,6 +176,6 @@ return {
 		"cortex_gruntt4_scav",
 		"cortex_demon_scav",
 		"cortex_karganetht4_scav",
-		"corgolt4_scav",
+		"cortex_tzart4_scav",
 	},
 }

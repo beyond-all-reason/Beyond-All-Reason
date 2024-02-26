@@ -51,7 +51,7 @@ local arm_mobile_anti			= UnitDefNames.armada_umbrella.id
 local arm_mobile_anti_water		= UnitDefNames.armada_haven.id
 local arm_mobile_anti_water_2	= UnitDefNames.armada_t2supportship.id
 local cor_anti					= UnitDefNames.corfmd.id
-local cor_mobile_anti			= UnitDefNames.cormabm.id
+local cor_mobile_anti			= UnitDefNames.cortex_saviour.id
 local cor_mobile_anti_water		= UnitDefNames.cortex_oasis.id
 local cor_mobile_anti_water_2	= UnitDefNames.cortex_t2supportship.id
 
@@ -74,7 +74,7 @@ local antiOutLos				= {}
 local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armada_citadel.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreStatic	= WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
 local coverageRangeArm			= WeaponDefs[UnitDefNames.armada_umbrella.weapons[1].weaponDef].coverageRange
-local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef].coverageRange
+local coverageRangeCore			= WeaponDefs[UnitDefNames.cortex_saviour.weapons[1].weaponDef].coverageRange
 local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armada_haven.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.cortex_oasis.weapons[1].weaponDef].coverageRange
 local coverageRangeArmWater2	= WeaponDefs[UnitDefNames.armada_t2supportship.weapons[1].weaponDef].coverageRange

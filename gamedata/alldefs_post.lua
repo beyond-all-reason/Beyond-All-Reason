@@ -139,7 +139,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_windturbinet2"
 		end
-		if name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
+		if name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "cortex_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_advancedwindturbine"
 		end
@@ -297,13 +297,13 @@ function UnitDef_Post(name, uDef)
 				armada_umbrella = true,
 				corfmd = true,
 				cortex_apocalypse = true,
-				cormabm = true,
+				cortex_saviour = true,
 				armada_citadel_scav = true,
 				armada_armageddon_scav = true,
 				armada_umbrella_scav = true,
 				corfmd_scav = true,
 				cortex_apocalypse_scav = true,
-				cormabm_scav = true,
+				cortex_saviour_scav = true,
 			}
 			if Nukes[name] then
 				uDef.maxthisunit = 0
@@ -400,7 +400,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "cortex_underwaterexperimentalgantry" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_tzart4"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_gruntt4"
 		elseif name == "armada_vehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
@@ -431,12 +431,12 @@ function UnitDef_Post(name, uDef)
 		elseif name == "cortex_experimentalgantry" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_karganetht4"
-			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_tzart4"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_gruntt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armada_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "cortex_constructionaircraft" or name == "cortex_constructionbot" or name == "corcv" then
+		elseif name == "cortex_constructionaircraft" or name == "cortex_constructionbot" or name == "cortex_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -463,7 +463,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armlwall"
-		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
+		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "cortex_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_experimentalaircraftplant"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
@@ -1209,9 +1209,9 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cortex_bat_weapon.smoketime = 48
 		uDef.weapondefs.cortex_bat_weapon.smokesize = 11.3
 		uDef.weapondefs.cortex_bat_weapon.smokecolor = 0.82
-		uDef.weapondefs.cortex_bat_weapon.soundhit = "corban_b"
+		uDef.weapondefs.cortex_bat_weapon.soundhit = "cortex_banisher_b"
 		uDef.weapondefs.cortex_bat_weapon.soundhitwet = "splsmed"
-		uDef.weapondefs.cortex_bat_weapon.soundstart = "corban_a"
+		uDef.weapondefs.cortex_bat_weapon.soundstart = "cortex_banisher_a"
 		uDef.weapondefs.cortex_bat_weapon.texture1 = "null"
 		uDef.weapondefs.cortex_bat_weapon.texture2 = "railguntrail"
 		uDef.weapondefs.cortex_bat_weapon.weaponvelocity = 650
@@ -1474,7 +1474,7 @@ if modOptions.air_rework == true then
 	if name == "armada_shredder" then
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
-	if name == "corsent" then
+	if name == "cortex_fury" then
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
 	if name == "armada_arbalest" then
@@ -1488,7 +1488,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armtruck_missile.weaponacceleration = 230
 		uDef.weapondefs.armtruck_missile.damage.vtol = 200
 	end
-	if name == "cormist" then
+	if name == "cortex_lasher" then
 		uDef.weapondefs.cortruck_missile.startvelocity = 135
 		uDef.weapondefs.cortruck_missile.weaponacceleration = 230
 		uDef.weapondefs.cortruck_missile.damage.vtol = 150
@@ -1642,7 +1642,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armada_shredder" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
-	if name == "corsent" then
+	if name == "cortex_fury" then
 		uDef.weapondefs.mobileflak.reloadtime = 0.8333
 	end
 	if name == "armada_dragonslayer" then

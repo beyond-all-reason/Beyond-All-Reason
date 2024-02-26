@@ -20,7 +20,7 @@ for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'armada_rover') then       -- using string.find to _scav units are included aswell
 		isStompedUnit[udid] = true
 	end
-	if string.find(ud.name, 'corfav') then
+	if string.find(ud.name, 'cortex_rascal') then
 		isStompedUnit[udid] = true
 	end
 	if string.find(ud.name, 'cortex_grunt') then

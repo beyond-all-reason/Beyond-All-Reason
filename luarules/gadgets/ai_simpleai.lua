@@ -76,7 +76,7 @@ if gameShortName == "BYAR" then
 
 		-- minelayers
 		"armada_groundhog",
-		"cormlv",
+		"cortex_trapper",
 
 		-- depth charge launchers
 		"armada_anemone",

@@ -33,7 +33,7 @@ return {
 		sightdistance = 308,
 		trackoffset = 0,
 		trackstrength = 6,
-		tracktype = "corparrowtracks",
+		tracktype = "cortex_poisonarrowtracks",
 		trackwidth = 22,
 		turninplace = false,
 		--turninplaceanglelimit = 90,

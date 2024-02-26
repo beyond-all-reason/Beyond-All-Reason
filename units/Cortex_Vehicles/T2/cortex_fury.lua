@@ -1,11 +1,11 @@
 return {
-	corsent = {
+	cortex_fury = {
 		maxacc = 0.05823,
 		airsightdistance = 900,
 		maxdec = 0.11647,
 		energycost = 10500,
 		metalcost = 470,
-		buildpic = "CORSENT.DDS",
+		buildpic = "cortex_fury.DDS",
 		buildtime = 12000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		nochasecategory = "NOTAIR",
-		objectname = "Units/CORSENT.s3o",
-		script = "Units/CORSENT.cob",
+		objectname = "Units/cortex_fury.s3o",
+		script = "Units/cortex_fury.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 338,
@@ -61,7 +61,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 288,
-				object = "Units/corsent_dead.s3o",
+				object = "Units/cortex_fury_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

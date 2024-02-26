@@ -164,9 +164,9 @@ customDefs.corscavdtl = {
 -- 	"armada_advancedconstructionsub",
 -- 	"cortex_advancedconstructionsub",
 -- 	"armada_constructionvehicle",
--- 	"corcv",
+-- 	"cortex_constructionvehicle",
 -- 	"armada_advancedconstructionvehicle",
--- 	"coracv",
+-- 	"cortex_advancedconstructionvehicle",
 -- }
 
 -- customDefs.scavengerdroppodbeacon = {
@@ -597,7 +597,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "cortex_demon",
 -- 		[numBuildoptions+2] = "cortex_karganetht4",
--- 		[numBuildoptions+3] = "corgolt4",
+-- 		[numBuildoptions+3] = "cortex_tzart4",
 -- 		[numBuildoptions+4] = "cortex_gruntt4",
 -- 	},
 -- }
@@ -605,7 +605,7 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.cortex_underwaterexperimentalgantry.buildoptions
 -- customDefs.cortex_underwaterexperimentalgantry = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corgolt4",
+-- 		[numBuildoptions+1] = "cortex_tzart4",
 -- 	},
 -- }
 
@@ -705,8 +705,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corcv.buildoptions
--- customDefs.corcv = {
+-- numBuildoptions = #UnitDefs.cortex_constructionvehicle.buildoptions
+-- customDefs.cortex_constructionvehicle = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corscavdrag",
 -- 		[numBuildoptions+2] = "corscavdtl",
@@ -775,8 +775,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.coracv.buildoptions
--- customDefs.coracv = {
+-- numBuildoptions = #UnitDefs.cortex_advancedconstructionvehicle.buildoptions
+-- customDefs.cortex_advancedconstructionvehicle = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "cortex_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "corminibuzz",
@@ -841,7 +841,7 @@ customDefs.corscavdtl = {
 -- 	sightdistance = 310,
 -- }
 
--- customDefs.corgator = {
+-- customDefs.cortex_incisor = {
 -- 	cloakcost = 6,
 -- 	mincloakdistance = 144,
 -- }
@@ -1145,7 +1145,7 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- customDefs.corvroc = {
+-- customDefs.cortex_negotiator = {
 -- 	weapondefs = {
 -- 		cortruck_rocket = {
 -- 			areaofeffect = 200,

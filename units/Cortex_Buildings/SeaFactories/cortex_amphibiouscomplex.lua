@@ -31,10 +31,10 @@ return {
 		workertime = 150,
 		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
 		buildoptions = {
-			[1] = "cormuskrat",
-			[2] = "corgarp",
+			[1] = "cortex_muskrat",
+			[2] = "cortex_garpike",
 			[3] = "corsala",
-			[4] = "corparrow",
+			[4] = "cortex_poisonarrow",
 			[5] = "cortex_trasher",
 			[6] = "cortex_manticore",
 			[7] = "cortex_decoycommander",

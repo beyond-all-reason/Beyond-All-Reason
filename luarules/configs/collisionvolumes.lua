@@ -171,7 +171,7 @@ pieceCollisionVolume['armada_ragnarok'] = {
 	['0']={98,140,98,0,40,0,1,1},
 	['5']={55,55,174,0,18,0,1,2},
 }
-pieceCollisionVolume['corgator'] = {
+pieceCollisionVolume['cortex_incisor'] = {
 	['0']={23,14,33,0,0,0,2,1},
 	['1']={15,5,25,0,0,2,2,1},
 }

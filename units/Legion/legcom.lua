@@ -192,7 +192,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corlevlr_weapon = {
+			cortex_pounder_weapon = {
 				areaofeffect = 144,
 				avoidfeature = false,
 				burnblow = true,
@@ -205,9 +205,9 @@ return {
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 2.4,--1.8,
-				soundhit = "corlevlrhit",
+				soundhit = "cortex_pounderhit",
 				soundhitwet = "splsmed",
-				soundstart = "corlevlr",
+				soundstart = "cortex_pounder",
 				soundhitvolume = 11.5,
 				soundstartvolume = 13.0,
 				separation = 2.0,
@@ -336,9 +336,9 @@ return {
 				smoketime = 48,
 				smokesize = 11.3,
 				smokecolor = 0.82,
-				soundhit = "corban_b",
+				soundhit = "cortex_banisher_b",
 				soundhitwet = "splsmed",
-				soundstart = "corban_a",
+				soundstart = "cortex_banisher_a",
 				startvelocity = 240,
 				stockpile = true,
 				stockpiletime = 40,
@@ -359,7 +359,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORLEVLR_WEAPON",
+				def = "cortex_pounder_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

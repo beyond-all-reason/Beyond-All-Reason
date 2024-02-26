@@ -438,7 +438,7 @@
 
 		"income_tier": [1, 15, 25, 50],
 
-		"unit":      ["corcv", "cormuskrat", "cormlv", "corfav", "corgator", "corgarp", "corraid", "corlevlr", "corwolv", "cormist"],
+		"unit":      ["cortex_constructionvehicle", "cortex_muskrat", "cortex_trapper", "cortex_rascal", "cortex_incisor", "cortex_garpike", "cortex_brute", "cortex_pounder", "cortex_wolverine", "cortex_lasher"],
 
 		"land": {
 			"tier0": [ 0.20,    0.00,         0.00,     0.20,     0.00,       0.00,      0.30,      0.30,       0.00,      0.00],
@@ -472,7 +472,7 @@
 
 		"income_tier": [30, 60],
 
-		"unit":      ["coracv", "correap", "corgol", "cormart", "corsent", "corvroc", "corban", "cortrem", "cormabm",	"corvrad",	"coreter",	"corseal",	"corparrow"],
+		"unit":      ["cortex_advancedconstructionvehicle", "cortex_tiger", "cortex_tzar", "cortex_quaker", "cortex_fury", "cortex_negotiator", "cortex_banisher", "cortex_tremor", "cortex_saviour",	"cortex_omen",	"cortex_obscurer",	"cortex_alligator",	"cortex_poisonarrow"],
 
 		"land": {
 			"tier0": [ 0.30,     0.35,      0.01,     0.20,      0.00,      0.04,      0.10,     0.00,      0.00,		0.03,		0.00,		0.00,		0.00],
@@ -666,7 +666,7 @@
 
 		"income_tier": [30],
 
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "cortex_trasher", "cortex_manticore"],
+		"unit":      ["cortex_muskrat", "cortex_garpike", "cortex_alligator", "cortex_poisonarrow", "cortex_trasher", "cortex_manticore"],
 
 		"land": {
 			"tier0": [ 0.10,        0.00,       0.30,       0.00,       0.00,       0.00],

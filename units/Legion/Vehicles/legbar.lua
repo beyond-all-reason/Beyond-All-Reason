@@ -39,7 +39,7 @@ return {
 		turnrate = 240,
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corgol_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_tzar_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,

@@ -737,7 +737,7 @@ local function skyshiftUnitTweaks(name, uDef)
 ---------------------------------------------
 
 
-	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armada_stout" or name == "armada_rover" or name == "armada_shellshocker" or name == "armada_blitz" or name == "armada_pincer" or name == "armada_janus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "cortex_aggravator" or name == "cortex_thug" or name == "cortex_grunt" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "cortex_guard" or name == "cortex_warden" or name == "cortex_twinguard" or name == "cortex_dragonsmaw" or name == "cortex_agitator" or name == "cortex_riptide" or name == "cortex_oppressor" or name == "cortex_supporter" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "cortex_coral" then
+	if name == "armada_centurion" or name == "armada_mace" or name == "armada_tick" or name == "armada_pawn" or name == "armada_stout" or name == "armada_rover" or name == "armada_shellshocker" or name == "armada_blitz" or name == "armada_pincer" or name == "armada_janus" or name == "armada_commander" or name == "armada_sentry" or name == "armada_beamer" or name == "armada_overwatch" or name == "armada_dragonsclaw" or name == "armada_gauntlet" or name == "cortex_aggravator" or name == "cortex_thug" or name == "cortex_grunt" or name == "cortex_pounder" or name == "cortex_garpike" or name == "cortex_wolverine" or name == "cortex_brute" or name == "cortex_incisor" or name == "cortex_rascal" or name == "cortex_guard" or name == "cortex_warden" or name == "cortex_twinguard" or name == "cortex_dragonsmaw" or name == "cortex_agitator" or name == "cortex_riptide" or name == "cortex_oppressor" or name == "cortex_supporter" or name == "armada_corsair" or name == "armada_ellysaw" or name == "armada_dolphin" or name == "armada_manta" or name == "cortex_coral" then
 		for weapons, weaponDef in pairs(uDef.weapondefs) do
         -- Assuming weaponDef is a table that directly contains the damage table
 			if weaponDef.damage and weaponDef.damage.default then
@@ -763,7 +763,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	if name == "cormist" then
+	if name == "cortex_lasher" then
 		uDef.energycost = 1400
 		uDef.buildtime = 2000
 		uDef.nochasecategory = "NOTAIR"

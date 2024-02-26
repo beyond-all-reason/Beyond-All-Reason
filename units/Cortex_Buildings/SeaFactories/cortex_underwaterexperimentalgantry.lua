@@ -37,7 +37,7 @@ return {
 			[1] = "cortex_juggernaut",
 			[2] = "cortex_shiva",
 			[3] = "corsala",
-			[4] = "corparrow",
+			[4] = "cortex_poisonarrow",
 			[5] = "cortex_cataphract",
 		},
 		customparams = {

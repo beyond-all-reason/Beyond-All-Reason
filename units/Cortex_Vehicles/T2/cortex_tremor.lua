@@ -1,10 +1,10 @@
 return {
-	cortrem = {
+	cortex_tremor = {
 		maxacc = 0.0098,
 		maxdec = 0.0196,
 		energycost = 49000,
 		metalcost = 1850,
-		buildpic = "CORTREM.DDS",
+		buildpic = "cortex_tremor.DDS",
 		buildtime = 31100,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK EMPABLE",
@@ -27,9 +27,9 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORTREM.s3o",
+		objectname = "Units/cortex_tremor.s3o",
 		onoffable = true,
-		script = "Units/CORTREM.cob",
+		script = "Units/cortex_tremor.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 351,
@@ -65,7 +65,7 @@ return {
 				height = 8,
 				hitdensity = 100,
 				metal = 1006,
-				object = "Units/cortrem_dead.s3o",
+				object = "Units/cortex_tremor_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
