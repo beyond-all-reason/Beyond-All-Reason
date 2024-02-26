@@ -1,10 +1,10 @@
 return {
-	corjugg = {
+	cortex_behemoth = {
 		maxacc = 0.0552,
 		maxdec = 0.43125,
 		energycost = 513000,
 		metalcost = 20000,
-		buildpic = "CORJUGG.DDS",
+		buildpic = "cortex_behemoth.DDS",
 		buildtime = 630000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -24,10 +24,10 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "HBOT5",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORJUGG.s3o",
+		objectname = "Units/cortex_behemoth.s3o",
 		power = 114200, --compensation for XP rank with high AoE weapons
 		pushresistant = true,
-		script = "Units/CORJUGG.cob",
+		script = "Units/cortex_behemoth.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,
@@ -60,7 +60,7 @@ return {
 				height = 8,
 				hitdensity = 100,
 				metal = 13959,
-				object = "Units/corjugg_dead.s3o",
+				object = "Units/cortex_behemoth_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

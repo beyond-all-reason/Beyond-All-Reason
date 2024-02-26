@@ -111,7 +111,7 @@ local collectors = {
 	"cortex_advancedconstructionaircraft_scav",
 	"corcs_scav",
 	"coracsub_scav",
-	"corch_scav",
+	"cortex_constructionhovercraft_scav",
 	"cortex_twitcher_scav",
 	"armassistdrone_scav",
 	"corassistdrone_scav",

@@ -808,22 +808,22 @@
 	},
 
 	// T3 bot - cortex_experimentalgantry
-	"corshiva": {
+	"cortex_shiva": {
 		"role": ["riot", "heavy"]
 	},
-	"corkarg": {
+	"cortex_karganeth": {
 		"role": ["raider", "heavy"]
 	},
 	"cortex_catapult": {
 		"role": ["artillery", "heavy"],
 		"power": 2.0
 	},
-	"corkorg": {
+	"cortex_juggernaut": {
 		"role": ["assault", "heavy"],
 		"attribute": ["melee"],
 		"power": 2.2
 	},
-	"corjugg": {
+	"cortex_behemoth": {
 		"role": ["heavy"],
 		"attribute": ["melee"],
 		"power": 2.5
@@ -936,7 +936,7 @@
 		"limit": 10,
 		"build_speed": 10.0
 	},
-	"corshark": {
+	"cortex_predator": {
 		"role": ["sub"],
 		"attribute": ["anti_sub"]
 	},
@@ -966,26 +966,26 @@
 	},
 
 	// CORTEX HOVERS
-	"corch": {
+	"cortex_constructionhovercraft": {
 		"role": ["builder"],
 		"limit": 10,
 		"build_speed": 8.0
 	},
-	"corsh": {
+	"cortex_goon": {
 		"role": ["scout"]
 	},
-	"corsnap": {
+	"cortex_cayman": {
 		"role": ["assault"]
 	},
-	"cormh": {
+	"cortex_mangonel": {
 		"role": ["artillery"],
 		"limit": 10
 	},
-	"corah": {
+	"cortex_birdeater": {
 		"role": ["anti_air"],
 		"attribute": ["skirmish"]
 	},
-	"corhal": {
+	"cortex_halberd": {
 		"role": ["assault"]
 	},
 

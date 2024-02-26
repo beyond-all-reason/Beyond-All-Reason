@@ -745,8 +745,8 @@ projectileDefLights[WeaponDefNames["corvroc_cortruck_rocket"].id] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
---corkorg
-projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
+--cortex_juggernaut
+projectileDefLights[WeaponDefNames["cortex_juggernaut_cortex_juggernaut_laser"].id] =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
 											r = 1.0, g = 0.65, b = 0.1,
 											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 10,
@@ -754,27 +754,27 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
 											lifetime = 60, sustain = 4})
 
-muzzleFlashLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
+muzzleFlashLights[WeaponDefNames["cortex_juggernaut_cortex_juggernaut_laser"].id] =
 GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
 											 r = 1.2, g = 1.1, b = 0.5, a = 0.9,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 10,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
 											 lifetime = 120, sustain = 4})
 
-muzzleFlashLights[WeaponDefNames["corkorg_corkorg_laser"].id].yOffset = 32
+muzzleFlashLights[WeaponDefNames["cortex_juggernaut_cortex_juggernaut_laser"].id].yOffset = 32
 
---corkorg_shotgun
-projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] =
+--cortex_juggernaut_shotgun
+projectileDefLights[WeaponDefNames["cortex_juggernaut_cortex_juggernaut_fire"].id] =
 GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04,
 											modelfactor = 0.2, specular = 0.05, scattering = 0.3, lensflare = 3})
 
---corkorg_rocket
-projectileDefLights[WeaponDefNames["corkorg_corkorg_rocket"].id] =
+--cortex_juggernaut_rocket
+projectileDefLights[WeaponDefNames["cortex_juggernaut_cortex_juggernaut_rocket"].id] =
 GetLightClass("MissileProjectile", "Warm", "SmallMedium", {a = 0.60,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.45, lensflare = 5})
 
---corkorg_scav
-projectileDefLights[WeaponDefNames["corkorg_scav_corkorg_laser"].id] =
+--cortex_juggernaut_scav
+projectileDefLights[WeaponDefNames["cortex_juggernaut_scav_cortex_juggernaut_laser"].id] =
 GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
@@ -971,12 +971,12 @@ GetLightClass("MissileProjectile", "Purple", "Tiny", {a = 0.7,
 										color2r = 0.5, color2g = 0.2, color2b = 0.8, colortime = 1.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 2})
 
---cordemon
-projectileDefLights[WeaponDefNames["cordemont4_dmaw"].id] =
+--cortex_demon
+projectileDefLights[WeaponDefNames["cortex_demont4_dmaw"].id] =
 GetLightClass("FlameProjectile", nil, "SmallMedium", {posy = 80, a = 0.08, colortime = 15, lifetime = 40})
 
---corjugg
-explosionLights[WeaponDefNames["corjugg_juggernaut_fire"].id] =
+--cortex_behemoth
+explosionLights[WeaponDefNames["cortex_behemoth_juggernaut_fire"].id] =
 GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 7,
 										sustain = 8, lifetime = 26, scattering = 0.7})
@@ -1000,7 +1000,7 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 -- 1.	posy on FlameProjectile does not have any effect
 -- 2.	Cannon/Missile Projectiles with color2 seem to not loop the effect, but only play it once, making it hard(er) to use it
 --		currently disabled this for CannonProjectile, so lights don't disappear half-way down trajectory
---		For FlameProjectile this does work very nice to add more colorvariation - and with manual lifetime tweaks makes it work for pyro + cordemont4
+--		For FlameProjectile this does work very nice to add more colorvariation - and with manual lifetime tweaks makes it work for pyro + cortex_demont4
 -- 3.	DGun only has explosion GL4 lights, projectile lights do not seem to show/work properly (also muzzleflash does not work on DGun weapons)
 -- 4.	When projectiles hit water, they get asigned a different explosion CEG, but also lighting is removed. I think some subtle blue-ish explo light on water can make it look better.. but how?
 

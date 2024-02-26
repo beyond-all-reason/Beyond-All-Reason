@@ -1011,7 +1011,7 @@ local icontypes = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
-	corah = {
+	cortex_birdeater = {
 		bitmap = "icons/hover_aa.png",
 		size = 1.15499997
 	},
@@ -1135,7 +1135,7 @@ local icontypes = {
 		bitmap = "icons/cortex_catapult_1.9.png",
 		size = 1.99499989
 	},
-	corch = {
+	cortex_constructionhovercraft = {
 		bitmap = "icons/hover_worker.png",
 		size = 1.25999999
 	},
@@ -1195,8 +1195,8 @@ local icontypes = {
 		bitmap = "icons/cortex_commander.png",
 		size = 1.83749986
 	},
-	cordemon = {
-		bitmap = "icons/cordemon.png",
+	cortex_demon = {
+		bitmap = "icons/cortex_demon.png",
 		size = 2.625
 	},
 	cortex_jellyfish = {
@@ -1395,8 +1395,8 @@ local icontypes = {
 		bitmap = "icons/defence_0_0.8.png",
 		size = 0.83999997
 	},
-	corhal = {
-		bitmap = "icons/corhal.png",
+	cortex_halberd = {
+		bitmap = "icons/cortex_halberd.png",
 		size = 1.39649999
 	},
 	corhllllt = {
@@ -1439,7 +1439,7 @@ local icontypes = {
 		bitmap = "icons/jammer.png",
 		size = 0.94499993
 	},
-	corjugg = {
+	cortex_behemoth = {
 		bitmap = "icons/juggernaut.png",
 		size = 3.14999986
 	},
@@ -1447,15 +1447,15 @@ local icontypes = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
-	corkarg = {
-		bitmap = "icons/corkarg_2.05.png",
+	cortex_karganeth = {
+		bitmap = "icons/cortex_karganeth_2.05.png",
 		size = 2.424999
 	},
-	corkarganetht4 = {
-		bitmap = "icons/corkarganetht4.png",
+	cortex_karganethanetht4 = {
+		bitmap = "icons/cortex_karganethanetht4.png",
 		size = 3.14999986
 	},
-	corkorg = {
+	cortex_juggernaut = {
 		bitmap = "icons/mech.png",
 		size = 3.46499968
 	},
@@ -1503,7 +1503,7 @@ local icontypes = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
-	cormh = {
+	cortex_mangonel = {
 		bitmap = "icons/hover_t1_missile.png",
 		size = 1.41750002
 	},
@@ -1707,7 +1707,7 @@ local icontypes = {
 		bitmap = "icons/air_sea.png",
 		size = 1.29999995
 	},
-	corsh = {
+	cortex_goon = {
 		bitmap = "icons/hover_raid.png",
 		size = 1.10249984
 	},
@@ -1715,12 +1715,12 @@ local icontypes = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
 	},
-	corshark = {
+	cortex_predator = {
 		bitmap = "icons/sub_t2.png",
 		size = 1.78499997
 	},
-	corshiva = {
-		bitmap = "icons/corshiva_2.1.png",
+	cortex_shiva = {
+		bitmap = "icons/cortex_shiva_2.1.png",
 		size = 2.20499969
 	},
 	cortex_shroud = {
@@ -1743,12 +1743,12 @@ local icontypes = {
 		bitmap = "icons/ship_t4_slrpc.png",
 		size = 3.20000005
 	},
-	corsnap = {
+	cortex_cayman = {
 		bitmap = "icons/hover_gun.png",
 		size = 1.10249984
 	},
-	corsok = {
-		bitmap = "icons/corsok_1.8.png",
+	cortex_cataphract = {
+		bitmap = "icons/cortex_cataphract_1.8.png",
 		size = 1.88999987
 	},
 	cortex_solarcollector = {
@@ -1799,7 +1799,7 @@ local icontypes = {
 		bitmap = "icons/corthermite.png",
 		size = 2.42499924
 	},
-	corthovr = {
+	cortex_caravan = {
 		bitmap = "icons/hovertrans.png",
 		size = 1.78499997
 	},
@@ -2200,7 +2200,7 @@ local icontypes = {
 		size = 1.85000002
 	},
 	legpede = {
-		bitmap = "icons/corkarg_2.05.png",
+		bitmap = "icons/cortex_karganeth_2.05.png",
 		size = 3
 	},
 	legphoenix = {

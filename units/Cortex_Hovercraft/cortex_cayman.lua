@@ -1,10 +1,10 @@
 return {
-	corsnap = {
+	cortex_cayman = {
 		maxacc = 0.04624,
 		maxdec = 0.04624,
 		energycost = 3300,
 		metalcost = 320,
-		buildpic = "CORSNAP.DDS",
+		buildpic = "cortex_cayman.DDS",
 		buildtime = 3800,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSNAP.s3o",
-		script = "Units/CORSNAP.cob",
+		objectname = "Units/cortex_cayman.s3o",
+		script = "Units/cortex_cayman.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 491,
@@ -53,7 +53,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 192,
-				object = "Units/corsnap_dead.s3o",
+				object = "Units/cortex_cayman_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

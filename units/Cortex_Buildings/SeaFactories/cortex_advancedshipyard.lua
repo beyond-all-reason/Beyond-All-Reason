@@ -35,7 +35,7 @@ return {
 			[1] = "coracsub",
 			[2] = "cormls",
 			[3] = "corcrus",
-			[4] = "corshark",
+			[4] = "cortex_predator",
 			[5] = "corssub",
 			[6] = "corarch",
 			[7] = "corsjam",

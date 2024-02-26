@@ -330,7 +330,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					default = 999999,
 				},
 			},
-			corkorg_laser = {
+			cortex_juggernaut_laser = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
@@ -386,7 +386,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			},
 			[4] = {
 				badtargetcategory = "NOTAIR GROUNDSCOUT",
-				def = "corkorg_laser",
+				def = "cortex_juggernaut_laser",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

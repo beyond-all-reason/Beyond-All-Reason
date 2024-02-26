@@ -23,7 +23,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 }
 
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_karganeth_anim_walk.blend
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:7
 			turn lbturret to x-axis <-2.000000> speed <60.000000> / animSpeed; 

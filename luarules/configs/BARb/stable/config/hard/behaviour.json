@@ -922,7 +922,7 @@
 			"limit": 10,
 			"build_speed": 6.0  //bp 110
 		},
-		"corch": {
+		"cortex_constructionhovercraft": {
 			"role": ["builder"],
 			"limit": 10,
 			"build_speed": 6.0
@@ -1519,15 +1519,15 @@
 
 
 		// T3 CORE EXPERIMENTAL - cortex_experimentalgantry
-		"corsok": {
+		"cortex_cataphract": {
 			"role": ["skirmish"],
 			"retreat": 0.6
 		},
-		"corshiva": {
+		"cortex_shiva": {
 			"role": ["assault", "heavy"],
 			"retreat": 0.6
 		},
-		"corkarg": {
+		"cortex_karganeth": {
 			"role": ["raider", "heavy"]
 		},
 		"cortex_catapult": {
@@ -1536,13 +1536,13 @@
 			"threat": {"surf": 0.5, "vs":{"static":4.0, "artillery":4.0}},
             "power": 0.5
 		},
-		"corkorg": {
+		"cortex_juggernaut": {
 			"role": ["super"],
 			"attribute": ["melee"],
             "power": 1.5,
 			"retreat": 0.00
 		},
-		"corjugg": {
+		"cortex_behemoth": {
 			"role": ["super"],
 			"attribute": ["melee"],
             "power": 1.5,
@@ -1684,7 +1684,7 @@
 
 		// CORE ADV SHIPYARD - cortex_advancedshipyard
 
-		"corshark": {
+		"cortex_predator": {
 			"role": ["anti_sub", "sub"],
 			"attribute": ["anti_sub"]
 		},
@@ -1791,22 +1791,22 @@
 
 		// CORTEX HOVERS
 
-		"corsh": {
+		"cortex_goon": {
 			"role": ["raider"]
 		},
-		"corsnap": {
+		"cortex_cayman": {
 			"role": ["skirmish"]
 		},
-		"cormh": {
+		"cortex_mangonel": {
 			"role": ["artillery"],
 			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
             "limit": 6
 		},
-		"corah": {
+		"cortex_birdeater": {
 			"role": ["anti_air"],
 			"attribute":["support"]
 		},
-		"corhal": {
+		"cortex_halberd": {
 			"role": ["heavy", "skirmish"]
 		},
 

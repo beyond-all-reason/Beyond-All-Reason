@@ -26,7 +26,7 @@ local unitOrderTable = {
 	['corcs']          = 001190,
 
 	['armada_constructionhovercraft']          = 002000, --HOVER
-	['corch']          = 002050,
+	['cortex_constructionhovercraft']          = 002050,
 
 	['armada_lazarus']       = 002100, --REZ BOTS
 	['cortex_graverobber']       = 002150,
@@ -142,7 +142,7 @@ local unitOrderTable = {
 	['corfav']         = 004420,
 
 	['armada_seeker']          = 004500, --HOVER
-	['corsh']          = 004510,
+	['cortex_goon']          = 004510,
 
 	-- EMP
 	['cortex_shuriken']          = 004800, --EMP
@@ -163,7 +163,7 @@ local unitOrderTable = {
 	['armada_stout']       = 005220,
 	['corraid']        = 005230,
 	['armada_crocodile']        = 005240,
-	['corsnap']        = 005250,
+	['cortex_cayman']        = 005250,
 	['leghelios']	   = 005251,
 	['leggat']		   = 005252,
 
@@ -176,7 +176,7 @@ local unitOrderTable = {
 	['armada_shellshocker']         = 005420,
 	['corwolv']        = 005430,
 	['armada_possum']          = 005420,
-	['cormh']          = 005430,
+	['cortex_mangonel']          = 005430,
 	['legbar']         = 005440,
 
 	['armada_centurion']         = 005600, --STRONK
@@ -249,26 +249,26 @@ local unitOrderTable = {
 	['legfloat']       = 006941,
 
    -- T2 HOVER
-   ['corhal']         = 006950,
+   ['cortex_halberd']         = 006950,
 
 	--T3 LAND ATTACK
 	['armada_marauder']         = 007000,
 	['cortex_catapult']         = 007010,
 	['armada_razorback']         = 007020,
-	['corkarg']        = 007030,
+	['cortex_karganeth']        = 007030,
 	['armada_vanguard']        = 007040,
-	['corshiva']       = 007050,
+	['cortex_shiva']       = 007050,
 	['legkeres']	   = 007051,
 	['legpede']        = 007055,
 	['armada_thor']        = 007060,
 	['leegmech']       = 007065,
-	['corkorg']        = 007070,
+	['cortex_juggernaut']        = 007070,
 	['armada_titan']       = 007080,
-	['corjugg']        = 007090,
+	['cortex_behemoth']        = 007090,
 
 	--T3 HOVER
 	['armada_lunkhead']         = 007100, --hover
-	['corsok']         = 007110, --hover
+	['cortex_cataphract']         = 007110, --hover
 
 	--T4 LAND ATTACK (SCAVS)
 	['armmeatball']    = 007200,
@@ -278,8 +278,8 @@ local unitOrderTable = {
 	['armada_pawnt4']        = 007300,
    ['cortex_gruntt4']        = 007310,
 	['armada_recluset4']      = 007320,
-	['cordemon']     = 007330,
-	['corkarganetht4'] = 007340,
+	['cortex_demon']     = 007330,
+	['cortex_karganethanetht4'] = 007340,
 	['corthermite'] = 007341,
 
 	['armada_tumbleweedt4']     = 007400,
@@ -301,7 +301,7 @@ local unitOrderTable = {
 	['corsent']        = 008210,
 
 	['armada_sweeper']          = 008300,
-	['corah']          = 008310,
+	['cortex_birdeater']          = 008310,
 
 	-- -- T2 AA
 	-- ['armada_archangel']         = 008500,
@@ -367,7 +367,7 @@ local unitOrderTable = {
 	['armada_cormorant']       = 009900,
 	['cortex_angler']       = 009910,
 	['armada_barracuda']        = 009920,
-	['corshark']       = 009930,
+	['cortex_predator']       = 009930,
 	['armada_serpent']        = 009940,
 	['corssub']        = 009950,
 
@@ -382,7 +382,7 @@ local unitOrderTable = {
 	['cortship']       = 010550,
 
 	['armada_bearer']       = 010560,
-	['corthovr']       = 010570,
+	['cortex_caravan']       = 010570,
 
 	['cortex_intruder']        = 010600,
 

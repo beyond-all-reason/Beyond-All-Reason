@@ -62,10 +62,10 @@ Scoring:
 			-- so you must spawn the initial commanders then!
 
             {name = 'cortex_commander', x = 12330, y = 118, z = 1000, rot = 0 , team = 1},
-            {name = 'corjugg', x = 13150, y = 118, z = 182, rot = 0 , team = 1},
-            {name = 'corjugg', x = 13150, y = 118, z = 644, rot = 0 , team = 1},
-            {name = 'corjugg', x = 13150, y = 118, z = 1378, rot = 0 , team = 1},
-            {name = 'corjugg', x = 13150, y = 118, z = 1861, rot = 0 , team = 1},
+            {name = 'cortex_behemoth', x = 13150, y = 118, z = 182, rot = 0 , team = 1},
+            {name = 'cortex_behemoth', x = 13150, y = 118, z = 644, rot = 0 , team = 1},
+            {name = 'cortex_behemoth', x = 13150, y = 118, z = 1378, rot = 0 , team = 1},
+            {name = 'cortex_behemoth', x = 13150, y = 118, z = 1861, rot = 0 , team = 1},
             {name = 'armada_commander', x = 1044, y = 118, z = 1000, rot = 0 , team = 0},
             {name = 'cortex_beholder', x = 550, y = 118, z = 1000, rot = 0 , team = 1},
             {name = 'armada_solarcollector', x = 936, y = 118, z = 984, rot = -16384 , team = 0},

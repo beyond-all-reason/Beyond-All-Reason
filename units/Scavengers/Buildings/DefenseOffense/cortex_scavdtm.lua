@@ -117,7 +117,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cormh_weapon = {
+			cortex_mangonel_weapon = {
 				areaofeffect = 80,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-starburst",
@@ -158,7 +158,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "CORMH_WEAPON",
+				def = "cortex_mangonel_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},

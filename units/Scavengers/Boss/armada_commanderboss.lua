@@ -60,7 +60,7 @@ return {
 		workertime = 2000,
 		buildoptions = {
 			[1] = "armada_titan",
-			[2] = "corkorg",
+			[2] = "cortex_juggernaut",
 		},
 		customparams = {
 			unitgroup = 'buildert4',

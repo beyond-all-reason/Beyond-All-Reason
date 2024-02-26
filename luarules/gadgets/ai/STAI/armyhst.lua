@@ -21,7 +21,7 @@ function ArmyHST:Init()
 	self.techs = {
 		cortex_constructionaircraft = true,
 		armada_constructionhovercraft = true,
-		corch = true,
+		cortex_constructionhovercraft = true,
 		armada_advancedconstructionsub = true,
 		armada_constructionaircraft = true,
 		corcsa = true, --plat
@@ -107,7 +107,7 @@ function ArmyHST:Init()
 		cortex_hercules = true,
 		armada_stork = true,
 		armada_bearer = true,
-		corthovr = true,
+		cortex_caravan = true,
 		cortex_intruder = true,
 		armada_abductor = true,
 		cortship = true,
@@ -137,13 +137,13 @@ function ArmyHST:Init()
 		cortex_fiend = true,
 		armada_welder = true,
 		armada_seeker = true,
-		corsh = true,
+		cortex_goon = true,
 		corsub = true,
 		armada_eel = true,
 		armada_barracuda = true,
-		corshark = true,
+		cortex_predator = true,
 		armada_razorback = true,
-		corkarg = true,
+		cortex_karganeth = true,
 
 		}
 	self.artillerys = {
@@ -161,7 +161,7 @@ function ArmyHST:Init()
 		armada_dreadnought = true,
 
 		--cortrem = true,
-		corjugg = true,
+		cortex_behemoth = true,
 
 		}
 	self.rocketers = {
@@ -172,7 +172,7 @@ function ArmyHST:Init()
 		cormship = true,
 		armada_longbow = true,
 		armada_possum = true,
-		cormh = true,
+		cortex_mangonel = true,
 		}
 
 	self.battles = {
@@ -185,7 +185,7 @@ function ArmyHST:Init()
 		armada_bull = true,
 		correap = true,
 		armada_crocodile = true,--ha
-		corsnap = true,--hc
+		cortex_cayman = true,--hc
 		armada_ellysaw = true,--t1a
 		corpship = true,--t1c
 		corcrus = true,
@@ -194,7 +194,7 @@ function ArmyHST:Init()
 
 
 
-		--corhal = true,
+		--cortex_halberd = true,
 
 
 
@@ -210,7 +210,7 @@ function ArmyHST:Init()
 		corgol = true,
 		armada_starlight = true,
 		armada_lunkhead = true,--hover
-		corsok = true,--hover
+		cortex_cataphract = true,--hover
 		armada_corsair = true,
 		corroy = true,
 
@@ -219,7 +219,7 @@ function ArmyHST:Init()
 		corblackhy = true,
 		armada_epoch = true,
 		armada_thor = true, --t3a
-		corkorg = true,--t3c
+		cortex_juggernaut = true,--t3c
 
 		}
 	self.amphibious = {
@@ -230,7 +230,7 @@ function ArmyHST:Init()
 		corgarp = true,
 		cortex_duck = true,
 		armada_marauder = true,
-		corshiva = true,
+		cortex_shiva = true,
 
 		}
 
@@ -294,7 +294,7 @@ function ArmyHST:Init()
 
 	self.antiairs = {
 		armada_sweeper = true,
-		corah = true,
+		cortex_birdeater = true,
 		armada_dragonslayer = true,
 		armada_whistler = true,
 		corsent = true,
@@ -880,7 +880,7 @@ ArmyHST.mobUnitNames = {
 	veh = {"corcv", "armada_sentry"},
 	bot = {"cortex_constructionbot", "armada_beholder"},
 	amp = {"cormuskrat"},
-	hov = {"corsh", "armada_sharksteeth"},
+	hov = {"cortex_goon", "armada_sharksteeth"},
 	shp = {"corcs"},
 	sub = {"coracsub"},
 	}

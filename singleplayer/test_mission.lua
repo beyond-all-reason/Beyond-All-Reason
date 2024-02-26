@@ -51,7 +51,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			name = 'hero',
-			unitDefName = 'corkorg',
+			unitDefName = 'cortex_juggernaut',
 			x = 100,
 			z = 100,
 		},

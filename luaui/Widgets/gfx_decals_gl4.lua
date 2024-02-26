@@ -968,7 +968,7 @@ for weaponDefID=1, #WeaponDefs do
 		elseif string.find(weaponDef.name, 'armada_gunslinger_weapon') then -- armada_gunslinger has very tiny AoE
 			radius = (radius * 6)
 
-		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
+		elseif string.find(weaponDef.name, 'cortex_juggernaut_fire') then -- Juggernaut has lots of decals on shotgun
 			alphadecay = 0.004
 
 		elseif string.find(weaponDef.name, 'exp_heavyrocket') then -- Catapult has lower AoE but big explo
@@ -1070,7 +1070,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 2.5
 			--bwfactor = 0.15
 
-		elseif string.find(weaponDef.name, 'corkorg_laser') then
+		elseif string.find(weaponDef.name, 'cortex_juggernaut_laser') then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
 			radius = radius * 1.1 --* (math.random() * 20 + 0.2)
@@ -1082,7 +1082,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.1
 
 		elseif string.find(weaponDef.name, 'footstep') then
-			--textures = { "f_corkorg_a.tga" }
+			--textures = { "f_cortex_juggernaut_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }
 			--radius = 70
 			radius = (radius * 0.7)
@@ -1175,9 +1175,9 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 end
 
 local UnitScriptDecalsNames = {
-	['corkorg'] = {
+	['cortex_juggernaut'] = {
 		[1] = {
-			texture = footprintsPath..'f_corkorg_a.png',
+			texture = footprintsPath..'f_cortex_juggernaut_a.png',
 			offsetx = 2, --offset from what the UnitScriptDecal returns
 			offsetz = -25, --
 			offsetrot = 0, -- in radians
@@ -1736,9 +1736,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		},
-	['corshiva'] = {
+	['cortex_shiva'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corshiva_a.png',
+			texture = footprintsPath..'f_cortex_shiva_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1755,9 +1755,9 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 			},
 		},
-	['corjugg'] = {
+	['cortex_behemoth'] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corjugg_a.png',
+			texture = footprintsPath..'f_cortex_behemoth_a.png',
 			offsetx = -1, --offset from what the UnitScriptDecal returns
 			offsetz = -3, --
 			offsetrot = 0.0, -- in radians

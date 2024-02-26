@@ -187,7 +187,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 100,
-				model = "corshiprocket.s3o",
+				model = "cortex_gooniprocket.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
 				noselfdamage = true,
 				paralyzer = true,

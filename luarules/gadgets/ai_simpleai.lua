@@ -57,7 +57,7 @@ if gameShortName == "BYAR" then
 	BadUnitsList = {
 		-- transports
 		"armada_bearer",
-		"corthovr",
+		"cortex_caravan",
 		"armada_stork",
 		"armada_convoy",
 		"cortex_hercules",

@@ -4304,7 +4304,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corshark'] = {
+	['cortex_predator'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -7951,7 +7951,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corkarg'] = {
+	['cortex_karganeth'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -7971,7 +7971,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corjugg'] = {
+	['cortex_behemoth'] = {
 		antenna1 = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -8011,7 +8011,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corkorg'] = {
+	['cortex_juggernaut'] = {
 		head1 = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -17510,7 +17510,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['corshiva'] = {
+	['cortex_shiva'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -18139,7 +18139,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corhal'] = {
+	['cortex_halberd'] = {
 		back1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18177,7 +18177,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsh'] = {
+	['cortex_goon'] = {
 		thruster = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18188,7 +18188,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corch'] = {
+	['cortex_constructionhovercraft'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -18387,7 +18387,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corah'] = {
+	['cortex_birdeater'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18849,11 +18849,11 @@ local unitEventLights = {
 		},
 
 
-		['cordemon'] = {
+		['cortex_demon'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lfbarrel2',
-				lightName = 'cordemonl2glow',
+				lightName = 'cortex_demonl2glow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 43,
 					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
@@ -18864,7 +18864,7 @@ local unitEventLights = {
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'rfbarrel2',
-				lightName = 'cordemonr2glow',
+				lightName = 'cortex_demonr2glow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 43,
 					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,

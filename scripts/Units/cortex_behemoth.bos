@@ -9,7 +9,7 @@ piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
             Static_Var_6, Static_Var_7, mainturretheading;
-// Generated for N:\animations\corjugg_anim_walk_v2.blend
+// Generated for N:\animations\cortex_behemoth_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -19,7 +19,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 #define SIG_WALK 2
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corjugg_anim_walk_v2.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_behemoth_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:10
 			turn lbfoot to x-axis <-12.491154> speed <374.734623> / animSpeed; //delta=12.49 
@@ -785,7 +785,7 @@ QueryWeapon4(piecenum)
 }
 
 static-var bAnimate;
-//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corjugg_anim_death.blend
+//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\cortex_behemoth_anim_death.blend
 Killed(severity, corpsetype)
 {
 		signal SIG_WALK;

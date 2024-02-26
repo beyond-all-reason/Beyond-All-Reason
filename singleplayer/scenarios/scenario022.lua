@@ -67,7 +67,7 @@ Scoring:
 		cortex_overseer = 10,
 		cortex_catalyst = 2,
 		cortex_screamer = 0,
-		corsok = 0,
+		cortex_cataphract = 0,
 		armada_ragnarok = 0,
 		armada_basilica = 0,
 		armada_advancedfusionreactor = 1,

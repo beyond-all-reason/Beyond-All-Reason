@@ -37,10 +37,10 @@ return {
 		"armada_possum",
 		"armada_sweeper",
 		"armada_crocodile",
-		"corsh",
-		"cormh",
-		"corah",
-		"corsnap",
+		"cortex_goon",
+		"cortex_mangonel",
+		"cortex_birdeater",
+		"cortex_cayman",
 
 		-- Air
 		"armada_stormbringer",
@@ -117,7 +117,7 @@ return {
 		"legsco",
 
 		-- Hovercraft
-		"corhal",
+		"cortex_halberd",
 		"legfloat",
 
 		-- Air
@@ -144,7 +144,7 @@ return {
 		"corroy",
 		--"corsjam",
 		"cormls",
-		"corshark",
+		"cortex_predator",
 		"corarch",
 		"corcrus",
 		--"cortex_oasis",
@@ -153,7 +153,7 @@ return {
 		"corseal",
 
 		-- Hovercraft
-		"corhal",
+		"cortex_halberd",
 	},
 
 	T3 = {
@@ -171,8 +171,8 @@ return {
 		"armada_marauder",
 		"armada_vanguard",
 		"armada_razorback",
-		"corshiva",
-		"corkarg",
+		"cortex_shiva",
+		"cortex_karganeth",
 		"cortex_catapult",
 		"legpede",
 
@@ -182,7 +182,7 @@ return {
 
 		-- Hovercraft
 		"armada_lunkhead",
-		"corsok",
+		"cortex_cataphract",
 		"armada_recluset4",
 		"armada_lunchbox",
 		"armmeatball",
@@ -213,12 +213,12 @@ return {
 
 		-- Hovercraft
 		"armada_lunkhead",
-		"corsok",
+		"cortex_cataphract",
 	},
 
 	T4 = {
-		"corkorg",
-		"corjugg",
+		"cortex_juggernaut",
+		"cortex_behemoth",
 		"armada_titan",
 		"armada_thor",
 		"leegmech",
@@ -230,8 +230,8 @@ return {
 		"armfepocht4",
 		"corfblackhyt4",
 		"cortex_dragont4",
-		"cordemon",
-		"corkarganetht4",
+		"cortex_demon",
+		"cortex_karganethanetht4",
 		"corgolt4",
 		"cortex_gruntt4",
 
@@ -248,7 +248,7 @@ return {
 		"armfepocht4",
 		"corfblackhyt4",
 		"armada_tumbleweedt4",
-		"corkorg",
+		"cortex_juggernaut",
 		"armada_titan",
 		"armada_serpentt3",
 		"coresuppt3",

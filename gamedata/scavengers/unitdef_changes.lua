@@ -156,7 +156,7 @@ customDefs.corscavdtl = {
 -- 	"armada_advancedconstructionbot",
 -- 	"cortex_advancedconstructionbot",
 -- 	"armada_constructionhovercraft",
--- 	"corch",
+-- 	"cortex_constructionhovercraft",
 -- 	"armada_constructionseaplane",
 -- 	"corcsa",
 -- 	"armada_constructionship",
@@ -595,8 +595,8 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.cortex_experimentalgantry.buildoptions
 -- customDefs.cortex_experimentalgantry = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "cordemon",
--- 		[numBuildoptions+2] = "corkarganetht4",
+-- 		[numBuildoptions+1] = "cortex_demon",
+-- 		[numBuildoptions+2] = "cortex_karganethanetht4",
 -- 		[numBuildoptions+3] = "corgolt4",
 -- 		[numBuildoptions+4] = "cortex_gruntt4",
 -- 	},
@@ -910,7 +910,7 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 64,
 -- }
 
--- customDefs.corkarg = {
+-- customDefs.cortex_karganeth = {
 -- 	cloakcost = 24,
 -- 	mincloakdistance = 144,
 -- }
@@ -1184,9 +1184,9 @@ customDefs.armbotrail = {
 -- 	},
 -- }
 
--- customDefs.cormh = {
+-- customDefs.cortex_mangonel = {
 -- 	weapondefs = {
--- 		cormh_weapon = {
+-- 		cortex_mangonel_weapon = {
 -- 			range = 525,
 -- 			reloadtime = 6,
 -- 			damage = {

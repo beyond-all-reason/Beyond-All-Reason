@@ -303,7 +303,7 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'armada_vanguard' or unitDef.name == 'corkarg' then
+				elseif unitDef.name == 'armada_commander' or unitDef.name == 'cortex_commander' or unitDef.name == 'armada_vanguard' or unitDef.name == 'cortex_karganeth' then
 					unitExempt = true
 					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)
@@ -317,7 +317,7 @@ local function refreshUnitInfo()
 						end
 					end
 
-				elseif unitDef.name == 'corkorg' then          --excluding korstomp from dps calcuation for juggernaut
+				elseif unitDef.name == 'cortex_juggernaut' then          --excluding korstomp from dps calcuation for juggernaut
 					unitExempt = true
 					if i==1 then
 						local defDmg

@@ -503,7 +503,7 @@
 
 		"income_tier": [100, 200],
 
-		"unit":      ["corsok", "corshiva", "corkarg", "cortex_catapult", "corkorg", "corjugg"],
+		"unit":      ["cortex_cataphract", "cortex_shiva", "cortex_karganeth", "cortex_catapult", "cortex_juggernaut", "cortex_behemoth"],
 
 		"land": {
 			"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00],
@@ -526,7 +526,7 @@
 
 		"income_tier": [100, 200],
 
-		"unit":      ["corshiva",  "corkorg"],
+		"unit":      ["cortex_shiva",  "cortex_juggernaut"],
 
 		"water": {
 			"tier0": [ 0.50,      0.00],
@@ -609,7 +609,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "cortex_oasis", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "cortex_predator", "corssub",  "corarch", "corcrus", "cortex_oasis", "cormship", "corbats", "corblackhy"],
 
 		"land": {
 			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],
@@ -628,7 +628,7 @@
 
 		"income_tier": [20, 30, 40],
 
-		"unit":      ["corch",  "corsh", "corsnap", "cormh", "corah", "corhal"],
+		"unit":      ["cortex_constructionhovercraft",  "cortex_goon", "cortex_cayman", "cortex_mangonel", "cortex_birdeater", "cortex_halberd"],
 
 		"land": {
 			"tier0": [ 0.01,      1.00,     0.00,       0.00,     0.01,	    0.00],
@@ -646,7 +646,7 @@
 
 		"income_tier": [20, 30, 40],
 
-		"unit":      ["corch", "corsh", "corsnap", "cormh", "corah", "corhal"],
+		"unit":      ["cortex_constructionhovercraft", "cortex_goon", "cortex_cayman", "cortex_mangonel", "cortex_birdeater", "cortex_halberd"],
 
 		"land": {
 			"tier0": [ 0.01,     1.00,     0.00,       0.00,     0.01,	    0.00],

@@ -15,7 +15,7 @@ static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1,
 #define SIG_WALK		4
 
 
-Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
+Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\cortex_karganeth.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	if (bMoving) { //Frame:6
 			turn lbfoot to z-axis <-11.433307> speed <707.000778> / animSpeed; //delta=-23.57 
 			turn lbhip to y-axis <-0.286453> speed <1358.593628> / animSpeed; //delta=-45.29 
@@ -738,7 +738,7 @@ FirePrimary()
 }
 
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
+DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\cortex_karganeth_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
 	signal SIG_WALK;
 	signal SIG_AIM;
 	call-script StopWalking();

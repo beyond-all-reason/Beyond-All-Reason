@@ -7,7 +7,7 @@ attackerlist = {
 	"armada_pawn",
 	"corgator",
 	"cortex_thug",
-	"corkorg",
+	"cortex_juggernaut",
 	"armada_mace",
 	"corraid",
 }

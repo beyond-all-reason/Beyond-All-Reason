@@ -129,7 +129,7 @@ local labGrids = {
 	cortex_advancedshipyard = {
 		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
 		"cortex_oasis", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
-		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
+		"cortex_predator", "corssub", "corarch",                          -- sub killer, battlesub, AA
 	},
 	-- amphibious labs
 	armada_amphibiouscomplex = {
@@ -151,9 +151,9 @@ local labGrids = {
 	},
 
 	cortex_hovercraftplatform = {
-		"corch", "", "corsh", "",
-		"corsnap", "cormh", "corhal", "",
-		"", "", "corah",
+		"cortex_constructionhovercraft", "", "cortex_goon", "",
+		"cortex_cayman", "cortex_mangonel", "cortex_halberd", "",
+		"", "", "cortex_birdeater",
 	},
 	armada_navalhovercraftplatform = {
 		"armada_constructionhovercraft", "", "armada_seeker", "",
@@ -162,9 +162,9 @@ local labGrids = {
 	},
 
 	cortex_navalhovercraftplatform = {
-		"corch", "", "corsh", "",
-		"corsnap", "cormh", "corhal", "",
-		"", "", "corah",
+		"cortex_constructionhovercraft", "", "cortex_goon", "",
+		"cortex_cayman", "cortex_mangonel", "cortex_halberd", "",
+		"", "", "cortex_birdeater",
 	},
 
 	-- T3 labs
@@ -174,12 +174,12 @@ local labGrids = {
 	},
 
 	cortex_experimentalgantry = {
-		"cortex_catapult", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok"
+		"cortex_catapult", "cortex_karganeth", "cortex_shiva", "cortex_juggernaut",
+		"cortex_behemoth", "cortex_cataphract"
 	},
 	leggant = {
-		"cortex_catapult", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok", "legpede", "leegmech",
+		"cortex_catapult", "cortex_karganeth", "cortex_shiva", "cortex_juggernaut",
+		"cortex_behemoth", "cortex_cataphract", "legpede", "leegmech",
 		"legkeres","",""
 	}
 }
@@ -729,7 +729,7 @@ local unitGrids = {
 		}
 	},
 
-	corch = {
+	cortex_constructionhovercraft = {
 		{
 			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
 			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", "cortex_tidalgenerator", },      -- T1 converter, geo, exploiter, (tidal)

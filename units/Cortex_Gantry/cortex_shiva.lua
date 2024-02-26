@@ -1,10 +1,10 @@
 return {
-	corshiva = {
+	cortex_shiva = {
 		maxacc = 0.069,
 		maxdec = 0.8211,
 		energycost = 23000,
 		metalcost = 1550,
-		buildpic = "CORSHIVA.DDS",
+		buildpic = "cortex_shiva.DDS",
 		buildtime = 30600,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 32,
 		movementclass = "HABOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSHIVA.s3o",
-		script = "Units/CORSHIVA.cob",
+		objectname = "Units/cortex_shiva.s3o",
+		script = "Units/cortex_shiva.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 520,
@@ -58,7 +58,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 937,
-				object = "Units/corshiva_dead.s3o",
+				object = "Units/cortex_shiva_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

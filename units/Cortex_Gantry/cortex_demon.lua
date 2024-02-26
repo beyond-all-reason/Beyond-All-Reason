@@ -1,10 +1,10 @@
 return {
-	cordemon = {
+	cortex_demon = {
 		maxacc = 0.2208,
 		maxdec = 1,
 		energycost = 90000,--150000,
 		metalcost = 6000,--10000,
-		buildpic = "CORDEMON.DDS",
+		buildpic = "cortex_demon.DDS",
 		buildtime = 90000,--150000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/cordemon.s3o",
-		script = "Units/cordemon.COB",
+		objectname = "Units/cortex_demon.s3o",
+		script = "Units/cortex_demon.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 500,
@@ -58,7 +58,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 3600,
-				object = "Units/cordemon_dead.s3o",
+				object = "Units/cortex_demon_dead.s3o",
 				reclaimable = true,
 				world = "All Worlds",
 			},

@@ -30,7 +30,7 @@ local unitNames = {
   "corsent",
 
   "armada_sweeper",
-  "corah",
+  "cortex_birdeater",
   "armada_voyager",
   "cormls",
   "armada_dragonslayer",
@@ -50,7 +50,7 @@ local unitNames = {
   "cortex_arbiter",
 
   "armada_possum",
-  "cormh",
+  "cortex_mangonel",
   "armada_corsair",
   "corroy",
   "armada_serpent",

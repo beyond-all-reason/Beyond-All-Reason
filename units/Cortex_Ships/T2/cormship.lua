@@ -176,7 +176,7 @@ return {
 				impulsefactor = 0.123,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "corshiprocket.s3o",
+				model = "cortex_gooniprocket.s3o",
 				name = "Heavy long-range g2g starburst rocket launcher",
 				noselfdamage = true,
 				proximitypriority = 15,

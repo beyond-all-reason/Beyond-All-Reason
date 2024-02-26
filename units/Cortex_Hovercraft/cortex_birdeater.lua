@@ -1,11 +1,11 @@
 return {
-	corah = {
+	cortex_birdeater = {
 		maxacc = 0.06316,
 		airsightdistance = 800,
 		maxdec = 0.06316,
 		energycost = 4700,
 		metalcost = 250,
-		buildpic = "CORAH.DDS",
+		buildpic = "cortex_birdeater.DDS",
 		buildtime = 3650,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		nochasecategory = "NOTAIR",
-		objectname = "Units/CORAH.s3o",
-		script = "Units/CORAH.cob",
+		objectname = "Units/cortex_birdeater.s3o",
+		script = "Units/cortex_birdeater.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 509,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 154,
-				object = "Units/corah_dead.s3o",
+				object = "Units/cortex_birdeater_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -142,7 +142,7 @@ return {
 					bogus = 1
 				}
 			},
-			corah_weapon = {
+			cortex_birdeater_weapon = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burst = 3,
@@ -199,7 +199,7 @@ return {
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAH_WEAPON",
+				def = "cortex_birdeater_WEAPON",
 				onlytargetcategory = "VTOL",
 			},
 		},

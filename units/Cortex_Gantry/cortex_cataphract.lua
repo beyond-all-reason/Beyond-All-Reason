@@ -1,12 +1,12 @@
 return {
-	corsok = {
+	cortex_cataphract = {
 		activatewhenbuilt = true,
 		maxacc = 0.01731,
 		maxdec = 0.01731,
 		energycost = 19000,
 		metalcost = 950,
 		builder = false,
-		buildpic = "CORSOK.DDS",
+		buildpic = "cortex_cataphract.DDS",
 		buildtime = 27000,
 		canattack = true,
 		canguard = true,
@@ -30,9 +30,9 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSOK.s3o",
+		objectname = "Units/cortex_cataphract.s3o",
 		radardistance = 0,
-		script = "Units/corsok.cob",
+		script = "Units/cortex_cataphract.cob",
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 650,
 		sonardistance = 550,
@@ -59,7 +59,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 588,
-				object = "Units/corsok_dead.s3o",
+				object = "Units/cortex_cataphract_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
@@ -117,7 +117,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corsok_laser = {
+			cortex_cataphract_laser = {
 				areaofeffect = 20,
 				avoidfeature = false,
 				burnblow = true,
@@ -197,7 +197,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORSOK_LASER",
+				def = "cortex_cataphract_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {

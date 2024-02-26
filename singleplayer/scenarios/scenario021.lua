@@ -52,7 +52,7 @@ Commander...intel report that it is cortex ba... ,it is...functio...,seek and de
 		cormlv = 5,
 		cortex_hovercraftplatform = 1,
 		cortex_navalhovercraftplatform = 1,
-		corch = 4,
+		cortex_constructionhovercraft = 4,
 		cortex_shipyard = 0,
 		cortex_advancedshipyard = 0,
 		cortex_aircraftplant = 2,

@@ -128,7 +128,7 @@ return {
 				impulseboost = 0.2,
 				impulsefactor = 0.2,
 				metalpershot = 0,
-				model = "corshiprocket.s3o",
+				model = "cortex_gooniprocket.s3o",
 				name = "Heavy long-range g2g high-trajectory starburst rocket launcher",
 				noselfdamage = true,
 				range = 1300,

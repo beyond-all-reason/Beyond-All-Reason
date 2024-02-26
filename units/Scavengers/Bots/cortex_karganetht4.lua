@@ -1,10 +1,10 @@
 return {
-	corkarganetht4 = {
+	cortex_karganethanetht4 = {
 		maxacc = 0.1104,
 		maxdec = 0.8211,
 		energycost = 120000,
 		metalcost = 12000,
-		buildpic = "CORKARGANETHT4.DDS",
+		buildpic = "cortex_karganethANETHT4.DDS",
 		buildtime = 120000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/corkarganetht4.s3o",
-		script = "Units/scavboss/corkarganetht4.COB",
+		objectname = "Units/scavboss/cortex_karganethanetht4.s3o",
+		script = "Units/scavboss/cortex_karganethanetht4.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 550,
@@ -56,7 +56,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 6000,
-				object = "Units/scavboss/corkarganetht4_dead.s3o",
+				object = "Units/scavboss/cortex_karganethanetht4_dead.s3o",
 				reclaimable = true,
 				world = "All Worlds",
 			},

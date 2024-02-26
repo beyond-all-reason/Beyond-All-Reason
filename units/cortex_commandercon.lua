@@ -68,7 +68,7 @@ return {
 			--"cortex_advancedconstructionaircraft",
 			"cortex_constructionbot",
 			--"cortex_advancedconstructionbot",
-			"corch",
+			"cortex_constructionhovercraft",
 			"corcsa",
 			"corcs",
 			--"coracsub",

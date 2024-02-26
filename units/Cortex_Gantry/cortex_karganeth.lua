@@ -1,10 +1,10 @@
 return {
-	corkarg = {
+	cortex_karganeth = {
 		maxacc = 0.1104,
 		maxdec = 0.8211,
 		energycost = 57000,--38000,
 		metalcost = 2500,--1650,
-		buildpic = "CORKARG.DDS",
+		buildpic = "cortex_karganeth.DDS",
 		buildtime = 76000,--50609,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "HTBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORKARG.s3o",
-		script = "Units/CORKARG.COB",
+		objectname = "Units/cortex_karganeth.s3o",
+		script = "Units/cortex_karganeth.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
@@ -57,7 +57,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 1550,
-				object = "Units/corkarg_dead.s3o",
+				object = "Units/cortex_karganeth_dead.s3o",
 				reclaimable = true,
 				world = "All Worlds",
 			},

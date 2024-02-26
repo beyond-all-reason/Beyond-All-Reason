@@ -1,10 +1,10 @@
 return {
-	corsh = {
+	cortex_goon = {
 		maxacc = 0.10226,
 		maxdec = 0.10226,
 		energycost = 1500,
 		metalcost = 75,
-		buildpic = "CORSH.DDS",
+		buildpic = "cortex_goon.DDS",
 		buildtime = 1500,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER2",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSH.s3o",
-		script = "Units/CORSH.cob",
+		objectname = "Units/cortex_goon.s3o",
+		script = "Units/cortex_goon.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 550,
@@ -53,7 +53,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 40,
-				object = "Units/corsh_dead.s3o",
+				object = "Units/cortex_goon_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

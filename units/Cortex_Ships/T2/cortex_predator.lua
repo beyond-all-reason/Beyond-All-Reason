@@ -1,11 +1,11 @@
 return {
-	corshark = {
+	cortex_predator = {
 		maxacc = 0.05,
 		activatewhenbuilt = true,
 		maxdec = 0.05,
 		energycost = 14000,
 		metalcost = 730,
-		buildpic = "CORSHARK.DDS",
+		buildpic = "cortex_predator.DDS",
 		buildtime = 18000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -23,8 +23,8 @@ return {
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSHARK.s3o",
-		script = "Units/CORSHARK.cob",
+		objectname = "Units/cortex_predator.s3o",
+		script = "Units/cortex_predator.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 390,
@@ -56,7 +56,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 375,
-				object = "Units/corshark_dead.s3o",
+				object = "Units/cortex_predator_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

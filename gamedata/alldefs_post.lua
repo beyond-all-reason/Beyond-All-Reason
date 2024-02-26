@@ -430,7 +430,7 @@ function UnitDef_Post(name, uDef)
 			end
 		elseif name == "cortex_experimentalgantry" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corkarganetht4"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_karganethanetht4"
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_gruntt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
@@ -944,7 +944,7 @@ if modOptions.emprework == true then
 			uDef.customparams.paralyzemultiplier = 1.05
 		end
 
-		if name == "corshiva" then
+		if name == "cortex_shiva" then
 			uDef.customparams.paralyzemultiplier = 1.1
 		end
 
@@ -952,13 +952,13 @@ if modOptions.emprework == true then
 			uDef.customparams.paralyzemultiplier = 1.05
 		end
 
-		if name == "corkarg" then
+		if name == "cortex_karganeth" then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
-		if name == "corsok" then
+		if name == "cortex_cataphract" then
 			uDef.customparams.paralyzemultiplier = 1.1
 		end
-		if name == "cordemon" then
+		if name == "cortex_demon" then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
 
@@ -1607,7 +1607,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 255000
 		uDef.buildtime = 265000
 	end
-	if name == "corshiva" then
+	if name == "cortex_shiva" then
 		uDef.metalcost = 1800
 		uDef.energycost = 26500
 		uDef.buildtime = 35000
@@ -1615,12 +1615,12 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.weapondefs.shiva_rocket.tracks = true
 		uDef.weapondefs.shiva_rocket.turnrate = 7500
 	end
-	if name == "corkarg" then
+	if name == "cortex_karganeth" then
 		uDef.metalcost = 2625
 		uDef.energycost = 60000
 		uDef.buildtime = 79000
 	end
-	if name == "cordemon" then
+	if name == "cortex_demon" then
 		uDef.metalcost = 6300
 		uDef.energycost = 94500
 		uDef.buildtime = 94500

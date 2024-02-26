@@ -14,13 +14,13 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 #define SIG_AIM				2
 #define SIG_AIM_3			8
 #define SIG_WALK			16
-// Generated for N:\animations\corshiva_anim_v5_baketest.blend
+// Generated for N:\animations\cortex_shiva_anim_v5_baketest.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animSpeed which contains how many frames each keyframe takes
-// Generated for N:\animations\corshiva_anim_v5_baketest.blend
+// Generated for N:\animations\cortex_shiva_anim_v5_baketest.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animSpeed which contains how many frames each keyframe takes
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corshiva_anim_walk_v6.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_shiva_anim_walk_v6.blend 
 	if (bMoving) {
 			turn lankle to x-axis <9.694950> speed <137.523174> / animSpeed; 
 			turn lankle to z-axis <-0.373805> speed <11.236899> / animSpeed; 
@@ -401,7 +401,7 @@ StopWalking() {
 }
 
 static-var bAnimate;
-Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corshiva_anim_death_v1.blend 
+Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cortex_shiva_anim_death_v1.blend 
 		if (bAnimate) {
 			move lankle to z-axis [0.902645] speed [3.868478] ; 
 			move lankle to y-axis [1.224814] speed [5.249201] ; 

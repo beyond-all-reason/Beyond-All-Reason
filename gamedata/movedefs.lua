@@ -111,7 +111,7 @@ local moveDatas = {
 
 	-- break line
 
-	-- corcs armada_bermuda corpt armada_dolphin armada_torpedoship corshark critter_goldfish armada_constructionship correcl armada_grimreaper  corsupp  corsjam cormls armada_skater
+	-- corcs armada_bermuda corpt armada_dolphin armada_torpedoship cortex_predator critter_goldfish armada_constructionship correcl armada_grimreaper  corsupp  corsjam cormls armada_skater
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
@@ -168,7 +168,7 @@ local moveDatas = {
 	-- 	subMarine = 1,
 	-- },
 	-- Battle Subs
-	--critter_goldfish coracsub armada_advancedconstructionsub armada_serpent corrsub armada_barracuda correcl corshark corsub
+	--critter_goldfish coracsub armada_advancedconstructionsub armada_serpent corrsub armada_barracuda correcl cortex_predator corsub
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -186,7 +186,7 @@ local moveDatas = {
 	-- },
 	--break line
 
-	--corsh armada_sweeper armada_constructionhovercraft armada_seeker
+	--cortex_goon armada_sweeper armada_constructionhovercraft armada_seeker
 	HOVER2 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -198,7 +198,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armada_possum corah corsnap armada_crocodile corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
+	-- cortex_constructionhovercraft cortex_mangonel armada_possum cortex_birdeater cortex_cayman armada_crocodile cortex_halberd lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -239,7 +239,7 @@ local moveDatas = {
 	-- lun/sokolov
 	--break line
 	--
-	-- corsok armada_lunkhead corthovr armada_bearer
+	-- cortex_cataphract armada_lunkhead cortex_caravan armada_bearer
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armada_razorback legpede cortex_catapult leginc armada_fatboy cortex_mammoth legmech cordemon
+	-- armada_razorback legpede cortex_catapult leginc armada_fatboy cortex_mammoth legmech cortex_demon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -477,7 +477,7 @@ local moveDatas = {
 		}
 	},
 	-- see if this one can be merged elsewhere
-	-- corshiva armada_marauder
+	-- cortex_shiva armada_marauder
 	HABOT4 = {
 		crushstrength = 252,
 		depthmod = 0,
@@ -499,7 +499,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- review this
-	-- armada_vanguard corkarg corthermite
+	-- armada_vanguard cortex_karganeth corthermite
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -524,7 +524,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 30,
 	-- },
 	-- review this as there is a possible set of merges
-	-- corkorg armada_titan
+	-- cortex_juggernaut armada_titan
 	VBOT5 = {
 		crushstrength = 1400,
 		depthmod = 0,
@@ -535,7 +535,7 @@ local moveDatas = {
 		maxwaterslope = 30,
 	},
 	-- review this
-	-- corjugg
+	-- cortex_behemoth
 	HBOT5 = {
 		crushstrength = 1400,
 		footprintx = 5,
@@ -790,7 +790,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 3,
 	},
-	-- armada_tumbleweedt4 armada_recluset4 corkargenetht4
+	-- armada_tumbleweedt4 armada_recluset4 cortex_karganethenetht4
 	EPICALLTERRAIN = {
 		crushstrength = 9999,
 		depthmod = 0,

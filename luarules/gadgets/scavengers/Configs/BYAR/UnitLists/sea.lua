@@ -23,10 +23,10 @@ return {
 		"armada_possum_scav",
 		"armada_sweeper_scav",
 		"armada_crocodile_scav",
-		"corsh_scav",
-		"cormh_scav",
-		"corah_scav",
-		"corsnap_scav",
+		"cortex_goon_scav",
+		"cortex_mangonel_scav",
+		"cortex_birdeater_scav",
+		"cortex_cayman_scav",
 
 		-- Constructors
 		"armada_beaver_scav",
@@ -50,7 +50,7 @@ return {
 		"armada_turtle_scav",
 		"corroy_scav",
 		"cormls_scav",
-		"corshark_scav",
+		"cortex_predator_scav",
 		"corarch_scav",
 		"corcrus_scav",
 		"corssub_scav",
@@ -58,7 +58,7 @@ return {
 		"corseal_scav",
 
 		-- Hovercraft
-		"corhal_scav",
+		"cortex_halberd_scav",
 
 		-- Constructors
 		"armada_voyager_scav",
@@ -86,7 +86,7 @@ return {
 
 		-- Hovercraft
 		"armada_lunkhead_scav",
-		"corsok_scav",
+		"cortex_cataphract_scav",
 	},
 
 	T4 = {
@@ -94,7 +94,7 @@ return {
 		"armada_epoch_scav",
 		"corblackhy_scav",
 		"armada_tumbleweedt4_scav",
-		"corkorg_scav",
+		"cortex_juggernaut_scav",
 		"armada_titan_scav",
 		"coresuppt3_scav",
 	},

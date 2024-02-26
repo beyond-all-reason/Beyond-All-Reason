@@ -1,10 +1,10 @@
 return {
-	corkorg = {
+	cortex_juggernaut = {
 		maxacc = 0.1242,
 		maxdec = 0.8211,
 		energycost = 615000,
 		metalcost = 29000,
-		buildpic = "corkorg.DDS",
+		buildpic = "cortex_juggernaut.DDS",
 		buildtime = 555000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
@@ -24,9 +24,9 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "VBOT5",
 		nochasecategory = "VTOL GROUNDSCOUT",
-		objectname = "Units/corkorg.s3o",
+		objectname = "Units/cortex_juggernaut.s3o",
 		pushresistant = true,
-		script = "Units/corkorg.cob",
+		script = "Units/cortex_juggernaut.cob",
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
@@ -61,7 +61,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 17668,
-				object = "Units/corkorg_dead.s3o",
+				object = "Units/cortex_juggernaut_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corkorg_fire = {
+			cortex_juggernaut_fire = {
 				areaofeffect = 112,
 				avoidfeature = false,
 				craterboost = 0,
@@ -151,7 +151,7 @@ return {
 					default = 165,
 				},
 			},
-			corkorg_laser = {
+			cortex_juggernaut_laser = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
@@ -190,7 +190,7 @@ return {
 					vtol = 2750,
 				},
 			},
-			corkorg_rocket = {
+			cortex_juggernaut_rocket = {
 				areaofeffect = 200,
 				avoidfeature = false,
 				cegtag = "missiletrailmedium-starburst",
@@ -332,17 +332,17 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "corkorg_FIRE",
+				def = "cortex_juggernaut_FIRE",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "corkorg_LASER",
+				def = "cortex_juggernaut_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "corkorg_ROCKET",
+				def = "cortex_juggernaut_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {

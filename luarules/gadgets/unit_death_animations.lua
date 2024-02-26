@@ -15,7 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local hasDeathAnim = {
-  [UnitDefNames.corkarg.id] = true,
+  [UnitDefNames.cortex_karganeth.id] = true,
   [UnitDefNames.cortex_thug.id] = true,
   [UnitDefNames.cortex_aggravator.id] = true,
   [UnitDefNames.cortex_mammoth.id] = true,
