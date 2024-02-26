@@ -58,7 +58,7 @@ The difficulty modifier will change the amount of resources you and the enemy ca
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
         --armada_advancedvehicleplant = 0,
-        --coravp = 0,
+        --cortex_advancedvehicleplant = 0,
     } ,
 	
 
@@ -67,17 +67,17 @@ The difficulty modifier will change the amount of resources you and the enemy ca
         scenarioid = "thronekoth015", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		unitloadout = {
-			{name = 'corrad', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
-			{name = 'coradvsol', x = 5760, y = 753, z = 5664, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5264, y = 531, z = 4928, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 5640, y = 578, z = 6472, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5520, y = 535, z = 4736, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 7064, y = 565, z = 5576, rot = 0 , team = 7},
-			{name = 'cormaw', x = 7344, y = 552, z = 5408, rot = 0 , team = 7},
-			{name = 'cormaw', x = 7360, y = 554, z = 5696, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 5512, y = 556, z = 4952, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5712, y = 565, z = 6784, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5408, y = 561, z = 6656, rot = 0 , team = 7},
+			{name = 'cortex_radartower', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
+			{name = 'cortex_advancedsolarcollector', x = 5760, y = 753, z = 5664, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 5264, y = 531, z = 4928, rot = 0 , team = 7},
+			{name = 'cortex_sam', x = 5640, y = 578, z = 6472, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 5520, y = 535, z = 4736, rot = 0 , team = 7},
+			{name = 'cortex_sam', x = 7064, y = 565, z = 5576, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 7344, y = 552, z = 5408, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 7360, y = 554, z = 5696, rot = 0 , team = 7},
+			{name = 'cortex_sam', x = 5512, y = 556, z = 4952, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 5712, y = 565, z = 6784, rot = 0 , team = 7},
+			{name = 'cortex_dragonsmaw', x = 5408, y = 561, z = 6656, rot = 0 , team = 7},
 			{name = 'cortex_commander', x = 6068, y = 755, z = 5565, rot = -688 , team = 7},
 			{name = 'armada_commander', x = 1405, y = 85, z = 2774, rot = 0 , team = 0},
 			{name = 'cortex_commander', x = 5334, y = 88, z = 844, rot = 0 , team = 1},

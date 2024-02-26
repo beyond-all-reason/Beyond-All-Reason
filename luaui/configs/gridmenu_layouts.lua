@@ -6,7 +6,7 @@ local labGrids = {
 		"", "", "armada_crossbow",                                         -- aa bot
 	},
 
-	corlab = {
+	cortex_botlab = {
 		"cortex_constructionbot", "cortex_graverobber", "cortex_grunt", "",                      -- T1 con, rez bot, AK
 		"cortex_aggravator", "cortex_thug", "", "",                        -- storm, thud
 		"", "", "cortex_trasher",                                        -- aa bot
@@ -23,7 +23,7 @@ local labGrids = {
 		"armada_hound", "armada_sharpshooter", "armada_archangel", "armada_fatboy",            -- fido, sniper, AA bot, fatboi
 	},
 
-	coralab = {
+	cortex_advancedbotlab = {
 		"cortex_advancedconstructionbot", "cortex_twitcher", "cortex_fiend", "cortex_spectre",               -- T2 con, freaker, pyro, spy
 		"cortex_augur", "cortex_deceiver", "cortex_sumo", "cortex_arbiter",              -- radar bot, jammer bot, can, dominator
 		"cortex_sheldon", "cortex_bedbug", "cortex_manticore", "cortex_mammoth",             -- morty, skuttle, AA bot, sumo
@@ -40,7 +40,7 @@ local labGrids = {
 		"armada_beaver", "armada_pincer", "armada_whistler", "",        -- amphib con, amphib tank, missile truck
 	},
 
-	corvp = {
+	cortex_vehicleplant = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
 		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
@@ -57,7 +57,7 @@ local labGrids = {
 		"armada_jaguar", "armada_turtle", "armada_shredder", "armada_ambassador",           -- panther, triton, AA, merl
 	},
 
-	coravp = {
+	cortex_advancedvehicleplant = {
 		"coracv", "corban", "correap", "cormart",              -- T2 con, banisher, reaper, pillager
 		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
 		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
@@ -72,7 +72,7 @@ local labGrids = {
 		"armada_constructionaircraft", "armada_falcon", "armada_banshee", "armada_stormbringer",           -- T1 con, fig, gunship, bomber
 		"armada_blink", "armada_stork",                             -- radar, transport,
 	},
-	corap = {
+	cortex_aircraftplant = {
 		"cortex_constructionaircraft", "cortex_valiant", "cortex_shuriken", "cortex_whirlwind",              -- T1 con, fig, drone, bomber
 		"corfink", "cortex_hercules",                                -- radar, transport
 	},
@@ -87,7 +87,7 @@ local labGrids = {
 		"armada_liche", "armada_hornet", "armada_stiletto",                    -- liche, blade, stiletto
 	},
 
-	coraap = {
+	cortex_advancedaircraftplant = {
 		"cortex_advancedconstructionaircraft", "cortex_nighthawk", "cortex_wasp", "cortex_hailstorm",              -- T2 con, fig, gunship, bomber
 		"cortex_condor", "cortex_skyhook", "cortex_angler", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
 		"cortex_dragonold","cortex_dragon",                                              -- krow
@@ -103,7 +103,7 @@ local labGrids = {
 		"armada_horizon", "armada_puffin",                              -- radar, torpedo
 	},
 
-	corplat = {
+	cortex_seaplaneplatform = {
 		"corcsa", "corsfig", "corcut", "corsb",              -- seaplane con, fig, gunship, bomber
 		"corhunt", "corseap",                                -- radar, torpedo
 	},
@@ -114,7 +114,7 @@ local labGrids = {
 		"armada_eel", "", "armada_skater",                            -- sub, PT boat
 	},
 
-	corsy = {
+	cortex_shipyard = {
 		"corcs", "correcl", "coresupp", "",               -- T1 sea con, rez sub, supporter, missile boat
 		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
 		"corsub", "", "corpt",                            -- sub, missile boat
@@ -126,7 +126,7 @@ local labGrids = {
 		"armada_barracuda", "armada_serpent", "armada_dragonslayer",                      -- sub killer, battlesub, AA
 	},
 
-	corasy = {
+	cortex_advancedshipyard = {
 		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
 		"cortex_oasis", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
@@ -138,7 +138,7 @@ local labGrids = {
 		"", "armada_crossbow", "armada_archangel",
 	},
 
-	coramsub = {
+	cortex_amphibiouscomplex = {
 		"cormuskrat", "cortex_decoycommander", "corgarp", "",
 		"corseal", "corparrow", "", "",
 		"", "cortex_trasher", "cortex_manticore",
@@ -150,7 +150,7 @@ local labGrids = {
 		"", "", "armada_sweeper",
 	},
 
-	corhp = {
+	cortex_hovercraftplatform = {
 		"corch", "", "corsh", "",
 		"corsnap", "cormh", "corhal", "",
 		"", "", "corah",
@@ -161,7 +161,7 @@ local labGrids = {
 		"", "", "armada_sweeper",
 	},
 
-	corfhp = {
+	cortex_navalhovercraftplatform = {
 		"corch", "", "corsh", "",
 		"corsnap", "cormh", "corhal", "",
 		"", "", "corah",
@@ -173,7 +173,7 @@ local labGrids = {
 		"armada_titan", "armada_lunkhead"
 	},
 
-	corgant = {
+	cortex_experimentalgantry = {
 		"cortex_catapult", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
 	},
@@ -198,7 +198,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
-			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -210,46 +210,46 @@ local unitGrids = {
 
 	corassistdrone = {
 		{
-			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1 converter, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	legassistdrone = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	-- Land assist drones (mini amphibs)
@@ -266,7 +266,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
-			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -278,46 +278,46 @@ local unitGrids = {
 
 	corassistdrone_land = {
 		{
-			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1 converter, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	legassistdrone_land = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	-- Commanders
@@ -334,7 +334,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
-			{ "armada_navalradar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -346,113 +346,113 @@ local unitGrids = {
 
 	cortex_commander = {
 		{
-			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1 converter, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	-- legion commanders
     legcom = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	legcomlvl2 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	legcomlvl3 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "legmext15", "cortex_navalmetalstorage", "cortex_tidalgenerator", },  -- T1 converter, T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	legcomlvl4 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
+			{ "cortex_energyconverter", "legmext15", "cortex_navalmetalstorage", "cortex_tidalgenerator", },  -- T1 converter, T1.5 mex, uw m storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "cortex_guard", "cortex_urchin", },                          -- LLT, offshore torp launcher
+			{ "cortex_thistle", "cortex_slingshot", },                          -- basic AA, floating AA
+			{ "cortex_jellyfish", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", },             -- radar, perimeter camera, dragon's teeth
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", },                          -- hover lab, floating hover lab
 		}
 	},
 	-- T1 bot con
@@ -481,46 +481,46 @@ local unitGrids = {
 
 	cortex_constructionbot = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "corjuno", },                                   -- juno
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedbotlab", },                      -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
    legck = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "legmg", "corhlt", "cormaw", },       -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "legmg", "cortex_warden", "cortex_dragonsmaw", },       -- LLT, machine gun, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "corjuno", },                                   -- juno
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legalab", },                      -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "legalab", },                      -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -550,46 +550,46 @@ local unitGrids = {
 
 	corcv = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "corjuno", },                                   -- juno
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coravp", },                       -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedvehicleplant", },                       -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
     legcv = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "legmg", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "corjuno", },                                   -- juno
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedbotlab", },                      -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 	-- T1 air con
@@ -618,46 +618,46 @@ local unitGrids = {
 
 	cortex_constructionaircraft = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
-			{ "corjuno", }									  -- juno
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "cortex_airrepairpad", "cortex_floatingairrepairpad" },                  -- air repair pad, floating air repair pad
+			{ "cortex_juno", }									  -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coraap", },                       -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedaircraftplant", },                       -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
     legca = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cortex_guard", "legmg", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
-			{ "corjuno", },                                   -- juno
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legaap", },                      -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leglab", "legvp", "legap", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "legaap", },                      -- nano, T2 lab
+			{ "cortex_hovercraftplatform", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 	-- T1 sea con
@@ -673,35 +673,35 @@ local unitGrids = {
 			{ "armada_anemone", "armada_gauntlet", },              			  -- coastal torp launcher, guardian, lightning turret
 		},
 		{
-			{ "armada_navalradar", "armada_beholder","armada_sharksteeth", },             -- floating radar, perimeter camera, shark's teeth
+			{ "armada_navalradarsonar", "armada_beholder","armada_sharksteeth", },             -- floating radar, perimeter camera, shark's teeth
 			{ "", "armada_dragonsteeth", "armasp", "armada_airrepairpad"},                        	      -- dragon's teeth
 		},
 		{
 			{ "armada_shipyard", "armada_vehicleplant", "armada_aircraftplant", "armada_botlab", },         -- shipyard, veh lab, air lab, bot lab
-			{ "armada_constructionturretplat", "armada_advancedshipyard", },                   -- floating nano, T2 shipyard
+			{ "armada_navalconstructionturret", "armada_advancedshipyard", },                   -- floating nano, T2 shipyard
 			{ "armada_navalhovercraftplatform", "", "armada_amphibiouscomplex", "armada_seaplaneplatform", },         -- floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
 	corcs = {
 		{
-			{ "cormex", "cortide", },                         -- mex, tidal
-			{ "corfmkr", "corgeo", },                         -- floating T1 converter, geo
-			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
+			{ "cortex_metalextractor", "cortex_tidalgenerator", },                         -- mex, tidal
+			{ "cortex_navalenergyconverter", "cortex_geothermalpowerplant", },                         -- floating T1 converter, geo
+			{ "cortex_navalenergystorage", "cortex_navalmetalstorage", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "cortl", "corfhlt", "", "cormaw" },             -- offshore torp launcher, floating HLT
-			{ "corfrt", },                                    -- floating AA
-			{ "cordl", "corpun", },                 		  -- coastal torp launcher, punisher, flame turret
+			{ "cortex_urchin", "cortex_coral", "", "cortex_dragonsmaw" },             -- offshore torp launcher, floating HLT
+			{ "cortex_slingshot", },                                    -- floating AA
+			{ "cortex_jellyfish", "cortex_agitator", },                 		  -- coastal torp launcher, punisher, flame turret
 		},
 		{
-			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
-			{ "", "cordrag", "corasp", "corfasp" },           -- dragon's teeth
+			{ "cortex_radarsonartower", "cortex_beholder", "cortex_sharksteeth", },            -- floating radar, perimeter camera, shark's teeth
+			{ "", "cortex_dragonsteeth", "cortex_airrepairpad", "cortex_floatingairrepairpad" },           -- dragon's teeth
 		},
 		{
-			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
-			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
-			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
+			{ "cortex_shipyard", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_botlab",  },        -- shipyard, vehicle lab, air lab, bot lab
+			{ "cortex_navalconstructionturret", "cortex_advancedshipyard", },                   -- floating nano, T2 shipyard
+			{ "cortex_navalhovercraftplatform", "", "cortex_amphibiouscomplex", "cortex_seaplaneplatform",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
@@ -719,36 +719,36 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armada_navalradar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
 			{ "armada_juno", },                                   -- juno
 		},
 		{
 			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_constructionturretplat", "armada_advancedshipyard",  },    -- nano, T2 veh lab, floating nano, T2 shipyard
+			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_navalconstructionturret", "armada_advancedshipyard",  },    -- nano, T2 veh lab, floating nano, T2 shipyard
 			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
 	corch = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", "cortex_tidalgenerator", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", "cortex_urchin", "cortex_coral", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-			{ "corjuno", },                                   -- juno
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coravp", "cornanotcplat", "corasy", },   -- nano, T2 veh lab, floating nano, T2 shipyard
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedvehicleplant", "cortex_navalconstructionturret", "cortex_advancedshipyard", },   -- nano, T2 veh lab, floating nano, T2 shipyard
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", "cortex_amphibiouscomplex", "cortex_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		},
 	},
 
@@ -766,36 +766,36 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armada_navalradar", "armada_sharksteeth", "armasp", "armada_airrepairpad" },                       -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", "armasp", "armada_airrepairpad" },                       -- floating radar, shark's teeth
 			{ "armada_juno", },                                   -- juno
 		},
 		{
 			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armada_constructionturret", "armada_constructionturretplat", },                -- nano, floating nano
+			{ "armada_constructionturret", "armada_navalconstructionturret", },                -- nano, floating nano
 			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
 	corcsa = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", "cortex_tidalgenerator", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", "cortex_urchin", "cortex_coral", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", "corasp", "corfasp" },                       -- floating radar, shark's teeth
-			{ "corjuno", },                                   -- juno
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radarsonartower", "cortex_sharksteeth", "cortex_airrepairpad", "cortex_floatingairrepairpad" },                       -- floating radar, shark's teeth
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_navalconstructionturret", },                -- nano, floating nano
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", "cortex_amphibiouscomplex", "cortex_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -813,36 +813,36 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armada_navalradar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", },                       -- floating radar, shark's teeth
 			{ "armada_juno", },                                   -- juno
 		},
 		{
 			{ "armada_botlab", "armada_vehicleplant", "armada_aircraftplant", "armada_shipyard", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_constructionturretplat", },      -- nano, T2 veh lab, floating nano
+			{ "armada_constructionturret", "armada_advancedvehicleplant", "armada_navalconstructionturret", },      -- nano, T2 veh lab, floating nano
 			{ "armada_hovercraftplatform", "armada_navalhovercraftplatform", "armada_amphibiouscomplex", "armada_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
 	cormuskrat = {
 		{
-			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
-			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", "cortex_advancedsolarcollector", },   -- mex, solar, wind, adv. solar
+			{ "cortex_energyconverter", "cortex_geothermalpowerplant", "cortex_exploiter", "cortex_tidalgenerator", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cortex_guard", "cortex_twinguard", "cortex_warden", "cortex_dragonsmaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "cortex_thistle", "cortex_sam", "cortex_eradicator", },             -- basic AA, SAM, eradicator
+			{ "cortex_jellyfish", "cortex_agitator", "cortex_oldurchin", "cortex_coral", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-			{ "corjuno", },                                   -- juno
+			{ "cortex_radartower", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "cortex_radarsonartower", "cortex_sharksteeth", },                       -- floating radar, shark's teeth
+			{ "cortex_juno", },                                   -- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coravp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "cortex_botlab", "cortex_vehicleplant", "cortex_aircraftplant", "cortex_shipyard", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cortex_constructionturret", "cortex_advancedvehicleplant", "cortex_navalconstructionturret", },      -- nano, T2 veh lab, floating nano
+			{ "cortex_hovercraftplatform", "cortex_navalhovercraftplatform", "cortex_amphibiouscomplex", "cortex_seaplaneplatform", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -872,42 +872,42 @@ local unitGrids = {
 
 	cortex_advancedconstructionbot = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad" },                          -- intrusion counter, air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corlab", },                                      -- T1 lab,
-			{ "corgant", "coralab", },                          -- T3 lab, T2 lab
+			{ "cortex_botlab", },                                      -- T1 lab,
+			{ "cortex_experimentalgantry", "cortex_advancedbotlab", },                          -- T3 lab, T2 lab
 			{ },                                                --
 		}
 	},
 
 	legack = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad" },                          -- intrusion counter, air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
 			{ "leglab", },                                      -- T1 lab,
@@ -942,42 +942,42 @@ local unitGrids = {
 
 	coracv = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad" },                          -- intrusion counter, air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corvp", },                                       -- T1 lab,
-			{ "corgant", "coravp", },                           -- T3 lab, T2 lab
+			{ "cortex_vehicleplant", },                                       -- T1 lab,
+			{ "cortex_experimentalgantry", "cortex_advancedvehicleplant", },                           -- T3 lab, T2 lab
 			{ },                                                --
 		}
 	},
 
 	legacv = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad" },                          -- intrusion counter, air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
 			{ "legvp", },                                       -- T1 lab,
@@ -1012,46 +1012,46 @@ local unitGrids = {
 
 	cortex_advancedconstructionaircraft = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancednavalgeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo" },                 -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "cortex_calamity", "cortex_persecutor", "cortex_catalyst" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus" }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "cortex_calamity", "cortex_apocalypse" },                 -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud" },   -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad", "cortex_floatingairrepairpad" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corap", },                                       -- T1 lab,
-			{ "corgant", "coraap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "cortex_aircraftplant", },                                       -- T1 lab,
+			{ "cortex_experimentalgantry", "cortex_advancedaircraftplant", },                           -- T3 lab, T2 lab
+			{ "cortex_seaplaneplatform", },                                     -- seaplane lab (aircon only)
 		}
 	},
 	legaca = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancednavalgeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "cortex_scorpion", "legbastion", "cortex_persecutor", "cortex_catalyst", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "corflak", "cortex_screamer", "corfmd", "cortex_cerberus", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "cortex_basilisk", "legstarfall", "cortex_apocalypse", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "cortex_advancedradartower", "cortex_pinpointer", "cortex_fortificationwall", "cortex_shroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "cortex_nemesis", "", "cortex_airrepairpad", "cortex_floatingairrepairpad" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "cortex_overseer", },                                     -- anti-nuke, shield
 		},
 		{
 			{ "legap", },                                       -- T1 lab,
 			{ "leggant", "legaap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "cortex_seaplaneplatform", },                                     -- seaplane lab (aircon only)
 		}
 	},
 
@@ -1081,22 +1081,22 @@ local unitGrids = {
 
 	coracsub = {
 		{
-			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "coruwmmm", "coruwageo" },                       -- floating T2 converter, adv geo powerplant
-			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
+			{ "cortex_navaladvancedmetalextractor", "cortex_navalfusionreactor", },                       -- uw moho, uw fusion,
+			{ "cortex_navaladvancedenergyconverter", "cortex_advancednavalgeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
+			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
-			{ "corenaa", },                                    -- floating flak
+			{ "cortex_lamprey", "cortex_devastator", },                         -- adv torp launcher, floating heavy platform
+			{ "cortex_navalbirdshot", },                                    -- floating flak
 			{ },                                               --
 		},
 		{
-			{ "corason", "corfatf",  },                         -- adv sonar, floating targeting facility
-			{ "", "", "", "corfasp" },                          -- Floating air repair pad
+			{ "cortex_advancedsonarstation", "cortex_navalpinpointer",  },                         -- adv sonar, floating targeting facility
+			{ "", "", "", "cortex_floatingairrepairpad" },                          -- Floating air repair pad
 		},
 		{
-			{ "corsy", },                                      -- T1 shipyard
-			{ "corgantuw", "corasy" },                         -- amphibious gantry, T2 shipyard
+			{ "cortex_shipyard", },                                      -- T1 shipyard
+			{ "cortex_underwaterexperimentalgantry", "cortex_advancedshipyard" },                         -- amphibious gantry, T2 shipyard
 			{ },                                               --
 		}
 	},
@@ -1137,9 +1137,9 @@ local unitGrids = {
 			{ },                                    --
 		},
 		{
-			{ "", "coreyes", "cordrag", },                 -- camera, dragon's teeth
+			{ "", "cortex_beholder", "cortex_dragonsteeth", },                 -- camera, dragon's teeth
 			{ },                                       --
-			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
+			{ "cortex_lightmine", "cortex_mediummine", "cortex_heavymine", },   -- light mine, med mine, heavy mine
 		},
 		{
 			{ },        --
@@ -1174,19 +1174,19 @@ local unitGrids = {
 
 	cortex_decoycommander = {
 		{
-			{ "cormex", "corsolar", "corwin", },               -- mex, solar, wind
-			{ "cormakr", "", "coruwms", cortide},              -- T1 converter, uw ms storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
+			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },               -- mex, solar, wind
+			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", cortex_tidalgenerator},              -- T1 converter, uw ms storage, tidal
+			{ "cortex_energystorage", "cortex_metalstorage", "cortex_navalenergystorage", "cortex_navalenergyconverter", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
-			{ "corllt", },                                   -- LLT
-			{ "corrl", },                                    -- basic AA
+			{ "cortex_guard", },                                   -- LLT
+			{ "cortex_thistle", },                                    -- basic AA
 			{ },                                             --
 		},
 		{
-			{ "corrad", },                                   -- radar
+			{ "cortex_radartower", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ "cortex_lightmine", "cortex_mediummine", "cortex_heavymine", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ },                                             --
@@ -1222,23 +1222,23 @@ local unitGrids = {
 	--freaker
 	cortex_twitcher = {
 		{
-			{ "cormex", "corsolar", },                                -- mex, solar
+			{ "cortex_metalextractor", "cortex_solarcollector", },                                -- mex, solar
 			{ },                                                      -- solar
 			{ },                                                      --
 		},
 		{
-			{ "corhllt", "cortex_fiend", "cortoast", },                    -- HLLT, pyro, toaster
-			{ "corflak", "cormadsam", "cortex_trasher", "cortex_grunt", },         -- flak, SAM, T1 aa bot, AK
-			{ "cordl", "corroy", "cortex_termite", "cortex_duck", },          -- coastal torp launcher, destroyer, termite, gimp
+			{ "cortex_twinguard", "cortex_fiend", "cortex_persecutor", },                    -- HLLT, pyro, toaster
+			{ "corflak", "cortex_sam", "cortex_trasher", "cortex_grunt", },         -- flak, SAM, T1 aa bot, AK
+			{ "cortex_jellyfish", "corroy", "cortex_termite", "cortex_duck", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{
-			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
+			{ "cortex_advancedradartower", "cortex_beholder", "cortex_fortificationwall", "cortex_shroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{ "cortex_mediummine", },                                          -- med mine
 		},
 		{
-			{ "corlab", "cortex_constructionbot", },                                   -- bot lab, bot con
-			{ "cornanotc", "corcs", },                                -- nano, sea con
+			{ "cortex_botlab", "cortex_constructionbot", },                                   -- bot lab, bot con
+			{ "cortex_constructionturret", "corcs", },                                -- nano, sea con
 			{ "cortex_commando", },                                          -- commando
 		}
 	},
@@ -1275,14 +1275,14 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ "cormaw", },                                           -- flame turret
+			{ "cortex_dragonsmaw", },                                           -- flame turret
 			{ },                                                     --
 			{ },                                                     --
 		},
 		{
-			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
+			{ "corfink", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },         -- scout plane, camera, dragon's teeth, jammer
 			{ "cortex_hercules", },                                          -- transport
-			{ "cormine4" },                                          -- commando mine
+			{ "cortex_mediumminecommando" },                                          -- commando mine
 		},
 		{
 			{ },        --
@@ -1294,7 +1294,7 @@ local unitGrids = {
 	--corprinter
 	corprinter = {
 		{
-			{'corsolar', 'cormex' },
+			{'cortex_solarcollector', 'cortex_metalextractor' },
 			{ },
 			{ },                          -- solar, mex
 		},
@@ -1304,7 +1304,7 @@ local unitGrids = {
 			{ },
 		},
 		{
-			{ 'corrad','', 'corfort'},
+			{ 'cortex_radartower','', 'cortex_fortificationwall'},
 			{ },
 			{ },                          --radar, t2 wall
 		},
@@ -1328,36 +1328,36 @@ local unitGrids = {
 			{ "armada_dolphin", "armada_corsair", },                             -- decade, destroyer
 		},
 		{
-			{ "armada_navalradar", "armada_advancedradartower", },                              -- fl radar, adv radar
+			{ "armada_navalradarsonar", "armada_advancedradartower", },                              -- fl radar, adv radar
 			{ },                                                    --
 			{ "armada_heavymine", },                                       -- naval mine
 		},
 		{
 			{ "armada_shipyard", "armada_constructionship", },                                  -- shipyard, sea con
-			{ "armada_constructionturretplat", },                                   -- fl nano
+			{ "armada_navalconstructionturret", },                                   -- fl nano
 			{ },                                                    --
 		}
 	},
 
 	cormls = {
 		{
-			{ "cormex", "cortide", },                              -- mex, tidal
+			{ "cortex_metalextractor", "cortex_tidalgenerator", },                              -- mex, tidal
 			{ },                                                   --
 			{ },                                                   --
 		},
 		{
-			{ "cortl", "corfdoom", "cortoast", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
-			{ "corenaa", "corpt", },                               -- fl flak, searcher
+			{ "cortex_urchin", "cortex_devastator", "cortex_persecutor", "cortex_coral", },       -- torp launcher, fl DDM, toaster, fHLT
+			{ "cortex_navalbirdshot", "corpt", },                               -- fl flak, searcher
 			{ "coresupp", "corroy", },                             -- supporter, destroyer
 		},
 		{
-			{ "corfrad", "corarad", },                             -- fl radar, adv radar
+			{ "cortex_radarsonartower", "cortex_advancedradartower", },                             -- fl radar, adv radar
 			{ },                                                   --
-			{ "corfmine3", },                                      -- naval mine
+			{ "cortex_navalheavymine", },                                      -- naval mine
 		},
 		{
-			{ "corsy", "corcs", },                                 -- shipyard, sea con
-			{ "cornanotcplat", },                                  -- fl nano
+			{ "cortex_shipyard", "corcs", },                                 -- shipyard, sea con
+			{ "cortex_navalconstructionturret", },                                  -- fl nano
 			{ },                                                   --
 		}
 	},

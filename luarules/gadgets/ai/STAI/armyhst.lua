@@ -108,7 +108,7 @@ function ArmyHST:Init()
 		armada_stork = true,
 		armada_bearer = true,
 		corthovr = true,
-		corintr = true,
+		cortex_intruder = true,
 		armada_abductor = true,
 		cortship = true,
 		armada_convoy = true,
@@ -331,66 +331,66 @@ function ArmyHST:Init()
 	self._targeting_ = {
 		armada_pinpointer = true ,
 		armada_navalpinpointer = true ,
-		cortarg = true ,
-		corfatf = true ,
+		cortex_pinpointer = true ,
+		cortex_navalpinpointer = true ,
 		}
 
 	self._geo_ = {
-		corageo = true ,
+		cortex_advancedgeothermalpowerplant = true ,
 		armada_advancedgeothermalpowerplant = true ,
 		armada_geothermalpowerplant = true ,
-		corgeo = true ,
-		corbhmth = true ,
+		cortex_geothermalpowerplant = true ,
+		cortex_cerberus = true ,
 		armada_prude = true ,
 		}
 
 
 	self._nano_ = {
 		armada_constructionturret = true ,
-		armada_constructionturretplat = true ,
-		cornanotc = true ,
-		cornanotcplat = true ,
+		armada_navalconstructionturret = true ,
+		cortex_constructionturret = true ,
+		cortex_navalconstructionturret = true ,
 
 		}
 
 	self._solar_ = {
-		corsolar = 'coradvsol' ,
+		cortex_solarcollector = 'cortex_advancedsolarcollector' ,
 		armada_solarcollector = 'armada_advancedsolarcollector' ,
 		}
 
 
 	self._mex_ = {
-		cormex = 'cormoho' ,
+		cortex_metalextractor = 'cortex_advancedmetalextractor' ,
 		-- 		armada_navalmetalextractor = 'armada_navaladvancedmetalextractor' ,
-		-- 		coruwmex = 'coruwmme' ,
-		cormexp = true ,
+		-- 		cortex_navalmetalextractor = 'cortex_navaladvancedmetalextractor' ,
+		cortex_advancedexploiter = true ,
 		armada_metalextractor = "armada_advancedmetalextractor" ,
 		armada_twilight = 'armada_advancedmetalextractor' ,
 		armada_advancedmetalextractor = true ,
-		cormoho = true ,
-		corexp = 'cormexp' ,
+		cortex_advancedmetalextractor = true ,
+		cortex_exploiter = 'cortex_advancedexploiter' ,
 		armada_navaladvancedmetalextractor = true ,
-		coruwmme = true ,
+		cortex_navaladvancedmetalextractor = true ,
 		}
 	ArmyHST.t2mex = {
 		armada_advancedmetalextractor = true,
-		cormoho = true,
+		cortex_advancedmetalextractor = true,
 		armada_navaladvancedmetalextractor = true,
-		coruwmme = true,
+		cortex_navaladvancedmetalextractor = true,
 		}
 	-- what mexes upgrade to what
 	ArmyHST.mexUpgrade = {
-		cormex = "cormoho",
+		cortex_metalextractor = "cortex_advancedmetalextractor",
 		armada_metalextractor = "armada_advancedmetalextractor",
 		armada_twilight = "armada_advancedmetalextractor",
-		corexp = "cormoho",
+		cortex_exploiter = "cortex_advancedmetalextractor",
 		}
 
 	self._flak_ = {
 		armada_navalarbalest = true ,
 		armada_arbalest = true ,
 		corflak = true ,
-		corenaa = true ,
+		cortex_navalbirdshot = true ,
 		}
 
 	self._mine_ = {
@@ -398,181 +398,181 @@ function ArmyHST:Init()
 		armada_mediummine = true ,
 		armada_heavymine = true ,
 		armada_heavymine = true ,
-		cormine1 = true ,
-		cormine2 = true ,
-		cormine3 = true ,
-		cormine4 = true ,
-		corfmine3 = true ,
+		cortex_lightmine = true ,
+		cortex_mediummine = true ,
+		cortex_heavymine = true ,
+		cortex_mediumminecommando = true ,
+		cortex_navalheavymine = true ,
 		}
 
 	self._eyes_ = {
 		armada_beholder = true ,
-		coreyes = true ,
+		cortex_beholder = true ,
 		}
 
 	-- 	self._afus_ = {
 	-- 		armada_advancedfusionreactor = true ,
-	-- 		corafus = true ,
+	-- 		cortex_advancedfusionreactor = true ,
 	-- 	}
 
 
 	self._fus_ = {
 		armada_fusionreactor = 'armada_advancedfusionreactor' ,--will become afus in buildersbst:specialfilter()
 		armada_navalfusionreactor = 'armada_navalfusionreactor' , --no advuwfus
-		corfus = 'corafus' ,--will become afus in buildersbst:specialfilter()
-		coruwfus = 'coruwfus' ,--no advuwfus
+		cortex_fusionreactor = 'cortex_advancedfusionreactor' ,--will become afus in buildersbst:specialfilter()
+		cortex_navalfusionreactor = 'cortex_navalfusionreactor' ,--no advuwfus
 		-- 		armada_cloakablefusionreactor = true , --clackable, better to think about it later
 
 		-- 		armada_advancedfusionreactor = true ,
-		-- 		corafus = true ,
+		-- 		cortex_advancedfusionreactor = true ,
 		--armada_decoyfusionreactor = true, --fake fus
 		}
 
 	self._silo_ = {
 		armada_armageddon = true ,
-		corsilo = true ,
+		cortex_apocalypse = true ,
 		}
 
 	self._wind_ ={
 		armada_windturbine = true ,
-		corwin = true ,
+		cortex_windturbine = true ,
 		}
 
 	self._tide_ = {
-		cortide = true ,
+		cortex_tidalgenerator = true ,
 		armada_tidalgenerator = true ,
 		}
 
 	self._plat_ = {
-		corplat = true ,
+		cortex_seaplaneplatform = true ,
 		armada_seaplaneplatform = true ,
 		}
 
 	self._radar_ = {
 		armada_radartower = true ,
 		armada_advancedradartower = true ,
-		corrad = true ,
-		corarad = true ,
-		corfrad = true ,
-		armada_navalradar = true ,
+		cortex_radartower = true ,
+		cortex_advancedradartower = true ,
+		cortex_radarsonartower = true ,
+		armada_navalradarsonar = true ,
 		}
 
 	self._jam_ = {
 		armada_sneakypete = true ,
-		corjamt = true ,
+		cortex_castro = true ,
 		armada_veil = true ,
-		corshroud = true ,
+		cortex_shroud = true ,
 		}
 
 	self._sonar_ = {
 		armada_sonarstation = true ,
-		corsonar = true ,
+		cortex_sonarstation = true ,
 		armada_advancedsonarstation = true,
-		corason = true,
+		cortex_advancedsonarstation = true,
 		}
 
 	self._shield_ = {
 		armada_keeper = true ,
-		corgate = true ,
+		cortex_overseer = true ,
 		}
 
 	self._juno_ = {
-		corjuno = true ,
+		cortex_juno = true ,
 		armada_juno = true ,
 		}
 
 	self._popup1_ = {
 		armada_dragonsclaw = true,
-		cormaw = true,
+		cortex_dragonsmaw = true,
 		}
 
 	self._llt_ = {
 		armada_sentry = true,
-		corllt = true,
+		cortex_guard = true,
 		}
 
 	self._specialt_ = {
 		armada_beamer = true,
-		corhllt = true,
+		cortex_twinguard = true,
 		}
 
 	self._heavyt_ = {
 		armada_overwatch = true,
-		corhlt = true,
+		cortex_warden = true,
 		armada_manta = true,
-		corfhlt = true,
+		cortex_coral = true,
 		}
 
 	self._lol_ = {
-		corbuzz = true ,
+		cortex_calamity = true ,
 		armada_ragnarok = true ,
 		}
 
 	self._laser2_ = {
-		cordoom = true ,
+		cortex_calamity = true ,
 		armada_pulsar = true ,
 		}
 
 	self._coast1_ = {
-		corpun = true ,
+		cortex_agitator = true ,
 		armada_gauntlet = true ,
 		}
 
 	self._coast2_ = {
-		cortoast = true ,
+		cortex_persecutor = true ,
 		armada_rattlesnake = true ,
 		}
 
 	self._popup2_ = {
 		armada_pitbull = true ,
-		corvipe = true ,
+		cortex_scorpion = true ,
 		}
 
 	self._plasma_ = {
 		armada_basilica = true ,
-		corint = true ,
+		cortex_basilisk = true ,
 		}
 
 	self._torpedo1_ = {
-		cortl = true ,
+		cortex_urchin = true ,
 		armada_harpoon = true ,
 		armada_harpoon2 = true ,
-		corptl = true ,
+		cortex_oldurchin = true ,
 		}
 
 	self._torpedo2_ = {
-		coratl = true ,
+		cortex_lamprey = true ,
 		armada_moray = true ,
 		}
 
 	self._torpedoground_ = {
 		armada_anemone = true ,
-		cordl = true ,
+		cortex_jellyfish = true ,
 		}
 
 	self._aa1_ = {
 		armada_nettle = true ,
-		corrl = true ,
+		cortex_thistle = true ,
 		armada_navalnettle = true ,
-		corfrt = true ,
+		cortex_slingshot = true ,
 		}
 
 	self._aabomb_ = {
-		corerad = true ,
+		cortex_eradicator = true ,
 		armada_ferret = true ,
 		}
 
 	self._aaheavy_ = {
-		cormadsam = true ,
+		cortex_sam = true ,
 		armada_chainsaw = true ,
 		}
 	self._aa2_ = {
-		corscreamer = true ,
+		cortex_screamer = true ,
 		armada_mercury = true ,
 		}
 
 	self._intrusion_ = {
-		corsd = true ,
+		cortex_nemesis = true ,
 		armada_tracer = true ,
 		}
 
@@ -584,8 +584,8 @@ function ArmyHST:Init()
 	self._airPlat_ = {
 		armasp = true ,
 		armada_airrepairpad = true ,
-		corasp = true ,
-		corfasp = true ,
+		cortex_airrepairpad = true ,
+		cortex_floatingairrepairpad = true ,
 		}
 
 	self._convs_ = {
@@ -593,40 +593,40 @@ function ArmyHST:Init()
 		armada_navalenergyconverter = true ,
 		armada_energyconverter = true ,
 		armada_navaladvancedenergyconverter = true ,
-		cormmkr = true ,
-		corfmkr = true ,
-		cormakr = true ,
+		cortex_advancedenergyconverter = true ,
+		cortex_navalenergyconverter = true ,
+		cortex_energyconverter = true ,
 		}
 
 	self._estor_ = {
 		armada_energystorage = true ,
 		armada_navalenergystorage = true ,
 		armada_hardenedenergystorage = true ,
-		corestor = true ,
-		coruwes = true ,
-		coruwadves = true ,
+		cortex_energystorage = true ,
+		cortex_navalenergystorage = true ,
+		cortex_hardenedenergystorage = true ,
 		}
 
 	self._mstor_ = {
-		cormstor = true ,
+		cortex_metalstorage = true ,
 		armada_metalstorage = true ,
 		armada_navalmetalstorage = true ,
-		coruwms = true ,
-		coruwadvms = true ,
+		cortex_navalmetalstorage = true ,
+		cortex_hardenedmetalstorage = true ,
 		armada_hardenedmetalstorage = true ,
-		coruwmmm = true ,
+		cortex_navaladvancedenergyconverter = true ,
 		}
 
 	self._tactical_ = {
 		armada_paralyzer = true ,
-		cortron = true ,
+		cortex_catalyst = true ,
 		}
 
 	self._wall_ = {
-		corfdrag = true ,
+		cortex_sharksteeth = true ,
 		armada_dragonsteeth = true ,
 		armada_fortificationwall = true ,
-		cordrag = true ,
+		cortex_dragonsteeth = true ,
 		armada_sharksteeth = true ,
 		}
 
@@ -638,41 +638,41 @@ end
 
 ArmyHST.techPenalty = {
 	armada_amphibiouscomplex = -1,
-	coramsub = -1,
+	cortex_amphibiouscomplex = -1,
 	armada_navalhovercraftplatform = -1,
-	corfhp = -1,
+	cortex_navalhovercraftplatform = -1,
 	armada_hovercraftplatform = -1,
-	corhp = -1,
+	cortex_hovercraftplatform = -1,
 	}
 
 ArmyHST.factoryMobilities = {
-	corap = {"air"},
+	cortex_aircraftplant = {"air"},
 	armada_aircraftplant = {"air"},
-	corlab = {"bot"},
+	cortex_botlab = {"bot"},
 	armada_botlab = {"bot"},
-	corvp = {"veh", "amp"},
+	cortex_vehicleplant = {"veh", "amp"},
 	armada_vehicleplant = {"veh", "amp"},
-	coralab = {"bot"},
-	coravp = {"veh", "amp"},
-	corhp = {"hov"},
+	cortex_advancedbotlab = {"bot"},
+	cortex_advancedvehicleplant = {"veh", "amp"},
+	cortex_hovercraftplatform = {"hov"},
 	armada_hovercraftplatform = {"hov"},
-	corfhp = {"hov"},
+	cortex_navalhovercraftplatform = {"hov"},
 	armada_navalhovercraftplatform = {"hov"},
 	armada_advancedbotlab = {"bot"},
 	armada_advancedvehicleplant = {"veh", "amp"},
-	coraap = {"air"},
+	cortex_advancedaircraftplant = {"air"},
 	armada_advancedaircraftplant = {"air"},
-	corplat = {"air"},
+	cortex_seaplaneplatform = {"air"},
 	armada_seaplaneplatform = {"air"},
-	corsy = {"shp", "sub"},
+	cortex_shipyard = {"shp", "sub"},
 	armada_shipyard = {"shp", "sub"},
-	corasy = {"shp", "sub"},
+	cortex_advancedshipyard = {"shp", "sub"},
 	armada_advancedshipyard = {"shp", "sub"},
-	coramsub = {"amp","sub"},
+	cortex_amphibiouscomplex = {"amp","sub"},
 	armada_amphibiouscomplex = {"amp","sub"},
-	corgant = {"bot", "amp"},
+	cortex_experimentalgantry = {"bot", "amp"},
 	armada_experimentalgantry = {"bot", "amp"},
-	corgantuw = {"amp","hov"},
+	cortex_underwaterexperimentalgantry = {"amp","hov"},
 	armada_experimentalgantryuw = {"amp","hov"},
 	}
 
@@ -689,63 +689,63 @@ ArmyHST.mobilityEffeciencyMultiplier = {
 	}
 
 ArmyHST.factoryExitSides = {
-	corap = 0,
+	cortex_aircraftplant = 0,
 	armada_aircraftplant = 0,
-	corlab = 2,
+	cortex_botlab = 2,
 	armada_botlab = 2,
-	corvp = 1,
+	cortex_vehicleplant = 1,
 	armada_vehicleplant = 1,
-	coralab = 3,
-	coravp = 1,
-	corhp = 2,
+	cortex_advancedbotlab = 3,
+	cortex_advancedvehicleplant = 1,
+	cortex_hovercraftplatform = 2,
 	armada_hovercraftplatform = 2,
-	corfhp = 2,
+	cortex_navalhovercraftplatform = 2,
 	armada_navalhovercraftplatform = 2,
 	armada_advancedbotlab = 2,
 	armada_advancedvehicleplant = 2,
-	coraap = 0,
+	cortex_advancedaircraftplant = 0,
 	armada_advancedaircraftplant = 0,
-	corplat = 0,
+	cortex_seaplaneplatform = 0,
 	armada_seaplaneplatform = 0,
-	corsy = 4,
+	cortex_shipyard = 4,
 	armada_shipyard = 4,
-	corasy = 4,
+	cortex_advancedshipyard = 4,
 	armada_advancedshipyard = 4,
-	coramsub = 4,
+	cortex_amphibiouscomplex = 4,
 	armada_amphibiouscomplex = 4,
-	corgant = 1,
+	cortex_experimentalgantry = 1,
 	armada_experimentalgantry = 1,
-	corgantuw = 1,
+	cortex_underwaterexperimentalgantry = 1,
 	armada_experimentalgantryuw = 1,
 	}
 
 -- ArmyHST.littlePlasmaList = {
--- 	corpun = 1,
+-- 	cortex_agitator = 1,
 -- 	armada_gauntlet = 1,
--- 	cortoast = 1,
+-- 	cortex_persecutor = 1,
 -- 	armada_rattlesnake = 1,
--- 	corbhmth = 1,
+-- 	cortex_cerberus = 1,
 -- }
 
 -- what mexes upgrade to what
 --[[ArmyHST.mexUpgrade = {
-	cormex = "cormoho",
+	cortex_metalextractor = "cortex_advancedmetalextractor",
 	armada_metalextractor = "armada_advancedmetalextractor",
-	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
+	cortex_navalmetalextractor = "cortex_navaladvancedmetalextractor",--ex cortex_navalmetalextractor caution this will be changed --TODO
 	armada_navalmetalextractor = "armada_navaladvancedmetalextractor",--ex armada_navalmetalextractor
 	armada_twilight = "armada_advancedmetalextractor",
-	corexp = "cormexp",
+	cortex_exploiter = "cortex_advancedexploiter",
 
 	}
 ]]
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
-	coravp = 1,
-	coralab = 1,
-	corasy = 1,
-	coraap = 1,
-	corplat = 1,
+	cortex_advancedvehicleplant = 1,
+	cortex_advancedbotlab = 1,
+	cortex_advancedshipyard = 1,
+	cortex_advancedaircraftplant = 1,
+	cortex_seaplaneplatform = 1,
 	armada_advancedvehicleplant = 1,
 	armada_advancedbotlab = 1,
 	armada_advancedshipyard = 1,
@@ -755,21 +755,21 @@ ArmyHST.advFactories = {
 
 -- experimental factories
 ArmyHST.expFactories = {
-	corgant = 1,
+	cortex_experimentalgantry = 1,
 	armada_experimentalgantry = 1,
-	corgantuw = 1,
+	cortex_underwaterexperimentalgantry = 1,
 	armada_experimentalgantryuw = 1,
 	}
 
 -- leads to experimental
 ArmyHST.leadsToExpFactories = {
-	corlab = 1,
+	cortex_botlab = 1,
 	armada_botlab = 1,
-	coralab = 1,
+	cortex_advancedbotlab = 1,
 	armada_advancedbotlab = 1,
-	corsy = 1,
+	cortex_shipyard = 1,
 	armada_shipyard = 1,
-	corasy = 1,
+	cortex_advancedshipyard = 1,
 	armada_advancedshipyard = 1,
 	}
 
@@ -779,21 +779,21 @@ ArmyHST.commanderList = {
 	}
 
 ArmyHST.groundFacList = {
-	corvp = 1,
+	cortex_vehicleplant = 1,
 	armada_vehicleplant = 1,
-	coravp = 1,
+	cortex_advancedvehicleplant = 1,
 	armada_advancedvehicleplant = 1,
-	corlab = 1,
+	cortex_botlab = 1,
 	armada_botlab = 1,
-	coralab = 1,
+	cortex_advancedbotlab = 1,
 	armada_advancedbotlab = 1,
-	corhp = 1,
+	cortex_hovercraftplatform = 1,
 	armada_hovercraftplatform = 1,
-	corfhp = 1,
+	cortex_navalhovercraftplatform = 1,
 	armada_navalhovercraftplatform = 1,
-	coramsub = 1,
+	cortex_amphibiouscomplex = 1,
 	armada_amphibiouscomplex = 1,
-	corgant = 1,
+	cortex_experimentalgantry = 1,
 	armada_experimentalgantry = 1,
 	cortex_twitcher = 1,
 	armada_consul = 1,
@@ -802,27 +802,27 @@ ArmyHST.groundFacList = {
 
 -- if any of these is found among enemy units, AA units and fighters will be built
 ArmyHST.airFacList = {
-	corap = 1,
+	cortex_aircraftplant = 1,
 	armada_aircraftplant = 1,
-	coraap = 1,
+	cortex_advancedaircraftplant = 1,
 	armada_advancedaircraftplant = 1,
-	corplat = 1,
+	cortex_seaplaneplatform = 1,
 	armada_seaplaneplatform = 1,
 	}
 
 -- if any of these is found among enemy units, torpedo launchers and sonar will be built
 ArmyHST.subFacList = {
-	corsy = 1,
+	cortex_shipyard = 1,
 	armada_shipyard = 1,
-	corasy = 1,
+	cortex_advancedshipyard = 1,
 	armada_advancedshipyard = 1,
-	coramsub = 1,
+	cortex_amphibiouscomplex = 1,
 	armada_amphibiouscomplex = 1,
 	}
 
 -- if any of these is found among enemy units, plasma shields will be built
 ArmyHST.bigPlasmaList = {
-	corint = 1,
+	cortex_basilisk = 1,
 	armada_basilica = 1,
 	}
 
@@ -831,23 +831,23 @@ ArmyHST.bigPlasmaList = {
 -- values are how many frames it takes to stockpile
 ArmyHST.nukeList = {
 	armada_armageddon = 3600,
-	corsilo = 5400,
+	cortex_apocalypse = 5400,
 	armada_paralyzer = 2700,
-	cortron = 2250,
+	cortex_catalyst = 2250,
 	}
 
 ArmyHST.cleanable = {
 	armada_solarcollector= 'ground',
-	corsolar= 'ground',
+	cortex_solarcollector= 'ground',
 	armada_advancedsolarcollector = 'ground',
-	coradvsol = 'ground',
+	cortex_advancedsolarcollector = 'ground',
 	armada_tidalgenerator = 'floating',
 	cortite = 'floating',
 	armada_navalenergyconverter = 'floating',
-	corfmkr = 'floating',
-	cormakr = 'ground',
+	cortex_navalenergyconverter = 'floating',
+	cortex_energyconverter = 'ground',
 	armada_energyconverter = 'ground',
-	corwin = 'ground',
+	cortex_windturbine = 'ground',
 	armada_windturbine = 'ground',
 	}
 
@@ -872,7 +872,7 @@ ArmyHST.baseBomberCounter = 10
 -- Taskqueuebehaviour was modified to skip this name
 -- ArmyHST.DummyUnitName = "skipthisorder"
 -- this unit is used to check for underwater metal spots
-ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
+ArmyHST.UWMetalSpotCheckUnit = "cortex_navalmetalextractor"
 
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR

@@ -26,18 +26,18 @@
 				"land": {
 					// "<energy_def>": [<lower limit>, <upper limit>]
 					// limit = random(<lower limit>..<upper limit>)
-					"corwin": [10, 20],
-					"corsolar": [8, 12],
-					"coradvsol": [8, 12],
-					"corfus": [3, 4],
-					"corafus": [4, 5]
+					"cortex_windturbine": [10, 20],
+					"cortex_solarcollector": [8, 12],
+					"cortex_advancedsolarcollector": [8, 12],
+					"cortex_fusionreactor": [3, 4],
+					"cortex_advancedfusionreactor": [4, 5]
 				},
 				"water": {
-					"cortide": [14, 25],
-					"corwin": [10, 20],
-					"corsolar": [1],
-					"coradvsol": [12, 16],
-					"coruwfus": [1, 2]
+					"cortex_tidalgenerator": [14, 25],
+					"cortex_windturbine": [10, 20],
+					"cortex_solarcollector": [1],
+					"cortex_advancedsolarcollector": [12, 16],
+					"cortex_navalfusionreactor": [1, 2]
 				}
 			}
 		},
@@ -58,11 +58,11 @@
 
 	"geo": {
 		"armada": "armada_geothermalpowerplant",
-		"cortex": "corgeo"
+		"cortex": "cortex_geothermalpowerplant"
 	},
 	"mex": {
 		"armada": "armada_metalextractor",
-		"cortex": "cormex"
+		"cortex": "cortex_metalextractor"
 	},
 	"mex_up": 2,  // maximum number of simultaneous mex upgrades
 
@@ -102,13 +102,13 @@
 	//"terra": "armada_shipyard",
 	"assist": {
 		"armada": "armada_constructionturret",
-		"cortex": "cornanotc"
+		"cortex": "cortex_constructionturret"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armada_windturbine",
-		"cortex": "corwin"
+		"cortex": "cortex_windturbine"
 	}
 }
 }

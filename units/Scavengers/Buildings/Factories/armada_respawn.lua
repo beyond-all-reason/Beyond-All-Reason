@@ -7,7 +7,7 @@ return {
 		metalcost = 1,
 		builddistance = range,
 		builder = true,
-		buildpic = "armada_constructionturretPLAT.DDS",
+		buildpic = "armada_navalconstructionturret.DDS",
 		buildtime = 20000,
 		canassist = true,
 		canfight = true,

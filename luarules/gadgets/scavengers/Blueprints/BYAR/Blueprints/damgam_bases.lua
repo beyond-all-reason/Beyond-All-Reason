@@ -10,14 +10,14 @@ local UDN = UnitDefNames
 --  3 - west
 
 local function redBase1()
-	local randomturrets = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, BPWallOrPopup('scav', 1), UDN.corrl_scav.id, UDN.cornanotc_scav.id,}
+	local randomturrets = {UDN.cortex_guard_scav.id, UDN.cortex_guard_scav.id, UDN.cortex_twinguard_scav.id, UDN.cortex_warden_scav.id, BPWallOrPopup('scav', 1), UDN.cortex_thistle_scav.id, UDN.cortex_constructionturret_scav.id,}
 	local factoryID
 
 	local r = math.random(0,1)
 	if r == 0 then
-		factoryID = UDN.corlab_scav.id
+		factoryID = UDN.cortex_botlab_scav.id
 	else
-		factoryID = UDN.corvp_scav.id
+		factoryID = UDN.cortex_vehicleplant_scav.id
 	end
 
 	return {
@@ -195,32 +195,32 @@ local function redBase2()
 		radius = 192,
 		buildings = {
 			-- Nanos
-			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  24,  zOffset =  24, direction = 3 },
-			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  24,  zOffset = -24, direction = 3 },
-			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24,  zOffset =  24, direction = 3 },
-			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24,  zOffset = -24, direction = 3 },
+			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset =  24,  zOffset =  24, direction = 3 },
+			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset =  24,  zOffset = -24, direction = 3 },
+			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset = -24,  zOffset =  24, direction = 3 },
+			{ unitDefID = UDN.cortex_constructionturret_scav.id, xOffset = -24,  zOffset = -24, direction = 3 },
 
 			-- Defences
-			{ unitDefID = UDN.corerad_scav.id, xOffset =  -80,  zOffset =  -80, direction = 0 },
-			{ unitDefID = UDN.corhllt_scav.id, xOffset = -128,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.corerad_scav.id, xOffset =   80,  zOffset =  -80, direction = 0 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160,  zOffset =  -64, direction = 3 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160,  zOffset =   64, direction = 3 },
-			{ unitDefID = UDN.corhllt_scav.id, xOffset =  128,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160,  zOffset =  128, direction = 3 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160,  zOffset =  -64, direction = 1 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =   64,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =   64,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.corerad_scav.id, xOffset =  -80,  zOffset =   80, direction = 0 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  128,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  -64,  zOffset =  160, direction = 0 },
-			{ unitDefID = UDN.corerad_scav.id, xOffset =   80,  zOffset =   80, direction = 0 },
-			{ unitDefID = UDN.corhllt_scav.id, xOffset = -160,  zOffset = -128, direction = 3 },
-			{ unitDefID = UDN.corhllt_scav.id, xOffset =  160,  zOffset =  128, direction = 1 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160,  zOffset = -128, direction = 1 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset = -128,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  -64,  zOffset = -160, direction = 2 },
-			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160,  zOffset =   64, direction = 1 },
+			{ unitDefID = UDN.cortex_eradicator_scav.id, xOffset =  -80,  zOffset =  -80, direction = 0 },
+			{ unitDefID = UDN.cortex_twinguard_scav.id, xOffset = -128,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.cortex_eradicator_scav.id, xOffset =   80,  zOffset =  -80, direction = 0 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset = -160,  zOffset =  -64, direction = 3 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset = -160,  zOffset =   64, direction = 3 },
+			{ unitDefID = UDN.cortex_twinguard_scav.id, xOffset =  128,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset = -160,  zOffset =  128, direction = 3 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  160,  zOffset =  -64, direction = 1 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =   64,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =   64,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.cortex_eradicator_scav.id, xOffset =  -80,  zOffset =   80, direction = 0 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  128,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  -64,  zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.cortex_eradicator_scav.id, xOffset =   80,  zOffset =   80, direction = 0 },
+			{ unitDefID = UDN.cortex_twinguard_scav.id, xOffset = -160,  zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.cortex_twinguard_scav.id, xOffset =  160,  zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  160,  zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset = -128,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  -64,  zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.cortex_guard_scav.id,  xOffset =  160,  zOffset =   64, direction = 1 },
 
 			-- Walls
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -160,  zOffset =  192, direction = 3 },

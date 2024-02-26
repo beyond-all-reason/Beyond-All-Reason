@@ -144,22 +144,22 @@ function gadget:Initialize()
 end
 
 local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. because else it will miss frames when animating
-	[UnitDefNames.cormex.id] = {
+	[UnitDefNames.cortex_metalextractor.id] = {
 		wait = 60,
 	},
-	[UnitDefNames.corsolar.id] = {
+	[UnitDefNames.cortex_solarcollector.id] = {
 		wait = 80,
 	},
 	[UnitDefNames.armada_radartower.id] = {
 		wait = 360,
 	},
-	[UnitDefNames.corgant.id] = {
+	[UnitDefNames.cortex_experimentalgantry.id] = {
 		wait = 90,
 	},
-	[UnitDefNames.corgantuw.id] = {
+	[UnitDefNames.cortex_underwaterexperimentalgantry.id] = {
 		wait = 90,
 	},
-	[UnitDefNames.cortoast.id] = {
+	[UnitDefNames.cortex_persecutor.id] = {
 		wait = 1,
 	},
 	[UnitDefNames.armada_seaplaneplatform.id] = {

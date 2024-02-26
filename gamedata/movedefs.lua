@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armada_beaver armada_marauder corparrow armprow corseal corsala cormuskrat armada_turtle armada_pincer corintr legassistdrone_land corassistdrone armassistdrone
+	-- corgarp armada_beaver armada_marauder corparrow armprow corseal corsala cormuskrat armada_turtle armada_pincer cortex_intruder legassistdrone_land corassistdrone armassistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -669,7 +669,7 @@ local moveDatas = {
 	},
 
 
-	-- legdefcarryt1 armada_constructionturret cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- legdefcarryt1 armada_constructionturret cortex_constructionturret cortex_navalconstructionturret  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,

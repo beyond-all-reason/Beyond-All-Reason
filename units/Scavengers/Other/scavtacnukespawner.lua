@@ -62,7 +62,7 @@ return {
 				impulsefactor = 0.5,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "cortronmissile.s3o",
+				model = "cortex_catalystmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",
 				range = 29999,
 				reloadtime = 5,

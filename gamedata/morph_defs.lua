@@ -36,13 +36,13 @@ local morphDefs = {
 		},
 	},
 
-	cormex = {
+	cortex_metalextractor = {
 		{
-			into = "cormoho",
-			time = math.floor(UnitDefNames["cormoho"].buildTime /200),
+			into = "cortex_advancedmetalextractor",
+			time = math.floor(UnitDefNames["cortex_advancedmetalextractor"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["cormoho"].metalCost,
-			energy = UnitDefNames["cormoho"].energyCost,
+			metal = UnitDefNames["cortex_advancedmetalextractor"].metalCost,
+			energy = UnitDefNames["cortex_advancedmetalextractor"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -60,13 +60,13 @@ local morphDefs = {
 	},
 
 	-- Armed Mex
-	corexp = {
+	cortex_exploiter = {
 		{
-			into = "cormexp",
-			time = math.floor(UnitDefNames["cormexp"].buildTime /200),
+			into = "cortex_advancedexploiter",
+			time = math.floor(UnitDefNames["cortex_advancedexploiter"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["cormexp"].metalCost,
-			energy = UnitDefNames["cormexp"].energyCost,
+			metal = UnitDefNames["cortex_advancedexploiter"].metalCost,
+			energy = UnitDefNames["cortex_advancedexploiter"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -85,13 +85,13 @@ local scavMorphdefs ={
 		},
 	},
 
-	cormex_scav = {
+	cortex_metalextractor_scav = {
 		{
-			into = "cormoho_scav",
-			time = math.floor(UnitDefNames["cormoho_scav"].buildTime /200),
+			into = "cortex_advancedmetalextractor_scav",
+			time = math.floor(UnitDefNames["cortex_advancedmetalextractor_scav"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["cormoho_scav"].metalCost,
-			energy = UnitDefNames["cormoho_scav"].energyCost,
+			metal = UnitDefNames["cortex_advancedmetalextractor_scav"].metalCost,
+			energy = UnitDefNames["cortex_advancedmetalextractor_scav"].energyCost,
 			--require = [[tech2]],
 		},
 	},
@@ -109,13 +109,13 @@ local scavMorphdefs ={
 	},
 
 	-- Armed Mex
-	corexp_scav = {
+	cortex_exploiter_scav = {
 		{
-			into = "cormexp_scav",
-			time = math.floor(UnitDefNames["cormexp_scav"].buildTime /200),
+			into = "cortex_advancedexploiter_scav",
+			time = math.floor(UnitDefNames["cortex_advancedexploiter_scav"].buildTime /200),
 			cmdname = [[Tech 2 Extractor]],
-			metal = UnitDefNames["cormexp_scav"].metalCost,
-			energy = UnitDefNames["cormexp_scav"].energyCost,
+			metal = UnitDefNames["cortex_advancedexploiter_scav"].metalCost,
+			energy = UnitDefNames["cortex_advancedexploiter_scav"].energyCost,
 			--require = [[tech2]],
 		},
 	},

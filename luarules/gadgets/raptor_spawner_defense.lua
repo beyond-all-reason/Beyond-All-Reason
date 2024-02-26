@@ -1247,8 +1247,8 @@ if gadgetHandler:IsSyncedCode() then
 	local WALLS = {
 		"armada_dragonsteeth",
 		"armada_fortificationwall",
-		"cordrag",
-		"corfort",
+		"cortex_dragonsteeth",
+		"cortex_fortificationwall",
 		"scavdrag",
 		"scavfort",
 	}

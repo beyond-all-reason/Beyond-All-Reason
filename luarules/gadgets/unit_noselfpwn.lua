@@ -22,7 +22,7 @@ local SetUnitHealth = Spring.SetUnitHealth
 
 local PWN_UNITS = {
   [UnitDefNames.cortex_fiend.id] = true,
-  [UnitDefNames.cormaw.id] = true,
+  [UnitDefNames.cortex_dragonsmaw.id] = true,
   [UnitDefNames.cortex_thug.id] = true,
   [UnitDefNames.armada_mace.id] = true,
   [UnitDefNames.armada_rover.id] = true,

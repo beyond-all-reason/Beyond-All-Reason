@@ -16,7 +16,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	local isUwMex = {}
 	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, 'armada_navalmetalextractor') or string.find(ud.name, 'coruwmex') then       -- liche is classified as one somehow
+		if string.find(ud.name, 'armada_navalmetalextractor') or string.find(ud.name, 'cortex_navalmetalextractor') then       -- liche is classified as one somehow
 			isUwMex[udid] = true
 		end
 	end

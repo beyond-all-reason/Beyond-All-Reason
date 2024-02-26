@@ -12,7 +12,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		decoyfor = "corfort",
+		decoyfor = "cortex_fortificationwall",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -21,7 +21,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		health = 5320, --was 4450, --1/2 of corfort
+		health = 5320, --was 4450, --1/2 of cortex_fortificationwall
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -37,7 +37,7 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corfort_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_fortificationwall_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
@@ -66,7 +66,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 205,
-				object = "Units/corfort.s3o",
+				object = "Units/cortex_fortificationwall.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

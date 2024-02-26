@@ -14,14 +14,14 @@ string armada_shipyard   ("armada_shipyard");
 string armada_advancedshipyard  ("armada_advancedshipyard");
 string armada_aircraftplant   ("armada_aircraftplant");
 string armada_experimentalgantry("armada_experimentalgantry");
-string corlab  ("corlab");
-string coralab ("coralab");
-string corvp   ("corvp");
-string coravp  ("coravp");
-string corsy   ("corsy");
-string corasy  ("corasy");
-string corap   ("corap");
-string corgant ("corgant");
+string cortex_botlab  ("cortex_botlab");
+string cortex_advancedbotlab ("cortex_advancedbotlab");
+string cortex_vehicleplant   ("cortex_vehicleplant");
+string cortex_advancedvehicleplant  ("cortex_advancedvehicleplant");
+string cortex_shipyard   ("cortex_shipyard");
+string cortex_advancedshipyard  ("cortex_advancedshipyard");
+string cortex_aircraftplant   ("cortex_aircraftplant");
+string cortex_experimentalgantry ("cortex_experimentalgantry");
 
 float switchLimit = MakeSwitchLimit();
 

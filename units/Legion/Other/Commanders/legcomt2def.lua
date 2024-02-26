@@ -83,7 +83,7 @@ return {
 			[22] = "armada_sharksteeth",
 			[23] = "armada_harpoon",
 			[24] = "armada_navalnettle",
-			[25] = "armada_navalradar",
+			[25] = "armada_navalradarsonar",
 			-- Experimental:
 			[26] = "armada_hovercraftplatform",
 			[27] = "armada_navalhovercraftplatform",
@@ -91,7 +91,7 @@ return {
 			[29] = "armada_dragonsclaw",
 			[30] = "armada_ferret",
 			[31] = "legmext15",
-			[32] = "corjamt",
+			[32] = "cortex_castro",
 			[33] = "armada_gauntlet",
 			[34] = "armada_chainsaw",
 		},

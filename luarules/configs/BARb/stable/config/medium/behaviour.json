@@ -188,54 +188,54 @@
 	},
 
 	// CORTEX defenses
-	"corllt": {
+	"cortex_guard": {
 		"role": ["static"],
 		"midposoffset": [0, 0, 2.38]
 	},
-	"corhllt": {
+	"cortex_twinguard": {
 		"role": ["static"]
 	},
-	"corhlt": {
+	"cortex_warden": {
 		"role": ["static"]
 	},
-	"cormaw": {
+	"cortex_dragonsmaw": {
 		"role": ["static"]
 	},
-	"corpun": {
+	"cortex_agitator": {
 		"role": ["static"],
 		"attribute": ["artillery"],
 		"threat": 0.3
 	},
-	"corrl": {
+	"cortex_thistle": {
 		"role": ["anti_air"]
 	},
-	"cormadsam": {
+	"cortex_sam": {
 		"role": ["anti_air"]
 	},
-	"corerad": {
+	"cortex_eradicator": {
 		"role": ["anti_air"]
 	},
 	"corflak": {
 		"role": ["anti_air"]
 	},
-	"corscreamer": {
+	"cortex_screamer": {
 		"role": ["anti_air"]
 	},
-	"cortl": {
+	"cortex_urchin": {
 		"role": ["static"]
 	},
-	"coratl": {
+	"cortex_lamprey": {
 		"role": ["static"],
 		"attribute": ["heavy"]
 	},
-	"corvipe": {
+	"cortex_scorpion": {
 		"role": ["static"]
 	},
-	"cortoast": {
+	"cortex_persecutor": {
 		"role": ["static"],
 		"attribute": ["artillery"]
 	},
-	"cordoom": {
+	"cortex_calamity": {
 		"role": ["static"],
 		"attribute": ["heavy", "anti_heavy"]
 	},
@@ -247,7 +247,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"coralab": {
+	"cortex_advancedbotlab": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -259,7 +259,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"coravp": {
+	"cortex_advancedvehicleplant": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -270,7 +270,7 @@
 		"attribute": ["support"],
 		"build_speed": 5.0
 	},
-	"corap": {
+	"cortex_aircraftplant": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 5.0
@@ -281,7 +281,7 @@
 		"limit": 1,
 		"build_speed": 10.0
 	},
-	"coraap": {
+	"cortex_advancedaircraftplant": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -294,7 +294,7 @@
 		"midposoffset": [0, 0, 21],
 		"build_speed": 10.0
 	},
-	"corgant": {
+	"cortex_experimentalgantry": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
@@ -304,15 +304,15 @@
 		"role": ["support"],
 		"build_speed": 8.0
 	},
-	"cornanotc": {
+	"cortex_constructionturret": {
 		"role": ["support"],
 		"build_speed": 8.0
 	},
-	"armada_constructionturretplat": {
+	"armada_navalconstructionturret": {
 		"role": ["support"],
 		"build_speed": 8.0
 	},
-	"cornanotcplat": {
+	"cortex_navalconstructionturret": {
 		"role": ["support"],
 		"build_speed": 8.0
 	},
@@ -320,7 +320,7 @@
 		"role": ["static"],
 		"since": 30
 	},
-	"cormakr": {
+	"cortex_energyconverter": {
 		"role": ["static"],
 		"since": 30
 	},
@@ -330,7 +330,7 @@
 		"cooldown": 10,
 		"limit": 2
 	},
-	"cormstor" : {
+	"cortex_metalstorage" : {
 		"role": ["static"],
 		"since": 300,
 		"cooldown": 10,
@@ -341,7 +341,7 @@
 		"cooldown": 10,
 		"limit": 2
 	},
-	"coruwadvms" : {
+	"cortex_hardenedmetalstorage" : {
 		"role": ["static"],
 		"cooldown": 10,
 		"limit": 2
@@ -350,7 +350,7 @@
 		"role": ["static"],
 		"since": 120
 	},
-	"corrad": {
+	"cortex_radartower": {
 		"role": ["static"],
 		"since": 120
 	},
@@ -358,7 +358,7 @@
 		"role": ["static"],
 		"midposoffset": [0, 0, -2]
 	},
-//	"corgeo": {
+//	"cortex_geothermalpowerplant": {
 //		"role": ["static"],
 //		"midposoffset": [0, 0, 0]
 //	},
@@ -696,7 +696,7 @@
 		"attribute": ["skirmish"]
 	},
 
-	// bot - corlab
+	// bot - cortex_botlab
 	"cortex_constructionbot": {
 		"role": ["builder"],
 		"limit": 20,
@@ -722,7 +722,7 @@
 		"limit": 30
 	},
 
-	// adv bot - coralab
+	// adv bot - cortex_advancedbotlab
 	"cortex_advancedconstructionbot": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
@@ -778,7 +778,7 @@
 		"role": ["scout"]
 	},
 
-	// T3 bot - corgant
+	// T3 bot - cortex_experimentalgantry
 	"corshiva": {
 		"role": ["riot", "heavy"]
 	},
@@ -800,7 +800,7 @@
 		"power": 2.5
 	},
 
-	// vehicles - corvp
+	// vehicles - cortex_vehicleplant
 	"corcv": {
 		"role": ["builder"],
 		"limit": 20,
@@ -839,7 +839,7 @@
 		"attribute": ["skirmish"]
 	},
 
-	// adv vehicles - coravp
+	// adv vehicles - cortex_advancedvehicleplant
 	"coracv": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
@@ -873,7 +873,7 @@
 		"limit": 1
 	},
 
-	// ships - corsy
+	// ships - cortex_shipyard
 	"corcs": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -899,7 +899,7 @@
 		"retreat": 0.5
 	},
 
-	// adv shipyard - corasy
+	// adv shipyard - cortex_advancedshipyard
 	"coracsub": {
 		"role": ["builderT2", "sub"],
 		"attribute": ["solo"],
@@ -961,7 +961,7 @@
 		"role": ["assault"]
 	},
 
-	// aircraft - corap
+	// aircraft - cortex_aircraftplant
 	"cortex_constructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -985,7 +985,7 @@
 		"retreat": 0.3
 	},
 
-	// adv aircraft - coraap
+	// adv aircraft - cortex_advancedaircraftplant
 	"cortex_advancedconstructionaircraft": {
 		"role": ["builder", "air"],
 		"retreat": 0.6,
@@ -1017,7 +1017,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"cordrag": {
+	"cortex_dragonsteeth": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1025,7 +1025,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"corfort": {
+	"cortex_fortificationwall": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1033,7 +1033,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"cordrag_scav": {
+	"cortex_dragonsteeth_scav": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1041,7 +1041,7 @@
 		"role": ["static"],
 		"ignore": true
 	},
-	"corfort_scav": {
+	"cortex_fortificationwall_scav": {
 		"role": ["static"],
 		"ignore": true
 	},
@@ -1088,42 +1088,42 @@
 		"midposoffset": [0, 0, 21],
 		"build_speed": 10.0
 	},
-	"corlab": {
+	"cortex_botlab": {
 		"role": ["builder"],
 		"midposoffset": [-3.239746, 0, -2],
 		"build_speed": 4.0
 	},
-	"corvp": {
+	"cortex_vehicleplant": {
 		"role": ["builder"],
 		"build_speed": 5.0
 	},
-	"corhp": {
+	"cortex_hovercraftplatform": {
 		"role": ["builder"],
 		"build_speed": 6.0
 	},
-	"corsy": {
+	"cortex_shipyard": {
 		"role": ["builder"],
 		"build_speed": 5.0
 	},
-	"corasy": {
+	"cortex_advancedshipyard": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 10.0
 	},
-	"corfhp": {
+	"cortex_navalhovercraftplatform": {
 		"role": ["builder"],
 		"build_speed": 6.0
 	},
-	"coramsub": {
+	"cortex_amphibiouscomplex": {
 		"role": ["builder"],
 		"build_speed": 8.0
 	},
-	"corplat": {
+	"cortex_seaplaneplatform": {
 		"role": ["builder"],
 		"attribute": ["support"],
 		"build_speed": 8.0
 	},
-	"corgantuw": {
+	"cortex_underwaterexperimentalgantry": {
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,

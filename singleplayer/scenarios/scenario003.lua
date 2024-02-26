@@ -40,7 +40,7 @@ Good luck, you will need all your skill here!
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
         -- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
         -- armada_advancedvehicleplant = 0, -- disables arm advanced vehicle plant
-        -- coravp = 0,
+        -- cortex_advancedvehicleplant = 0,
     } ,
 
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game

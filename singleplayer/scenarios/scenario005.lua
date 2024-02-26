@@ -43,7 +43,7 @@ Tips:
 	losscondition	= "Death of your Commander",  -- This is plaintext, but should be reflected in startscript
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 means disable it
         --armada_advancedvehicleplant = 0,
-        --coravp = 0,
+        --cortex_advancedvehicleplant = 0,
         armada_advancedaircraftplant=0,
         armada_advancedbotlab=0,
         armada_aircraftplant=0,

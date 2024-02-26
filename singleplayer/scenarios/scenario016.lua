@@ -51,7 +51,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
 	-- dont use the one in startscript, put it here!
         --armada_advancedvehicleplant = 0,
-        --coravp = 0,
+        --cortex_advancedvehicleplant = 0,
     } ,
 
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
@@ -59,7 +59,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
         scenarioid = "neuropeww225", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		--unitloadout = {
-		--	{name = 'corrad', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
+		--	{name = 'cortex_radartower', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
 		--}
     },
     -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt

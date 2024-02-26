@@ -269,7 +269,7 @@
 	},
 
 	// CORTEX factories
-	"corlab": {
+	"cortex_botlab": {
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
@@ -289,7 +289,7 @@
 		"caretaker": 1
 	},
 
-	"coralab": {
+	"cortex_advancedbotlab": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [40],
@@ -305,7 +305,7 @@
 		"caretaker": 2
 	},
 
-	"corvp": {
+	"cortex_vehicleplant": {
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [20, 40],
@@ -328,7 +328,7 @@
 		"caretaker": 1
 	},
 
-	"coravp": {
+	"cortex_advancedvehicleplant": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [40],
@@ -344,7 +344,7 @@
 		"caretaker": 2
 	},
 
-	"corhp": {
+	"cortex_hovercraftplatform": {
 		"importance": [0.3, 0.3],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
@@ -365,7 +365,7 @@
 	},
 
 	//T3 factory
-	"corgant": {
+	"cortex_experimentalgantry": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],
@@ -378,7 +378,7 @@
 	},
 
 	// CORTEX Aircraft
-	"corap": {
+	"cortex_aircraftplant": {
 		"importance": [0.5, 0.3],
 		"require_energy": false,
 		"income_tier": [30],
@@ -394,7 +394,7 @@
 		"caretaker": 1
 	},
 	
-	"coraap": {
+	"cortex_advancedaircraftplant": {
 		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [50],
@@ -411,7 +411,7 @@
 	},
 
 	// CORTEX Ships
-	"corsy": {
+	"cortex_shipyard": {
 		"importance": [5.5, 5.5],
 		"require_energy": false,
 		"income_tier": [20],
@@ -427,7 +427,7 @@
 		"caretaker": 0
 	},
 	
-	"corasy": {
+	"cortex_advancedshipyard": {
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
@@ -444,11 +444,11 @@
 	},
 
 	// CORTEX sea factories
-	"coramsub": {
+	"cortex_amphibiouscomplex": {
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [40],
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "cortex_trasher", "cortex_manticore", "cortex_decoycommander", "corintr"],
+		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "cortex_trasher", "cortex_manticore", "cortex_decoycommander", "cortex_intruder"],
 		"land": {
 			"tier0": [ 0.13,         0.13,      0.13,      0.13,        0.12,       0.12,     0.12,       0.12],
 			"tier1": [ 0.01,         0.01,      0.93,      0.01,        0.01,       0.01,     0.01,       0.01]
@@ -456,7 +456,7 @@
 		"caretaker": 1
 	},
 
-	"corfhp": {
+	"cortex_navalhovercraftplatform": {
 		"importance": [0.2, 0.2],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
@@ -476,7 +476,7 @@
 		"caretaker": 1
 	},
 
-	"corplat": {
+	"cortex_seaplaneplatform": {
 		"importance": [1.0, 1.0],
 		"require_energy": false,
 		"income_tier": [40],
@@ -488,7 +488,7 @@
 		"caretaker": 1
 	},
 
-	"corgantuw": {
+	"cortex_underwaterexperimentalgantry": {
 		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100],

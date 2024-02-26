@@ -106,15 +106,15 @@ unitCollisionVolume['armada_vehicleplant'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
 }
-unitCollisionVolume['cordoom'] = {
+unitCollisionVolume['cortex_calamity'] = {
 	on={63,112,63,0,12,0,1,1,1},
 	off={45,87,45,0,0,0,2,1,0},
 }
-unitCollisionVolume['cordoomt3'] = {
+unitCollisionVolume['cortex_calamityt3'] = {
 	on={95,168,95,0,18,0,2,1,1},
 	off={68,131,68,0,0,0,3,1,0},
 }
-unitCollisionVolume['corplat'] = {
+unitCollisionVolume['cortex_seaplaneplatform'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
 }
@@ -150,7 +150,7 @@ pieceCollisionVolume['armada_rattlesnake'] = {
 	['3']={22,22,22,0,0,-10,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
 }
-pieceCollisionVolume['cortoast'] = {
+pieceCollisionVolume['cortex_persecutor'] = {
 	['3']={22,22,22,0,10,0,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
 }
@@ -163,7 +163,7 @@ pieceCollisionVolume['armada_basilica'] = {
 	['3']={13,0,75,0,0,20,1,2},
 	['4']={8,8,42,0,1,70,1,2},
 }
-pieceCollisionVolume['corint'] = {
+pieceCollisionVolume['cortex_basilisk'] = {
 	['1']={72,84,72,0,28,0,1,1},
 	['3']={13,13,34,0,1,28,1,2},
 }
@@ -197,7 +197,7 @@ for name, v in pairs(pieceCollisionVolume) do
 	end
 end
 
-----dynamicPieceCollisionVolume['cortoast'] = {
+----dynamicPieceCollisionVolume['cortex_persecutor'] = {
 ----	on = {
 ----		['1']={40,40,40,-13,10,0,0,0},
 ----		['5']={8,8,21,0,1,-2,1,2},
@@ -206,7 +206,7 @@ end
 ----		['1']={12,58,58,-2,13,0,1,0},
 ----	}
 ----}
-dynamicPieceCollisionVolume['corvipe'] = {
+dynamicPieceCollisionVolume['cortex_scorpion'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
 		['5']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 

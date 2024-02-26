@@ -7,7 +7,7 @@ return {
 		metalcost = 1,
 		builddistance = range,
 		builder = true,
-		buildpic = "CORNANOTCPLAT.DDS",
+		buildpic = "cortex_navalconstructionturret.DDS",
 		buildtime = 20000,
 		canassist = true,
 		canfight = true,
@@ -48,7 +48,7 @@ return {
 		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_constructionturret_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

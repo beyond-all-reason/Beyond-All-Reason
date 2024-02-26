@@ -125,7 +125,7 @@ Other
 
  • [missiles] antinukes/nukes/tacnukes/empmissiles no longer collide into enemy (air) units
  • [Titan/Juggernaut] added foot stomp "weapon"
- • [Advanced Exploiter] General fixing of cormexp behavior. Consistent rocket salvo of 5. No longer less armored when closed. Proper decoy for moho. Continues extracting metal when deployed and attacking. 
+ • [Advanced Exploiter] General fixing of cortex_advancedexploiter behavior. Consistent rocket salvo of 5. No longer less armored when closed. Proper decoy for moho. Continues extracting metal when deployed and attacking. 
 
 
 # January 2023
@@ -216,7 +216,7 @@ Units
  • Ground scouts (vehicles/bot): 10% more LoS
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • T2 vehicle artillery has 33% more health + same damage as t1 but with adjusted reload time to compensate
- • Decreased cormaw damage 27%
+ • Decreased cortex_dragonsmaw damage 27%
  • Arm Peewee damage reduced by 9%
  • Core AK range reduced 240->225 and damage increased 6%
  • Arm Warrior health and buildtime increased by 10%

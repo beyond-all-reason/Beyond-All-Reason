@@ -34,7 +34,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	armada_navalradar = {
+	armada_navalradarsonar = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
@@ -148,7 +148,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	armada_constructionturretplat = {
+	armada_navalconstructionturret = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
@@ -1157,7 +1157,7 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T1 BUILDINGS
 
-	corrad = {
+	cortex_radartower = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
@@ -1165,7 +1165,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corfrad = {
+	cortex_radarsonartower = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
@@ -1173,7 +1173,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corsonar = {
+	cortex_sonarstation = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
@@ -1181,13 +1181,13 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corjamt = {
+	cortex_castro = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "jammer",
 	},
 
-	cormex = {
+	cortex_metalextractor = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
@@ -1195,7 +1195,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mexoff",
 	},
 
-	corexp = {
+	cortex_exploiter = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-small-cor",
@@ -1211,7 +1211,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mexoff",
 	},
 
-	cormakr = {
+	cortex_energyconverter = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
@@ -1219,7 +1219,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	corfmkr = {
+	cortex_navalenergyconverter = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
@@ -1227,19 +1227,19 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	corwin = {
+	cortex_windturbine = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-windgen",
 	},
 
-	cortide = {
+	cortex_tidalgenerator = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrghum",
 	},
 
-	corsolar = {
+	cortex_solarcollector = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt",
@@ -1247,157 +1247,157 @@ GUIUnitSoundEffects = {
 		BaseSoundDeactivate = "cor-bld-solar-deactivate",
 	},
 
-	coradvsol = {
+	cortex_advancedsolarcollector = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt-adv",
 	},
 
-	corgeo = {
+	cortex_geothermalpowerplant = {
 		BaseSoundSelectType = "arm-bld-select-medium",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo",
 	},
 
-	cormstor = {
+	cortex_metalstorage = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage",
 	},
 
-	coruwms = {
+	cortex_navalmetalstorage = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
 
-	corestor = {
+	cortex_energystorage = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage",
 	},
 
-	coruwes = {
+	cortex_navalenergystorage = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-nrg",
 	},
 
-	cornanotc = {
+	cortex_constructionturret = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	cornanotcplat = {
+	cortex_navalconstructionturret = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
 
-	corfdrag = {
+	cortex_sharksteeth = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-water",
 	},
 
-	cordrag = {
+	cortex_dragonsteeth = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall",
 	},
 
-	coreyes = {
+	cortex_beholder = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
 	},
 
-	corllt = {
+	cortex_guard = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-small",
 	},
 
-	corhllt = {
+	cortex_twinguard = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-small-cor",
 	},
 
-	corhlt = {
+	cortex_warden = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-medium",
 	},
 
-	corfhlt = {
+	cortex_coral = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-medium",
 	},
 
-	corrl = {
+	cortex_thistle = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-small",
 	},
 
-	corfrt = {
+	cortex_slingshot = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-small",
 	},
 
-	cortl = {
+	cortex_urchin = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	corptl = {
+	cortex_oldurchin = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	cordl = {
+	cortex_jellyfish = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
-	cormaw = {
+	cortex_dragonsmaw = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flame-alt",
 	},
 
-	cormadsam = {
+	cortex_sam = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	corfrock = {
+	cortex_janitor = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	corerad = {
+	cortex_eradicator = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium",
 	},
 
-	corpun = {
+	cortex_agitator = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arty-medium",
 	},
 
-	corjuno = {
+	cortex_juno = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "bld-juno",
@@ -1405,7 +1405,7 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX T2 BUILDINGS
 
-	corarad = {
+	cortex_advancedradartower = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
@@ -1413,19 +1413,19 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corshroud = {
+	cortex_shroud = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "jammer-t2",
 	},
 
-	corason = {
+	cortex_advancedsonarstation = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sonar-t2",
 	},
 
-	cortarg = {
+	cortex_pinpointer = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
@@ -1433,7 +1433,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corfatf = {
+	cortex_navalpinpointer = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
@@ -1441,14 +1441,14 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	cormoho = {
+	cortex_advancedmetalextractor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
 	},
-    cormexp = {
+    cortex_advancedexploiter = {
         BaseSoundSelectType = "arm-bld-metal",
         --BaseSoundMovementType = "",
         BaseSoundWeaponType = "laser-large",
@@ -1456,7 +1456,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mohooff1",
     },
 
-	coruwmme = {
+	cortex_navaladvancedmetalextractor = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
@@ -1464,7 +1464,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "mohooff1",
 	},
 
-	cormmkr = {
+	cortex_advancedenergyconverter = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
@@ -1472,7 +1472,7 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
-	coruwmmm = {
+	cortex_navaladvancedenergyconverter = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
@@ -1480,49 +1480,49 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cor-bld-mm-t2-deactivate",
 	},
 
-	coruwadvms = {
+	cortex_hardenedmetalstorage = {
 		BaseSoundSelectType = "arm-bld-metal-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
 
-	coruwadves = {
+	cortex_hardenedenergystorage = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-nrg",
 	},
 
-	corbhmth = {
+	cortex_cerberus = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-safe",
 	},
 
-	corageo = {
+	cortex_advancedgeothermalpowerplant = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
 	},
 
-	corfus = {
+	cortex_fusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion",
 	},
 
-	corafus = {
+	cortex_advancedfusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
 	},
 
-	coruwfus = {
+	cortex_navalfusionreactor = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-uw",
 	},
 
-	corfort = {
+	cortex_fortificationwall = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",
@@ -1534,37 +1534,37 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "flak",
 	},
 
-	corenaa = {
+	cortex_navalbirdshot = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flak",
 	},
 
-	corfdoom = {
+	cortex_devastator = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",
 	},
 
-	corscreamer = {
+	cortex_screamer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-large",
 	},
 
-	corvipe = {
+	cortex_scorpion = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "rocket-large",
 	},
 
-	cortoast = {
+	cortex_persecutor = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arty-large",
 	},
 
-	coratl = {
+	cortex_lamprey = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-medium",
@@ -1576,13 +1576,13 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "nuke-anti",
 	},
 
-	cortron = {
+	cortex_catalyst = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
 
-	corsd = {
+	cortex_nemesis = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
@@ -1590,37 +1590,37 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
-	corgate = {
+	cortex_overseer = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
-	corfgate = {
+	cortex_atoll = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
-	corsilo = {
+	cortex_apocalypse = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "nuke",
 	},
 
-	cordoom = {
+	cortex_calamity = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",
 	},
 
-	corint = {
+	cortex_basilisk = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "lrpc",
 	},
 
-	corbuzz = {
+	cortex_calamity = {
 		BaseSoundSelectType = "lrpc",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
@@ -1629,91 +1629,91 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX FACTORIES
 
-	corlab = {
+	cortex_botlab = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab",
 	},
 
-	coralab = {
+	cortex_advancedbotlab = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
 	},
 
-	corvp = {
+	cortex_vehicleplant = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-vp",
 	},
 
-	coravp = {
+	cortex_advancedvehicleplant = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-vp-t2",
 	},
 
-	corap = {
+	cortex_aircraftplant = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ap",
 	},
 
-	coraap = {
+	cortex_advancedaircraftplant = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ap-t2",
 	},
 
-	corsy = {
+	cortex_shipyard = {
 		BaseSoundSelectType   = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-water",
 	},
 
-	corasy = {
+	cortex_advancedshipyard = {
 		BaseSoundSelectType   = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
 	},
 
-	coramsub = {
+	cortex_amphibiouscomplex = {
 		BaseSoundSelectType   = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
 	},
 
-	corhp = {
+	cortex_hovercraftplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-factory-hover",
 	},
 
-	corfhp = {
+	cortex_navalhovercraftplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
 	},
 
-	corplat = {
+	cortex_seaplaneplatform = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sp",
 	},
 
-	corasp = {
+	cortex_airrepairpad = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
 	},
 
-	corgant = {
+	cortex_experimentalgantry = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
 	},
 
-	corgantuw = {
+	cortex_underwaterexperimentalgantry = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
@@ -1721,31 +1721,31 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX MINES
 
-	cormine1 = {
+	cortex_lightmine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-small",
 	},
 
-	cormine2 = {
+	cortex_mediummine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-medium",
 	},
 
-	cormine3 = {
+	cortex_heavymine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large",
 	},
 
-	cormine4 = {
+	cortex_mediumminecommando = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large",
 	},
 
-	corfmine3 = {
+	cortex_navalheavymine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large-water",
@@ -2054,7 +2054,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "nuke-anti",
 	},
-	corintr = {
+	cortex_intruder = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "transport-large",
@@ -2682,9 +2682,9 @@ GUIUnitSoundEffects = {
 
 
 	armada_navalmetalextractor = {},
-	coruwmex = {},
+	cortex_navalmetalextractor = {},
 	armada_gunplatform = {},
-	corgplat = {},
+	cortex_gunplatform = {},
 	dbg_sphere = {},
 	dbg_sphere_fullmetal = {},
 	chip = {},
@@ -2742,8 +2742,8 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
 
 
-	coruwgeo = corgeo,
-	coruwageo = corageo,
+	cortex_navalgeothermalpowerplant = cortex_geothermalpowerplant,
+	cortex_advancednavalgeothermalpowerplant = cortex_advancedgeothermalpowerplant,
 	armada_geothermalpowerplant = armada_geothermalpowerplant,
 	armada_advancedgeothermalpowerplant = armada_advancedgeothermalpowerplant,
 

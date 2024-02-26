@@ -817,7 +817,7 @@ else
 		if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
 			amfibianunit = true
 		end
-		if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or (UnitDefs[unitdefid].name == 'armada_constructionturret' or UnitDefs[unitdefid].name == 'armada_constructionturretplat' or UnitDefs[unitdefid].name == 'cornanotc' or UnitDefs[unitdefid].name == 'cornanotcplat') then
+		if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or (UnitDefs[unitdefid].name == 'armada_constructionturret' or UnitDefs[unitdefid].name == 'armada_navalconstructionturret' or UnitDefs[unitdefid].name == 'cortex_constructionturret' or UnitDefs[unitdefid].name == 'cortex_navalconstructionturret') then
 			builderunit = true
 		end
 

@@ -147,7 +147,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_navalradar'] = {
+	['armada_navalradarsonar'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -326,7 +326,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corrad'] = {
+	['cortex_radartower'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -897,7 +897,7 @@ local unitLights = {
 		},
 	},
 
-	['corarad'] = {
+	['cortex_advancedradartower'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -1004,7 +1004,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corllt'] = {
+	['cortex_guard'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'turret',
@@ -1015,7 +1015,7 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corhllt'] = {
+	['cortex_twinguard'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'turret2',
@@ -1234,7 +1234,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cornanotct2'] = {
+	['cortex_advancedconstructionturret'] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano',
@@ -1292,7 +1292,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cornanotc'] = {
+	['cortex_constructionturret'] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano',
@@ -1635,7 +1635,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corrl'] = {
+	['cortex_thistle'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'turret',
@@ -1657,7 +1657,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormadsam'] = {
+	['cortex_sam'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'launcher',
@@ -1715,7 +1715,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['corshroud'] = {
+	['cortex_shroud'] = {
 		cloaklightred = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -1829,7 +1829,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corjamt'] = {
+	['cortex_castro'] = {
 		cloaklightred = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -2474,7 +2474,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coraap'] = {
+	['cortex_advancedaircraftplant'] = {
 		greenblob1 = {
 			lightType = 'point',
 			pieceName = 'blink1',
@@ -2602,7 +2602,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coramsub'] = {
+	['cortex_amphibiouscomplex'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -2676,7 +2676,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coralab'] = {
+	['cortex_advancedbotlab'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -2786,7 +2786,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corasy'] = {
+	['cortex_advancedshipyard'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -2860,7 +2860,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corgant'] = {
+	['cortex_experimentalgantry'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -3006,7 +3006,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsy'] = {
+	['cortex_shipyard'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -3273,7 +3273,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corasp'] = {
+	['cortex_airrepairpad'] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'nano',
@@ -5296,7 +5296,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corplat'] = {
+	['cortex_seaplaneplatform'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -5370,7 +5370,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coravp'] = {
+	['cortex_advancedvehicleplant'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -5692,7 +5692,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsd'] = {
+	['cortex_nemesis'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -5703,7 +5703,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corscreamer'] = {
+	['cortex_screamer'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'turret',
@@ -6526,7 +6526,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corlab'] = {
+	['cortex_botlab'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -6582,7 +6582,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corvp'] = {
+	['cortex_vehicleplant'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -6710,7 +6710,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corhp'] = {
+	['cortex_hovercraftplatform'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -6784,7 +6784,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfhp'] = {
+	['cortex_navalhovercraftplatform'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -6822,7 +6822,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corap'] = {
+	['cortex_aircraftplant'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'blink',
@@ -6896,7 +6896,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corapt3'] = {
+	['cortex_experimentalaircraftplant'] = {
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -11004,7 +11004,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coreyes'] = {
+	['cortex_beholder'] = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'sphere',
@@ -11942,7 +11942,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfmine3'] = {
+	['cortex_navalheavymine'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11953,7 +11953,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormine3'] = {
+	['cortex_heavymine'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11964,7 +11964,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormine2'] = {
+	['cortex_mediummine'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -11975,7 +11975,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormine1'] = {
+	['cortex_lightmine'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -12686,7 +12686,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfus'] = {
+	['cortex_fusionreactor'] = {
 		fusionglow = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -12706,7 +12706,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, animtype = 0},
 		-- },
 	},
-	['corafus'] = {
+	['cortex_advancedfusionreactor'] = {
 		fusionglow = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -14675,7 +14675,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corestor'] = {
+	['cortex_energystorage'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -14740,7 +14740,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coruwfus'] = {
+	['cortex_navalfusionreactor'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -14751,7 +14751,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coruwmmm'] = {
+	['cortex_navaladvancedenergyconverter'] = {
 		side1 = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -14789,7 +14789,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coruwes'] = {
+	['cortex_navalenergystorage'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -14800,7 +14800,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coruwadves'] = {
+	['cortex_hardenedenergystorage'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -15165,7 +15165,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corbhmth'] = {
+	['cortex_cerberus'] = {
 		corner1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -15203,7 +15203,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corgeo'] = {
+	['cortex_geothermalpowerplant'] = {
 		--top1 = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -15313,7 +15313,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corageo'] = {
+	['cortex_advancedgeothermalpowerplant'] = {
 		--top1 = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -15863,7 +15863,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsolar'] = {
+	['cortex_solarcollector'] = {
 		light_small_1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -16105,7 +16105,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['coradvsol'] = {
+	['cortex_advancedsolarcollector'] = {
 		glow = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -16116,7 +16116,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormakr'] = {
+	['cortex_energyconverter'] = {
 		enabled1 = {
 			lightType = 'point',
 			pieceName = 'light',
@@ -16163,7 +16163,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfmkr'] = {
+	['cortex_navalenergyconverter'] = {
 		enabled1 = {
 			lightType = 'point',
 			pieceName = 'light',
@@ -16342,7 +16342,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cormmkr'] = {
+	['cortex_advancedenergyconverter'] = {
 		enabled_top = {
 			lightType = 'point',
 			pieceName = 'light',
@@ -16797,7 +16797,7 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsilo'] = {
+	['cortex_apocalypse'] = {
 		launchlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit1',
@@ -16835,7 +16835,7 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	-- ['corint'] = {
+	-- ['cortex_basilisk'] = {
 	-- 	hotbarrel1 = {
 	-- 		lightType = 'point',
 	-- 		pieceName = 'light',
@@ -16855,7 +16855,7 @@ local unitLights = {
 	-- 			lifetime = 300, sustain = 1, animtype = 0},
 	-- 	},
 	-- },
-	['corgplat'] = {
+	['cortex_gunplatform'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -16866,7 +16866,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfhlt'] = {
+	['cortex_coral'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'turret1',
@@ -18577,7 +18577,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corgate'] = {
+	['cortex_overseer'] = {
 		shieldglow = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -18592,12 +18592,12 @@ local unitLights = {
 
 
 unitLights['armada_torpedoship'] = unitLights['armada_voyager']
-unitLights['coruwgeo'] = unitLights['corgeo']
-unitLights['coruwageo'] = unitLights['corageo']
+unitLights['cortex_navalgeothermalpowerplant'] = unitLights['cortex_geothermalpowerplant']
+unitLights['cortex_advancednavalgeothermalpowerplant'] = unitLights['cortex_advancedgeothermalpowerplant']
 unitLights['armada_geothermalpowerplant'] = unitLights['armada_geothermalpowerplant']
 unitLights['armada_advancedgeothermalpowerplant'] = unitLights['armada_advancedgeothermalpowerplant']
 unitLights['armada_experimentalgantryuw'] = unitLights['armada_experimentalgantry']
-unitLights['corgantuw'] = unitLights['corgant']
+unitLights['cortex_underwaterexperimentalgantry'] = unitLights['cortex_experimentalgantry']
 unitLights['armada_decoycommander'] = unitLights['armada_commander']
 unitLights['cortex_decoycommander'] = unitLights['cortex_commander']
 unitLights['armada_commandercon'] = unitLights['armada_commander']
@@ -18609,7 +18609,7 @@ unitLights['armada_cloakablefusionreactor'] = table.copy(unitLights['armada_fusi
 local unitEventLights = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
 	-- WeaponBarrelGlow =  {
-	-- 	['corint'] = {
+	-- 	['cortex_basilisk'] = {
 	-- 		barrelglow1 = {
 	-- 			lightType = 'point',
 	-- 			pieceName = 'light',
@@ -18620,7 +18620,7 @@ local unitEventLights = {
 	-- 				lifetime = 300, sustain = 1, animtype = 0},
 	-- 		},
 	-- 	},
-	-- 	['corint'] = {
+	-- 	['cortex_basilisk'] = {
 	-- 		barrelglow2 = {
 	-- 			lightType = 'point',
 	-- 			pieceName = 'light',
@@ -18637,7 +18637,7 @@ local unitEventLights = {
 	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
 	-- to make the light EXACTLY color2 at the end of the lifetime, make colortime = 2 * lifetime
 
-	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
+	--cortex_basilisk disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptLights = {
 		['armada_commander'] = {
@@ -18696,11 +18696,11 @@ local unitEventLights = {
 			},
 		},
 
-		['corint'] = {
+		['cortex_basilisk'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'light',
-				lightName = 'corintbarrelglow',
+				lightName = 'cortex_basiliskbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = -12, posy = 2, posz = 0, radius = 28,
 					color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 800,
@@ -18711,7 +18711,7 @@ local unitEventLights = {
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'light',
-				lightName = 'corintbarrelglow',
+				lightName = 'cortex_basiliskbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 12, posy = 2, posz = 0, radius = 28,
 					color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 800,
@@ -18950,11 +18950,11 @@ local unitEventLights = {
 			},
 		},
 
-		['corsilo'] = {
+		['cortex_apocalypse'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'base',
-				lightName = 'corsiloafterglow',
+				lightName = 'cortex_apocalypseafterglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 14, posz = 0, radius = 50,
 					color2r = 0.5, color2g = 0.2, color2b = 0, colortime = 660,
@@ -18965,7 +18965,7 @@ local unitEventLights = {
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'cone',
 				pieceName = 'base',
-				lightName = 'corsiloafterglow',
+				lightName = 'cortex_apocalypseafterglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 40, posz = 0, radius = 70,
 					dirx = 0, diry = -10, dirz = 0, theta = 0.70,

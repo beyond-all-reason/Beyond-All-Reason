@@ -100,10 +100,10 @@ function UnitDef_Post(name, uDef)
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
-		if name == "coralab" or name == "coravp" or name == "armada_advancedbotlab" or name == "armada_advancedvehicleplant" then
+		if name == "cortex_advancedbotlab" or name == "cortex_advancedvehicleplant" or name == "armada_advancedbotlab" or name == "armada_advancedvehicleplant" then
 			uDef.metalcost = 1800 --2900
 		end
-		if name == "coraap" or name == "corasy" or name == "armada_advancedaircraftplant" or name == "armada_advancedshipyard" then
+		if name == "cortex_advancedaircraftplant" or name == "cortex_advancedshipyard" or name == "armada_advancedaircraftplant" or name == "armada_advancedshipyard" then
 			uDef.metalcost = 2100 --3200
 		end
 	end
@@ -117,7 +117,7 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1000 --2500
 			uDef.energyupkeep = 10 --20
 		end
-		if name == "cormoho" or name == "coruwmme" then
+		if name == "cortex_advancedmetalextractor" or name == "cortex_navaladvancedmetalextractor" then
 			uDef.extractsmetal = 0.002 --0.004
 			uDef.metalcost = 250 --640
 			uDef.energycost = 3100 --8100
@@ -125,7 +125,7 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1400 --3500
 			uDef.energyupkeep = 10 --20
 		end
-		if name == "cormexp" then
+		if name == "cortex_advancedexploiter" then
 			uDef.extractsmetal = 0.002 --0.004
 			uDef.metalcost = 2000 --2400
 			uDef.energycost = 8500 --12000
@@ -141,7 +141,7 @@ function UnitDef_Post(name, uDef)
 		end
 		if name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corwint2"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_advancedwindturbine"
 		end
 	end
 
@@ -166,26 +166,26 @@ function UnitDef_Post(name, uDef)
 				armada_seaplaneplatform = true,
 				armada_experimentalgantryuw = true,
 				armada_shipyard = true,
-				coraap = true,
-				coralab = true,
-				corap = true,
-				coravp = true,
-				corgant = true,
-				corhp = true,
-				corlab = true,
-				corvp = true,
-				coramsub = true,
-				corasy = true,
-				corfhp = true,
-				corplat = true,
-				corgantuw = true,
-				corsy = true,
+				cortex_advancedaircraftplant = true,
+				cortex_advancedbotlab = true,
+				cortex_aircraftplant = true,
+				cortex_advancedvehicleplant = true,
+				cortex_experimentalgantry = true,
+				cortex_hovercraftplatform = true,
+				cortex_botlab = true,
+				cortex_vehicleplant = true,
+				cortex_amphibiouscomplex = true,
+				cortex_advancedshipyard = true,
+				cortex_navalhovercraftplatform = true,
+				cortex_seaplaneplatform = true,
+				cortex_underwaterexperimentalgantry = true,
+				cortex_shipyard = true,
 				armada_aircraftplantt3 = true,	-- scav T3 air factory
-				corapt3 = true,	-- scav T3 air factory
+				cortex_experimentalaircraftplant = true,	-- scav T3 air factory
 				armada_constructionturret = true,
-				armada_constructionturretplat = true,
-				cornanotc = true,
-				cornanotcplat = true,
+				armada_navalconstructionturret = true,
+				cortex_constructionturret = true,
+				cortex_navalconstructionturret = true,
 				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
 			}
 			if factories[name] then
@@ -254,20 +254,20 @@ function UnitDef_Post(name, uDef)
 				armada_aircraftplant = true,
 				armada_advancedaircraftplant = true,
 				armada_seaplaneplatform = true,
-				corap = true,
-				coraap = true,
-				corplat = true,
-				corapt3 = true,
+				cortex_aircraftplant = true,
+				cortex_advancedaircraftplant = true,
+				cortex_seaplaneplatform = true,
+				cortex_experimentalaircraftplant = true,
 				armada_aircraftplantt3 = true,
 				legap = true,
 				legaap = true,
 				armada_aircraftplant_scav = true,
 				armada_advancedaircraftplant_scav = true,
 				armada_seaplaneplatform_scav = true,
-				corap_scav = true,
-				coraap_scav = true,
-				corplat_scav = true,
-				corapt3_scav = true,
+				cortex_aircraftplant_scav = true,
+				cortex_advancedaircraftplant_scav = true,
+				cortex_seaplaneplatform_scav = true,
+				cortex_experimentalaircraftplant_scav = true,
 				armada_aircraftplantt3_scav = true,
 				legap_scav = true,
 				legaap_scav = true,
@@ -296,13 +296,13 @@ function UnitDef_Post(name, uDef)
 				armada_armageddon = true,
 				armada_umbrella = true,
 				corfmd = true,
-				corsilo = true,
+				cortex_apocalypse = true,
 				cormabm = true,
 				armada_citadel_scav = true,
 				armada_armageddon_scav = true,
 				armada_umbrella_scav = true,
 				corfmd_scav = true,
-				corsilo_scav = true,
+				cortex_apocalypse_scav = true,
 				cormabm_scav = true,
 			}
 			if Nukes[name] then
@@ -313,9 +313,9 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armada_paralyzer = true,
-				cortron = true,
+				cortex_catalyst = true,
 				armada_paralyzer_scav = true,
-				cortron_scav = true,
+				cortex_catalyst_scav = true,
 			}
 			if TacNukes[name] then
 				uDef.maxthisunit = 0
@@ -327,14 +327,14 @@ function UnitDef_Post(name, uDef)
 				armbotrail = true,
 				armada_basilica = true,
 				armada_ragnarok = true,
-				corint = true,
-				corbuzz = true,
+				cortex_basilisk = true,
+				cortex_calamity = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armada_basilica_scav = true,
 				armada_ragnarok_scav = true,
-				corint_scav = true,
-				corbuzz_scav = true,
+				cortex_basilisk_scav = true,
+				cortex_calamity_scav = true,
 				legstarfall_scav = true,
 			}
 			if LRPCs[name] then
@@ -354,7 +354,7 @@ function UnitDef_Post(name, uDef)
 
 		--Printer
 
-		if name == "coravp" then
+		if name == "cortex_advancedvehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 			--uDef.buildoptions[numBuildoptions+2] = "corsala"
@@ -372,7 +372,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_dronecarrier"
 		end
-		if name == "corasy" then
+		if name == "cortex_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_dronecarrier"
 		end
@@ -398,7 +398,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armada_pawnt4"
 			uDef.buildoptions[numBuildoptions+3] = "armada_tumbleweedt4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
-		elseif name == "corgantuw" then
+		elseif name == "cortex_underwaterexperimentalgantry" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_gruntt4"
@@ -412,7 +412,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
 			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 			uDef.buildoptions[numBuildoptions+5] = "corvac" --corprinter
-		elseif name == "coravp" then
+		elseif name == "cortex_advancedvehicleplant" then
 			printerpresent = false
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
@@ -428,7 +428,7 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+5] = "corsala"
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 			end
-		elseif name == "corgant" or name == "leggant" then
+		elseif name == "cortex_experimentalgantry" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkarganetht4"
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
@@ -442,15 +442,15 @@ function UnitDef_Post(name, uDef)
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corcs" or name == "corcsa" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corgplat"
-			uDef.buildoptions[numBuildoptions+2] = "corfrock"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_gunplatform"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_janitor"
 		elseif name == "armada_constructionship" or name == "armada_constructionseaplane" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_gunplatform"
 			uDef.buildoptions[numBuildoptions+2] = "armada_scumbag"
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corfgate"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_atoll"
 		elseif name == "armada_advancedconstructionsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_aurora"
@@ -465,21 +465,21 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+8] = "armlwall"
 		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corapt3"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_experimentalaircraftplant"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
-      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_calamityt3"
+			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "cormwall"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corapt3"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_experimentalaircraftplant"
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
-      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_calamityt3"
+			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_skatert2"
@@ -487,7 +487,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "armada_ellysawt3"
 			uDef.buildoptions[numBuildoptions+4] = "armada_serpentt3"
 			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"
-		elseif name == "corasy" then
+		elseif name == "cortex_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
@@ -1357,14 +1357,14 @@ if modOptions.air_rework == true then
 		uDef.buildoptions[numBuildoptions+3] = "armada_sabre"
 		uDef.buildoptions[numBuildoptions+4] = "armada_puffin"
 	end
-	if name == "coraap" then
+	if name == "cortex_advancedaircraftplant" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions+1] = "corsb"
 		uDef.buildoptions[numBuildoptions+2] = "corsfig2"
 		uDef.buildoptions[numBuildoptions+3] = "corcut"
 		uDef.buildoptions[numBuildoptions+4] = "corseap"
 	end
-	if name == "corplat" then
+	if name == "cortex_seaplaneplatform" then
 		uDef.buildoptions[5] = "corsfig2"
 	end
 	if name == "armada_seaplaneplatform" then
@@ -1379,14 +1379,14 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.armada_nettle_missile.flighttime = 2.6
 		uDef.weapondefs.armada_nettle_missile.weaponacceleration = 200
 	end
-	if name == "corfrt" then
+	if name == "cortex_slingshot" then
 		uDef.weapondefs.armada_nettle_missile.startvelocity = 111
 		uDef.weapondefs.armada_nettle_missile.flighttime = 2.6
 		uDef.weapondefs.armada_nettle_missile.weaponacceleration = 200
 	end
-	if name == "corrl" then
-		uDef.weapondefs.corrl_missile.startvelocity = 111
-		uDef.weapondefs.corrl_missile.flighttime = 2.6
+	if name == "cortex_thistle" then
+		uDef.weapondefs.cortex_thistle_missile.startvelocity = 111
+		uDef.weapondefs.cortex_thistle_missile.flighttime = 2.6
 	end
 	if name == "armada_ferret" then
 		uDef.weapondefs.ferret_missile.areaofeffect = 48
@@ -1394,7 +1394,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.ferret_missile.weaponacceleration = 210
 		uDef.weapondefs.ferret_missile.weaponvelocity = 1100
 	end
-	if name == "cormadsam" then
+	if name == "cortex_sam" then
 		uDef.weapondefs.madsam_missile.areaofeffect = 48
 		uDef.weapondefs.madsam_missile.startvelocity = 120
 		uDef.weapondefs.madsam_missile.weaponacceleration = 210
@@ -1409,7 +1409,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.arm_advsam.flighttime = 2.5
 		uDef.weapondefs.arm_advsam.damage.vtol = 1500
 	end
-	if name == "corscreamer" then
+	if name == "cortex_screamer" then
 		uDef.weapondefs.cor_advsam.startvelocity = 140
 		uDef.weapondefs.cor_advsam.stockpile = false
 		uDef.weapondefs.cor_advsam.reloadtime = 25
@@ -1423,7 +1423,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.arm_cir.weaponvelocity = 1050
 		uDef.weapondefs.arm_cir.flighttime = 2.7
 	end
-	if name == "corerad" then
+	if name == "cortex_eradicator" then
 		uDef.weapondefs.cor_erad.startvelocity = 100
 		uDef.weapondefs.cor_erad.weaponvelocity = 1050
 		uDef.weapondefs.cor_erad.flighttime = 2.7
@@ -1503,7 +1503,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.aamissile.weaponacceleration = 270
 		uDef.weapondefs.aamissile.flighttime = 2.1
 	end
-	if name == "corenaa" then
+	if name == "cortex_navalbirdshot" then
 		uDef.weapondefs.armada_arbalest_gun.weaponvelocity = 1100
 	end
 	if name == "armada_navalarbalest" then
@@ -1550,15 +1550,15 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.weapondefs.armada_rattlesnake_gun.reloadtime = 2
 		uDef.weapondefs.armada_rattlesnake_gun_high.reloadtime = 7.7
 	end
-	if name == "cortoast" then
-		uDef.weapondefs.cortoast_gun.reloadtime = 2.35
-		uDef.weapondefs.cortoast_gun_high.reloadtime = 8.8
+	if name == "cortex_persecutor" then
+		uDef.weapondefs.cortex_persecutor_gun.reloadtime = 2.35
+		uDef.weapondefs.cortex_persecutor_gun_high.reloadtime = 8.8
 	end
 	if name == "armada_pitbull" then
 		uDef.weapondefs.armada_pitbull_weapon.reloadtime = 1.7
 		uDef.weapondefs.armada_pitbull_weapon.range = 700
 	end
-	if name == "corvipe" then
+	if name == "cortex_scorpion" then
 		uDef.weapondefs.vipersabot.reloadtime = 2.1
 		uDef.weapondefs.vipersabot.range = 700
 	end
@@ -1567,7 +1567,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 85000
 		uDef.buildtime = 59000
 	end
-	if name == "corbhmth" then
+	if name == "cortex_cerberus" then
 		uDef.metalcost = 3600
 		uDef.energycost = 40000
 		uDef.buildtime = 70000
@@ -1577,7 +1577,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 71000
 		uDef.buildtime = 94000
 	end
-	if name == "corint" then
+	if name == "cortex_basilisk" then
 		uDef.metalcost = 5100
 		uDef.energycost = 74000
 		uDef.buildtime = 103000
@@ -1587,7 +1587,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 902400
 		uDef.buildtime = 1680000
 	end
-	if name == "corbuzz" then
+	if name == "cortex_calamity" then
 		uDef.metalcost = 73200
 		uDef.energycost = 861600
 		uDef.buildtime = 1680000
@@ -1661,7 +1661,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.weapondefs.arm_advsam.reloadtime = 11
 		uDef.weapondefs.arm_advsam.stockpile = false
 	end
-	if name == "corscreamer" then
+	if name == "cortex_screamer" then
 		uDef.weapondefs.cor_advsam.reloadtime = 11
 		uDef.weapondefs.cor_advsam.stockpile = false
 	end
@@ -1818,7 +1818,7 @@ end
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armada_solarcollector" or name == "corsolar" then -- special case
+	if name == "armada_solarcollector" or name == "cortex_solarcollector" then -- special case
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then

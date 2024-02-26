@@ -129,7 +129,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 500,
-				model = "cortronmissile.s3o",
+				model = "cortex_catalystmissile.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
 				noselfdamage = true,
 				paralyzer = true,

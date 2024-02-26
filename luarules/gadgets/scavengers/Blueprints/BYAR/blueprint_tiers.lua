@@ -17,9 +17,9 @@ function BPWallOrPopup(faction, tier)
 				end
 			elseif faction == "cor" then
 				if r == 15 then
-					return UDN.cormaw_scav.id
+					return UDN.cortex_dragonsmaw_scav.id
 				else
-					return UDN.cordrag_scav.id
+					return UDN.cortex_dragonsteeth_scav.id
 				end
 			elseif faction == "scav" then
 				if r == 15 then
@@ -44,9 +44,9 @@ function BPWallOrPopup(faction, tier)
 				end
 			elseif faction == "cor" then
 				if r == 15 then
-					return UDN.cormaw_scav.id
+					return UDN.cortex_dragonsmaw_scav.id
 				else
-					return UDN.corfort_scav.id
+					return UDN.cortex_fortificationwall_scav.id
 				end
 			elseif faction == "scav" then
 				if r == 15 then

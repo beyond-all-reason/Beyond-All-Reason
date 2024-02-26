@@ -44,10 +44,10 @@ return {
 		turnrate = 363,
 		workertime = 200,
 		buildoptions = {
-			[1] = "cormex",
-			[2] = "corsolar",
-			[3] = "corrad",
-			[4] = "corfort",
+			[1] = "cortex_metalextractor",
+			[2] = "cortex_solarcollector",
+			[3] = "cortex_radartower",
+			[4] = "cortex_fortificationwall",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

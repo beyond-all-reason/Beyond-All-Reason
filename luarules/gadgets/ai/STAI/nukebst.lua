@@ -9,7 +9,7 @@ function NukeBST:Init()
 	local uname = self.unit:Internal():Name()
 	if uname == "armada_paralyzer" then
 		self.stunning = true
-	elseif uname == "cortron" then
+	elseif uname == "cortex_catalyst" then
 		self.tactical = true
 	end
 	self.position = self.unit:Internal():GetPosition()

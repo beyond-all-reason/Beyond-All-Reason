@@ -47,11 +47,11 @@ return {
 		buildoptions = {
 			[1] = "cortex_hercules",
 			[2] = "corfink",
-			[3] = "cormine4",
-			[4] = "cormaw",
-			[5] = "cordrag",
-			[6] = "coreyes",
-			[7] = "corjamt",
+			[3] = "cortex_mediumminecommando",
+			[4] = "cortex_dragonsmaw",
+			[5] = "cortex_dragonsteeth",
+			[6] = "cortex_beholder",
+			[7] = "cortex_castro",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

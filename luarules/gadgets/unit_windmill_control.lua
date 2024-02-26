@@ -18,7 +18,7 @@ end
 
 local windDefs = {}
 
-for _, unitDefName in ipairs({'armada_windturbinet2', 'corwint2', 'armada_windturbinet2_scav', 'corwint2_scav'}) do 
+for _, unitDefName in ipairs({'armada_windturbinet2', 'cortex_advancedwindturbine', 'armada_windturbinet2_scav', 'cortex_advancedwindturbine_scav'}) do 
 	if UnitDefNames[unitDefName] then
 		windDefs[UnitDefNames[unitDefName].id] = true
 	end
@@ -26,7 +26,7 @@ end
 
 
 if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then -- Only apply these when resource multipliers are active, to save performance
-	for _, unitDefName in ipairs({'armada_windturbine', 'corwin', 'armada_windturbine_scav', 'corwin_scav'}) do 
+	for _, unitDefName in ipairs({'armada_windturbine', 'cortex_windturbine', 'armada_windturbine_scav', 'cortex_windturbine_scav'}) do 
 		if UnitDefNames[unitDefName] then
 			windDefs[UnitDefNames[unitDefName].id] = true
 		end

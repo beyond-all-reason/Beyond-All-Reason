@@ -63,7 +63,7 @@ return {
 			"armada_sharksteeth",
 			"armada_harpoon",
 			"armada_navalnettle",
-			"armada_navalradar",
+			"armada_navalradarsonar",
 			-- Experimental:
 			"armada_hovercraftplatform",
 			"armada_navalhovercraftplatform",

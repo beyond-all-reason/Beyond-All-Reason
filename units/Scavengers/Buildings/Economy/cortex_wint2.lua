@@ -1,11 +1,11 @@
 return {
-	corwint2 = {
+	cortex_advancedwindturbine = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 1750,
 		metalcost = 450,
-		buildpic = "CORWINT2.DDS",
+		buildpic = "cortex_advancedwindturbine.DDS",
 		buildtime = 17000,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -22,8 +22,8 @@ return {
 		health = 1990,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		objectname = "Units/scavbuildings/CORWINT2.s3o",
-		script = "Units/scavbuildings/CORWINT2.cob",
+		objectname = "Units/scavbuildings/cortex_advancedwindturbine.s3o",
+		script = "Units/scavbuildings/cortex_advancedwindturbine.cob",
 		seismicsignature = 0,
 		selfdestructas = "windboom",
 		sightdistance = 273,
@@ -31,7 +31,7 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corwint2_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_advancedwindturbine_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
@@ -58,7 +58,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 270,
-				object = "Units/scavbuildings/CORWINT2_dead.s3o",
+				object = "Units/scavbuildings/cortex_advancedwindturbine_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

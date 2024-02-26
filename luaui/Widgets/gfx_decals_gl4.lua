@@ -765,8 +765,8 @@ local buildingExplosionPositionVariation = {
 	advmetalmaker = 1,
 	advmetalmakerSelfd = 1,
 	windboom = 1,
-	--mediumBuildingexplosiongeneric = 1, -- coradvsol
-	--mediumBuildingExplosionGenericSelfd = 1, --coradvsol
+	--mediumBuildingexplosiongeneric = 1, -- cortex_advancedsolarcollector
+	--mediumBuildingExplosionGenericSelfd = 1, --cortex_advancedsolarcollector
 	}
 local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local weaponConfig = {}

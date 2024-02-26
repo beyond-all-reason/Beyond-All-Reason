@@ -24,16 +24,16 @@ local CMD_IDLEMODE = CMD.IDLEMODE
 
 local isAirplane = {}
 local isAirplant = {
-	[UnitDefNames.corap.id] = true,
-	[UnitDefNames.coraap.id] = true,
-	[UnitDefNames.corplat.id] = true,
+	[UnitDefNames.cortex_aircraftplant.id] = true,
+	[UnitDefNames.cortex_advancedaircraftplant.id] = true,
+	[UnitDefNames.cortex_seaplaneplatform.id] = true,
 	[UnitDefNames.armada_aircraftplant.id] = true,
 	[UnitDefNames.armada_advancedaircraftplant.id] = true,
 	[UnitDefNames.armada_seaplaneplatform.id] = true,
 	[UnitDefNames.legap.id] = true,
 	[UnitDefNames.legaap.id] = true,
 	[UnitDefNames.armada_aircraftplantt3.id] = true,
-	[UnitDefNames.corapt3.id] = true
+	[UnitDefNames.cortex_experimentalaircraftplant.id] = true
 }
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(isAirplant) do

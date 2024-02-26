@@ -141,7 +141,7 @@ local function Jammer5()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -32, direction = 1},
-			{ unitDefID = UnitDefNames.corjamt_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_castro_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -164,9 +164,9 @@ local function Jammer6()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -64, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -80, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = 48, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = -48, zOffset = 0, direction = 3},
-			{ unitDefID = UnitDefNames.corjamt_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_guard_scav.id, xOffset = 48, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_guard_scav.id, xOffset = -48, zOffset = 0, direction = 3},
+			{ unitDefID = UnitDefNames.cortex_castro_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -185,8 +185,8 @@ local function Jammer7()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 48, zOffset = 0, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 0, zOffset = -32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -48, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corrad_scav.id, xOffset = 16, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corjamt_scav.id, xOffset = -16, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_radartower_scav.id, xOffset = 16, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_castro_scav.id, xOffset = -16, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -207,10 +207,10 @@ local function Jammer8()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 72, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -8, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -40, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.coreyes_scav.id, xOffset = 32, zOffset = 40, direction = 1},
-			{ unitDefID = UnitDefNames.coreyes_scav.id, xOffset = -32, zOffset = -40, direction = 1},
-			{ unitDefID = UnitDefNames.corrad_scav.id, xOffset = -24, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corjamt_scav.id, xOffset = 24, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_beholder_scav.id, xOffset = 32, zOffset = 40, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_beholder_scav.id, xOffset = -32, zOffset = -40, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_radartower_scav.id, xOffset = -24, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_castro_scav.id, xOffset = 24, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -238,12 +238,12 @@ local function Jammer9()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 73, zOffset = 1, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 41, zOffset = 97, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 73, zOffset = 97, direction = 1},
-			{ unitDefID = UnitDefNames.corrl_scav.id, xOffset = -111, zOffset = -39, direction = 1},
-			{ unitDefID = UnitDefNames.corrl_scav.id, xOffset = -111, zOffset = 41, direction = 1},
-			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = -47, zOffset = -39, direction = 1},
-			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 17, zOffset = -39, direction = 1},
-			{ unitDefID = UnitDefNames.corjamt_scav.id, xOffset = 25, zOffset = 33, direction = 1},
-			{ unitDefID = UnitDefNames.corjuno_scav.id, xOffset = -39, zOffset = 33, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_thistle_scav.id, xOffset = -111, zOffset = -39, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_thistle_scav.id, xOffset = -111, zOffset = 41, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = -47, zOffset = -39, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_constructionturret_scav.id, xOffset = 17, zOffset = -39, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_castro_scav.id, xOffset = 25, zOffset = 33, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_juno_scav.id, xOffset = -39, zOffset = 33, direction = 1},
 		},
 	}
 end
@@ -388,7 +388,7 @@ local function Jammer15()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 32, zOffset = 0, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 16, zOffset = -32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -32, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -407,8 +407,8 @@ local function Jammer16()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 48, zOffset = 0, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 32, zOffset = 32, direction = 1},
-			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = 16, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corarad_scav.id, xOffset = -16, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 16, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_advancedradartower_scav.id, xOffset = -16, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -429,7 +429,7 @@ local function Jammer17()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 16, zOffset = 32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -16, zOffset = -32, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 16, zOffset = -32, direction = 1},
-			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -32, zOffset = 0, direction = 3},
 			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 32, zOffset = 0, direction = 1},
 		},
@@ -462,9 +462,9 @@ local function Jammer18()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 112, zOffset = -32, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -112, zOffset = 32, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 80, zOffset = -80, direction = 3},
-			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.cortarg_scav.id, xOffset = -64, zOffset = 24, direction = 1},
-			{ unitDefID = UnitDefNames.cortarg_scav.id, xOffset = 64, zOffset = -24, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = -64, zOffset = 24, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_pinpointer_scav.id, xOffset = 64, zOffset = -24, direction = 1},
 			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -80, zOffset = -48, direction = 3},
 			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = 80, zOffset = 48, direction = 1},
 		},
@@ -495,9 +495,9 @@ local function Jammer19()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 112, zOffset = 32, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -80, zOffset = -48, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -112, zOffset = -32, direction = 3},
-			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corsd_scav.id, xOffset = 64, zOffset = 0, direction = 3},
-			{ unitDefID = UnitDefNames.corgate_scav.id, xOffset = -64, zOffset = 0, direction = 3},
+			{ unitDefID = UnitDefNames.cortex_shroud_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_nemesis_scav.id, xOffset = 64, zOffset = 0, direction = 3},
+			{ unitDefID = UnitDefNames.cortex_overseer_scav.id, xOffset = -64, zOffset = 0, direction = 3},
 		},
 	}
 end

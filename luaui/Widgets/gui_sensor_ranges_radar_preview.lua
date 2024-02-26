@@ -55,19 +55,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			Spring.Echo(k,v)
 		end]]--
 	end
-	if unitDef.name == 'armada_navalradar' then
+	if unitDef.name == 'armada_navalradarsonar' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 52
 	end
-	if unitDef.name == 'corrad' then
+	if unitDef.name == 'cortex_radartower' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
 	end
-	if unitDef.name == 'corfrad' then
+	if unitDef.name == 'cortex_radarsonartower' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
 	end
-	if unitDef.name == 'corarad' then
+	if unitDef.name == 'cortex_advancedradartower' then
 		cmdidtoradarsize[-1 * unitDefID] = "large"
 		radaremitheight[-1 * unitDefID] = 87
 	end

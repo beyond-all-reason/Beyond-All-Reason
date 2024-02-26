@@ -391,7 +391,7 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armada_navalradar = {
+	armada_navalradarsonar = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
@@ -603,7 +603,7 @@ local icontypes = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
-	armada_constructionturretplat = {
+	armada_navalconstructionturret = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
@@ -979,7 +979,7 @@ local icontypes = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
 	},
-	coraap = {
+	cortex_advancedaircraftplant = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
 	},
@@ -999,15 +999,15 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
-	coradvsol = {
+	cortex_advancedsolarcollector = {
 		bitmap = "icons/energy2_1.18.png",
 		size = 1.23899984
 	},
-	corafus = {
+	cortex_advancedfusionreactor = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
-	corageo = {
+	cortex_advancedgeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
@@ -1023,7 +1023,7 @@ local icontypes = {
 		bitmap = "icons/cortex_gruntt4.png",
 		size = 2.30999994
 	},
-	coralab = {
+	cortex_advancedbotlab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
 	},
@@ -1031,7 +1031,7 @@ local icontypes = {
 		bitmap = "icons/amph_torp.png",
 		size = 1.65999997
 	},
-	coramsub = {
+	cortex_amphibiouscomplex = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
@@ -1039,7 +1039,7 @@ local icontypes = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	corap = {
+	cortex_aircraftplant = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
@@ -1047,11 +1047,11 @@ local icontypes = {
 		bitmap = "icons/air_t2_hover_missile.png",
 		size = 1.46999991
 	},
-	corapt3 = {
+	cortex_experimentalaircraftplant = {
 		bitmap = "icons/factory_air_t3.png",
 		size = 1.52250004
 	},
-	corarad = {
+	cortex_advancedradartower = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
@@ -1059,12 +1059,12 @@ local icontypes = {
 		bitmap = "icons/ship_t2_aa_flak.png",
 		size = 1.73249984
 	},
-	corason = {
+	cortex_advancedsonarstation = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	corasp = {
-		bitmap = "icons/corasp_2.4.png",
+	cortex_airrepairpad = {
+		bitmap = "icons/cortex_airrepairpad_2.4.png",
 		size = 2.51999998
 	},
 	corassistdrone = {
@@ -1075,15 +1075,15 @@ local icontypes = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
-	corasy = {
+	cortex_advancedshipyard = {
 		bitmap = "icons/factory_ship_t2.png",
 		size = 1.9425
 	},
-	coratl = {
+	cortex_lamprey = {
 		bitmap = "icons/defence_2_naval.png",
 		size = 1.46999991
 	},
-	coravp = {
+	cortex_advancedvehicleplant = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
 	},
@@ -1099,16 +1099,16 @@ local icontypes = {
 		bitmap = "icons/ship_t2_battleship.png",
 		size = 2.67749977
 	},
-	corbhmth = {
-		bitmap = "icons/corbhmth.png",
+	cortex_cerberus = {
+		bitmap = "icons/cortex_cerberus.png",
 		size = 1.82749987
 	},
 	corblackhy = {
 		bitmap = "icons/ship_t2_flagship.png",
 		size = 3.46499968
 	},
-	corbuzz = {
-		bitmap = "icons/corbuzz.png",
+	cortex_calamity = {
+		bitmap = "icons/cortex_calamity.png",
 		size = 4.04249954
 	},
 	cortex_shuriken = {
@@ -1199,19 +1199,19 @@ local icontypes = {
 		bitmap = "icons/cordemon.png",
 		size = 2.625
 	},
-	cordl = {
+	cortex_jellyfish = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	cordoom = {
-		bitmap = "icons/cordoom.png",
+	cortex_calamity = {
+		bitmap = "icons/cortex_calamity.png",
 		size = 2.0474999
 	},
-	cordoomt3 = {
+	cortex_calamityt3 = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
-	cordrag = {
+	cortex_dragonsteeth = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -1231,15 +1231,15 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 0.34999999
 	},
-	corenaa = {
+	cortex_navalbirdshot = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.46999991
 	},
-	corerad = {
+	cortex_eradicator = {
 		bitmap = "icons/aa_t1_long.png",
 		size = 1.29999995
 	},
-	corestor = {
+	cortex_energystorage = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
@@ -1255,23 +1255,23 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_jammer.png",
 		size = 1.36499989
 	},
-	corexp = {
+	cortex_exploiter = {
 		bitmap = "icons/mex_t1_laser.png",
 		size = 0.97000003
 	},
-	coreyes = {
+	cortex_beholder = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
 	},
-	corfasp = {
-		bitmap = "icons/corasp_2.4.png",
+	cortex_floatingairrepairpad = {
+		bitmap = "icons/cortex_airrepairpad_2.4.png",
 		size = 2.51999998
 	},
 	cortex_twitcher = {
 		bitmap = "icons/cortex_twitcher_1.3.png",
 		size = 1.16999996
 	},
-	corfatf = {
+	cortex_navalpinpointer = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
@@ -1283,23 +1283,23 @@ local icontypes = {
 		bitmap = "icons/air_t4_flagship.png",
 		size = 3.3599999
 	},
-	corfdoom = {
-		bitmap = "icons/cordoom.png",
+	cortex_devastator = {
+		bitmap = "icons/cortex_calamity.png",
 		size = 1.5
 	},
-	corfdrag = {
+	cortex_sharksteeth = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corfgate = {
+	cortex_atoll = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
-	corfhlt = {
+	cortex_coral = {
 		bitmap = "icons/defence_1_laser.png",
 		size = 1.10249984
 	},
-	corfhp = {
+	cortex_navalhovercraftplatform = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
@@ -1315,11 +1315,11 @@ local icontypes = {
 		bitmap = "icons/antinuke.png",
 		size = 1.67999995
 	},
-	corfmine3 = {
+	cortex_navalheavymine = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	corfmkr = {
+	cortex_navalenergyconverter = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
@@ -1327,19 +1327,19 @@ local icontypes = {
 		bitmap = "icons/cor_t2_flameworker.png",
 		size = 1.45000005
 	},
-	corfort = {
+	cortex_fortificationwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corfrad = {
+	cortex_radarsonartower = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
-	corfrock = {
+	cortex_janitor = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	corfrt = {
+	cortex_slingshot = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
@@ -1351,15 +1351,15 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_tank.png",
 		size = 1.46999991
 	},
-	corfus = {
+	cortex_fusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	corgant = {
+	cortex_experimentalgantry = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998
 	},
-	corgantuw = {
+	cortex_underwaterexperimentalgantry = {
 		bitmap = "icons/factory_gantry_uw.png",
 		size = 2.51999998
 	},
@@ -1367,7 +1367,7 @@ local icontypes = {
 		bitmap = "icons/amphib_tank.png",
 		size = 1.35000002
 	},
-	corgate = {
+	cortex_overseer = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
@@ -1379,7 +1379,7 @@ local icontypes = {
 		bitmap = "icons/corgatreap.png",
 		size = 1.36499989
 	},
-	corgeo = {
+	cortex_geothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
@@ -1391,7 +1391,7 @@ local icontypes = {
 		bitmap = "icons/armrattet4.png",
 		size = 3.09749985
 	},
-	corgplat = {
+	cortex_gunplatform = {
 		bitmap = "icons/defence_0_0.8.png",
 		size = 0.83999997
 	},
@@ -1403,15 +1403,15 @@ local icontypes = {
 		bitmap = "icons/defence_hllllt.png",
 		size = 1.68699992
 	},
-	corhllt = {
+	cortex_twinguard = {
 		bitmap = "icons/defence_hllt.png",
 		size = 1.10870004
 	},
-	corhlt = {
+	cortex_warden = {
 		bitmap = "icons/defence_1.5_laser.png",
 		size = 1.30249989
 	},
-	corhp = {
+	cortex_hovercraftplatform = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
@@ -1427,15 +1427,15 @@ local icontypes = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
-	corint = {
-		bitmap = "icons/corint.png",
+	cortex_basilisk = {
+		bitmap = "icons/cortex_basilisk.png",
 		size = 2.41499972
 	},
-	corintr = {
-		bitmap = "icons/corintr.png",
+	cortex_intruder = {
+		bitmap = "icons/cortex_intruder.png",
 		size = 2.0999999
 	},
-	corjamt = {
+	cortex_castro = {
 		bitmap = "icons/jammer.png",
 		size = 0.94499993
 	},
@@ -1443,7 +1443,7 @@ local icontypes = {
 		bitmap = "icons/juggernaut.png",
 		size = 3.14999986
 	},
-	corjuno = {
+	cortex_juno = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
@@ -1459,7 +1459,7 @@ local icontypes = {
 		bitmap = "icons/mech.png",
 		size = 3.46499968
 	},
-	corlab = {
+	cortex_botlab = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
@@ -1467,7 +1467,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_impulse.png",
 		size = 1.25999999
 	},
-	corllt = {
+	cortex_guard = {
 		bitmap = "icons/defence_0_laser.png",
 		size = 0.83999997
 	},
@@ -1475,11 +1475,11 @@ local icontypes = {
 		bitmap = "icons/antinukemobile.png",
 		size = 1.46999991
 	},
-	cormadsam = {
+	cortex_sam = {
 		bitmap = "icons/aa_t15.png",
 		size = 1.15499997
 	},
-	cormakr = {
+	cortex_energyconverter = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
@@ -1491,15 +1491,15 @@ local icontypes = {
 		bitmap = "icons/vehicle_arty_t2.png",
 		size = 1.36499989
 	},
-	cormaw = {
+	cortex_dragonsmaw = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	cormex = {
+	cortex_metalextractor = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
 	},
-	cormexp = {
+	cortex_advancedexploiter = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
@@ -1507,24 +1507,24 @@ local icontypes = {
 		bitmap = "icons/hover_t1_missile.png",
 		size = 1.41750002
 	},
-	cormine1 = {
+	cortex_lightmine = {
 		bitmap = "icons/mine.png",
 		size = 0.37799999
 	},
-	cormine2 = {
+	cortex_mediummine = {
 		bitmap = "icons/mine.png",
 		size = 0.46199998
 	},
-	cormine3 = {
+	cortex_heavymine = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	cormine4 = {
+	cortex_mediumminecommando = {
 		bitmap = "icons/mine.png",
 		size = 0.46199998
 	},
 	corminibuzz = {
-		bitmap = "icons/corbuzz.png",
+		bitmap = "icons/cortex_calamity.png",
 		size = 1.88999987
 	},
 	cormist = {
@@ -1539,11 +1539,11 @@ local icontypes = {
 		bitmap = "icons/cormlv_1.0.png",
 		size = 1.04999995
 	},
-	cormmkr = {
+	cortex_advancedenergyconverter = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
-	cormoho = {
+	cortex_advancedmetalextractor = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
@@ -1555,7 +1555,7 @@ local icontypes = {
 		bitmap = "icons/ship_t2_missile.png",
 		size = 2.0999999
 	},
-	cormstor = {
+	cortex_metalstorage = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
@@ -1567,15 +1567,15 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	cornanotc = {
+	cortex_constructionturret = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
-	cornanotcplat = {
+	cortex_navalconstructionturret = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
-	cornanotct2 = {
+	cortex_advancedconstructionturret = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -1587,7 +1587,7 @@ local icontypes = {
 		bitmap = "icons/corparrow.png",
 		size = 1.62749982
 	},
-	corplat = {
+	cortex_seaplaneplatform = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
 	},
@@ -1603,11 +1603,11 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1.14999998
 	},
-	corptl = {
+	cortex_oldurchin = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	corpun = {
+	cortex_agitator = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
 	},
@@ -1615,7 +1615,7 @@ local icontypes = {
 		bitmap = "icons/cortex_fiend_1.15.png",
 		size = 1.20749986
 	},
-	corrad = {
+	cortex_radartower = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
@@ -1635,7 +1635,7 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
-	corrl = {
+	cortex_thistle = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
@@ -1675,11 +1675,11 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corscreamer = {
+	cortex_screamer = {
 		bitmap = "icons/aa_longrange_t2.png",
 		size = 1.88999987
 	},
-	corsd = {
+	cortex_nemesis = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
 	},
@@ -1723,11 +1723,11 @@ local icontypes = {
 		bitmap = "icons/corshiva_2.1.png",
 		size = 2.20499969
 	},
-	corshroud = {
+	cortex_shroud = {
 		bitmap = "icons/jammer_t2.png",
 		size = 1.25999999
 	},
-	corsilo = {
+	cortex_apocalypse = {
 		bitmap = "icons/nuke.png",
 		size = 2.51999998
 	},
@@ -1751,11 +1751,11 @@ local icontypes = {
 		bitmap = "icons/corsok_1.8.png",
 		size = 1.88999987
 	},
-	corsolar = {
+	cortex_solarcollector = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
-	corsonar = {
+	cortex_sonarstation = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
@@ -1783,11 +1783,11 @@ local icontypes = {
 		bitmap = "icons/cortex_mammoth.png",
 		size = 1.74299991
 	},
-	corsy = {
+	cortex_shipyard = {
 		bitmap = "icons/factory_ship.png",
 		size = 1.52250004
 	},
-	cortarg = {
+	cortex_pinpointer = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
@@ -1807,7 +1807,7 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
 	},
-	cortide = {
+	cortex_tidalgenerator = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
@@ -1815,11 +1815,11 @@ local icontypes = {
 		bitmap = "icons/air_t2_torpbomber.png",
 		size = 1.67999995
 	},
-	cortl = {
+	cortex_urchin = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	cortoast = {
+	cortex_persecutor = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
@@ -1831,7 +1831,7 @@ local icontypes = {
 		bitmap = "icons/cortrem_t2.png",
 		size = 1.9425
 	},
-	cortron = {
+	cortex_catalyst = {
 		bitmap = "icons/tacnuke.png",
 		size = 1.88999987
 	},
@@ -1839,43 +1839,43 @@ local icontypes = {
 		bitmap = "icons/shiptrans.png",
 		size = 2.0999999
 	},
-	coruwadves = {
+	cortex_hardenedenergystorage = {
 		bitmap = "icons/energystorage_t2.png",
 		size = 1.3125
 	},
-	coruwadvms = {
+	cortex_hardenedmetalstorage = {
 		bitmap = "icons/metalstorage_t2.png",
 		size = 1.3125
 	},
-	coruwageo = {
+	cortex_advancednavalgeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
-	coruwes = {
+	cortex_navalenergystorage = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
-	coruwfus = {
+	cortex_navalfusionreactor = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	coruwgeo = {
+	cortex_navalgeothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	coruwmex = {
+	cortex_navalmetalextractor = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
 	},
-	coruwmme = {
+	cortex_navaladvancedmetalextractor = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},
-	coruwmmm = {
+	cortex_navaladvancedenergyconverter = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
-	coruwms = {
+	cortex_navalmetalstorage = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
@@ -1899,7 +1899,7 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
-	corvipe = {
+	cortex_scorpion = {
 		bitmap = "icons/def_t2_missile.png",
 		size = 1.46999991
 	},
@@ -1907,7 +1907,7 @@ local icontypes = {
 		bitmap = "icons/bot_t2_radar.png",
 		size = 1.34399986
 	},
-	corvp = {
+	cortex_vehicleplant = {
 		bitmap = "icons/factory_vehicle.png",
 		size = 1.52250004
 	},
@@ -1919,11 +1919,11 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_vroc.png",
 		size = 1.67999995
 	},
-	corwin = {
+	cortex_windturbine = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
 	},
-	corwint2 = {
+	cortex_advancedwindturbine = {
 		bitmap = "icons/wind.png",
 		size = 1.67999995
 	},
@@ -2028,7 +2028,7 @@ local icontypes = {
 		size = 1.60000002
 	},
 	legbastion = {
-		bitmap = "icons/cordoom.png",
+		bitmap = "icons/cortex_calamity.png",
 		size = 2.0474999
 	},
 	legca = {

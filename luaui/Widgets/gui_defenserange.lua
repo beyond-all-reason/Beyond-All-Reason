@@ -64,34 +64,34 @@ modConfig["BYAR"]["unitList"] = {
 	armada_ragnarok = { weapons = { 1 } },
 
 	-- CORTEX
-	cormaw = { weapons = { 1 } },
-	corexp = { weapons = { 1 } },
-	corllt = { weapons = { 1 } },
-	corhllt = { weapons = { 1 } },
-	corhlt = { weapons = { 1 } },
-	corpun = { weapons = { 1, 1 } },
-	corrl = { weapons = { 2 } },
-	cormadsam = { weapons = { 2 } },
-	corerad = { weapons = { 2 } },
-	cordl = { weapons = { 1 } },
-	corjuno = { weapons = { 1 } },
+	cortex_dragonsmaw = { weapons = { 1 } },
+	cortex_exploiter = { weapons = { 1 } },
+	cortex_guard = { weapons = { 1 } },
+	cortex_twinguard = { weapons = { 1 } },
+	cortex_warden = { weapons = { 1 } },
+	cortex_agitator = { weapons = { 1, 1 } },
+	cortex_thistle = { weapons = { 2 } },
+	cortex_sam = { weapons = { 2 } },
+	cortex_eradicator = { weapons = { 2 } },
+	cortex_jellyfish = { weapons = { 1 } },
+	cortex_juno = { weapons = { 1 } },
 
-	corfhlt = { weapons = { 1 } },  --floating hlt
-	cortl = { weapons = { 1 } }, --torp launcher
-	coratl = { weapons = { 1 } }, --T2 torp launcher
-	corfrt = { weapons = { 2 } }, --floating rocket laucher
-	corenaa = { weapons = { 2 } }, --floating flak AA
-	corfdoom = { weapons = { 1 } }, --floating devastator
+	cortex_coral = { weapons = { 1 } },  --floating hlt
+	cortex_urchin = { weapons = { 1 } }, --torp launcher
+	cortex_lamprey = { weapons = { 1 } }, --T2 torp launcher
+	cortex_slingshot = { weapons = { 2 } }, --floating rocket laucher
+	cortex_navalbirdshot = { weapons = { 2 } }, --floating flak AA
+	cortex_devastator = { weapons = { 1 } }, --floating devastator
 
-	cortoast = { weapons = { 1 } },
-	corvipe = { weapons = { 1 } },
-	cordoom = { weapons = { 1 } },
+	cortex_persecutor = { weapons = { 1 } },
+	cortex_scorpion = { weapons = { 1 } },
+	cortex_calamity = { weapons = { 1 } },
 	corflak = { weapons = { 2 } },
-	corscreamer = { weapons = { 2 } },
-	cortron = { weapons = { 1 } },
+	cortex_screamer = { weapons = { 2 } },
+	cortex_catalyst = { weapons = { 1 } },
 	corfmd = { weapons = { 3 } },
-	corint = { weapons = { 1 } },
-	corbuzz = { weapons = { 1 } },
+	cortex_basilisk = { weapons = { 1 } },
+	cortex_calamity = { weapons = { 1 } },
 	
 	--LEGION
 	legstarfall = { weapons = { 1 } },
@@ -104,7 +104,7 @@ modConfig["BYAR"]["unitList"] = {
 	armminivulc = { weapons = { 1 } },
 	legministarfall = { weapons = { 1 } },
 
-	cordoomt3 = { weapons = { 1 } },
+	cortex_calamityt3 = { weapons = { 1 } },
 	corhllllt = { weapons = { 1 } },
 	corminibuzz = { weapons = { 1 } }
 }

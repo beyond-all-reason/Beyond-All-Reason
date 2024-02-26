@@ -38,9 +38,9 @@ return {
 		buildoptions = {
 			[1] = "armada_tidalgenerator",
 			[2] = "armada_metalextractor",
-			[3] = "armada_navalradar",
+			[3] = "armada_navalradarsonar",
 			[4] = "armada_advancedradartower",
-			[5] = "armada_constructionturretplat",
+			[5] = "armada_navalconstructionturret",
 			[6] = "armada_shipyard",
 			[7] = "armada_constructionship",
 			[8] = "armada_harpoon",

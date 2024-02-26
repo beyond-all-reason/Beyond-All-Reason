@@ -47,7 +47,7 @@ local function transport1(currentFrame)
 			"cortex_aggravator_scav",
 			"corgarp_scav",
 			"armada_constructionturret_scav",
-			"cornanotc_scav",
+			"cortex_constructionturret_scav",
 		}
 		local transportsT2 = {"armada_abductor_scav", "cortex_skyhook_scav",}
 		local unitsT2 = {
@@ -81,14 +81,14 @@ local function transport1(currentFrame)
 			"corgol_scav",
 			"cortex_termite_scav",
 			"cormart_scav",
-			"corllt_scav",
+			"cortex_guard_scav",
 			"armada_sentry_scav",
-			"corrl_scav",
+			"cortex_thistle_scav",
 			"armada_nettle_scav",
-			"corhllt_scav",
+			"cortex_twinguard_scav",
 			"armada_beamer_scav",
 			"armada_constructionturret_scav",
-			"cornanotc_scav",
+			"cortex_constructionturret_scav",
 		}
 
 		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.5

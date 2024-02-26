@@ -150,7 +150,7 @@ local function ixatolseaplane()
 		buildings = {
 			{ unitDefID = UnitDefNames.armada_navalmetalstorage.id,  xOffset =  -15, zOffset =  -45, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_navalmetalstorage.id,  xOffset =  -15, zOffset =   19, direction = 3 },
-			{ unitDefID = UnitDefNames.armada_navalradar.id,  xOffset =   57, zOffset =   -5, direction = 3 },
+			{ unitDefID = UnitDefNames.armada_navalradarsonar.id,  xOffset =   57, zOffset =   -5, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_horizon.id, xOffset =   60, zOffset =   -3, direction = 0,},
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id, xOffset =  -63, zOffset =  -45, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_seaplaneplatform.id,  xOffset =  105, zOffset =   75, direction = 0 },
@@ -165,7 +165,7 @@ local function ixatolmmkrtide()
 		radius = 54,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.cortide.id,  xOffset =   54, zOffset =   27, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_tidalgenerator.id,  xOffset =   54, zOffset =   27, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id, xOffset =  -18, zOffset =  -29, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id, xOffset =   14, zOffset =  -29, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id, xOffset =  -50, zOffset =   35, direction = 0 },
@@ -182,7 +182,7 @@ local function ixatolmmkrsubs()
 		type = types.Sea,
 		buildings = {
 			{ unitDefID = UnitDefNames.armada_navalenergyconverter.id, xOffset =   17, zOffset =   -4, direction = 0 },
-			{ unitDefID = UnitDefNames.armada_navalradar.id, xOffset =   65, zOffset =  -68, direction = 0 },
+			{ unitDefID = UnitDefNames.armada_navalradarsonar.id, xOffset =   65, zOffset =  -68, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_navalenergyconverter.id, xOffset =   17, zOffset =   44, direction = 1 },
 			{ unitDefID = UnitDefNames.armada_navalenergyconverter.id, xOffset =  -31, zOffset =   44, direction = 0 },
 			{ unitDefID = UnitDefNames.armada_navalenergyconverter.id, xOffset =  -31, zOffset =   -4, direction = 1 },
@@ -197,11 +197,11 @@ local function ixuwnrg()
 		radius = 56,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -40, zOffset =   37, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =    8, zOffset =    5, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   -8, zOffset =  -43, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -24, zOffset =    5, direction = 0 },
-			{ unitDefID = UnitDefNames.cortl.id,    xOffset =   64, zOffset =   -3, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -40, zOffset =   37, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =    8, zOffset =    5, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,  xOffset =   -8, zOffset =  -43, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -24, zOffset =    5, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_urchin.id,    xOffset =   64, zOffset =   -3, direction = 0 },
 		},
 	}
 end
@@ -211,16 +211,16 @@ local function ixatolmmkrwalled()
 		radius = 96,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.corfmkr.id,  xOffset =   24, zOffset =    8, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   64, zOffset =  -48, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   96, zOffset =  -16, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -64, zOffset =  -48, direction = 0 },
-			{ unitDefID = UnitDefNames.corfmkr.id,  xOffset =  -24, zOffset =   -8, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   64, zOffset =   48, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -96, zOffset =   16, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   96, zOffset =   16, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -96, zOffset =  -16, direction = 0 },
-			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -64, zOffset =   48, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergyconverter.id,  xOffset =   24, zOffset =    8, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =   64, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =   96, zOffset =  -16, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -64, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergyconverter.id,  xOffset =  -24, zOffset =   -8, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =   64, zOffset =   48, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -96, zOffset =   16, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =   96, zOffset =   16, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -96, zOffset =  -16, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sharksteeth.id, xOffset =  -64, zOffset =   48, direction = 0 },
 		},
 	}
 end
@@ -230,14 +230,14 @@ local function ixuwamsub()
 		radius = 170,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.coruwms.id,    xOffset =  170, zOffset =  -35, direction = 2 },
-			{ unitDefID = UnitDefNames.coruwes.id,    xOffset =   42, zOffset =  -51, direction = 2 },
-			{ unitDefID = UnitDefNames.coruwms.id,    xOffset = -118, zOffset = -131, direction = 2 },
-			{ unitDefID = UnitDefNames.coruwes.id,    xOffset =  -22, zOffset =  -51, direction = 2 },
-			{ unitDefID = UnitDefNames.coramsub.id,   xOffset =   10, zOffset =   77, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwms.id,    xOffset =  170, zOffset =   45, direction = 2 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,    xOffset =  170, zOffset =  -35, direction = 2 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,    xOffset =   42, zOffset =  -51, direction = 2 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,    xOffset = -118, zOffset = -131, direction = 2 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,    xOffset =  -22, zOffset =  -51, direction = 2 },
+			{ unitDefID = UnitDefNames.cortex_amphibiouscomplex.id,   xOffset =   10, zOffset =   77, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,    xOffset =  170, zOffset =   45, direction = 2 },
 			{ unitDefID = UnitDefNames.cormuskrat.id, xOffset = -126, zOffset =  139, direction = 0 },
-			{ unitDefID = UnitDefNames.corsonar.id,   xOffset = -123, zOffset =   13, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sonarstation.id,   xOffset = -123, zOffset =   13, direction = 0 },
 		},
 	}
 end
@@ -247,11 +247,11 @@ local function ixuwstor()
 		radius = 82,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   61, zOffset =  -21, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =  -19, zOffset =   59, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =   61, zOffset =   59, direction = 0 },
-			{ unitDefID = UnitDefNames.corsonar.id, xOffset =  -82, zOffset =  -76, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,  xOffset =   61, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,  xOffset =  -19, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,  xOffset =   61, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sonarstation.id, xOffset =  -82, zOffset =  -76, direction = 0 },
 		},
 	}
 end
@@ -261,11 +261,11 @@ local function ixuwstoradv()
 		radius = 82,
 		type = types.Sea,
 		buildings = {
-			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   61, zOffset =  -21, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =  -19, zOffset =   59, direction = 0 },
-			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =   61, zOffset =   59, direction = 0 },
-			{ unitDefID = UnitDefNames.corsonar.id, xOffset =  -82, zOffset =  -76, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,  xOffset =   61, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalenergystorage.id,  xOffset =  -19, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_navalmetalstorage.id,  xOffset =   61, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.cortex_sonarstation.id, xOffset =  -82, zOffset =  -76, direction = 0 },
 		},
 	}
 end
@@ -335,7 +335,7 @@ local function ixadvatolfus()
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset =  126, zOffset =  134, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset = -194, zOffset =  -74, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset =   30, zOffset =  166, direction = 3 },
-			{ unitDefID = UnitDefNames.armada_navalradar.id,    xOffset =  118, zOffset =  190, direction = 2 },
+			{ unitDefID = UnitDefNames.armada_navalradarsonar.id,    xOffset =  118, zOffset =  190, direction = 2 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset =   62, zOffset =  166, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset =  254, zOffset =   70, direction = 3 },
 			{ unitDefID = UnitDefNames.armada_sharksteeth.id,   xOffset =  110, zOffset =  -74, direction = 3 },

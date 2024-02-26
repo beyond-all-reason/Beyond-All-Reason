@@ -1097,38 +1097,38 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	--[[
 	-- T1 Energy
 	[UnitDefNames["armada_solarcollector"].id] 	= 0.0000001,
-	[UnitDefNames["corsolar"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_solarcollector"].id] 	= 0.0000001,
 	[UnitDefNames["armada_windturbine"].id] 	= 0.0000001,
-	[UnitDefNames["corwin"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_windturbine"].id] 	= 0.0000001,
 	[UnitDefNames["armada_tidalgenerator"].id] 	= 0.0000001,
-	[UnitDefNames["cortide"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_tidalgenerator"].id] 	= 0.0000001,
 	[UnitDefNames["armada_advancedsolarcollector"].id] 	= 0.000005,
-	[UnitDefNames["coradvsol"].id] 	= 0.000005,
+	[UnitDefNames["cortex_advancedsolarcollector"].id] 	= 0.000005,
 
 	-- T2 Energy
 	[UnitDefNames["armada_windturbinet2"].id] 	= 0.000075,
-	[UnitDefNames["corwint2"].id] 	= 0.000075,
+	[UnitDefNames["cortex_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["armada_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= 0.000125,
-	[UnitDefNames["corfus"].id] 	= 0.000125,
+	[UnitDefNames["cortex_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_navalfusionreactor"].id] 	= 0.000125,
-	[UnitDefNames["coruwfus"].id] 	= 0.000125,
+	[UnitDefNames["cortex_navalfusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_advancedgeothermalpowerplant"].id] 	= 0.000125,
-	[UnitDefNames["corageo"].id] 	= 0.000125,
+	[UnitDefNames["cortex_advancedgeothermalpowerplant"].id] 	= 0.000125,
 	[UnitDefNames["armada_advancedfusionreactor"].id] 	= 0.0005,
-	[UnitDefNames["corafus"].id] 	= 0.0005,
+	[UnitDefNames["cortex_advancedfusionreactor"].id] 	= 0.0005,
 
 	-- T1 Metal Makers
 	[UnitDefNames["armada_energyconverter"].id] 	= 0.00005,
-	[UnitDefNames["cormakr"].id] 	= 0.00005,
+	[UnitDefNames["cortex_energyconverter"].id] 	= 0.00005,
 	[UnitDefNames["armada_navalenergyconverter"].id] 	= 0.00005,
-	[UnitDefNames["corfmkr"].id] 	= 0.00005,
+	[UnitDefNames["cortex_navalenergyconverter"].id] 	= 0.00005,
 
 	-- T2 Metal Makers
 	[UnitDefNames["armada_advancedenergyconverter"].id] 	= 0.0005,
-	[UnitDefNames["cormmkr"].id] 	= 0.0005,
+	[UnitDefNames["cortex_advancedenergyconverter"].id] 	= 0.0005,
 	[UnitDefNames["armada_navaladvancedenergyconverter"].id] 	= 0.0005,
-	[UnitDefNames["coruwmmm"].id] 	= 0.0005,
+	[UnitDefNames["cortex_navaladvancedenergyconverter"].id] 	= 0.0005,
 	]]--
 }
 

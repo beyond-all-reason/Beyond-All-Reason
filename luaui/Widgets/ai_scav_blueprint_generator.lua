@@ -77,9 +77,9 @@ local function generateCode(type)
 		end
 
 		local unitDef = UnitDefNames[unitName]
-		if type == types.blueprint and (unitName == "armada_dragonsteeth_scav" or unitName == "cordrag_scav" or unitName == "armada_dragonsclaw_scav" or unitName == "cormaw_scav" or unitName == "corscavdrag_scav" or unitName == "corscavdtf_scav" or unitName == "corscavdtl_scav" or unitName == "corscavdtm_scav") then
+		if type == types.blueprint and (unitName == "armada_dragonsteeth_scav" or unitName == "cortex_dragonsteeth_scav" or unitName == "armada_dragonsclaw_scav" or unitName == "cortex_dragonsmaw_scav" or unitName == "corscavdrag_scav" or unitName == "corscavdtf_scav" or unitName == "corscavdtl_scav" or unitName == "corscavdtm_scav") then
 			table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = BPWallOrPopup('scav', 1), xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
-		elseif type == types.blueprint and (unitName == "armada_fortificationwall_scav" or unitName == "corfort_scav") then
+		elseif type == types.blueprint and (unitName == "armada_fortificationwall_scav" or unitName == "cortex_fortificationwall_scav") then
 			table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = BPWallOrPopup('scav', 2), xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
 		else
 			table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })

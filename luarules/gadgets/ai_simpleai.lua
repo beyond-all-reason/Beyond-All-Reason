@@ -64,15 +64,15 @@ if gameShortName == "BYAR" then
 		"cortship",
 		"armada_abductor",
 		"cortex_skyhook",
-		"corint",
+		"cortex_basilisk",
 
 		-- stockpilers
 		"armada_paralyzer",
 		"armada_juno",
 		"armada_armageddon",
-		"corjuno",
-		"corsilo",
-		"cortron",
+		"cortex_juno",
+		"cortex_apocalypse",
+		"cortex_catalyst",
 
 		-- minelayers
 		"armada_groundhog",
@@ -80,11 +80,11 @@ if gameShortName == "BYAR" then
 
 		-- depth charge launchers
 		"armada_anemone",
-		"cordl",
+		"cortex_jellyfish",
 
 		-- walls
 		"armada_dragonsteeth",
-		"cordrag",
+		"cortex_dragonsteeth",
 	}
 end
 

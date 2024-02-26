@@ -547,25 +547,25 @@ GetLightClass("Explosion", nil, "Smallish", {r = 1.5, g = 1.5, b = 1.5, a = 0.08
 										 sustain = 1.5, lifetime = 5,
 										 modelfactor = 0.1, specular = 0.4, scattering = 0.1, lensflare = 4})
 
---corint
-muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
+--cortex_basilisk
+muzzleFlashLights[WeaponDefNames["cortex_basilisk_lrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
 											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
 											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											lifetime = 17, sustain = 2})
-muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
+muzzleFlashLights[WeaponDefNames["cortex_basilisk_lrpc"].id].yOffset = 16
 
-explosionLights[WeaponDefNames["corint_lrpc"].id] =
+explosionLights[WeaponDefNames["cortex_basilisk_lrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
--- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
+-- muzzleFlashLights[WeaponDefNames["cortex_basilisk_lrpc"].id] =
 -- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
 -- 											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
 -- 											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
 -- 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 -- 											lifetime = 17, sustain = 2})
--- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
+-- muzzleFlashLights[WeaponDefNames["cortex_basilisk_lrpc"].id].yOffset = 16
 
 
 
@@ -591,39 +591,39 @@ muzzleFlashLights[WeaponDefNames["armada_ragnarok_rflrpc"].id].yOffset = 4
 explosionLights[WeaponDefNames["armada_ragnarok_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
---corbuzz
-muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id] =
+--cortex_calamity
+muzzleFlashLights[WeaponDefNames["cortex_calamity_rflrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
 											 lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id].yOffset = 4
-explosionLights[WeaponDefNames["corbuzz_rflrpc"].id] =
+muzzleFlashLights[WeaponDefNames["cortex_calamity_rflrpc"].id].yOffset = 4
+explosionLights[WeaponDefNames["cortex_calamity_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 
---corsilo
-explosionLights[WeaponDefNames["corsilo_crblmssl"].id] =
+--cortex_apocalypse
+explosionLights[WeaponDefNames["cortex_apocalypse_crblmssl"].id] =
 GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---corsilo engine
-projectileDefLights[WeaponDefNames["corsilo_crblmssl"].id] =
+--cortex_apocalypse engine
+projectileDefLights[WeaponDefNames["cortex_apocalypse_crblmssl"].id] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
---corsilo SCAV
-explosionLights[WeaponDefNames["corsilo_scav_crblmssl"].id] =
+--cortex_apocalypse SCAV
+explosionLights[WeaponDefNames["cortex_apocalypse_scav_crblmssl"].id] =
 GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,
 										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---corsilo engine SCAV
-projectileDefLights[WeaponDefNames["corsilo_scav_crblmssl"].id] =
+--cortex_apocalypse engine SCAV
+projectileDefLights[WeaponDefNames["cortex_apocalypse_scav_crblmssl"].id] =
 GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
@@ -653,8 +653,8 @@ GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
 
---cortron
-explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =
+--cortex_catalyst
+explosionLights[WeaponDefNames["cortex_catalyst_cortex_catalyst_weapon"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
 										  sustain = 4, lifetime = 120,
@@ -780,8 +780,8 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---cordoomt3
-projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] =
+--cortex_calamityt3
+projectileDefLights[WeaponDefNames["cortex_calamityt3_armagmheat"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
@@ -815,14 +815,14 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 15, lifetime = 500,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
---corjuno
-projectileDefLights[WeaponDefNames["corjuno_juno_pulse"].id] =
+--cortex_juno
+projectileDefLights[WeaponDefNames["cortex_juno_juno_pulse"].id] =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
 											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
-explosionLights[WeaponDefNames["corjuno_juno_pulse"].id] =
+explosionLights[WeaponDefNames["cortex_juno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.9, g = 1.1, b = 0.45,
@@ -830,12 +830,12 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 10, lifetime = 400,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
---corjuno SCAV
-projectileDefLights[WeaponDefNames["corjuno_scav_juno_pulse"].id] =
+--cortex_juno SCAV
+projectileDefLights[WeaponDefNames["cortex_juno_scav_juno_pulse"].id] =
 GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
 											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
-explosionLights[WeaponDefNames["corjuno_scav_juno_pulse"].id] =
+explosionLights[WeaponDefNames["cortex_juno_scav_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.75, g = 0.6, b = 1.0,
@@ -895,29 +895,29 @@ GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
 											lifetime = 0, sustain = 0})
 
 
---cordoom
-projectileDefLights[WeaponDefNames["cordoom_atadr"].id] =
+--cortex_calamity
+projectileDefLights[WeaponDefNames["cortex_calamity_atadr"].id] =
 GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cordoom_scav
-projectileDefLights[WeaponDefNames["cordoom_scav_atadr"].id] =
+--cortex_calamity_scav
+projectileDefLights[WeaponDefNames["cortex_calamity_scav_atadr"].id] =
 GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cordoomt3
-projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] =
+--cortex_calamityt3
+projectileDefLights[WeaponDefNames["cortex_calamityt3_armagmheat"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cordoomt3_scav
-projectileDefLights[WeaponDefNames["cordoomt3_scav_armagmheat"].id] =
+--cortex_calamityt3_scav
+projectileDefLights[WeaponDefNames["cortex_calamityt3_scav_armagmheat"].id] =
 GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,

@@ -7,59 +7,59 @@ math.random(); math.random(); math.random()
 
 function CoreWindSolar( taskqueuebehaviour )
 	if taskqueuebehaviour.ai.map:AverageWind() > 10 then
-		return "corwind"
+		return "cortex_windturbined"
 	else
-		return "corsolar"
+		return "cortex_solarcollector"
 	end
 end
 function randomLab( taskqueuebehaviour )
 	local r = math.random(0,2)
 	if r == 0 then
-		return "corlab"
+		return "cortex_botlab"
 	elseif r == 1 then
-		return "corvp"
+		return "cortex_vehicleplant"
 	else
-		return "corap"
+		return "cortex_aircraftplant"
 	end
 end
 
 local corecommanderlist = {
 	CoreWindSolar,
-	"cormex",
+	"cortex_metalextractor",
 	CoreWindSolar,
-	"cormex",
-	"cormex",
+	"cortex_metalextractor",
+	"cortex_metalextractor",
 	randomLab,
-	"corllt",
-	"corrad",
+	"cortex_guard",
+	"cortex_radartower",
 	CoreWindSolar,
 	CoreWindSolar,
 	CoreWindSolar,
 	CoreWindSolar,
 	CoreWindSolar,
-	"cormex",
-	"cormex",
-	"cormex",
-	"corllt",
+	"cortex_metalextractor",
+	"cortex_metalextractor",
+	"cortex_metalextractor",
+	"cortex_guard",
 	CoreWindSolar,
 }
 local coreconstructionbot = {
 	CoreWindSolar,
-	"cormex",
+	"cortex_metalextractor",
 	CoreWindSolar,
-	"cormex",
-	"cormex",
-	"corllt",
-	"corrad",
-	CoreWindSolar,
-	CoreWindSolar,
+	"cortex_metalextractor",
+	"cortex_metalextractor",
+	"cortex_guard",
+	"cortex_radartower",
 	CoreWindSolar,
 	CoreWindSolar,
 	CoreWindSolar,
-	"cormex",
-	"cormex",
-	"cormex",
-	"corllt",
+	CoreWindSolar,
+	CoreWindSolar,
+	"cortex_metalextractor",
+	"cortex_metalextractor",
+	"cortex_metalextractor",
+	"cortex_guard",
 	CoreWindSolar,
 }
 
@@ -166,6 +166,6 @@ taskqueues = {
 	corcv = coreconstructionbot,
 	armada_commander = armada_commandermander,
 	armada_constructionbot = armconstructionbot,
-	corlab = corebotlab,
+	cortex_botlab = corebotlab,
 	armada_botlab = armbotlab,
 }

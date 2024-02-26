@@ -21,7 +21,7 @@ local defaults = {
 	repeatEffect = true,
 }
 
-local corafusShieldSphere = table.merge(defaults, {
+local cortex_advancedfusionreactorShieldSphere = table.merge(defaults, {
 	pos = { 0, 60, 0 },
 	size = 32,
 	light = 4,
@@ -37,7 +37,7 @@ local armada_advancedfusionreactorShieldSphere = table.merge(defaults, {
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
 
-local corfusShieldSphere = table.merge(defaults, {
+local cortex_fusionreactorShieldSphere = table.merge(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
 	light = 3.25,
@@ -45,7 +45,7 @@ local corfusShieldSphere = table.merge(defaults, {
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
 })
 
-local corgateShieldSphere = table.merge(defaults, {
+local cortex_overseerShieldSphere = table.merge(defaults, {
 	pos = { 0, 42, 0 },
 	size = 11,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
@@ -59,7 +59,7 @@ local armada_junoShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
-local corjunoShieldSphere = table.merge(defaults, {
+local cortex_junoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
@@ -78,18 +78,18 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = armada_junoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
-	["corjuno"] = {
-		{ class = 'ShieldSphere', options = corjunoShieldSphere },
+	["cortex_juno"] = {
+		{ class = 'ShieldSphere', options = cortex_junoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
 
 	--// FUSIONS //--------------------------
-	["corafus"] = {
-		{ class = 'ShieldSphere', options = corafusShieldSphere },
+	["cortex_advancedfusionreactor"] = {
+		{ class = 'ShieldSphere', options = cortex_advancedfusionreactorShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 32.5, precision = 22, repeatEffect = true } },
 	},
-	["corfus"] = {
-		{ class = 'ShieldSphere', options = corfusShieldSphere },
+	["cortex_fusionreactor"] = {
+		{ class = 'ShieldSphere', options = cortex_fusionreactorShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
 	},
 	["armada_advancedfusionreactor"] = {
@@ -100,15 +100,15 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = armada_advancedfusionreactorShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
-	["corgate"] = {
+	["cortex_overseer"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		{ class = 'ShieldSphere', options = cortex_overseerShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
-	["corfgate"] = {
+	["cortex_atoll"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		{ class = 'ShieldSphere', options = cortex_overseerShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
@@ -123,19 +123,19 @@ local UnitEffects = {
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
 	["lootboxbronze"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
+		{ class = 'ShieldSphere', options = table.merge(cortex_fusionreactorShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 34, 0 }, size = 10.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxsilver"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
+		{ class = 'ShieldSphere', options = table.merge(cortex_fusionreactorShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 52, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxgold"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
+		{ class = 'ShieldSphere', options = table.merge(cortex_fusionreactorShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 69, 0 }, size = 20.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxplatinum"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
+		{ class = 'ShieldSphere', options = table.merge(cortex_fusionreactorShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 87, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
 	},
 

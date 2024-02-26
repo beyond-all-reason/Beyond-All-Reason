@@ -107,7 +107,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
-				model = "cormine1.s3o",
+				model = "cortex_lightmine.s3o",
 				mygravity = 0.07,
 				name = "LegionMineBomb",
 				noselfdamage = true,
@@ -127,7 +127,7 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					bogus = 1,
-					spawns_name = "cormine1",
+					spawns_name = "cortex_lightmine",
 					spawns_surface = "LAND",
 				},
 				damage = {

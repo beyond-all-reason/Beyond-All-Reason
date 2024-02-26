@@ -37,25 +37,25 @@
 			},
 			"cortex": {
 				"land": {
-					"corwin": [30, 60],
-					"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
-                    "coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
-                    //"corgeo": [4, 8, 16, 300, 0.6], //0.6
-                   // "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
-					"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
-					"corafus": [50, 100, 60, 4000, 6.44],
-                    "coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
+					"cortex_windturbine": [30, 60],
+					"cortex_solarcollector": [9, 12, 0, 0, 0.060], // efficiency=0.026667
+                    "cortex_advancedsolarcollector": [20, 30, 12, 220, 0.220], //efficiency=0.237542
+                    //"cortex_geothermalpowerplant": [4, 8, 16, 300, 0.6], //0.6
+                   // "cortex_advancedgeothermalpowerplant": [0, 1, 35, 1000, 3.0], //eff 3.0
+					"cortex_fusionreactor": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
+					"cortex_advancedfusionreactor": [50, 100, 60, 4000, 6.44],
+                    "cortex_navalfusionreactor": [6, 12, 35, 600, 2.8] // efficiency=6.443299
 				},
 				"water": {
-					"cortide": [45, 60],
-					"corwin": [10, 20],
-					"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
-                    "coradvsol": [16, 20, 12, 220, 0.220], //efficiency=0.237542
-                    //"corgeo": [4, 8, 16, 300, 0.6],
-                    //"corageo": [0, 1, 16, 1000, 3.0],
-                    "corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
-                    "corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
-					"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
+					"cortex_tidalgenerator": [45, 60],
+					"cortex_windturbine": [10, 20],
+					"cortex_solarcollector": [6, 10, 0, 0, 0.027], // efficiency=0.026667
+                    "cortex_advancedsolarcollector": [16, 20, 12, 220, 0.220], //efficiency=0.237542
+                    //"cortex_geothermalpowerplant": [4, 8, 16, 300, 0.6],
+                    //"cortex_advancedgeothermalpowerplant": [0, 1, 16, 1000, 3.0],
+                    "cortex_fusionreactor": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
+                    "cortex_advancedfusionreactor": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
+					"cortex_navalfusionreactor": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
 				}
 			}
 		},
@@ -83,11 +83,11 @@
 
 	"geo": {
 		"armada": "armada_geothermalpowerplant",
-		"cortex": "corgeo"
+		"cortex": "cortex_geothermalpowerplant"
 	},
 	"mex": {
 		"armada": "armada_metalextractor",
-		"cortex": "cormex"
+		"cortex": "cortex_metalextractor"
 	},
 // buildpower -  Mobile buildpower to metal income ratio,
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
@@ -132,13 +132,13 @@
 	//"terra": "armada_shipyard",
 	"assist": {
 		"armada": "armada_constructionturret",
-		"cortex": "cornanotc"
+		"cortex": "cortex_constructionturret"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armada_windturbine",
-		"cortex": "corwin"
+		"cortex": "cortex_windturbine"
 	}
 }
 }

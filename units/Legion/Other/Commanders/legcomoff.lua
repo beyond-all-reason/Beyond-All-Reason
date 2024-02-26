@@ -83,12 +83,12 @@ return {
 			[22] = "armada_sharksteeth",
 			[23] = "armada_harpoon",
 			[24] = "armada_navalnettle",
-			[25] = "armada_navalradar",
+			[25] = "armada_navalradarsonar",
 			-- Experimental:
 			[26] = "armada_hovercraftplatform",
 			[27] = "armada_navalhovercraftplatform",
 			[28] = "leggob",
-			[29] = "corjamt",
+			[29] = "cortex_castro",
 		},
 		customparams = {
 			unitgroup = 'builder',

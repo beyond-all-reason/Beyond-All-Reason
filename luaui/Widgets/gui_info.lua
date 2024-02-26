@@ -138,7 +138,7 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
 		end
 
-		if unitDef.name == 'armada_anemone' or unitDef.name == 'cordl' or unitDef.name == 'armada_cormorant' or unitDef.name == 'cortex_angler'
+		if unitDef.name == 'armada_anemone' or unitDef.name == 'cortex_jellyfish' or unitDef.name == 'armada_cormorant' or unitDef.name == 'cortex_angler'
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
 			if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
 				isWaterUnit[unitDefID] = true
@@ -297,7 +297,7 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, defDmg)
 					end
 
-				elseif unitDef.name == 'armada_rattlesnake' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
+				elseif unitDef.name == 'armada_rattlesnake' or unitDef.name == 'cortex_persecutor' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category

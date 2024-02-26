@@ -380,7 +380,7 @@
 	
 		// CORTEX factories
 
-	"corlab": {
+	"cortex_botlab": {
 		"importance": [0.8, 0.1],
 
 		"require_energy": false,
@@ -407,7 +407,7 @@
 		"caretaker": 3
 	},
 
-	"coralab": {
+	"cortex_advancedbotlab": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -431,7 +431,7 @@
 		"caretaker": 6
 	},
 
-	"corvp": {
+	"cortex_vehicleplant": {
 		"importance": [0.8, 0.0],
 
 		"require_energy": false,
@@ -465,7 +465,7 @@
 		"caretaker": 4
 	},
 
-	"coravp": {
+	"cortex_advancedvehicleplant": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -496,7 +496,7 @@
 	
 
 	//T3 factory
-	"corgant": {
+	"cortex_experimentalgantry": {
 		"importance": [0.0, 2.0],
 
 		"require_energy": true,
@@ -519,7 +519,7 @@
 
 		"caretaker": 20
 	},
-	"corgantuw": {
+	"cortex_underwaterexperimentalgantry": {
 		"importance": [0.0, 0.5],
 
 		"require_energy": true,
@@ -540,7 +540,7 @@
 
 
 	// CORTEX Aircraft
-	"corap": {
+	"cortex_aircraftplant": {
 		"importance": [0.5, 0.5],
 
 		"require_energy": true,
@@ -563,7 +563,7 @@
 		"caretaker": 2
 	},
 	
-	"coraap": {
+	"cortex_advancedaircraftplant": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": true,
@@ -585,7 +585,7 @@
 		},
 
 		// CORTEX Ships
-	"corsy": {
+	"cortex_shipyard": {
 		"importance": [3.0, 1.0],
 
 		"require_energy": false,
@@ -602,7 +602,7 @@
 		"caretaker": 3
 	},
 	
-	"corasy": {
+	"cortex_advancedshipyard": {
 		"importance": [0.0, 6.0],
 
 		"require_energy": true,
@@ -621,7 +621,7 @@
 	},
     
     //Cortex Hover
-	"corhp": {
+	"cortex_hovercraftplatform": {
 		"importance": [0.0, 0.0],
 
 		"require_energy": false,
@@ -639,7 +639,7 @@
 
 		"caretaker": 2
 	},
-    "corfhp": {
+    "cortex_navalhovercraftplatform": {
 		"importance": [1.5, 0.5],
 
 		"require_energy": false,
@@ -659,7 +659,7 @@
 	},
     
     //Cortex Amphibic Factory
-	"coramsub": {
+	"cortex_amphibiouscomplex": {
 		"importance": [0.0, 0.5],
 
 		"require_energy": false,
@@ -685,7 +685,7 @@
 	},
     
     // Cortex Seaplanes
-	"corplat": {
+	"cortex_seaplaneplatform": {
 		"importance": [0.0, 1.0],
 
 		"require_energy": false,

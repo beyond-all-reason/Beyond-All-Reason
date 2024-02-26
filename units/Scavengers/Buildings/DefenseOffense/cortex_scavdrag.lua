@@ -27,7 +27,7 @@ return {
 		maxwaterdepth = 0,
 		objectname = "scavs/scavdrag.s3o",
 		repairable = false,
-		script = "Units/cordrag.cob",
+		script = "Units/cortex_dragonsteeth.cob",
 		seismicsignature = 0,
 		selfdestructas = "WallExplosionConcrete",
 		selfdestructcountdown = 1,

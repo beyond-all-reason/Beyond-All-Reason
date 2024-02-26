@@ -9,9 +9,9 @@
 						"armada_constructionturret",	"armada_advancedradartower",		"armada_pinpointer",		"armada_hardenedenergystorage",  	"armada_paralyzer",		"armada_veil",		"armada_cloakablefusionreactor",     "armada_solarcollector",     "armada_keeper",      "armada_manta"],
 		//	
 		//              0          		1          		2          		3            	4           	5          		6				7				8				9
-			"cortex":  ["corllt",		"cortl",   		"corrl",  		"corhllt",   	"corhlt",   	"cormaw",  		"cormadsam",  	"corerad",		"corvipe", 		"coratl", 
-						"corflak",   	"cortoast", 	"cordoom", 		"corpun",    	"corfmd",		"corrad",		"corjamt",		"corestor",		"cormstor",		"coradvsol", 
-						"cornanotc",	"corarad",		"cortarg",		"coruwadves",	"cortron", 		"corshroud",	"corfus",       "corsolar",     "corgate",      "corfhlt"]
+			"cortex":  ["cortex_guard",		"cortex_urchin",   		"cortex_thistle",  		"cortex_twinguard",   	"cortex_warden",   	"cortex_dragonsmaw",  		"cortex_sam",  	"cortex_eradicator",		"cortex_scorpion", 		"cortex_lamprey", 
+						"corflak",   	"cortex_persecutor", 	"cortex_calamity", 		"cortex_agitator",    	"corfmd",		"cortex_radartower",		"cortex_castro",		"cortex_energystorage",		"cortex_metalstorage",		"cortex_advancedsolarcollector", 
+						"cortex_constructionturret",	"cortex_advancedradartower",		"cortex_pinpointer",		"cortex_hardenedenergystorage",	"cortex_catalyst", 		"cortex_shroud",	"cortex_fusionreactor",       "cortex_solarcollector",     "cortex_overseer",      "cortex_coral"]
 		},
 
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
@@ -34,7 +34,7 @@
 	"superweapon": {
 		"unit": {
 			"armada": ["armada_mercury",  "armada_paralyzer",  "armada_basilica", "armada_ragnarok", "armada_citadel", "armada_armageddon"],
-			"cortex": ["corscreamer", "cortron", "corint",   "corbuzz", "corfmd", "corsilo"]
+			"cortex": ["cortex_screamer", "cortex_catalyst", "cortex_basilisk",   "cortex_calamity", "corfmd", "cortex_apocalypse"]
 		},
 		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
 
@@ -44,7 +44,7 @@
 	// Fallback defence
 	"default": {
 		"armada": "armada_sentry",
-		"cortex": "corllt"
+		"cortex": "cortex_guard"
 	}
 },
 
@@ -121,45 +121,45 @@
 				]
 			]
 		},
-		"corsolar": {
+		"cortex_solarcollector": {
 			"hub": [
 				[
-					{"unit": "corllt", "category": "convert", "offset": [10, 0], "condition": {"chance": 0.8}}
+					{"unit": "cortex_guard", "category": "convert", "offset": [10, 0], "condition": {"chance": 0.8}}
 				]  
 			]
 		},
-		"coradvsol": {
+		"cortex_advancedsolarcollector": {
 			"hub": [
 				[
-					{"unit": "corhllt", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+					{"unit": "cortex_twinguard", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
 //				],  // chain1
 //				[
-//					{"unit": "cormakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "cortex_energyconverter", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 				]  // chain2
 			]
 		},
-		"corfus": {
+		"cortex_fusionreactor": {
 			"hub": [
 				[  // chain1
-//					{"unit": "cormmkr", "category": "convert", "offset": [0, 60]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [0, 100]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [0, 60]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [0, 100]},
 					{"unit": "corfmd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
-					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "cortex_sam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		},
-		"corafus": {
+		"cortex_advancedfusionreactor": {
 			"hub": [
 				[  // chain1
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, 120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, -120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [150, 120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, 150]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [150, 150]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [120, 120]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [120, -120]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [150, 120]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [120, 150]},
+//					{"unit": "cortex_advancedenergyconverter", "category": "convert", "offset": [150, 150]},
 					{"unit": "corfmd", "category": "defence", "offset": [180, -180], "condition": {"chance": 0.5}},
-					{"unit": "cordoom", "category": "defence", "offset": [-180, 180]},
-					{"unit": "corvipe", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
-					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "cortex_calamity", "category": "defence", "offset": [-180, 180]},
+					{"unit": "cortex_scorpion", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
+					{"unit": "cortex_sam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		}
@@ -168,8 +168,8 @@
 		"armada_geothermalpowerplant": {
 			"hub": [[{"unit": "armada_beamer", "category": "defence", "offset": {"front": 64}}]]
 		},
-		"corgeo": {
-			"hub": [[{"unit": "corhllt", "category": "defence", "offset": {"front": 64}}]]
+		"cortex_geothermalpowerplant": {
+			"hub": [[{"unit": "cortex_twinguard", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
 	"factory": {
@@ -182,14 +182,14 @@
 		"armada_aircraftplant": {
 			"hub": [[{"unit": "armada_sentry", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		},
-		"corlab": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"cortex_botlab": {
+			"hub": [[{"unit": "cortex_guard", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"corvp": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"cortex_vehicleplant": {
+			"hub": [[{"unit": "cortex_guard", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"corap": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		"cortex_aircraftplant": {
+			"hub": [[{"unit": "cortex_guard", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		}
 	},
 	"mex": {
@@ -198,7 +198,7 @@
 			"energy": [500, true], //AI will force-build 1 solar near every mex till it reaches 500 energy income
 			"porc": true
 		},
-		"cormex": {
+		"cortex_metalextractor": {
 			"energy": [500, true],
 			"porc": true
 		}
@@ -211,11 +211,11 @@
 				[{"unit": "armada_overwatch", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
 			]
 		},
-		"corrad": {
+		"cortex_radartower": {
 			"hub": [
-				[{"unit": "corllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
-				[{"unit": "corrl", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
-				[{"unit": "corhlt", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
+				[{"unit": "cortex_guard", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "cortex_thistle", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
+				[{"unit": "cortex_warden", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
 			]
 		}
 

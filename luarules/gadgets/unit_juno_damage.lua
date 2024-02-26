@@ -24,7 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armada_radarjammerbot.id] = true,
 		[UnitDefNames.armada_advancedsonarstation.id] = true,
 		[UnitDefNames.armada_beholder.id] = true,
-		[UnitDefNames.armada_navalradar.id] = true,
+		[UnitDefNames.armada_navalradarsonar.id] = true,
 		[UnitDefNames.armada_umbra.id] = true,
 		[UnitDefNames.armada_sneakypete.id] = true,
 		[UnitDefNames.armada_compass.id] = true,
@@ -33,16 +33,16 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armada_bermuda.id] = true,
 		[UnitDefNames.armada_sonarstation.id] = true,
 		[UnitDefNames.armada_veil.id] = true,
-		[UnitDefNames.corarad.id] = true,
-		[UnitDefNames.corason.id] = true,
+		[UnitDefNames.cortex_advancedradartower.id] = true,
+		[UnitDefNames.cortex_advancedsonarstation.id] = true,
 		[UnitDefNames.coreter.id] = true,
-		[UnitDefNames.coreyes.id] = true,
-		[UnitDefNames.corfrad.id] = true,
-		[UnitDefNames.corjamt.id] = true,
-		[UnitDefNames.corrad.id] = true,
-		[UnitDefNames.corshroud.id] = true,
+		[UnitDefNames.cortex_beholder.id] = true,
+		[UnitDefNames.cortex_radarsonartower.id] = true,
+		[UnitDefNames.cortex_castro.id] = true,
+		[UnitDefNames.cortex_radartower.id] = true,
+		[UnitDefNames.cortex_shroud.id] = true,
 		[UnitDefNames.corsjam.id] = true,
-		[UnitDefNames.corsonar.id] = true,
+		[UnitDefNames.cortex_sonarstation.id] = true,
 		[UnitDefNames.cortex_deceiver.id] = true,
 		[UnitDefNames.cortex_augur.id] = true,
 		[UnitDefNames.corvrad.id] = true,
@@ -103,9 +103,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local junoWeapons = {
 		[WeaponDefNames.armada_juno_juno_pulse.id] = true,
-		[WeaponDefNames.corjuno_juno_pulse.id] = true,
+		[WeaponDefNames.cortex_juno_juno_pulse.id] = true,
 		[WeaponDefNames.armada_juno_scav_juno_pulse.id] = true,
-		[WeaponDefNames.corjuno_scav_juno_pulse.id] = true,
+		[WeaponDefNames.cortex_juno_scav_juno_pulse.id] = true,
 	}
 
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		Script.SetWatchExplosion(WeaponDefNames.armada_juno_juno_pulse.id, true)
-		Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)
+		Script.SetWatchExplosion(WeaponDefNames.cortex_juno_juno_pulse.id, true)
 	end
 
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)

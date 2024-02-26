@@ -134,32 +134,32 @@
 			"build_speed": 15.0 //bp 300
 		},
 
-		"corlab": {
+		"cortex_botlab": {
 			"role": ["static"],
 			"build_speed": 5.0,  //bp 100
             "limit": 1,
 			"midposoffset": [-3.239746, 0, -2]
 		},
-		"coralab": {
+		"cortex_advancedbotlab": {
 			"role": ["static"],
 			"midposoffset": [0, 0, -4],
 			//"attribute": ["support"],
 			"limit": 1,
 			"build_speed": 15.0 // bp 300
 		},
-		"corgant": {
+		"cortex_experimentalgantry": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
 			"build_speed": 1.0 //bp 300
 		},
-		"corvp": {
+		"cortex_vehicleplant": {
 			"role": ["builder"],
 			"build_speed": 5.0, // bp 100
             "limit": 1
 
 		},
-		"coravp": {
+		"cortex_advancedvehicleplant": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
@@ -180,13 +180,13 @@
 			"limit": 1,
 			"build_speed": 10.0 //bp 200
 		},
-		"corap": {
+		"cortex_aircraftplant": {
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
 			"build_speed": 5.0 //bp 100
 		},
-		"coraap": {
+		"cortex_advancedaircraftplant": {
 			"role": ["static"],
 			"attribute": ["support"],
             "since": 420,
@@ -234,34 +234,34 @@
 			"build_speed": 1.0, //bp 300
 			"limit": 1
 		},
-        "corsy": {
+        "cortex_shipyard": {
 			"role": ["static"],
 			"build_speed": 8.0, //bp 165
 			"limit": 1
 		},
-		"corasy": {
+		"cortex_advancedshipyard": {
 			"role": ["static"],
 			"build_speed": 15.0,  //bp 300
             "since": 480,
 			"limit": 1
 		},
-		"corhp": {
+		"cortex_hovercraftplatform": {
 			"role": ["static"],
 			"build_speed": 10.0, //bp 200
 			"limit": 1
 		},
-		"corfhp": {
+		"cortex_navalhovercraftplatform": {
 			"role": ["static"],
 			"build_speed": 10.0, //bp 200
 			"since": 300,
 			"limit": 1
 		},
-        "coramsub": {
+        "cortex_amphibiouscomplex": {
 			"role": ["builder"],
 			"build_speed": 7.5, //bp 150
 			"limit": 1
 		},
-        "corplat": {
+        "cortex_seaplaneplatform": {
 			"role": ["builder"],
 			"build_speed": 10.0,  //bp 200
 			"since": 420,
@@ -274,15 +274,15 @@
 			"role": ["support"],		// nanos with role "support" are considered "low priority"
 			"build_speed": 10.0  // bp 200, lower values => more and earlier nanos (workaround) 
 		},
-		"armada_constructionturretplat": {
+		"armada_navalconstructionturret": {
 			"role": ["support"],
 			"build_speed": 10.0  //lower values => more and earlier nanos (workaround) 
 		},
-		"cornanotc": {
+		"cortex_constructionturret": {
 			"role": ["static"],
 			"build_speed": 10.0 
 		},
-		"cornanotcplat": {
+		"cortex_navalconstructionturret": {
 			"role": ["static"],
 			"build_speed": 10.0 
 		},
@@ -408,7 +408,7 @@
 		},
 		
 // DEFENSE - Cortex
-		"corllt": {
+		"cortex_guard": {
 			"role": ["static"],
 			"since": 70,
 			"build_mod": 300,
@@ -421,7 +421,7 @@
 				"vs": {"artillery": 0.3, "assault": 0.8, "raider": 1.3}
 			}
 		},
-		"corhllt": {
+		"cortex_twinguard": {
 			"role": ["static"],
 			"threat": {
 				"air": 0.2,  
@@ -431,7 +431,7 @@
 				"vs": {"artillery": 0.3, "assault": 0.8}
 			}
 		},
-		"corhlt": {
+		"cortex_warden": {
 			"role": ["static"],
 			"threat": {
 				"air": 0.2,  
@@ -439,13 +439,13 @@
 				"vs": {"artillery": 0.5, "assault": 0.8}
 			}
 		},
-		"corfhlt": {
+		"cortex_coral": {
 			"role": ["static"],
 			"since": 360,
 			"limit": 3
 		},
 		
-		"cormaw": {
+		"cortex_dragonsmaw": {
 			"role": ["static"],
 			"since": 300,
 			"threat": {
@@ -455,22 +455,22 @@
 				"vs": {"assault": 0.7}
 			}
 		},
-		"corpun": {
+		"cortex_agitator": {
 			"role": ["static"],
 			"on": false,
 			"threat": {"air": 0.0, "water": 0.1,"surf": 0.5},
             "since": 600,
 			"limit": 3
 		},
-		"corrl": {
+		"cortex_thistle": {
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
-		"cormadsam": {
+		"cortex_sam": {
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
-		"corerad": {
+		"cortex_eradicator": {
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
@@ -478,39 +478,39 @@
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
-		"corscreamer": {
+		"cortex_screamer": {
 			"role": ["anti_air"],
 			"threat": {"air": 2.0, "water": 0.0,"surf": 0.0}
 		},
-		"cortl": {
+		"cortex_urchin": {
 			"role": ["static"],
 			"threat": {"air": 0.0, "water": 1.0,"surf": 2.0, "vs": {"comm": 10}}
 		},
-		"coratl": {
+		"cortex_lamprey": {
 			"role": ["static"],
 			"threat": {"air": 0.0, "water": 1.0,"surf": 2.0}
 		},
-		"corvipe": {
+		"cortex_scorpion": {
 			"role": ["static"]
 		},
-		"cortoast": {
+		"cortex_persecutor": {
 			"role": ["static"],
 			"on": false,
 			"threat": {"air": 0.0, "water": 0.1,"surf": 1.0}
 		},
-		"cordoom": {
+		"cortex_calamity": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
         },
-        "corfdoom": {
+        "cortex_devastator": {
             "role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
 		},
-        "corjuno":{
+        "cortex_juno":{
 			"role":["super", "static"],
 			"since": 900
 		},
-        "corsilo":{
+        "cortex_apocalypse":{
 			"role":	["super", "static"],
             "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
 			"limit": 1
@@ -524,28 +524,28 @@
 			"role": ["static"],
 			"limit": 3
 		},
-		"cortarg": {
+		"cortex_pinpointer": {
 			"role": ["static"],
 			"limit": 3
 		},
 		"armada_paralyzer":{
 			"role":	["super", "static"] //without "super" it does not shoot
 		},
-		"cortron":{
+		"cortex_catalyst":{
 			"role":	["super", "static"],
 			"limit":1
 		},
 		"armada_veil":{
 			"role": ["static"]
 		},
-		"corshroud":{
+		"cortex_shroud":{
 			"role":["static"]
 		},
 		"armada_radartower": {
 			"role": ["static"],
 			"since": 120
 		},
-		"corrad":{
+		"cortex_radartower":{
 			"role":["static"],
 			"since": 120
 		},
@@ -553,7 +553,7 @@
 			"role":["static"],
 			"since": 600
 		},
-		"corjamt":{
+		"cortex_castro":{
 			"role":["static"],
 			"since": 600
 		},
@@ -566,7 +566,7 @@
 			"role": ["static"],
 			"since": 300
 		},
-		"cormakr": {
+		"cortex_energyconverter": {
 			"role": ["static"],
 			"since": 300
 		},
@@ -574,7 +574,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"cordrag": {
+		"cortex_dragonsteeth": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -629,48 +629,48 @@
 			"role": ["static"],
 			"limit": 1
 		},
-		"cormex" : {
+		"cortex_metalextractor" : {
 			"role": ["static"],
 			"build_mod": 300
 		},
-		"cormoho" : {
+		"cortex_advancedmetalextractor" : {
 			"role": ["static"],
 			"build_mod": 200
 		},
-		"cormexp" : {
+		"cortex_advancedexploiter" : {
 			"role": ["static"],
 			"build_mod": 500,
 			"limit":0
 		},
-		"corfus" : {
+		"cortex_fusionreactor" : {
             "role": ["static"],
             "build_mod": 4000,
 			"cooldown": 3
         },
-		"coruwfus" : {
+		"cortex_navalfusionreactor" : {
             "role": ["static"],
             "build_mod": 4000
         },
-		"cormstor" : {
+		"cortex_metalstorage" : {
 			"role": ["static"],
 			"since": 500,
 			"limit": 1
 		},
-		"coruwms" : {
+		"cortex_navalmetalstorage" : {
 			"role": ["static"],
 			"since": 500,
 			"limit": 1
 		},
-		"coruwadvms" : {
+		"cortex_hardenedmetalstorage" : {
 			"role": ["static"],
 			"limit": 1
 			},
-		"corestor" : {
+		"cortex_energystorage" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
 		},
-		"coruwes" : {
+		"cortex_navalenergystorage" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
@@ -682,7 +682,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"corfort": {
+		"cortex_fortificationwall": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -690,7 +690,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"cordrag_scav": {
+		"cortex_dragonsteeth_scav": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -698,7 +698,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"corfort_scav": {
+		"cortex_fortificationwall_scav": {
 			"role": ["static"],
 			"ignore": true
 		},
@@ -1439,7 +1439,7 @@
 
 
 
-		// adv bot - coralab
+		// adv bot - cortex_advancedbotlab
 
 		"cortex_termite": {
 			"role": ["raider"]
@@ -1518,7 +1518,7 @@
 
 
 
-		// T3 CORE EXPERIMENTAL - corgant
+		// T3 CORE EXPERIMENTAL - cortex_experimentalgantry
 		"corsok": {
 			"role": ["skirmish"],
 			"retreat": 0.6
@@ -1552,7 +1552,7 @@
 
 
 
-		// CORE T1 VEHICLE - corvp
+		// CORE T1 VEHICLE - cortex_vehicleplant
 
 		"corfav": {
 			"role": ["scout"],
@@ -1647,7 +1647,7 @@
 
 
 
-		// CORE SHIPS - corsy
+		// CORE SHIPS - cortex_shipyard
 
 		"correcl": {
 			"role": ["support"],
@@ -1682,7 +1682,7 @@
 
 
 
-		// CORE ADV SHIPYARD - corasy
+		// CORE ADV SHIPYARD - cortex_advancedshipyard
 
 		"corshark": {
 			"role": ["anti_sub", "sub"],
@@ -1728,7 +1728,7 @@
 
 
 
-		// aircraft - corap
+		// aircraft - cortex_aircraftplant
 
 		"corfink": {
 			"role": ["scout", "air"],
@@ -1754,7 +1754,7 @@
 
 
 
-		// CORE ADV AIRCRAFT aircraft - coraap
+		// CORE ADV AIRCRAFT aircraft - cortex_advancedaircraftplant
 
 		"cortex_condor": {
 			"role": ["scout", "air"],
@@ -1780,7 +1780,7 @@
 
 
 
-		// CORE NAVAL AIRCRAFT - corplat
+		// CORE NAVAL AIRCRAFT - cortex_seaplaneplatform
 		"corcut": {
 			"role": ["raider", "air"],
 			"retreat": 0.8

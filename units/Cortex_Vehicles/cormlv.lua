@@ -52,11 +52,11 @@ return {
 		turnrate = 580,
 		workertime = 40,
 		buildoptions = {
-			[1] = "cormine1",
-			[2] = "cormine2",
-			[3] = "cormine3",
-			[4] = "cordrag",
-			[5] = "coreyes",
+			[1] = "cortex_lightmine",
+			[2] = "cortex_mediummine",
+			[3] = "cortex_heavymine",
+			[4] = "cortex_dragonsteeth",
+			[5] = "cortex_beholder",
 		},
 		customparams = {
 			unitgroup = 'builder',

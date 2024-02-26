@@ -62,19 +62,19 @@ dictionary@ GetOpenInfo()
 			}, {SO(RT::RAIDER), SO(RT::BUILDER)})
 		},
 		{Commander::cortex_commander, SOpener({
-			{Factory::corlab, array<SQueue> = {
+			{Factory::cortex_botlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::SKIRM), SO(RT::BUILDER)})
 			}},
-			{Factory::coralab, array<SQueue> = {
+			{Factory::cortex_advancedbotlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::RAIDER, 3), SO(RT::BUILDER2), SO(RT::ARTY, 2), SO(RT::ASSAULT), SO(RT::BUILDER2), SO(RT::AA)})
 			}},
-			{Factory::coravp, array<SQueue> = {
+			{Factory::cortex_advancedvehicleplant, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 3), SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::ASSAULT), SO(RT::AA), SO(RT::BUILDER2)})
 			}},
-			{Factory::corasy, array<SQueue> = {
+			{Factory::cortex_advancedshipyard, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
 			}},
-			{Factory::corap, array<SQueue> = {
+			{Factory::cortex_aircraftplant, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER), SO(RT::AA), SO(RT::RAIDER), SO(RT::BOMBER), SO(RT::SCOUT)})
 			}}
 			}, {SO(RT::BUILDER), SO(RT::SKIRM)})

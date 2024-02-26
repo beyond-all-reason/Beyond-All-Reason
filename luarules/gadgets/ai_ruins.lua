@@ -50,20 +50,20 @@ local SpawnAsNeutral
 
 local landMexesList = {
 	"armada_metalextractor",
-	"cormex",
+	"cortex_metalextractor",
 	--"armada_twilight_scav",
-	"corexp",
+	"cortex_exploiter",
 	"armada_advancedmetalextractor",
-	"cormoho",
-	"cormexp",
+	"cortex_advancedmetalextractor",
+	"cortex_advancedexploiter",
 }
 local seaMexesList = {
 	"armada_metalextractor",
-	"cormex",
+	"cortex_metalextractor",
 	"armada_navalmetalextractor",
-	"coruwmex",
+	"cortex_navalmetalextractor",
 	"armada_navaladvancedmetalextractor",
-	"coruwmme",
+	"cortex_navaladvancedmetalextractor",
 }
 
 local function randomlyRotateBlueprint()

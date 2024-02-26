@@ -25,7 +25,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	local defaultStockpileLimit = 99
 	local isStockpilingUnit = { -- number represents maximum stockpile. You can also use stockpileLimit customParam which overwrites whatever is set in this table
 		[UnitDefNames['armada_mercury'].id] = 5,
-		[UnitDefNames['corscreamer'].id] = 5,
+		[UnitDefNames['cortex_screamer'].id] = 5,
 
 		[UnitDefNames['armada_thor'].id] = 2,
 
@@ -33,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['legmineb'].id] = 1,
 
 		[UnitDefNames['armada_armageddon'].id] = 10,
-		[UnitDefNames['corsilo'].id] = 10,
+		[UnitDefNames['cortex_apocalypse'].id] = 10,
 
 		[UnitDefNames['armada_citadel'].id] = 20,
 		[UnitDefNames['corfmd'].id] = 20,
@@ -41,7 +41,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['raptor_turret_antinuke_t3_v1'].id] = 10,
 
 		[UnitDefNames['armada_juno'].id] = 20,
-		[UnitDefNames['corjuno'].id] = 20,
+		[UnitDefNames['cortex_juno'].id] = 20,
 
 		[UnitDefNames['armada_haven'].id] = 20,
 		[UnitDefNames['cortex_oasis'].id] = 20,
@@ -53,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['cormabm'].id] = 20,
 
 		[UnitDefNames['armada_paralyzer'].id] = 10,
-		[UnitDefNames['cortron'].id] = 10,
+		[UnitDefNames['cortex_catalyst'].id] = 10,
 
 		[UnitDefNames['armbotrail'].id] = 50,
 		

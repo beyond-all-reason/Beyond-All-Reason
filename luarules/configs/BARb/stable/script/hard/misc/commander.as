@@ -78,12 +78,12 @@ dictionary@ GetOpenInfo()
 			}, {SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER)})
 		},
 		{Commander::cortex_commander, SOpener({
-			{Factory::corlab, array<SQueue> = {
+			{Factory::cortex_botlab, array<SQueue> = {
 				SQueue(0.3f, {SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 4), SO(RT::BUILDER), SO(RT::RAIDER, 2)}),
 				SQueue(0.3f, {SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::RIOT), SO(RT::BUILDER), SO(RT::RAIDER, 2)}),
 				SQueue(0.3f, {SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER)})
 			}},
-			{Factory::corvp, array<SQueue> = {
+			{Factory::cortex_vehicleplant, array<SQueue> = {
 				//standard
 				SQueue(0.4f, {SO(RT::SCOUT), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER, 2), SO(RT::BUILDER), SO(RT::RAIDER, 2)}),
 				// raider serial production
@@ -93,19 +93,19 @@ dictionary@ GetOpenInfo()
 				//defensive eco start
 				SQueue(0.2f, {SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER)})
 			}},
-			{Factory::coralab, array<SQueue> = {
+			{Factory::cortex_advancedbotlab, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::RAIDER, 3), SO(RT::BUILDER2), SO(RT::RAIDER, 3), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::HEAVY), SO(RT::BUILDER2), SO(RT::ASSAULT, 2), SO(RT::BUILDER2)})
 			}},
-			{Factory::coravp, array<SQueue> = {
+			{Factory::cortex_advancedvehicleplant, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::ASSAULT), SO(RT::BUILDER2),SO(RT::HEAVY), SO(RT::BUILDER2, 2)})
 			}},
-			{Factory::corgant, array<SQueue> = {
+			{Factory::cortex_experimentalgantry, array<SQueue> = {
 				SQueue(1.0f, {SO(RT::RAIDER), SO(RT::ASSAULT), SO(RT::ARTY, 2)})
 			}},
-			{Factory::corsy, array<SQueue> = {
+			{Factory::cortex_shipyard, array<SQueue> = {
 				SQueue(0.3f, {SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::SUB), SO(RT::SKIRM)})
 			}},
-			{Factory::corasy, array<SQueue> = {
+			{Factory::cortex_advancedshipyard, array<SQueue> = {
 				SQueue(0.5f, {SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2, 2)})
 			}}
 			}, {SO(RT::BUILDER, 2), SO(RT::SKIRM, 2), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::SUPPORT), SO(RT::RAIDER)})

@@ -126,7 +126,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
-				model = "corscreamermissile.s3o",
+				model = "cortex_screamermissile.s3o",
 				name = "Heavy long-range g2a guided missile launcher",
 				noselfdamage = true,
 				proximitypriority = -2,

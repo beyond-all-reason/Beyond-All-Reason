@@ -384,7 +384,7 @@ local unitOrderTable = {
 	['armada_bearer']       = 010560,
 	['corthovr']       = 010570,
 
-	['corintr']        = 010600,
+	['cortex_intruder']        = 010600,
 
 	['armada_abductor']        = 010610,
 	['cortex_skyhook']        = 010620,
@@ -403,293 +403,293 @@ local unitOrderTable = {
 -- BUILDINGS
    --ECO METAL MEX
    ['armada_metalextractor']         = 100000,
-   ['cormex']         = 100050,
+   ['cortex_metalextractor']         = 100050,
    ['legmex']         = 100060,
    ['armada_twilight']        = 100100,
-   ['corexp']         = 100150,
+   ['cortex_exploiter']         = 100150,
    ['legmext15']      = 100160,
 
    ['armada_advancedmetalextractor']        = 100200,
-   ['cormoho']        = 100250,
+   ['cortex_advancedmetalextractor']        = 100250,
    ['legmext2']       = 100260,
    ['armada_shockwave']   = 100290,
-   ['cormexp']        = 100300,
+   ['cortex_advancedexploiter']        = 100300,
 
    --ECO ENERGY CONVERTERS
    ['armada_energyconverter']        = 100500,
-   ['cormakr']        = 100550,
+   ['cortex_energyconverter']        = 100550,
    ['armada_advancedenergyconverter']        = 100600,
-   ['cormmkr']        = 100650,
+   ['cortex_advancedenergyconverter']        = 100650,
 
    --ECO METAL STORAGE
    ['armada_metalstorage']       = 100800,
-   ['cormstor']       = 100850,
+   ['cortex_metalstorage']       = 100850,
    ['armada_hardenedmetalstorage']     = 100900,
-   ['coruwadvms']     = 100950,
+   ['cortex_hardenedmetalstorage']     = 100950,
 
    --ECO NRG GENS
    ['armada_windturbine']         = 101000,
-   ['corwin']         = 101020,
+   ['cortex_windturbine']         = 101020,
    ['armada_windturbinet2']       = 101040, --scavengers
-   ['corwint2']       = 101050, --scavengers
+   ['cortex_advancedwindturbine']       = 101050, --scavengers
    ['armada_solarcollector']       = 101070,
-   ['corsolar']       = 101080,
+   ['cortex_solarcollector']       = 101080,
    ['armada_advancedsolarcollector']      = 101100,
-   ['coradvsol']      = 101150,
+   ['cortex_advancedsolarcollector']      = 101150,
 
    --ECO NRG GEOS
    ['armada_geothermalpowerplant']         = 101200,
    ['armada_geothermalpowerplant']       = 101201,
-   ['corgeo']         = 101250,
-   --['coruwgeo']       = 101251,
+   ['cortex_geothermalpowerplant']         = 101250,
+   --['cortex_navalgeothermalpowerplant']       = 101251,
    ['armada_prude']         = 101300,
-   ['corageo']        = 101350,
-   ['coruwageo']      = 101351,
+   ['cortex_advancedgeothermalpowerplant']        = 101350,
+   ['cortex_advancednavalgeothermalpowerplant']      = 101351,
    ['armada_advancedgeothermalpowerplant']        = 101400,
    ['armada_advancedgeothermalpowerplant']      = 101401,
-   ['corbhmth']       = 101450,
+   ['cortex_cerberus']       = 101450,
 
    --ECO NRG FUSIONS
    ['armada_fusionreactor']         = 101525,
    ['armada_cloakablefusionreactor']       = 101550,
-   ['corfus']         = 101600,
+   ['cortex_fusionreactor']         = 101600,
    ['armada_advancedfusionreactor']        = 101700,
-   ['corafus']        = 101750,
+   ['cortex_advancedfusionreactor']        = 101750,
 
    --ECO NRG STORAGE
    ['armada_energystorage']       = 101800,
-   ['corestor']       = 101850,
+   ['cortex_energystorage']       = 101850,
    ['armada_hardenedenergystorage']     = 101900,
-   ['coruwadves']     = 101950,
+   ['cortex_hardenedenergystorage']     = 101950,
 
    --NANOS
    ['armada_constructionturret']      = 102000,
-   ['cornanotc']      = 102050,
+   ['cortex_constructionturret']      = 102050,
 
    --FACTORIES
    ['armada_botlab']         = 102100,
-   ['corlab']         = 102125,
+   ['cortex_botlab']         = 102125,
    ['leglab']         = 102126,
    ['armada_vehicleplant']          = 102150,
-   ['corvp']          = 102175,
+   ['cortex_vehicleplant']          = 102175,
    ['legvp']          = 102176,
    ['armada_aircraftplant']          = 102200,
-   ['corap']          = 102225,
+   ['cortex_aircraftplant']          = 102225,
    ['legap']          = 102230,
    ['armada_hovercraftplatform']          = 102250,
-   ['corhp']          = 102275,
+   ['cortex_hovercraftplatform']          = 102275,
 
    ['armada_advancedbotlab']        = 102400,
-   ['coralab']        = 102425,
+   ['cortex_advancedbotlab']        = 102425,
    ['legalab']        = 102426,
    ['armada_advancedvehicleplant']         = 102450,
-   ['coravp']         = 102475,
+   ['cortex_advancedvehicleplant']         = 102475,
    ['legavp']         = 102477,
    ['armada_advancedaircraftplant']         = 102500,
-   ['coraap']         = 102525,
+   ['cortex_advancedaircraftplant']         = 102525,
    ['legaap']         = 102530,
    ['armada_experimentalgantry']       = 102550,
-   ['corgant']        = 102575,
+   ['cortex_experimentalgantry']        = 102575,
    ['leggant']        = 102576,
    ['armada_aircraftplantt3']        = 102700, --scavengers
-   ['corapt3']        = 102725, --scavengers
+   ['cortex_experimentalaircraftplant']        = 102725, --scavengers
 
    --UTILITIES
    ['armasp']         = 102800, --AIR REPAIR PADS
-   ['corasp']         = 102825,
-   ['corfasp']         = 102826,
+   ['cortex_airrepairpad']         = 102825,
+   ['cortex_floatingairrepairpad']         = 102826,
 
    ['armada_beholder']        = 103000,
-   ['coreyes']        = 103050,
+   ['cortex_beholder']        = 103050,
    ['armada_radartower']         = 103100,
-   ['corrad']         = 103150,
+   ['cortex_radartower']         = 103150,
    ['armada_advancedradartower']        = 103200,
-   ['corarad']        = 103250,
+   ['cortex_advancedradartower']        = 103250,
    ['armada_sneakypete']        = 103300,
-   ['corjamt']        = 103350,
+   ['cortex_castro']        = 103350,
    ['armada_veil']        = 103400,
-   ['corshroud']      = 103450,
+   ['cortex_shroud']      = 103450,
    ['armada_juno']        = 103500,
-   ['corjuno']        = 103550,
+   ['cortex_juno']        = 103550,
 
    ['armada_tracer']          = 103600,
-   ['corsd']          = 103625,
+   ['cortex_nemesis']          = 103625,
    ['armada_pinpointer']        = 103650,
-   ['cortarg']        = 103675,
+   ['cortex_pinpointer']        = 103675,
    ['armada_keeper']        = 103700,
-   ['corgate']        = 103725,
+   ['cortex_overseer']        = 103725,
    ['armada_decoyfusionreactor']          = 103750, --Fake Fusion
 
    --DEFENSES LAND (WALLS)
    ['armada_dragonsteeth']        = 104000,
-   ['cordrag']        = 104100,
+   ['cortex_dragonsteeth']        = 104100,
    ['corscavdrag']    = 104205, --scavengers
    ['armada_fortificationwall']        = 104300,
-   ['corfort']        = 104400,
+   ['cortex_fortificationwall']        = 104400,
    ['corscavfort']    = 104505, --scavengers
    ['armada_dragonsclaw']        = 104600,
    ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
-   ['cormaw']         = 104800,
+   ['cortex_dragonsmaw']         = 104800,
    ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
    ['corscavdtm']     = 104915, --scavengers
 
    --MINES
    ['armada_lightmine']       = 105100,
-   ['cormine1']       = 105200,
+   ['cortex_lightmine']       = 105200,
    ['armada_mediummine']       = 105300,
-   ['cormine2']       = 105400,
-   ['cormine4']       = 105500, --cortex_commando
+   ['cortex_mediummine']       = 105400,
+   ['cortex_mediumminecommando']       = 105500, --cortex_commando
    ['armada_heavymine']       = 105600,
-   ['cormine3']       = 105700,
+   ['cortex_heavymine']       = 105700,
 
    --DEFENSES LAND T1
    ['armada_sentry']         = 106100,
-   ['corllt']         = 106200,
+   ['cortex_guard']         = 106200,
    ['armada_beamer']      = 106300,
-   ['corhllt']        = 106400,
+   ['cortex_twinguard']        = 106400,
    ['corhllllt']      = 106500, --scavengers
    ['armada_overwatch']         = 106600,
-   ['corhlt']         = 106700,
+   ['cortex_warden']         = 106700,
    ['legdefcarryt1']  = 106800,
    ['armada_gauntlet']       = 106800,
-   ['corpun']         = 106900,
+   ['cortex_agitator']         = 106900,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun
    ['armada_pitbull']          = 107100,
-   ['corvipe']        = 107200,
+   ['cortex_scorpion']        = 107200,
    ['armada_rattlesnake']         = 107300,
-   ['cortoast']       = 107400,
+   ['cortex_persecutor']       = 107400,
    ['armada_pulsar']        = 107500,
-   ['cordoom']        = 107600,
+   ['cortex_calamity']        = 107600,
    ['legbastion']     = 107650,
    ['armada_pulsart3']      = 107700, --scavengers
-   ['cordoomt3']      = 107800, --scavengers
+   ['cortex_calamityt3']      = 107800, --scavengers
 
    --DEFENSES LAND LRPC
    ['armada_basilica']       = 110100,
-   ['corint']         = 110200,
+   ['cortex_basilisk']         = 110200,
    ['armminivulc']    = 120100, --scavengers
    ['corminibuzz']    = 120200, --scavengers
    ['legministarfall']= 120250, --scavengers
    ['armada_ragnarok']        = 120300,
-   ['corbuzz']        = 120400,
+   ['cortex_calamity']        = 120400,
    ['legstarfall']    = 120450,
    ['armbotrail']     = 120500, --scavengers
 
    --DEFENSES AA
    ['armada_nettle']          = 130100,
-   ['corrl']          = 130200,
+   ['cortex_thistle']          = 130200,
    ['armada_ferret']      = 130300,
-   ['cormadsam']      = 130400,
+   ['cortex_sam']      = 130400,
    ['armada_chainsaw']         = 130500,
-   ['corerad']        = 130600,
+   ['cortex_eradicator']        = 130600,
 
    ['armada_arbalest']        = 153000,
    ['corflak']        = 153500,
    ['armada_mercury']     = 154000,
-   ['corscreamer']    = 154500,
+   ['cortex_screamer']    = 154500,
 
    --DEFENSES TO WATER
    ['armada_anemone']          = 155000,
-   ['cordl']          = 155500,
+   ['cortex_jellyfish']          = 155500,
 
    --DEFENSES MISSILE LAUNCHERS
    ['armada_paralyzer']         = 165000,
-   ['cortron']        = 165500,
+   ['cortex_catalyst']        = 165500,
    ['armada_citadel']         = 166000,
    ['corfmd']         = 166500,
    ['armada_armageddon']        = 180000,
-   ['corsilo']        = 180500,
+   ['cortex_apocalypse']        = 180500,
 
    --WATER ECO METAL
    ['armada_navaladvancedmetalextractor']       = 200000,
-   ['coruwmme']       = 200100,
+   ['cortex_navaladvancedmetalextractor']       = 200100,
 
    --WATER ECO NRG CONVERTERS
    ['armada_navalenergyconverter']        = 200400,
-   ['corfmkr']        = 200500,
+   ['cortex_navalenergyconverter']        = 200500,
    ['armada_navaladvancedenergyconverter']       = 200600,
-   ['coruwmmm']       = 200700,
+   ['cortex_navaladvancedenergyconverter']       = 200700,
 
    --WATER ECO METAL STORAGE
    ['armada_navalmetalstorage']        = 201000,
-   ['coruwms']        = 201500,
+   ['cortex_navalmetalstorage']        = 201500,
 
    --WATER ECO NRG GENS
    ['armada_tidalgenerator']        = 203000,
-   ['cortide']        = 203100,
+   ['cortex_tidalgenerator']        = 203100,
 
    --WATER ECO NRG GEOS
    ['armada_geothermalpowerplant']       = 204000,
-   ['coruwgeo']       = 204100,
+   ['cortex_navalgeothermalpowerplant']       = 204100,
    ['armada_advancedgeothermalpowerplant']       = 204500,
-   ['coruwageo']       = 204600,
+   ['cortex_advancednavalgeothermalpowerplant']       = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armada_navalfusionreactor']       = 205000,
-   ['coruwfus']       = 205500,
+   ['cortex_navalfusionreactor']       = 205500,
 
    --WATER ECO NRG STORAGE
    ['armada_navalenergystorage']        = 207000,
-   ['coruwes']        = 207500,
+   ['cortex_navalenergystorage']        = 207500,
 
    --WATER CONSTRUCTION
-   ['armada_constructionturretplat']  = 210000,
-   ['cornanotcplat']  = 210500,
+   ['armada_navalconstructionturret']  = 210000,
+   ['cortex_navalconstructionturret']  = 210500,
 
    ['armada_shipyard']          = 211100,
-   ['corsy']          = 211200,
+   ['cortex_shipyard']          = 211200,
    ['armada_navalhovercraftplatform']         = 212100,
-   ['corfhp']         = 212200,
+   ['cortex_navalhovercraftplatform']         = 212200,
    ['armada_amphibiouscomplex']       = 213100,
-   ['coramsub']       = 213200,
+   ['cortex_amphibiouscomplex']       = 213200,
    ['armada_seaplaneplatform']        = 214100,
-   ['corplat']        = 214200,
+   ['cortex_seaplaneplatform']        = 214200,
    	--T2
    ['armada_advancedshipyard']         = 215000,
-   ['corasy']         = 215100,
+   ['cortex_advancedshipyard']         = 215100,
    	--T3
    ['armada_experimentalgantryuw']     = 216100,
-   ['corgantuw']      = 216200,
+   ['cortex_underwaterexperimentalgantry']      = 216200,
 
    --WATER MINES
    ['armada_heavymine']      = 217100,
-   ['corfmine3']      = 217200,
+   ['cortex_navalheavymine']      = 217200,
 
    --WATER UTILITIES
    ['armada_airrepairpad']        = 220000,
-   ['corfasp']        = 220050,
-   ['armada_navalradar']        = 220100,
-   ['corfrad']        = 220150,
+   ['cortex_floatingairrepairpad']        = 220050,
+   ['armada_navalradarsonar']        = 220100,
+   ['cortex_radarsonartower']        = 220150,
    ['armada_advancedsonarstation']        = 220200,
-   ['corason']        = 220250,
+   ['cortex_advancedsonarstation']        = 220250,
    ['armada_navalpinpointer']        = 220400,
-   ['corfatf']        = 220450,
+   ['cortex_navalpinpointer']        = 220450,
 
    --WATER DEFENSES LAND
    ['armada_sharksteeth']       = 230100,
-   ['corfdrag']       = 230200,
+   ['cortex_sharksteeth']       = 230200,
    ['armada_manta']        = 230300,
-   ['corfhlt']        = 230400,
+   ['cortex_coral']        = 230400,
    ['armada_gorgon']      = 230500,
-   ['corfdoom']       = 230600,
+   ['cortex_devastator']       = 230600,
 
    --WATER DEFENSES AA
    ['armada_navalnettle']         = 255100,
-   ['corfrt']         = 255200,
+   ['cortex_slingshot']         = 255200,
    ['armada_navalarbalest']       = 255300,
-   ['corenaa']        = 255400,
+   ['cortex_navalbirdshot']        = 255400,
 
    --WATER DEFENSES NAVAL
    ['armada_harpoon2']         = 260100,
-   ['corptl']         = 260200,
+   ['cortex_oldurchin']         = 260200,
    ['armada_harpoon']          = 260300,
-   ['cortl']          = 260400,
+   ['cortex_urchin']          = 260400,
    ['armada_moray']         = 260500,
-   ['coratl']         = 260600,
+   ['cortex_lamprey']         = 260600,
 }
 
 local newUnitOrder = {}

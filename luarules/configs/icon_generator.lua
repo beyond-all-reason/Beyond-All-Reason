@@ -201,12 +201,12 @@ defaults = Default[1]
 unitConfigs = {
 
 
-	[UnitDefNames.cormex.id] = {
+	[UnitDefNames.cortex_metalextractor.id] = {
 		clamp = 0,
 		unfold = true,
 		wait = 60,
 	},
-	[UnitDefNames.cordoom.id] = {
+	[UnitDefNames.cortex_calamity.id] = {
 		unfold = true,
 	},
 
@@ -234,43 +234,43 @@ unitConfigs = {
 	[UnitDefNames.corfmd.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corptl.id] = {
+	[UnitDefNames.cortex_oldurchin.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corsilo.id] = {
+	[UnitDefNames.cortex_apocalypse.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corvipe.id] = {
+	[UnitDefNames.cortex_scorpion.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.armada_armageddon.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.cortron.id] = {
+	[UnitDefNames.cortex_catalyst.id] = {
 		unfold = false,
 	},
 
-	[UnitDefNames.cormaw.id] = {
+	[UnitDefNames.cortex_dragonsmaw.id] = {
 		unfold = false,
 	},
 
-	[UnitDefNames.cormexp.id] = {
+	[UnitDefNames.cortex_advancedexploiter.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.corsolar.id] = {
+	[UnitDefNames.cortex_solarcollector.id] = {
 		unfold = true,
 		wait = 80,
 	},
 	[UnitDefNames.armada_radartower.id] = {
 		wait = 360,
 	},
-	[UnitDefNames.corgant.id] = {
+	[UnitDefNames.cortex_experimentalgantry.id] = {
 		wait = 90,
 	},
-	[UnitDefNames.corgantuw.id] = {
+	[UnitDefNames.cortex_underwaterexperimentalgantry.id] = {
 		wait = 90,
 	},
-	[UnitDefNames.cortoast.id] = {
+	[UnitDefNames.cortex_persecutor.id] = {
 		wait = 1,
 	},
 	[UnitDefNames.armada_seaplaneplatform.id] = {

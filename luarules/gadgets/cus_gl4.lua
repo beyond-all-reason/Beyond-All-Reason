@@ -68,10 +68,10 @@ end
 	-- refraction camera
 	-- texture LOD bias of -0.5, maybe adaptive for others
 	-- still extremely perf heavy
-		-- 1440p, Red Comet, fullscreen zoomed onto a corvp, SSAO on, Bloom On
-			-- 110 FPS on corvp with oldcus
+		-- 1440p, Red Comet, fullscreen zoomed onto a cortex_vehicleplant, SSAO on, Bloom On
+			-- 110 FPS on cortex_vehicleplant with oldcus
 			-- 180 FPS without disablecus
-		-- 1440p, Red Comet, fullscreen zoomed onto a corvp, SSAO off, Bloom off
+		-- 1440p, Red Comet, fullscreen zoomed onto a cortex_vehicleplant, SSAO off, Bloom off
 			-- 130 fps oldcus
 			-- 256 fps disablecus
 

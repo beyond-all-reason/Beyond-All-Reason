@@ -28,8 +28,8 @@ local nonexplosiveWeapons = {
 
 local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 local ARM_JUNO = WeaponDefNames['armada_juno_juno_pulse'].id --juno can explode on water
-local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
-local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
+local COR_JUNO = WeaponDefNames['cortex_juno_juno_pulse'].id --juno can explode on water
+local COR_TRON = WeaponDefNames['cortex_catalyst_cortex_catalyst_weapon'].id
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"

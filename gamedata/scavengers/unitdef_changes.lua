@@ -50,7 +50,7 @@ customDefs.armada_armageddon = {
 	},
 }
 
-customDefs.corsilo = {
+customDefs.cortex_apocalypse = {
 	weapondefs = {
 		crblmssl = {
 			stockpile = false,
@@ -79,7 +79,7 @@ customDefs.armada_juno = {
 	},
 }
 
-customDefs.corjuno = {
+customDefs.cortex_juno = {
 	weapondefs = {
 		juno_pulse = {
 			stockpile = false,
@@ -121,8 +121,8 @@ customDefs.armada_dragonsclaw = {
 	decoyfor = "armada_dragonsteeth_scav",
 }
 
-customDefs.cormaw = {
-	decoyfor = "cordrag_scav",
+customDefs.cortex_dragonsmaw = {
+	decoyfor = "cortex_dragonsteeth_scav",
 }
 
 customDefs.armada_decoyfusionreactor = {
@@ -592,8 +592,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corgant.buildoptions
--- customDefs.corgant = {
+-- numBuildoptions = #UnitDefs.cortex_experimentalgantry.buildoptions
+-- customDefs.cortex_experimentalgantry = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "cordemon",
 -- 		[numBuildoptions+2] = "corkarganetht4",
@@ -602,15 +602,15 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corgantuw.buildoptions
--- customDefs.corgantuw = {
+-- numBuildoptions = #UnitDefs.cortex_underwaterexperimentalgantry.buildoptions
+-- customDefs.cortex_underwaterexperimentalgantry = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corgolt4",
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.coravp.buildoptions
--- customDefs.coravp = {
+-- numBuildoptions = #UnitDefs.cortex_advancedvehicleplant.buildoptions
+-- customDefs.cortex_advancedvehicleplant = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corgatreap",
 -- 		[numBuildoptions+2] = "corforge",
@@ -621,8 +621,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- numBuildoptions = #UnitDefs.corasy.buildoptions
--- customDefs.corasy = {
+-- numBuildoptions = #UnitDefs.cortex_advancedshipyard.buildoptions
+-- customDefs.cortex_advancedshipyard = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corslrpc",
 -- 		[numBuildoptions+2] = "coresuppt3",
@@ -638,8 +638,8 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- -- numBuildoptions = #UnitDefs.corap.buildoptions
--- -- customDefs.corap = {
+-- -- numBuildoptions = #UnitDefs.cortex_aircraftplant.buildoptions
+-- -- customDefs.cortex_aircraftplant = {
 -- -- 	buildoptions = {
 -- -- 		[numBuildoptions+1] = "corassistdrone",
 -- -- 	},
@@ -754,36 +754,36 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.cortex_advancedconstructionaircraft.buildoptions
 -- customDefs.cortex_advancedconstructionaircraft = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corapt3",
+-- 		[numBuildoptions+1] = "cortex_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "corminibuzz",
--- 		[numBuildoptions+3] = "corwint2",
+-- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cordoomt3",
+-- 		[numBuildoptions+6] = "cortex_calamityt3",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.cortex_advancedconstructionbot.buildoptions
 -- customDefs.cortex_advancedconstructionbot = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corapt3",
+-- 		[numBuildoptions+1] = "cortex_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "corminibuzz",
--- 		[numBuildoptions+3] = "corwint2",
+-- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cordoomt3",
+-- 		[numBuildoptions+6] = "cortex_calamityt3",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.coracv.buildoptions
 -- customDefs.coracv = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corapt3",
+-- 		[numBuildoptions+1] = "cortex_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "corminibuzz",
--- 		[numBuildoptions+3] = "corwint2",
+-- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cordoomt3",
+-- 		[numBuildoptions+6] = "cortex_calamityt3",
 -- 	},
 -- }
 
@@ -800,12 +800,12 @@ customDefs.corscavdtl = {
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.corrad = {
+-- customDefs.cortex_radartower = {
 -- 	cloakcost = 6,
 -- 	mincloakdistance = 144,
 -- }
 
--- customDefs.corarad = {
+-- customDefs.cortex_advancedradartower = {
 -- 	cloakcost = 12,
 -- 	mincloakdistance = 144,
 -- }
@@ -827,14 +827,14 @@ customDefs.corscavdtl = {
 -- 	sightdistance = 310,
 -- }
 
--- customDefs.corjamt = {
+-- customDefs.cortex_castro = {
 -- 	cloakcost = 10,
 -- 	mincloakdistance = 144,
 -- --	radardistancejam = 700,
 -- 	sightdistance = 250,
 -- }
 
--- customDefs.corshroud = {
+-- customDefs.cortex_shroud = {
 -- 	cloakcost = 25,
 -- 	mincloakdistance = 288,
 -- --	radardistancejam = 900,
@@ -930,7 +930,7 @@ customDefs.corscavdtl = {
 -- --]]
 
 -- -- Faster LLT - unique sound - shorter beamtime
--- customDefs.corllt = {
+-- customDefs.cortex_guard = {
 -- 	-- cloakcost = 6,
 -- 	-- mincloakdistance = 144,
 -- 	weapondefs = {
@@ -962,11 +962,11 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- customDefs.cortoast = {
+-- customDefs.cortex_persecutor = {
 -- 	-- cancloak = false,
 -- 	-- stealth = true,
 -- 	weapondefs = {
--- 		cortoast_gun = {
+-- 		cortex_persecutor_gun = {
 -- 			impulseboost = 0.5,
 -- 			impulsefactor = 2,
 -- 		},
@@ -974,7 +974,7 @@ customDefs.corscavdtl = {
 -- }
 
 -- -- Custom HLLT - low laser = faster - high laser is slower - unique sounds
--- customDefs.corhllt = {
+-- customDefs.cortex_twinguard = {
 --  	-- cloakcost = 9,
 --  	-- mincloakdistance = 144,
 --  	weapondefs = {
@@ -1018,9 +1018,9 @@ customDefs.corscavdtl = {
 -- -- 	}
 -- -- }
 
--- -- customDefs.cortron = {
+-- -- customDefs.cortex_catalyst = {
 -- -- 	weapondefs = {
--- -- 		cortron_weapon = {
+-- -- 		cortex_catalyst_weapon = {
 -- -- 			--range = 1500,
 -- -- 			stockpiletime = 180, --45,
 -- -- 		}
@@ -1037,7 +1037,7 @@ customDefs.corscavdtl = {
 -- 	}
 -- }
 
--- customDefs.corscreamer = {
+-- customDefs.cortex_screamer = {
 -- 	weapondefs = {
 -- 		cor_advsam = {
 -- 			range = 1800,
@@ -1070,12 +1070,12 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
--- -- customDefs.corvipe = {
+-- -- customDefs.cortex_scorpion = {
 -- -- 	cloakcost = 20,
 -- -- 	mincloakdistance = 288,
 -- -- }
 
--- -- customDefs.cortoast = {
+-- -- customDefs.cortex_persecutor = {
 -- -- 	cloakcost = 20,
 -- -- 	mincloakdistance = 288,
 -- -- }

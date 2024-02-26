@@ -18,9 +18,9 @@ if (gadgetHandler:IsSyncedCode()) then
 
 local POP_UP_UNITDEFS = {
 	armada_harpoon2 = { unit = "armada_harpoon", waterLine = -10 },
-	corptl = { unit = "cortl", waterLine = -10 },
+	cortex_oldurchin = { unit = "cortex_urchin", waterLine = -10 },
 	armada_harpoon2_scav = { unit = "armada_harpoon_scav", waterLine = -10 },
-	corptl_scav = { unit = "cortl_scav", waterLine = -10 },
+	cortex_oldurchin_scav = { unit = "cortex_urchin_scav", waterLine = -10 },
 }
 
 local POP_UP_UNIT = {}

@@ -1280,7 +1280,7 @@ else	-- UNSYNCED
 			techLevels[t] = acceptableUDIDs
 		end
 		local t3Units = {}
-		for _, uDID in ipairs(UnitDefNames["corgant"].buildOptions) do
+		for _, uDID in ipairs(UnitDefNames["cortex_experimentalgantry"].buildOptions) do
 			t3Units[uDID] = true
 		end
 		for _, uDID in ipairs(UnitDefNames["armada_experimentalgantry"].buildOptions) do

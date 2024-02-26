@@ -736,32 +736,32 @@ local AirUnitsList = {
 local Turrets = {
 	[1] = {
 		["armada_sentry_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
-		["corllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
+		["cortex_guard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
 		["armada_nettle_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
-		["corrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
-		--["cordl_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.6, maxExisting = 1},
+		["cortex_thistle_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
+		--["cortex_jellyfish_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.6, maxExisting = 1},
 		--["armada_anemone_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.6, maxExisting = 1},
 		--Sea Only
 		["armada_manta_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
-		["corfhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
+		["cortex_coral_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
 		["armada_navalnettle_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
-		["corfrt_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
-		["cortl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 4},
+		["cortex_slingshot_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
+		["cortex_urchin_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 4},
 		["armada_harpoon_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 4},
 		["armada_scumbag_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
-		["corfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
-		["corgplat_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
+		["cortex_janitor_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
+		["cortex_gunplatform_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
 		["armada_gunplatform_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
 	},
 	[2] = {
 		["armada_beamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
-		["corhllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
-		["cormaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
+		["cortex_twinguard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
+		["cortex_dragonsmaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
 		["armada_dragonsclaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
 		["armada_ferret_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
-		["cormadsam_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
-		["corhlt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
-		["corpun_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["cortex_sam_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
+		["cortex_warden_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
+		["cortex_agitator_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armada_overwatch_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["armada_gauntlet_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["corscavdtl_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
@@ -769,39 +769,39 @@ local Turrets = {
 		["corscavdtm_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["legdefcarryt1_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		--radar/jam
-		["corrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["cortex_radartower_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["cortex_castro_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armada_radartower_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armada_sneakypete_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armada_juno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["cortex_juno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 	},
 	[3] = {
 		["armada_chainsaw_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
-		["corerad_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["cortex_eradicator_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		--Sea
-		["corfdoom_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
-		["coratl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
-		["corenaa_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
-		["corason_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 0.4},
+		["cortex_devastator_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
+		["cortex_lamprey_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
+		["cortex_navalbirdshot_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
+		["cortex_advancedsonarstation_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 0.4},
 		["armada_gorgon_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
 		["armada_navalarbalest_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
 		["armada_moray_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
 		["armada_advancedsonarstation_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 0.4},
 		--T2 Radar/jam
-		["corarad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
-		["corshroud_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
+		["cortex_advancedradartower_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
+		["cortex_shroud_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		["armada_advancedradartower_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		["armada_veil_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		--T2 Popups
 		["armlwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["cormwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["armada_pitbull_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
-		["corvipe_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["cortex_scorpion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		--Misc
 		["corhllllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["armada_keeper_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
-		["corgate_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
+		["cortex_overseer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		--T2 AA
 		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 		["armada_arbalest_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
@@ -809,26 +809,26 @@ local Turrets = {
 	[4] = {
 		-- T2 popup arty
 		["armada_rattlesnake_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["cortoast_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_persecutor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		-- Pulsar and Bulwark normals
 		["armada_pulsar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_calamity_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--LRPC
 		["armada_basilica_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_basilisk_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--antinukes
 		["armada_citadel_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--Tactical Weapons
-		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_catalyst_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["armada_paralyzer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--T2 AA
 		["armada_mercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["cortex_screamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 	},
 	[5] = {
 		-- nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
+		["cortex_apocalypse_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 		["armada_armageddon_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
@@ -838,9 +838,9 @@ local Turrets = {
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal
 		["armada_pulsart3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["cordoomt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["cortex_calamityt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armada_ragnarok_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
-		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["cortex_calamity_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 	},
 }
@@ -1103,64 +1103,64 @@ local ecoBuildingsPenalty = { -- Additional boss hatch per second from eco build
 	--[[
 	-- T1 Energy
 	[UnitDefNames["armada_solarcollector"].id] 	= 0.0000001,
-	[UnitDefNames["corsolar"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_solarcollector"].id] 	= 0.0000001,
 	[UnitDefNames["armada_windturbine"].id] 	= 0.0000001,
-	[UnitDefNames["corwin"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_windturbine"].id] 	= 0.0000001,
 	[UnitDefNames["armada_tidalgenerator"].id] 	= 0.0000001,
-	[UnitDefNames["cortide"].id] 	= 0.0000001,
+	[UnitDefNames["cortex_tidalgenerator"].id] 	= 0.0000001,
 	[UnitDefNames["armada_advancedsolarcollector"].id] 	= 0.000005,
-	[UnitDefNames["coradvsol"].id] 	= 0.000005,
+	[UnitDefNames["cortex_advancedsolarcollector"].id] 	= 0.000005,
 
 	-- T2 Energy
 	[UnitDefNames["armada_windturbinet2"].id] 	= 0.000075,
-	[UnitDefNames["corwint2"].id] 	= 0.000075,
+	[UnitDefNames["cortex_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["armada_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= 0.000125,
-	[UnitDefNames["corfus"].id] 	= 0.000125,
+	[UnitDefNames["cortex_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_navalfusionreactor"].id] 	= 0.000125,
-	[UnitDefNames["coruwfus"].id] 	= 0.000125,
+	[UnitDefNames["cortex_navalfusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_advancedgeothermalpowerplant"].id] 	= 0.000125,
-	[UnitDefNames["corageo"].id] 	= 0.000125,
+	[UnitDefNames["cortex_advancedgeothermalpowerplant"].id] 	= 0.000125,
 	[UnitDefNames["armada_advancedfusionreactor"].id] 	= 0.0005,
-	[UnitDefNames["corafus"].id] 	= 0.0005,
+	[UnitDefNames["cortex_advancedfusionreactor"].id] 	= 0.0005,
 
 	-- T1 Metal Makers
 	[UnitDefNames["armada_energyconverter"].id] 	= 0.00005,
-	[UnitDefNames["cormakr"].id] 	= 0.00005,
+	[UnitDefNames["cortex_energyconverter"].id] 	= 0.00005,
 	[UnitDefNames["armada_navalenergyconverter"].id] 	= 0.00005,
-	[UnitDefNames["corfmkr"].id] 	= 0.00005,
+	[UnitDefNames["cortex_navalenergyconverter"].id] 	= 0.00005,
 
 	-- T2 Metal Makers
 	[UnitDefNames["armada_advancedenergyconverter"].id] 	= 0.0005,
-	[UnitDefNames["cormmkr"].id] 	= 0.0005,
+	[UnitDefNames["cortex_advancedenergyconverter"].id] 	= 0.0005,
 	[UnitDefNames["armada_navaladvancedenergyconverter"].id] 	= 0.0005,
-	[UnitDefNames["coruwmmm"].id] 	= 0.0005,
+	[UnitDefNames["cortex_navaladvancedenergyconverter"].id] 	= 0.0005,
 	]]--
 }
 
 local highValueTargets = { -- Priority targets for Scav. Must be immobile to prevent issues.
 	-- T2 Energy
 	[UnitDefNames["armada_windturbinet2"].id] 	= true,
-	[UnitDefNames["corwint2"].id] 	= true,
+	[UnitDefNames["cortex_advancedwindturbine"].id] 	= true,
 	[UnitDefNames["armada_fusionreactor"].id] 	= true,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= true,
-	[UnitDefNames["corfus"].id] 	= true,
+	[UnitDefNames["cortex_fusionreactor"].id] 	= true,
 	[UnitDefNames["armada_navalfusionreactor"].id] 	= true,
-	[UnitDefNames["coruwfus"].id] 	= true,
+	[UnitDefNames["cortex_navalfusionreactor"].id] 	= true,
 	[UnitDefNames["armada_advancedgeothermalpowerplant"].id] 	= true,
-	[UnitDefNames["corageo"].id] 	= true,
+	[UnitDefNames["cortex_advancedgeothermalpowerplant"].id] 	= true,
 	[UnitDefNames["armada_advancedfusionreactor"].id] 	= true,
-	[UnitDefNames["corafus"].id] 	= true,
+	[UnitDefNames["cortex_advancedfusionreactor"].id] 	= true,
 	-- T2 Metal Makers
 	[UnitDefNames["armada_advancedenergyconverter"].id] 	= true,
-	[UnitDefNames["cormmkr"].id] 	= true,
+	[UnitDefNames["cortex_advancedenergyconverter"].id] 	= true,
 	[UnitDefNames["armada_navaladvancedenergyconverter"].id] 	= true,
-	[UnitDefNames["coruwmmm"].id] 	= true,
+	[UnitDefNames["cortex_navaladvancedenergyconverter"].id] 	= true,
 	-- T2 Metal Extractors
-	[UnitDefNames["cormoho"].id] 	= true,
+	[UnitDefNames["cortex_advancedmetalextractor"].id] 	= true,
 	[UnitDefNames["armada_advancedmetalextractor"].id] 	= true,
 	-- Nukes
-	[UnitDefNames["corsilo"].id] 	= true,
+	[UnitDefNames["cortex_apocalypse"].id] 	= true,
 	[UnitDefNames["armada_armageddon"].id] 	= true,
 	-- Antinukes
 	[UnitDefNames["armada_citadel"].id] 	= true,

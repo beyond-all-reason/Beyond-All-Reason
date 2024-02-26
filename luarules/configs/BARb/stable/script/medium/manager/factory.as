@@ -11,11 +11,11 @@ string armada_advancedbotlab("armada_advancedbotlab");
 string armada_advancedvehicleplant ("armada_advancedvehicleplant");
 string armada_advancedshipyard ("armada_advancedshipyard");
 string armada_aircraftplant  ("armada_aircraftplant");
-string corlab ("corlab");
-string coralab("coralab");
-string coravp ("coravp");
-string corasy ("corasy");
-string corap  ("corap");
+string cortex_botlab ("cortex_botlab");
+string cortex_advancedbotlab("cortex_advancedbotlab");
+string cortex_advancedvehicleplant ("cortex_advancedvehicleplant");
+string cortex_advancedshipyard ("cortex_advancedshipyard");
+string cortex_aircraftplant  ("cortex_aircraftplant");
 
 int switchInterval = MakeSwitchInterval();
 int switchFrame = 0;

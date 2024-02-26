@@ -9,10 +9,10 @@ local function t1SeaBase1()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corfmkr_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.corfmkr_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.corfmkr_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.corfmkr_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergyconverter_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergyconverter_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergyconverter_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergyconverter_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
 		}
 	else
 		buildings = {
@@ -36,10 +36,10 @@ local function t1SeaBase2()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwms_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.coruwms_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.coruwms_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.coruwms_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalmetalstorage_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalmetalstorage_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalmetalstorage_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalmetalstorage_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
 		}
 	else
 		buildings = {
@@ -63,10 +63,10 @@ local function t1SeaBase3()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.cortide_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.cortide_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.cortide_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.cortide_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_tidalgenerator_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_tidalgenerator_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_tidalgenerator_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_tidalgenerator_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
 		}
 	else
 		buildings = {
@@ -90,10 +90,10 @@ local function t1SeaBase4()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwes_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
-			{ unitDefID = UDN.coruwes_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.coruwes_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
-			{ unitDefID = UDN.coruwes_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergystorage_scav.id, xOffset = -32,  zOffset =  32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergystorage_scav.id, xOffset =  32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergystorage_scav.id, xOffset = -32,  zOffset = -32, direction = 1 },
+			{ unitDefID = UDN.cortex_navalenergystorage_scav.id, xOffset =  32,  zOffset =  32, direction = 1 },
 		}
 	else
 		buildings = {
@@ -117,17 +117,17 @@ local function t1SeaBase5()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -24,  zOffset =  24, direction = 1 },
 		}
 	end
 
@@ -144,19 +144,19 @@ local function t1seaBase6()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corfrt_scav.id,   xOffset =   0,  zOffset =   0, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  48,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  48,  zOffset = -16, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -16,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  16,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  48,  zOffset =  16, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -48,  zOffset =  16, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  16,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -48,  zOffset = -16, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -16,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -48,  zOffset =  48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset =  48,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.corfdrag_scav.id, xOffset = -48,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.cortex_slingshot_scav.id,   xOffset =   0,  zOffset =   0, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  48,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  48,  zOffset = -16, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -16,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  16,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  48,  zOffset =  16, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -48,  zOffset =  16, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  16,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -48,  zOffset = -16, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -16,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -48,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset =  48,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.cortex_sharksteeth_scav.id, xOffset = -48,  zOffset = -48, direction = 1 },
 		}
 	else
 		buildings = {
@@ -189,13 +189,13 @@ local function t1SeaBase7()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.cortl_scav.id,   xOffset =  48,  zOffset = 0, direction = 1 },
-			{ unitDefID = UDN.corfrad_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
-			{ unitDefID = UDN.cortl_scav.id,   xOffset = -48,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.cortex_urchin_scav.id,   xOffset =  48,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.cortex_radarsonartower_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.cortex_urchin_scav.id,   xOffset = -48,  zOffset = 0, direction = 1 },
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.armada_navalradar_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
+			{ unitDefID = UDN.armada_navalradarsonar_scav.id, xOffset =   0,  zOffset = 0, direction = 1 },
 			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset = -48,  zOffset = 0, direction = 1 },
 			{ unitDefID = UDN.armada_harpoon_scav.id,   xOffset =  48,  zOffset = 0, direction = 1 },
 		}
@@ -214,9 +214,9 @@ local function t1SeaBase8()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.cortl_scav.id,   xOffset = 0,  zOffset = -48, direction = 1 },
-			{ unitDefID = UDN.corfhlt_scav.id, xOffset = 0,  zOffset =   0, direction = 1 },
-			{ unitDefID = UDN.cortl_scav.id,   xOffset = 0,  zOffset =  48, direction = 1 },
+			{ unitDefID = UDN.cortex_urchin_scav.id,   xOffset = 0,  zOffset = -48, direction = 1 },
+			{ unitDefID = UDN.cortex_coral_scav.id, xOffset = 0,  zOffset =   0, direction = 1 },
+			{ unitDefID = UDN.cortex_urchin_scav.id,   xOffset = 0,  zOffset =  48, direction = 1 },
 		}
 	else
 		buildings = {
@@ -240,10 +240,10 @@ local function t2SeaBase1()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwmmm_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
-			{ unitDefID = UDN.coruwmmm_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
-			{ unitDefID = UDN.coruwmmm_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
-			{ unitDefID = UDN.coruwmmm_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_navaladvancedenergyconverter_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_navaladvancedenergyconverter_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_navaladvancedenergyconverter_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_navaladvancedenergyconverter_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
 		}
 	else
 		buildings = {
@@ -267,10 +267,10 @@ local function t2SeaBase2()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwadvms_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
-			{ unitDefID = UDN.coruwadvms_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.coruwadvms_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
-			{ unitDefID = UDN.coruwadvms_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedmetalstorage_scav.id, xOffset =  32,  zOffset =  32, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedmetalstorage_scav.id, xOffset = -32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedmetalstorage_scav.id, xOffset =  32,  zOffset = -32, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedmetalstorage_scav.id, xOffset = -32,  zOffset =  32, direction = 0 },
 		}
 	else
 		buildings = {
@@ -294,10 +294,10 @@ local function t2SeaBase3()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwfus_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
-			{ unitDefID = UDN.coruwfus_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
-			{ unitDefID = UDN.coruwfus_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
-			{ unitDefID = UDN.coruwfus_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_navalfusionreactor_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_navalfusionreactor_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_navalfusionreactor_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_navalfusionreactor_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
 		}
 	else
 		buildings = {
@@ -322,10 +322,10 @@ local function t2SeaBase4()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coruwadves_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
-			{ unitDefID = UDN.coruwadves_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
-			{ unitDefID = UDN.coruwadves_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
-			{ unitDefID = UDN.coruwadves_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedenergystorage_scav.id, xOffset = -40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedenergystorage_scav.id, xOffset =  40,  zOffset = -40, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedenergystorage_scav.id, xOffset =  40,  zOffset =  40, direction = 0 },
+			{ unitDefID = UDN.cortex_hardenedenergystorage_scav.id, xOffset = -40,  zOffset =  40, direction = 0 },
 		}
 	else
 		buildings = {
@@ -349,15 +349,15 @@ local function t2SeaBase5()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corfdoom_scav.id, xOffset =   0,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.corenaa_scav.id,  xOffset =   0,  zOffset =  80, direction = 0 },
-			{ unitDefID = UDN.coratl_scav.id,   xOffset = -72,  zOffset =   8, direction = 0 },
-			{ unitDefID = UDN.corenaa_scav.id,  xOffset =   0,  zOffset = -80, direction = 0 },
-			{ unitDefID = UDN.coratl_scav.id,   xOffset =  72,  zOffset =  -8, direction = 0 },
+			{ unitDefID = UDN.cortex_devastator_scav.id, xOffset =   0,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalbirdshot_scav.id,  xOffset =   0,  zOffset =  80, direction = 0 },
+			{ unitDefID = UDN.cortex_lamprey_scav.id,   xOffset = -72,  zOffset =   8, direction = 0 },
+			{ unitDefID = UDN.cortex_navalbirdshot_scav.id,  xOffset =   0,  zOffset = -80, direction = 0 },
+			{ unitDefID = UDN.cortex_lamprey_scav.id,   xOffset =  72,  zOffset =  -8, direction = 0 },
 		}
 	else
 		buildings = {
-			{ unitDefID = UDN.corfdoom_scav.id, xOffset =   0,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_devastator_scav.id, xOffset =   0,  zOffset =   0, direction = 0 },
 			{ unitDefID = UDN.armada_moray_scav.id,   xOffset = -80,  zOffset =   0, direction = 0 },
 			{ unitDefID = UDN.armada_navalarbalest_scav.id, xOffset =  -8,  zOffset = -72, direction = 0 },
 			{ unitDefID = UDN.armada_moray_scav.id,   xOffset =  80,  zOffset =   0, direction = 0 },
@@ -378,15 +378,15 @@ local function t2SeaFactory1()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corsy_scav.id,         xOffset =    0,  zOffset =  6, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.cortex_shipyard_scav.id,         xOffset =    0,  zOffset =  6, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_shipyard_scav.id,         xOffset =    0,  zOffset =  6, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  104,  zOffset = -2, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -104,  zOffset = -2, direction = 0 },
 		}
 	end
 
@@ -403,15 +403,15 @@ local function t2SeaFactory2()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corfhp_scav.id,        xOffset =    0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalhovercraftplatform_scav.id,        xOffset =    0,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_navalhovercraftplatform_scav.id,        xOffset =    0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  104,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -104,  zOffset = 0, direction = 0 },
 		}
 	end
 
@@ -428,15 +428,15 @@ local function t2SeaFactory3()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.coramsub_scav.id,      xOffset =    0,  zOffset = -5, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  104,  zOffset =  3, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -104,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.cortex_amphibiouscomplex_scav.id,      xOffset =    0,  zOffset = -5, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  104,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -104,  zOffset =  3, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_amphibiouscomplex_scav.id,      xOffset =   6,  zOffset = -16, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  94,  zOffset =   8, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -98,  zOffset =   8, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  94,  zOffset =   8, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -98,  zOffset =   8, direction = 0 },
 		}
 	end
 
@@ -453,15 +453,15 @@ local function t2SeaFactory4()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corplat_scav.id,       xOffset =   0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_seaplaneplatform_scav.id,       xOffset =   0,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_seaplaneplatform_scav.id,       xOffset =   0,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -96,  zOffset = 0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  96,  zOffset = 0, direction = 0 },
 		}
 	end
 
@@ -478,15 +478,15 @@ local function t2SeaFactory5()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corasy_scav.id,        xOffset =    0,  zOffset = -5, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.cortex_advancedshipyard_scav.id,        xOffset =    0,  zOffset = -5, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_advancedshipyard_scav.id,        xOffset =    0,  zOffset = -5, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  136,  zOffset =  3, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -136,  zOffset =  3, direction = 0 },
 		}
 	end
 
@@ -504,23 +504,23 @@ local function t3SeaFactory1()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.corgantuw_scav.id,     xOffset =    0,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
-			{ unitDefID = UDN.cornanotcplat_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.cortex_underwaterexperimentalgantry_scav.id,     xOffset =    0,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.cortex_navalconstructionturret_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
 		}
 	else
 		buildings = {
 			{ unitDefID = UDN.armada_experimentalgantryuw_scav.id,    xOffset =    0,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
-			{ unitDefID = UDN.armada_constructionturretplat_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -112,  zOffset =  48, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  112,  zOffset = -48, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset = -112,  zOffset =   0, direction = 0 },
+			{ unitDefID = UDN.armada_navalconstructionturret_scav.id, xOffset =  112,  zOffset =   0, direction = 0 },
 		}
 	end
 

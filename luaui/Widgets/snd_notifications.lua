@@ -120,12 +120,12 @@ end
 local unitsOfInterestNames = {
 	['armada_paralyzer'] = 'EMPmissilesiloDetected',
 	['armada_paralyzer'] = 'EMPmissilesiloDetected',
-	['cortron'] = 'TacticalNukeSiloDetected',
+	['cortex_catalyst'] = 'TacticalNukeSiloDetected',
 	['armada_armageddon'] = 'NuclearSiloDetected',
-	['corsilo'] = 'NuclearSiloDetected',
-	['corint'] = 'LrpcDetected',
+	['cortex_apocalypse'] = 'NuclearSiloDetected',
+	['cortex_basilisk'] = 'LrpcDetected',
 	['armada_basilica'] = 'LrpcDetected',
-	['corbuzz'] = 'LrpcDetected',
+	['cortex_calamity'] = 'LrpcDetected',
 	['armada_ragnarok'] = 'LrpcDetected',
 	['armada_liche'] = 'NuclearBomberDetected',
 	['corjugg'] = 'JuggernautDetected',
@@ -136,7 +136,7 @@ local unitsOfInterestNames = {
 	['cortex_commando'] = 'CommandoDetected',
 	['armada_bearer'] = 'TransportDetected',
 	['corthovr'] = 'TransportDetected',
-	['corintr'] = 'TransportDetected',
+	['cortex_intruder'] = 'TransportDetected',
 	['armada_stork'] = 'AirTransportDetected',
 	['cortex_hercules'] = 'AirTransportDetected',
 	['armada_abductor'] = 'AirTransportDetected',
@@ -204,14 +204,14 @@ local tutorialPlayed = {}		-- store the number of times a tutorial event has pla
 local tutorialPlayedThisGame = {}	-- log that a tutorial event has played this game
 
 local vulcanDefID = UnitDefNames['armada_ragnarok'].id
-local buzzsawDefID = UnitDefNames['corbuzz'].id
+local buzzsawDefID = UnitDefNames['cortex_calamity'].id
 
-local isFactoryAir = {[UnitDefNames['armada_aircraftplant'].id] = true, [UnitDefNames['corap'].id] = true}
-local isFactoryAirSea = {[UnitDefNames['armada_seaplaneplatform'].id] = true, [UnitDefNames['corplat'].id] = true}
-local isFactoryVeh = {[UnitDefNames['armada_vehicleplant'].id] = true, [UnitDefNames['corvp'].id] = true}
-local isFactoryBot = {[UnitDefNames['armada_botlab'].id] = true, [UnitDefNames['corlab'].id] = true}
-local isFactoryHover = {[UnitDefNames['armada_hovercraftplatform'].id] = true, [UnitDefNames['corhp'].id] = true}
-local isFactoryShip = {[UnitDefNames['armada_shipyard'].id] = true, [UnitDefNames['corsy'].id] = true}
+local isFactoryAir = {[UnitDefNames['armada_aircraftplant'].id] = true, [UnitDefNames['cortex_aircraftplant'].id] = true}
+local isFactoryAirSea = {[UnitDefNames['armada_seaplaneplatform'].id] = true, [UnitDefNames['cortex_seaplaneplatform'].id] = true}
+local isFactoryVeh = {[UnitDefNames['armada_vehicleplant'].id] = true, [UnitDefNames['cortex_vehicleplant'].id] = true}
+local isFactoryBot = {[UnitDefNames['armada_botlab'].id] = true, [UnitDefNames['cortex_botlab'].id] = true}
+local isFactoryHover = {[UnitDefNames['armada_hovercraftplatform'].id] = true, [UnitDefNames['cortex_hovercraftplatform'].id] = true}
+local isFactoryShip = {[UnitDefNames['armada_shipyard'].id] = true, [UnitDefNames['cortex_shipyard'].id] = true}
 local numFactoryAir = 0
 local numFactoryAirSea = 0
 local numFactoryVeh = 0
