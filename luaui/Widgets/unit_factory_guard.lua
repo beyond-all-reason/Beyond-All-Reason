@@ -19,7 +19,8 @@ function widget:GetInfo()
 		date = "Jan 8, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true,
+		handler = true
 	}
 end
 
@@ -27,7 +28,6 @@ end
 --------------------------------------------------------------------------------
 
 -- Automatically generated local definitions
-
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -35,15 +35,31 @@ local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
 local spGetUnitGroup = Spring.GetUnitGroup
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRadius = Spring.GetUnitRadius
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetUnitGroup = Spring.SetUnitGroup
+local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
+local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
+
+local CMD_FACTORY_GUARD = 10200
 
 
 local isFactory = {}
 local isAssistBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory then
-		isFactory[unitDefID] = true
+		local buildOptions = unitDef.buildOptions
+
+		for i = 1, #buildOptions do
+			local buildOptDefID = buildOptions[i]
+			local buildOpt = UnitDefs[buildOptDefID]
+
+			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
+				isFactory[unitDefID] = true  -- only factories that can build builders are included
+				break
+			end
+		end
+
 	end
 	if unitDef.isBuilder and unitDef.canAssist then
 		isAssistBuilder[unitDefID] = true
@@ -52,22 +68,6 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local function ClearGroup(unitID, factID)
-	-- clear the unit's group if it's the same as the factory's
-	local unitGroup = spGetUnitGroup(unitID)
-	if (not unitGroup) then
-		return
-	end
-	local factGroup = spGetUnitGroup(factID)
-	if (not factGroup) then
-		return
-	end
-	if (unitGroup == factGroup) then
-		spSetUnitGroup(unitID, -1)
-	end
-end
-
 
 local function GuardFactory(unitID, unitDefID, factID, factDefID)
 
@@ -142,24 +142,27 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
 	if (unitTeam ~= spGetMyTeamID()) then
 		return -- not my unit
 	end
-
-	ClearGroup(unitID, factID)
-
 	if (userOrders) then
 		return -- already has user assigned orders
+	end
+
+	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
+	local factoryGuardCmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
+	if not factoryGuardCmdDesc or not factoryGuardCmdDesc.params[1] == "1" then -- if state is missing or false, do nothing
+		return
 	end
 
 	GuardFactory(unitID, unitDefID, factID, factDefID)
 end
 
-
 --------------------------------------------------------------------------------
+
 
 function widget:GameStart()
 	widget:PlayerChanged()
 end
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
 	if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 	end

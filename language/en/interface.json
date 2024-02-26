@@ -163,6 +163,8 @@
 			"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
 			"guard": "Guard",
 			"guard_tooltip": "Guard another unit against enemy units attacking it",
+			"factoryguard": "Factory Guard",
+			"factoryguard_tooltip": "Builders produced by this factory will automatically guard it",
 			"wait": "Wait",
 			"wait_tooltip": "Pause a unit/factory on processing command/build queues",
 			"repair": "Repair",
