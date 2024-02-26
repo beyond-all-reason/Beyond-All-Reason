@@ -27,6 +27,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+VFS.Include("luarules/configs/customcmds.h.lua")
+
 -- Automatically generated local definitions
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
@@ -40,8 +42,6 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetUnitGroup = Spring.SetUnitGroup
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-
-local CMD_FACTORY_GUARD = 10200
 
 
 local isFactory = {}
@@ -148,7 +148,8 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
 
 	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
 	local factoryGuardCmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
-	if not factoryGuardCmdDesc or not factoryGuardCmdDesc.params[1] == "1" then -- if state is missing or false, do nothing
+	local factoryGuardEnabled = factoryGuardCmdDesc.params[1] == "1"
+	if not factoryGuardCmdDesc or not factoryGuardEnabled then -- if state is missing or false, do nothing
 		return
 	end
 

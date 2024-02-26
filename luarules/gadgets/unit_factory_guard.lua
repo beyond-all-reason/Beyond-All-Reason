@@ -16,17 +16,12 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_GUARD            = CMD.GUARD
-local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
-local spGetUnitPosition    = Spring.GetUnitPosition
-local spGetUnitRadius      = Spring.GetUnitRadius
-local spGiveOrderToUnit    = Spring.GiveOrderToUnit
+
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
 local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
 
-
-local CMD_FACTORY_GUARD = 10200
+include("luarules/configs/customcmds.h.lua")
 
 local factoryGuardCmdDesc = {
 	id = CMD_FACTORY_GUARD,

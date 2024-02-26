@@ -12,7 +12,6 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
-VFS.Include("LuaRules/Configs/customcmds.h.lua")
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetCommandQueue = Spring.GetCommandQueue
