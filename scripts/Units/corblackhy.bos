@@ -311,6 +311,7 @@ AimWeapon1(heading, pitch)
 	}
 	aimy1velocity = 0;
 	start-script RestoreAfterDelay();
+	aimDir = heading;
 	return (1);
 }
 
@@ -334,7 +335,7 @@ FireWeapon1()
 }
 Shot1()
 {
-	start-script RockZ(-13, aimDir);
+	start-script RockZ(-45, aimDir);
 	if( Static_Var_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1a;
