@@ -39,7 +39,7 @@ Raise()
 	sleep 1000;
 	if(moving == 0)
 	{
-		move pillar to y-axis [12.5] speed [5.000000];
+		move pillar to y-axis [10] speed [4.000000];
 	}
 }
 
