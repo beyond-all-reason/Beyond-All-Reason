@@ -59,7 +59,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				break
 			end
 		end
-
 	end
 	if unitDef.isBuilder and unitDef.canAssist then
 		isAssistBuilder[unitDefID] = true
@@ -155,6 +154,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
 
 	GuardFactory(unitID, unitDefID, factID, factDefID)
 end
+
 
 --------------------------------------------------------------------------------
 

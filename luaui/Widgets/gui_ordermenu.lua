@@ -880,6 +880,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 	end
 end
 
+function widget:CommandsChanged() -- required to read changes from EditUnitCmdDesc
+	doUpdateClock = os_clock() + 0.01
+end
+
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil

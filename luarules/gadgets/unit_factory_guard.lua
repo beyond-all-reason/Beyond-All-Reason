@@ -20,6 +20,7 @@ end
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
 local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 include("luarules/configs/customcmds.h.lua")
 
@@ -53,11 +54,20 @@ end
 
 
 local function setFactoryGuardState(unitID, state)
-	Spring.Echo("setting guard state for " .. unitID .. " to", state)
+
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_FACTORY_GUARD)
 	if cmdDescID then
-		factoryGuardCmdDesc.params[1] = state
-		spEditUnitCmdDesc(unitID, cmdDescID, {params = factoryGuardCmdDesc.params})
+		local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_FACTORY_GUARD) -- get CmdDescID
+		local cmdDesc = Spring.GetUnitCmdDescs(unitID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
+		local factoryGuardEnabled = cmdDesc.params[1] == "1" and 1 or 0
+		Spring.Echo("current guard state and new state", factoryGuardEnabled, state)
+		--if factoryGuardEnabled ~= state then
+			Spring.Echo("setting guard state for " .. unitID .. " to", state)
+			factoryGuardCmdDesc.params[1] = state
+			spEditUnitCmdDesc(unitID, cmdDescID, {params = factoryGuardCmdDesc.params})
+			--spGiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { state }, 0)
+		--end
+
 	end
 end
 
@@ -76,6 +86,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, _)
 	if isFactory[unitDefID] then
 		factoryGuardCmdDesc.params[1] = 0
+		Spring.Echo("GADGET SETTING FACTORY GUARD STATE", false)
 		spInsertUnitCmdDesc(unitID, factoryGuardCmdDesc)
 	end
 end
