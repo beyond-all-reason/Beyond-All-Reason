@@ -52,7 +52,6 @@ return {
 		workertime = 1000,
 		customparams = {
 			unitgroup = 'antinuke',
-			isairbase = true,
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
