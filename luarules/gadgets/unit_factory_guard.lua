@@ -17,10 +17,16 @@ function gadget:GetInfo()
 end
 
 
-local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
+local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRadius = Spring.GetUnitRadius
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
+
+local CMD_GUARD = CMD.GUARD
+local CMD_MOVE = CMD.MOVE
 
 include("luarules/configs/customcmds.h.lua")
 
@@ -36,38 +42,32 @@ local factoryGuardCmdDesc = {
 
 
 local isFactory = {}
+local isAssistBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory then
 		local buildOptions = unitDef.buildOptions
 
 		for i = 1, #buildOptions do
-			local boDefID = buildOptions[i]
-			local bod = UnitDefs[boDefID]
+			local buildOptDefID = buildOptions[i]
+			local buildOpt = UnitDefs[buildOptDefID]
 
-			if (bod and bod.isBuilder and bod.canAssist) then
+			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
 				isFactory[unitDefID] = true  -- only factories that can build builders are included
 				break
 			end
 		end
 	end
+	if unitDef.isBuilder and unitDef.canAssist then
+		isAssistBuilder[unitDefID] = true
+	end
 end
 
 
 local function setFactoryGuardState(unitID, state)
-
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_FACTORY_GUARD)
 	if cmdDescID then
-		local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_FACTORY_GUARD) -- get CmdDescID
-		local cmdDesc = Spring.GetUnitCmdDescs(unitID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
-		local factoryGuardEnabled = cmdDesc.params[1] == "1" and 1 or 0
-		Spring.Echo("current guard state and new state", factoryGuardEnabled, state)
-		--if factoryGuardEnabled ~= state then
-			Spring.Echo("setting guard state for " .. unitID .. " to", state)
-			factoryGuardCmdDesc.params[1] = state
-			spEditUnitCmdDesc(unitID, cmdDescID, {params = factoryGuardCmdDesc.params})
-			--spGiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { state }, 0)
-		--end
-
+		factoryGuardCmdDesc.params[1] = state
+		spEditUnitCmdDesc(unitID, cmdDescID, {params = factoryGuardCmdDesc.params})
 	end
 end
 
@@ -80,19 +80,100 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	return true  -- command was not used
 end
 
+
+--------------------------------------------------------------------------------
+-- Guard Command Handling
+
+local function GuardFactory(unitID, unitDefID, factID, factDefID)
+
+	if not isFactory[factDefID] then
+		-- is this a factory?
+		return
+	end
+	if not isAssistBuilder[unitDefID] then
+		-- can this unit assist?
+		return
+	end
+
+	local x, y, z = spGetUnitPosition(factID)
+	if (not x) then
+		return
+	end
+
+	local radius = spGetUnitRadius(factID)
+	if (not radius) then
+		return
+	end
+	local dist = radius * 2
+
+	local facing = spGetUnitBuildFacing(factID)
+	if (not facing) then
+		return
+	end
+
+	-- facing values { S = 0, E = 1, N = 2, W = 3 }
+	local dx, dz -- down vector
+	local rx, rz -- right vector
+	if (facing == 0) then
+		dx, dz = 0, dist
+		rx, rz = dist, 0
+	elseif (facing == 1) then
+		dx, dz = dist, 0
+		rx, rz = 0, -dist
+	elseif (facing == 2) then
+		dx, dz = 0, -dist
+		rx, rz = -dist, 0
+	else
+		dx, dz = -dist, 0
+		rx, rz = 0, dist
+	end
+
+	local OrderUnit = spGiveOrderToUnit
+
+	OrderUnit(unitID, CMD_MOVE, { x + dx, y, z + dz }, { "" })
+	if Spring.TestMoveOrder(unitDefID, x + dx + rx, y, z + dz + rz) then
+		OrderUnit(unitID, CMD_MOVE, { x + dx + rx, y, z + dz + rz }, { "shift" })
+		if Spring.TestMoveOrder(unitDefID, x + rx, y, z + rz) then
+			OrderUnit(unitID, CMD_MOVE, { x + rx, y, z + rz }, { "shift" })
+		end
+	elseif Spring.TestMoveOrder(unitDefID, x + dx - rx, y, z + dz - rz) then
+		OrderUnit(unitID, CMD_MOVE, { x + dx - rx, y, z + dz - rz }, { "shift" })
+		if Spring.TestMoveOrder(unitDefID, x - rx, y, z - rz) then
+			OrderUnit(unitID, CMD_MOVE, { x - rx, y, z - rz }, { "shift" })
+		end
+	end
+	OrderUnit(unitID, CMD_GUARD, { factID }, { "shift" })
+end
+
+
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam,
+								factID, factDefID, userOrders)
+	if (userOrders) then
+		return -- already has user assigned orders
+	end
+
+	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
+	local cmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
+	local factoryGuardEnabled = cmdDesc.params[1] == "1"
+	if not cmdDesc or not factoryGuardEnabled then -- if state is missing or false, do nothing
+		return
+	end
+
+	GuardFactory(unitID, unitDefID, factID, factDefID)
+end
+
+
 --------------------------------------------------------------------------------
 -- Unit Handling
 
 function gadget:UnitCreated(unitID, unitDefID, _)
 	if isFactory[unitDefID] then
 		factoryGuardCmdDesc.params[1] = 0
-		Spring.Echo("GADGET SETTING FACTORY GUARD STATE", false)
 		spInsertUnitCmdDesc(unitID, factoryGuardCmdDesc)
 	end
 end
 
 function gadget:Initialize()
-	Spring.Echo("factory guard widget enabled")
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
