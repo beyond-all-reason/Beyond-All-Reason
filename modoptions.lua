@@ -879,9 +879,19 @@ local options={
 	},
 
 	{
+		key = 'proposed_unit_reworks',
+		name = 'Proposed Unit Reworks',
+		desc = 'Stilleto is reworked with a doubled metal and energy cost, lower aoe, and a more concentrated longer duration emp that is better suited for stunning specific targets.  Mauser and Quaker are reworked to have reduced range and increased speed and increased health to promote more dynamic play in early T2 while having them naturally fall off in late T2',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key = 'lategame_rebalance',
 		name = 'Lategame Rebalance',
 		desc = 'T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.',
+		hidden = true,
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
