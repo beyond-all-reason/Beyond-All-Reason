@@ -29,7 +29,7 @@ local metalSpotsList
 function gadget:Initialize()
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
-		Spring.Echo(gadget:GetInfo().name, "Metal map detected, removing self")
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
@@ -56,7 +56,6 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Extractors cannot be placed off of metal spots")
 		return false
 	end
 
