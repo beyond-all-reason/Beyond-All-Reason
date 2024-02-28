@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- corslrpc cortex_epicsupporter cortex_epicdolphin armada_skatert2 armada_epicellysaw
+	-- corslrpc cortex_epicsupporter cortex_epicdolphin armada_advancedskater armada_epicellysaw
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,

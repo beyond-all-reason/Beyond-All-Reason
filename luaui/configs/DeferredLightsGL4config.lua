@@ -3839,7 +3839,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_t2supportship'] = {
+	['armada_supportship'] = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'radar',
@@ -4051,7 +4051,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cortex_t2supportship'] = {
+	['cortex_supportship'] = {
 		eyestop = {
 			lightType = 'point',
 			pieceName = 'base',

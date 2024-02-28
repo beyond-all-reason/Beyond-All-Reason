@@ -553,7 +553,7 @@ local seaUnitsList = {
                 "corslrpc",
                 "cortex_epicdolphin",
                 "armada_epicellysaw",
-                "armada_skatert2",
+                "armada_advancedskater",
 
                 -- Hovercraft
                 "armada_lunkhead",

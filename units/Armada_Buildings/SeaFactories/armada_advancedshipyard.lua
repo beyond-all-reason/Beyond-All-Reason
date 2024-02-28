@@ -39,7 +39,7 @@ return {
 			[5] = "armada_serpent",
 			[6] = "armada_dragonslayer",
 			[7] = "armada_bermuda",
-			[8] = "armada_t2supportship",
+			[8] = "armada_supportship",
 			[9] = "armada_dreadnought",
 			[10] = "armada_longbow",
 			[11] = "armada_epoch",

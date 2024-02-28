@@ -531,7 +531,7 @@ local SeaUnitsList = {
 		[5] = {
 		--Armada
 		["armada_epicellysaw_scav"] = 1,
-		["armada_skatert2_scav"] = 1,
+		["armada_advancedskater_scav"] = 1,
 		--Cortex
 		["cortex_blackhydra_scav"] = 1,
 		},
@@ -559,12 +559,12 @@ local SeaUnitsList = {
 		[3] = {
 		--Armada
 		["armada_haven2_scav"] = 1,
-		["armada_t2supportship_scav"] = 1,
+		["armada_supportship_scav"] = 1,
 		["armada_dronecarrier_scav"] = 1,
 		["armada_dragonslayer_scav"] = 1,
 		--Cortex
 		["cortex_dronecarrier_scav"] = 1,
-		["cortex_t2supportship_scav"] = 1,
+		["cortex_supportship_scav"] = 1,
 		["cortex_oasis2_scav"] = 1,
 		["cortex_arrowstorm_scav"] = 1,
 		},

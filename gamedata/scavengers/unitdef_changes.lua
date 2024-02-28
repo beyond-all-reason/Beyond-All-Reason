@@ -632,7 +632,7 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_advancedshipyard.buildoptions
 -- customDefs.armada_advancedshipyard = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armada_skatert2",
+-- 		[numBuildoptions+1] = "armada_advancedskater",
 -- 		[numBuildoptions+2] = "cortex_epicdolphin",
 -- 		[numBuildoptions+3] = "armada_epicellysaw",
 -- 	},

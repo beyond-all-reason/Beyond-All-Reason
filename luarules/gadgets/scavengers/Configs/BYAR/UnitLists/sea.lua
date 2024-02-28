@@ -82,7 +82,7 @@ return {
 		"corslrpc_scav",
 		"cortex_epicdolphin_scav",
 		"armada_epicellysaw_scav",
-		"armada_skatert2_scav",
+		"armada_advancedskater_scav",
 
 		-- Hovercraft
 		"armada_lunkhead_scav",

@@ -482,7 +482,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armada_skatert2"
+			uDef.buildoptions[numBuildoptions+1] = "armada_advancedskater"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_epicdolphin"
 			uDef.buildoptions[numBuildoptions+3] = "armada_epicellysaw"
 			uDef.buildoptions[numBuildoptions+4] = "armada_epicserpent"

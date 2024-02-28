@@ -1,5 +1,5 @@
 return {
-	cortex_t2supportship = {
+	armada_supportship = {
 		maxacc = 0.01722,
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
@@ -7,7 +7,7 @@ return {
 		energycost = 12000,
 		metalcost = 1400,
 		builder = true,
-		buildpic = "cortex_t2supportship.DDS",
+		buildpic = "armada_supportship.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -36,10 +36,10 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
 		nochasecategory = "ALL",
-		objectname = "Units/cortex_t2supportship.s3o",
+		objectname = "Units/armada_supportship.s3o",
 		radardistance = 2950,
 		radaremitheight = 56,
-		script = "Units/cortex_t2supportship.cob",
+		script = "Units/armada_supportship.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
 		sightdistance = 1000,
@@ -53,9 +53,9 @@ return {
 		customparams = {
 			unitgroup = 'antinuke',
 			isairbase = true,
-			model_author = "Odin",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "cortex_ships/t2",
+			model_author = "FireStorm",
+			normaltex = "unittextures/Arm_normal.dds",
+			subfolder = "armada_ships/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -73,7 +73,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/cortex_t2supportship_dead.s3o",
+				object = "Units/armada_supportship_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

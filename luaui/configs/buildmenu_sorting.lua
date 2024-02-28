@@ -372,7 +372,7 @@ local unitOrderTable = {
 	['cortex_kraken']        = 009950,
 
 	['armada_epicserpent']      = 009960,
-	['armada_skatert2']        = 009962,
+	['armada_advancedskater']        = 009962,
 
 	-- TRANSPORTS
 	['armada_stork']       = 010500,
@@ -394,10 +394,10 @@ local unitOrderTable = {
 	['cortex_saviour']        = 020010,
 
 	['armada_haven']       = 020100,
-	['armada_t2supportship']	   = 020101,
+	['armada_supportship']	   = 020101,
 	['armada_haven2']      = 020105,
 	['cortex_oasis']       = 020110,
-	['cortex_t2supportship']    = 020111,
+	['cortex_supportship']    = 020111,
 	['cortex_oasis2']      = 020115,
 
 -- BUILDINGS

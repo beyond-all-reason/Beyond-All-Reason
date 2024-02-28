@@ -39,7 +39,7 @@ return {
 			[5] = "cortex_kraken",
 			[6] = "cortex_arrowstorm",
 			[7] = "cortex_phantasm",
-			[8] = "cortex_t2supportship",
+			[8] = "cortex_supportship",
 			[9] = "cortex_despot",
 			[10] = "cortex_messenger",
 			[11] = "cortex_blackhydra",

@@ -79,7 +79,7 @@ local icontypes = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
-	armada_t2supportship = {
+	armada_supportship = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
@@ -651,7 +651,7 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	armada_skatert2 = {
+	armada_advancedskater = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
 	},
@@ -1035,7 +1035,7 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
-	cortex_t2supportship = {
+	cortex_supportship = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},

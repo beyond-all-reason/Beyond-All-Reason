@@ -101,8 +101,8 @@ local unitNames = {
   "cortex_saviour",
   "armada_haven",
   "cortex_oasis",
-  "armada_t2supportship",
-  "cortex_t2supportship",
+  "armada_supportship",
+  "cortex_supportship",
 
   --misc
 }
