@@ -16,17 +16,231 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, Static_Var_8, aimDir, old
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+//#include "unit_hitbyweaponid_and_smoke.h"
 
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn ground to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
-	oldHead = heading;
+
+
+// -------------------------------- WARSHIP ------------------------
+// TODO:
+// [ ] Make damping factor scale with current pitch and roll
+// [ ] Fix rounding of angular acceleration at <1.0
+
+// [ ] Rock when slow, do this by modulating the 'target pos' 
+// [ ] pitch forward when moving fast
+// [ ] bank when turning 
+// [ ] Damping as a better var
+
+
+// REQUIRED STATIC VARS:
+// heading
+
+
+//-------------------- EXTERNAL DEFINES ------------------
+// mass of boat in AU
+#define RB_MASS 50
+
+//Virtual Length and width of boat in elmos, assume the boat is a tall as it is wide
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+
+#define RB_RECOIL_FORCE 10
+#define RB_PIECE ground
+
+// where 100 is no damping.
+#define RB_DAMPING 95
+
+// How often should the speed/position of the boat be adjusted
+// 1: 1.8% CPU/1k, for flagships only
+// 2: 1.1% CPU/1k  for smaller boats
+// 3: 0.8% CPU/1k  if you really wanna save a tiny bit of perf
+
+#define RB_FRAMES 2
+
+// ------------------ INTERNAL DEFINES ------------------
+
+#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (120/ RB_FRAMES)) ;
+#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (120/ RB_FRAMES)) ;
+#define SIGN(v) ((v > 0) - (v < 0)) 
+#define ABS(v) (v * (-1 * (v<0)))
+
+// Pitch is the X axis
+// Roll is the Z axis
+static-var RB_pitch, RB_roll;
+static-var RB_pitch_velocity, RB_roll_velocity;
+
+InitRockBoat(){
+	//RB_inertia_pitch = (RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) /120 ; // X axis
+	//RB_inertia_roll  = (RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH * RB_WIDTH) /120 ;   // Z axis
+	RB_pitch = 0;
+	RB_roll = 0;
+	RB_pitch_velocity = 0;
+	RB_roll_velocity = 0;
+	
+	turn RB_PIECE to x-axis RB_pitch now;
+	turn RB_PIECE to z-axis RB_roll  now;
+
+	var torque_pitch;
+	torque_pitch = 0;
+	var torque_roll;
+	torque_roll = 0;
+	
+
+	var dbg1;
+	dbg1 = 0;
+	var gf;
+	gf = 0;
+	gf = !(!RB_pitch) + !(RB_PITCH && 0x800000);
+	var sign;
+	sign = 1;
+	
+	sign = (RB_pitch >0) - (RB_pitch<0);
+	sign = SIGN(RB_pitch);
+	// MAX:
+	
+	var mymax;
+
+	torque_pitch = (torque_pitch > 100) * 100 + (torque_pitch <= 100) * torque_pitch;
+	
+	
+	//return (0);
+	while (1){
+		// Calculate restoring torque due to displacement
+		torque_pitch = ( RB_pitch * (-1 *  RB_FRAMES))/10;
+		torque_roll =  ( RB_roll  * (-1 *  RB_FRAMES))/10;
+		
+		//silly max without jump
+		//torque_pitch = (torque_pitch > 100) * 100 + (torque_pitch <= 100) * torque_pitch;
+		//if (torque_pitch > 100) torque_pitch = 100;
+		//if (torque_roll > 100)   torque_roll = 100;
+		//if (torque_pitch < -100) torque_pitch = -100;
+		//if (torque_roll < -100)   torque_roll = -100;
+		
+		
+		// Print debugging stuff:
+		//get PRINT(88888, torque_pitch, torque_roll);
+
+		// Convert torque to angular acceleration 
+		//RB_angular_acceleration_pitch = (   torque_pitch) / RB_INERTIA_PITCH;
+		//RB_angular_acceleration_roll  = (   torque_roll ) / RB_INERTIA_ROLL ;
+
+		// Update angular velocity with angular acceleration
+		RB_pitch_velocity = RB_pitch_velocity + (torque_pitch) / RB_INERTIA_PITCH ;
+		RB_roll_velocity  = RB_roll_velocity  + (torque_roll ) / RB_INERTIA_ROLL   ;
+		
+		// Simple damping to simulate resistance from water and air
+		RB_pitch_velocity = ((  RB_pitch_velocity * RB_DAMPING) / 100) ;
+		RB_roll_velocity  = ((  RB_roll_velocity  * RB_DAMPING) / 100) ;
+		
+		if (RB_pitch_velocity == 0) {
+			if (RB_pitch > 0) RB_pitch_velocity = -1;
+			else RB_pitch_velocity = 1;
+		}
+		
+		
+		if (RB_roll_velocity == 0) {
+			if (RB_roll > 0) RB_roll_velocity = -1;
+			else RB_roll_velocity = 1;
+		}
+		
+		//RB_pitch_velocity = RB_pitch_velocity + 
+
+		// Print debugging stuff:
+		//get PRINT(RB_roll_velocity, RB_roll_velocity, RB_angular_acceleration_pitch, RB_angular_acceleration_roll);
+		
+		// Update pitch and roll based on angular velocity
+		RB_pitch = RB_pitch + RB_pitch_velocity ;
+		RB_roll  = RB_roll  + RB_roll_velocity;
+
+		// Print debugging stuff:
+		//get PRINT(RB_pitch, RB_roll, RB_pitch_velocity, RB_roll_velocity);
+
+		// Execute corresponding movements
+		//if (RB_FRAMES == 1){
+		//turn RB_PIECE to x-axis RB_pitch now; 
+		//turn RB_PIECE to z-axis RB_roll now; 
+		
+		//}else{
+		
+			turn RB_PIECE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
+			turn RB_PIECE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
+		
+		//}
+		
+		sleep 32 * RB_FRAMES;
+
+	}
 }
 
+
+RockOnWaves()
+{
+	var currHeading, currSpeed, prevHeading, prevSpeed;	
+	while( TRUE )
+	{
+		currHeading = get (HEADING);
+		currSpeed =   get (MAX_SPEED);
+		sleep 1000;
+	}
+}
+
+// Pass in the pitch and heading of the current aiming here 
+// heading: 0 is forward, 16K is 90deg left, -16K is 90 deg right
+
+RecoilRockBoat(heading, power){
+	// Separate heading into X and Z axes
+	
+	// Where RockZComponent is +1024 on the heading = left
+	var RockZComponent;
+	RockZComponent = get KSIN(heading);
+	
+	// Where RockXComponent is +1024 when aiming forward. 
+	var RockXComponent;
+	RockXComponent = get KCOS(heading);
+	//get PRINT (heading,power, RockXComponent, RockZComponent);
+	
+	// Add with negative sign as we want it to move backwards from heading;
+	RB_pitch_velocity = RB_pitch_velocity - RockXComponent / 4 ;
+	RB_roll_velocity  = RB_roll_velocity  - RockZComponent / 4;
+
+}
+
+
+
+// anglez is left-right, +500 right
+// anglex is front-back, where +500 is front
+
+// only called if HitByWeaponId NOT defined
+//HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+//{
+//	get PRINT(-1000, anglex, anglez, damage);	
+//}
+
+// If HitByWeaponId is defined, then HitByWeapon is not called 
+// anglez is left-right, +500 right
+// anglex is front-back, where +500 is front
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	//get PRINT(anglex, anglez, weaponid, dmg);
+	RB_pitch_velocity = RB_pitch_velocity - anglex / 4 ;
+	RB_roll_velocity  = RB_roll_velocity  + anglez / 4;
+	// always return damage percent!
+	return (100); 
+}
+
+// -------------------------------- END WARSHIP --------------------
+
+SetDirection(windHeading, windStrength)
+{
+//	var spd;
+//	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+//	turn ground to y-axis heading speed spd;
+//	turn base to y-axis 0-heading speed spd;
+//	oldHead = heading;
+	//RB_pitch_velocity = RB_pitch_velocity - RockXComponent / 4 ;
+	//RB_roll_velocity  = RB_roll_velocity  - RockZComponent / 4;
+
+}
+/*
 RockOnWaves()
 {
 	var rockDir, rockAng, rockSpeed;
@@ -37,56 +251,15 @@ RockOnWaves()
 		while( get ABS(rockAng) < <1.31> )
 		{
 			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
+		//	turn ground to x-axis rockAng speed rockSpeed*4;
+		//	wait-for-turn ground around x-axis;
 			rockAng = rockAng + rockDir;
+			sleep 1;
 		}
 		rockDir = 0 - rockDir;
 		rockAng = rockAng + rockDir + rockDir;
 	}
-}
-
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 16;
-	set-signal-mask 16;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.016484>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.000000> speed <1.5>;
-}
-
+}*/
 
 Create()
 {
@@ -110,6 +283,7 @@ Create()
 		sleep 500;
 	}
 	start-script RockOnWaves();
+	start-script InitRockBoat();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -153,6 +327,7 @@ RestoreDeckLaser()
 
 waveSplash()
 {
+	return (0);
 	while( TRUE )
 	{
 		turn base to x-axis <-3.0> speed <3.0>;
@@ -216,6 +391,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
+	//call-script RecoilRockBoat()
 	if( gun_2 )
 	{
 		show aftflare;
@@ -290,7 +466,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	start-script RockZ(-7, aimDir);
+	//start-script RockZ(-7, aimDir);
 	if( gun_1 ==0)
 	{
 	    emit-sfx 1024 + 0 from flare1;
@@ -312,6 +488,12 @@ FireWeapon1()
 	if (gun_1>2){
 		gun_1=0;
 	}
+	
+	// A bit of delay before adding velocity looks way better :D
+	//#IF RB_FRAMES == 1
+	//	sleep 65;
+	//#ENDIF
+	call-script RecoilRockBoat(aimDir, 100);
 }
 
 AimFromWeapon1(pieceIndex)
