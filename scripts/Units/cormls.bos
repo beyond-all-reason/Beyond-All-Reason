@@ -210,8 +210,6 @@ QueryNanoPiece(piecenum)
 }
 
 TargetHeading(Func_Var_1) {
-	get PRINT(999);
-	get PRINT(Func_Var_1);
 	Static_Var_2 = 0 - Func_Var_1;
 }
 
