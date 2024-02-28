@@ -49,6 +49,9 @@ end
 local luaFiles = RecursiveFileSearch('units/', '*.lua')
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
+if Spring.GetModOptions().ruins ~= "disabled" then
+	legionEnabled = true
+end
 local scavengersEnabled = true
 local raptorsEnabled = true
 if Spring.GetTeamList then
