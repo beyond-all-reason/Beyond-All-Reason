@@ -606,7 +606,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "armada_airrepairpad", "armada_airrepairpad" },                  -- air repair pad, floating air repair pad
+			{ "", "", "armada_airrepairpad", "armada_floatingairrepairpad" },                  -- air repair pad, floating air repair pad
 			{ "armada_juno", }									  -- juno
 		},
 		{
@@ -674,7 +674,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_navalradarsonar", "armada_beholder","armada_sharksteeth", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armada_dragonsteeth", "armada_airrepairpad", "armada_airrepairpad"},                        	      -- dragon's teeth
+			{ "", "armada_dragonsteeth", "armada_airrepairpad", "armada_floatingairrepairpad"},                        	      -- dragon's teeth
 		},
 		{
 			{ "armada_shipyard", "armada_vehicleplant", "armada_aircraftplant", "armada_botlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -766,7 +766,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_radartower", "armada_beholder", "armada_dragonsteeth", "armada_sneakypete", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armada_navalradarsonar", "armada_sharksteeth", "armada_airrepairpad", "armada_airrepairpad" },                       -- floating radar, shark's teeth
+			{ "armada_navalradarsonar", "armada_sharksteeth", "armada_airrepairpad", "armada_floatingairrepairpad" },                       -- floating radar, shark's teeth
 			{ "armada_juno", },                                   -- juno
 		},
 		{
@@ -1000,7 +1000,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_advancedradartower", "armada_pinpointer", "armada_fortificationwall", "armada_veil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armada_tracer", "armada_decoyfusionreactor", "armada_airrepairpad", "armada_airrepairpad" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armada_tracer", "armada_decoyfusionreactor", "armada_airrepairpad", "armada_floatingairrepairpad" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
 			{ "armada_keeper", },                                      -- shield
 		},
 		{
@@ -1069,7 +1069,7 @@ local unitGrids = {
 		},
 		{
 			{ "armada_advancedsonarstation", "armada_navalpinpointer" },                		   -- adv sonar, floating targeting facility
-			{ "", "", "", "armada_airrepairpad" },                         -- Floating air repair pad
+			{ "", "", "", "armada_floatingairrepairpad" },                         -- Floating air repair pad
 			{ },                                               --
 		},
 		{

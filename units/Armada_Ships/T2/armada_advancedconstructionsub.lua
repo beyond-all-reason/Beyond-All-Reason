@@ -53,7 +53,7 @@ return {
 			[12] = "armada_navalarbalest",
 			[13] = "armada_gorgon",
 			[14] = "armada_advancedgeothermalpowerplant",
-			[15] = "armada_airrepairpad",
+			[15] = "armada_floatingairrepairpad",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

@@ -583,7 +583,7 @@ function ArmyHST:Init()
 
 	self._airPlat_ = {
 		armada_airrepairpad = true ,
-		armada_airrepairpad = true ,
+		armada_floatingairrepairpad = true ,
 		cortex_airrepairpad = true ,
 		cortex_floatingairrepairpad = true ,
 		}

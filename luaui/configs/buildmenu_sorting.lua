@@ -497,7 +497,6 @@ local unitOrderTable = {
    --UTILITIES
    ['armada_airrepairpad']         = 102800, --AIR REPAIR PADS
    ['cortex_airrepairpad']         = 102825,
-   ['cortex_floatingairrepairpad']         = 102826,
 
    ['armada_beholder']        = 103000,
    ['cortex_beholder']        = 103050,
@@ -660,7 +659,7 @@ local unitOrderTable = {
    ['cortex_navalheavymine']      = 217200,
 
    --WATER UTILITIES
-   ['armada_airrepairpad']        = 220000,
+   ['armada_floatingairrepairpad']        = 220000,
    ['cortex_floatingairrepairpad']        = 220050,
    ['armada_navalradarsonar']        = 220100,
    ['cortex_radarsonartower']        = 220150,

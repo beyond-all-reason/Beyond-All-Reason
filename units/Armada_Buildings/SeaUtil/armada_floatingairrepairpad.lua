@@ -1,5 +1,5 @@
 return {
-	armada_airrepairpad = {
+	armada_floatingairrepairpad = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 400,
 		builddistance = 136,
 		builder = true,
-		buildpic = "armada_airrepairpad.DDS",
+		buildpic = "armada_floatingairrepairpad.DDS",
 		buildtime = 9100,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,7 +24,7 @@ return {
 		mass = 200000,
 		maxdamage = 1670,
 		minwaterdepth = 5,
-		objectname = "Units/armada_airrepairpad.s3o",
+		objectname = "Units/armada_floatingairrepairpad.s3o",
 		onoffable = true,
 		script = "Units/armada_airrepairpad.cob",
 		seismicsignature = 0,

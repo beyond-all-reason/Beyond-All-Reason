@@ -311,8 +311,8 @@ local icontypes = {
 		bitmap = "icons/engineer_small.png",
 		size = 0.94499993
 	},
-	armada_airrepairpad = {
-		bitmap = "icons/armada_airrepairpad_2.4.png",
+	armada_floatingairrepairpad = {
+		bitmap = "icons/armada_floatingairrepairpad_2.4.png",
 		size = 2.51999998
 	},
 	armada_sprinter = {

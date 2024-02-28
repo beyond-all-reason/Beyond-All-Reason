@@ -1,5 +1,5 @@
 return {
-	corsat = {
+	cortex_satellite = {
 		acceleration = 0.05,
 		airhoverfactor = 0.4,
 		blocking = false,
@@ -30,11 +30,11 @@ return {
 		maxslope = 10,
 		speed = 30.0,
 		maxwaterdepth = 0,
-		objectname = "Units/corsat.s3o",
+		objectname = "Units/cortex_satellite.s3o",
 		radardistance = 580,
 		reclaimable = false,
 		repairable = false,
-		script = "Units/corsat.cob",
+		script = "Units/cortex_satellite.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 350,

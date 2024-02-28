@@ -59,7 +59,7 @@ local armorDefs = {
 		"armada_crocodile",
 		"armada_aircraftplant",
 		"armada_airrepairpad",
-		"armada_airrepairpad",
+		"armada_floatingairrepairpad",
 		"armada_basilica",
 		"armada_constructionhovercraft",
 		"armada_constructionbot",

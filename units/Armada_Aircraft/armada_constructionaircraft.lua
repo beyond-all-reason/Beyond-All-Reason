@@ -68,7 +68,7 @@ return {
 			[30] = "armada_juno",
 			[31] = "armada_shipyard",
 			[32] = "armada_geothermalpowerplant",
-			[33] = "armada_airrepairpad",
+			[33] = "armada_floatingairrepairpad",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -82,7 +82,7 @@ return {
 			[43] = "armada_harpoon",
 			[44] = "armada_geothermalpowerplant",
 			[45] = "armada_airrepairpad",
-			[46] = "armada_airrepairpad",
+			[46] = "armada_floatingairrepairpad",
 		},
 		customparams = {
 			unitgroup = 'builder',

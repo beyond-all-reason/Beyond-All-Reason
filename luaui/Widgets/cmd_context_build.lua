@@ -72,7 +72,7 @@ local unitlist = {
 	{'armada_aircraftplant','armada_seaplaneplatform'},
 	{'cortex_aircraftplant','cortex_seaplaneplatform'},
 	{'cortex_airrepairpad','cortex_floatingairrepairpad'},
-	{'armada_airrepairpad','armada_airrepairpad'},
+	{'armada_airrepairpad','armada_floatingairrepairpad'},
 	{'armada_geothermalpowerplant','armada_geothermalpowerplant'},
 	{'armada_advancedgeothermalpowerplant','armada_advancedgeothermalpowerplant'},
 	{'cortex_geothermalpowerplant','cortex_navalgeothermalpowerplant'},

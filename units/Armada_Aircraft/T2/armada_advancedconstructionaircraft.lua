@@ -51,7 +51,7 @@ return {
 			"armada_veil",
 			"armada_fortificationwall",
 			"armada_airrepairpad",
-			"armada_airrepairpad",
+			"armada_floatingairrepairpad",
 			"armada_pinpointer",
 			"armada_tracer",
 			"armada_keeper",
