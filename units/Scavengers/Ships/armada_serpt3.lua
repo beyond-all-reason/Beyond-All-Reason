@@ -1,12 +1,12 @@
 local unitName = "Epic Serpent"
 return {
-	armada_serpentt3 = {
+	armada_epicserpent = {
 		maxacc = 0.02,
 		activatewhenbuilt = true,
 		maxdec = 0.02,
 		energycost = 225000,
 		metalcost = 15000,
-		buildpic = "armada_serpentt3.DDS",
+		buildpic = "armada_epicserpent.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -24,8 +24,8 @@ return {
 		minwaterdepth = 30,
 		movementclass = "EPICSUBMARINE",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armada_serpentT3.s3o",
-		script = "Units/scavboss/armada_serpentT3.cob",
+		objectname = "Units/scavboss/armada_epicserpent.s3o",
+		script = "Units/scavboss/armada_epicserpent.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 950,
@@ -59,7 +59,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 7500,
-				object = "Units/scavboss/armada_serpentt3_dead.s3o",
+				object = "Units/scavboss/armada_epicserpent_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

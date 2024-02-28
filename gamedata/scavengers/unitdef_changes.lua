@@ -596,16 +596,16 @@ customDefs.corscavdtl = {
 -- customDefs.cortex_experimentalgantry = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "cortex_demon",
--- 		[numBuildoptions+2] = "cortex_karganetht4",
--- 		[numBuildoptions+3] = "cortex_tzart4",
--- 		[numBuildoptions+4] = "cortex_gruntt4",
+-- 		[numBuildoptions+2] = "cortex_epickarganeth",
+-- 		[numBuildoptions+3] = "cortex_epictzar",
+-- 		[numBuildoptions+4] = "cortex_epicgrunt",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.cortex_underwaterexperimentalgantry.buildoptions
 -- customDefs.cortex_underwaterexperimentalgantry = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "cortex_tzart4",
+-- 		[numBuildoptions+1] = "cortex_epictzar",
 -- 	},
 -- }
 
@@ -625,7 +625,7 @@ customDefs.corscavdtl = {
 -- customDefs.cortex_advancedshipyard = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corslrpc",
--- 		[numBuildoptions+2] = "cortex_supportert3",
+-- 		[numBuildoptions+2] = "cortex_epicsupporter",
 -- 	},
 -- }
 
@@ -633,8 +633,8 @@ customDefs.corscavdtl = {
 -- customDefs.armada_advancedshipyard = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_skatert2",
--- 		[numBuildoptions+2] = "armada_dolphint3",
--- 		[numBuildoptions+3] = "armada_ellysawt3",
+-- 		[numBuildoptions+2] = "cortex_epicdolphin",
+-- 		[numBuildoptions+3] = "armada_epicellysaw",
 -- 	},
 -- }
 
@@ -759,7 +759,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_bulwarkt3",
+-- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }
 
@@ -771,7 +771,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_bulwarkt3",
+-- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }
 
@@ -783,7 +783,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corhllllt",
 -- 		[numBuildoptions+5] = "corscavfort",
--- 		[numBuildoptions+6] = "cortex_bulwarkt3",
+-- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }
 

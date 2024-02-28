@@ -36,7 +36,7 @@ return {
 		yardmap = "oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo ",
 		buildoptions = {
 			"cortex_advancedconstructionaircraft",
-			"cortex_dragont4",
+			"cortex_epicdragon",
 			"corfblackhyt4",
 			"cortex_flyingdronecarrier",
 		},

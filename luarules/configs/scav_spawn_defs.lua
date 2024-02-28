@@ -218,7 +218,7 @@ local LandUnitsList = {
 			["armada_pawnt4_scav"] = 1,
 			["armada_marauder_scav"] = 1,
 			--Cortex
-			["cortex_gruntt4_scav"] = 1,
+			["cortex_epicgrunt_scav"] = 1,
 			--Legion
 			--N/A
 		},
@@ -311,8 +311,8 @@ local LandUnitsList = {
 			--Cortex
 			["cortex_behemoth_scav"] = 1,
 			["cortex_juggernaut_scav"] = 1,
-			["cortex_karganetht4_scav"] = 1,
-			["cortex_tzart4_scav"] = 1,
+			["cortex_epickarganeth_scav"] = 1,
+			["cortex_epictzar_scav"] = 1,
 			--Legion
 			["legpede_scav"] = 1,
 		},
@@ -530,7 +530,7 @@ local SeaUnitsList = {
 		},
 		[5] = {
 		--Armada
-		["armada_ellysawt3_scav"] = 1,
+		["armada_epicellysaw_scav"] = 1,
 		["armada_skatert2_scav"] = 1,
 		--Cortex
 		["cortex_blackhydra_scav"] = 1,
@@ -538,9 +538,9 @@ local SeaUnitsList = {
 		[6] = {
 		--Armada
 		["armada_epoch_scav"] = 1,
-		["armada_serpentt3_scav"] = 1,
+		["armada_epicserpent_scav"] = 1,
 		--Cortex
-		["cortex_supportert3_scav"] = 1,
+		["cortex_epicsupporter_scav"] = 1,
 		},
 	},
 	Support = {
@@ -586,7 +586,7 @@ local SeaUnitsList = {
 		},
 		[6] = {
 		--Armada
-		["armada_dolphint3_scav"] = 1,
+		["cortex_epicdolphin_scav"] = 1,
 		--Cortex
 		["corslrpc_scav"] = 1,
 		},
@@ -720,7 +720,7 @@ local AirUnitsList = {
 	["armada_lichet4_scav"] = 1,
 	--Cortex
 	["corfblackhyt4_scav"] = 1,
-	["cortex_dragont4_scav"] = 1,
+	["cortex_epicdragon_scav"] = 1,
 	--Legion
 	--N/A
 	},
@@ -838,7 +838,7 @@ local Turrets = {
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal
 		["armada_pulsart3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["cortex_bulwarkt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["cortex_epicbulwark_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armada_ragnarok_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["cortex_calamity_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},

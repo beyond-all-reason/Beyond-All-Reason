@@ -1,12 +1,12 @@
 local unitName = "Epic Supporter"
 return {
-	cortex_supportert3 = {
+	cortex_epicsupporter = {
 		maxacc = 0.015,
 		maxdec = 0.015,
 		buildangle = 16384,
 		energycost = 600000,
 		metalcost = 30000,
-		buildpic = "cortex_supportert3.DDS",
+		buildpic = "cortex_epicsupporter.DDS",
 		buildtime = 400000,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
 		nochasecategory = "UNDERWATER VTOL",
-		objectname = "Units/scavboss/cortex_supporterT3.s3o",
-		script = "Units/scavboss/cortex_supporterT3.cob",
+		objectname = "Units/scavboss/cortex_epicsupporter.s3o",
+		script = "Units/scavboss/cortex_epicsupporter.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 700,
@@ -57,7 +57,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 15000,
-				object = "Units/scavboss/cortex_supportert3_dead.s3o",
+				object = "Units/scavboss/cortex_epicsupporter_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

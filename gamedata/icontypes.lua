@@ -251,7 +251,7 @@ local icontypes = {
 		bitmap = "icons/ship_raid.png",
 		size = 1.15499997
 	},
-	armada_dolphint3 = {
+	cortex_epicdolphin = {
 		bitmap = "icons/ship_t4_decade.png",
 		size = 2.70000005
 	},
@@ -639,7 +639,7 @@ local icontypes = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
 	},
-	armada_ellysawt3 = {
+	armada_epicellysaw = {
 		bitmap = "icons/ship_t4_pship.png",
 		size = 2.70000005
 	},
@@ -759,7 +759,7 @@ local icontypes = {
 		bitmap = "icons/battlesub_t2.png",
 		size = 2.20000005
 	},
-	armada_serpentt3 = {
+	armada_epicserpent = {
 		bitmap = "icons/sub_t3x.png",
 		size = 2.79999995
 	},
@@ -1019,8 +1019,8 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.73499995
 	},
-	cortex_gruntt4 = {
-		bitmap = "icons/cortex_gruntt4.png",
+	cortex_epicgrunt = {
+		bitmap = "icons/cortex_epicgrunt.png",
 		size = 2.30999994
 	},
 	cortex_advancedbotlab = {
@@ -1171,8 +1171,8 @@ local icontypes = {
 		bitmap = "icons/air_krow.png",
 		size = 2.0999999
 	},
-	cortex_dragont4 = {
-		bitmap = "icons/cortex_dragont4.png",
+	cortex_epicdragon = {
+		bitmap = "icons/cortex_epicdragon.png",
 		size = 3.3599999
 	},
 	cortex_constructionship = {
@@ -1207,7 +1207,7 @@ local icontypes = {
 		bitmap = "icons/cortex_bulwark.png",
 		size = 2.0474999
 	},
-	cortex_bulwarkt3 = {
+	cortex_epicbulwark = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
@@ -1247,7 +1247,7 @@ local icontypes = {
 		bitmap = "icons/ship_raid.png",
 		size = 0.89999998
 	},
-	cortex_supportert3 = {
+	cortex_epicsupporter = {
 		bitmap = "icons/ship_t4_esuppt3.png",
 		size = 3.5
 	},
@@ -1387,7 +1387,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_plasma_aoe.png",
 		size = 1.83749986
 	},
-	cortex_tzart4 = {
+	cortex_epictzar = {
 		bitmap = "icons/armrattet4.png",
 		size = 3.09749985
 	},
@@ -1451,8 +1451,8 @@ local icontypes = {
 		bitmap = "icons/cortex_karganeth_2.05.png",
 		size = 2.424999
 	},
-	cortex_karganetht4 = {
-		bitmap = "icons/cortex_karganetht4.png",
+	cortex_epickarganeth = {
+		bitmap = "icons/cortex_epickarganeth.png",
 		size = 3.14999986
 	},
 	cortex_juggernaut = {

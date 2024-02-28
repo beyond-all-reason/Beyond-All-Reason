@@ -14206,7 +14206,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cortex_dragont4'] = {
+	['cortex_epicdragon'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -17678,7 +17678,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cortex_tzart4'] = {
+	['cortex_epictzar'] = {
 		base1 = {
 			lightType = 'point',
 			pieceName = 'base',

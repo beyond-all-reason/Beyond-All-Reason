@@ -207,8 +207,8 @@ return {
 		"cortex_despot",
 		"cortex_blackhydra",
 		"corslrpc",
-		"armada_dolphint3",
-		"armada_ellysawt3",
+		"cortex_epicdolphin",
+		"armada_epicellysaw",
 		"armada_skatert2",
 
 		-- Hovercraft
@@ -229,14 +229,14 @@ return {
 		"armada_tumbleweedt4",
 		"armfepocht4",
 		"corfblackhyt4",
-		"cortex_dragont4",
+		"cortex_epicdragon",
 		"cortex_demon",
-		"cortex_karganetht4",
-		"cortex_tzart4",
-		"cortex_gruntt4",
+		"cortex_epickarganeth",
+		"cortex_epictzar",
+		"cortex_epicgrunt",
 
 		-- Air
-		"cortex_dragont4",
+		"cortex_epicdragon",
 		"armfepocht4",
 		"corfblackhyt4",
 		"armada_stormbringert4",
@@ -244,13 +244,13 @@ return {
 		-- Sea
 		"armada_epoch",
 		"cortex_blackhydra",
-		"cortex_dragont4",
+		"cortex_epicdragon",
 		"armfepocht4",
 		"corfblackhyt4",
 		"armada_tumbleweedt4",
 		"cortex_juggernaut",
 		"armada_titan",
-		"armada_serpentt3",
-		"cortex_supportert3",
+		"armada_epicserpent",
+		"cortex_epicsupporter",
 	},
 }

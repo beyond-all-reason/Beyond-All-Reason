@@ -494,7 +494,7 @@ local function EpicDefence6()
 			{ unitDefID = UnitDefNames.cortex_prevailer_scav.id, xOffset = -35, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_calamity_scav.id, xOffset = 77, zOffset = 96, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_bulwark_scav.id, xOffset = 77, zOffset = -96, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 61, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_epicbulwark_scav.id, xOffset = 61, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -575,7 +575,7 @@ local function EpicDefence7()
 			{ unitDefID = UnitDefNames.cortex_birdshot_scav.id, xOffset = 112, zOffset = 80, direction = 1},
 			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 104, zOffset = -136, direction = 1},
 			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 104, zOffset = 136, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 80, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_epicbulwark_scav.id, xOffset = 80, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -651,8 +651,8 @@ local function EpicDefence8()
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -13, zOffset = 168, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -77, zOffset = 104, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_catalyst_scav.id, xOffset = -77, zOffset = -104, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 83, zOffset = -104, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 83, zOffset = 104, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_epicbulwark_scav.id, xOffset = 83, zOffset = -104, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_epicbulwark_scav.id, xOffset = 83, zOffset = 104, direction = 1},
 		},
 	}
 end
@@ -832,7 +832,7 @@ local function EpicDefence12()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.cortex_bulwarkt3_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_epicbulwark_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end

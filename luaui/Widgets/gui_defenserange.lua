@@ -104,7 +104,7 @@ modConfig["BYAR"]["unitList"] = {
 	armminivulc = { weapons = { 1 } },
 	legministarfall = { weapons = { 1 } },
 
-	cortex_bulwarkt3 = { weapons = { 1 } },
+	cortex_epicbulwark = { weapons = { 1 } },
 	corhllllt = { weapons = { 1 } },
 	corminibuzz = { weapons = { 1 } }
 }

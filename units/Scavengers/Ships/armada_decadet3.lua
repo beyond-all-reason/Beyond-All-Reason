@@ -1,12 +1,12 @@
 local unitName = "Epic Decade"
 return {
-	armada_dolphint3 = {
+	cortex_epicdolphin = {
 		maxacc = 0.03,
 		maxdec = 0.03,
 		buildangle = 16384,
 		energycost = 160000,
 		metalcost = 8000,
-		buildpic = "armada_dolphint3.DDS",
+		buildpic = "cortex_epicdolphin.DDS",
 		buildtime = 90000,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
 		nochasecategory = "UNDERWATER VTOL",
-		objectname = "Units/scavboss/armada_dolphinT3.s3o",
-		script = "Units/scavboss/armada_dolphinT3.cob",
+		objectname = "Units/scavboss/cortex_epicdolphin.s3o",
+		script = "Units/scavboss/cortex_epicdolphin.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 600,
@@ -57,7 +57,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 4000,
-				object = "Units/scavboss/armada_dolphint3_dead.s3o",
+				object = "Units/scavboss/cortex_epicdolphin_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

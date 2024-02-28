@@ -53,7 +53,7 @@ return {
 	},
 
 	T4 = {
-		"cortex_dragont4_scav",
+		"cortex_epicdragon_scav",
 		"armfepocht4_scav",
 		"corfblackhyt4_scav",
 		"armada_stormbringert4_scav",

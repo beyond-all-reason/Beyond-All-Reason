@@ -1,10 +1,10 @@
 return {
-	cortex_tzart4 = {
+	cortex_epictzar = {
 		maxacc = 0.0138,
 		maxdec = 0.08759,
 		energycost = 250000,
 		metalcost = 25000,
-		buildpic = "cortex_tzarT4.DDS",
+		buildpic = "cortex_epictzar.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "EPICVEH",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/cortex_tzart4.s3o",
-		script = "Units/scavboss/cortex_tzart4.cob",
+		objectname = "Units/scavboss/cortex_epictzar.s3o",
+		script = "Units/scavboss/cortex_epictzar.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
@@ -73,7 +73,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 12500,
-				object = "Units/scavboss/cortex_tzart4_dead.s3o",
+				object = "Units/scavboss/cortex_epictzar_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

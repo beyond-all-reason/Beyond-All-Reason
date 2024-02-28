@@ -276,20 +276,20 @@ local unitOrderTable = {
 	['armassimilator'] = 007220,
 
 	['armada_pawnt4']        = 007300,
-   ['cortex_gruntt4']        = 007310,
+   ['cortex_epicgrunt']        = 007310,
 	['armada_recluset4']      = 007320,
 	['cortex_demon']     = 007330,
-	['cortex_karganetht4'] = 007340,
+	['cortex_epickarganeth'] = 007340,
 	['corthermite'] = 007341,
 
 	['armada_tumbleweedt4']     = 007400,
 	['armrattet4']     = 007410,
-	['cortex_tzart4']       = 007420,
+	['cortex_epictzar']       = 007420,
 
 	['armada_stormbringert4']     = 007500,
 	['armfepocht4']    = 007510,
 	['corfblackhyt4']  = 007520,
-	['cortex_dragont4']       = 007530,
+	['cortex_epicdragon']       = 007530,
 
 	-- LAND AA
 	['armada_crossbow']        = 008000,
@@ -345,9 +345,9 @@ local unitOrderTable = {
 	['armada_epoch']       = 009400, --FLAGSHIPS
 	['cortex_blackhydra']     = 009410,
 
-	['armada_dolphint3']    = 009450, --SCAV SHIPS
-	['cortex_supportert3']     = 009460,
-	['armada_ellysawt3']     = 009470,
+	['cortex_epicdolphin']    = 009450, --SCAV SHIPS
+	['cortex_epicsupporter']     = 009460,
+	['armada_epicellysaw']     = 009470,
 	['corslrpc']       = 009480,
 
 	-- T1 AA
@@ -371,7 +371,7 @@ local unitOrderTable = {
 	['armada_serpent']        = 009940,
 	['cortex_kraken']        = 009950,
 
-	['armada_serpentt3']      = 009960,
+	['armada_epicserpent']      = 009960,
 	['armada_skatert2']        = 009962,
 
 	-- TRANSPORTS
@@ -566,7 +566,7 @@ local unitOrderTable = {
    ['cortex_bulwark']        = 107600,
    ['legbastion']     = 107650,
    ['armada_pulsart3']      = 107700, --scavengers
-   ['cortex_bulwarkt3']      = 107800, --scavengers
+   ['cortex_epicbulwark']      = 107800, --scavengers
 
    --DEFENSES LAND LRPC
    ['armada_basilica']       = 110100,

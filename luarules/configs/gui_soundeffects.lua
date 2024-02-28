@@ -2668,7 +2668,7 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
-	cortex_tzart4 = {
+	cortex_epictzar = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",

@@ -110,7 +110,7 @@ unitCollisionVolume['cortex_bulwark'] = {
 	on={63,112,63,0,12,0,1,1,1},
 	off={45,87,45,0,0,0,2,1,0},
 }
-unitCollisionVolume['cortex_bulwarkt3'] = {
+unitCollisionVolume['cortex_epicbulwark'] = {
 	on={95,168,95,0,18,0,2,1,1},
 	off={68,131,68,0,0,0,3,1,0},
 }

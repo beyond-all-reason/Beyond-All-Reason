@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armada_pawnt4 cortex_gruntt4 armmeatball armassimilator armada_lunchbox
+	-- armada_pawnt4 cortex_epicgrunt armmeatball armassimilator armada_lunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -755,7 +755,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedModClass = 1,
 	},
-	-- cortex_tzart4 armrattet4
+	-- cortex_epictzar armrattet4
 	EPICVEH = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- corslrpc cortex_supportert3 armada_dolphint3 armada_skatert2 armada_ellysawt3
+	-- corslrpc cortex_epicsupporter cortex_epicdolphin armada_skatert2 armada_epicellysaw
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
@@ -801,7 +801,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 1,
 	},
-	-- armada_serpentt3
+	-- armada_epicserpent
 	EPICSUBMARINE = {
 		footprintx = 5,
 		footprintz = 5,

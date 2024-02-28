@@ -1,12 +1,12 @@
 return {
-	cortex_bulwarkt3 = {
+	cortex_epicbulwark = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
 		energycost = 400000,
 		metalcost = 12000,
-		buildpic = "cortex_bulwarkt3.DDS",
+		buildpic = "cortex_epicbulwark.DDS",
 		buildtime = 170000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavbuildings/cortex_bulwarkt3.s3o",
+		objectname = "Units/scavbuildings/cortex_epicbulwark.s3o",
 		onoffable = true,
 		radardistance = 1200,
 		radaremitheight = 80,
@@ -37,7 +37,7 @@ return {
 		yardmap = "yyooyy oooooo oooooo oooooo oooooo yyooyy",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cortex_bulwarkt3_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_epicbulwark_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
@@ -65,7 +65,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 4833,
-				object = "Units/scavbuildings/cortex_bulwarkt3_dead.s3o",
+				object = "Units/scavbuildings/cortex_epicbulwark_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

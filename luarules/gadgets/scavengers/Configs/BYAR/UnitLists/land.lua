@@ -173,9 +173,9 @@ return {
 		"armpw_scav",
 		"armrattet4_scav",
 		"armada_tumbleweedt4_scav",
-		"cortex_gruntt4_scav",
+		"cortex_epicgrunt_scav",
 		"cortex_demon_scav",
-		"cortex_karganetht4_scav",
-		"cortex_tzart4_scav",
+		"cortex_epickarganeth_scav",
+		"cortex_epictzar_scav",
 	},
 }

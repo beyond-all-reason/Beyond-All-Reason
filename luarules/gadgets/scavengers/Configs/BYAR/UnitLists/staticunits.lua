@@ -268,7 +268,7 @@ local beaconDefencesLand = {
 		"armada_ragnarok_scav",
 		"armbotrail_scav",
 		"armada_armageddon_scav",
-		"cortex_bulwarkt3_scav",
+		"cortex_epicbulwark_scav",
 		"cortex_calamity_scav",
 		"cortex_apocalypse_scav",
 	},

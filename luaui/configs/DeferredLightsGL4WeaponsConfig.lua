@@ -780,8 +780,8 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---cortex_bulwarkt3
-projectileDefLights[WeaponDefNames["cortex_bulwarkt3"].id] =
+--cortex_epicbulwark
+projectileDefLights[WeaponDefNames["cortex_epicbulwark"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
@@ -909,15 +909,15 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.14,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cortex_bulwarkt3
-projectileDefLights[WeaponDefNames["cortex_bulwarkt3"].id] =
+--cortex_epicbulwark
+projectileDefLights[WeaponDefNames["cortex_epicbulwark"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---cortex_bulwarkt3_scav
-projectileDefLights[WeaponDefNames["cortex_bulwarkt3_scav_armagmheat"].id] =
+--cortex_epicbulwark_scav
+projectileDefLights[WeaponDefNames["cortex_epicbulwark_scav_armagmheat"].id] =
 GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,

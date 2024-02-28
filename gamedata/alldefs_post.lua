@@ -400,8 +400,8 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "cortex_underwaterexperimentalgantry" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cortex_tzart4"
-			uDef.buildoptions[numBuildoptions+2] = "cortex_gruntt4"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_epictzar"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_epicgrunt"
 		elseif name == "armada_vehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
@@ -430,9 +430,9 @@ function UnitDef_Post(name, uDef)
 			end
 		elseif name == "cortex_experimentalgantry" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cortex_karganetht4"
-			uDef.buildoptions[numBuildoptions+2] = "cortex_tzart4"
-			uDef.buildoptions[numBuildoptions+3] = "cortex_gruntt4"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_epickarganeth"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_epictzar"
+			uDef.buildoptions[numBuildoptions+3] = "cortex_epicgrunt"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armada_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
@@ -469,7 +469,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cortex_bulwarkt3"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_epicbulwark"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "cormwall"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
@@ -478,19 +478,19 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+6] = "cortex_bulwarkt3"
+			uDef.buildoptions[numBuildoptions+6] = "cortex_epicbulwark"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_skatert2"
-			uDef.buildoptions[numBuildoptions+2] = "armada_dolphint3"
-			uDef.buildoptions[numBuildoptions+3] = "armada_ellysawt3"
-			uDef.buildoptions[numBuildoptions+4] = "armada_serpentt3"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_epicdolphin"
+			uDef.buildoptions[numBuildoptions+3] = "armada_epicellysaw"
+			uDef.buildoptions[numBuildoptions+4] = "armada_epicserpent"
 			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"
 		elseif name == "cortex_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
-			uDef.buildoptions[numBuildoptions+2] = "cortex_supportert3"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_epicsupporter"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_oasis2"
 		end
 	end

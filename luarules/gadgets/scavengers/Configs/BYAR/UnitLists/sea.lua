@@ -80,8 +80,8 @@ return {
 		"cortex_oasis2_scav",
 		"cortex_blackhydra_scav",
 		"corslrpc_scav",
-		"armada_dolphint3_scav",
-		"armada_ellysawt3_scav",
+		"cortex_epicdolphin_scav",
+		"armada_epicellysaw_scav",
 		"armada_skatert2_scav",
 
 		-- Hovercraft
@@ -90,12 +90,12 @@ return {
 	},
 
 	T4 = {
-		"armada_serpentt3_scav",
+		"armada_epicserpent_scav",
 		"armada_epoch_scav",
 		"cortex_blackhydra_scav",
 		"armada_tumbleweedt4_scav",
 		"cortex_juggernaut_scav",
 		"armada_titan_scav",
-		"cortex_supportert3_scav",
+		"cortex_epicsupporter_scav",
 	},
 }

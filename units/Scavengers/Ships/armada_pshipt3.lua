@@ -1,6 +1,6 @@
 local unitName = "Epic Ellysaw"
 return {
-	armada_ellysawt3 = {
+	armada_epicellysaw = {
 		maxacc = 0.04771,
 		airsightdistance = 470,
 		autoheal = 1.5,
@@ -8,7 +8,7 @@ return {
 		maxdec = 0.04771,
 		energycost = 200000,
 		metalcost = 6500,
-		buildpic = "armada_ellysawt3.DDS",
+		buildpic = "armada_epicellysaw.DDS",
 		buildtime = 70000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -27,8 +27,8 @@ return {
 		minwaterdepth = 6,
 		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/scavboss/armada_ellysawT3.s3o",
-		script = "Units/scavboss/armada_ellysawT3.cob",
+		objectname = "Units/scavboss/armada_epicellysaw.s3o",
+		script = "Units/scavboss/armada_epicellysaw.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 600,
@@ -57,7 +57,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 3750,
-				object = "Units/scavboss/armada_ellysawt3_dead.s3o",
+				object = "Units/scavboss/armada_epicellysaw_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

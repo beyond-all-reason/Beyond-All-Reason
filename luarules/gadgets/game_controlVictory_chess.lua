@@ -398,10 +398,10 @@ local landUnitsList = {
                 "armada_pawnt4",
                 "armrattet4",
                 "armada_tumbleweedt4",
-                "cortex_gruntt4",
+                "cortex_epicgrunt",
                 "cortex_demon",
-                "cortex_karganetht4",
-                "cortex_tzart4",
+                "cortex_epickarganeth",
+                "cortex_epictzar",
             },
             quantity = 1,
         },
@@ -551,8 +551,8 @@ local seaUnitsList = {
                 "cortex_despot",
                 "cortex_blackhydra",
                 "corslrpc",
-                "armada_dolphint3",
-                "armada_ellysawt3",
+                "cortex_epicdolphin",
+                "armada_epicellysaw",
                 "armada_skatert2",
 
                 -- Hovercraft
@@ -583,13 +583,13 @@ local seaUnitsList = {
     [4] = {
         [1] = {
             table = {
-                "armada_serpentt3",
+                "armada_epicserpent",
                 "armada_epoch",
                 "cortex_blackhydra",
                 "armada_tumbleweedt4",
                 "cortex_juggernaut",
                 "armada_titan",
-                "cortex_supportert3",
+                "cortex_epicsupporter",
             },
             quantity = 1,
         },

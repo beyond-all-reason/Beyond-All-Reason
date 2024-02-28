@@ -258,7 +258,7 @@ local function initUnitList()
 		['armada_pulsart3'] = { weapons = { 1 } },
 		['armminivulc'] = { weapons = { 1 } },
 
-		['cortex_bulwarkt3'] = { weapons = { 1 } },
+		['cortex_epicbulwark'] = { weapons = { 1 } },
 		['corhllllt'] = { weapons = { 1 } },
 		['corminibuzz'] = { weapons = { 1 } }
 	}
