@@ -114,17 +114,17 @@ Close()
 {
 	opened = 0;
 	sleep 1000;
-	turn hatch1 to z-axis <0.000000> speed <90.000000>;
+	turn hatch5 to z-axis <0.000000> speed <90.000000>;
 	sleep 250;
-	turn hatch2 to z-axis <0.000000> speed <90.000000>;
+	turn hatch6 to z-axis <0.000000> speed <90.000000>;
 	sleep 250;
 	turn hatch3 to z-axis <0.000000> speed <90.000000>;
 	sleep 250;
 	turn hatch4 to z-axis <0.000000> speed <90.000000>;
 	sleep 250;
-	turn hatch5 to z-axis <0.000000> speed <90.000000>;
+	turn hatch1 to z-axis <0.000000> speed <90.000000>;
 	sleep 250;
-	turn hatch6 to z-axis <0.000000> speed <90.000000>;
+	turn hatch2 to z-axis <0.000000> speed <90.000000>;
 }
 
 Open()
@@ -136,17 +136,17 @@ Open()
 		return (0);
 	}
 	opened = 1;
-	turn hatch1 to z-axis <90.000000> speed <90.000000>;
+	turn hatch5 to z-axis <90.000000> speed <90.000000>;
 	sleep 400;
-	turn hatch2 to z-axis <-90.000000> speed <90.000000>;
+	turn hatch6 to z-axis <-90.000000> speed <90.000000>;
 	sleep 400;
 	turn hatch3 to z-axis <90.000000> speed <90.000000>;
 	sleep 400;
 	turn hatch4 to z-axis <-90.000000> speed <90.000000>;
 	sleep 400;
-	turn hatch5 to z-axis <90.000000> speed <90.000000>;
+	turn hatch1 to z-axis <90.000000> speed <90.000000>;
 	sleep 400;
-	turn hatch6 to z-axis <-90.000000> speed <90.000000>;
+	turn hatch2 to z-axis <-90.000000> speed <90.000000>;
 	sleep 1200;
 	if(shot == 0)														//Closes if no shot was taken (attack command canceled)
 	{
@@ -241,11 +241,11 @@ QuerySecondary(piecenum)
 {
 	if( weapon == 0 )												//Firing point selection for missiles
 	{
-	    piecenum = flare1;
+	    piecenum = flare5;
 	}
 	else if( weapon == 1 )
 	{
-	    piecenum = flare2;
+	    piecenum = flare6;
 	}
 	else if( weapon == 2 )
 	{
@@ -257,11 +257,11 @@ QuerySecondary(piecenum)
 	}
 	else if( weapon == 4 )
 	{
-	    piecenum = flare5;
+	    piecenum = flare1;
 	}
 	else if( weapon == 5 )
 	{
-	    piecenum = flare6;
+	    piecenum = flare2;
 	}
 	return (0);
 }
