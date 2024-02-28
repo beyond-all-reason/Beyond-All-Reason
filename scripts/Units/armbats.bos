@@ -7,12 +7,13 @@ piece  flare1a, flare1b, flare2a, flare2b,  base, turret1,
        turret2, sleeve1, sleeve2, barrel1a, barrel1b, barrel2a, barrel2b,
         ground, wake, bow, barrelblast;
 
-static-var  weapon1barrel, weapon2barrel, restore_delay, gun_1, gun_2, oldHead;
+static-var  weapon1barrel, weapon2barrel, restore_delay, gun_1, gun_2, oldHead, aimy1target, aimy1position, Func_Var_1, Func_Var_2, Static_Var_4, Static_Var_5;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 #define SIG_MOVE			8
+#define SIG_ROCK			16
 
 
 SetDirection(heading)
@@ -23,6 +24,51 @@ SetDirection(heading)
 	turn base to y-axis 0-heading speed spd;
 	oldHead = heading;
 }
+
+/// semi temporary old rock code, replace when possible
+ProjXPW(Func_Var_1, Func_Var_2)
+{
+	if( Func_Var_2 < -21840 )
+	{
+		Static_Var_4 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
+	}
+	else if( Func_Var_2 > 21840 )
+	{
+		Static_Var_4 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
+	}
+	else if( Func_Var_2 < -10920 )
+	{
+		Static_Var_4 = 0 - Func_Var_1;
+	}
+	else if( Func_Var_2 > 10920 )
+	{
+		Static_Var_4 = Func_Var_1;
+	}
+	else
+	{
+		Static_Var_4 = Func_Var_1 * Func_Var_2 / 10920;
+	}
+}
+
+RockZ(Func_Var_1, Func_Var_2)
+{
+	signal SIG_ROCK;
+	set-signal-mask SIG_ROCK;
+	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
+	Static_Var_5 = Static_Var_5 + Static_Var_4;
+	Static_Var_4 = get ABS(Static_Var_5);
+	while( Static_Var_4 > 91 )
+	{
+		turn base to z-axis Static_Var_5 speed Static_Var_4 * <0.016484>;
+		wait-for-turn base around z-axis;
+		Static_Var_5 = Static_Var_5 * -1 / 2;
+		Static_Var_4 = get ABS(Static_Var_5);
+	}
+	turn base to z-axis <0.000000> speed <1.5>;
+}
+
+// end rocky stuff
+
 
 MoveBarrelBlast(flarepiece) // Pass whichever piece you want to locate on XZ
 {
@@ -188,6 +234,8 @@ Create()
 	weapon2barrel = 1;
 	gun_1 = flare1a;
 	gun_2 = flare1a;
+	aimy1target = 0;
+	aimy1position = 0;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -258,6 +306,7 @@ StopMoving()
 
 AimPrimary(heading, pitch)
 {
+
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret1 to y-axis heading speed <55.000000>;
@@ -272,6 +321,10 @@ AimPrimary(heading, pitch)
 		gun_1 = flare1a;
 	}
 	start-script RestorePrimary();
+
+
+
+	aimy1target = heading;
 	return (1);
 }
 
@@ -291,11 +344,14 @@ AimSecondary(heading, pitch)
 		gun_2 = flare1a;
 	}
 	start-script RestoreSecondary();
+	aimy1target = heading;
 	return (1);
 }
 
 FirePrimary()
 {
+	start-script RockZ(-13, aimy1target);
+
 	if( weapon1barrel == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1a;
@@ -320,6 +376,7 @@ FirePrimary()
 
 FireSecondary()
 {
+	start-script RockZ(-13, aimy1target);
 	if( weapon2barrel == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare2a;
