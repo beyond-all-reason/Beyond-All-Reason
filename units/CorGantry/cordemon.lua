@@ -120,7 +120,7 @@ return {
 				areaofeffect = 128,
 				avoidfeature = false,
 				avoidfriendly = true,
-				avoidground = false,
+				avoidground = true,
 				burst = 12,
 				burstrate = 0.03333,
 				burnblow = true,
