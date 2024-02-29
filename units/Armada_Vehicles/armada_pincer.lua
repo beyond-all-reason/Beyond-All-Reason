@@ -92,7 +92,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 61,
-				object = "Units/arm2X2D.s3o",
+				object = "Units/armada_2x2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",

@@ -85,7 +85,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2,
-				object = "Units/arm1X1A.s3o",
+				object = "Units/armada_1x1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,

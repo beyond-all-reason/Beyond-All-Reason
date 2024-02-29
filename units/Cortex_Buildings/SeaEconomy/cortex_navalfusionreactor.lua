@@ -72,7 +72,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1240,
-				object = "Units/cor5X5A.s3o",
+				object = "Units/cortex_5x5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",

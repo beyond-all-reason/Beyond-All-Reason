@@ -94,7 +94,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 175,
-				object = "Units/cor4X4C.s3o",
+				object = "Units/cortex_4x4C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",

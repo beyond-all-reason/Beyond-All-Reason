@@ -74,7 +74,7 @@ return {
 				footprintz = 3,
 				hitdensity = 100,
 				metal = 100,
-				object = "Units/cor2X2C.s3o",
+				object = "Units/cortex_2x2C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
