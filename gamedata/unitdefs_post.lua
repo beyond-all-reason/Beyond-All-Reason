@@ -14,6 +14,9 @@ if Spring.GetTeamList then
 		end
 	end
 end
+if Spring.GetModOptions().ruins ~= "disabled" then
+	scavengersEnabled = true
+end
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
