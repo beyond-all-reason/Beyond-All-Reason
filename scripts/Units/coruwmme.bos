@@ -3,8 +3,7 @@
 
 piece  base, disc;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, statechg_DesiredState,
-            statechg_StateChanging;
+static-var  resourceRate, isOn, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
@@ -16,15 +15,15 @@ Go()
 	if (Stunned) {
 		return(0);
 	}
-	spin disc around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin disc around y-axis speed resourceRate accelerate 90;
 	set ARMORED to 0;
-	Static_Var_4 = 1;
+	isOn = 1;
 }
 
 Stop()
 {
-	stop-spin disc around y-axis decelerate Static_Var_3;
-	Static_Var_4 = 0;
+	stop-spin disc around y-axis decelerate 180;
+	isOn = 0;
 	set ARMORED to 1;
 
 }
@@ -63,10 +62,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_4 = 0;
-	Static_Var_1 = 0;
-	Static_Var_2 = 91;
-	Static_Var_3 = 910;
+	isOn = 0;
+	resourceRate = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -92,7 +89,7 @@ Activate()
 	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
-		if( Static_Var_4 )
+		if( isOn )
 		{
 			emit-sfx 259 from disc;
 		}
@@ -110,7 +107,7 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
-	Static_Var_1 = windOrMetal * 10;
+	resourceRate = windOrMetal * 10;
 }
 
 Killed(severity, corpsetype)

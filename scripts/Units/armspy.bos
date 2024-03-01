@@ -3,7 +3,7 @@
 
 piece pelvis, lthigh, rthigh, rleg, rfoot, lleg, lfoot, body, lloarm, rloarm, ruparm, luparm, aimy1;
 
-static-var isMoving, Static_Var_3, Static_Var_4, Static_Var_5, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var isMoving, buildDelay, isCloaked, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -222,17 +222,16 @@ Create()
 {
 	hide aimy1;
 	isMoving = FALSE;
-	Static_Var_3 = 1;
+	buildDelay = 1;
 	animspeed = 5;
-	Static_Var_4 = 3000;
 	start-script SmokeUnit();
-	Static_Var_5 = 0;
+	isCloaked = 0;
 	return (0);
 }
 
 Activate()
 {
-	if( Static_Var_5 )
+	if( isCloaked )
 	{
 		set ACTIVATION to 0;
 		return (0);
@@ -252,18 +251,18 @@ QueryNanoPiece(pieceIndex)
 Reload()
 {
 	sleep 5000;
-	Static_Var_3 = 1;
+	buildDelay = 1;
 }
 
 
 
 StartBuilding(heading)
 {
-	while( !Static_Var_3 )
+	while( !buildDelay )
 	{
 		sleep 100;
 	}
-	Static_Var_3 = 0;
+	buildDelay = 0;
 	set INBUILDSTANCE to 1;
 	start-script Reload();
 }
@@ -290,15 +289,15 @@ HitByWeapon(anglex, anglez)
 	turn pelvis to x-axis <0.000000> speed <30.000000>;
 	if( get ACTIVATION )
 	{
-		Static_Var_5 = 1;
+		isCloaked = 1;
 	}
-	if( Static_Var_5 )
+	if( isCloaked )
 	{
 		signal SIGNAL_TURNON;
 		set-signal-mask SIGNAL_TURNON;
 		set ACTIVATION to 0;
 		sleep 8000;
-		Static_Var_5 = 0;
+		isCloaked = 0;
 		set ACTIVATION to 100;
 	}
 	return (0);

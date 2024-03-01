@@ -3,7 +3,7 @@
 
 piece  base, duct1, fan1, duct2, fan2, door1, door2, support, beam, nano, thrust;
 
-static-var  Static_Var_1, Static_Var_2;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
@@ -35,17 +35,17 @@ deactivatescr()
 
 RequestState(requestedstate, currentstate)
 {
-	if( Static_Var_2 )
+	if( statechg_StateChanging )
 	{
-		Static_Var_1 = requestedstate;
+		statechg_DesiredState = requestedstate;
 		return (0);
 	}
-	Static_Var_2 = 1;
-	currentstate = Static_Var_1;
-	Static_Var_1 = requestedstate;
-	while( Static_Var_1 != currentstate )
+	statechg_StateChanging = 1;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
 	{
-		if( Static_Var_1 )
+		if( statechg_DesiredState )
 		{
 			call-script deactivatescr();
 			currentstate = 1;
@@ -56,7 +56,7 @@ RequestState(requestedstate, currentstate)
 			currentstate = 0;
 		}
 	}
-	Static_Var_2 = 0;
+	statechg_StateChanging = 0;
 	return (0);
 }
 
@@ -64,8 +64,8 @@ Create()
 {
 	hide nano;
 	hide thrust;
-	Static_Var_1 = 1;
-	Static_Var_2 = 0;
+	statechg_DesiredState = 1;
+	statechg_StateChanging = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
