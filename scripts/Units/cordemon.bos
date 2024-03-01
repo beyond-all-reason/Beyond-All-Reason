@@ -839,7 +839,6 @@ StopMoving()
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
-	var Func_Var_4;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;

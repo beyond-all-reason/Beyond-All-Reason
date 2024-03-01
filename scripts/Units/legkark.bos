@@ -401,14 +401,9 @@ Create()
 	set ARMORED to 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+	restore_delay = 10000;
 	start-script SmokeUnit();
 }
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 10000;
-}
-
 
 
 static-var  Stunned;

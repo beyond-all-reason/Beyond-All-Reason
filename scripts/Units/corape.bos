@@ -88,12 +88,6 @@ Deactivate()
 	start-script RequestState(1);	
 }
 
-// start block: following block returns weapon in straight position after firing
-//SetMaxReloadTime(Func_Var_1)
-//{
-//	restore_delay = Func_Var_1 * 2;
-//	return (0);
-//}
 
 //static-var  Stunned;
 //ExecuteRestoreAfterDelay()

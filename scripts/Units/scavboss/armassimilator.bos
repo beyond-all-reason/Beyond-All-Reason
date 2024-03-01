@@ -202,7 +202,7 @@ StopMoving()
 
 
 
-RestoreAfterDelay(Func_Var_1)
+RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
 	sleep 3500;

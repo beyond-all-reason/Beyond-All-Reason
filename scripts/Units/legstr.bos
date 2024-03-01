@@ -246,13 +246,10 @@ Create()
 	animspeed = 2.5;
 	turn rsleeve to y-axis <5> now;
 	turn lsleeve to y-axis <-5> now;
+	restore_delay = 3000;
 	start-script Movement();
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 3000;
-}
 
 StartMoving()
 {

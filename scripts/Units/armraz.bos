@@ -417,10 +417,7 @@ lua_UnitScriptLight(lightIndex, count)
 }
 
 
-
-
-
-RestoreAfterDelay(Func_Var_1)
+RestoreAfterDelay()
 {
 	sleep 3500;
 	set-signal-mask SIGNAL_AIM1;

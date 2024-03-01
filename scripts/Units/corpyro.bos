@@ -441,7 +441,7 @@ UnitSpeed(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-PilotLight(Func_Var_1)
+PilotLight()
 {
 	while( TRUE )
 	{

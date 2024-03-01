@@ -185,10 +185,10 @@ StopMoving()
 
 
 
-QueryLandingPad(Func_Var_1, Func_Var_2)
+QueryLandingPad(pieceIndex1, pieceIndex2)
 {
-	Func_Var_1 = pad1;
-	Func_Var_2 = pad0;
+	pieceIndex1 = pad1;
+	pieceIndex2 = pad0;
 }
 
 AimWeapon2(heading, pitch)

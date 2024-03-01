@@ -194,13 +194,8 @@ Create()
 	animSpeed = 20;
 	start-script SweepFire();
 	start-script StopMoving();
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
 	restore_delay = 1000;
 }
-
 
 
 AimFromWeapon1(pieceIndex)

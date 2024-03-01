@@ -148,15 +148,15 @@ StopMoving()
 
 
 
-QueryLandingPad(Func_Var_1, Func_Var_2)
+QueryLandingPad(pieceIndex1, pieceIndex2)
 {
-	Func_Var_1 = 1;
-	Func_Var_2 = 2;
+	pieceIndex1 = 1;
+	pieceIndex2 = 2;
 	landingPadSelector = !landingPadSelector;
 	if( landingPadSelector )
 	{
-		Func_Var_1 = 2;
-		Func_Var_2 = 1;
+		pieceIndex1 = 2;
+		pieceIndex2 = 1;
 	}
 }
 

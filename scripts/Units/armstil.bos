@@ -63,9 +63,8 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = fan;
 }
 
-FireWeapon1(Func_Var_1)
+FireWeapon1()
 {
-	sleep 5;
 	sleep 1000;
 }
 

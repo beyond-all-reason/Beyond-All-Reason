@@ -15,19 +15,19 @@ Bob(){
 	}
 }
 
-Create(Func_Var_1)
+Create(pieceIndex1)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	start-script Bob();
-	Func_Var_1 = Rand( 1, 2 );
-	if( Func_Var_1 == 1 )
+	pieceIndex1 = Rand( 1, 2 );
+	if( pieceIndex1 == 1 )
 	{
 		spin sphere around y-axis speed <-66>;
 	}
-	if( Func_Var_1 == 2 )
+	if( pieceIndex1 == 2 )
 	{
 		spin sphere around y-axis speed <66>;
 	}

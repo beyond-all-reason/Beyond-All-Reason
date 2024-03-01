@@ -28,12 +28,12 @@ StopBuilding()
 
 
 
-QueryLandingPad(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+QueryLandingPad(pieceIndex1, pieceIndex2, pieceIndex3, pieceIndex4)
 {
-	Func_Var_1 = 1;
-	Func_Var_2 = 2;
-	Func_Var_3 = 3;
-	Func_Var_4 = 4;
+	pieceIndex1 = 1;
+	pieceIndex2 = 2;
+	pieceIndex3 = 3;
+	pieceIndex4 = 4;
 	return (0);
 }
 

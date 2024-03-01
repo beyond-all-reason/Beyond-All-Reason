@@ -656,9 +656,9 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS;
 }
 
-setSFXoccupy(Func_Var_1)
+SetSFXoccupy(terrainType)
 {
-	SmokeEffectFeet = Func_Var_1;
+	SmokeEffectFeet = terrainType;
 }
 
 
