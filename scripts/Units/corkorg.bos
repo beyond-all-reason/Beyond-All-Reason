@@ -651,9 +651,9 @@ Create()
 	statechg_StateChanging = FALSE;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1;
+	restore_delay = reloadMS;
 }
 
 setSFXoccupy(Func_Var_1)

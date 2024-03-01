@@ -96,9 +96,9 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 10;
+	restore_delay = reloadMS * 10;
 }
 
 DeployWeapon()

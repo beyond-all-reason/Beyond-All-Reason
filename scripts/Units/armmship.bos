@@ -74,9 +74,9 @@ abaim()
 	signal SIGNAL_AIM3;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 static-var  Stunned;

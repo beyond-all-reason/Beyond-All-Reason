@@ -53,9 +53,9 @@ Create()
 	spin dish around y-axis speed <150.000000>;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 abaim()

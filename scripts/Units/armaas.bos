@@ -73,9 +73,9 @@ Create()
 	start-script RockOnWaves();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 ExecuteRestoreAfterDelay()

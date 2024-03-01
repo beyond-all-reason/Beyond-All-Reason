@@ -597,9 +597,9 @@ Create()
 	restore_delay = 2000;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1;
+	restore_delay = reloadMS;
 }
 
 

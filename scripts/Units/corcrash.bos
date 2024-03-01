@@ -155,9 +155,9 @@ Create()
 	start-script StopMoving();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 5;
+	restore_delay = reloadMS * 5;
 }
 
 

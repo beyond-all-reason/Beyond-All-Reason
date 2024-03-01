@@ -6,34 +6,6 @@ piece  leg1, leg2, leg3, leg4, base, body;
 static-var  isMoving;
 
 #define SIGNAL_MOVE 1
-walkscr()
-{
-	while( isMoving )
-	{
-		if( isMoving )
-		{
-			turn leg1 to z-axis <0.000000> now;
-			sleep 33;
-		}
-
-	}
-}
-
-Movement(Func_Var_1)
-{
-	while( TRUE )
-	{
-		Func_Var_1 = isMoving;
-		if( Func_Var_1 )
-		{
-			call-script walkscr();
-		}
-		else
-		{
-			sleep 100;
-		}
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -41,7 +13,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script Movement();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

@@ -143,16 +143,16 @@ walk2()
 	return (0);
 }
 
-Movement(Func_Var_1)
+Movement(myMoving)
 {
 	while( TRUE )
 	{
-		Func_Var_1 = isMoving;
-		if( Func_Var_1 )
+		myMoving = isMoving;
+		if( myMoving )
 		{
 			call-script walk2();
 		}
-		if( !Func_Var_1 )
+		if( !myMoving )
 		{
 			sleep 100;
 			turn L6 to y-axis <0.00000> speed <100.00000>;

@@ -112,9 +112,9 @@ StopMoving()
   signal SIGNAL_MOVE;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -151,10 +151,10 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FlameLight(Func_Var_1)
+FlameLight(leftright)
 {
 
-	if (Func_Var_1 == 1)
+	if (leftright == 1)
 	{
 		emit-sfx 1024 + 2 from exhaust4;
 		emit-sfx 1024 + 2 from exhaust5;
@@ -197,7 +197,7 @@ FlameLight(Func_Var_1)
 		emit-sfx 1024 + 2 from exhaust6;
 		sleep 32;
 	}
-	if (Func_Var_1 == 2)
+	if (leftright == 2)
 	{
 		emit-sfx 1024 + 2 from exhaust1;
 		emit-sfx 1024 + 2 from exhaust2;

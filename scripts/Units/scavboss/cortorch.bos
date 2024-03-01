@@ -17,7 +17,7 @@ static-var  unit_speed;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-PilotLight(Func_Var_1)
+PilotLight()
 {
 	while( TRUE )
 	{
@@ -35,9 +35,9 @@ Create()
 	start-script PilotLight();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;

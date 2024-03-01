@@ -77,9 +77,9 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 8;
+	restore_delay = reloadMS * 8;
 }
 
 ExecuteRestoreAfterDelay()

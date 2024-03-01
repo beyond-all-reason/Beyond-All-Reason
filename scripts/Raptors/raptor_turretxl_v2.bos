@@ -278,11 +278,6 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	//restore_delay = Func_Var_1 * 2; //using above Create() value of restore_delay
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {

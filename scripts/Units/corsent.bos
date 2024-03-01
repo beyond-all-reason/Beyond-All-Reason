@@ -39,11 +39,6 @@ Create()
 	gun_3 = turret;
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 5000;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {

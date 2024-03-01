@@ -22,7 +22,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
   return 0;
 }
 
-PilotLight(Func_Var_1)
+PilotLight())
 {
 	while( TRUE )
 	{
@@ -39,12 +39,6 @@ Create()
 	start-script PilotLight();
 	return (0);
 }
-
-//SetMaxReloadTime(Func_Var_1)
-//{
-//	restore_delay = Func_Var_1 * 2;
-//	return (0);
-//}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

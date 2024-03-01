@@ -84,14 +84,14 @@ Create()
 
 
 
-QueryTransport(Func_Var_1, Func_Var_2)
+QueryTransport(pieceIndex)
 {
-	Func_Var_1 = link;
+	pieceIndex = link;
 }
 
-BeginTransport(Func_Var_1)
+BeginTransport(targetHeight)
 {
-	move link to y-axis [0.000000] - Func_Var_1 now;
+	move link to y-axis [0.000000] - targetHeight now;
 	start-script RequestState(0);
 }
 

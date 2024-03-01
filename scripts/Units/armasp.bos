@@ -21,12 +21,12 @@ Create()
 
 
 
-QueryLandingPad(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+QueryLandingPad(pieceIndex1, pieceIndex2, pieceIndex3, pieceIndex4)
 {
-	Func_Var_1 = pad1;
-	Func_Var_2 = pad2;
-	Func_Var_3 = pad3;
-	Func_Var_4 = pad0;
+	pieceIndex1 = pad1;
+	pieceIndex2 = pad2;
+	pieceIndex3 = pad3;
+	pieceIndex4 = pad0;
 	return (0);
 }
 
