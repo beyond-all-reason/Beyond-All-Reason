@@ -167,11 +167,6 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-TargetCleared(Func_Var_1)
-{
-	signal SIGNAL_AIM3;
-}
-
 FireWeapon1()
 {
 	++gun_1;

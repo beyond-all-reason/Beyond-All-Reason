@@ -265,18 +265,6 @@ FireWeapon2()
 	}
 }
 
-TargetCleared(Func_Var_1)
-{
-	if( Func_Var_1 == 1 )
-	{
-		signal SIGNAL_AIM1;
-		stop-spin turret3 around y-axis;
-		stop-spin neck1 around x-axis;
-		stop-spin turret4 around y-axis;
-		stop-spin neck2 around x-axis;
-	}
-}
-
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare1;

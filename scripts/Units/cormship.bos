@@ -167,12 +167,6 @@ AimWeapon2(heading, pitch)
 	start-script abaim();
 	return (1);
 }
-
-TargetCleared(Func_Var_1)
-{
-	signal SIGNAL_AIM3;
-}
-
 /*
 FireWeapon2()
 {

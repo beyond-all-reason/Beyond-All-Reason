@@ -857,18 +857,6 @@ StartBuilding(heading, pitch)
 	return (0);
 }
 
-
-
-
-TargetCleared(Func_Var_1)
-{
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	call-script RestoreAfterDelay();
-	return (0);
-}
-
-
 StopBuilding()
 {
 	rightArm = 1;

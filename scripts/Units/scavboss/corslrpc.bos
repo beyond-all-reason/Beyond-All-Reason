@@ -208,16 +208,6 @@ FireWeapon1()
 	move gun to z-axis [0.000000] speed [7.000000];
 }
 
-TargetCleared(Func_Var_1)
-{
-	if( Func_Var_1 == 1 )
-	{
-		signal SIGNAL_AIM1;
-		stop-spin turret around y-axis;
-		stop-spin gun around x-axis;
-	}
-}
-
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = gun;

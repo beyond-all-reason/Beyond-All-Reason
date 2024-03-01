@@ -341,16 +341,6 @@ FireWeapon2()
 	return (0);
 }
 
-TargetCleared(Func_Var_1)
-{
-	if( Func_Var_1 == 1 )
-	{
-		signal SIGNAL_AIM1;
-		stop-spin turret around y-axis;
-	}
-	return (0);
-}
-
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = gun_1;

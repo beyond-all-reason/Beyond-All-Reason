@@ -47,16 +47,6 @@ FireWeapon1()
 	move barrel to z-axis [0.000000] speed [3.500000];
 }
 
-TargetCleared(Func_Var_1)
-{
-	if( Func_Var_1 == 1 )
-	{
-		signal SIGNAL_AIM1;
-		stop-spin turret around y-axis;
-		stop-spin sleeve around x-axis;
-	}
-}
-
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;

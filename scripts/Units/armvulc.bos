@@ -223,19 +223,6 @@ FireWeapon1()
 
 }
 
-TargetCleared(Func_Var_1)
-{
-	if( Func_Var_1 == 1 )
-	{
-		signal SIGNAL_AIM1;
-		stop-spin turret around y-axis;
-		stop-spin neck around x-axis;
-		call-script deactivatescr();
-		shooting = 0;
-	}
-	//move back to z-axis [4.000000] speed [4.000000];
-}
-
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
