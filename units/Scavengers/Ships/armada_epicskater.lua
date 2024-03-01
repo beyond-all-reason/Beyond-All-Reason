@@ -1,6 +1,5 @@
-local unitName = "Epic Skeeter"
 return {
-	armada_advancedskater = {
+	armada_epicskater = {
 		maxacc = 0.03,
 		activatewhenbuilt = true,
 		airsightdistance = 1200,
@@ -8,7 +7,7 @@ return {
 		maxdec = 0.03,
 		energycost = 15000,
 		metalcost = 2500,
-		buildpic = "armada_advancedskater.DDS",
+		buildpic = "armada_epicskater.DDS",
 		buildtime = 25000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -27,8 +26,8 @@ return {
 		minwaterdepth = 6,
 		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/scavboss/armada_advancedskater.s3o",
-		script = "Units/scavboss/armada_advancedskater.cob",
+		objectname = "Units/scavboss/armada_epicskater.s3o",
+		script = "Units/scavboss/armada_epicskater.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 900,
@@ -62,7 +61,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1250,
-				object = "Units/scavboss/armada_advancedskater_dead.s3o",
+				object = "Units/scavboss/armada_epicskater_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

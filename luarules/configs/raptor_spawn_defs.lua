@@ -1106,7 +1106,7 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["cortex_advancedsolarcollector"].id] 	= 0.000005,
 
 	-- T2 Energy
-	[UnitDefNames["armada_windturbinet2"].id] 	= 0.000075,
+	[UnitDefNames["armada_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["cortex_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["armada_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= 0.000125,

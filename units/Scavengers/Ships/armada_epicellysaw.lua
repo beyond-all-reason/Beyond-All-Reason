@@ -1,4 +1,3 @@
-local unitName = "Epic Ellysaw"
 return {
 	armada_epicellysaw = {
 		maxacc = 0.04771,

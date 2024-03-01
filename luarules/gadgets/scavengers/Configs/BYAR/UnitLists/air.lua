@@ -56,7 +56,7 @@ return {
 		"cortex_epicdragon_scav",
 		"armada_flyingepoch_scav",
 		"cortex_flyingblackhydra_scav",
-		"armada_stormbringert4_scav",
-		"armada_lichet4_scav",
+		"armada_epicstormbringer_scav",
+		"armada_epicliche_scav",
 	},
 }

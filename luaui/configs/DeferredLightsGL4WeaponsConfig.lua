@@ -728,8 +728,8 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
 											sustain = 2, lifetime = 3, })
 
---armada_stormbringert4
-explosionLights[WeaponDefNames["armada_stormbringert4_armbomb"].id] =
+--armada_epicstormbringer
+explosionLights[WeaponDefNames["armada_epicstormbringer_armbomb"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
 										  sustain = 4, lifetime = 55,
@@ -781,7 +781,7 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											lifetime = 4, sustain = 0})
 
 --cortex_epicbulwark
-projectileDefLights[WeaponDefNames["cortex_epicbulwark"].id] =
+projectileDefLights[WeaponDefNames["cortex_epicbulwark_armagmheat"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
@@ -910,7 +910,7 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.14,
 											lifetime = 0, sustain = 0})
 
 --cortex_epicbulwark
-projectileDefLights[WeaponDefNames["cortex_epicbulwark"].id] =
+projectileDefLights[WeaponDefNames["cortex_epicbulwark_armagmheat"].id] =
 GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,

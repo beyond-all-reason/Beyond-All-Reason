@@ -175,7 +175,7 @@ pieceCollisionVolume['cortex_incisor'] = {
 	['0']={23,14,33,0,0,0,2,1},
 	['1']={15,5,25,0,0,2,2,1},
 }
-pieceCollisionVolume['corsala'] = {
+pieceCollisionVolume['cortex_salamander'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
 	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }

@@ -207,9 +207,9 @@ return {
 		"cortex_despot",
 		"cortex_blackhydra",
 		"cortex_basiliskship",
-		"cortex_epicdolphin",
+		"armada_epicdolphin",
 		"armada_epicellysaw",
-		"armada_advancedskater",
+		"armada_epicskater",
 
 		-- Hovercraft
 		"armada_lunkhead",
@@ -226,7 +226,7 @@ return {
 		-- Superboss
 		"armada_pawnt4",
 		"armada_ratte",
-		"armada_tumbleweedt4",
+		"armada_epictumbleweed",
 		"armada_flyingepoch",
 		"cortex_flyingblackhydra",
 		"cortex_epicdragon",
@@ -239,7 +239,7 @@ return {
 		"cortex_epicdragon",
 		"armada_flyingepoch",
 		"cortex_flyingblackhydra",
-		"armada_stormbringert4",
+		"armada_epicstormbringer",
 
 		-- Sea
 		"armada_epoch",
@@ -247,7 +247,7 @@ return {
 		"cortex_epicdragon",
 		"armada_flyingepoch",
 		"cortex_flyingblackhydra",
-		"armada_tumbleweedt4",
+		"armada_epictumbleweed",
 		"cortex_juggernaut",
 		"armada_titan",
 		"armada_epicserpent",

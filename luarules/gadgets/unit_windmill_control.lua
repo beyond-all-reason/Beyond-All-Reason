@@ -18,7 +18,7 @@ end
 
 local windDefs = {}
 
-for _, unitDefName in ipairs({'armada_windturbinet2', 'cortex_advancedwindturbine', 'armada_windturbinet2_scav', 'cortex_advancedwindturbine_scav'}) do 
+for _, unitDefName in ipairs({'armada_advancedwindturbine', 'cortex_advancedwindturbine', 'armada_advancedwindturbine_scav', 'cortex_advancedwindturbine_scav'}) do 
 	if UnitDefNames[unitDefName] then
 		windDefs[UnitDefNames[unitDefName].id] = true
 	end

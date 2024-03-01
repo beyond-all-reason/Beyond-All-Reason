@@ -575,7 +575,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+1] = "armada_ratte",
 -- 		[numBuildoptions+2] = "armada_recluset4",
 -- 		[numBuildoptions+3] = "armada_pawnt4",
--- 		[numBuildoptions+4] = "armada_tumbleweedt4",
+-- 		[numBuildoptions+4] = "armada_epictumbleweed",
 -- 		[numBuildoptions+5] = "armada_lunchbox",
 -- 		[numBuildoptions+6] = "armada_meatball",
 -- 		[numBuildoptions+7] = "armada_assimilator",
@@ -587,7 +587,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_ratte",
 -- 		[numBuildoptions+2] = "armada_pawnt4",
--- 		[numBuildoptions+3] = "armada_tumbleweedt4",
+-- 		[numBuildoptions+3] = "armada_epictumbleweed",
 -- 		[numBuildoptions+4] = "armada_meatball",
 -- 	},
 -- }
@@ -617,7 +617,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+3] = "cortex_2printer", --cortex_printer
 -- 		[numBuildoptions+4] = "cortex_torch",
 -- 		[numBuildoptions+5] = "cortex_heattiger",
--- 		[numBuildoptions+6] = "corsala",
+-- 		[numBuildoptions+6] = "cortex_salamander",
 -- 	},
 -- }
 
@@ -632,8 +632,8 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_advancedshipyard.buildoptions
 -- customDefs.armada_advancedshipyard = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armada_advancedskater",
--- 		[numBuildoptions+2] = "cortex_epicdolphin",
+-- 		[numBuildoptions+1] = "armada_epicskater",
+-- 		[numBuildoptions+2] = "armada_epicdolphin",
 -- 		[numBuildoptions+3] = "armada_epicellysaw",
 -- 	},
 -- }
@@ -720,7 +720,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
--- 		[numBuildoptions+3] = "armada_windturbinet2",
+-- 		[numBuildoptions+3] = "armada_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",
@@ -732,7 +732,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
--- 		[numBuildoptions+3] = "armada_windturbinet2",
+-- 		[numBuildoptions+3] = "armada_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",
@@ -744,7 +744,7 @@ customDefs.corscavdtl = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_aircraftplantt3",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
--- 		[numBuildoptions+3] = "armada_windturbinet2",
+-- 		[numBuildoptions+3] = "armada_advancedwindturbine",
 -- 		[numBuildoptions+4] = "corscavfort",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",

@@ -196,7 +196,7 @@ local LandUnitsList = {
 			["armada_sprinter_scav"] = 1,
 			--Cortex
 			["cortex_torch_scav"] = 1,
-			["corsala_scav"] = 1,
+			["cortex_salamander_scav"] = 1,
 			["cortex_fiend_scav"] = 1,
 			["cortex_alligator_scav"] = 1,
 			["cortex_duck_scav"] = 1,
@@ -306,7 +306,7 @@ local LandUnitsList = {
 			["armada_thor_scav"] = 1,
 			["armada_titan_scav"] = 1,
 			["armada_ratte_scav"] = 1,
-			["armada_tumbleweedt4_scav"] = 1,
+			["armada_epictumbleweed_scav"] = 1,
 			["armada_recluset4_scav"] = 1,
 			--Cortex
 			["cortex_behemoth_scav"] = 1,
@@ -531,7 +531,7 @@ local SeaUnitsList = {
 		[5] = {
 		--Armada
 		["armada_epicellysaw_scav"] = 1,
-		["armada_advancedskater_scav"] = 1,
+		["armada_epicskater_scav"] = 1,
 		--Cortex
 		["cortex_blackhydra_scav"] = 1,
 		},
@@ -586,7 +586,7 @@ local SeaUnitsList = {
 		},
 		[6] = {
 		--Armada
-		["cortex_epicdolphin_scav"] = 1,
+		["armada_epicdolphin_scav"] = 1,
 		--Cortex
 		["cortex_basiliskship_scav"] = 1,
 		},
@@ -708,7 +708,7 @@ local AirUnitsList = {
 	},
 	[5] = {
 	--Armada
-	["armada_stormbringert4_scav"] = 1,
+	["armada_epicstormbringer_scav"] = 1,
 	--Cortex
 	["cortex_flyingdronecarrier_scav"] = 1,
 	--Legion
@@ -717,7 +717,7 @@ local AirUnitsList = {
 	[6] = {
 	--Armada
 	["armada_flyingepoch_scav"] = 1,
-	["armada_lichet4_scav"] = 1,
+	["armada_epicliche_scav"] = 1,
 	--Cortex
 	["cortex_flyingblackhydra_scav"] = 1,
 	["cortex_epicdragon_scav"] = 1,
@@ -1112,7 +1112,7 @@ local ecoBuildingsPenalty = { -- Additional boss hatch per second from eco build
 	[UnitDefNames["cortex_advancedsolarcollector"].id] 	= 0.000005,
 
 	-- T2 Energy
-	[UnitDefNames["armada_windturbinet2"].id] 	= 0.000075,
+	[UnitDefNames["armada_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["cortex_advancedwindturbine"].id] 	= 0.000075,
 	[UnitDefNames["armada_fusionreactor"].id] 	= 0.000125,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= 0.000125,
@@ -1140,7 +1140,7 @@ local ecoBuildingsPenalty = { -- Additional boss hatch per second from eco build
 
 local highValueTargets = { -- Priority targets for Scav. Must be immobile to prevent issues.
 	-- T2 Energy
-	[UnitDefNames["armada_windturbinet2"].id] 	= true,
+	[UnitDefNames["armada_advancedwindturbine"].id] 	= true,
 	[UnitDefNames["cortex_advancedwindturbine"].id] 	= true,
 	[UnitDefNames["armada_fusionreactor"].id] 	= true,
 	[UnitDefNames["armada_cloakablefusionreactor"].id] 	= true,

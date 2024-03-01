@@ -1,5 +1,5 @@
 return {
-	armada_lichet4 = {
+	armada_epicliche = {
 		acceleration = 0.15,
 		blocking = false,
 		maxdec = 0.05,
@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armada_licheT4.s3o",
+		objectname = "Units/scavboss/armada_epicliche.s3o",
 		script = "Units/armada_liche.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",

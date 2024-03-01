@@ -35,9 +35,9 @@ return {
 		yardmap = "oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo ",
 		buildoptions = {
 			"armada_advancedconstructionaircraft",
-			"armada_stormbringert4",
+			"armada_epicstormbringer",
 			"armada_flyingepoch",
-			"armada_lichet4",
+			"armada_epicliche",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

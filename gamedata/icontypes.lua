@@ -251,7 +251,7 @@ local icontypes = {
 		bitmap = "icons/ship_raid.png",
 		size = 1.15499997
 	},
-	cortex_epicdolphin = {
+	armada_epicdolphin = {
 		bitmap = "icons/ship_t4_decade.png",
 		size = 2.70000005
 	},
@@ -491,7 +491,7 @@ local icontypes = {
 		bitmap = "icons/air_liche.png",
 		size = 2.0999999
 	},
-	armada_lichet4 = {
+	armada_epicliche = {
 		bitmap = "icons/air_liche.png",
 		size = 4.19999981
 	},
@@ -651,7 +651,7 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	armada_advancedskater = {
+	armada_epicskater = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
 	},
@@ -859,8 +859,8 @@ local icontypes = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
 	},
-	armada_stormbringert4 = {
-		bitmap = "icons/armada_stormbringert4.png",
+	armada_epicstormbringer = {
+		bitmap = "icons/armada_epicstormbringer.png",
 		size = 3.3599999
 	},
 	armada_tidalgenerator = {
@@ -923,8 +923,8 @@ local icontypes = {
 		bitmap = "icons/armada_tumbleweed_0.9.png",
 		size = 0.94499993
 	},
-	armada_tumbleweedt4 = {
-		bitmap = "icons/armada_tumbleweedt4.png",
+	armada_epictumbleweed = {
+		bitmap = "icons/armada_epictumbleweed.png",
 		size = 2.625
 	},
 	armada_vanguard = {
@@ -951,7 +951,7 @@ local icontypes = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
 	},
-	armada_windturbinet2 = {
+	armada_advancedwindturbine = {
 		bitmap = "icons/wind.png",
 		size = 1.64999998
 	},
@@ -1248,7 +1248,7 @@ local icontypes = {
 		size = 0.89999998
 	},
 	cortex_epicsupporter = {
-		bitmap = "icons/ship_t4_esuppt3.png",
+		bitmap = "icons/cortex_epicsupporter.png",
 		size = 3.5
 	},
 	cortex_obscurer = {
@@ -1647,7 +1647,7 @@ local icontypes = {
 		bitmap = "icons/ship_destroyer.png",
 		size = 1.51199996
 	},
-	corsala = {
+	cortex_salamander = {
 		bitmap = "icons/cortex_alligator.png",
 		size = 1.52250004
 	},
@@ -1971,7 +1971,7 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
-	freefusion = {
+	armada_freefusion = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},

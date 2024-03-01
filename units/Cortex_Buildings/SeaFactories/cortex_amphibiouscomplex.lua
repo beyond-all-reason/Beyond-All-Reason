@@ -33,7 +33,7 @@ return {
 		buildoptions = {
 			[1] = "cortex_muskrat",
 			[2] = "cortex_garpike",
-			[3] = "corsala",
+			[3] = "cortex_salamander",
 			[4] = "cortex_poisonarrow",
 			[5] = "cortex_trasher",
 			[6] = "cortex_manticore",

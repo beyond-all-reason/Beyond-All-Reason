@@ -251,7 +251,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust4", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrustc", light = 1.3 },
 	},
-	["armada_stormbringert4"] = {
+	["armada_epicstormbringer"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust2" },
 		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust3" },
@@ -272,7 +272,7 @@ local effectDefs = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustb", light = 1 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustc", light = 1 },
 	},
-	["armada_lichet4"] = {
+	["armada_epicliche"] = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrusta", light = 1.5 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustb", light = 1.5 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustc", light = 1.5 },

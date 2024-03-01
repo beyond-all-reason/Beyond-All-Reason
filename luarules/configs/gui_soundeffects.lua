@@ -2069,7 +2069,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "arty-large",
 	},
-	corsala = {
+	cortex_salamander = {
 		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "heatray",
@@ -2631,7 +2631,7 @@ GUIUnitSoundEffects = {
 
 	--Various Random Units
 
-	freefusion = {
+	armada_freefusion = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",

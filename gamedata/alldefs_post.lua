@@ -137,7 +137,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.experimentalrebalancet2energy == true then
 		if name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armada_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armada_windturbinet2"
+			uDef.buildoptions[numBuildoptions+1] = "armada_advancedwindturbine"
 		end
 		if name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "cortex_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
@@ -357,7 +357,7 @@ function UnitDef_Post(name, uDef)
 		if name == "cortex_advancedvehicleplant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_2printer" --cortex_printer
-			--uDef.buildoptions[numBuildoptions+2] = "corsala"
+			--uDef.buildoptions[numBuildoptions+2] = "cortex_salamander"
 			--uDef.buildoptions[numBuildoptions+3] = "cortex_forge"
 			--uDef.buildoptions[numBuildoptions+4] = "cortex_torch"
 		end
@@ -387,7 +387,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "armada_ratte"
 			uDef.buildoptions[numBuildoptions+2] = "armada_recluset4"
 			uDef.buildoptions[numBuildoptions+3] = "armada_pawnt4"
-			uDef.buildoptions[numBuildoptions+4] = "armada_tumbleweedt4"
+			uDef.buildoptions[numBuildoptions+4] = "armada_epictumbleweed"
 			-- uDef.buildoptions[numBuildoptions+5] = "armada_lunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armada_meatball"
 			uDef.buildoptions[numBuildoptions+7] = "armada_assimilator"
@@ -396,7 +396,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_ratte"
 			uDef.buildoptions[numBuildoptions+2] = "armada_pawnt4"
-			uDef.buildoptions[numBuildoptions+3] = "armada_tumbleweedt4"
+			uDef.buildoptions[numBuildoptions+3] = "armada_epictumbleweed"
 			uDef.buildoptions[numBuildoptions+4] = "armada_meatball"
 		elseif name == "cortex_underwaterexperimentalgantry" then
 			local numBuildoptions = #uDef.buildoptions
@@ -425,7 +425,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "cortex_heattiger"
 			uDef.buildoptions[numBuildoptions+4] = "cortex_torch"
 			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions+5] = "corsala"
+				uDef.buildoptions[numBuildoptions+5] = "cortex_salamander"
 				uDef.buildoptions[numBuildoptions+6] = "cortex_2printer" --cortex_printer
 			end
 		elseif name == "cortex_experimentalgantry" or name == "leggant" then
@@ -458,7 +458,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_aircraftplantt3"
 			uDef.buildoptions[numBuildoptions+2] = "armada_miniragnarok"
-			uDef.buildoptions[numBuildoptions+3] = "armada_windturbinet2"
+			uDef.buildoptions[numBuildoptions+3] = "armada_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+5] = "armada_pawnlauncher"
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
@@ -482,8 +482,8 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armada_advancedskater"
-			uDef.buildoptions[numBuildoptions+2] = "cortex_epicdolphin"
+			uDef.buildoptions[numBuildoptions+1] = "armada_epicskater"
+			uDef.buildoptions[numBuildoptions+2] = "armada_epicdolphin"
 			uDef.buildoptions[numBuildoptions+3] = "armada_epicellysaw"
 			uDef.buildoptions[numBuildoptions+4] = "armada_epicserpent"
 			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"

@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- cortex_garpike armada_beaver armada_marauder cortex_poisonarrow armprow cortex_alligator corsala cortex_muskrat armada_turtle armada_pincer cortex_intruder legassistdrone_land cortex_assistdrone armada_assistdrone
+	-- cortex_garpike armada_beaver armada_marauder cortex_poisonarrow armprow cortex_alligator cortex_salamander cortex_muskrat armada_turtle armada_pincer cortex_intruder legassistdrone_land cortex_assistdrone armada_assistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- cortex_basiliskship cortex_epicsupporter cortex_epicdolphin armada_advancedskater armada_epicellysaw
+	-- cortex_basiliskship cortex_epicsupporter armada_epicdolphin armada_epicskater armada_epicellysaw
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
@@ -790,7 +790,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 3,
 	},
-	-- armada_tumbleweedt4 armada_recluset4 cortex_karganethenetht4
+	-- armada_epictumbleweed armada_recluset4 cortex_karganethenetht4
 	EPICALLTERRAIN = {
 		crushstrength = 9999,
 		depthmod = 0,

@@ -13881,7 +13881,7 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_stormbringert4'] = {
+	['armada_epicstormbringer'] = {
 		tipleft = {
 			lightType = 'point',
 			pieceName = 'blinka',
@@ -14664,7 +14664,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_windturbinet2'] = {
+	['armada_advancedwindturbine'] = {
 		light = {
 			lightType = 'point',
 			pieceName = 'base',

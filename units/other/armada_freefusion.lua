@@ -1,12 +1,12 @@
 return {
-	freefusion = {
+	armada_freefusion = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
 		energycost = 50,
 		metalcost = 40,
-		buildpic = "FREEFUSION.DDS",
+		buildpic = "armada_freefusion.DDS",
 		buildtime = 800,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -21,7 +21,7 @@ return {
 		health = 560,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		objectname = "Units/freefusion.s3o",
+		objectname = "Units/armada_freefusion.s3o",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 250,
@@ -44,7 +44,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 30,
-				object = "Units/freefusion_dead.s3o",
+				object = "Units/armada_freefusion_dead.s3o",
 				reclaimable = true,
 				customparams = {
 					faction = "none",

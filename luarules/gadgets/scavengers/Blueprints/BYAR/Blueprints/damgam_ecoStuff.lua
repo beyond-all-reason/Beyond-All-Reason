@@ -566,7 +566,7 @@ local function t2Wind1()
 	local r = math.random(0,1)
 	local unitDefID
 	if r == 0 then
-		unitDefID = UDN.armada_windturbinet2_scav.id
+		unitDefID = UDN.armada_advancedwindturbine_scav.id
 	else
 		unitDefID = UDN.cortex_advancedwindturbine_scav.id
 	end

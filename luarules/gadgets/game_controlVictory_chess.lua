@@ -397,7 +397,7 @@ local landUnitsList = {
                 -- Superboss
                 "armada_pawnt4",
                 "armada_ratte",
-                "armada_tumbleweedt4",
+                "armada_epictumbleweed",
                 "cortex_epicgrunt",
                 "cortex_demon",
                 "cortex_epickarganeth",
@@ -551,9 +551,9 @@ local seaUnitsList = {
                 "cortex_despot",
                 "cortex_blackhydra",
                 "cortex_basiliskship",
-                "cortex_epicdolphin",
+                "armada_epicdolphin",
                 "armada_epicellysaw",
-                "armada_advancedskater",
+                "armada_epicskater",
 
                 -- Hovercraft
                 "armada_lunkhead",
@@ -586,7 +586,7 @@ local seaUnitsList = {
                 "armada_epicserpent",
                 "armada_epoch",
                 "cortex_blackhydra",
-                "armada_tumbleweedt4",
+                "armada_epictumbleweed",
                 "cortex_juggernaut",
                 "armada_titan",
                 "cortex_epicsupporter",

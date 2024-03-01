@@ -1,4 +1,3 @@
-local unitName = "Epic Supporter"
 return {
 	cortex_epicsupporter = {
 		maxacc = 0.015,

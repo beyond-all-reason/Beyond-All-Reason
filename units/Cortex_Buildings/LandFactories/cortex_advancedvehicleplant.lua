@@ -36,7 +36,7 @@ return {
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			"cortex_advancedconstructionvehicle",
-			"corsala",
+			"cortex_salamander",
 			"cortex_tiger",
 			"cortex_poisonarrow",
 			"cortex_tzar",

@@ -1,4 +1,3 @@
-local unitName = "Intimidator Ship"
 return {
 	cortex_basiliskship = {
 		maxacc = 0.005,

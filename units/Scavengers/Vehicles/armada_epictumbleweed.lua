@@ -1,11 +1,11 @@
 return {
-	armada_tumbleweedt4 = {
+	armada_epictumbleweed = {
 		maxacc = 0.1518,
 		activatewhenbuilt = true,
 		maxdec = 0.5589,
 		energycost = 150000,
 		metalcost = 15000,
-		buildpic = "scavengers/armada_tumbleweedt4.DDS",
+		buildpic = "scavengers/armada_epictumbleweed.DDS",
 		buildtime = 150000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -25,9 +25,9 @@ return {
 		maxwaterdepth = 112,
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armada_tumbleweedt4.s3o",
+		objectname = "Units/scavboss/armada_epictumbleweed.s3o",
 		pushresistant = true,
-		script = "Units/scavboss/armada_tumbleweedt4.cob",
+		script = "Units/scavboss/armada_epictumbleweed.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		selfdestructcountdown = 10,

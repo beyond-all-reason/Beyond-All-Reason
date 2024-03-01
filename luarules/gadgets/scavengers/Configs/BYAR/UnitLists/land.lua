@@ -108,7 +108,7 @@ return {
 		"cortex_quaker_scav",
 		"cortex_fury_scav",
 		"cortex_alligator_scav",
-		"corsala_scav",
+		"cortex_salamander_scav",
 		"cortex_tiger_scav",
 		"cortex_lasertiger_scav",
 		"cortex_negotiator_scav",
@@ -172,7 +172,7 @@ return {
 		-- Superboss
 		"armpw_scav",
 		"armada_ratte_scav",
-		"armada_tumbleweedt4_scav",
+		"armada_epictumbleweed_scav",
 		"cortex_epicgrunt_scav",
 		"cortex_demon_scav",
 		"cortex_epickarganeth_scav",

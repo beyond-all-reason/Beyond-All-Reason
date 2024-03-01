@@ -244,7 +244,7 @@ local unitOrderTable = {
 	['cortex_duck']        = 006910,
 	['armada_turtle']        = 006920,
 	['cortex_alligator']        = 006930,
-	['corsala']        = 006935,
+	['cortex_salamander']        = 006935,
 	['cortex_poisonarrow']      = 006940,
 	['legfloat']       = 006941,
 
@@ -282,11 +282,11 @@ local unitOrderTable = {
 	['cortex_epickarganeth'] = 007340,
 	['cortex_thermite'] = 007341,
 
-	['armada_tumbleweedt4']     = 007400,
+	['armada_epictumbleweed']     = 007400,
 	['armada_ratte']     = 007410,
 	['cortex_epictzar']       = 007420,
 
-	['armada_stormbringert4']     = 007500,
+	['armada_epicstormbringer']     = 007500,
 	['armada_flyingepoch']    = 007510,
 	['cortex_flyingblackhydra']  = 007520,
 	['cortex_epicdragon']       = 007530,
@@ -345,7 +345,7 @@ local unitOrderTable = {
 	['armada_epoch']       = 009400, --FLAGSHIPS
 	['cortex_blackhydra']     = 009410,
 
-	['cortex_epicdolphin']    = 009450, --SCAV SHIPS
+	['armada_epicdolphin']    = 009450, --SCAV SHIPS
 	['cortex_epicsupporter']     = 009460,
 	['armada_epicellysaw']     = 009470,
 	['cortex_basiliskship']       = 009480,
@@ -372,7 +372,7 @@ local unitOrderTable = {
 	['cortex_kraken']        = 009950,
 
 	['armada_epicserpent']      = 009960,
-	['armada_advancedskater']        = 009962,
+	['armada_epicskater']        = 009962,
 
 	-- TRANSPORTS
 	['armada_stork']       = 010500,
@@ -430,7 +430,7 @@ local unitOrderTable = {
    --ECO NRG GENS
    ['armada_windturbine']         = 101000,
    ['cortex_windturbine']         = 101020,
-   ['armada_windturbinet2']       = 101040, --scavengers
+   ['armada_advancedwindturbine']       = 101040, --scavengers
    ['cortex_advancedwindturbine']       = 101050, --scavengers
    ['armada_solarcollector']       = 101070,
    ['cortex_solarcollector']       = 101080,

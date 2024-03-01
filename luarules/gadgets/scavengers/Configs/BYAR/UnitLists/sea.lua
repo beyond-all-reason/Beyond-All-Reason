@@ -80,9 +80,9 @@ return {
 		"cortex_oasis2_scav",
 		"cortex_blackhydra_scav",
 		"cortex_basiliskship_scav",
-		"cortex_epicdolphin_scav",
+		"armada_epicdolphin_scav",
 		"armada_epicellysaw_scav",
-		"armada_advancedskater_scav",
+		"armada_epicskater_scav",
 
 		-- Hovercraft
 		"armada_lunkhead_scav",
@@ -93,7 +93,7 @@ return {
 		"armada_epicserpent_scav",
 		"armada_epoch_scav",
 		"cortex_blackhydra_scav",
-		"armada_tumbleweedt4_scav",
+		"armada_epictumbleweed_scav",
 		"cortex_juggernaut_scav",
 		"armada_titan_scav",
 		"cortex_epicsupporter_scav",

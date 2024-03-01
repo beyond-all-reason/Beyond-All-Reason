@@ -1,11 +1,11 @@
 return {
-	corsala = {
+	cortex_salamander = {
 		maxacc = 0.05125,
 		activatewhenbuilt = true,
 		maxdec = 0.1025,
 		energycost = 4775,
 		metalcost = 350,
-		buildpic = "CORSALA.DDS",
+		buildpic = "cortex_salamander.DDS",
 		buildtime = 7900,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSALA.s3o",
-		script = "Units/scavboss/CORSALA.cob",
+		objectname = "Units/cortex_salamander.s3o",
+		script = "Units/scavboss/cortex_salamander.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 385,
