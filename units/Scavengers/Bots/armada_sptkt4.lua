@@ -127,7 +127,7 @@ return {
 				flighttime = 4,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "catapultmissile.s3o",	--catapultmissile.s3o
+				model = "cortex_janusmissile.s3o",	--cortex_janusmissile.s3o
 				movingaccuracy = 450,
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,

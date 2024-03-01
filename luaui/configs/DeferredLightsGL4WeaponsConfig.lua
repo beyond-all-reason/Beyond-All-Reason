@@ -604,26 +604,26 @@ GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetim
 
 
 --cortex_apocalypse
-explosionLights[WeaponDefNames["cortex_apocalypse_crblmssl"].id] =
+explosionLights[WeaponDefNames["cortex_apocalypse_cortex_nukemissile"].id] =
 GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --cortex_apocalypse engine
-projectileDefLights[WeaponDefNames["cortex_apocalypse_crblmssl"].id] =
+projectileDefLights[WeaponDefNames["cortex_apocalypse_cortex_nukemissile"].id] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --cortex_apocalypse SCAV
-explosionLights[WeaponDefNames["cortex_apocalypse_scav_crblmssl"].id] =
+explosionLights[WeaponDefNames["cortex_apocalypse_scav_cortex_nukemissile"].id] =
 GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,
 										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --cortex_apocalypse engine SCAV
-projectileDefLights[WeaponDefNames["cortex_apocalypse_scav_crblmssl"].id] =
+projectileDefLights[WeaponDefNames["cortex_apocalypse_scav_cortex_nukemissile"].id] =
 GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})

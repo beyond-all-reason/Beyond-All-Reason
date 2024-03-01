@@ -256,11 +256,11 @@ local function initUnitList()
 		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
 
 		['armada_pulsart3'] = { weapons = { 1 } },
-		['armminivulc'] = { weapons = { 1 } },
+		['armada_miniragnarok'] = { weapons = { 1 } },
 
 		['cortex_epicbulwark'] = { weapons = { 1 } },
-		['corhllllt'] = { weapons = { 1 } },
-		['corminibuzz'] = { weapons = { 1 } }
+		['cortex_quadguard'] = { weapons = { 1 } },
+		['cortex_minicalamity'] = { weapons = { 1 } }
 	}
 	-- convert unitname -> unitDefID
 	unitDefRings = {}

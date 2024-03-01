@@ -11736,7 +11736,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armminebomber'] = {
+	['armada_minebomber'] = {
 		thruster1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -13480,7 +13480,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corthermite'] = {
+	['cortex_thermite'] = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -18874,7 +18874,7 @@ local unitEventLights = {
 			},
 		},
 
-		['corthermite'] = {
+		['cortex_thermite'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrel1',

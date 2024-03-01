@@ -433,7 +433,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "cortex_epickarganeth"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_epictzar"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_epicgrunt"
-			uDef.buildoptions[numBuildoptions+4] = "corthermite"
+			uDef.buildoptions[numBuildoptions+4] = "cortex_thermite"
 		elseif name == "armada_constructionaircraft" or name == "armada_constructionbot" or name == "armada_constructionvehicle" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "cortex_constructionaircraft" or name == "cortex_constructionbot" or name == "cortex_constructionvehicle" then
@@ -457,7 +457,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armada_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armada_aircraftplantt3"
-			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
+			uDef.buildoptions[numBuildoptions+2] = "armada_miniragnarok"
 			uDef.buildoptions[numBuildoptions+3] = "armada_windturbinet2"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
@@ -466,9 +466,9 @@ function UnitDef_Post(name, uDef)
 		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "cortex_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cortex_experimentalaircraftplant"
-			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
+			uDef.buildoptions[numBuildoptions+2] = "cortex_minicalamity"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
-			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+4] = "cortex_quadguard"
 			uDef.buildoptions[numBuildoptions+6] = "cortex_epicbulwark"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "cortex_dragonsrage"
@@ -477,7 +477,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "cortex_experimentalaircraftplant"
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
       		uDef.buildoptions[numBuildoptions+3] = "cortex_advancedwindturbine"
-			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+4] = "cortex_quadguard"
 			uDef.buildoptions[numBuildoptions+6] = "cortex_epicbulwark"
 			uDef.buildoptions[numBuildoptions+7] = "cortex_advancedconstructionturret"
 		elseif name == "armada_advancedshipyard" then
@@ -489,7 +489,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+5] = "armada_haven2"
 		elseif name == "cortex_advancedshipyard" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
+			uDef.buildoptions[numBuildoptions+1] = "cortex_basiliskship"
 			uDef.buildoptions[numBuildoptions+2] = "cortex_epicsupporter"
 			uDef.buildoptions[numBuildoptions+3] = "cortex_oasis2"
 		end
@@ -1203,7 +1203,7 @@ if modOptions.air_rework == true then
 		uDef.weapondefs.cortex_bat_weapon.weaponacceleration = 250
 		uDef.weapondefs.cortex_bat_weapon.cegtag = "missiletraillarge-red"
 		uDef.weapondefs.cortex_bat_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
-		uDef.weapondefs.cortex_bat_weapon.model = "banishermissile.s3o"
+		uDef.weapondefs.cortex_bat_weapon.model = "cortex_banishermissile.s3o"
 		uDef.weapondefs.cortex_bat_weapon.smoketrail = true
 		uDef.weapondefs.cortex_bat_weapon.smokePeriod = 7
 		uDef.weapondefs.cortex_bat_weapon.smoketime = 48

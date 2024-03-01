@@ -173,7 +173,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "Light g2a missile launcher",
 				noselfdamage = true,
 				range = 710,

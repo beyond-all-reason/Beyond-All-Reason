@@ -155,8 +155,8 @@ local function PROTECTED_FAST_GANTRY()
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 102, zOffset = -96, direction = 1},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 54, zOffset = -96, direction = 1},
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = -42, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.corhllllt_scav.id, xOffset = -34, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.corhllllt_scav.id, xOffset = -34, zOffset = 88, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_quadguard_scav.id, xOffset = -34, zOffset = -88, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_quadguard_scav.id, xOffset = -34, zOffset = 88, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_experimentalgantry_scav.id, xOffset = 54, zOffset = 0, direction = 1},
 		},
 	}
@@ -316,7 +316,7 @@ local function QUAD_LTT_OUTPOST()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 64, zOffset = 32, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = -64, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 64, zOffset = -32, direction = 2},
-			{ unitDefID = UnitDefNames.corhllllt_scav.id, xOffset = 0, zOffset = 0, direction = 2},
+			{ unitDefID = UnitDefNames.cortex_quadguard_scav.id, xOffset = 0, zOffset = 0, direction = 2},
 		},
 	}
 end

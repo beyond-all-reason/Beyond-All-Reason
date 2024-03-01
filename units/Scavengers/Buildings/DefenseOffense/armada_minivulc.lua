@@ -1,11 +1,11 @@
 return {
-	armminivulc = {
+	armada_miniragnarok = {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 29096,
 		energycost = 60000,
 		metalcost = 2000,
-		buildpic = "ARMMINIVULC.DDS",
+		buildpic = "armada_miniragnarok.DDS",
 		buildtime = 65000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -21,8 +21,8 @@ return {
 		health = 6700,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		objectname = "Units/scavbuildings/armminivulc.s3o",
-		script = "Units/scavbuildings/armminivulc.cob",
+		objectname = "Units/scavbuildings/armada_miniragnarok.s3o",
+		script = "Units/scavbuildings/armada_miniragnarok.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 700,
@@ -30,7 +30,7 @@ return {
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/armminivulc_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_miniragnarok_aoplane.dds",
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
@@ -57,7 +57,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 6000,
-				object = "Units/scavbuildings/armminivulc_dead.s3o",
+				object = "Units/scavbuildings/armada_miniragnarok_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armminivulc_weapon = {
+			armada_miniragnarok_weapon = {
 				accuracy = 700,
 				areaofeffect = 44.8,
 				avoidfeature = false,
@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARMMINIVULC_WEAPON",
+				def = "armada_miniragnarok_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},

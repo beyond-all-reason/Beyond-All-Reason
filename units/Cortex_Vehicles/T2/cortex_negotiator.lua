@@ -127,7 +127,7 @@ return {
 				impulseboost = 0.2,
 				impulsefactor = 0.2,
 				metalpershot = 0,
-				model = "cortex_negotiatorket.s3o",
+				model = "cortex_negotiatorrocket.s3o",
 				name = "Rocket",
 				noselfdamage = true,
 				range = 1310,

@@ -167,7 +167,7 @@ return {
 				firestarter = 70,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "corkbmissl1.s3o",
+				model = "cortex_heavymissile.s3o",
 				name = "Heavy g2g/g2a guided starburst missile launcher",
 				noselfdamage = true,
 				proximitypriority = -1,

@@ -98,7 +98,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.3,
 				impulsefactor = 0.3,
-				model = "akbomb.s3o",
+				model = "cortex_gruntbomb.s3o",
 				name = "AK Bomb",
 				noselfdamage = true,
 				range = 1280,

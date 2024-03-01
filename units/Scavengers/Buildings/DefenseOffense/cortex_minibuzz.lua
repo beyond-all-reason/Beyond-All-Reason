@@ -1,11 +1,11 @@
 return {
-	corminibuzz = {
+	cortex_minicalamity = {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 29096,
 		energycost = 60000,
 		metalcost = 2000,
-		buildpic = "CORMINIBUZZ.DDS",
+		buildpic = "cortex_minicalamity.DDS",
 		buildtime = 65000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -21,15 +21,15 @@ return {
 		health = 6700,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		objectname = "Units/scavbuildings/CORMINIBUZZ.s3o",
-		script = "Units/scavbuildings/CORMINIBUZZ.lua",
+		objectname = "Units/scavbuildings/cortex_minicalamity.s3o",
+		script = "Units/scavbuildings/cortex_minicalamity.lua",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 700,
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/corminibuzz_aoplane.dds",
+			buildinggrounddecaltype = "decals/cortex_minicalamity_aoplane.dds",
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
@@ -56,7 +56,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 6000,
-				object = "Units/scavbuildings/corminibuzz_dead.s3o",
+				object = "Units/scavbuildings/cortex_minicalamity_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corminibuzz_weapon = {
+			cortex_minicalamity_weapon = {
 				accuracy = 700,
 				areaofeffect = 44.8,
 				avoidfeature = false,
@@ -147,7 +147,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "CORMINIBUZZ_WEAPON",
+				def = "cortex_minicalamity_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},

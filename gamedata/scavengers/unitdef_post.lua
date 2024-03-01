@@ -96,7 +96,7 @@ local function scavUnitDef_Post(name, uDef)
 	
 
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") then
+		if not string.find(name, "armada_epiccommanderfinalboss") then
  			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
  			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		end

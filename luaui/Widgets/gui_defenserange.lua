@@ -101,12 +101,12 @@ modConfig["BYAR"]["unitList"] = {
 
 	armada_pulsart3 = { weapons = { 1 } },
 	--armbotrail = { weapons = { 1 } },
-	armminivulc = { weapons = { 1 } },
+	armada_miniragnarok = { weapons = { 1 } },
 	legministarfall = { weapons = { 1 } },
 
 	cortex_epicbulwark = { weapons = { 1 } },
-	corhllllt = { weapons = { 1 } },
-	corminibuzz = { weapons = { 1 } }
+	cortex_quadguard = { weapons = { 1 } },
+	cortex_minicalamity = { weapons = { 1 } }
 }
 
 --implement this if you want dps-depending ring-colors

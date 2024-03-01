@@ -354,7 +354,7 @@ local function t2HeavyFirebase1()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 134,
 		buildings = {
-			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14,  zOffset =   13, direction = 0 },
+			{ unitDefID = UDN.armada_miniragnarok_scav.id, xOffset =  -14,  zOffset =   13, direction = 0 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   26,  zOffset =  -91, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   90,  zOffset =  -59, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   26,  zOffset =  101, direction = 2 },
@@ -377,7 +377,7 @@ local function t2HeavyFirebase2()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 172,
 		buildings = {
-			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14,  zOffset =   20, direction = 2 },
+			{ unitDefID = UDN.armada_miniragnarok_scav.id, xOffset =  -14,  zOffset =   20, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  138,  zOffset = -132, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  138,  zOffset =   12, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  138,  zOffset =   76, direction = 2 },
@@ -408,7 +408,7 @@ local function t2HeavyFirebase3()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 196,
 		buildings = {
-			{ unitDefID = UDN.armminivulc_scav.id, xOffset =   -4,  zOffset =  -11, direction = 3 },
+			{ unitDefID = UDN.armada_miniragnarok_scav.id, xOffset =   -4,  zOffset =  -11, direction = 3 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  148,  zOffset =  157, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  100,  zOffset = -131, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  212,  zOffset =   13, direction = 2 },
@@ -460,7 +460,7 @@ local function t2HeavyFirebase4()
 			{ unitDefID = UDN.armada_constructionturret_scav.id,   xOffset =  208,  zOffset =  -39, direction = 2 },
 			{ unitDefID = UDN.armada_constructionturret_scav.id,   xOffset = -160,  zOffset =  -39, direction = 2 },
 			{ unitDefID = UDN.armada_constructionturret_scav.id,   xOffset =  208,  zOffset =    9, direction = 2 },
-			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -16,  zOffset =   -7, direction = 2 },
+			{ unitDefID = UDN.armada_miniragnarok_scav.id, xOffset =  -16,  zOffset =   -7, direction = 2 },
 
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  312,  zOffset =   49, direction = 2 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  312,  zOffset =   17, direction = 2 },
@@ -516,7 +516,7 @@ local function t2HeavyFirebase5()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 110,
 		buildings = {
-			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =    3,  zOffset =  -10, direction = 1 },
+			{ unitDefID = UDN.cortex_minicalamity_scav.id, xOffset =    3,  zOffset =  -10, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   11,  zOffset =  110, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  -53,  zOffset =  -98, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  -53,  zOffset =   62, direction = 1 },
@@ -536,7 +536,7 @@ local function t2HeavyFirebase6()
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 245,
 		buildings = {
-			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =   19,  zOffset =    8, direction = 1 },
+			{ unitDefID = UDN.cortex_minicalamity_scav.id, xOffset =   19,  zOffset =    8, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =  123,  zOffset =  -96, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset = -245,  zOffset =  -48, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1),   xOffset =   -5,  zOffset = -160, direction = 1 },
@@ -581,7 +581,7 @@ local function t2HeavyFirebase7()
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset = -131,  zOffset =   12, direction = 1 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =   -3,  zOffset = -116, direction = 1 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =  125,  zOffset =   12, direction = 1 },
-			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =   -3,  zOffset =   12, direction = 1 },
+			{ unitDefID = UDN.cortex_minicalamity_scav.id, xOffset =   -3,  zOffset =   12, direction = 1 },
 
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =  277,  zOffset =  100, direction = 1 },
 			{ unitDefID = UDN.cortex_twinguard_scav.id,   xOffset =  149,  zOffset = -188, direction = 1 },
@@ -646,7 +646,7 @@ local function t2HeavyFirebase8()
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset = -123,  zOffset =  131, direction = 1 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =  133,  zOffset = -109, direction = 1 },
 			{ unitDefID = UDN.cortex_constructionturret_scav.id,   xOffset =   85,  zOffset = -109, direction = 1 },
-			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =    5,  zOffset =    3, direction = 1 },
+			{ unitDefID = UDN.cortex_minicalamity_scav.id, xOffset =    5,  zOffset =    3, direction = 1 },
 
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset =   93,  zOffset = -325, direction = 1 },
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -163,  zOffset =  -53, direction = 1 },

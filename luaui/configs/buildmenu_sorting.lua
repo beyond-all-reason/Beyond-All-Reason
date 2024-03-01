@@ -280,7 +280,7 @@ local unitOrderTable = {
 	['armada_recluset4']      = 007320,
 	['cortex_demon']     = 007330,
 	['cortex_epickarganeth'] = 007340,
-	['corthermite'] = 007341,
+	['cortex_thermite'] = 007341,
 
 	['armada_tumbleweedt4']     = 007400,
 	['armada_ratte']     = 007410,
@@ -348,7 +348,7 @@ local unitOrderTable = {
 	['cortex_epicdolphin']    = 009450, --SCAV SHIPS
 	['cortex_epicsupporter']     = 009460,
 	['armada_epicellysaw']     = 009470,
-	['corslrpc']       = 009480,
+	['cortex_basiliskship']       = 009480,
 
 	-- T1 AA
 	['armada_cyclone']        = 009500,
@@ -548,7 +548,7 @@ local unitOrderTable = {
    ['cortex_guard']         = 106200,
    ['armada_beamer']      = 106300,
    ['cortex_twinguard']        = 106400,
-   ['corhllllt']      = 106500, --scavengers
+   ['cortex_quadguard']      = 106500, --scavengers
    ['armada_overwatch']         = 106600,
    ['cortex_warden']         = 106700,
    ['legdefcarryt1']  = 106800,
@@ -570,8 +570,8 @@ local unitOrderTable = {
    --DEFENSES LAND LRPC
    ['armada_basilica']       = 110100,
    ['cortex_basilisk']         = 110200,
-   ['armminivulc']    = 120100, --scavengers
-   ['corminibuzz']    = 120200, --scavengers
+   ['armada_miniragnarok']    = 120100, --scavengers
+   ['cortex_minicalamity']    = 120200, --scavengers
    ['legministarfall']= 120250, --scavengers
    ['armada_ragnarok']        = 120300,
    ['cortex_calamity']        = 120400,

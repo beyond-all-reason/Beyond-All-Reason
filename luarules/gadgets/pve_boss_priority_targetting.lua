@@ -29,12 +29,12 @@ local queenUnitDefs = {
 	raptor_matriarch_basic = true,
 	raptor_matriarch_fire = true,
 
-    armscavengerbossv2_veryeasy = true,
-    armscavengerbossv2_easy = true,
-    armscavengerbossv2_normal = true,
-    armscavengerbossv2_hard = true,
-    armscavengerbossv2_veryhard = true,
-    armscavengerbossv2_epic = true,
+    armada_epiccommanderfinalboss_veryeasy = true,
+    armada_epiccommanderfinalboss_easy = true,
+    armada_epiccommanderfinalboss_normal = true,
+    armada_epiccommanderfinalboss_hard = true,
+    armada_epiccommanderfinalboss_veryhard = true,
+    armada_epiccommanderfinalboss_epic = true,
 }
 
 

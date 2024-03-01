@@ -124,7 +124,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "coradvtorpedo.s3o",
+				model = "cortex_advancedtorpedo.s3o",
 				name = "AdvTorpedo",
 				noselfdamage = true,
 				range = 850,

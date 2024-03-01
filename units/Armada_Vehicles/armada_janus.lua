@@ -123,7 +123,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				firestarter = 70,
 				impulsefactor = 1.015,
-				model = "catapultmissile.s3o",
+				model = "cortex_janusmissile.s3o",
 				name = "Heavy g2g dual-missile launcher",
 				noselfdamage = true,
 				range = 380,

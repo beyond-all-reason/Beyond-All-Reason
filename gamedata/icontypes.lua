@@ -571,7 +571,7 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	armminivulc = {
+	armada_miniragnarok = {
 		bitmap = "icons/armada_ragnarok.png",
 		size = 1.88999987
 	},
@@ -715,27 +715,27 @@ local icontypes = {
 		bitmap = "icons/antinukemobile.png",
 		size = 1.46999991
 	},
-	armscavengerbossv2_easy = {
+	armada_epiccommanderfinalboss_easy = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armscavengerbossv2_epic = {
+	armada_epiccommanderfinalboss_epic = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armscavengerbossv2_hard = {
+	armada_epiccommanderfinalboss_hard = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armscavengerbossv2_normal = {
+	armada_epiccommanderfinalboss_normal = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armscavengerbossv2_veryeasy = {
+	armada_epiccommanderfinalboss_veryeasy = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
-	armscavengerbossv2_veryhard = {
+	armada_epiccommanderfinalboss_veryhard = {
 		bitmap = "icons/armada_commanderboss.png",
 		size = 4.19999981
 	},
@@ -1399,7 +1399,7 @@ local icontypes = {
 		bitmap = "icons/cortex_halberd.png",
 		size = 1.39649999
 	},
-	corhllllt = {
+	cortex_quadguard = {
 		bitmap = "icons/defence_hllllt.png",
 		size = 1.68699992
 	},
@@ -1523,7 +1523,7 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.46199998
 	},
-	corminibuzz = {
+	cortex_minicalamity = {
 		bitmap = "icons/cortex_calamity.png",
 		size = 1.88999987
 	},
@@ -1739,7 +1739,7 @@ local icontypes = {
 		bitmap = "icons/cortex_skuttle.png",
 		size = 1.14999998
 	},
-	corslrpc = {
+	cortex_basiliskship = {
 		bitmap = "icons/ship_t4_slrpc.png",
 		size = 3.20000005
 	},
@@ -1795,8 +1795,8 @@ local icontypes = {
 		bitmap = "icons/cortex_termite_1.5.png",
 		size = 1.57499993
 	},
-	corthermite = {
-		bitmap = "icons/corthermite.png",
+	cortex_thermite = {
+		bitmap = "icons/cortex_thermite.png",
 		size = 2.42499924
 	},
 	cortex_caravan = {

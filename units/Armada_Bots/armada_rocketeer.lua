@@ -124,7 +124,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "cormissile2.s3o",
+				model = "cortex_smallmissile.s3o",
 				name = "Medium g2g rocket launcher",
 				noselfdamage = true,
 				range = 475,

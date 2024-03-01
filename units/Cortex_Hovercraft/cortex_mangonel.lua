@@ -125,7 +125,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "cortex_heavymissile.s3o",
 				name = "Rocket",
 				noselfdamage = true,
 				range = 700,

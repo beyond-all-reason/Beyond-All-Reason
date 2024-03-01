@@ -125,7 +125,7 @@ return {
 				flighttime = 1.05,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cormissile3fast.s3o",
+				model = "cortex_fastmediummissile.s3o",
 				name = "Heavy g2g sabot rocket launcher",
 				noselfdamage = true,
 				range = 730,

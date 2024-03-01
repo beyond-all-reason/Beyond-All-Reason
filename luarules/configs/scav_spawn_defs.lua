@@ -28,7 +28,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 20,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_veryeasy_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_veryeasy_scav',
 		bossResistanceMult   	= 0.5,
 	},
 
@@ -47,7 +47,7 @@ local difficultyParameters = {
 		minScavs		  		= 10,
 		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_easy_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_easy_scav',
 		bossResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
@@ -65,7 +65,7 @@ local difficultyParameters = {
 		minScavs		  		= 15,
 		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_normal_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_normal_scav',
 		bossResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
@@ -83,7 +83,7 @@ local difficultyParameters = {
 		minScavs		  		= 20,
 		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_hard_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_hard_scav',
 		bossResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
@@ -101,7 +101,7 @@ local difficultyParameters = {
 		minScavs		  		= 25,
 		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_veryhard_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_veryhard_scav',
 		bossResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
@@ -119,7 +119,7 @@ local difficultyParameters = {
 		minScavs		  		= 30,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_epic_scav',
+		bossName         		= 'armada_epiccommanderfinalboss_epic_scav',
 		bossResistanceMult   	= 2,
 	},
 
@@ -296,7 +296,7 @@ local LandUnitsList = {
 			--Cortex
 			["cortex_shiva_scav"] = 1,
 			["cortex_karganeth_scav"] = 1,
-			["corthermite"] = 1,
+			["cortex_thermite"] = 1,
 			["cortex_cataphract_scav"] = 1,
 			--Legion
 			--N/A
@@ -588,7 +588,7 @@ local SeaUnitsList = {
 		--Armada
 		["cortex_epicdolphin_scav"] = 1,
 		--Cortex
-		["corslrpc_scav"] = 1,
+		["cortex_basiliskship_scav"] = 1,
 		},
 	},
 	Healer = {
@@ -799,7 +799,7 @@ local Turrets = {
 		["armada_pitbull_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["cortex_scorpion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		--Misc
-		["corhllllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["cortex_quadguard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["armada_keeper_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		["cortex_overseer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
 		--T2 AA
@@ -831,8 +831,8 @@ local Turrets = {
 		["cortex_apocalypse_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 		["armada_armageddon_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 
-		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
-		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
+		["armada_miniragnarok_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
+		["cortex_minicalamity_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
 	},
 	[6] = {
@@ -879,12 +879,12 @@ scavBehaviours = {
 
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 2000, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 2000, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 2000, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 2000, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_easy_scav"].id] 		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_normal_scav"].id] 	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_hard_scav"].id] 		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_veryhard_scav"].id] 	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armada_epiccommanderfinalboss_epic_scav"].id]		= { distance = 2000, chance = 0.001},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,

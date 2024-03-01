@@ -127,7 +127,7 @@ return {
 				flighttime = 3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cormissile2.s3o",
+				model = "cortex_smallmissile.s3o",
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
 				range = 600,

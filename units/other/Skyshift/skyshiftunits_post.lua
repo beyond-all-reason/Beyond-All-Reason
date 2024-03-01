@@ -234,7 +234,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 2.0,

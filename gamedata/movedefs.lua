@@ -499,7 +499,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- review this
-	-- armada_vanguard cortex_karganeth corthermite
+	-- armada_vanguard cortex_karganeth cortex_thermite
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -779,7 +779,7 @@ local moveDatas = {
 	-- },
 	--breakline
 	--
-	-- corslrpc cortex_epicsupporter cortex_epicdolphin armada_advancedskater armada_epicellysaw
+	-- cortex_basiliskship cortex_epicsupporter cortex_epicdolphin armada_advancedskater armada_epicellysaw
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,

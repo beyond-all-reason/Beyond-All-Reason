@@ -147,7 +147,7 @@ return {
 				flighttime = 2.33,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "banishermissile.s3o",
+				model = "cortex_banishermissile.s3o",
 				name = "Banisher",
 				noselfdamage = true,
 				range = 800,

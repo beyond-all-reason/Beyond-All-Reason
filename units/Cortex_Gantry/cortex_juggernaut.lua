@@ -202,7 +202,7 @@ return {
 				impulseboost = 1,
 				impulsefactor = 1,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "cortex_heavymissile.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
 				proximitypriority = -5,

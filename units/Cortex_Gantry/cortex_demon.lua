@@ -231,7 +231,7 @@ return {
 				flighttime = 1.75,
 				impulseboost = 0,
 				impulsefactor = 0,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "ShoulderRockets",
 				noselfdamage = true,
 				proximitypriority = 1,

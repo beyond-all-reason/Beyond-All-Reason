@@ -130,7 +130,7 @@ return {
 				flighttime = 2.3,
 				impulseboost = 0,
 				impulsefactor = 0,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "Rapid-fire long-range g2a missile barrel",
 				noselfdamage = true,
 				projectiles = 1,

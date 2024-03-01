@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armminivulc_weapon = {
+			armada_miniragnarok_weapon = {
 				accuracy = 700,
 				areaofeffect = 44.8,
 				avoidfeature = false,
@@ -149,13 +149,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMMINIVULC_WEAPON",
+				def = "armada_miniragnarok_WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 320,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				def = "ARMMINIVULC_WEAPON",
+				def = "armada_miniragnarok_WEAPON",
 				maindir = "0 0 -1",
 				maxangledif = 320,
 				onlytargetcategory = "NOTSUB",

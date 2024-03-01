@@ -99,7 +99,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "Guided a2a/a2g missile launcher",
 				noselfdamage = true,
 				range = 740,

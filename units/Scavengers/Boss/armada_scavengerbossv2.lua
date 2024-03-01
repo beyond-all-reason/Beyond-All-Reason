@@ -50,7 +50,7 @@ local difficultyParams = {
 }
 local unitsTable = {}
 for difficulty, stats in pairs(difficultyParams) do
-	unitsTable["armscavengerbossv2_" .. difficulty] = {
+	unitsTable["armada_epiccommanderfinalboss_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
 		autoheal = stats.autoHeal,--10,
@@ -90,13 +90,13 @@ for difficulty, stats in pairs(difficultyParams) do
 		mincloakdistance = 50,
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/scavboss/armscavengerbossv2.s3o",
+		objectname = "Units/scavboss/armada_epiccommanderfinalboss.s3o",
 		pushresistant = true,
 		radardistance = 500,
 		radaremitheight = 54,
 		reclaimable = false,
 		releaseheld  = true,
-		script = "Units/scavboss/armscavengerbossv2.cob",
+		script = "Units/scavboss/armada_epiccommanderfinalboss.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
@@ -118,7 +118,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			i18nfromunit = 'armscavengerbossv2'
+			i18nfromunit = 'armada_epiccommanderfinalboss'
 		},
 		featuredefs = {
 			dead = {
@@ -258,7 +258,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				flighttime = 1.8,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
+				model = "cortex_torpedo.s3o",
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				predictboost = 1,

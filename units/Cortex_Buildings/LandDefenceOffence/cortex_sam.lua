@@ -127,7 +127,7 @@ return {
 				flighttime = 2.5,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cormissile.s3o",
+				model = "cortex_tinymissile.s3o",
 				name = "Advanced g2a rapid missile launcher",
 				noselfdamage = true,
 				range = 840,

@@ -37,10 +37,10 @@ local depthCharges = {} --Depthcharges that are above the surface still
 local depthChargeWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'TorpedoLauncher' then
-        if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
+        if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cortex_depthcharge.s3o'
         or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
             depthChargeWeapons[weaponID] = 'splash-torpedo'
-        elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+        elseif weaponDef.visuals.modelName == 'objects3d/cortex_advancedtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
             depthChargeWeapons[weaponID] = 'splash-tiny'
         else
             depthChargeWeapons[weaponID] = 'splash-torpedo'

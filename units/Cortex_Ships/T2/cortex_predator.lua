@@ -127,7 +127,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-uw",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
+				model = "cortex_torpedo.s3o",
 				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
 				range = 400,

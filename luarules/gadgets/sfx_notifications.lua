@@ -61,9 +61,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local nukes = {
 		[WeaponDefNames["armada_armageddon_nuclear_missile"].id] = true,
-		[WeaponDefNames["cortex_apocalypse_crblmssl"].id] = true,
+		[WeaponDefNames["cortex_apocalypse_cortex_nukemissile"].id] = true,
 		[WeaponDefNames["armada_armageddon_scav_nuclear_missile"].id] = true,
-		[WeaponDefNames["cortex_apocalypse_scav_crblmssl"].id] = true,
+		[WeaponDefNames["cortex_apocalypse_scav_cortex_nukemissile"].id] = true,
 		[WeaponDefNames["raptor_turret_meteor_t4_v1_weapon"].id] = true,
 		--WeaponDefNames["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"].id] = true,
 	}

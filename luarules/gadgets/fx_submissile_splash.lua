@@ -29,7 +29,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
         --    subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
         if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' then
             subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
-        elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+        elseif weaponDef.visuals.modelName == 'objects3d/cortex_advancedtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
             subMissileWeapons[weaponDef.id] = 'torpedotrail-large'
         else
             subMissileWeapons[weaponDef.id] = 'torpedotrail-small'

@@ -1,13 +1,13 @@
 local unitName = "Intimidator Ship"
 return {
-	corslrpc = {
+	cortex_basiliskship = {
 		maxacc = 0.005,
 		activatewhenbuilt = true,
 		maxdec = 0.005,
 		buildangle = 16384,
 		energycost = 80000,
 		metalcost = 8000,
-		buildpic = "corslrpc.DDS",
+		buildpic = "cortex_basiliskship.DDS",
 		buildtime = 100000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,8 +26,8 @@ return {
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORSLRPC.s3o",
-		script = "Units/scavboss/CORSLRPC.cob",
+		objectname = "Units/scavboss/cortex_basiliskship.s3o",
+		script = "Units/scavboss/cortex_basiliskship.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 500,
@@ -58,7 +58,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 4000,
-				object = "Units/scavboss/corslrpc_dead.s3o",
+				object = "Units/scavboss/cortex_basiliskship_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

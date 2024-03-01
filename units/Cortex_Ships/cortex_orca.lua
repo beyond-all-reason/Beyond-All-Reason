@@ -128,7 +128,7 @@ return {
 				flighttime = 3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
+				model = "cortex_torpedo.s3o",
 				name = "Light torpedo launcher",
 				noselfdamage = true,
 				predictboost = 1,

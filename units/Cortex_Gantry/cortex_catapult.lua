@@ -130,7 +130,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "catapultmissile.s3o",
+				model = "cortex_janusmissile.s3o",
 				movingaccuracy = 600,
 				name = "CatapultRockets",
 				noselfdamage = true,

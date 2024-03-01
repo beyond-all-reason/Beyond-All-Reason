@@ -65,7 +65,7 @@ return {
 				impulsefactor = 0.5,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "crblmssl.s3o",
+				model = "cortex_nukemissile.s3o",
 				name = "Newest Nuke",
 				range = 29999,
 				reloadtime = 5,

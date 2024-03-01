@@ -1,10 +1,10 @@
 return {
-	corthermite = {
+	cortex_thermite = {
 		maxacc = 0.19665,
 		maxdec = 0.60375,
 		energycost = 60000,
 		metalcost = 3500,
-		buildpic = "CORTHERMITE.DDS",
+		buildpic = "cortex_thermite.DDS",
 		buildtime = 18800,
 		canmove = true,
 		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		movementclass = "HTBOT4",
 		mygravity = 10000,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORTHERMITE.s3o",
-		script = "Units/scavboss/CORTHERMITE.cob",
+		objectname = "Units/scavboss/cortex_thermite.s3o",
+		script = "Units/scavboss/cortex_thermite.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 480,
@@ -58,7 +58,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 1523,
-				object = "Units/scavboss/corthermite_dead.s3o",
+				object = "Units/scavboss/cortex_thermite_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",

@@ -1,11 +1,11 @@
 return {
-	corhllllt = {
+	cortex_quadguard = {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32768,
 		energycost = 7000,
 		metalcost = 300,
-		buildpic = "CORHLLLLT.DDS",
+		buildpic = "cortex_quadguard.DDS",
 		buildtime = 8800,
 		canrepeat = false,
 		cantbetransported = false,
@@ -23,8 +23,8 @@ return {
 		health = 1670,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		objectname = "Units/scavbuildings/CORHLLLLT.s3o",
-		script = "Units/scavbuildings/CORHLLLLT.cob",
+		objectname = "Units/scavbuildings/cortex_quadguard.s3o",
+		script = "Units/scavbuildings/cortex_quadguard.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 475,
@@ -58,7 +58,7 @@ return {
 				height = 6.5,
 				hitdensity = 100,
 				metal = 180,
-				object = "Units/scavbuildings/corhllllt_dead.s3o",
+				object = "Units/scavbuildings/cortex_quadguard_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

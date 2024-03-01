@@ -2673,7 +2673,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-huge",
 	},
-	corthermite = {
+	cortex_thermite = {
 		BaseSoundSelectType = "cor-bot-t3-at-sel",
 		BaseSoundMovementType = "cor-bot-t3-at-ok",
 		BaseSoundWeaponType = "heatray-xl",

@@ -79,7 +79,7 @@ return {
 		"cortex_despot_scav",
 		"cortex_oasis2_scav",
 		"cortex_blackhydra_scav",
-		"corslrpc_scav",
+		"cortex_basiliskship_scav",
 		"cortex_epicdolphin_scav",
 		"armada_epicellysaw_scav",
 		"armada_advancedskater_scav",

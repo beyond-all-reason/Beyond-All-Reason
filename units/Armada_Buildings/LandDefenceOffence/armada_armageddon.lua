@@ -130,7 +130,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				metalpershot = 1000,
-				model = "crblmssl.s3o",
+				model = "cortex_nukemissile.s3o",
 				name = "Intercontinental ballistic nuclear warhead",
 				range = 72000,
 				reloadtime = 30,

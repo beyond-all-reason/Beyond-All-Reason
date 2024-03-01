@@ -125,7 +125,7 @@ return {
 				impulsefactor = 0.123,
 				intensity = 1.0,
 				metalpershot = 0,
-				model = "cormissile2.s3o",
+				model = "cortex_smallmissile.s3o",
 				name = "Rockets",
 				noselfdamage = true,
 				range = 475,

@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			crblmssl = {
+			cortex_nukemissile = {
 				areaofeffect = 1920,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -130,7 +130,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				metalpershot = 1500,
-				model = "crblmssl.s3o",
+				model = "cortex_nukemissile.s3o",
 				name = "Intercontinental thermonuclear ballistic missile",
 				range = 72000,
 				reloadtime = 30,
@@ -194,7 +194,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CRBLMSSL",
+				def = "cortex_nukemissile",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {

@@ -206,7 +206,7 @@ return {
 		"armada_epoch",
 		"cortex_despot",
 		"cortex_blackhydra",
-		"corslrpc",
+		"cortex_basiliskship",
 		"cortex_epicdolphin",
 		"armada_epicellysaw",
 		"armada_advancedskater",

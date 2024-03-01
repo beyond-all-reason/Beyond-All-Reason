@@ -139,7 +139,7 @@ return {
 				impulsefactor = 0,
 				intensity = 1.0,
 				metalpershot = 0,
-				--model = "cormissile2.s3o",
+				--model = "cortex_smallmissile.s3o",
 				name = "Flamethrower",
 				noselfdamage = true,
 				--noExplode = true,

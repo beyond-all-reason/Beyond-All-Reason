@@ -1,5 +1,5 @@
 return {
-	armminebomber = {
+	armada_minebomber = {
 		acceleration = 0.05,
 		maxdec = 0.05,
 		energycost = 4200,
@@ -28,8 +28,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "MOBILE",
-		objectname = "Units/scavboss/ARMMINEBOMBER.s3o",
-		script = "Units/scavboss/ARMMINEBOMBER.cob",
+		objectname = "Units/scavboss/armada_minebomber.s3o",
+		script = "Units/scavboss/armada_minebomber.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 195,

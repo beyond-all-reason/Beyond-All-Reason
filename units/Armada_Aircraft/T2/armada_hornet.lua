@@ -89,7 +89,7 @@ return {
 				firestarter = 70,
 				impulseboost = 1,
 				impulsefactor = 0.123,
-				model = "cormissile2.s3o",
+				model = "cortex_smallmissile.s3o",
 				name = "Heavy a2g armor-piercing sabot missile launcher",
 				noselfdamage = true,
 				range = 420,

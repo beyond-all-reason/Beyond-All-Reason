@@ -321,8 +321,8 @@ local function ShieldedLRPC_Outpost6()
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 70, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 38, zOffset = -80, direction = 1},
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 38, zOffset = 80, direction = 1},
-			{ unitDefID = UnitDefNames.armminivulc_scav.id, xOffset = 110, zOffset = -72, direction = 1},
-			{ unitDefID = UnitDefNames.armminivulc_scav.id, xOffset = 110, zOffset = 72, direction = 1},
+			{ unitDefID = UnitDefNames.armada_miniragnarok_scav.id, xOffset = 110, zOffset = -72, direction = 1},
+			{ unitDefID = UnitDefNames.armada_miniragnarok_scav.id, xOffset = 110, zOffset = 72, direction = 1},
 		},
 	}
 end
@@ -371,8 +371,8 @@ local function ShieldedLRPC_Outpost7()
 			{ unitDefID = UnitDefNames.cortex_overseer_scav.id, xOffset = 102, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_basilisk_scav.id, xOffset = 30, zOffset = 88, direction = 1},
 			{ unitDefID = UnitDefNames.cortex_basilisk_scav.id, xOffset = 30, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 110, zOffset = -56, direction = 1},
-			{ unitDefID = UnitDefNames.corminibuzz_scav.id, xOffset = 110, zOffset = 56, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_minicalamity_scav.id, xOffset = 110, zOffset = -56, direction = 1},
+			{ unitDefID = UnitDefNames.cortex_minicalamity_scav.id, xOffset = 110, zOffset = 56, direction = 1},
 		},
 	}
 end
