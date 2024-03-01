@@ -1,11 +1,11 @@
 return {
-	corvacct = {
+	cortex_3printer = {
 		maxacc = 0.02547,
 		autoheal = 5,
 		maxdec = 0.05093,
 		energycost = 1,
 		metalcost = 1,
-		buildpic = "CORPRINTER.DDS",
+		buildpic = "cortex_printer.DDS",
 		buildtime = 10,
 		builddistance = 200,
 		builder = true,
@@ -32,8 +32,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "MTANK3",
 		nochasecategory = "NOTLAND VTOL",
-		objectname = "Units/scavboss/CORVACCT.s3o",
-		script = "Units/scavboss/CORVACCT.cob",
+		objectname = "Units/scavboss/cortex_3printer.s3o",
+		script = "Units/scavboss/cortex_3printer.cob",
 		seismicsignature = 0,
 		selfdestructas = "",
 		sightdistance = 1,

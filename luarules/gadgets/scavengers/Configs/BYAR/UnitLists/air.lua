@@ -32,8 +32,8 @@ return {
 		-- Constructors
 		"armada_advancedconstructionaircraft_scav",
 		"cortex_advancedconstructionaircraft_scav",
-		"armassistdrone",
-		"corassistdrone",
+		"armada_assistdrone",
+		"cortex_assistdrone",
 	},
 
 	T3 = {
@@ -54,8 +54,8 @@ return {
 
 	T4 = {
 		"cortex_epicdragon_scav",
-		"armfepocht4_scav",
-		"corfblackhyt4_scav",
+		"armada_flyingepoch_scav",
+		"cortex_flyingblackhydra_scav",
 		"armada_stormbringert4_scav",
 		"armada_lichet4_scav",
 	},

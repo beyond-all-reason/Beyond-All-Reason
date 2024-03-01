@@ -1,8 +1,8 @@
 {
 	"features": {
 		"names": {
-			"armstone": "Commander Tombstone",
-			"corstone": "Commander Tombstone",
+			"armada_tombstone": "Commander Tombstone",
+			"cortex_tombstone": "Commander Tombstone",
 			"ancientRocks": "Ancient Rock Formation",
 			"bush": "Bush",
 			"bushSmall": "Small Bush",

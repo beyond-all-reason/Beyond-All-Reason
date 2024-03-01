@@ -1,11 +1,11 @@
 return {
-	cortorch = {
+	cortex_torch = {
 		maxacc = 0.005,
 		activatewhenbuilt = true,
 		maxdec = 0.12,
 		energycost = 4400,
 		metalcost = 220,
-		buildpic = "CORTORCH.DDS",
+		buildpic = "cortex_torch.DDS",
 		buildtime = 4150,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 200,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORTORCH.s3o",
-		script = "Units/scavboss/CORTORCH.cob",
+		objectname = "Units/scavboss/cortex_torch.s3o",
+		script = "Units/scavboss/cortex_torch.cob",
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
@@ -62,7 +62,7 @@ return {
 				height = 9,
 				hitdensity = 100,
 				metal = 134,
-				object = "Units/scavboss/cortorch_dead.s3o",
+				object = "Units/scavboss/cortex_torch_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",

@@ -91,7 +91,7 @@ void main() {
 
 
 ------------------------ HISTOGRAM STUFF -------------------------------
-local profilerecords = {}
+local profilerecortex_disgruntler = {}
 
 local bincount = 128
 local binrez = 0.05 -- half MS resolutions
@@ -234,7 +234,7 @@ function widget:Initialize()
 	
 	for k,v in pairs(Spring.GetProfilerRecordNames()) do 
 		--Spring.Echo(k,v)
-		profilerecords[k] = v
+		profilerecortex_disgruntler[k] = v
 		histograms[v] = createhistogram(v)
 	end
 end

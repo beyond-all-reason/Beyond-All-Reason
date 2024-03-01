@@ -158,8 +158,8 @@ local starterLandUnitsList = {
     },
     -- [3] = {
     --     table = {
-    --         "armassistdrone",
-    --         "corassistdrone",
+    --         "armada_assistdrone",
+    --         "cortex_assistdrone",
     --     },
     --     quantity = 1,
     -- },
@@ -295,12 +295,12 @@ local landUnitsList = {
                 "armada_turtle",
                 "armada_ambassador",
                 "armada_bull",
-				--"corforge",
+				--"cortex_forge",
                 "cortex_quaker",
                 --"cortex_fury",
                 "cortex_alligator",
                 "cortex_tiger",
-                "corgatreap",
+                "cortex_lasertiger",
                 "cortex_negotiator",
                 "cortex_banisher",
                 "cortex_poisonarrow",
@@ -351,8 +351,8 @@ local landUnitsList = {
                 "cortex_karganeth",
                 "cortex_catapult",
                 "armada_lunchbox",
-                "armmeatball",
-                "armassimilator",
+                "armada_meatball",
+                "armada_assimilator",
 
                 -- Vehicles
                 "armada_thor",
@@ -396,7 +396,7 @@ local landUnitsList = {
 
                 -- Superboss
                 "armada_pawnt4",
-                "armrattet4",
+                "armada_ratte",
                 "armada_tumbleweedt4",
                 "cortex_epicgrunt",
                 "cortex_demon",
@@ -444,8 +444,8 @@ local starterSeaUnitsList = {
     },
     -- [2] = {
     --     table = {
-    --         "armassistdrone",
-    --         "corassistdrone",
+    --         "armada_assistdrone",
+    --         "cortex_assistdrone",
     --     },
     --     quantity = 1,
     -- },

@@ -1,8 +1,8 @@
 {
 	"features": {
 		"names": {
-			"armstone": "Tombe de commandant",
-			"corstone": "Tombe de commandant",
+			"armada_tombstone": "Tombe de commandant",
+			"cortex_tombstone": "Tombe de commandant",
 			"ancientRocks": "Ancienne formation rocheuse",
 			"bush": "Buisson",
 			"bushSmall": "Petit buisson",

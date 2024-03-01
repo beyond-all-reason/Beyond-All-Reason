@@ -1,10 +1,10 @@
 return {
-	armmeatball = {
+	armada_meatball = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
 		energycost = 30000,
 		metalcost = 3000,
-		buildpic = "ARMMEATBALL.DDS",
+		buildpic = "armada_meatball.DDS",
 		buildtime = 30000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 32,
 		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/ARMMEATBALL.s3o",
-		script = "Units/scavboss/armmeatball.cob",
+		objectname = "Units/scavboss/armada_meatball.s3o",
+		script = "Units/scavboss/armada_meatball.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 800,
@@ -59,7 +59,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 592,
-				object = "Units/scavboss/armmeatball_dead.s3o",
+				object = "Units/scavboss/armada_meatball_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -536,8 +536,8 @@ GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime 
 explosionLights[WeaponDefNames["cortex_tremor_tremor_spread_fire"].id] =
 GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
---corforge
-projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
+--cortex_forge
+projectileDefLights[WeaponDefNames["cortex_forge_flamethrower_ce"].id] =
 GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
 
 --armada_thor

@@ -103,18 +103,18 @@ return {
 		"armada_turtle_scav",
 		"armada_ambassador_scav",
 		"armada_bull_scav",
-		"corforge_scav",
-		"corftiger_scav",
+		"cortex_forge_scav",
+		"cortex_heattiger_scav",
 		"cortex_quaker_scav",
 		"cortex_fury_scav",
 		"cortex_alligator_scav",
 		"corsala_scav",
 		"cortex_tiger_scav",
-		"corgatreap_scav",
+		"cortex_lasertiger_scav",
 		"cortex_negotiator_scav",
 		"cortex_banisher_scav",
 		"cortex_poisonarrow_scav",
-		"cortorch_scav",
+		"cortex_torch_scav",
 
 		-- Hovercraft
 		"cortex_halberd_scav",
@@ -127,8 +127,8 @@ return {
 		"cortex_advancedconstructionbot_scav",
 		"cortex_decoycommander_scav",
 		"cortex_advancedconstructionvehicle_scav",
-		"corprinter_scav",
-		"corvac_scav",
+		"cortex_printer_scav",
+		"cortex_2printer_scav",
 	},
 
 	T3 = {
@@ -149,8 +149,8 @@ return {
 		"cortex_karganeth_scav",
 		"cortex_catapult_scav",
 		"armada_lunchbox_scav",
-		"armmeatball_scav",
-		"armassimilator_scav",
+		"armada_meatball_scav",
+		"armada_assimilator_scav",
 		"legpede_scav",
 		"leegmech_scav",
 
@@ -171,7 +171,7 @@ return {
 
 		-- Superboss
 		"armpw_scav",
-		"armrattet4_scav",
+		"armada_ratte_scav",
 		"armada_tumbleweedt4_scav",
 		"cortex_epicgrunt_scav",
 		"cortex_demon_scav",

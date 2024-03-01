@@ -16,8 +16,8 @@ local unitOrderTable = {
 	['legca']          = 001166,
 
 	['legassistdrone'] = 001167,
-	['armassistdrone'] = 001168, --ASSISTDRONES
-	['corassistdrone'] = 001169,
+	['armada_assistdrone'] = 001168, --ASSISTDRONES
+	['cortex_assistdrone'] = 001169,
 
 	['armada_constructionseaplane']         = 001170, --SEAPLANES
 	['cortex_constructionseaplane']         = 001175,
@@ -57,10 +57,10 @@ local unitOrderTable = {
 	['cortex_twitcher']        = 003200,
 
 	['armada_consul']      = 003300, --VEH
-	['corprinter']     = 003325, --VEH
-	['corvac']		   = 003326, --VEH
-	['corvacct']       = 003327, --VEH
-	['corforge']       = 003350, --VEH
+	['cortex_printer']     = 003325, --VEH
+	['cortex_2printer']		   = 003326, --VEH
+	['cortex_3printer']       = 003327, --VEH
+	['cortex_forge']       = 003350, --VEH
 
 	['armada_voyager']         = 003400, --SHIP
 	['cortex_pathfinder']         = 003500, --SHIP
@@ -75,7 +75,7 @@ local unitOrderTable = {
 
 	-- AIR SCOUTS LAND UNARMED
 	['armada_blink']        = 004030, --AIR
-	['corfink']        = 004040,
+	['cortex_finch']        = 004040,
 	['armada_horizon']       = 004050, --SEAPLANES
 	['cortex_watcher']        = 004060,
 	['armada_oracle']        = 004050,
@@ -196,17 +196,17 @@ local unitOrderTable = {
 	['legstr']         = 006105,
 	['cortex_fiend']        = 006110,
 	['armada_jaguar']       = 006120,
-	['cortorch']       = 006125,
+	['cortex_torch']       = 006125,
 	['legmrv']         = 006130,
 
 	['armada_welder']        = 006300, --MAIN BATTLE
 	['armada_gunslinger']         = 006310,
 	['armada_bull']        = 006320,
-	['corftiger']      = 006325,
+	['cortex_heattiger']      = 006325,
 	['cortex_tiger']        = 006330,
 	['legsco']         = 006335,
 	['armada_starlight']       = 006340,
-	['corgatreap']     = 006350,
+	['cortex_lasertiger']     = 006350,
 
 	['cortex_arbiter']         = 006400, --ROCKETS
 	['armada_ambassador']        = 006410,
@@ -271,9 +271,9 @@ local unitOrderTable = {
 	['cortex_cataphract']         = 007110, --hover
 
 	--T4 LAND ATTACK (SCAVS)
-	['armmeatball']    = 007200,
+	['armada_meatball']    = 007200,
 	['armada_lunchbox']    = 007210,
-	['armassimilator'] = 007220,
+	['armada_assimilator'] = 007220,
 
 	['armada_pawnt4']        = 007300,
    ['cortex_epicgrunt']        = 007310,
@@ -283,12 +283,12 @@ local unitOrderTable = {
 	['corthermite'] = 007341,
 
 	['armada_tumbleweedt4']     = 007400,
-	['armrattet4']     = 007410,
+	['armada_ratte']     = 007410,
 	['cortex_epictzar']       = 007420,
 
 	['armada_stormbringert4']     = 007500,
-	['armfepocht4']    = 007510,
-	['corfblackhyt4']  = 007520,
+	['armada_flyingepoch']    = 007510,
+	['cortex_flyingblackhydra']  = 007520,
 	['cortex_epicdragon']       = 007530,
 
 	-- LAND AA
@@ -527,10 +527,10 @@ local unitOrderTable = {
    ['cortex_fortificationwall']        = 104400,
    ['corscavfort']    = 104505, --scavengers
    ['armada_dragonsclaw']        = 104600,
-   ['armlwall']       = 104650,
+   ['armada_dragonsfury']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
    ['cortex_dragonsmaw']         = 104800,
-   ['cormwall']       = 104850,
+   ['cortex_dragonsrage']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
    ['corscavdtm']     = 104915, --scavengers
 

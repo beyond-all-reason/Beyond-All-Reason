@@ -1500,16 +1500,16 @@ armada_navalconstructionturret.bos:              return(corpsetype);
 armada_navalconstructionturret.bos:      corpsetype = 3 ;
 armada_navalconstructionturret.bos:      return corpsetype;
 Binary file armada_navalconstructionturret.cob matches
-armnukevader.bos:       set-signal-mask SIG_MOVE;
-armnukevader.bos:Killed(severity, corpsetype)
-armnukevader.bos:               corpsetype = 1 ;
-armnukevader.bos:               return(corpsetype);
-armnukevader.bos:               corpsetype = 2 ;
-armnukevader.bos:               return(corpsetype);
-armnukevader.bos:               corpsetype = 3 ;
-armnukevader.bos:               return(corpsetype);
-armnukevader.bos:       corpsetype = 3 ;
-armnukevader.bos:       return corpsetype;
+armada_nukevader.bos:       set-signal-mask SIG_MOVE;
+armada_nukevader.bos:Killed(severity, corpsetype)
+armada_nukevader.bos:               corpsetype = 1 ;
+armada_nukevader.bos:               return(corpsetype);
+armada_nukevader.bos:               corpsetype = 2 ;
+armada_nukevader.bos:               return(corpsetype);
+armada_nukevader.bos:               corpsetype = 3 ;
+armada_nukevader.bos:               return(corpsetype);
+armada_nukevader.bos:       corpsetype = 3 ;
+armada_nukevader.bos:       return corpsetype;
 armada_pitbull.bos:      set ARMORED to 0;
 armada_pitbull.bos:      set ARMORED to 1;
 armada_pitbull.bos:      set-signal-mask 0;
@@ -3357,15 +3357,15 @@ cortex_navalhovercraftplatform.bos:             corpsetype = 3 ;
 cortex_navalhovercraftplatform.bos:             return(corpsetype);
 cortex_navalhovercraftplatform.bos:     corpsetype = 3 ;
 cortex_navalhovercraftplatform.bos:     return corpsetype;
-corfink.bos:Killed(severity, corpsetype)
-corfink.bos:            corpsetype = 1 ;
-corfink.bos:            return(corpsetype);
-corfink.bos:            corpsetype = 2 ;
-corfink.bos:            return(corpsetype);
-corfink.bos:            corpsetype = 3 ;
-corfink.bos:            return(corpsetype);
-corfink.bos:    corpsetype = 3 ;
-corfink.bos:    return corpsetype;
+cortex_finch.bos:Killed(severity, corpsetype)
+cortex_finch.bos:            corpsetype = 1 ;
+cortex_finch.bos:            return(corpsetype);
+cortex_finch.bos:            corpsetype = 2 ;
+cortex_finch.bos:            return(corpsetype);
+cortex_finch.bos:            corpsetype = 3 ;
+cortex_finch.bos:            return(corpsetype);
+cortex_finch.bos:    corpsetype = 3 ;
+cortex_finch.bos:    return corpsetype;
 cortex_birdshot.bos:SetStunned(State)
 cortex_birdshot.bos:    set-signal-mask SIG_AIM;
 cortex_birdshot.bos:Killed(severity, corpsetype)

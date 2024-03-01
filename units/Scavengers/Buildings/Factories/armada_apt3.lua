@@ -36,7 +36,7 @@ return {
 		buildoptions = {
 			"armada_advancedconstructionaircraft",
 			"armada_stormbringert4",
-			"armfepocht4",
+			"armada_flyingepoch",
 			"armada_lichet4",
 		},
 		customparams = {

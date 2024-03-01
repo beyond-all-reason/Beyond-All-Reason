@@ -1,10 +1,10 @@
 return {
-	corftiger = {
+	cortex_heattiger = {
 		maxacc = 0.0362,
 		maxdec = 0.0724,
 		energycost = 10000,
 		metalcost = 665,
-		buildpic = "CORFTIGER.DDS",
+		buildpic = "cortex_heattiger.DDS",
 		buildtime = 11500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 100,
 		movementclass = "MTANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORFTIGER.s3o",
-		script = "Units/scavboss/CORFTIGER.cob",
+		objectname = "Units/scavboss/cortex_heattiger.s3o",
+		script = "Units/scavboss/cortex_heattiger.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 462,
@@ -74,7 +74,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 350,
-				object = "Units/scavboss/corftiger_dead.s3o",
+				object = "Units/scavboss/cortex_heattiger_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

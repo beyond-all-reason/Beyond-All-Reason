@@ -173,7 +173,7 @@ end
 
 function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TODO: make this more efficient, atm it akes 1-2 sec to run
 	-- search over metal map and find a point with a reasonable amount of non-claimed metal near to it
-    local mmapx,mmapz = Spring.GetMetalMapSize() -- metal map cords * 16 = world coords
+    local mmapx,mmapz = Spring.GetMetalMapSize() -- metal map cortex_disgruntler * 16 = world coords
     local xres = math.max(1,math.floor(mmapx/16))
     local zres = math.max(1,math.floor(mmapz/16))
 

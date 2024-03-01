@@ -9,7 +9,7 @@ local object = {
 	height = 10,
 	indestructible = true,
 	noselect = true,
-	object = "armstone.s3o",
+	object = "armada_tombstone.s3o",
 	reclaimable = false,
 	customparams = {
 		model_author = "Beherith",
@@ -17,10 +17,10 @@ local object = {
 	}
 }
 local tombstones = {
-	armstone = table.copy(object),
-	corstone = table.copy(object),
+	armada_tombstone = table.copy(object),
+	cortex_tombstone = table.copy(object),
 }
-tombstones.corstone.object = "corstone.s3o"
-tombstones.corstone.customparams.normaltex = "unittextures/cor_normal.dds"
+tombstones.cortex_tombstone.object = "cortex_tombstone.s3o"
+tombstones.cortex_tombstone.customparams.normaltex = "unittextures/cor_normal.dds"
 
 return tombstones

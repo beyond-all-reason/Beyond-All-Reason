@@ -199,10 +199,10 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	local unitDef = UnitDefs[unitDefID]
-	-- for now, just corvac gets an attached con turret
-	if unitDef.name == "corvac" then
+	-- for now, just cortex_2printer gets an attached con turret
+	if unitDef.name == "cortex_2printer" then
 		local xx,yy,zz = SpGetUnitPosition(unitID)
-		nano_id = Spring.CreateUnit("corvacct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		nano_id = Spring.CreateUnit("cortex_3printer",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
 		if not nano_id then
 			-- unit limit hit or invalid spawn surface
 			return

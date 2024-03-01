@@ -1,11 +1,11 @@
 return {
-	corprinter = {
+	cortex_printer = {
 		maxacc = 0.02547,
 		autoheal = 5,
 		maxdec = 0.05093,
 		energycost = 4700,
 		metalcost = 330,
-		buildpic = "CORPRINTER.DDS",
+		buildpic = "cortex_printer.DDS",
 		buildtime = 10200,
 		builddistance = 200,
 		builder = true,
@@ -28,8 +28,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "MTANK3",
 		nochasecategory = "NOTLAND VTOL",
-		objectname = "Units/scavboss/CORPRINTER.s3o",
-		script = "Units/scavboss/CORPRINTER.cob",
+		objectname = "Units/scavboss/cortex_printer.s3o",
+		script = "Units/scavboss/cortex_printer.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 430,
@@ -73,7 +73,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 138,
-				object = "Units/scavboss/CORPRINTER_dead.s3o",
+				object = "Units/scavboss/cortex_printer_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

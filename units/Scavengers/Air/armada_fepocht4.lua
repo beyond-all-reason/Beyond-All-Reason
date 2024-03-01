@@ -1,5 +1,5 @@
 return {
-	armfepocht4 = {
+	armada_flyingepoch = {
 		maxacc = 0.015,
 		activatewhenbuilt = true,
 		bankingallowed = false,
@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		energycost = 250000,
 		metalcost = 25000,
-		buildpic = "armfepocht4.DDS",
+		buildpic = "armada_flyingepoch.DDS",
 		buildtime = 250000,
 		canfly = true,
 		canmove = true,
@@ -30,8 +30,8 @@ return {
 		speed = 36.0,
 		maxwaterdepth = 15,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armfepocht4.s3o",
-		script = "Units/scavboss/armfepocht4.cob",
+		objectname = "Units/scavboss/armada_flyingepoch.s3o",
+		script = "Units/scavboss/armada_flyingepoch.cob",
 		radardistance = 1530,
 		radaremitheight = 52,
 		seismicsignature = 0,
@@ -65,7 +65,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 17000,
-				object = "Units/scavboss/armfepocht4_dead.s3o",
+				object = "Units/scavboss/armada_flyingepoch_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

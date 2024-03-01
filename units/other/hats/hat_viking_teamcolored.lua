@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		energycost = 10000,
 		metalcost = 1000,
-		buildpic = "ARMSTONE.DDS",
+		buildpic = "armada_tombstone.DDS",
 		buildtime = 10000,
 		canattack = false,
 		cancloak = true,

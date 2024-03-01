@@ -86,7 +86,7 @@ function ArmyHST:Init()
 
 		}
 	self.radars = {
-		corfink = true,--is a scout but is better used as radar cause no weapon
+		cortex_finch = true,--is a scout but is better used as radar cause no weapon
 		armada_blink = true,--is a scout but is better used as radar cause no weapon
 		cortex_omen = true,
 		armada_compass = true,

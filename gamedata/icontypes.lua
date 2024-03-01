@@ -111,15 +111,15 @@ local icontypes = {
 		bitmap = "icons/armada_airrepairpad_2.4.png",
 		size = 2.51999998
 	},
-	armassimilator = {
+	armada_assimilator = {
 		bitmap = "icons/bot_t3.png",
 		size = 1.99499989
 	},
-	armassistdrone = {
+	armada_assistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
 	},
-	armassistdrone_land = {
+	armada_assistvehicle = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
@@ -335,7 +335,7 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	armfepocht4 = {
+	armada_flyingepoch = {
 		bitmap = "icons/air_t4_flagship.png",
 		size = 3.3599999
 	},
@@ -511,7 +511,7 @@ local icontypes = {
 		bitmap = "icons/allterrain.png",
 		size = 2.0474999
 	},
-	armlwall = {
+	armada_dragonsfury = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -539,7 +539,7 @@ local icontypes = {
 		bitmap = "icons/bot_t2_impulse2x.png",
 		size = 1.36499989
 	},
-	armmeatball = {
+	armada_meatball = {
 		bitmap = "icons/amphib_t3.png",
 		size = 2.20499969
 	},
@@ -667,8 +667,8 @@ local icontypes = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
 	},
-	armrattet4 = {
-		bitmap = "icons/armrattet4.png",
+	armada_ratte = {
+		bitmap = "icons/armada_ratte.png",
 		size = 3.09749985
 	},
 	armada_razorback = {
@@ -1067,11 +1067,11 @@ local icontypes = {
 		bitmap = "icons/cortex_airrepairpad_2.4.png",
 		size = 2.51999998
 	},
-	corassistdrone = {
+	cortex_assistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
 	},
-	corassistdrone_land = {
+	cortex_assistvehicle = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
@@ -1279,7 +1279,7 @@ local icontypes = {
 		bitmap = "icons/vehicle.png",
 		size = 0.57749999
 	},
-	corfblackhyt4 = {
+	cortex_flyingblackhydra = {
 		bitmap = "icons/air_t4_flagship.png",
 		size = 3.3599999
 	},
@@ -1303,7 +1303,7 @@ local icontypes = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
 	},
-	corfink = {
+	cortex_finch = {
 		bitmap = "icons/air_los.png",
 		size = 0.78749996
 	},
@@ -1323,7 +1323,7 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
-	corforge = {
+	cortex_forge = {
 		bitmap = "icons/cor_t2_flameworker.png",
 		size = 1.45000005
 	},
@@ -1347,7 +1347,7 @@ local icontypes = {
 		bitmap = "icons/ship_t2_flame.png",
 		size = 1.89999998
 	},
-	corftiger = {
+	cortex_heattiger = {
 		bitmap = "icons/vehicle_t2_tank.png",
 		size = 1.46999991
 	},
@@ -1375,8 +1375,8 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_raid.png",
 		size = 0.89249998
 	},
-	corgatreap = {
-		bitmap = "icons/corgatreap.png",
+	cortex_lasertiger = {
+		bitmap = "icons/cortex_lasertiger.png",
 		size = 1.36499989
 	},
 	cortex_geothermalpowerplant = {
@@ -1388,7 +1388,7 @@ local icontypes = {
 		size = 1.83749986
 	},
 	cortex_epictzar = {
-		bitmap = "icons/armrattet4.png",
+		bitmap = "icons/armada_ratte.png",
 		size = 3.09749985
 	},
 	cortex_gunplatform = {
@@ -1563,7 +1563,7 @@ local icontypes = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
 	},
-	cormwall = {
+	cortex_dragonsrage = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
@@ -1591,8 +1591,8 @@ local icontypes = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
 	},
-	corprinter = {
-		bitmap = "icons/corprinter.png",
+	cortex_printer = {
+		bitmap = "icons/cortex_printer.png",
 		size = 1.20000005
 	},
 	cortex_riptide = {
@@ -1823,8 +1823,8 @@ local icontypes = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
-	cortorch = {
-		bitmap = "icons/cortorch.png",
+	cortex_torch = {
+		bitmap = "icons/cortex_torch.png",
 		size = 1.20000005
 	},
 	cortex_tremor = {
@@ -1879,11 +1879,11 @@ local icontypes = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
-	corvac = {
-		bitmap = "icons/corprinter.png",
+	cortex_2printer = {
+		bitmap = "icons/cortex_printer.png",
 		size = 1.20000005
 	},
-	corvacct = {
+	cortex_3printer = {
 		bitmap = "icons/blank.png",
 		size = 1.20000005
 	},

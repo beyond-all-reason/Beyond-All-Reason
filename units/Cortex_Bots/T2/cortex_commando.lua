@@ -46,7 +46,7 @@ return {
 		workertime = 200,
 		buildoptions = {
 			[1] = "cortex_hercules",
-			[2] = "corfink",
+			[2] = "cortex_finch",
 			[3] = "cortex_mediumminecommando",
 			[4] = "cortex_dragonsmaw",
 			[5] = "cortex_dragonsteeth",

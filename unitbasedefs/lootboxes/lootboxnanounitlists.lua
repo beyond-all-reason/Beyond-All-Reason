@@ -104,12 +104,12 @@ return {
 		"armada_turtle",
 		"armada_ambassador",
 		"armada_bull",
-		"corforge",
+		"cortex_forge",
 		"cortex_quaker",
 		"cortex_fury",
 		"cortex_alligator",
 		"cortex_tiger",
-		"corgatreap",
+		"cortex_lasertiger",
 		"cortex_negotiator",
 		"cortex_banisher",
 		"cortex_poisonarrow",
@@ -185,8 +185,8 @@ return {
 		"cortex_cataphract",
 		"armada_recluset4",
 		"armada_lunchbox",
-		"armmeatball",
-		"armassimilator",
+		"armada_meatball",
+		"armada_assimilator",
 
 		-- Air
 		"armada_highwind",
@@ -225,10 +225,10 @@ return {
 
 		-- Superboss
 		"armada_pawnt4",
-		"armrattet4",
+		"armada_ratte",
 		"armada_tumbleweedt4",
-		"armfepocht4",
-		"corfblackhyt4",
+		"armada_flyingepoch",
+		"cortex_flyingblackhydra",
 		"cortex_epicdragon",
 		"cortex_demon",
 		"cortex_epickarganeth",
@@ -237,16 +237,16 @@ return {
 
 		-- Air
 		"cortex_epicdragon",
-		"armfepocht4",
-		"corfblackhyt4",
+		"armada_flyingepoch",
+		"cortex_flyingblackhydra",
 		"armada_stormbringert4",
 
 		-- Sea
 		"armada_epoch",
 		"cortex_blackhydra",
 		"cortex_epicdragon",
-		"armfepocht4",
-		"corfblackhyt4",
+		"armada_flyingepoch",
+		"cortex_flyingblackhydra",
 		"armada_tumbleweedt4",
 		"cortex_juggernaut",
 		"armada_titan",

@@ -832,7 +832,7 @@ local definitions = {
             },
         },
 
-    ["armnuke"] = {
+    ["armada_nuke"] = {
         centerflare = {
             air                = true,
             class              = [[CHeatCloudProjectile]],
@@ -1052,7 +1052,7 @@ local definitions = {
             underwater         = true,
             properties = {
                 delay              = [[0 i1]],
-                explosiongenerator = [[custom:armnuke-floor]],
+                explosiongenerator = [[custom:armada_nuke-floor]],
                 pos                = [[-50 r100, 40, -50 r100]],
             },
         },
@@ -1065,7 +1065,7 @@ local definitions = {
             underwater         = true,
             properties = {
                 delay              = [[i1.5]],
-                explosiongenerator = [[custom:armnuke-stem]],
+                explosiongenerator = [[custom:armada_nuke-stem]],
                 pos                = [[-10 r20, -66 r33 i30, -10 r20]],
             },
         },
@@ -1078,7 +1078,7 @@ local definitions = {
             underwater         = true,
             properties = {
                 delay              = [[i1]],
-                explosiongenerator = [[custom:armnuke-stem2]],
+                explosiongenerator = [[custom:armada_nuke-stem2]],
                 pos                = [[-10 r20, -66 r33 i30, -10 r20]],
             },
         },
@@ -1091,7 +1091,7 @@ local definitions = {
         --    underwater         = true,
         --    properties = {
         --        delay              = [[6 i2]],
-        --        explosiongenerator = [[custom:armnuke-mid]],
+        --        explosiongenerator = [[custom:armada_nuke-mid]],
         --        pos                = [[-10 r20, 90 i5.5, -10 r20]],
         --    },
         --},
@@ -1104,7 +1104,7 @@ local definitions = {
             underwater         = true,
             properties = {
                 delay              = [[4 i1]],
-                explosiongenerator = [[custom:armnuke-headring]],
+                explosiongenerator = [[custom:armada_nuke-headring]],
                 pos                = [[0, 235, 0]],
             },
         },
@@ -1117,13 +1117,13 @@ local definitions = {
             underwater         = true,
             properties = {
                 delay              = [[8.5 i1]],
-                explosiongenerator = [[custom:armnuke-head]],
+                explosiongenerator = [[custom:armada_nuke-head]],
                 pos                = [[-25 r50, 245 i2.7, -25 r50]],
             },
         },
     },
 
-    ["armnuke-floor"] = {
+    ["armada_nuke-floor"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1153,7 +1153,7 @@ local definitions = {
             },
         },
     },
-    ["armnuke-stem"] = {
+    ["armada_nuke-stem"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1183,7 +1183,7 @@ local definitions = {
             },
         },
     },
-    ["armnuke-stem2"] = {
+    ["armada_nuke-stem2"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1213,7 +1213,7 @@ local definitions = {
             },
         },
     },
-    ["armnuke-mid"] = {
+    ["armada_nuke-mid"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1243,7 +1243,7 @@ local definitions = {
             },
         },
     },
-    ["armnuke-headring"] = {
+    ["armada_nuke-headring"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1273,7 +1273,7 @@ local definitions = {
             },
         },
     },
-    ["armnuke-head"] = {
+    ["armada_nuke-head"] = {
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1308,38 +1308,38 @@ local definitions = {
 
 -- local size = 1.5
 
--- definitions['cornuke-floor'] = table.copy(definitions['armnuke-floor'])
--- definitions['cornuke-floor'].smoke.properties.numparticles = math.floor(definitions['cornuke-floor'].smoke.properties.numparticles * size)
--- definitions['cornuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-floor'].smoke.properties.particlespeedspread * size)
--- definitions['cornuke-stem'] = table.copy(definitions['armnuke-stem'])
--- definitions['cornuke-stem'].smoke.properties.particlesize = math.floor(definitions['cornuke-stem'].smoke.properties.particlesize * size)
--- definitions['cornuke-stem2'] = table.copy(definitions['armnuke-stem2'])
--- definitions['cornuke-stem2'].smoke.properties.particlesize = math.floor(definitions['cornuke-stem2'].smoke.properties.particlesize * size)
--- definitions['cornuke-headring'] = table.copy(definitions['armnuke-headring'])
--- definitions['cornuke-headring'].smoke.properties.numparticles = math.floor(definitions['cornuke-headring'].smoke.properties.numparticles * size)
--- definitions['cornuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-headring'].smoke.properties.particlespeedspread * size)
--- definitions['cornuke-headring'].smoke.properties.particlesize = math.floor(definitions['cornuke-headring'].smoke.properties.particlesize * size)
--- definitions['cornuke-head'] = table.copy(definitions['armnuke-head'])
--- definitions['cornuke-head'].smoke.properties.numparticles = math.floor(definitions['cornuke-head'].smoke.properties.numparticles * size)
--- definitions['cornuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-head'].smoke.properties.particlespeedspread * size)
--- definitions['cornuke-head'].smoke.properties.particlesize = math.floor(definitions['cornuke-head'].smoke.properties.particlesize * size)
+-- definitions['cortex_nuke-floor'] = table.copy(definitions['armada_nuke-floor'])
+-- definitions['cortex_nuke-floor'].smoke.properties.numparticles = math.floor(definitions['cortex_nuke-floor'].smoke.properties.numparticles * size)
+-- definitions['cortex_nuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['cortex_nuke-floor'].smoke.properties.particlespeedspread * size)
+-- definitions['cortex_nuke-stem'] = table.copy(definitions['armada_nuke-stem'])
+-- definitions['cortex_nuke-stem'].smoke.properties.particlesize = math.floor(definitions['cortex_nuke-stem'].smoke.properties.particlesize * size)
+-- definitions['cortex_nuke-stem2'] = table.copy(definitions['armada_nuke-stem2'])
+-- definitions['cortex_nuke-stem2'].smoke.properties.particlesize = math.floor(definitions['cortex_nuke-stem2'].smoke.properties.particlesize * size)
+-- definitions['cortex_nuke-headring'] = table.copy(definitions['armada_nuke-headring'])
+-- definitions['cortex_nuke-headring'].smoke.properties.numparticles = math.floor(definitions['cortex_nuke-headring'].smoke.properties.numparticles * size)
+-- definitions['cortex_nuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['cortex_nuke-headring'].smoke.properties.particlespeedspread * size)
+-- definitions['cortex_nuke-headring'].smoke.properties.particlesize = math.floor(definitions['cortex_nuke-headring'].smoke.properties.particlesize * size)
+-- definitions['cortex_nuke-head'] = table.copy(definitions['armada_nuke-head'])
+-- definitions['cortex_nuke-head'].smoke.properties.numparticles = math.floor(definitions['cortex_nuke-head'].smoke.properties.numparticles * size)
+-- definitions['cortex_nuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['cortex_nuke-head'].smoke.properties.particlespeedspread * size)
+-- definitions['cortex_nuke-head'].smoke.properties.particlesize = math.floor(definitions['cortex_nuke-head'].smoke.properties.particlesize * size)
 -- --
--- definitions['cornuke'] = table.copy(definitions['armnuke'])
--- definitions['cornuke'].nukefloor.properties.explosiongenerator = [[custom:cornuke-floor]]
--- definitions['cornuke'].nukestem.properties.explosiongenerator = [[custom:cornuke-stem]]
--- definitions['cornuke'].nukestem2.properties.explosiongenerator = [[custom:cornuke-stem2]]
--- definitions['cornuke'].nukeheadring.properties.explosiongenerator = [[custom:cornuke-headring]]
--- definitions['cornuke'].nukehead.properties.explosiongenerator = [[custom:cornuke-head]]
+-- definitions['cortex_nuke'] = table.copy(definitions['armada_nuke'])
+-- definitions['cortex_nuke'].nukefloor.properties.explosiongenerator = [[custom:cortex_nuke-floor]]
+-- definitions['cortex_nuke'].nukestem.properties.explosiongenerator = [[custom:cortex_nuke-stem]]
+-- definitions['cortex_nuke'].nukestem2.properties.explosiongenerator = [[custom:cortex_nuke-stem2]]
+-- definitions['cortex_nuke'].nukeheadring.properties.explosiongenerator = [[custom:cortex_nuke-headring]]
+-- definitions['cortex_nuke'].nukehead.properties.explosiongenerator = [[custom:cortex_nuke-head]]
 
--- definitions['cornuke'].sparks.properties.particlespeed = math.floor(definitions['cornuke'].sparks.properties.particlespeed * size)
--- definitions['cornuke'].sparks.properties.particlespeedspread = math.floor(definitions['cornuke'].sparks.properties.particlespeedspread * size)
--- definitions['cornuke'].dirt.properties.particlespeed = math.floor(definitions['cornuke'].dirt.properties.particlespeed * size)
--- definitions['cornuke'].dirt.properties.particlespeedspread = math.floor(definitions['cornuke'].dirt.properties.particlespeedspread * size)
--- definitions['cornuke'].dirt2.properties.particlespeed = math.floor(definitions['cornuke'].dirt2.properties.particlespeed * size)
--- definitions['cornuke'].dirt2.properties.particlespeedspread = math.floor(definitions['cornuke'].dirt2.properties.particlespeedspread * size)
--- definitions['cornuke'].centerflare.properties.size = math.floor(definitions['cornuke'].centerflare.properties.size * size)
--- definitions['cornuke'].groundflash_large.properties.size = math.floor(definitions['cornuke'].groundflash_large.properties.size * size)
--- definitions['cornuke'].groundflash_white.properties.size = math.floor(definitions['cornuke'].groundflash_white.properties.size * size)
+-- definitions['cortex_nuke'].sparks.properties.particlespeed = math.floor(definitions['cortex_nuke'].sparks.properties.particlespeed * size)
+-- definitions['cortex_nuke'].sparks.properties.particlespeedspread = math.floor(definitions['cortex_nuke'].sparks.properties.particlespeedspread * size)
+-- definitions['cortex_nuke'].dirt.properties.particlespeed = math.floor(definitions['cortex_nuke'].dirt.properties.particlespeed * size)
+-- definitions['cortex_nuke'].dirt.properties.particlespeedspread = math.floor(definitions['cortex_nuke'].dirt.properties.particlespeedspread * size)
+-- definitions['cortex_nuke'].dirt2.properties.particlespeed = math.floor(definitions['cortex_nuke'].dirt2.properties.particlespeed * size)
+-- definitions['cortex_nuke'].dirt2.properties.particlespeedspread = math.floor(definitions['cortex_nuke'].dirt2.properties.particlespeedspread * size)
+-- definitions['cortex_nuke'].centerflare.properties.size = math.floor(definitions['cortex_nuke'].centerflare.properties.size * size)
+-- definitions['cortex_nuke'].groundflash_large.properties.size = math.floor(definitions['cortex_nuke'].groundflash_large.properties.size * size)
+-- definitions['cortex_nuke'].groundflash_white.properties.size = math.floor(definitions['cortex_nuke'].groundflash_white.properties.size * size)
 
 
 local size = 1.5
@@ -1517,23 +1517,23 @@ definitions['newnuketac'].bigsmoketrails.count = 3
 
 local size = 0.6
 
-definitions['raptornuke-floor'] = table.copy(definitions['armnuke-floor'])
+definitions['raptornuke-floor'] = table.copy(definitions['armada_nuke-floor'])
 definitions['raptornuke-floor'].smoke.properties.numparticles = math.floor(definitions['raptornuke-floor'].smoke.properties.numparticles * size)
 definitions['raptornuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['raptornuke-floor'].smoke.properties.particlespeedspread * size)
-definitions['raptornuke-stem'] = table.copy(definitions['armnuke-stem'])
+definitions['raptornuke-stem'] = table.copy(definitions['armada_nuke-stem'])
 definitions['raptornuke-stem'].smoke.properties.particlesize = math.floor(definitions['raptornuke-stem'].smoke.properties.particlesize * size)
-definitions['raptornuke-stem2'] = table.copy(definitions['armnuke-stem2'])
+definitions['raptornuke-stem2'] = table.copy(definitions['armada_nuke-stem2'])
 definitions['raptornuke-stem2'].smoke.properties.particlesize = math.floor(definitions['raptornuke-stem2'].smoke.properties.particlesize * size)
-definitions['raptornuke-headring'] = table.copy(definitions['armnuke-headring'])
+definitions['raptornuke-headring'] = table.copy(definitions['armada_nuke-headring'])
 definitions['raptornuke-headring'].smoke.properties.numparticles = math.floor(definitions['raptornuke-headring'].smoke.properties.numparticles * size)
 definitions['raptornuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['raptornuke-headring'].smoke.properties.particlespeedspread * size)
 definitions['raptornuke-headring'].smoke.properties.particlesize = math.floor(definitions['raptornuke-headring'].smoke.properties.particlesize * size)
-definitions['raptornuke-head'] = table.copy(definitions['armnuke-head'])
+definitions['raptornuke-head'] = table.copy(definitions['armada_nuke-head'])
 definitions['raptornuke-head'].smoke.properties.numparticles = math.floor(definitions['raptornuke-head'].smoke.properties.numparticles * size)
 definitions['raptornuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['raptornuke-head'].smoke.properties.particlespeedspread * size)
 definitions['raptornuke-head'].smoke.properties.particlesize = math.floor(definitions['raptornuke-head'].smoke.properties.particlesize * size)
 --
-definitions['raptornuke'] = table.copy(definitions['armnuke'])
+definitions['raptornuke'] = table.copy(definitions['armada_nuke'])
 definitions['raptornuke'].nukefloor.properties.explosiongenerator = [[custom:raptornuke-floor]]
 definitions['raptornuke'].nukestem.properties.explosiongenerator = [[custom:raptornuke-stem]]
 definitions['raptornuke'].nukestem2.properties.explosiongenerator = [[custom:raptornuke-stem2]]

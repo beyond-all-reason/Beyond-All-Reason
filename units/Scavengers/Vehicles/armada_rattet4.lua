@@ -1,10 +1,10 @@
 return {
-	armrattet4 = {
+	armada_ratte = {
 		maxacc = 0.0138,
 		maxdec = 0.08759,
 		energycost = 250000,
 		metalcost = 25000,
-		buildpic = "scavengers/armrattet4.DDS",
+		buildpic = "scavengers/armada_ratte.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "EPICVEH",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armrattet4.s3o",
-		script = "Units/scavboss/armrattet4.cob",
+		objectname = "Units/scavboss/armada_ratte.s3o",
+		script = "Units/scavboss/armada_ratte.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 600,
@@ -73,7 +73,7 @@ return {
 				height = 60,
 				hitdensity = 100,
 				metal = 12500,
-				object = "Units/scavboss/armrattet4_dead.s3o",
+				object = "Units/scavboss/armada_ratte_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

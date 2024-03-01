@@ -1,10 +1,10 @@
 return {
-	corgatreap = {
+	cortex_lasertiger = {
 		maxacc = 0.0362,
 		maxdec = 0.0724,
 		energycost = 17000,
 		metalcost = 1400,
-		buildpic = "CORGATREAP.DDS",
+		buildpic = "cortex_lasertiger.DDS",
 		buildtime = 14500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 100,
 		movementclass = "MTANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORGATREAP.s3o",
-		script = "Units/scavboss/CORGATREAP.cob",
+		objectname = "Units/scavboss/cortex_lasertiger.s3o",
+		script = "Units/scavboss/cortex_lasertiger.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 462,
@@ -75,7 +75,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 600,
-				object = "Units/scavboss/corgatreap_dead.s3o",
+				object = "Units/scavboss/cortex_lasertiger_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

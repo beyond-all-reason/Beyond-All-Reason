@@ -1,5 +1,5 @@
 return {
-	corassistdrone_land = {
+	cortex_assistvehicle = {
 		maxacc = 1,
 		maxdec = 1,
 		energycost = 1,
@@ -25,7 +25,7 @@ return {
 		speed = 37.5,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		objectname = "Units/corassistdrone_land.s3o",
+		objectname = "Units/cortex_assistvehicle.s3o",
 		script = "Units/cortex_muskrat.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",

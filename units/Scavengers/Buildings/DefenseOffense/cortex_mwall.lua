@@ -1,9 +1,9 @@
 return {
-	cormwall = {
+	cortex_dragonsrage = {
 		maxacc = 0,
 		energycost = 4800, --was 4850
 		metalcost = 1020, --was 485
-		buildpic = "CORMWALL.DDS",
+		buildpic = "cortex_dragonsrage.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/CORMWALL.s3o",
-		script = "Units/CORMWALL.cob",
+		objectname = "Units/cortex_dragonsrage.s3o",
+		script = "Units/cortex_dragonsrage.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 330,

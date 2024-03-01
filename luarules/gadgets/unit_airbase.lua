@@ -453,7 +453,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- in all cases, planes/pads may die at any time, and UnitDestroyed will take care of the book-keeping
 		toRemove = {}
 		toRemoveCount = 0
-		-- very occasionally, check all units to see if any planes (outside of our records) that need repair
+		-- very occasionally, check all units to see if any planes (outside of our recortex_disgruntler) that need repair
 		-- add them to pending landers, if so
 		if n % 72 == 0 then
 			CheckAll()

@@ -44,7 +44,7 @@ return {
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
 		-- 	"cortex_commander",
-		-- 	"corassistdrone",
+		-- 	"cortex_assistdrone",
 		-- },
 		customparams = {
 			usebuildinggrounddecal = false,

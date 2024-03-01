@@ -1,9 +1,9 @@
 return {
-	armlwall = {
+	armada_dragonsfury = {
 		maxacc = 0,
 		energycost = 4800, --3x armada_dragonsclaw
 		metalcost = 1020, --3x armada_dragonsclaw
-		buildpic = "ARMLWALL.DDS",
+		buildpic = "armada_dragonsfury.DDS",
 		buildtime = 14000, --3x armada_dragonsclaw
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,8 +26,8 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/ARMLWALL.s3o",
-		script = "Units/ARMLWALL.cob",
+		objectname = "Units/armada_dragonsfury.s3o",
+		script = "Units/armada_dragonsfury.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 330,

@@ -1,5 +1,5 @@
 return {
-	corassistdrone = {
+	cortex_assistdrone = {
 		maxacc = 0.07,
 		blocking = false,
 		maxdec = 0.4275,
@@ -7,7 +7,7 @@ return {
 		metalcost = 1,
 		builddistance = 100,
 		builder = true,
-		buildpic = "CORASSISTDRONE.DDS",
+		buildpic = "cortex_assistdrone.DDS",
 		buildtime = 500,
 		cancapture = true,
 		canfly = true,
@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		speed = 210.0,
 		maxwaterdepth = 0,
-		objectname = "Units/scavboss/CORASSISTDRONE.s3o",
+		objectname = "Units/scavboss/cortex_assistdrone.s3o",
 		script = "Units/cortex_constructionaircraft.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",

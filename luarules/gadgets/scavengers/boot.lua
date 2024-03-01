@@ -368,7 +368,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 	local unitName = UnitDefs[unitDefID].name
-	-- if unitName == "armassistdrone" or unitName == "corassistdrone" then
+	-- if unitName == "armada_assistdrone" or unitName == "cortex_assistdrone" then
 	-- 	constructorController.AssistDroneRespawn(unitID, unitName)
 	-- end
 	if unitTeam == ScavengerTeamID then

@@ -1,5 +1,5 @@
 return {
-	armassistdrone_land = {
+	armada_assistvehicle = {
 		maxacc = 1,
 		maxdec = 1,
 		energycost = 1,
@@ -25,7 +25,7 @@ return {
 		speed = 37.5,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		objectname = "Units/armassistdrone_land.s3o",
+		objectname = "Units/armada_assistvehicle.s3o",
 		script = "Units/armada_beaver.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",

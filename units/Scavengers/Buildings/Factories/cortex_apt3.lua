@@ -37,7 +37,7 @@ return {
 		buildoptions = {
 			"cortex_advancedconstructionaircraft",
 			"cortex_epicdragon",
-			"corfblackhyt4",
+			"cortex_flyingblackhydra",
 			"cortex_flyingdronecarrier",
 		},
 		customparams = {

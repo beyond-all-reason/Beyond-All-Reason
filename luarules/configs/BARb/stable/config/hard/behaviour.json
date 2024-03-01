@@ -1730,7 +1730,7 @@
 
 		// aircraft - cortex_aircraftplant
 
-		"corfink": {
+		"cortex_finch": {
 			"role": ["scout", "air"],
 			"retreat": 0.8,
 			"limit": 5

@@ -1,8 +1,8 @@
 {
 	"features": {
 		"names": {
-			"armstone": "Kommandantengrabstein",
-			"corstone": "Kommandantengrabstein",
+			"armada_tombstone": "Kommandantengrabstein",
+			"cortex_tombstone": "Kommandantengrabstein",
 			"ancientRocks": "Antike Gesteinsformation",
 			"bush": "Busch",
 			"bushSmall": "Kleiner Busch",

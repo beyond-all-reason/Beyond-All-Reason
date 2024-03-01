@@ -1,10 +1,10 @@
 return {
-	armassimilator = {
+	armada_assimilator = {
 		maxacc = 0.2369,
 		maxdec = 0.9039,
 		energycost = 25000,
 		metalcost = 2500,
-		buildpic = "ARMASSIMILATOR.DDS",
+		buildpic = "armada_assimilator.DDS",
 		buildtime = 25000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		speed = 60.0,
 		maxwaterdepth = 22,
 		movementclass = "EPICBOT",
-		objectname = "Units/scavboss/armassimilator.s3o",
-		script = "Units/scavboss/armassimilator.cob",
+		objectname = "Units/scavboss/armada_assimilator.s3o",
+		script = "Units/scavboss/armada_assimilator.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		--selfdestructcountdown = 1,
@@ -60,7 +60,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2325,
-				object = "Units/scavboss/armassimilator_dead.s3o",
+				object = "Units/scavboss/armada_assimilator_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

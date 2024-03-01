@@ -1,5 +1,5 @@
 return {
-	corfblackhyt4 = {
+	cortex_flyingblackhydra = {
 		maxacc = 0.015,
 		activatewhenbuilt = true,
 		bankingallowed = false,
@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		energycost = 250000,
 		metalcost = 25000,
-		buildpic = "corfblackhyt4.DDS",
+		buildpic = "cortex_flyingblackhydra.DDS",
 		buildtime = 250000,
 		canfly = true,
 		canmove = true,
@@ -29,8 +29,8 @@ return {
 		health = 67000,
 		speed = 36.0,
 		maxwaterdepth = 15,
-		objectname = "Units/scavboss/corfblackhyt4.s3o",
-		script = "Units/scavboss/corfblackhyt4.cob",
+		objectname = "Units/scavboss/cortex_flyingblackhydra.s3o",
+		script = "Units/scavboss/cortex_flyingblackhydra.cob",
 		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
@@ -64,7 +64,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 18000,
-				object = "Units/scavboss/corfblackhyt4_dead.s3o",
+				object = "Units/scavboss/cortex_flyingblackhydra_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

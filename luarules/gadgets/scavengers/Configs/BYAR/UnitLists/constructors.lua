@@ -113,8 +113,8 @@ local collectors = {
 	"cortex_advancedconstructionsub_scav",
 	"cortex_constructionhovercraft_scav",
 	"cortex_twitcher_scav",
-	"armassistdrone_scav",
-	"corassistdrone_scav",
+	"armada_assistdrone_scav",
+	"cortex_assistdrone_scav",
 }
 
 local constructorsID = getUnitIDList(constructors)

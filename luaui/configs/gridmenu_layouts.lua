@@ -74,7 +74,7 @@ local labGrids = {
 	},
 	cortex_aircraftplant = {
 		"cortex_constructionaircraft", "cortex_valiant", "cortex_shuriken", "cortex_whirlwind",              -- T1 con, fig, drone, bomber
-		"corfink", "cortex_hercules",                                -- radar, transport
+		"cortex_finch", "cortex_hercules",                                -- radar, transport
 	},
     legap = {
 		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
@@ -185,7 +185,7 @@ local labGrids = {
 }
 local unitGrids = {
 	-- Air assist drones
-	armassistdrone = {
+	armada_assistdrone = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },              -- mex, solar, wind
 			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},             -- T1 converter, uw m storage, tidal
@@ -208,7 +208,7 @@ local unitGrids = {
 		}
 	},
 
-	corassistdrone = {
+	cortex_assistdrone = {
 		{
 			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
 			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1 converter, uw m storage, tidal
@@ -253,7 +253,7 @@ local unitGrids = {
 		}
 	},
 	-- Land assist drones (mini amphibs)
-	armassistdrone_land = {
+	armada_assistvehicle = {
 		{
 			{ "armada_metalextractor", "armada_solarcollector", "armada_windturbine", },               -- mex, solar, wind
 			{ "armada_energyconverter", "", "armada_navalmetalstorage", "armada_tidalgenerator"},            -- T1 converter, uw m storage, tidal
@@ -276,7 +276,7 @@ local unitGrids = {
 		}
 	},
 
-	corassistdrone_land = {
+	cortex_assistvehicle = {
 		{
 			{ "cortex_metalextractor", "cortex_solarcollector", "cortex_windturbine", },                -- mex, solar, wind
 			{ "cortex_energyconverter", "", "cortex_navalmetalstorage", "cortex_tidalgenerator"},             -- T1 converter, uw m storage, tidal
@@ -1280,7 +1280,7 @@ local unitGrids = {
 			{ },                                                     --
 		},
 		{
-			{ "corfink", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },         -- scout plane, camera, dragon's teeth, jammer
+			{ "cortex_finch", "cortex_beholder", "cortex_dragonsteeth", "cortex_castro", },         -- scout plane, camera, dragon's teeth, jammer
 			{ "cortex_hercules", },                                          -- transport
 			{ "cortex_mediumminecommando" },                                          -- commando mine
 		},
@@ -1291,8 +1291,8 @@ local unitGrids = {
 		}
 	},
 
-	--corprinter
-	corprinter = {
+	--cortex_printer
+	cortex_printer = {
 		{
 			{'cortex_solarcollector', 'cortex_metalextractor' },
 			{ },

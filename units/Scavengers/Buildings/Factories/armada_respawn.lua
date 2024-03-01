@@ -44,7 +44,7 @@ return {
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
 		-- 	"armada_commander",
-		-- 	"armassistdrone",
+		-- 	"armada_assistdrone",
 		-- },
 		customparams = {
 			usebuildinggrounddecal = false,

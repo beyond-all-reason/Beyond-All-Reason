@@ -64,7 +64,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 	-- amphibious tanks
-	-- legassistdrone_land corassistdrone armassistdrone
+	-- legassistdrone_land cortex_assistdrone armada_assistdrone
 	-- ATANK2 = {
 	-- 	crushstrength = 30,
 	-- 	depthmod = 0,
@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- cortex_garpike armada_beaver armada_marauder cortex_poisonarrow armprow cortex_alligator corsala cortex_muskrat armada_turtle armada_pincer cortex_intruder legassistdrone_land corassistdrone armassistdrone
+	-- cortex_garpike armada_beaver armada_marauder cortex_poisonarrow armprow cortex_alligator corsala cortex_muskrat armada_turtle armada_pincer cortex_intruder legassistdrone_land cortex_assistdrone armada_assistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -290,7 +290,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- cortex_trapper armmflash cortex_incisor legmrv armada_groundhog leghades leghelops armada_rover cortex_rascal armada_consul armada_jaguar cortorch legmrrv
+	-- cortex_trapper armmflash cortex_incisor legmrv armada_groundhog leghades leghelops armada_rover cortex_rascal armada_consul armada_jaguar cortex_torch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -305,7 +305,7 @@ local moveDatas = {
 		}
 	},
 	-- armada_umbra cortex_brute armada_janus armada_whistler armada_stout cortex_wolverine legcv cortex_fury cortex_obscurer cortex_constructionvehicle  cortex_lasher legrail legacv armada_advancedconstructionvehicle armada_gremlin
-	--armada_constructionvehicle armada_shellshocker cortex_advancedconstructionvehicle cortex_pounder leggat legbar armada_prophet armada_mauser armada_shredder corforge cortex_saviour legvcarry cortex_omen cortex_quaker
+	--armada_constructionvehicle armada_shellshocker cortex_advancedconstructionvehicle cortex_pounder leggat legbar armada_prophet armada_mauser armada_shredder cortex_forge cortex_saviour legvcarry cortex_omen cortex_quaker
 	TANK3 = {
 		crushstrength = 30,
 		footprintx = 3,
@@ -336,7 +336,7 @@ local moveDatas = {
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
 
-	--corprinter corvac corvacct cortex_tiger corftiger armada_bull legsco corvoc armada_ambassador
+	--cortex_printer cortex_2printer cortex_3printer cortex_tiger cortex_heattiger armada_bull legsco corvoc armada_ambassador
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armada_pawnt4 cortex_epicgrunt armmeatball armassimilator armada_lunchbox
+	-- armada_pawnt4 cortex_epicgrunt armada_meatball armada_assimilator armada_lunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -755,7 +755,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedModClass = 1,
 	},
-	-- cortex_epictzar armrattet4
+	-- cortex_epictzar armada_ratte
 	EPICVEH = {
 		crushstrength = 9999,
 		depthmod = 0,

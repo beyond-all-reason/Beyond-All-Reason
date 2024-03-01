@@ -1,11 +1,11 @@
 return {
-	corfink = {
+	cortex_finch = {
 		acceleration = 0.3,
 		blocking = false,
 		maxdec = 0.0125,
 		energycost = 1450,
 		metalcost = 51,
-		buildpic = "CORFINK.DDS",
+		buildpic = "cortex_finch.DDS",
 		buildtime = 2400,
 		canfly = true,
 		canmove = true,
@@ -27,9 +27,9 @@ return {
 		maxslope = 10,
 		speed = 360.0,
 		maxwaterdepth = 0,
-		objectname = "Units/CORFINK.s3o",
+		objectname = "Units/cortex_finch.s3o",
 		radardistance = 1120,
-		script = "Units/CORFINK.cob",
+		script = "Units/cortex_finch.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		selfdestructcountdown = 1,

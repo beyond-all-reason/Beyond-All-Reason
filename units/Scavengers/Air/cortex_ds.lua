@@ -1,5 +1,5 @@
 return {
-	cords = {
+	cortex_disgruntler = {
 		acceleration = 0.05,
 		blocking = false,
 		maxdec = 0.055,
@@ -29,8 +29,8 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "scavs/CORDS.s3o",
-		script = "scavs/CORDS.cob",
+		objectname = "scavs/cortex_disgruntler.s3o",
+		script = "scavs/cortex_disgruntler.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 169,

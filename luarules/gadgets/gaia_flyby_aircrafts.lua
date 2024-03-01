@@ -132,7 +132,7 @@ local flyByUnits = {
     "armada_cyclone",
     "cortex_shuriken",
     "cortex_constructionaircraft",
-    "corfink",
+    "cortex_finch",
     "cortex_whirlwind",
     "cortex_hercules",
     "cortex_valiant",

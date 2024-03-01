@@ -18,7 +18,7 @@ end
 local isCommander = {}
 for defID, def in ipairs(UnitDefs) do
 	if def.customParams.iscommander ~= nil and not string.find(def.name, "scav") then
-		isCommander[defID] = def.name == 'cortex_commander' and FeatureDefNames.corstone.id or FeatureDefNames.armstone.id
+		isCommander[defID] = def.name == 'cortex_commander' and FeatureDefNames.cortex_tombstone.id or FeatureDefNames.armada_tombstone.id
 	end
 end
 

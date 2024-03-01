@@ -59,7 +59,7 @@ local lightMult = 1.4
 local effectDefs = {
 
 	-- land vechs
-	["cortorch"] = {
+	["cortex_torch"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 24, piece = "thruster1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 8, length = 32, piece = "thruster2", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 12, length = 64, piece = "thruster3", light = 1 },
@@ -70,7 +70,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1", limit = true },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
 	},
-	["corfink"] = {
+	["cortex_finch"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta", limit = true  },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb", limit = true  },
 	},
@@ -315,7 +315,7 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},
-	["cords"] = {
+	["cortex_disgruntler"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarefl", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarefr", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebl", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -350,13 +350,13 @@ local effectDefs = {
 
 
 	-- flying ships
-	["armfepocht4"] = {
+	["armada_flyingepoch"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustl1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustr1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustl2", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustr2", light = 0.62 },
 	},
-	["corfblackhyt4"] = {
+	["cortex_flyingblackhydra"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustl1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },

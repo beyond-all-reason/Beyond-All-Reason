@@ -1165,7 +1165,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armassistdrone_land'] = {
+	['armada_assistvehicle'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -1194,7 +1194,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	['corassistdrone_land'] = {
+	['cortex_assistvehicle'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'cagelight_emit',
@@ -4407,7 +4407,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfblackhyt4'] = {
+	['cortex_flyingblackhydra'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4967,7 +4967,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armfepocht4'] = {
+	['armada_flyingepoch'] = {
 		turret1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9093,7 +9093,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corfink'] = {
+	['cortex_finch'] = {
 		thruster1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -9178,7 +9178,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cords'] = {
+	['cortex_disgruntler'] = {
 		antenna = {
 			lightType = 'point',
 			pieceName = 'sleeve',

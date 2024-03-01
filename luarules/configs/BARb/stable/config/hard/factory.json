@@ -547,7 +547,7 @@
 
 		"income_tier": [30, 90],
 
-		"unit":      ["cortex_constructionaircraft", "cortex_valiant", "corfink", "cortex_whirlwind", "cortex_shuriken"],
+		"unit":      ["cortex_constructionaircraft", "cortex_valiant", "cortex_finch", "cortex_whirlwind", "cortex_shuriken"],
 
 		"land": {
 			"tier0": [ 0.10,    0.00,     0.10,      0.30,       0.60],

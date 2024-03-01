@@ -1,10 +1,10 @@
 return {
-	corforge = {
+	cortex_forge = {
 		maxacc = 0.02547,
 		maxdec = 0.05093,
 		energycost = 4700,
 		metalcost = 330,
-		buildpic = "CORFORGE.DDS",
+		buildpic = "cortex_forge.DDS",
 		buildtime = 7200,
 		builddistance = 136,
 		builder = true,
@@ -25,8 +25,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "NOTLAND VTOL",
-		objectname = "Units/scavboss/CORFORGE.s3o",
-		script = "Units/scavboss/CORFORGE.cob",
+		objectname = "Units/scavboss/cortex_forge.s3o",
+		script = "Units/scavboss/cortex_forge.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 451,
@@ -73,7 +73,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 138,
-				object = "Units/scavboss/CORFORGE_dead.s3o",
+				object = "Units/scavboss/cortex_forge_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

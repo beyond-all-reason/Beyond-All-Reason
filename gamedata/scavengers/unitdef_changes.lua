@@ -572,23 +572,23 @@ customDefs.corscavdtl = {
 -- local numBuildoptions = #UnitDefs.armada_experimentalgantry.buildoptions
 -- customDefs.armada_experimentalgantry = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armrattet4",
+-- 		[numBuildoptions+1] = "armada_ratte",
 -- 		[numBuildoptions+2] = "armada_recluset4",
 -- 		[numBuildoptions+3] = "armada_pawnt4",
 -- 		[numBuildoptions+4] = "armada_tumbleweedt4",
 -- 		[numBuildoptions+5] = "armada_lunchbox",
--- 		[numBuildoptions+6] = "armmeatball",
--- 		[numBuildoptions+7] = "armassimilator",
+-- 		[numBuildoptions+6] = "armada_meatball",
+-- 		[numBuildoptions+7] = "armada_assimilator",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armada_experimentalgantryuw.buildoptions
 -- customDefs.armada_experimentalgantryuw = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armrattet4",
+-- 		[numBuildoptions+1] = "armada_ratte",
 -- 		[numBuildoptions+2] = "armada_pawnt4",
 -- 		[numBuildoptions+3] = "armada_tumbleweedt4",
--- 		[numBuildoptions+4] = "armmeatball",
+-- 		[numBuildoptions+4] = "armada_meatball",
 -- 	},
 -- }
 
@@ -612,11 +612,11 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.cortex_advancedvehicleplant.buildoptions
 -- customDefs.cortex_advancedvehicleplant = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corgatreap",
--- 		[numBuildoptions+2] = "corforge",
--- 		[numBuildoptions+3] = "corvac", --corprinter
--- 		[numBuildoptions+4] = "cortorch",
--- 		[numBuildoptions+5] = "corftiger",
+-- 		[numBuildoptions+1] = "cortex_lasertiger",
+-- 		[numBuildoptions+2] = "cortex_forge",
+-- 		[numBuildoptions+3] = "cortex_2printer", --cortex_printer
+-- 		[numBuildoptions+4] = "cortex_torch",
+-- 		[numBuildoptions+5] = "cortex_heattiger",
 -- 		[numBuildoptions+6] = "corsala",
 -- 	},
 -- }
@@ -641,14 +641,14 @@ customDefs.corscavdtl = {
 -- -- numBuildoptions = #UnitDefs.cortex_aircraftplant.buildoptions
 -- -- customDefs.cortex_aircraftplant = {
 -- -- 	buildoptions = {
--- -- 		[numBuildoptions+1] = "corassistdrone",
+-- -- 		[numBuildoptions+1] = "cortex_assistdrone",
 -- -- 	},
 -- -- }
 
 -- -- numBuildoptions = #UnitDefs.armada_aircraftplant.buildoptions
 -- -- customDefs.armada_aircraftplant = {
 -- -- 	buildoptions = {
--- -- 		[numBuildoptions+1] = "armassistdrone",
+-- -- 		[numBuildoptions+1] = "armada_assistdrone",
 -- -- 	},
 -- -- }
 

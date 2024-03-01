@@ -2074,7 +2074,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "heatray",
 	},
-	corvac = {
+	cortex_2printer = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "con-assist",
@@ -2191,7 +2191,7 @@ GUIUnitSoundEffects = {
 
 	-- CORTEX AIRCRAFT
 
-	corfink = {
+	cortex_finch = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
 		BaseSoundWeaponType = "radar",
@@ -2706,8 +2706,8 @@ GUIUnitSoundEffects = {
 	xmasball2_4 = {},
 	xmasball2_5 = {},
 	xmasball2_6 = {},
-	armstone = {},
-	corstone = {},
+	armada_tombstone = {},
+	cortex_tombstone = {},
 	resourcecheat = {},
 
 	scavempspawner = {},
