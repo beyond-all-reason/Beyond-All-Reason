@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			maxrange="540",
 			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
@@ -167,7 +168,6 @@ return {
 					subs = 30,
 				},
 			},
-
 			empmissile = {
 				areaofeffect = 196,
 				avoidfeature = false,
@@ -214,7 +214,6 @@ return {
 					default = 80000,
 				},
 			},
-
 			emp = {
 				areaofeffect = 8,
 				avoidfeature = false,

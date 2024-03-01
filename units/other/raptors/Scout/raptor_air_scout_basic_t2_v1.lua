@@ -3,7 +3,6 @@ return {
 		acceleration = 2,
 		airhoverfactor = 0,
 		attackrunlength = 32,
-
 		maxdec = 0.4,
 		energycost = 50,
 		metalcost = 50,
@@ -44,7 +43,7 @@ return {
 		speed = 450.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorairscout1.s3o",
 		radardistance = 1000,
 		script = "Raptors/raptorairscout.cob",

@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_brood_t4_v1 = {
 		maxacc = 0.644,
-
 		maxdec = 0.23,
 		energycost = 5201,
 		metalcost = 251,
@@ -33,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/s_raptorboss_white.s3o",
 		script = "Raptors/raptorh2.cob",
 		selfdestructas = "BUG_DEATH",

@@ -2,7 +2,6 @@ return {
 	raptor_land_assault_spectre_t2_v1 = {
 		maxacc = 0.414,
 		airsightdistance = 650,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 152,
@@ -37,9 +36,8 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptora_spectre.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora1.cob",
 		seismicsignature = 3,
 		selfdestructas = "BIGBUG_DEATH",
@@ -166,11 +164,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				onlytargetcategory = "VTOL",

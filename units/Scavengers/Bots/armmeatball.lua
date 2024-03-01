@@ -190,7 +190,6 @@ return {
 					vtol = 60,
 				},
 			},
-
 			lrpc = {
 				accuracy = 1500,
 				areaofeffect = 75,

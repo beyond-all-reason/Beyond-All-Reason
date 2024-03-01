@@ -2,10 +2,10 @@ return {
 	cormart = {
 		maxacc = 0.0205,
 		maxdec = 0.04111,
-		energycost = 4000,
-		metalcost = 360,
+		energycost = 4400,
+		metalcost = 400,
 		buildpic = "CORMART.DDS",
-		buildtime = 5500,
+		buildtime = 6500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",

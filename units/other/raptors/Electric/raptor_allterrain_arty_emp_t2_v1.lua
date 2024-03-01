@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_emp_t2_v1 = {
 		maxacc = 0.115,
-
 		maxdec = 0.414,
 		energycost = 12320,
 		metalcost = 396,
@@ -34,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_artillery_electric_v2.s3o",
 		script = "Raptors/raptor_artillery_v2.cob",
 		seismicsignature = 0,

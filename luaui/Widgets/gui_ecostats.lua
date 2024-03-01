@@ -1,3 +1,7 @@
+if #Spring.GetAllyTeamList()-1 > 16 then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name = "Ecostats",
@@ -273,6 +277,8 @@ local function processScaling()
 		sizeMultiplier = sizeMultiplier * 0.88
 	elseif numAllyteams > 11 then
 		sizeMultiplier = sizeMultiplier * 0.82
+	elseif numAllyteams > 14 then
+		sizeMultiplier = sizeMultiplier * 0.77
 	end
 
 	tH = math.floor(tH * sizeMultiplier)

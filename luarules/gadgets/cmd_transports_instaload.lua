@@ -1,4 +1,6 @@
-local gadgetEnabled = Spring.GetModOptions().experimentalimprovedtransports
+if not Spring.GetModOptions().experimentalimprovedtransports then
+	return
+end
 
 function gadget:GetInfo()
     return {
@@ -8,9 +10,10 @@ function gadget:GetInfo()
         date = "March, 2015",
         license = "Public Domain, or the least-restrictive license your country allows.",
         layer = 1,
-        enabled = gadgetEnabled,
+        enabled = true,
     }
 end
+
 ------------------------------------------------------------------------
 include("LuaRules/Configs/customcmds.h.lua")
 --- [Deprecated] new lua core is added)

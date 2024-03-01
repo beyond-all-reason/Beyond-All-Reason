@@ -3,7 +3,6 @@ return {
 		maxacc = 1.15,
 		activatewhenbuilt = true,
 		autoheal = 27,
-
 		maxdec = 0.69,
 		energycost = 6000,
 		metalcost = 200,
@@ -31,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_listener.s3o",
 		script = "Raptors/raptorp1.cob",
 		seismicsignature = 0,

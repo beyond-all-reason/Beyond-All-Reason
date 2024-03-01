@@ -5,7 +5,6 @@ return {
 		amphibious = true,
 		autoheal = 10,
 		bankscale = "1",
-
 		maxdec = 0.2,
 		energycost = 2200,
 		metalcost = 72,
@@ -46,7 +45,7 @@ return {
 		speed = 450.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "NOTAIR",
+		nochasecategory = "NOTAIR SPACE",
 		objectname = "Raptors/raptor_crow.s3o",
 		script = "Raptors/raptorw2.cob",
 		seismicsignature = 0,

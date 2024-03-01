@@ -21,7 +21,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 15,
 		idletime = 1200,
 		health = 22000,
@@ -128,7 +127,6 @@ return {
 				}--,customparams = { single_hit_multi = 'true' },
 			},
 		
-
 			edragon_missile = {
 			
 				areaofeffect = 16,
@@ -178,8 +176,6 @@ return {
 					vtol = 400,
 				},			
 			},
-
-
 			krowbosslaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -246,6 +242,7 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrhvy3",
+				soundstartvolume = 35,
 				soundtrigger = 1,
 				targetmoveerror = 0.15,
 				thickness = 6.7,
@@ -298,7 +295,6 @@ return {
 				maindir = "-1 -1 0",
                 maxangledif = 180,
 			},
-
 		},
 	},
 }

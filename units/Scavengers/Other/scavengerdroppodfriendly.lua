@@ -4,7 +4,6 @@ return {
 		activatewhenbuilt = true,
 		autoheal = 1.8,
 		blocking = false,
-
 		maxdec = 0,
 		energycost = 10,
 		metalcost = 10,

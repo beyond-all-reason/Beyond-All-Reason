@@ -12,6 +12,7 @@ end
 
 
 local filename = "unitlist.csv"
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 
 local function round(num, numDecimalPlaces)
@@ -21,9 +22,6 @@ local function round(num, numDecimalPlaces)
 end
 
 function widget:Initialize()
-    if Script.LuaRules('GetIconTypes') then
-        iconTypesMap = Script.LuaRules.GetIconTypes()
-    end
     local file = assert(io.open(filename,'w'), "Unable to save file")
 
     local columnSeparator = ';'
@@ -299,7 +297,7 @@ function widget:Initialize()
                     unitDef.translatedHumanName..columnSeparator..
                     unitDef.translatedTooltip..columnSeparator..
                     description..columnSeparator..
-                    (iconTypesMap[unitDef.iconType] and string.gsub(string.gsub(iconTypesMap[unitDef.iconType], 'icons/', ''), '.png', '') or '')..columnSeparator..
+                    (iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..

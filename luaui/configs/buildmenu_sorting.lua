@@ -213,6 +213,7 @@ local unitOrderTable = {
 	['corvroc']        = 006420,
 	['armmerl']        = 006430,
 	['corban']         = 006440,
+	['legmed']         = 006450,
 
 	['armfido']        = 006500, --ARTILLERY
 	['cormort']        = 006510,
@@ -246,6 +247,7 @@ local unitOrderTable = {
 	['corseal']        = 006930,
 	['corsala']        = 006935,
 	['corparrow']      = 006940,
+	['legfloat']       = 006941,
 
    -- T2 HOVER
    ['corhal']         = 006950,
@@ -257,7 +259,7 @@ local unitOrderTable = {
 	['corkarg']        = 007030,
 	['armvang']        = 007040,
 	['corshiva']       = 007050,
-	['legjugglite']    = 007052,
+	['legkeres']	   = 007051,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
 	['leegmech']       = 007065,
@@ -277,7 +279,7 @@ local unitOrderTable = {
 	['armpwt4']        = 007300,
    ['corakt4']        = 007310,
 	['armsptkt4']      = 007320,
-	['cordemont4']     = 007330,
+	['cordemon']     = 007330,
 	['corkarganetht4'] = 007340,
 	['corthermite'] = 007341,
 
@@ -328,13 +330,13 @@ local unitOrderTable = {
 	-- T2 WATER ATTACK
 	['armlship']       = 009280, --ANTISWARM
 	['corfship']       = 009290,
-	
+
 	['armcrus']        = 009300, --MAIN BATTLE
 	['corcrus']        = 009310,
 
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
-	
+
 	['armdronecarry']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
 
@@ -695,8 +697,6 @@ local newUnitOrder = {}
 for id, value in pairs(unitOrderTable) do
 	if UnitDefNames[id] then
 		newUnitOrder[UnitDefNames[id].id] = value
-	else
-		Spring.Echo("WARNING: luaui/configs/buildmenu_sorting.lua: UnitDef '"..id.."' doesnt exist!")
 	end
 end
 unitOrderTable = newUnitOrder

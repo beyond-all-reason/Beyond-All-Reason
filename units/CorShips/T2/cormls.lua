@@ -18,7 +18,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 1600,
@@ -53,6 +52,7 @@ return {
 			[14] = "corfmine3",
 			[15] = "cortoast",
 			[16] = "corfdoom",
+			[17] = "corfdrag",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

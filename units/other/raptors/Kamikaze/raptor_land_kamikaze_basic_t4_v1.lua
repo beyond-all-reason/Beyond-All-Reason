@@ -3,7 +3,6 @@ return {
 		maxacc = 6.9,
 		activatewhenbuilt = true,
 		autoheal = 135,
-
 		maxdec = 0.23,
 		energycost = 9000,
 		metalcost = 350,
@@ -38,7 +37,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL HOVER",
+		nochasecategory = "VTOL SPACE HOVER",
 		objectname = "Raptors/big_raptor_dodo.s3o",
 		script = "Raptors/raptor_dodo2.cob",
 		seismicsignature = 4,

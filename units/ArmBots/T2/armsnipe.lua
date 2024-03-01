@@ -190,7 +190,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 3000,
 				customparams = {
-
 				},
 				damage = {
 					commanders = 1025,

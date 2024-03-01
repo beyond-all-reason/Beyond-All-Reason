@@ -17,7 +17,6 @@ return {
 		explodeas = "",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "special",
 		idleautoheal = 0,
 		idletime = 0,
 		levelground = false,

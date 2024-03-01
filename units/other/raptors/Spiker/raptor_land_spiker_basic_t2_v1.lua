@@ -1,7 +1,6 @@
 return {
 	raptor_land_spiker_basic_t2_v1 = {
 		maxacc = 1.725,
-
 		maxdec = 1.4375,
 		energycost = 174,
 		metalcost = 174,
@@ -34,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptors.s3o",
 		script = "Raptors/raptors1.cob",
 		seismicsignature = 0,
@@ -113,10 +112,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

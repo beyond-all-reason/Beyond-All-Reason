@@ -18,7 +18,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 1460,
@@ -54,6 +53,7 @@ return {
 			[15] = "armfmine3",
 			[16] = "armamb",
 			[17] = "armkraken",
+			[18] = "armfdrag",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

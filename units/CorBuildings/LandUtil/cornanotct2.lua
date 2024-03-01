@@ -24,7 +24,6 @@ return {
 		explodeas = "nanoboom",
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
@@ -49,7 +48,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Beherith",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landutil",
 		},
 		sfxtypes = {

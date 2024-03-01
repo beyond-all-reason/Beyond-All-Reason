@@ -15,7 +15,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "scavboss",
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
@@ -116,7 +115,6 @@ return {
 				burst = 1,
 				sprayAngle = 3000,
 				projectiles = 5,
-
 				areaofeffect = 292,
 				avoidfeature = false,
 				craterareaofeffect = 292,
@@ -135,9 +133,7 @@ return {
 				proximitypriority = -10,
 				range = 1000,
 				reloadtime = 1.5,
-
 				size = 4,
-
 				soundhit = "xplonuk2xs",
 				soundhitwet = "splslrg",
 				soundstart = "shotgunbig",

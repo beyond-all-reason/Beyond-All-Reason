@@ -94,9 +94,11 @@ if gadgetHandler:IsSyncedCode() then
                 local direction = queue[1].direction
                 Spring.Echo("direction: "..direction)
                 local nonscavname = string.gsub(UnitDefs[unitDefID].name, "_scav", "")
-                local nonscavDefID = UnitDefNames[nonscavname].id
-                Spring.CreateUnit(nonscavDefID, basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
-                Spring.SpawnCEG("scav-spawnexplo", basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, 0,0,0)
+				if UnitDefNames[nonscavname] then
+					local nonscavDefID = UnitDefNames[nonscavname].id
+					Spring.CreateUnit(nonscavDefID, basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
+					Spring.SpawnCEG("scav-spawnexplo", basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, 0,0,0)
+				end
             end
             table.remove(queue, 1)
         end

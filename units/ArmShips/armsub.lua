@@ -17,11 +17,10 @@ return {
 		explodeas = "smallExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
 		health = 840, --
-		speed = 63.0,
+		speed = 66.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",

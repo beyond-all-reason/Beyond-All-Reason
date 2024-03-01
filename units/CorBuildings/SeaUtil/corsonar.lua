@@ -18,7 +18,6 @@ return {
 		explodeas = "smallBuildingexplosiongeneric-uw",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 58,

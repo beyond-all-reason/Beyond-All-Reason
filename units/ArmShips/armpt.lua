@@ -19,7 +19,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
 		health = 780,
@@ -28,6 +27,8 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/ARMPT.s3o",
+		radardistance = 1000,
+		radaremitheight = 15,
 		script = "Units/ARMPT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
@@ -88,6 +89,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny",
+				[2] = "custom:radarpulse_t1",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

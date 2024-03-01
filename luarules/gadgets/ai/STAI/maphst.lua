@@ -13,6 +13,12 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
+	local mcmcmcmc = Spring.GetGameRulesParam("mex_count")
+	Spring:Echo('mcmcmcmc',mcmcmcmc)
+	for i=1,80 do
+-- 		Spring.Echo(i)
+		Spring.Echo(Spring.GetGameRulesParam("mex_x" .. i))
+	end
 
 	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
@@ -170,6 +176,22 @@ function MapHST:PosToGrid(pos)
 		self:Warn( X,Z,'is out of GRID',pos.x,pos.z)
 	end
 	return X, Z
+end
+
+function MapHST:RawPosToGrid(x,y,z)
+	local X = math.ceil(x / self.gridSize)
+	local Z = math.ceil(z / self.gridSize)
+	if not self.GRID[X] or not self.GRID[X][Z] then
+		self:Warn( X,Z,'is out of GRID',x,z)
+	end
+	return X, Z
+end
+
+function MapHST:IsCellInGrid(X,Z)
+	if X < 1 or Z < 1 or X > self.gridSideX or Z > self.gridSideZ then
+		return nil
+	end
+	return true
 end
 
 function MapHST:GridToPos(X,Z)
@@ -519,6 +541,14 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
+	if not unitName then
+		self:Warn('getPath receive a nil unitName',unitName)
+		return
+	end
+	if not mclass then
+		self:Warn('getPath receive a nil mclass',unitName,mclass)
+		return
+	end
 	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
 	if metapath then
 		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
@@ -729,22 +759,35 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local spotDistance = math.huge
 
 	if not layer or not net then return end
-	for index, spot in pairs(self.networks[layer][net].metals) do
+	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
+-- 	for index, spot in ipairs(sortlist) do
+-- 		Spring:Echo(index,spot)
+-- 	end
+-- 	local RAM = gcinfo()
+	for index, spot in pairs(sortlist) do
+-- 		local spot = self.networks[layer][net].metals[index]
+
 		if self:UnitCanGoHere(builder, spot) then
+-- 			Spring:Echo('mexRAM1',gcinfo()-RAM)
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
+-- 				Spring:Echo('mexRAM2',gcinfo()-RAM)
 				if self.ai.targethst:IsSafeCell(spot, builder) then
+-- 					Spring:Echo('mexRAM3',gcinfo()-RAM)
 					if map:CanBuildHere(unittype, spot) then
+-- 					Spring:Echo('mexRAM4',gcinfo()-RAM)
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
-							local distance = self.ai.tool:distance(position,spot)
-							--print(distance-Distance)
- 							--if distance < 300 then
- 							--	return spot
- 							--else
-								if distance < spotDistance then
-									spotPosition = spot
-									spotDistance = distance
-								end
+--						Spring:Echo('mexRAM5',gcinfo()-RAM]])
+							return spot
+-- 							local distance = self.ai.tool:distance(position,spot)
+-- 							--print(distance-Distance)
+--  							--if distance < 300 then
+--  							--	return spot
+--  							--else
+-- 								if distance < spotDistance then
+-- 									spotPosition = spot
+-- 									spotDistance = distance
+-- 								end
  							--end
 						else
 							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
@@ -885,9 +928,9 @@ function MapHST:DrawDebug()
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
 			map:DrawPoint(CELL.POS, nil, X .. ':' ..Z.. ' = ' ..((X - 1) *self.ai.maphst.gridSideX) + Z, 9)
-			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
-				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
-			end
+-- 			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
+-- 				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
+-- 			end
 			local pos1, pos2 = {},{}
 			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
 			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf

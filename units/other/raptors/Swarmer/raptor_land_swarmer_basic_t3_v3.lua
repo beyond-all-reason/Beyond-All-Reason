@@ -2,7 +2,6 @@ return {
 	raptor_land_swarmer_basic_t3_v3 = {
 		maxacc = 0.575,
 		autoheal = 3,
-
 		maxdec = 0.345,
 		energycost = 79,
 		metalcost = 79,
@@ -33,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor1z.s3o",
 		script = "Raptors/raptor1z.cob",
 		seismicsignature = 0,

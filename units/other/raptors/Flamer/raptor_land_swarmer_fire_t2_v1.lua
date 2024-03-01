@@ -3,7 +3,6 @@ return {
 		maxacc = 1.035,
 		activatewhenbuilt = true,
 		autoheal = 50,
-
 		maxdec = 0.805,
 		energycost = 15000,
 		metalcost = 250,
@@ -31,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorp2.s3o",
 		script = "Raptors/raptorr2.cob",
 		seismicsignature = 0,
@@ -144,13 +143,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "CHASEWEAPON",
 				maindir = "0 0 1",
 				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "FLAMER",
 				maindir = "0 0 1",
 				maxangledif = 270,

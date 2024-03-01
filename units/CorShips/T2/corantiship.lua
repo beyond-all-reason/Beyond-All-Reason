@@ -27,7 +27,6 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
 		sightemitheight = 56,
@@ -53,9 +52,8 @@ return {
 		workertime = 1000,
 		customparams = {
 			unitgroup = 'antinuke',
-			isairbase = true,
 			model_author = "Odin",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
 			techlevel = 2,
 		},

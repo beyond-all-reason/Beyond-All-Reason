@@ -174,7 +174,6 @@ local createNanoUnitDef = function(tier)
 		footprintx = parameters.footprintx,
 		footprintz = parameters.footprintz,
 		--floater = true,
-		icontype = "building",
 		idleautoheal = 5 * parameters.sizeMultiplier,
 		idletime = 1800,
 		levelground = false,

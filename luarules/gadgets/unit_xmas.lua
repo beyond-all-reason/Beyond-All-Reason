@@ -1,3 +1,7 @@
+if not Spring.GetModOptions().xmas then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -6,10 +10,11 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= Spring.GetModOptions().xmas,
+		enabled		= true,
 	}
 end
 
+_G.itsXmas = true
 
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
@@ -40,8 +45,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 -------------------------------------------------------------------------------
-
-_G.itsXmas = true
 
 local maxDecorations = 350
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)

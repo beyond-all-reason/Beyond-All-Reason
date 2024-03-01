@@ -72,7 +72,6 @@ return {
 			[27] = "legvp",
 			[28] = "legavp",
 			[29] = "leggant",
-			[30] = "coruwageo",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

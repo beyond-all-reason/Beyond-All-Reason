@@ -23,7 +23,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
 		sightemitheight = 56,
@@ -163,8 +162,8 @@ return {
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 36,
-					docktohealthreshold = 45,
+					dockinghealrate = 24,
+					docktohealthreshold = 65,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 11,		--First model piece to be used for docking.

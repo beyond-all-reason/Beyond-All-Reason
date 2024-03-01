@@ -18,7 +18,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 6,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 3900,
@@ -43,7 +42,7 @@ return {
 			[5] = "corvamp",
 			[6] = "corawac",
 			[7] = "corseah",
-			[8] = "corcrw",
+			[8] = "corcrwh",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

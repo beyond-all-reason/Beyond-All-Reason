@@ -5,10 +5,11 @@
 
 piece  ground, base, door1, door2, NanoTurret, Nanoemit;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, oldHead;
+static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, oldHead, notBuilding;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIG_MOVE			4
+#define SIG_BUILD			2
 
 SetDirection(heading)
 {
@@ -47,117 +48,6 @@ RockOnWaves()
 }
 
 
-activatescr()
-{
-	move door1 to y-axis [1] speed [3];
-	move door2 to y-axis [1] speed [3];
-	sleep 333;
-	
-	move door1 to x-axis [3.4] speed [9];
-	move door2 to x-axis [-3.4] speed [9];
-	sleep 333;
-	
-	move nanoturret to y-axis [8] speed [24];
-	sleep 333;
-
-}
-
-deactivatescr()
-{
-
-	move nanoturret to y-axis [0] speed [24];
-	sleep 333;
-	
-	
-	move door1 to x-axis [0] speed [9];
-	move door2 to x-axis [0] speed [9];
-	sleep 333;
-	
-	move door1 to y-axis [0] speed [3];
-	move door2 to y-axis [0] speed [3];
-	sleep 333;
-}
-
-Go()
-{
-	call-script activatescr();
-	turn NanoTurret to y-axis <180>+Static_Var_2 speed <160.000000>;
-	wait-for-turn NanoTurret around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn NanoTurret around y-axis;
-	call-script deactivatescr();
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
-
-Create()
-{
-	hide nanoemit;
-	hide ground;
-	Static_Var_2 = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
-StartBuilding(Func_Var_1)
-{
-	show nanoemit;
-	Static_Var_2 = Func_Var_1;
-	start-script RequestState(0);
-}
-
-StopBuilding()
-{
-	hide nanoemit;
-	start-script RequestState(1);
-}
 
 waveSplash()
 {
@@ -195,31 +85,148 @@ StopMoving()
 }
 
 
-AimPrimary(heading, pitch)
+Go()
 {
-	return (1);
+	call-script activatescr();
+	set INBUILDSTANCE to 1;
+	sleep 500;
 }
 
-AimFromPrimary(piecenum)
-{
-	piecenum = base;
+Stop()
+{	
+	call-script deactivatescr();
+	set INBUILDSTANCE to 0;
+	sleep 200;	
 }
 
-QueryPrimary(piecenum)
+
+RequestState(requestedstate, currentstate)
 {
-	piecenum = base;
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			notBuilding = 1;
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			notBuilding = 0;
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
 }
 
+
+Create()
+{
+	hide Nanoemit;
+	hide ground;
+	Static_Var_2 = 0;
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
+	
+}
+
+
+activatescr()
+{
+	move door1 to y-axis [1] speed [3];
+	move door2 to y-axis [1] speed [3];
+	sleep 333;
+	
+	move door1 to x-axis [3.4] speed [9];
+	move door2 to x-axis [-3.4] speed [9];
+	sleep 333;
+	
+	move nanoturret to y-axis [8] speed [24];
+	sleep 333;
+
+}
+
+deactivatescr()
+{
+
+	move nanoturret to y-axis [0] speed [24];
+	sleep 333;
+	
+	
+	move door1 to x-axis [0] speed [9];
+	move door2 to x-axis [0] speed [9];
+	sleep 333;
+	
+	move door1 to y-axis [0] speed [3];
+	move door2 to y-axis [0] speed [3];
+	sleep 333;
+}
+
+
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+
+
+StartBuilding(head,pitch)
+{
+	show Nanoemit;
+	Static_Var_2 = head;
+	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn NanoTurret to y-axis <180>+Static_Var_2 speed <160.000000>;
+	wait-for-turn NanoTurret around y-axis;
+	set INBUILDSTANCE to 1;
+	
+}
+
+StopBuilding()
+{
+	hide nanoemit;
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 3000;
+	set-signal-mask 0;
+	signal SIG_BUILD;
+	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn NanoTurret around y-axis;
+	start-script RequestState(1);
+}
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = nanoemit;
+	piecenum = Nanoemit;
 }
 
 TargetHeading(Func_Var_1)
 {
 	Static_Var_2 = 0 - Func_Var_1;
 }
+
 
 SweetSpot(piecenum)
 {

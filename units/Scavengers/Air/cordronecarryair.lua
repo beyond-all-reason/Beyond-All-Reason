@@ -26,7 +26,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 15,
 		idletime = 600,
 		sightemitheight = 56,
@@ -49,7 +48,7 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Odin",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "scavengers/air",
 			techlevel = 3,
 		},

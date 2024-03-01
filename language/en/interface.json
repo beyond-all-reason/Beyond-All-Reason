@@ -476,7 +476,6 @@
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
-			"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
 		},
@@ -517,7 +516,9 @@
 			"windStrength": "Wind speed",
 			"waterDamage": "Water damage",
 			"raptorOptions": "Raptor options",
-			"modOptions": "Mod options"
+			"modOptions": "Mod options",
+			"reclaimableMetal": "Reclaimable Metal",
+			"reclaimableEnergy": "Reclaimable Energy"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",
@@ -871,6 +872,7 @@
 				"label_playlist": "Playlist",
 				"label_messages": "Messages",
 				"label_cursor": "Cursor",
+				"label_commands": "Commands",
 				"label_hotkeys": "Hotkeys",
 				"label_camera": "Camera",
 				"label_cloak": "Cloak Units",
@@ -1025,6 +1027,7 @@
 				"sndvolgeneral": "general",
 				"sndvolbattle": "battle",
 				"sndvolui": "interface",
+				"sndvolambient": "ambient",
 				"sndvolunitreply": "unit reply",
 				"sndunitsound": "Unit Response Sounds",
 				"sndunitsound_desc": "Unit Response Sounds",
@@ -1387,6 +1390,8 @@
 				"lockcamera_hideenemies_descr": "When viewing a players camera, this will display what the tracked player sees",
 				"lockcamera_los": "show tracked player LoS",
 				"lockcamera_los_descr": "When viewing a players camera and los, shows shaded los ranges too",
+				"drag_multicommand_shift": "Repeat command when dragging",
+				"drag_multicommand_shift_descr": "When dragging right-click with a single unit selected, issue repeat commands while holding shift",
 				"playertv_countdown": "Player TV countdown",
 				"playertv_countdown_descr": "Countdown time before it switches player",
 				"displayselectedname": "Display selected playername",

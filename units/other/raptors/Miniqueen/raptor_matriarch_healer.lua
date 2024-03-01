@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
@@ -39,7 +38,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_healer.s3o",
 		pushresistant = true,
 		repairable = false,

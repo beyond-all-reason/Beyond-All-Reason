@@ -18,7 +18,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 7,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
@@ -37,7 +36,7 @@ return {
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			"coracv",
-			"corseal",
+			"corsala",
 			"correap",
 			"corparrow",
 			"corgol",

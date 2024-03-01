@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+Spring.SendCommands("resbar 0")
+
 -- Add new options at: function init
 
 local types = {
@@ -205,7 +207,7 @@ local reclaimFieldHighlightOptions = {
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
-	for key, value in pairs(Spring.GetModOptions()) do
+	for key, value in pairs(Spring.GetModOptionsCopy()) do
 		local v = value
 		if type(v) == 'boolean' then
 			v = (v and '1' or '0')
@@ -292,10 +294,9 @@ end
 local function adjustShadowQuality()
 	local quality = Spring.GetConfigInt("ShadowQuality", 3)
 	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
-	Spring.SetConfigInt("Shadows", 1)
+	Spring.SetConfigInt("Shadows", (quality==0 and 0 or 1))
 	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
-	Spring.SendCommands("shadows 1 " .. shadowMapSize)
-	--Spring.Echo(shadowMapSize)
+	Spring.SendCommands("shadows "..(quality==0 and 0 or 1).." " .. shadowMapSize)
 end
 
 function widget:ViewResize()
@@ -342,9 +343,7 @@ function widget:ViewResize()
 		backgroundGuishader = glDeleteList(backgroundGuishader)
 	end
 
-	if not (Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500) then
-		adjustShadowQuality()
-	end
+	adjustShadowQuality()
 end
 
 local function detectWater()
@@ -1889,7 +1888,7 @@ function init()
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
-			shadowslider = 2,
+			shadowslider = 3,
 			grass = false,
 			cusgl4 = true,
 		},
@@ -1907,7 +1906,7 @@ function init()
 		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
-			shadowslider = 3,
+			shadowslider = 4,
 		 	grass = true,
 			cusgl4 = true,
 		},
@@ -1925,7 +1924,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
-			shadowslider = 4,
+			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -1943,7 +1942,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
-			shadowslider = 5,
+			shadowslider = 6,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -2283,14 +2282,15 @@ function init()
 		  end,
 		},
 
-		{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDetail", value)
-			  Spring.SendCommands("GroundDetail " .. value)
-		  end,
-		},
+		-- luaintro sets grounddetail to 200 every launch anyway
+		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("GroundDetail", value)
+		--	  Spring.SendCommands("GroundDetail " .. value)
+		--  end,
+		--},
 
 		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
 		  onchange = function(i, value)
@@ -2303,9 +2303,9 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3), description = Spring.I18N('ui.settings.option.shadowslider_descr'),
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'off', 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("ShadowQuality", value)
+			  Spring.SetConfigInt("ShadowQuality", value - 1)
 			  adjustShadowQuality()
 		  end,
 		},
@@ -2639,6 +2639,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
+		--{ id = "sndambient", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolambient'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volambient", 1) or 100),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("snd_volambient", value)
+		--  end,
+		--},
 		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolunitreply'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
 		--  onload = function(i)
 		--  end,
@@ -3169,6 +3176,16 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
+		  end,
+		},
+
+		{ id = "label_ui_command", group = "control", name = Spring.I18N('ui.settings.option.label_commands'), category = types.advanced },
+		{ id = "label_ui_command_spacer", group = "control", category = types.basic },
+		{ id = "drag_multicommand_shift", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.drag_multicommand_shift'), type = "bool", value = (WG.customformations ~= nil and WG.customformations.getRepeatForSingleUnit()), description = Spring.I18N('ui.settings.option.drag_multicommand_shift_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('CustomFormations2', 'customformations', 'setRepeatForSingleUnit', { 'repeatForSingleUnit' }, value)
 		  end,
 		},
 
@@ -5636,11 +5653,7 @@ function init()
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				options[getOptionByID('shadowslider')] = nil
-				options[getOptionByID('shadows_opacity')] = nil
-
 				Spring.SendCommands("advmapshading 0")
-				Spring.SendCommands("Shadows 0 1024")
 			end
 
 		end
@@ -5929,7 +5942,7 @@ function init()
 				options[#options+1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
 			end
 			local desc = data.desc or ''
-			if desc ~= '' then
+			if desc ~= '' and WG['tooltip'] then
 				local maxWidth = WG['tooltip'].getFontsize() * 90
 				local textLines, numLines = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, '[\n]', '\n')
@@ -6102,6 +6115,9 @@ function widget:Initialize()
 	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame Queue")
 	end
+	if widgetHandler.orderList["Screen Mode/Resolution Switcher"] < 0.5 then
+		widgetHandler:EnableWidget("Screen Mode/Resolution Switcher")
+	end
 
 	-- enable GL4 unit rendering api's
 	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
@@ -6110,7 +6126,6 @@ function widget:Initialize()
 	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
 		widgetHandler:EnableWidget("HighlightUnit API GL4")
 	end
-
 
 	updateGrabinput()
 	widget:ViewResize()
@@ -6148,7 +6163,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.GetConfigInt("ShadowQuality", 1)
+			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)

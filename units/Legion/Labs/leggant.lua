@@ -17,7 +17,6 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 17800,
@@ -43,6 +42,7 @@ return {
 			[6] = "corsok",
 			[7] = "legpede",
 			[8] = "leegmech",
+			[9] = "legkeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

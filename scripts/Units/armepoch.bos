@@ -10,11 +10,59 @@ piece  ground, base, dish, wake, bow, engine,
        flare1a, flare1b, flare2a, flare2b, flare2c, flare3a, flare3b, flare4a, flare4b, flare4c, flare5a, flare5b, flare5c,
        turretmis1, turretmis2, misbox1, misbox2, misflare1, misflare2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_7, restore_delay, oldHead;
+static-var  active_barrel_one, active_barrel_two, active_barrel_three, Static_Var_4, Static_Var_5,
+            Static_Var_7, restore_delay, oldHead, aimy1target, aimy1position, Func_Var_1, Func_Var_2, Static_Var_8, aimDir;
 
 // Signal definitions
 #define SIG_MOVE			256
+#define SIG_ROCK			16
+
+
+
+
+
+
+ProjXPW(Func_Var_1, Func_Var_2)
+{
+	if( Func_Var_2 < -21840 )
+	{
+		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
+	}
+	else if( Func_Var_2 > 21840 )
+	{
+		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
+	}
+	else if( Func_Var_2 < -10920 )
+	{
+		Static_Var_7 = 0 - Func_Var_1;
+	}
+	else if( Func_Var_2 > 10920 )
+	{
+		Static_Var_7 = Func_Var_1;
+	}
+	else
+	{
+		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
+	}
+}
+
+RockZ(Func_Var_1, Func_Var_2)
+{
+	signal 16;
+	set-signal-mask 16;
+	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
+	Static_Var_8 = Static_Var_8 + Static_Var_7;
+	Static_Var_7 = get ABS(Static_Var_8);
+	while( Static_Var_7 > 91 )
+	{
+		turn base to z-axis Static_Var_8 speed Static_Var_7 * 2;
+		wait-for-turn base around z-axis;
+		Static_Var_8 = Static_Var_8 * -1 / 2;
+		Static_Var_7 = get ABS(Static_Var_8);
+	}
+	turn base to z-axis <0.000000> speed <1.5>;
+}
+
 
 
 SetDirection(heading)
@@ -90,9 +138,14 @@ Create()
 	hide flare4c;
 	hide flare5c;
 
-	Static_Var_1 = 0;
-	Static_Var_2 = 0;
-	Static_Var_3 = 0;
+
+	aimDir = 0;
+	aimy1target = 0;
+	aimy1position = 0;
+
+	active_barrel_one = 0;
+	active_barrel_two = 0;
+	active_barrel_three = 0;
 	Static_Var_4 = 0;
 	Static_Var_5 = 0;
 	Static_Var_7 = 0;
@@ -219,12 +272,16 @@ AimWeapon1(heading, pitch)
 	wait-for-turn tur1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	start-script RestoreAfterDelay();
+	aimDir = heading;
 	return (1);
 }
 
 FireWeapon1()
 {
-	if( Static_Var_1 )
+}
+Shot1() {
+	start-script RockZ(-35, aimDir);
+	if( active_barrel_one )
 	{
 	    emit-sfx 1024 + 1 from flare1b;
 		move barrel1b to z-axis [-3.000000] speed [500.000000];
@@ -239,8 +296,11 @@ FireWeapon1()
 		sleep 100;
 		move barrel1a to z-axis [0.000000] speed [3.000000];
 	}
-	Static_Var_1 = !Static_Var_1;
+	active_barrel_one = !active_barrel_one;
 }
+
+
+
 
 AimFromWeapon1(piecenum)
 {
@@ -249,7 +309,7 @@ AimFromWeapon1(piecenum)
 
 QueryWeapon1(piecenum)
 {
-	piecenum = flare1a + Static_Var_1;
+	piecenum = flare1a + active_barrel_one;
 }
 
 AimWeapon2(heading, pitch)
@@ -264,16 +324,15 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
-{
-	if( Static_Var_2 == 0 )
+FireWeapon2() {
+	if( active_barrel_two == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare2a;
 		move barrel2a to z-axis [-1.000000] speed [500.000000];
 		sleep 100;
 		move barrel2a to z-axis [0.000000] speed [3.000000];
 	}
-	else if( Static_Var_2 == 1 )
+	else if( active_barrel_two == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2b;
 		move barrel2b to z-axis [-1.000000] speed [500.000000];
@@ -287,10 +346,11 @@ FireWeapon2()
 		sleep 100;
 		move barrel2c to z-axis [0.000000] speed [3.000000];
 	}
-	++Static_Var_2;
-	if( Static_Var_2 >= 3 )
+	
+	++active_barrel_two;
+	if( active_barrel_two >= 3 )
 	{
-		Static_Var_2 = 0;
+		active_barrel_two = 0;
 	}
 }
 
@@ -301,7 +361,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = flare2a + Static_Var_2;
+	piecenum = flare2a + active_barrel_two;
 }
 
 AimWeapon3(heading, pitch)
@@ -318,7 +378,9 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	if( Static_Var_3 )
+}
+Shot3 () {
+	if( active_barrel_three )
 	{
 	    emit-sfx 1024 + 1 from flare3b;
 		move barrel3b to z-axis [-3.000000] speed [500.000000];
@@ -332,7 +394,7 @@ FireWeapon3()
 		sleep 100;
 		move barrel3a to z-axis [0.000000] speed [3.000000];
 	}
-	Static_Var_3 = !Static_Var_3;
+	active_barrel_three = !active_barrel_three;
 }
 
 AimFromWeapon3(piecenum)
@@ -342,7 +404,7 @@ AimFromWeapon3(piecenum)
 
 QueryWeapon3(piecenum)
 {
-	piecenum = flare3a + Static_Var_3;
+	piecenum = flare3a + active_barrel_three;
 }
 
 AimWeapon4(heading, pitch)

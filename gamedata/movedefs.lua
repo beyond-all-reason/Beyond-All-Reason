@@ -198,7 +198,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold
+	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -421,7 +421,7 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe
+	--armmark corspec corck corvoyr armzues corcan armck corack legck corstorm legbart legbal legack armsnipe
 	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
 	--
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
@@ -437,7 +437,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr
+	-- corhrk armfido leggstr corthud armham
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo legmech
+	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox cordemont4
+	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,

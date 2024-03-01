@@ -64,13 +64,6 @@ if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
 	Spring.SetConfigInt("LuaShaders", 1)
 end
 
--- Disable PBO for intel GFX
-if Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
-	Spring.SetConfigInt("UsePBO", 0)
-else
-	Spring.SetConfigInt("UsePBO", 1)
-end
-
 -- Disable dynamic model lights
 Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
@@ -79,7 +72,7 @@ Spring.SetConfigInt("AllowDeferredMapRendering", 1)
 Spring.SetConfigInt("AllowDeferredModelRendering", 1)
 
 -- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
-Spring.SetConfigInt("LoadingMT", 0)
+--Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 -- This was set to 2 as of 2022.08.16, Beherith reduced it to 1 for even less GC probability

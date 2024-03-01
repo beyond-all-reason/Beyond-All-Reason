@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 75,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
@@ -36,7 +35,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/epic_raptorq.s3o",
 		pushresistant = true,
 		script = "Raptors/epic_raptorq.cob",

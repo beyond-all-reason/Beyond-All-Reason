@@ -17,7 +17,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 8,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 2800,
@@ -34,7 +33,7 @@ return {
 		buildoptions = {
 			[1] = "cormuskrat",
 			[2] = "corgarp",
-			[3] = "corseal",
+			[3] = "corsala",
 			[4] = "corparrow",
 			[5] = "corcrash",
 			[6] = "coraak",

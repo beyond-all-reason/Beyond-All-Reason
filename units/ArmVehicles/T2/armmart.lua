@@ -2,10 +2,10 @@ return {
 	armmart = {
 		maxacc = 0.02159,
 		maxdec = 0.04319,
-		energycost = 4100,
-		metalcost = 270,
+		energycost = 4900,
+		metalcost = 320,
 		buildpic = "ARMMART.DDS",
-		buildtime = 5530,
+		buildtime = 6500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
