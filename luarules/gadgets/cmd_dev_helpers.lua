@@ -1241,24 +1241,30 @@ else	-- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp", ["bot"] = "lab", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+			["veh"] = "vehicleplant", ["bot"] = "botlab", ["ship"] = "shipyard", ["hover"] = "hovercraftplatform" , ["air"] = "aircraftplant" --hover are special case, no t2 fac
 		}
 		local techSuffix = {
-			["t1"] = "", ["t2"] = "a" --t3 added later
+			["t1"] = "", ["t2"] = "advanced" --t3 added later
 		}
 		for t, suffix in pairs(facSuffix) do
 			local acceptableUDIDs = {}
-			for _, uDID in ipairs(UnitDefNames["cortex_" .. suffix].buildOptions) do
-				acceptableUDIDs[uDID] = true
-			end
-			for _, uDID in ipairs(UnitDefNames["armada_" .. suffix].buildOptions) do
-				acceptableUDIDs[uDID] = true
-			end
-			if t ~= "hover" then
-				for _, uDID in ipairs(UnitDefNames["arma" .. suffix].buildOptions) do
+			if UnitDefNames["cortex_" .. suffix] then
+				for _, uDID in ipairs(UnitDefNames["cortex_" .. suffix].buildOptions) do
 					acceptableUDIDs[uDID] = true
 				end
-				for _, uDID in ipairs(UnitDefNames["cora" .. suffix].buildOptions) do
+			end
+			if UnitDefNames["armada_" .. suffix] then
+				for _, uDID in ipairs(UnitDefNames["armada_" .. suffix].buildOptions) do
+					acceptableUDIDs[uDID] = true
+				end
+			end
+			if UnitDefNames["armada_advanced" .. suffix] then
+				for _, uDID in ipairs(UnitDefNames["armada_advanced" .. suffix].buildOptions) do
+					acceptableUDIDs[uDID] = true
+				end
+			end
+			if UnitDefNames["cortex_advanced" .. suffix] then
+				for _, uDID in ipairs(UnitDefNames["cortex_advanced" .. suffix].buildOptions) do
 					acceptableUDIDs[uDID] = true
 				end
 			end
@@ -1268,10 +1274,12 @@ else	-- UNSYNCED
 		for t, techSuffix in pairs(techSuffix) do
 			local acceptableUDIDs = {}
 			for t2, facSuffix in pairs(facSuffix) do
-				if not (t == "t2" and t2 == "hover") then
+				if UnitDefNames["cortex_" .. techSuffix .. facSuffix] then
 					for _, uDID in ipairs(UnitDefNames["cortex_" .. techSuffix .. facSuffix].buildOptions) do
 						acceptableUDIDs[uDID] = true
 					end
+				end
+				if UnitDefNames["armada_" .. techSuffix .. facSuffix] then
 					for _, uDID in ipairs(UnitDefNames["armada_" .. techSuffix .. facSuffix].buildOptions) do
 						acceptableUDIDs[uDID] = true
 					end
@@ -1280,11 +1288,15 @@ else	-- UNSYNCED
 			techLevels[t] = acceptableUDIDs
 		end
 		local t3Units = {}
-		for _, uDID in ipairs(UnitDefNames["cortex_experimentalgantry"].buildOptions) do
-			t3Units[uDID] = true
+		if UnitDefNames["cortex_experimentalgantry"] then
+			for _, uDID in ipairs(UnitDefNames["cortex_experimentalgantry"].buildOptions) do
+				t3Units[uDID] = true
+			end
 		end
-		for _, uDID in ipairs(UnitDefNames["armada_experimentalgantry"].buildOptions) do
-			t3Units[uDID] = true
+		if UnitDefNames["armada_experimentalgantry"] then
+			for _, uDID in ipairs(UnitDefNames["armada_experimentalgantry"].buildOptions) do
+				t3Units[uDID] = true
+			end
 		end
 		techLevels['t3'] = t3Units
 		techSuffix['t3'] = 't3'
@@ -1298,15 +1310,15 @@ else	-- UNSYNCED
 			end
 			Accept[#Accept + 1] = Condition
 		end
-		if string.find(line, "cortex_") then
+		if string.find(line, "cortex") then
 			local Condition = function(ud)
 				return ud.name:sub(1, 6) == "cortex" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
-		if string.find(line, "leg") then
+		if string.find(line, "legion") then
 			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
+				return ud.name:sub(1, 6) == "legion" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
