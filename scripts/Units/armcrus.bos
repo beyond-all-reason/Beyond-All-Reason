@@ -37,17 +37,17 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, Static_Var_8, aimDir, old
 
 //-------------------- EXTERNAL DEFINES ------------------
 // mass of boat in AU
-#define RB_MASS 50
+#define RB_MASS 100
 
 //Virtual Length and width of boat in elmos, assume the boat is a tall as it is wide
 #define RB_LENGTH 8
 #define RB_WIDTH 3
 
-#define RB_RECOIL_FORCE 10
+#define RB_RECOIL_FORCE 20
 #define RB_PIECE ground
 
 // where 100 is no damping.
-#define RB_DAMPING 95
+#define RB_DAMPING 99
 
 // How often should the speed/position of the boat be adjusted
 // 1: 1.8% CPU/1k, for flagships only
@@ -58,8 +58,8 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, Static_Var_8, aimDir, old
 
 // ------------------ INTERNAL DEFINES ------------------
 
-#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (120/ RB_FRAMES)) ;
-#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (120/ RB_FRAMES)) ;
+#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (120)) ;
+#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (120)) ;
 #define SIGN(v) ((v > 0) - (v < 0)) 
 #define ABS(v) (v * (-1 * (v<0)))
 
@@ -69,8 +69,6 @@ static-var RB_pitch, RB_roll;
 static-var RB_pitch_velocity, RB_roll_velocity;
 
 InitRockBoat(){
-	//RB_inertia_pitch = (RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) /120 ; // X axis
-	//RB_inertia_roll  = (RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH * RB_WIDTH) /120 ;   // Z axis
 	RB_pitch = 0;
 	RB_roll = 0;
 	RB_pitch_velocity = 0;
@@ -80,33 +78,13 @@ InitRockBoat(){
 	turn RB_PIECE to z-axis RB_roll  now;
 
 	var torque_pitch;
-	torque_pitch = 0;
+	//torque_pitch = RB_FRAMES/ RB_INERTIA_PITCH;
 	var torque_roll;
 	torque_roll = 0;
-	
-
-	var dbg1;
-	dbg1 = 0;
-	var gf;
-	gf = 0;
-	gf = !(!RB_pitch) + !(RB_PITCH && 0x800000);
-	var sign;
-	sign = 1;
-	
-	sign = (RB_pitch >0) - (RB_pitch<0);
-	sign = SIGN(RB_pitch);
-	// MAX:
-	
-	var mymax;
-
-	torque_pitch = (torque_pitch > 100) * 100 + (torque_pitch <= 100) * torque_pitch;
-	
-	
-	//return (0);
 	while (1){
 		// Calculate restoring torque due to displacement
-		torque_pitch = ( RB_pitch * (-1 *  RB_FRAMES))/10;
-		torque_roll =  ( RB_roll  * (-1 *  RB_FRAMES))/10;
+		torque_pitch = ( RB_pitch * (-1 *  RB_LENGTH))/10;
+		torque_roll =  ( RB_roll  * (-1 *  RB_WIDTH ))/10;
 		
 		//silly max without jump
 		//torque_pitch = (torque_pitch > 100) * 100 + (torque_pitch <= 100) * torque_pitch;
@@ -115,21 +93,22 @@ InitRockBoat(){
 		//if (torque_pitch < -100) torque_pitch = -100;
 		//if (torque_roll < -100)   torque_roll = -100;
 		
-		
 		// Print debugging stuff:
 		//get PRINT(88888, torque_pitch, torque_roll);
 
 		// Convert torque to angular acceleration 
 		//RB_angular_acceleration_pitch = (   torque_pitch) / RB_INERTIA_PITCH;
 		//RB_angular_acceleration_roll  = (   torque_roll ) / RB_INERTIA_ROLL ;
-
+		
 		// Update angular velocity with angular acceleration
-		RB_pitch_velocity = RB_pitch_velocity + (torque_pitch) / RB_INERTIA_PITCH ;
-		RB_roll_velocity  = RB_roll_velocity  + (torque_roll ) / RB_INERTIA_ROLL   ;
+		RB_pitch_velocity = RB_pitch_velocity + RB_FRAMES * (torque_pitch ) / RB_INERTIA_PITCH;
+		RB_roll_velocity  = RB_roll_velocity  + RB_FRAMES * (torque_roll )  / RB_INERTIA_ROLL ;
 		
 		// Simple damping to simulate resistance from water and air
 		RB_pitch_velocity = ((  RB_pitch_velocity * RB_DAMPING) / 100) ;
 		RB_roll_velocity  = ((  RB_roll_velocity  * RB_DAMPING) / 100) ;
+		
+		
 		
 		if (RB_pitch_velocity == 0) {
 			if (RB_pitch > 0) RB_pitch_velocity = -1;
@@ -148,22 +127,26 @@ InitRockBoat(){
 		//get PRINT(RB_roll_velocity, RB_roll_velocity, RB_angular_acceleration_pitch, RB_angular_acceleration_roll);
 		
 		// Update pitch and roll based on angular velocity
-		RB_pitch = RB_pitch + RB_pitch_velocity ;
+		RB_pitch = RB_pitch +  RB_pitch_velocity ;
 		RB_roll  = RB_roll  + RB_roll_velocity;
 
 		// Print debugging stuff:
 		//get PRINT(RB_pitch, RB_roll, RB_pitch_velocity, RB_roll_velocity);
+		//get PRINT(RB_pitch, RB_roll);
 
 		// Execute corresponding movements
+		#if (RB_FRAMES == 1)
 		//if (RB_FRAMES == 1){
-		//turn RB_PIECE to x-axis RB_pitch now; 
-		//turn RB_PIECE to z-axis RB_roll now; 
-		
+			turn RB_PIECE to x-axis RB_pitch now; 
+			turn RB_PIECE to z-axis RB_roll now; 
+		#else
 		//}else{
 		
-			turn RB_PIECE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
-			turn RB_PIECE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
-		
+			turn RB_PIECE to x-axis RB_pitch now; 
+			turn RB_PIECE to z-axis RB_roll now; 
+			//turn RB_PIECE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
+			//turn RB_PIECE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
+		#endif
 		//}
 		
 		sleep 32 * RB_FRAMES;
@@ -191,16 +174,16 @@ RecoilRockBoat(heading, power){
 	
 	// Where RockZComponent is +1024 on the heading = left
 	var RockZComponent;
-	RockZComponent = get KSIN(heading);
+	RockZComponent = get KSIN(heading) * power;
 	
 	// Where RockXComponent is +1024 when aiming forward. 
 	var RockXComponent;
-	RockXComponent = get KCOS(heading);
+	RockXComponent = get KCOS(heading) * power;
 	//get PRINT (heading,power, RockXComponent, RockZComponent);
 	
 	// Add with negative sign as we want it to move backwards from heading;
-	RB_pitch_velocity = RB_pitch_velocity - RockXComponent / 4 ;
-	RB_roll_velocity  = RB_roll_velocity  - RockZComponent / 4;
+	RB_pitch_velocity = RB_pitch_velocity - RockXComponent / 100;
+	RB_roll_velocity  = RB_roll_velocity  - RockZComponent / 100;
 
 }
 
@@ -493,7 +476,8 @@ FireWeapon1()
 	//#IF RB_FRAMES == 1
 	//	sleep 65;
 	//#ENDIF
-	call-script RecoilRockBoat(aimDir, 100);
+	sleep 65 - 32 * RB_FRAMES;
+	call-script RecoilRockBoat(aimDir, RB_RECOIL_FORCE);
 }
 
 AimFromWeapon1(pieceIndex)
