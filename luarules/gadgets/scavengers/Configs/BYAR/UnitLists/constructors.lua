@@ -64,8 +64,8 @@ local playerCommanders = {
 	"cortex_decoycommander_scav",
 	"armada_commandercon_scav",
 	"cortex_commandercon_scav",
-	"armrespawn",
-	"correspawn",
+	"armada_basebuilder",
+	"cortex_basebuilder",
 }
 
 local assisters = {
@@ -73,8 +73,8 @@ local assisters = {
 	"cortex_constructionturret_scav",
 	"armada_navalconstructionturret_scav",
 	"cortex_navalconstructionturret_scav",
-	"armrespawn",
-	"correspawn",
+	"armada_basebuilder",
+	"cortex_basebuilder",
 }
 
 local resurrectors = {

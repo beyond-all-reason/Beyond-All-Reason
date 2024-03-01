@@ -52,7 +52,7 @@ return {
 			"cortex_hardenedmetalstorage",
 			"cortex_advancedradartower",
 			"cortex_shroud",
-			"corscavfort",
+			"cortex_scavfortificationwall",
 			"cortex_airrepairpad",
 			"cortex_pinpointer",
 			"cortex_nemesis",

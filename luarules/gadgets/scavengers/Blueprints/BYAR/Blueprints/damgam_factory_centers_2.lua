@@ -950,7 +950,7 @@ local function FactoryCenter15()
 			{ unitDefID = UnitDefNames.armada_pulsar_scav.id, xOffset = 127, zOffset = -192, direction = 2},
 			{ unitDefID = UnitDefNames.armada_keeper_scav.id, xOffset = -65, zOffset = 0, direction = 2},
 			{ unitDefID = UnitDefNames.armada_keeper_scav.id, xOffset = -129, zOffset = 0, direction = 2},
-			{ unitDefID = UnitDefNames.armada_aircraftplantt3_scav.id, xOffset = 63, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_experimentalaircraftplant_scav.id, xOffset = 63, zOffset = 0, direction = 1},
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 207, zOffset = 0, direction = 1},
 		},
 	}

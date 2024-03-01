@@ -255,7 +255,7 @@ local function initUnitList()
 		-- SCAVENGERS
 		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
 
-		['armada_pulsart3'] = { weapons = { 1 } },
+		['armada_epicpulsar'] = { weapons = { 1 } },
 		['armada_miniragnarok'] = { weapons = { 1 } },
 
 		['cortex_epicbulwark'] = { weapons = { 1 } },

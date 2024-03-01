@@ -1,13 +1,13 @@
 local range = Spring.GetModOptions().commanderbuildersrange
 return {
-	correspawn = {
+	armada_basebuilder = {
 		maxacc = 0,
 		maxdec = 4.5,
 		energycost = 1,
 		metalcost = 1,
 		builddistance = range,
 		builder = true,
-		buildpic = "cortex_navalconstructionturret.DDS",
+		buildpic = "armada_navalconstructionturret.DDS",
 		buildtime = 20000,
 		canassist = true,
 		canfight = true,
@@ -33,8 +33,8 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		objectname = "Units/CORRESPAWN.s3o",
-		script = "Units/CORNANOT2.cob",
+		objectname = "Units/armada_basebuilder.s3o",
+		script = "Units/ARMNANOT2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		sightdistance = range,
@@ -43,19 +43,19 @@ return {
 		upright = true,
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
-		-- 	"cortex_commander",
-		-- 	"cortex_assistdrone",
+		-- 	"armada_commander",
+		-- 	"armada_assistdrone",
 		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/cortex_constructionturret_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_constructionturret_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Beherith",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "cortex_buildings/seautil",
+			normaltex = "unittextures/Arm_normal.dds",
+			subfolder = "armada_buildings/seautil",
 			--iscommander = true,
 		},
 		sfxtypes = {
@@ -66,10 +66,9 @@ return {
 			},
 		},
 		sounds = {
-			build = "nanlath2",
+			build = "nanlath1",
 			canceldestruct = "cancel2",
-			capture = "capture1",
-			repair = "repair2",
+			repair = "repair1",
 			underattack = "warning1",
 			working = "reclaim1",
 			cant = {
@@ -84,10 +83,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "vcormove",
+				[1] = "varmmove",
 			},
 			select = {
-				[1] = "vcorsel",
+				[1] = "varmsel",
 			},
 		},
 	},

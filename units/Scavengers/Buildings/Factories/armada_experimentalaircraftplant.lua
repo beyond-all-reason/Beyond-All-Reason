@@ -1,5 +1,5 @@
 return {
-	armada_aircraftplantt3 = {
+	armada_experimentalaircraftplant = {
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 60000,
@@ -23,10 +23,10 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 1000,
-		objectname = "Units/scavbuildings/armada_aircraftplantT3.s3o",
+		objectname = "Units/scavbuildings/armada_experimentalaircraftplant.s3o",
 		radardistance = 500,
 		radaremitheight = 72,
-		script = "Units/scavbuildings/armada_aircraftplantT3.cob",
+		script = "Units/scavbuildings/armada_experimentalaircraftplant.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 292,
@@ -41,7 +41,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armada_aircraftplantt3_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_experimentalaircraftplant_aoplane.dds",
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 21,
 			buildinggrounddecaldecayspeed = 30,
@@ -67,7 +67,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 5530,
-				object = "Units/scavbuildings/armada_aircraftplantt3_dead.s3o",
+				object = "Units/scavbuildings/armada_experimentalaircraftplant_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

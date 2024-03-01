@@ -2643,27 +2643,27 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
 	},
 
-	corscavdrag = {
+	cortex_scavdragonsteeth = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall",
 	},
-	corscavdtf = {
+	cortex_scavdragonsmaw = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flame-alt",
 	},
-	corscavdtl = {
+	cortex_scavdragonsclaw = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "lightning",
 	},
-	corscavdtm = {
+	cortex_scavmissilewall = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	corscavfort = {
+	cortex_scavfortificationwall = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",

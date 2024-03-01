@@ -257,7 +257,7 @@ local function EpicDefence3()
 			{ unitDefID = UnitDefNames.armada_overwatch_scav.id, xOffset = 85, zOffset = -144, direction = 2},
 			{ unitDefID = UnitDefNames.armada_overwatch_scav.id, xOffset = 85, zOffset = 144, direction = 0},
 			{ unitDefID = UnitDefNames.armada_overwatch_scav.id, xOffset = 21, zOffset = -144, direction = 2},
-			{ unitDefID = UnitDefNames.armada_pulsart3_scav.id, xOffset = 53, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_epicpulsar_scav.id, xOffset = 53, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -336,7 +336,7 @@ local function EpicDefence4()
 			{ unitDefID = UnitDefNames.armada_miniragnarok_scav.id, xOffset = -35, zOffset = -104, direction = 2},
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 85, zOffset = 96, direction = 0},
 			{ unitDefID = UnitDefNames.armada_basilica_scav.id, xOffset = 85, zOffset = -96, direction = 2},
-			{ unitDefID = UnitDefNames.armada_pulsart3_scav.id, xOffset = 165, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_epicpulsar_scav.id, xOffset = 165, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -425,8 +425,8 @@ local function EpicDefence5()
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = 8, zOffset = 112, direction = 0},
 			{ unitDefID = UnitDefNames.armada_keeper_scav.id, xOffset = -144, zOffset = 88, direction = 0},
 			{ unitDefID = UnitDefNames.armada_citadel_scav.id, xOffset = -144, zOffset = -88, direction = 0},
-			{ unitDefID = UnitDefNames.armada_pulsart3_scav.id, xOffset = 112, zOffset = 88, direction = 1},
-			{ unitDefID = UnitDefNames.armada_pulsart3_scav.id, xOffset = 112, zOffset = -88, direction = 1},
+			{ unitDefID = UnitDefNames.armada_epicpulsar_scav.id, xOffset = 112, zOffset = 88, direction = 1},
+			{ unitDefID = UnitDefNames.armada_epicpulsar_scav.id, xOffset = 112, zOffset = -88, direction = 1},
 		},
 	}
 end
@@ -744,7 +744,7 @@ local function EpicDefence10()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -64, zOffset = 0, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = 64, direction = 1},
-			{ unitDefID = UnitDefNames.armada_pulsart3_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_epicpulsar_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end

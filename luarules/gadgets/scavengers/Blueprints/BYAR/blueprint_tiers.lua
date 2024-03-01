@@ -25,14 +25,14 @@ function BPWallOrPopup(faction, tier)
 				if r == 15 then
 					local r2 = math.random(1,3)
 					if r2 == 1 then
-						return UDN.corscavdtf_scav.id
+						return UDN.cortex_scavdragonsmaw_scav.id
 					elseif r2 == 2 then
-						return UDN.corscavdtl_scav.id
+						return UDN.cortex_scavdragonsclaw_scav.id
 					elseif r2 == 3 then
-						return UDN.corscavdtm_scav.id
+						return UDN.cortex_scavmissilewall_scav.id
 					end
 				else
-					return UDN.corscavdrag_scav.id
+					return UDN.cortex_scavdragonsteeth_scav.id
 				end
 			end
 		elseif tier == 2 then
@@ -52,14 +52,14 @@ function BPWallOrPopup(faction, tier)
 				if r == 15 then
 					local r2 = math.random(1,3)
 					if r2 == 1 then
-						return UDN.corscavdtf_scav.id
+						return UDN.cortex_scavdragonsmaw_scav.id
 					elseif r2 == 2 then
-						return UDN.corscavdtl_scav.id
+						return UDN.cortex_scavdragonsclaw_scav.id
 					elseif r2 == 3 then
-						return UDN.corscavdtm_scav.id
+						return UDN.cortex_scavmissilewall_scav.id
 					end
 				else
-					return UDN.corscavfort_scav.id
+					return UDN.cortex_scavfortificationwall_scav.id
 				end
 			end
 		end

@@ -301,7 +301,7 @@ local function t3Gantry2()
 	local r = math.random(0,1)
 	if r == 0 then
 		buildings = {
-			{ unitDefID = UDN.armada_aircraftplantt3_scav.id,    xOffset =    0,  zOffset =   20, direction = 0 },
+			{ unitDefID = UDN.armada_experimentalaircraftplant_scav.id,    xOffset =    0,  zOffset =   20, direction = 0 },
 			{ unitDefID = UDN.armada_constructionturret_scav.id,  xOffset = -116,  zOffset = -128, direction = 1 },
 			{ unitDefID = UDN.armada_constructionturret_scav.id,  xOffset = -196,  zOffset =  -64, direction = 1 },
 			{ unitDefID = UDN.armada_constructionturret_scav.id,  xOffset =  188,  zOffset =  -64, direction = 3 },

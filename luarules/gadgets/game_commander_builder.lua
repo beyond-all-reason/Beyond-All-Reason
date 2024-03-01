@@ -25,9 +25,9 @@ end
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
 local spawnpads = {
-    [UDN.armada_commander.id] = "armrespawn",
-    [UDN.cortex_commander.id] = "correspawn",
-	[UDN.legcom.id] = "correspawn",
+    [UDN.armada_commander.id] = "armada_basebuilder",
+    [UDN.cortex_commander.id] = "cortex_basebuilder",
+	[UDN.legcom.id] = "cortex_basebuilder",
 }
 
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)

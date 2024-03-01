@@ -491,7 +491,7 @@ local unitOrderTable = {
    ['armada_experimentalgantry']       = 102550,
    ['cortex_experimentalgantry']        = 102575,
    ['leggant']        = 102576,
-   ['armada_aircraftplantt3']        = 102700, --scavengers
+   ['armada_experimentalaircraftplant']        = 102700, --scavengers
    ['cortex_experimentalaircraftplant']        = 102725, --scavengers
 
    --UTILITIES
@@ -522,17 +522,17 @@ local unitOrderTable = {
    --DEFENSES LAND (WALLS)
    ['armada_dragonsteeth']        = 104000,
    ['cortex_dragonsteeth']        = 104100,
-   ['corscavdrag']    = 104205, --scavengers
+   ['cortex_scavdragonsteeth']    = 104205, --scavengers
    ['armada_fortificationwall']        = 104300,
    ['cortex_fortificationwall']        = 104400,
-   ['corscavfort']    = 104505, --scavengers
+   ['cortex_scavfortificationwall']    = 104505, --scavengers
    ['armada_dragonsclaw']        = 104600,
    ['armada_dragonsfury']       = 104650,
-   ['corscavdtl']     = 104705, --scavengers
+   ['cortex_scavdragonsclaw']     = 104705, --scavengers
    ['cortex_dragonsmaw']         = 104800,
    ['cortex_dragonsrage']       = 104850,
-   ['corscavdtf']     = 104905, --scavengers
-   ['corscavdtm']     = 104915, --scavengers
+   ['cortex_scavdragonsmaw']     = 104905, --scavengers
+   ['cortex_scavmissilewall']     = 104915, --scavengers
 
    --MINES
    ['armada_lightmine']       = 105100,
@@ -564,7 +564,7 @@ local unitOrderTable = {
    ['armada_pulsar']        = 107500,
    ['cortex_bulwark']        = 107600,
    ['legbastion']     = 107650,
-   ['armada_pulsart3']      = 107700, --scavengers
+   ['armada_epicpulsar']      = 107700, --scavengers
    ['cortex_epicbulwark']      = 107800, --scavengers
 
    --DEFENSES LAND LRPC

@@ -702,11 +702,11 @@
 			"role": ["static"],
 			"ignore": true
 		},
-		"corscavdrag": {
+		"cortex_scavdragonsteeth": {
 			"role": ["static"],
 			"ignore": true
 		},
-		"corscavdrag_scav": {
+		"cortex_scavdragonsteeth_scav": {
 			"role": ["static"],
 			"ignore": true
 		},

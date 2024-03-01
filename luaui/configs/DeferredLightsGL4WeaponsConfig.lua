@@ -850,15 +850,15 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 -- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 -- 											lifetime = 0, sustain = 0})
 
--- --armada_pulsart3
--- projectileDefLights[WeaponDefNames["armada_pulsart3_ata"].id] =
+-- --armada_epicpulsar
+-- projectileDefLights[WeaponDefNames["armada_epicpulsar_ata"].id] =
 -- GetLightClass("LaserProjectile", "Blue", "Mediumer", {a = 0.09,
 -- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 -- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
 -- 											lifetime = 0, sustain = 0})
 
--- --armada_pulsart3_scav
--- projectileDefLights[WeaponDefNames["armada_pulsart3_scav_ata"].id] =
+-- --armada_epicpulsar_scav
+-- projectileDefLights[WeaponDefNames["armada_epicpulsar_scav_ata"].id] =
 -- GetLightClass("LaserProjectile", "Purple", "Mediumer", {a = 0.09,
 -- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 -- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,

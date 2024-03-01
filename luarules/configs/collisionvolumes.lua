@@ -82,7 +82,7 @@ unitCollisionVolume['armada_pulsar'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
 }
-unitCollisionVolume['armada_pulsart3'] = {
+unitCollisionVolume['armada_epicpulsar'] = {
 	on={81,121,81,0,-3,0,3,1,0},
 	off={81,84,81,0,-22,0,3,1,0},
 }

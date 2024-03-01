@@ -54,7 +54,7 @@ return {
 			[9] = "cortex_hardenedmetalstorage",
 			[10] = "cortex_advancedradartower",
 			[11] = "cortex_shroud",
-			[12] = "corscavfort",
+			[12] = "cortex_scavfortificationwall",
 			[13] = "cortex_airrepairpad",
 			[14] = "cortex_pinpointer",
 			[15] = "cortex_nemesis",

@@ -27,9 +27,9 @@ local noSelfDestruct = {
 	"lootboxbronze_scav",
 	"raptor_turrets",
 	"raptor_hive",
-	"corscavdtl_scav",
-	"corscavdtf_scav",
-	"corscavdtm_scav",
+	"cortex_scavdragonsclaw_scav",
+	"cortex_scavdragonsmaw_scav",
+	"cortex_scavmissilewall_scav",
 }
 
 local walls = {
@@ -39,8 +39,8 @@ local walls = {
 	"cortex_sharksteeth_scav",
 	"armada_fortificationwall_scav",
 	"cortex_fortificationwall_scav",
-	"corscavdrag_scav",
-	"corscavfort_scav",
+	"cortex_scavdragonsteeth_scav",
+	"cortex_scavfortificationwall_scav",
 }
 
 local stockpilers = {
@@ -117,9 +117,9 @@ local beaconDefencesLand = {
 		"cortex_sam_scav",
 		"cortex_eradicator_scav",
 		"cortex_jellyfish_scav",
-		"corscavdtl_scav",
-		"corscavdtf_scav",
-		"corscavdtm_scav",
+		"cortex_scavdragonsclaw_scav",
+		"cortex_scavdragonsmaw_scav",
+		"cortex_scavmissilewall_scav",
 	},
 
 	T2 = {
@@ -146,9 +146,9 @@ local beaconDefencesLand = {
 		"cortex_sam_scav",
 		"cortex_eradicator_scav",
 		"cortex_jellyfish_scav",
-		"corscavdtl_scav",
-		"corscavdtf_scav",
-		"corscavdtm_scav",
+		"cortex_scavdragonsclaw_scav",
+		"cortex_scavdragonsmaw_scav",
+		"cortex_scavmissilewall_scav",
 
 		-- Nanos
 		"armada_constructionturret_scav",
@@ -264,7 +264,7 @@ local beaconDefencesLand = {
 		"cortex_constructionturret_scav",
 
 		-- T4
-		"armada_pulsart3_scav",
+		"armada_epicpulsar_scav",
 		"armada_ragnarok_scav",
 		"armada_pawnlauncher_scav",
 		"armada_armageddon_scav",

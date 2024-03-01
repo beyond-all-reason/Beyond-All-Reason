@@ -70,7 +70,7 @@ return {
 			[9] = "legap",
 			[10] = "cortex_beholder",
 			[11] = "cortex_radartower",
-			[12] = "corscavdrag",
+			[12] = "cortex_scavdragonsteeth",
 			[13] = "cortex_guard",
 			[14] = "cortex_thistle",
 			[15] = "cortex_jellyfish",

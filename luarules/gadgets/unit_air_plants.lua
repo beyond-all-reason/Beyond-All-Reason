@@ -32,7 +32,7 @@ local isAirplant = {
 	[UnitDefNames.armada_seaplaneplatform.id] = true,
 	[UnitDefNames.legap.id] = true,
 	[UnitDefNames.legaap.id] = true,
-	[UnitDefNames.armada_aircraftplantt3.id] = true,
+	[UnitDefNames.armada_experimentalaircraftplant.id] = true,
 	[UnitDefNames.cortex_experimentalaircraftplant.id] = true
 }
 for udid, ud in pairs(UnitDefs) do

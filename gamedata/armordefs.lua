@@ -349,7 +349,7 @@ local armorDefs = {
 		"scavmistxl",
 		"scavmistxxl",
 
-		"armada_aircraftplantt3",
+		"armada_experimentalaircraftplant",
 		"cortex_experimentalaircraftplant",
 		"legbastion",
 		"legstarfall",

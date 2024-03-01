@@ -11161,7 +11161,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_pulsart3'] = {
+	['armada_epicpulsar'] = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'light',

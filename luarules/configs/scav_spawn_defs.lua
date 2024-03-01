@@ -764,9 +764,9 @@ local Turrets = {
 		["cortex_agitator_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armada_overwatch_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["armada_gauntlet_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
-		["corscavdtl_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
-		["corscavdtf_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
-		["corscavdtm_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
+		["cortex_scavdragonsclaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
+		["cortex_scavdragonsmaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
+		["cortex_scavmissilewall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["legdefcarryt1_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		--radar/jam
 		["cortex_radartower_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
@@ -837,7 +837,7 @@ local Turrets = {
 	},
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal
-		["armada_pulsart3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["armada_epicpulsar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["cortex_epicbulwark_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armada_ragnarok_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["cortex_calamity_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},

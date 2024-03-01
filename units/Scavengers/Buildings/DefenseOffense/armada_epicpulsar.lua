@@ -1,12 +1,12 @@
 return {
-	armada_pulsart3 = {
+	armada_epicpulsar = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
 		energycost = 450000,
 		metalcost = 13500,
-		buildpic = "armada_pulsarT3.DDS",
+		buildpic = "armada_epicpulsar.DDS",
 		buildtime = 190000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/scavbuildings/armada_pulsarT3.s3o",
+		objectname = "Units/scavbuildings/armada_epicpulsar.s3o",
 		onoffable = true,
 		radardistance = 1500,
 		radaremitheight = 72,
@@ -37,7 +37,7 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armada_pulsart3_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_epicpulsar_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
@@ -64,7 +64,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 5820,
-				object = "Units/scavbuildings/armada_pulsart3_dead.s3o",
+				object = "Units/scavbuildings/armada_epicpulsar_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

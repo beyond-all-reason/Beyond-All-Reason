@@ -180,7 +180,7 @@ function UnitDef_Post(name, uDef)
 				cortex_seaplaneplatform = true,
 				cortex_underwaterexperimentalgantry = true,
 				cortex_shipyard = true,
-				armada_aircraftplantt3 = true,	-- scav T3 air factory
+				armada_experimentalaircraftplant = true,	-- scav T3 air factory
 				cortex_experimentalaircraftplant = true,	-- scav T3 air factory
 				armada_constructionturret = true,
 				armada_navalconstructionturret = true,
@@ -258,7 +258,7 @@ function UnitDef_Post(name, uDef)
 				cortex_advancedaircraftplant = true,
 				cortex_seaplaneplatform = true,
 				cortex_experimentalaircraftplant = true,
-				armada_aircraftplantt3 = true,
+				armada_experimentalaircraftplant = true,
 				legap = true,
 				legaap = true,
 				armada_aircraftplant_scav = true,
@@ -268,7 +268,7 @@ function UnitDef_Post(name, uDef)
 				cortex_advancedaircraftplant_scav = true,
 				cortex_seaplaneplatform_scav = true,
 				cortex_experimentalaircraftplant_scav = true,
-				armada_aircraftplantt3_scav = true,
+				armada_experimentalaircraftplant_scav = true,
 				legap_scav = true,
 				legaap_scav = true,
 
@@ -456,11 +456,11 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "armada_aurora"
 		elseif name == "armada_advancedconstructionaircraft" or name == "armada_advancedconstructionbot" or name == "armada_advancedconstructionvehicle" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armada_aircraftplantt3"
+			uDef.buildoptions[numBuildoptions+1] = "armada_experimentalaircraftplant"
 			uDef.buildoptions[numBuildoptions+2] = "armada_miniragnarok"
 			uDef.buildoptions[numBuildoptions+3] = "armada_advancedwindturbine"
 			uDef.buildoptions[numBuildoptions+5] = "armada_pawnlauncher"
-			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
+			uDef.buildoptions[numBuildoptions+6] = "armada_epicpulsar"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armada_dragonsfury"
 		elseif name == "cortex_advancedconstructionaircraft" or name == "cortex_advancedconstructionbot" or name == "cortex_advancedconstructionvehicle" then

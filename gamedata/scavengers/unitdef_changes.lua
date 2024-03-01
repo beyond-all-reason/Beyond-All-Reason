@@ -129,16 +129,16 @@ customDefs.armada_decoyfusionreactor = {
 	decoyfor = "armada_fusionreactor_scav",
 }
 
-customDefs.corscavdtf = {
-	decoyfor = "corscavdrag_scav",
+customDefs.cortex_scavdragonsmaw = {
+	decoyfor = "cortex_scavdragonsteeth_scav",
 }
 
-customDefs.corscavdtm = {
-	decoyfor = "corscavdrag_scav",
+customDefs.cortex_scavmissilewall = {
+	decoyfor = "cortex_scavdragonsteeth_scav",
 }
 
-customDefs.corscavdtl = {
-	decoyfor = "corscavdrag_scav",
+customDefs.cortex_scavdragonsclaw = {
+	decoyfor = "cortex_scavdragonsteeth_scav",
 }
 
 
@@ -655,10 +655,10 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_constructionaircraft.buildoptions
 -- customDefs.armada_constructionaircraft = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 		[numBuildoptions+5] = "legmg",
 -- 	},
 -- }
@@ -666,10 +666,10 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_constructionbot.buildoptions
 -- customDefs.armada_constructionbot = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 		[numBuildoptions+5] = "legmg",
 -- 	},
 -- }
@@ -677,10 +677,10 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.armada_constructionvehicle.buildoptions
 -- customDefs.armada_constructionvehicle = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 		[numBuildoptions+5] = "legmg",
 -- 	},
 -- }
@@ -688,66 +688,66 @@ customDefs.corscavdtl = {
 -- numBuildoptions = #UnitDefs.cortex_constructionaircraft.buildoptions
 -- customDefs.cortex_constructionaircraft = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.cortex_constructionbot.buildoptions
 -- customDefs.cortex_constructionbot = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.cortex_constructionvehicle.buildoptions
 -- customDefs.cortex_constructionvehicle = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "corscavdrag",
--- 		[numBuildoptions+2] = "corscavdtl",
--- 		[numBuildoptions+3] = "corscavdtf",
--- 		[numBuildoptions+4] = "corscavdtm",
+-- 		[numBuildoptions+1] = "cortex_scavdragonsteeth",
+-- 		[numBuildoptions+2] = "cortex_scavdragonsclaw",
+-- 		[numBuildoptions+3] = "cortex_scavdragonsmaw",
+-- 		[numBuildoptions+4] = "cortex_scavmissilewall",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armada_advancedconstructionaircraft.buildoptions
 -- customDefs.armada_advancedconstructionaircraft = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armada_aircraftplantt3",
+-- 		[numBuildoptions+1] = "armada_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_advancedwindturbine",
--- 		[numBuildoptions+4] = "corscavfort",
+-- 		[numBuildoptions+4] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
--- 		[numBuildoptions+6] = "armada_pulsart3",
+-- 		[numBuildoptions+6] = "armada_epicpulsar",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armada_advancedconstructionbot.buildoptions
 -- customDefs.armada_advancedconstructionbot = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armada_aircraftplantt3",
+-- 		[numBuildoptions+1] = "armada_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_advancedwindturbine",
--- 		[numBuildoptions+4] = "corscavfort",
+-- 		[numBuildoptions+4] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
--- 		[numBuildoptions+6] = "armada_pulsart3",
+-- 		[numBuildoptions+6] = "armada_epicpulsar",
 -- 	},
 -- }
 
 -- numBuildoptions = #UnitDefs.armada_advancedconstructionvehicle.buildoptions
 -- customDefs.armada_advancedconstructionvehicle = {
 -- 	buildoptions = {
--- 		[numBuildoptions+1] = "armada_aircraftplantt3",
+-- 		[numBuildoptions+1] = "armada_experimentalaircraftplant",
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_advancedwindturbine",
--- 		[numBuildoptions+4] = "corscavfort",
+-- 		[numBuildoptions+4] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+5] = "armada_pawnlauncher",
--- 		[numBuildoptions+6] = "armada_pulsart3",
+-- 		[numBuildoptions+6] = "armada_epicpulsar",
 -- 	},
 -- }
 
@@ -758,7 +758,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "cortex_minicalamity",
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "cortex_quadguard",
--- 		[numBuildoptions+5] = "corscavfort",
+-- 		[numBuildoptions+5] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }
@@ -770,7 +770,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "cortex_minicalamity",
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "cortex_quadguard",
--- 		[numBuildoptions+5] = "corscavfort",
+-- 		[numBuildoptions+5] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }
@@ -782,7 +782,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "cortex_minicalamity",
 -- 		[numBuildoptions+3] = "cortex_advancedwindturbine",
 -- 		[numBuildoptions+4] = "cortex_quadguard",
--- 		[numBuildoptions+5] = "corscavfort",
+-- 		[numBuildoptions+5] = "cortex_scavfortificationwall",
 -- 		[numBuildoptions+6] = "cortex_epicbulwark",
 -- 	},
 -- }

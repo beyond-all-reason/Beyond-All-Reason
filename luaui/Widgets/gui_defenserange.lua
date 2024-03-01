@@ -99,7 +99,7 @@ modConfig["BYAR"]["unitList"] = {
 	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },
 
-	armada_pulsart3 = { weapons = { 1 } },
+	armada_epicpulsar = { weapons = { 1 } },
 	--armada_pawnlauncher = { weapons = { 1 } },
 	armada_miniragnarok = { weapons = { 1 } },
 	legministarfall = { weapons = { 1 } },

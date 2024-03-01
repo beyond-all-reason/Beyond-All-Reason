@@ -75,7 +75,7 @@ local icontypes = {
 		bitmap = "icons/armada_pulsar.png",
 		size = 2.0474999
 	},
-	armada_pulsart3 = {
+	armada_epicpulsar = {
 		bitmap = "icons/laserdefenset3.png",
 		size = 2.5474999
 	},
@@ -87,7 +87,7 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	armada_aircraftplantt3 = {
+	armada_experimentalaircraftplant = {
 		bitmap = "icons/factory_air_t3.png",
 		size = 1.52250004
 	},
@@ -683,7 +683,7 @@ local icontypes = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
 	},
-	armrespawn = {
+	armada_basebuilder = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -1631,7 +1631,7 @@ local icontypes = {
 		bitmap = "icons/sub_rez.png",
 		size = 1.64299989
 	},
-	correspawn = {
+	cortex_basebuilder = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -1655,23 +1655,23 @@ local icontypes = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
 	},
-	corscavdrag = {
+	cortex_scavdragonsteeth = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corscavdtf = {
+	cortex_scavdragonsmaw = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corscavdtl = {
+	cortex_scavdragonsclaw = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corscavdtm = {
+	cortex_scavmissilewall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	corscavfort = {
+	cortex_scavfortificationwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
