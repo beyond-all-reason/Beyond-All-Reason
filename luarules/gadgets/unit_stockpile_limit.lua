@@ -55,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['armada_paralyzer'].id] = 10,
 		[UnitDefNames['cortex_catalyst'].id] = 10,
 
-		[UnitDefNames['armbotrail'].id] = 50,
+		[UnitDefNames['armada_pawnlauncher'].id] = 50,
 		
 		[UnitDefNames['legcom'].id] = 2,
 		[UnitDefNames['legcomlvl2'].id] = 2,

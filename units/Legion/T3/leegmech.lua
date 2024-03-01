@@ -134,7 +134,7 @@ return {
 				flighttime = 4,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "artshell-large.s3o",
+				model = "cortex_artshell-large.s3o",
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
 				range = 700,

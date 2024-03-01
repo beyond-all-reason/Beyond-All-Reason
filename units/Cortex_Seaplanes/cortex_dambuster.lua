@@ -104,7 +104,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
-				model = "airbombsea.s3o",
+				model = "cortex_airbombsea.s3o",
 				mygravity = 0.4,
 				name = "CorSeaAdvancedBombs",
 				noselfdamage = true,

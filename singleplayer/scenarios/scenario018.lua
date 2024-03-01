@@ -367,7 +367,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 			{name = 'cortex_twinguard', x = 5168, y = 169, z = 1456, rot = 32767 , team = 1},
 			{name = 'cortex_twinguard', x = 5072, y = 156, z = 1472, rot = 32767 , team = 1},
 			{name = 'cortex_radartower', x = 5088, y = 177, z = 720, rot = 32767 , team = 1},
-			{name = 'mission_command_tower', x = 5500, y = 200, z = 2302, rot = 0 , team = 1},
+			{name = 'armada_missioncommandtower', x = 5500, y = 200, z = 2302, rot = 0 , team = 1},
 		},
 			
 		featureloadout = {

@@ -95,7 +95,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "torpedo.s3o",
+				model = "armada_torpedo.s3o",
 				name = "Heavy long-range homing torpedo launcher",
 				noselfdamage = true,
 				range = 915,

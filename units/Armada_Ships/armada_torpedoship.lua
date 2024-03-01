@@ -124,7 +124,7 @@ return {
 				flighttime = 3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "torpedo.s3o",
+				model = "armada_torpedo.s3o",
 				name = "Torpedo",
 				noselfdamage = true,
 				predictboost = 0.7,

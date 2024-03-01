@@ -158,7 +158,7 @@ return {
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "SimpleFlareXL.s3o",
+				model = "armada_simpleflarexl.s3o",
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
 				range = 750,

@@ -87,7 +87,7 @@ return {
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
-				model = "artshell-medium.s3o",
+				model = "cortex_artshell-medium.s3o",
 				name = "Rockets",
 				noselfdamage = true,
 				range = 350,

@@ -98,7 +98,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				--metalpershot = 30,
-				model = "epulse_mini.s3o",
+				model = "cortex_epulse_mini.s3o",
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
 				range = 1280,
 				reloadtime = 10,

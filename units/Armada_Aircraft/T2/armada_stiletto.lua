@@ -101,7 +101,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
-				model = "airbomb.s3o",
+				model = "cortex_airbomb.s3o",
 				mygravity = 0.4,
 				name = "Heavy a2g EMP warheads",
 				noselfdamage = true,

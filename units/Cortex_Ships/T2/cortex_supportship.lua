@@ -151,7 +151,7 @@ return {
 				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
-				model = "fmdmissile.s3o",
+				model = "cortex_antimissile.s3o",
 				name = "ICBM intercepting missile launcher",
 				noselfdamage = true,
 				range = 72000,

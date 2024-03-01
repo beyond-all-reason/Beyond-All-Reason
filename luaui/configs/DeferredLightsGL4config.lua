@@ -12286,7 +12286,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armbotrail'] = {
+	['armada_pawnlauncher'] = {
 		top = {
 			lightType = 'point',
 			pieceName = 'rail',

@@ -98,7 +98,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.3,
 				impulsefactor = 0.3,
-				model = "airbomb.s3o",
+				model = "cortex_airbomb.s3o",
 				name = "Medium a2g incinerating warheads",
 				noselfdamage = true,
 				range = 1280,

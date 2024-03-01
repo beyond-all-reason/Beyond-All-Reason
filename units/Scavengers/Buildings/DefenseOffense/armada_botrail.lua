@@ -1,11 +1,11 @@
 return {
-	armbotrail = {
+	armada_pawnlauncher = {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32700,
 		energycost = 192000,
 		metalcost = 13500,
-		buildpic = "ARMBOTRAIL.DDS",
+		buildpic = "armada_pawnlauncher.DDS",
 		buildtime = 255000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -22,8 +22,8 @@ return {
 		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
-		objectname = "scavs/armbotrail.s3o",
-		script = "scavs/armbotrail.cob",
+		objectname = "scavs/armada_pawnlauncher.s3o",
+		script = "scavs/armada_pawnlauncher.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
@@ -31,7 +31,7 @@ return {
 		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo ",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armbotrail_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_pawnlauncher_aoplane.dds",
 			buildinggrounddecalsizey = 11,
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecaldecayspeed = 30,

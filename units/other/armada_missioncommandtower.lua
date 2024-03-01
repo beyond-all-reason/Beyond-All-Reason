@@ -1,12 +1,12 @@
 return {
-	mission_command_tower = {
+	armada_missioncommandtower = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 16384,
 		energycost = 100000,
 		metalcost = 10000,
-		buildpic = "MISSION_COMMAND_TOWER.DDS",
+		buildpic = "armada_missioncommandtower.DDS",
 		buildtime = 100000,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -20,8 +20,8 @@ return {
 		health = 11100,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		objectname = "Units/mission_command_tower.s3o",
-		script = "mission_command_tower.cob",
+		objectname = "Units/armada_missioncommandtower.s3o",
+		script = "armada_missioncommandtower.cob",
 		reclaimable = false,
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
@@ -29,7 +29,7 @@ return {
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/mission_command_tower_aoplane.dds",
+			buildinggrounddecaltype = "decals/armada_missioncommandtower_aoplane.dds",
 			buildinggrounddecalsizey = 11.25,
 			buildinggrounddecalsizex = 11.25,
 			buildinggrounddecaldecayspeed = 30,

@@ -2637,7 +2637,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
 	},
 
-	mission_command_tower = {
+	armada_missioncommandtower = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",

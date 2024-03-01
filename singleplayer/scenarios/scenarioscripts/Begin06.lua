@@ -575,8 +575,8 @@ local special = {
 
 local objectiveUnits = {
     [1] = {
-    {name = 'mission_command_tower', x = 5814, y = 34, z = 4875, rot = 0, teamID = 1, queue = {}, objectiveUnitID = 2},
-    --{name = 'mission_command_tower', x = 932, y = 34, z = 491, rot = 0, teamID = 0, queue = {}, objectiveUnitID = 3},
+    {name = 'armada_missioncommandtower', x = 5814, y = 34, z = 4875, rot = 0, teamID = 1, queue = {}, objectiveUnitID = 2},
+    --{name = 'armada_missioncommandtower', x = 932, y = 34, z = 491, rot = 0, teamID = 0, queue = {}, objectiveUnitID = 3},
     },
 }
 

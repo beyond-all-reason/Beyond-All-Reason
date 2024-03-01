@@ -132,7 +132,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
-				model = "artshell-large.s3o",
+				model = "cortex_artshell-large.s3o",
 				name = "Long range g2g plasma cannon",
 				noselfdamage = true,
 				range = 4650,

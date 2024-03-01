@@ -128,7 +128,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 200,
-				model = "epulse.s3o",
+				model = "cortex_epulse.s3o",
 				name = "Anti radar/minefield/jammer magnetic impulse rocket",
 				range = 32000,
 				reloadtime = 2,

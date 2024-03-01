@@ -94,7 +94,7 @@ return {
 				interceptedbyshieldtype = 4,
 				interceptor = 1,
 				metalpershot = 0,
-				model = "SimpleFlareXL.s3o",
+				model = "armada_simpleflarexl.s3o",
 				name = "ICBM intercepting missile launcher",
 				noselfdamage = true,
 				range = 72000,

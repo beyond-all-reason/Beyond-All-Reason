@@ -722,7 +722,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
--- 		[numBuildoptions+5] = "armbotrail",
+-- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
@@ -734,7 +734,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
--- 		[numBuildoptions+5] = "armbotrail",
+-- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
@@ -746,7 +746,7 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+2] = "armada_miniragnarok",
 -- 		[numBuildoptions+3] = "armada_windturbinet2",
 -- 		[numBuildoptions+4] = "corscavfort",
--- 		[numBuildoptions+5] = "armbotrail",
+-- 		[numBuildoptions+5] = "armada_pawnlauncher",
 -- 		[numBuildoptions+6] = "armada_pulsart3",
 -- 	},
 -- }
@@ -1162,7 +1162,7 @@ customDefs.corscavdtl = {
 -- 	},
 -- }
 
-customDefs.armbotrail = {
+customDefs.armada_pawnlauncher = {
 	weapondefs = {
 		arm_botrail = {
 			customparams = {

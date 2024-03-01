@@ -199,7 +199,7 @@ return {
 				customparams = {
 					cegtag = "missiletrailcortex_oppressorspecial",
 					def = "cortex_messenger_rocket_split",
-					model = "airbomb",
+					model = "cortex_airbomb",
 					number = "8",
 					speceffect = "split",
 					splitexplosionceg = "genericshellexplosion-medium",
@@ -229,7 +229,7 @@ return {
 				impulsefactor = 0.123,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "airbomb.s3o",
+				model = "cortex_airbomb.s3o",
 				name = "Heavy long-range g2g ballistic missile launcher",
 				noselfdamage = true,
 				range = 1550,

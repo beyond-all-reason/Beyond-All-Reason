@@ -576,7 +576,7 @@ local unitOrderTable = {
    ['armada_ragnarok']        = 120300,
    ['cortex_calamity']        = 120400,
    ['legstarfall']    = 120450,
-   ['armbotrail']     = 120500, --scavengers
+   ['armada_pawnlauncher']     = 120500, --scavengers
 
    --DEFENSES AA
    ['armada_nettle']          = 130100,

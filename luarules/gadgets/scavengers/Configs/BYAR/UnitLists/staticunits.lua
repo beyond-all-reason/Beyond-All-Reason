@@ -59,7 +59,7 @@ local stockpilers = {
 	"cortex_saviour_scav",
 	"armada_haven_scav",
 	"cortex_oasis_scav",
-	"armbotrail_scav",
+	"armada_pawnlauncher_scav",
 }
 
 local nukes = {
@@ -266,7 +266,7 @@ local beaconDefencesLand = {
 		-- T4
 		"armada_pulsart3_scav",
 		"armada_ragnarok_scav",
-		"armbotrail_scav",
+		"armada_pawnlauncher_scav",
 		"armada_armageddon_scav",
 		"cortex_epicbulwark_scav",
 		"cortex_calamity_scav",

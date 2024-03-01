@@ -60,7 +60,7 @@ local function EpicDefence0()
 			{ unitDefID = UnitDefNames.armada_constructionturret_scav.id, xOffset = -104, zOffset = -104, direction = 1},
 			{ unitDefID = UnitDefNames.armada_sneakypete_scav.id, xOffset = 0, zOffset = -112, direction = 1},
 			{ unitDefID = UnitDefNames.armada_sneakypete_scav.id, xOffset = 0, zOffset = 112, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -107,7 +107,7 @@ local function EpicDefence1()
 			{ unitDefID = UnitDefNames.armada_juno_scav.id, xOffset = -93, zOffset = 32, direction = 1},
 			{ unitDefID = UnitDefNames.armada_miniragnarok_scav.id, xOffset = 155, zOffset = 56, direction = 1},
 			{ unitDefID = UnitDefNames.armada_miniragnarok_scav.id, xOffset = 155, zOffset = -56, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = 51, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = 51, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -193,9 +193,9 @@ local function EpicDefence2()
 			{ unitDefID = UnitDefNames.armada_pulsar_scav.id, xOffset = -136, zOffset = -176, direction = 3},
 			{ unitDefID = UnitDefNames.armada_pulsar_scav.id, xOffset = -136, zOffset = -112, direction = 3},
 			{ unitDefID = UnitDefNames.armada_pulsar_scav.id, xOffset = -136, zOffset = 112, direction = 3},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = 88, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = -40, zOffset = 128, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = -40, zOffset = -128, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = 88, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = -40, zOffset = 128, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = -40, zOffset = -128, direction = 1},
 		},
 	}
 end
@@ -703,7 +703,7 @@ local function EpicDefence9()
 			{ unitDefID = UnitDefNames.armada_botlab_scav.id, xOffset = 62, zOffset = 128, direction = 1},
 			{ unitDefID = UnitDefNames.armada_botlab_scav.id, xOffset = 62, zOffset = -128, direction = 1},
 			{ unitDefID = UnitDefNames.armada_keeper_scav.id, xOffset = -178, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = 78, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = 78, zOffset = 0, direction = 1},
 		},
 	}
 end
@@ -791,7 +791,7 @@ local function EpicDefence11()
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = -48, zOffset = -80, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 0, zOffset = 80, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 2), xOffset = 80, zOffset = 48, direction = 1},
-			{ unitDefID = UnitDefNames.armbotrail_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armada_pawnlauncher_scav.id, xOffset = 0, zOffset = 0, direction = 1},
 		},
 	}
 end

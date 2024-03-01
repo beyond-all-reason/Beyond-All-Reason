@@ -186,7 +186,7 @@ function UnitDef_Post(name, uDef)
 				armada_navalconstructionturret = true,
 				cortex_constructionturret = true,
 				cortex_navalconstructionturret = true,
-				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
+				armada_pawnlauncher = true, -- it spawns units so it will add dead launched peewees to respawn queue.
 			}
 			if factories[name] then
 				uDef.maxthisunit = 0
@@ -324,13 +324,13 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_nolrpc then
 			local LRPCs = {
-				armbotrail = true,
+				armada_pawnlauncher = true,
 				armada_basilica = true,
 				armada_ragnarok = true,
 				cortex_basilisk = true,
 				cortex_calamity = true,
 				legstarfall = true,
-				armbotrail_scav = true,
+				armada_pawnlauncher_scav = true,
 				armada_basilica_scav = true,
 				armada_ragnarok_scav = true,
 				cortex_basilisk_scav = true,
@@ -459,7 +459,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "armada_aircraftplantt3"
 			uDef.buildoptions[numBuildoptions+2] = "armada_miniragnarok"
 			uDef.buildoptions[numBuildoptions+3] = "armada_windturbinet2"
-			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
+			uDef.buildoptions[numBuildoptions+5] = "armada_pawnlauncher"
 			uDef.buildoptions[numBuildoptions+6] = "armada_pulsart3"
 			uDef.buildoptions[numBuildoptions+7] = "armada_advancedconstructionturret"
 			uDef.buildoptions[numBuildoptions+8] = "armada_dragonsfury"

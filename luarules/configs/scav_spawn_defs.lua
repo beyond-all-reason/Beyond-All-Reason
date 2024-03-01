@@ -833,7 +833,7 @@ local Turrets = {
 
 		["armada_miniragnarok_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["cortex_minicalamity_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
-		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
+		["armada_pawnlauncher_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
 	},
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal

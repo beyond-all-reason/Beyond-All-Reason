@@ -163,7 +163,7 @@ local icontypes = {
 		bitmap = "icons/air_t2_hover_missile.png",
 		size = 1.46999991
 	},
-	armbotrail = {
+	armada_pawnlauncher = {
 		bitmap = "icons/botrail.png",
 		size = 3.97000003
 	},
@@ -2423,8 +2423,8 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
-	mission_command_tower = {
-		bitmap = "icons/mission_command_tower.png",
+	armada_missioncommandtower = {
+		bitmap = "icons/armada_missioncommandtower.png",
 		size = 2.46749973
 	},
 	nuketest = {

@@ -89,7 +89,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptor = 1,
-				model = "SimpleFlareXL.s3o",
+				model = "armada_simpleflarexl.s3o",
 				name = "ICBM intercepting missile launcher",
 				noselfdamage = true,
 				range = 72000,

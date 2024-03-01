@@ -99,7 +99,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "airbombsea.s3o",
+				model = "cortex_airbombsea.s3o",
 				mygravity = 0.4,
 				name = "Medium a2g impulse warheads",
 				noselfdamage = true,

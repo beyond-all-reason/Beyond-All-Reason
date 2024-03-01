@@ -288,7 +288,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "airbomb.s3o",
+				model = "cortex_airbomb.s3o",
 				name = "EMP Grenade",
 				noselfdamage = true,
 				paralyzer = true,

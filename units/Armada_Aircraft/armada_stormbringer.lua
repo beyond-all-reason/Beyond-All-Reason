@@ -97,7 +97,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
-				model = "airbomb.s3o",
+				model = "cortex_airbomb.s3o",
 				name = "Light a2g impulse warheads",
 				noselfdamage = true,
 				range = 1280,

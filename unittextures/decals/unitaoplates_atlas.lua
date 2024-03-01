@@ -26,7 +26,7 @@ local atlas = {
 	["unittextures/decals/armada_airrepairpad_aoplane.dds"] = {0.5,0.5625,0.6875,0.75,128,128},
 	["unittextures/decals/armada_advancedvehicleplant_aoplane.dds"] = {0.5,0.5625,0.625,0.6875,128,128},
 	["unittextures/decals/armada_beamer_aoplane.dds"] = {0.5,0.5625,0.5625,0.625,128,128},
-	["unittextures/decals/armbotrail_aoplane.dds"] = {0.5,0.5625,0.5,0.5625,128,128},
+	["unittextures/decals/armada_pawnlauncher_aoplane.dds"] = {0.5,0.5625,0.5,0.5625,128,128},
 	["unittextures/decals/armada_basilica_aoplane.dds"] = {0.5,0.5625,0.4375,0.5,128,128},
 	["unittextures/decals/armada_chainsaw_aoplane.dds"] = {0.5,0.5625,0.375,0.4375,128,128},
 	["unittextures/decals/armada_dragonsclaw_aoplane.dds"] = {0.5,0.5625,0.3125,0.375,128,128},
@@ -151,7 +151,7 @@ local atlas = {
 	["unittextures/decals/cortex_vehicleplant_aoplane.dds"] = {0.6875,0.75,0.0,0.0625,128,128},
 	["unittextures/decals/cortex_windturbine_aoplane.dds"] = {0.625,0.6875,0.0,0.0625,128,128},
 	["unittextures/decals/cortex_advancedwindturbine_aoplane.dds"] = {0.5625,0.625,0.0,0.0625,128,128},
-	["unittextures/decals/mission_command_tower_aoplane.dds"] = {0.5,0.5625,0.0,0.0625,128,128},
+	["unittextures/decals/armada_missioncommandtower_aoplane.dds"] = {0.5,0.5625,0.0,0.0625,128,128},
 	["unittextures/decals/scavdtf_aoplane.dds"] = {0.46875,0.5,0.75,0.78125,64,64},
 	["unittextures/decals/scavfort_aoplane.dds"] = {0.4375,0.46875,0.75,0.78125,64,64},
 
