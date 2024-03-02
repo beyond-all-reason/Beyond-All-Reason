@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923

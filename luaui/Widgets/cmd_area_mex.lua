@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_AREA_MEX = 10100
+VFS.Include("luarules/configs/customcmds.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode

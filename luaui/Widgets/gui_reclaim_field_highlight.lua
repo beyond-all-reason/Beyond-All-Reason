@@ -11,9 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("LuaRules/Configs/customcmds.h.lua")
-
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Options
@@ -417,7 +414,7 @@ local spGetCameraVectors = Spring.GetCameraVectors
 
 local screenx, screeny
 local gaiaTeamId = spGetGaiaTeamID()
-local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed 
+local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed
 
 local minDistance = 300
 local minSqDistance = minDistance^2
@@ -426,7 +423,7 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 30 
+local checkFrequency = 30
 
 local drawEnabled = true
 local actionActive = false
@@ -908,7 +905,7 @@ function widget:Update(dt)
 		cameraScale = sqrt((cameraDist / 600)) --number is an "optimal" view distance
 	else
 		cameraScale = 1.0
-	end	
+	end
 end
 
 function widget:GameFrame(frame)
