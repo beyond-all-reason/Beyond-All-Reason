@@ -21,7 +21,7 @@ local queenUnitDefs = {
     raptor_queen_hard = true,
     raptor_queen_veryhard = true,
     raptor_queen_epic = true,
-    
+
     raptor_matriarch_spectre = true,
 	raptor_matriarch_electric = true,
 	raptor_matriarch_acid = true,
@@ -39,8 +39,8 @@ local queenUnitDefs = {
 
 
 local queenUnits = {}
-for unitDefName, isqueen in pairs(queenUnitDefs) do 
-	if UnitDefNames[unitDefName] then 
+for unitDefName, isqueen in pairs(queenUnitDefs) do
+	if UnitDefNames[unitDefName] then
 		queenUnits[UnitDefNames[unitDefName].id] = isqueen
 	end
 end
@@ -80,7 +80,7 @@ function gadget:GameFrame(frame)
             local queenx,queeny,queenz = Spring.GetUnitPosition(queenID)
             local surroundingUnits = Spring.GetUnitsInSphere(queenx, queeny, queenz, 750)
             for i = 1,#surroundingUnits do
-                if aliveTargets[surroundingUnits[i]] then
+				if aliveTargets[surroundingUnits[i]] and Spring.GetUnitAllyTeam(surroundingUnits[i]) ~= Spring.GetUnitAllyTeam(queenID) then
                     Spring.GiveOrderToUnit(queenID, CMD.STOP, 0, 0)
                     Spring.GiveOrderToUnit(queenID, CMD.ATTACK, {surroundingUnits[i]}, 0)
                     break
