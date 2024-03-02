@@ -19,23 +19,12 @@ end
 
 
 
-local isBuilding = {}
-local isInfestor = {}
-for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'leginfestor') then
-		isInfestor[udid] = true
-		Spring.Echo(udid)
-	end
-	if ud.isBuilding then
-		isBuilding[udid] = true
-	end
-end
-
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if builderID and isInfestor[unitDefID] and isInfestor[Spring.GetUnitDefID(builderID)] then
-		local OrderUnit = Spring.GiveOrderToUnit
-		OrderUnit(unitID, CMD.GUARD, { builderID },            { "shift" })
+	if (builderID) then
+		if (UnitDefNames.leginfestor.id == unitDefID) and (Spring.GetUnitDefID(builderID) == UnitDefNames.leginfestor.id) then
+			local OrderUnit = Spring.GiveOrderToUnit
+			OrderUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
+		end
 	end
 end
 

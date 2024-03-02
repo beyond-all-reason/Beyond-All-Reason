@@ -31,6 +31,7 @@ return {
 		radardistance = 0,
 		radardistancejam = 450,
 		script = "Units/CORSPEC.cob",
+		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 250,
 		turninplace = true,
