@@ -80,7 +80,7 @@ return {
 			[41] = "cortex_coral",
 			[42] = "cortex_slingshot",
 			[43] = "cortex_urchin",
-			[44] = "cortex_navalgeothermalpowerplant",
+			[44] = "cortex_underwatergeothermalpowerplant",
 			[45] = "cortex_airrepairpad",
 			[46] = "cortex_floatingairrepairpad",
 		},

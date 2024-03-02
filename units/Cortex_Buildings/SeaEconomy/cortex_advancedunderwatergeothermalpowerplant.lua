@@ -1,12 +1,12 @@
 return {
-	cortex_advancednavalgeothermalpowerplant = {
+	cortex_advancedunderwatergeothermalpowerplant = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 0,
 		buildcostenergy = 27000,
 		buildcostmetal = 1500,
-		buildpic = "cortex_advancednavalgeothermalpowerplant.DDS",
+		buildpic = "cortex_advancedunderwatergeothermalpowerplant.DDS",
 		buildtime = 32000,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxdamage = 4150,
 		maxslope = 20,
 		maxwaterdepth = 99999,
-		objectname = "Units/cortex_advancednavalgeothermalpowerplant.s3o",
-		script = "Units/cortex_advancednavalgeothermalpowerplant.cob",
+		objectname = "Units/cortex_advancedunderwatergeothermalpowerplant.s3o",
+		script = "Units/cortex_advancedunderwatergeothermalpowerplant.cob",
 		seismicsignature = 0,
 		selfdestructas = "advgeo",
 		sightdistance = 273,
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "cortex_buildings/landeconomy",
+			subfolder = "cortex_buildings/seaeconomy",
 			techlevel = 2,
 		},
 		sfxtypes = {

@@ -18592,10 +18592,10 @@ local unitLights = {
 
 
 unitLights['armada_torpedoship'] = unitLights['armada_voyager']
-unitLights['cortex_navalgeothermalpowerplant'] = unitLights['cortex_geothermalpowerplant']
-unitLights['cortex_advancednavalgeothermalpowerplant'] = unitLights['cortex_advancedgeothermalpowerplant']
-unitLights['armada_geothermalpowerplant'] = unitLights['armada_geothermalpowerplant']
-unitLights['armada_advancedgeothermalpowerplant'] = unitLights['armada_advancedgeothermalpowerplant']
+unitLights['cortex_underwatergeothermalpowerplant'] = unitLights['cortex_geothermalpowerplant']
+unitLights['cortex_advancedunderwatergeothermalpowerplant'] = unitLights['cortex_advancedgeothermalpowerplant']
+unitLights['armada_underwatergeothermalpowerplant'] = unitLights['armada_geothermalpowerplant']
+unitLights['armada_advancedunderwatergeothermalpowerplant'] = unitLights['armada_advancedgeothermalpowerplant']
 unitLights['armada_experimentalgantryuw'] = unitLights['armada_experimentalgantry']
 unitLights['cortex_underwaterexperimentalgantry'] = unitLights['cortex_experimentalgantry']
 unitLights['armada_decoycommander'] = unitLights['armada_commander']

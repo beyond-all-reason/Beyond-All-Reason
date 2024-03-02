@@ -50,7 +50,7 @@ return {
 			"armada_gauntlet",
 			"armada_tidalgenerator",
 			"armada_geothermalpowerplant",
-			"armada_geothermalpowerplant",
+			"armada_underwatergeothermalpowerplant",
 			"armada_navalenergyconverter",
 			"armada_navalmetalstorage",
 			"armada_navalenergystorage",

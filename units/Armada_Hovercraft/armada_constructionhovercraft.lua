@@ -84,7 +84,7 @@ return {
 			[43] = "armada_harpoon",
 			[44] = "armada_advancedvehicleplant",
 			[45] = "armada_advancedshipyard",
-			[46] = "armada_geothermalpowerplant",
+			[46] = "armada_underwatergeothermalpowerplant",
 		},
 		customparams = {
 			unitgroup = 'builder',

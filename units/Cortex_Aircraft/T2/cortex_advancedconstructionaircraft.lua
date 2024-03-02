@@ -40,7 +40,7 @@ return {
 			"cortex_fusionreactor",
 			"cortex_advancedfusionreactor",
 			"cortex_advancedgeothermalpowerplant",
-			"cortex_advancednavalgeothermalpowerplant",
+			"cortex_advancedunderwatergeothermalpowerplant",
 			"cortex_cerberus",
 			"cortex_advancedmetalextractor",
 			"cortex_advancedexploiter",

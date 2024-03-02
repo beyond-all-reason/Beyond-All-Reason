@@ -80,7 +80,7 @@ return {
 			[41] = "armada_manta",
 			[42] = "armada_navalnettle",
 			[43] = "armada_harpoon",
-			[44] = "armada_geothermalpowerplant",
+			[44] = "armada_underwatergeothermalpowerplant",
 			[45] = "armada_airrepairpad",
 			[46] = "armada_floatingairrepairpad",
 		},

@@ -68,7 +68,7 @@ return {
 			[29] = "cortex_castro",
 			[30] = "cortex_juno",
 			[31] = "cortex_shipyard",
-			[32] = "cortex_navalgeothermalpowerplant",
+			[32] = "cortex_underwatergeothermalpowerplant",
 			[33] = "cortex_floatingairrepairpad",
 		},
 		customparams = {

@@ -67,7 +67,7 @@ return {
 			[29] = "armada_sneakypete",
 			[30] = "armada_juno",
 			[31] = "armada_shipyard",
-			[32] = "armada_geothermalpowerplant",
+			[32] = "armada_underwatergeothermalpowerplant",
 			[33] = "armada_floatingairrepairpad",
 		},
 		customparams = {

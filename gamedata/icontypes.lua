@@ -887,7 +887,7 @@ local icontypes = {
 		bitmap = "icons/metalstorage_t2.png",
 		size = 1.3125
 	},
-	armada_advancedgeothermalpowerplant = {
+	armada_advancedunderwatergeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
@@ -899,7 +899,7 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	armada_geothermalpowerplant = {
+	armada_underwatergeothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
@@ -1383,6 +1383,10 @@ local icontypes = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
+	cortex_underwatergeothermalpowerplant = {
+		bitmap = "icons/energy6_1.3.png",
+		size = 1.36499989
+	},
 	cortex_tzar = {
 		bitmap = "icons/vehicle_t2_plasma_aoe.png",
 		size = 1.83749986
@@ -1847,7 +1851,7 @@ local icontypes = {
 		bitmap = "icons/metalstorage_t2.png",
 		size = 1.3125
 	},
-	cortex_advancednavalgeothermalpowerplant = {
+	cortex_advancedunderwatergeothermalpowerplant = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
@@ -1859,7 +1863,7 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
-	cortex_navalgeothermalpowerplant = {
+	cortex_underwatergeothermalpowerplant = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},

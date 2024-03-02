@@ -2742,10 +2742,10 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
 
 
-	cortex_navalgeothermalpowerplant = cortex_geothermalpowerplant,
-	cortex_advancednavalgeothermalpowerplant = cortex_advancedgeothermalpowerplant,
-	armada_geothermalpowerplant = armada_geothermalpowerplant,
-	armada_advancedgeothermalpowerplant = armada_advancedgeothermalpowerplant,
+	cortex_underwatergeothermalpowerplant = cortex_geothermalpowerplant,
+	cortex_advancedunderwatergeothermalpowerplant = cortex_advancedgeothermalpowerplant,
+	armada_underwatergeothermalpowerplant = armada_geothermalpowerplant,
+	armada_advancedunderwatergeothermalpowerplant = armada_advancedgeothermalpowerplant,
 
 }
 

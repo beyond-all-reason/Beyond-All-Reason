@@ -336,8 +336,12 @@ function ArmyHST:Init()
 		}
 
 	self._geo_ = {
+		cortex_advancedunderwatergeothermalpowerplant = true ,
+		armada_advancedunderwatergeothermalpowerplant = true ,
 		cortex_advancedgeothermalpowerplant = true ,
 		armada_advancedgeothermalpowerplant = true ,
+		cortex_underwatergeothermalpowerplant = true ,
+		armada_underwatergeothermalpowerplant = true ,
 		armada_geothermalpowerplant = true ,
 		cortex_geothermalpowerplant = true ,
 		cortex_cerberus = true ,

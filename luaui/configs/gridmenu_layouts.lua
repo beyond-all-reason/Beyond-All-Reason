@@ -664,7 +664,7 @@ local unitGrids = {
 	armada_constructionship = {
 		{
 			{ "armada_metalextractor", "armada_tidalgenerator", },                         -- mex, tidal
-			{ "armada_navalenergyconverter", "armada_geothermalpowerplant", },                         -- floating T1 converter, geo
+			{ "armada_navalenergyconverter", "armada_underwatergeothermalpowerplant", },                         -- floating T1 converter, geo
 			{ "armada_navalenergystorage", "armada_navalmetalstorage", },                        -- uw e stor, uw m stor
 		},
 		{
@@ -1013,7 +1013,7 @@ local unitGrids = {
 	cortex_advancedconstructionaircraft = {
 		{
 			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
-			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancednavalgeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancedunderwatergeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1035,7 +1035,7 @@ local unitGrids = {
 	legaca = {
 		{
 			{ "cortex_advancedmetalextractor", "cortex_fusionreactor", "cortex_advancedfusionreactor", },                -- moho, fusion, afus
-			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancednavalgeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
+			{ "cortex_advancedenergyconverter", "cortex_advancedgeothermalpowerplant", "cortex_advancedexploiter","cortex_advancedunderwatergeothermalpowerplant", },               -- T2 converter, T2 geo, armed moho
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1059,7 +1059,7 @@ local unitGrids = {
 	armada_advancedconstructionsub = {
 		{
 			{ "armada_navaladvancedmetalextractor", "armada_navalfusionreactor", },                       -- uw moho, uw fusion,
-			{ "armada_navaladvancedenergyconverter", "armada_advancedgeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
+			{ "armada_navaladvancedenergyconverter", "armada_advancedunderwatergeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
 			{ "armada_hardenedenergystorage", "armada_hardenedmetalstorage", },                   -- uw e stor, uw metal stor
 		},
 		{
@@ -1082,7 +1082,7 @@ local unitGrids = {
 	cortex_advancedconstructionsub = {
 		{
 			{ "cortex_navaladvancedmetalextractor", "cortex_navalfusionreactor", },                       -- uw moho, uw fusion,
-			{ "cortex_navaladvancedenergyconverter", "cortex_advancednavalgeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
+			{ "cortex_navaladvancedenergyconverter", "cortex_advancedunderwatergeothermalpowerplant" },                       -- floating T2 converter, adv geo powerplant
 			{ "cortex_hardenedenergystorage", "cortex_hardenedmetalstorage", },                   -- uw e stor, uw metal stor
 		},
 		{

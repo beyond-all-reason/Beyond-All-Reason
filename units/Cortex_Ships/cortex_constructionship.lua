@@ -50,7 +50,7 @@ return {
 			--"cortex_navalmetalextractor",
 			"cortex_tidalgenerator",
 			"cortex_geothermalpowerplant",
-			"cortex_navalgeothermalpowerplant",
+			"cortex_underwatergeothermalpowerplant",
 			"cortex_navalenergyconverter",
 			"cortex_navalmetalstorage",
 			"cortex_navalenergystorage",

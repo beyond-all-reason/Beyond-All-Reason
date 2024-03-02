@@ -73,10 +73,10 @@ local unitlist = {
 	{'cortex_aircraftplant','cortex_seaplaneplatform'},
 	{'cortex_airrepairpad','cortex_floatingairrepairpad'},
 	{'armada_airrepairpad','armada_floatingairrepairpad'},
-	{'armada_geothermalpowerplant','armada_geothermalpowerplant'},
-	{'armada_advancedgeothermalpowerplant','armada_advancedgeothermalpowerplant'},
-	{'cortex_geothermalpowerplant','cortex_navalgeothermalpowerplant'},
-	{'cortex_advancedgeothermalpowerplant','cortex_advancednavalgeothermalpowerplant'},
+	{'armada_geothermalpowerplant','armada_underwatergeothermalpowerplant'},
+	{'armada_advancedgeothermalpowerplant','armada_advancedunderwatergeothermalpowerplant'},
+	{'cortex_geothermalpowerplant','cortex_underwatergeothermalpowerplant'},
+	{'cortex_advancedgeothermalpowerplant','cortex_advancedunderwatergeothermalpowerplant'},
 	{'armada_sentry', 'armada_harpoon2'}, -- for the amphibious construction vehicles trying to build ptls on land
 	{'cortex_guard', 'cortex_oldurchin'},
 }

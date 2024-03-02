@@ -439,14 +439,14 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armada_geothermalpowerplant']         = 101200,
-   ['armada_geothermalpowerplant']       = 101201,
+   ['armada_underwatergeothermalpowerplant']       = 101201,
    ['cortex_geothermalpowerplant']         = 101250,
-   --['cortex_navalgeothermalpowerplant']       = 101251,
+   --['cortex_underwatergeothermalpowerplant']       = 101251,
    ['armada_prude']         = 101300,
    ['cortex_advancedgeothermalpowerplant']        = 101350,
-   ['cortex_advancednavalgeothermalpowerplant']      = 101351,
+   ['cortex_advancedunderwatergeothermalpowerplant']      = 101351,
    ['armada_advancedgeothermalpowerplant']        = 101400,
-   ['armada_advancedgeothermalpowerplant']      = 101401,
+   ['armada_advancedunderwatergeothermalpowerplant']      = 101401,
    ['cortex_cerberus']       = 101450,
 
    --ECO NRG FUSIONS
@@ -622,10 +622,10 @@ local unitOrderTable = {
    ['cortex_tidalgenerator']        = 203100,
 
    --WATER ECO NRG GEOS
-   ['armada_geothermalpowerplant']       = 204000,
-   ['cortex_navalgeothermalpowerplant']       = 204100,
+   ['armada_underwatergeothermalpowerplant']       = 204000,
+   ['cortex_underwatergeothermalpowerplant']       = 204100,
    ['armada_advancedgeothermalpowerplant']       = 204500,
-   ['cortex_advancednavalgeothermalpowerplant']       = 204600,
+   ['cortex_advancedunderwatergeothermalpowerplant']       = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armada_navalfusionreactor']       = 205000,

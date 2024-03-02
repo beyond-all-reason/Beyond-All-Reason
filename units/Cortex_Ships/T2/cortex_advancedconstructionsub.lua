@@ -51,7 +51,7 @@ return {
 			[11] = "cortex_lamprey",
 			[12] = "cortex_navalbirdshot",
 			[13]= "cortex_devastator",
-			[14]= "cortex_advancednavalgeothermalpowerplant",
+			[14]= "cortex_advancedunderwatergeothermalpowerplant",
 			[15] = "cortex_floatingairrepairpad",
 		},
 		customparams = {

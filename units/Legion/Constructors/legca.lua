@@ -41,7 +41,7 @@ return {
 			"cortex_advancedsolarcollector",
 			"cortex_windturbine",
 			"cortex_geothermalpowerplant",
-			"cortex_navalgeothermalpowerplant",
+			"cortex_underwatergeothermalpowerplant",
 			"cortex_metalstorage",
 			"cortex_energystorage",
 			"legmex",

@@ -1,12 +1,12 @@
 return {
-	armada_geothermalpowerplant = {
+	armada_underwatergeothermalpowerplant = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 2048,
 		buildcostenergy = 13000,
 		buildcostmetal = 560,
-		buildpic = "armada_geothermalpowerplant.DDS",
+		buildpic = "armada_underwatergeothermalpowerplant.DDS",
 		buildtime = 13100,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxdamage = 1940,
 		maxslope = 20,
 		maxwaterdepth = 99999,
-		objectname = "Units/armada_geothermalpowerplant.s3o",
-		script = "Units/armada_geothermalpowerplant.cob",
+		objectname = "Units/armada_underwatergeothermalpowerplant.s3o",
+		script = "Units/armada_underwatergeothermalpowerplant.cob",
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armada_buildings/landeconomy",
+			subfolder = "armada_buildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {

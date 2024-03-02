@@ -1,12 +1,12 @@
 return {
-	armada_advancedgeothermalpowerplant = {
+	armada_advancedunderwatergeothermalpowerplant = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 0,
 		buildcostenergy = 27000,
 		buildcostmetal = 1600,
-		buildpic = "armada_advancedgeothermalpowerplant.DDS",
+		buildpic = "armada_advancedunderwatergeothermalpowerplant.DDS",
 		buildtime = 33300,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxdamage = 3600,
 		maxslope = 15,
 		maxwaterdepth = 99999,
-		objectname = "Units/armada_advancedgeothermalpowerplant.s3o",
-		script = "Units/armada_advancedgeothermalpowerplant.cob",
+		objectname = "Units/armada_advancedunderwatergeothermalpowerplant.s3o",
+		script = "Units/armada_advancedunderwatergeothermalpowerplant.cob",
 		seismicsignature = 0,
 		selfdestructas = "advgeo",
 		sightdistance = 273,
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armada_buildings/landeconomy",
+			subfolder = "armada_buildings/seaeconomy",
 			techlevel = 2,
 		},
 		sfxtypes = {

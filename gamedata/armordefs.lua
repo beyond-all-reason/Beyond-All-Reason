@@ -83,6 +83,7 @@ local armorDefs = {
 		--"armada_fortificationwall",
 		"armada_navalnettle",
 		"armada_geothermalpowerplant",
+		"armada_underwatergeothermalpowerplant",
 		"armada_prude",
 		"armada_gremlin",
 		"armada_mace",
@@ -169,6 +170,7 @@ local armorDefs = {
 		"cortex_heattiger",
 		"cortex_incisor",
 		"cortex_geothermalpowerplant",
+		"cortex_underwatergeothermalpowerplant",
 		"cortex_warden",
 		"cortex_hovercraftplatform",
 		"cortex_arbiter",
@@ -354,10 +356,10 @@ local armorDefs = {
 		"legbastion",
 		"legstarfall",
 
-		"cortex_navalgeothermalpowerplant",
-		"cortex_advancednavalgeothermalpowerplant",
+		"cortex_underwatergeothermalpowerplant",
+		"cortex_advancedunderwatergeothermalpowerplant",
 		"armada_advancedgeothermalpowerplant",
-		"armada_advancedgeothermalpowerplant",
+		"armada_advancedunderwatergeothermalpowerplant",
 
 	},
 

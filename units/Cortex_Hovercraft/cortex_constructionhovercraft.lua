@@ -84,7 +84,7 @@ return {
 			[43] = "cortex_urchin",
 			[44] = "cortex_advancedvehicleplant",
 			[45] = "cortex_advancedshipyard",
-			[46] = "cortex_navalgeothermalpowerplant",
+			[46] = "cortex_underwatergeothermalpowerplant",
 		},
 		customparams = {
 			unitgroup = 'builder',

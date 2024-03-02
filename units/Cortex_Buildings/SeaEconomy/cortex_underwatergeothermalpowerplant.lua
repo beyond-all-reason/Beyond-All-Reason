@@ -1,12 +1,12 @@
 return {
-	cortex_navalgeothermalpowerplant = {
+	cortex_underwatergeothermalpowerplant = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 4096,
 		buildcostenergy = 13000,
 		buildcostmetal = 540,
-		buildpic = "cortex_navalgeothermalpowerplant.DDS",
+		buildpic = "cortex_underwatergeothermalpowerplant.DDS",
 		buildtime = 12900,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		maxdamage = 2050,
 		maxslope = 15,
 		maxwaterdepth = 99999,
-		objectname = "Units/cortex_navalgeothermalpowerplant.s3o",
-		script = "Units/cortex_navalgeothermalpowerplant.cob",
+		objectname = "Units/cortex_underwatergeothermalpowerplant.s3o",
+		script = "Units/cortex_underwatergeothermalpowerplant.cob",
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
@@ -44,7 +44,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "cortex_buildings/landeconomy",
+			subfolder = "cortex_buildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {

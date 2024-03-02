@@ -52,7 +52,7 @@ return {
 			[11] = "armada_moray",
 			[12] = "armada_navalarbalest",
 			[13] = "armada_gorgon",
-			[14] = "armada_advancedgeothermalpowerplant",
+			[14] = "armada_advancedunderwatergeothermalpowerplant",
 			[15] = "armada_floatingairrepairpad",
 		},
 		customparams = {

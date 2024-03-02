@@ -41,7 +41,7 @@ return {
 			"armada_advancedfusionreactor",
 			"armada_cloakablefusionreactor",
 			"armada_advancedgeothermalpowerplant",
-			"armada_advancedgeothermalpowerplant",
+			"armada_advancedunderwatergeothermalpowerplant",
 			"armada_prude",
 			"armada_advancedmetalextractor",
 			"armada_advancedenergyconverter",
