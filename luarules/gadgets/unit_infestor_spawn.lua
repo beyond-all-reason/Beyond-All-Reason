@@ -19,12 +19,13 @@ end
 
 
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if (builderID) then
-		if (UnitDefNames.leginfestor.id == unitDefID) and (Spring.GetUnitDefID(builderID) == UnitDefNames.leginfestor.id) then
-			local OrderUnit = Spring.GiveOrderToUnit
-			OrderUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
-		end
-	end
-end
+local infestorId = UnitDefNames.leginfestor.id
 
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+    if (builderID) then
+        if (infestorId == unitDefID) and (Spring.GetUnitDefID(builderID) == infestorId) then
+            local OrderUnit = Spring.GiveOrderToUnit
+            OrderUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
+        end
+    end
+end
