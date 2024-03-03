@@ -73,8 +73,8 @@ widgetHandler = {
 	---@field fromZip boolean Was this widget loaded from VFS.ZIP?
 	---@field childPaths nil | string[] | boolean local paths to children **OR** boolean true to signal that all other .lua files in this folder are children of this widget
 	---@field active boolean Is the widget currently loaded (or is to be loaded)?
-	---@field _parent KnownInfo parent info (if exists). Set by Wupget Loader
-	---@field _children KnownInfo[] child infos (if exists). Set by Wupget Loader
+	---@field parent KnownInfo parent info (if exists). Set by Wupget Loader
+	---@field children KnownInfo[] child infos (if exists). Set by Wupget Loader
 
 	---@type table<string, KnownInfo>
 	---widget:GetInfo().name to KnownInfo
@@ -403,10 +403,10 @@ function widgetHandler:Initialize()
 	table.sort(unsortedWidgets, function(w1, w2) return infoComp(w1.whInfo, w2.whInfo) end)
 
 	local function loadChildren(parentWidget, parentInfo)
-		if parentInfo._children and #parentInfo._children > 0 then
-			table.sort(parentInfo._children, infoComp)
+		if parentInfo.children and #parentInfo.children > 0 then
+			table.sort(parentInfo.children, infoComp)
 
-			for _, childInfo in ipairs(parentInfo._children) do
+			for _, childInfo in ipairs(parentInfo.children) do
 				local childWidget = childWidgetsToInit[childInfo.name]
 
 				if childWidget then
@@ -883,13 +883,13 @@ function widgetHandler:InsertWidget(widget, parentWidget)
 	self:UpdateCallIns()
 	ki.active = true
 
-	if ki._parent then
-		parentWidget = parentWidget or self:FindWidget(ki._parent.name)
+	if ki.parent then
+		parentWidget = parentWidget or self:FindWidget(ki.parent.name)
 		if parentWidget then
-			widget._parent = parentWidget
-			parentWidget._children = parentWidget._children or {}
-			if not table.contains(parentWidget._children, widget) then
-				table.insert(parentWidget._children, widget)
+			widget.parent = parentWidget
+			parentWidget.children = parentWidget.children or {}
+			if not table.contains(parentWidget.children, widget) then
+				table.insert(parentWidget.children, widget)
 			end
 		end
 	end
@@ -909,8 +909,8 @@ function widgetHandler:RemoveWidget(widget)
 	local ki = self.knownWidgets[name]
 
 	-- first, remove children (without removing from orderList)
-	if ki._children and #ki._children > 0 then
-		for _, childInfo in ipairs(ki._children) do
+	if ki.children and #ki.children > 0 then
+		for _, childInfo in ipairs(ki.children) do
 			self:RemoveWidget(self:FindWidget(childInfo.name))
 		end
 	end
@@ -1007,8 +1007,8 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 	end
 
 	-- make sure parent is enabled first
-	if ki._parent and not ki._parent.active then
-		self:EnableWidget(ki._parent.name)
+	if ki.parent and not ki.parent.active then
+		self:EnableWidget(ki.parent.name)
 	end
 
 	if not ki.active then
@@ -1025,8 +1025,8 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 		self:SaveConfigData()
 
 		-- re-enable child widgets if they were previously enabled
-		if ki._children and #ki._children > 0 then
-			for _, childInfo in ipairs(ki._children) do
+		if ki.children and #ki.children > 0 then
+			for _, childInfo in ipairs(ki.children) do
 				local active = self.knownWidgets[childInfo.name].active
 				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
 

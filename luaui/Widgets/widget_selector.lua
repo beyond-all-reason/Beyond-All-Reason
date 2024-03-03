@@ -407,11 +407,11 @@ function UpdateList(force)
 		searchDirection = searchDirection or 0
 
 		local function checkChildren(parentData)
-			if not parentData._children then
+			if not parentData.children then
 				return false
 			end
 
-			for _, child in ipairs(parentData._children) do
+			for _, child in ipairs(parentData.children) do
 				if checkTextFilter(child.name, child, 1) then
 					return true
 				end
@@ -425,13 +425,13 @@ function UpdateList(force)
 			or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true))
 			or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true))
 			or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))
-			or (searchDirection <= 0 and data._parent and checkTextFilter(data._parent.name, data._parent, -1))
+			or (searchDirection <= 0 and data.parent and checkTextFilter(data.parent.name, data.parent, -1))
 			or (searchDirection >= 0 and checkChildren(data))
 		)
 	end
 
 	for name, data in pairs(widgetHandler.knownWidgets) do
-		if name ~= myName and name ~= 'Write customparam.__def to files' and not data._parent then
+		if name ~= myName and name ~= 'Write customparam.__def to files' and not data.parent then
 			if checkTextFilter(name, data) then
 				fullWidgetsList[#fullWidgetsList+1] = { name, data }
 				-- look for the maxWidth
@@ -448,10 +448,10 @@ function UpdateList(force)
 
 	local sanityDepthLimit = 10
 	local function insertChildWidgets(parentIndex, nameDataPair)
-		if nameDataPair[2]._children and #nameDataPair[2]._children > 0 then
+		if nameDataPair[2].children and #nameDataPair[2].children > 0 then
 			local childrenToAdd = {}
 
-			for _, child in ipairs(nameDataPair[2]._children) do
+			for _, child in ipairs(nameDataPair[2].children) do
 				if checkTextFilter(child.name, child) then
 					childrenToAdd[#childrenToAdd + 1] =  { child.name, child }
 				end
@@ -726,9 +726,9 @@ function widget:DrawScreen()
 
 		local childDepth = 0
 		local tmpData = data
-		while(tmpData._parent) do
+		while(tmpData.parent) do
 			childDepth = childDepth + 1
-			tmpData = tmpData._parent
+			tmpData = tmpData.parent
 		end
 
 		font:Print(color .. string.rep('> ', childDepth) .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
