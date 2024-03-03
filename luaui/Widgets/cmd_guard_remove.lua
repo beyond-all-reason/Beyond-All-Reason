@@ -2,7 +2,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Guard Remove",
-		desc      = "Removes non-terminating orders when they seem to have been used accidentally.",
+		desc      = "Removes non-terminating orders (guard/patrol) on builders when more commands are given with shift",
 		author    = "Google Frog, Born2Crawl (adapted for BAR)",
 		date      = "13 July 2017",
 		license   = "GNU GPL, v2 or later",
@@ -12,51 +12,66 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
-VFS.Include("LuaRules/Configs/customcmds.h.lua")
 
-local doCommandRemove = false
+local spGetGameFrame = Spring.GetGameFrame
+local spGetCommandQueue = Spring.GetCommandQueue
+
+local CMD_GUARD = CMD.GUARD
+local CMD_PATROL = CMD.PATROL
 
 local removableCommand = {
-	[CMD.GUARD] = true,
-	[CMD.PATROL] = true,
+	[CMD_GUARD] = true,
+	[CMD_PATROL] = true,
 }
+
+-- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
+-- extreme performance issues by parsing all of those commands. So we track units that have recieved
+-- commands in the last 5 frames and skip any that are touched
+local recentUnits = {}
+local updateTime = 0
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
-function widget:CommandNotify(id, params, cmdOptions)
-	if not doCommandRemove then
+function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
+
+	if not cmdOpts.shift then
 		return false
 	end
 
-	if not cmdOptions.shift then
-		doCommandRemove = false
+	if recentUnits[unitID] then
 		return false
 	end
 
-	local units = Spring.GetSelectedUnits()
-	for i = 1, #units do
-		local unitID = units[i]
-		if validUnit[Spring.GetUnitDefID(unitID)] then
-			local cmd = Spring.GetCommandQueue(unitID, -1)
-			if cmd then
-				for c = 1, #cmd do
-					if removableCommand[cmd[c].id] then
-						Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
-					end
+	if validUnit[unitDefID] then
+		recentUnits[unitID] = spGetGameFrame()
+		local cmd = spGetCommandQueue(unitID, 2)
+		if cmd then
+			for c = 1, #cmd do
+				if removableCommand[cmd[c].id] then
+					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
 				end
 			end
 		end
 	end
 
-	doCommandRemove = false
 	return false
 end
 
-function widget:KeyPress(key, modifier, isRepeat)
-	if not isRepeat and (key == KEYSYMS.LSHIFT or key == KEYSYMS.RSHIFT) then
-		doCommandRemove = true
+function widget:Update(dt)
+	updateTime = updateTime + dt
+	if updateTime < 0.25 then
+		return
 	end
+
+	-- Clear all recent units that are outside of the time window
+	for i, t in pairs(recentUnits) do
+		if t < spGetGameFrame() - 5 then
+			recentUnits[i] = nil;
+		end
+	end
+
+	updateTime = 0
 end

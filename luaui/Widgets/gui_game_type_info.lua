@@ -66,10 +66,6 @@ function widget:Initialize()
 
 	messages[1] = {}
 
-	if Spring.GetModOptions().unba then
-		messages[2] = {}
-	end
-
 	if Spring.GetModOptions().deathmode == "own_com" then
 		messages[3] = {}
 	end
@@ -86,39 +82,8 @@ function widget:LanguageChanged()
 		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
-	if Spring.GetModOptions().unba then
-		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	end
-
 	if Spring.GetModOptions().deathmode == "own_com" then
 		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
-	end
-end
-
-local blink = false
-local function toggleBlink( on )
-	if on and not blink then
-		blink = true
-		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	elseif blink and not on then
-		blink = false
-		messages[2].str = "\255\255\150\050" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	end
-end
-
-local sec = 0
-function widget:Update(dt)
-	if messages[2] == nil then return end
-
-	sec = sec + dt
-	if sec > 1 then
-		sec = sec - 1
-	end
-
-	if sec > 0.5 then
-		toggleBlink(true)
-	else
-		toggleBlink(false)
 	end
 end
 

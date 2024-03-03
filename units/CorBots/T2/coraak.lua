@@ -24,7 +24,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
 		script = "Units/CORAAK.cob",
-		seismicsignature = 1,
+		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 390,
 		turninplace = true,

@@ -153,6 +153,17 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "conalt-small",
 	},
+	armnanotct2 = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+
+	armnanotc2plat = {
+		BaseSoundSelectType = "arm-bld-select-large-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
 
 	armfdrag = {
 		BaseSoundSelectType = "arm-bld-select",
@@ -1295,6 +1306,17 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 
+	cornanotct2 = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+	cornanotc2plat = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+
 	corfdrag = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
@@ -1938,7 +1960,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = { "cor-korg-ok1", "cor-korg-ok2", "cor-korg-ok3", },
 		BaseSoundWeaponType = "heatray-xl",
 	},
-	cordemont4 = {
+	cordemon = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
 		BaseSoundWeaponType = "flame-alt",
@@ -2553,13 +2575,13 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
-	-- LEGION T3 VEHICLES
-	
-	legjugglite = {
+	legmed = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
-		BaseSoundWeaponType = "heatray-xl",
+		BaseSoundWeaponType = "arty-large",
 	},
+	-- LEGION T3 VEHICLES
+
 	-- LEGION AIRCRAFT
 	legca = {
 		BaseSoundSelectType = "arm-air-small-sel",

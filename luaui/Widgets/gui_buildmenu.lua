@@ -240,9 +240,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(unitBuildOptions[startDefID]) do
-				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
-					cmdUnitdefs[udefid] = i
-				end
+				cmdUnitdefs[udefid] = i
 			end
 			for k, uDefID in pairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -960,7 +958,9 @@ end
 
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
-	WG['pregame-build'].setPreGamestartDefID(uDefID)
+	if WG['pregame-build'] then
+		WG['pregame-build'].setPreGamestartDefID(uDefID)
+	end
 end
 
 function widget:MousePress(x, y, button)

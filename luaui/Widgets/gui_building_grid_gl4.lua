@@ -65,7 +65,7 @@ uniform sampler2D heightmapTex; // the heightmap texture
 void main(){
 	v_worldPos.xz = position.xy;
 	float alpha = position.z; // sneaking in an alpha value on the position input
-	vec2 uvhm = heighmapUVatWorldPos(v_worldPos.xz); // this function gets the UV coords of the heightmap texture at a world position
+	vec2 uvhm = heightmapUVatWorldPos(v_worldPos.xz); // this function gets the UV coords of the heightmap texture at a world position
 	v_worldPos.y  = textureLod(heightmapTex, uvhm, 0.0).x;
 	v_color = vec4(LINECOLOR, alpha);
 	gl_Position = cameraViewProj * vec4(v_worldPos.xyz, 1.0);  // project it into camera

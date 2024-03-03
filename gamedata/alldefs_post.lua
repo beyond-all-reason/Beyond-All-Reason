@@ -145,41 +145,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.expandedt2sea == true then
-		if name == "corcrus" then
-			uDef.speed = 54
-			uDef.health = 6200
-			uDef.weapondefs.adv_decklaser.reloadtime = 0.333
-			uDef.weapondefs.cor_crus.range = 500
-		end
-		if name == "armcrus" then
-			uDef.speed = 60
-			uDef.health = 5600
-			uDef.weapondefs.laser.reloadtime = 0.333
-			uDef.weapondefs.gauss.range = 500
-		end
-		if name == "armasy" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "armcarry" then
-					uDef.buildoptions[ix] = "armantiship"
-				end
-			end
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
-			uDef.buildoptions[numBuildoptions+2] = "armlship"
-		end
-		if name == "corasy" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corcarry" then
-					uDef.buildoptions[ix] = "corantiship"
-				end
-			end
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
-			uDef.buildoptions[numBuildoptions+2] = "corfship"
-		end
-	end
-
 	-- Control Mode Tweaks
 	if modOptions.scoremode ~= "disabled" then
 		if modOptions.scoremode_chess == true then
@@ -265,7 +230,6 @@ function UnitDef_Post(name, uDef)
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 1 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
-
 		if modOptions.unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.maxthisunit = 0
@@ -382,65 +346,42 @@ function UnitDef_Post(name, uDef)
 	-- Add balanced extras
 	if modOptions.releasecandidates then
 
-
-		--Better Dragon
-		if name == "coraap" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corcrw" then
-					uDef.buildoptions[ix] = "corcrwh"
-				end
-			end
-		end
-
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
 		end
 
+		--Printer
 
 		if name == "coravp" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corseal" then
-					uDef.buildoptions[ix] = "corsala"
-				end
-			end
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 			--uDef.buildoptions[numBuildoptions+2] = "corsala"
 			--uDef.buildoptions[numBuildoptions+3] = "corforge"
 			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		end
-		if name == "coramsub" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corseal" then
-					uDef.buildoptions[ix] = "corsala"
-				end
-			end
-
-		end
-
-		-- demon
-
-		if name == "corgant" then
+		if name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
+			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 		end
 
-		if name == "corgantuw" then
+		--Drone Carriers
+
+		if name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
-
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corseal" then
-					uDef.buildoptions[ix] = "corsala"
-				end
-			end
+			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
 		end
+		if name == "corasy" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
+		end
+
 	end
 
 	-- Add scav units to normal factories and builders
 	if modOptions.experimentalextraunits then
+
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -457,14 +398,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
-		elseif name == "corgant" or name == "leggant" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
-			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
-			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
-			uDef.buildoptions[numBuildoptions+4] = "corakt4"
-			uDef.buildoptions[numBuildoptions+5] = "corthermite"
-			--uDef.buildoptions[numBuildoptions+6] = "legjugglite"--technically legion but also cortex
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
@@ -472,16 +405,21 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armvp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
-		elseif name == "coravp" then
+		elseif name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corftiger"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+5] = "corvac" --corprinter
+		elseif name == "coravp" then
 			printerpresent = false
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
 					printerpresent = true
 				end
 			end
-
-
+			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
@@ -490,6 +428,12 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+5] = "corsala"
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 			end
+		elseif name == "corgant" or name == "leggant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corkarganetht4"
+			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+3] = "corakt4"
+			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -507,9 +451,11 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corfgate"
+			uDef.buildoptions[numBuildoptions+2] = "cornanotc2plat"
 		elseif name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armfgate"
+			uDef.buildoptions[numBuildoptions+2] = "armnanotc2plat"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -923,13 +869,6 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
-	-- Unbacom
-
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
-	end
-
 
 if modOptions.emprework == true then
 
@@ -1021,7 +960,7 @@ if modOptions.emprework == true then
 		if name == "corsok" then
 			uDef.customparams.paralyzemultiplier = 1.1
 		end
-		if name == "cordemont4" then
+		if name == "cordemon" then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
 
@@ -1601,6 +1540,42 @@ if modOptions.air_rework == true then
 	end
 end
 
+-- Skyshift: Air rework
+if Spring.GetModOptions().skyshift == true then
+	skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
+end
+
+if Spring.GetModOptions().proposed_unit_reworks == true then
+	if name == "armmart" then
+		uDef.health = 1070
+		uDef.maxacc = 0.033
+		uDef.maxdec = 0.066
+		uDef.speed = 60
+		uDef.weapondefs.arm_artillery.range = 810
+	end
+	if name == "cormart" then
+		uDef.health = 1200
+		uDef.maxacc = 0.03
+		uDef.maxdec = 0.06
+		uDef.speed = 58
+		uDef.weapondefs.cor_artillery.range = 790
+	end
+	if name == "armstil" then
+		uDef.metalcost = 460
+		uDef.energycost = 38000
+		uDef.buildtime = 32000
+		uDef.health = 1880
+		uDef.weapondefs.stiletto_bomb.areaofeffect = 160
+		uDef.weapondefs.stiletto_bomb.burst = 3
+		uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
+		uDef.weapondefs.stiletto_bomb.damage = {
+			default = 6000
+		}
+		uDef.weapondefs.stiletto_bomb.paralyzetime = 20
+	end
+end
+
 --Lategame Rebalance
 if Spring.GetModOptions().lategame_rebalance == true then
 	if name == "armamb" then
@@ -1677,7 +1652,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 60000
 		uDef.buildtime = 79000
 	end
-	if name == "cordemont4" then
+	if name == "cordemon" then
 		uDef.metalcost = 6300
 		uDef.energycost = 94500
 		uDef.buildtime = 94500
@@ -2035,6 +2010,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- Skyshift: Air rework
+		if Spring.GetModOptions().skyshift == true then
+			skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
+		end
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields
@@ -2173,10 +2153,6 @@ function WeaponDef_Post(name, wDef)
 
 		ProcessSoundDefaults(wDef)
 	end
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
-	end
 
 	-- Multipliers
 
@@ -2259,7 +2235,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name,ud in pairs(UnitDefs) do
-			if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
+			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end

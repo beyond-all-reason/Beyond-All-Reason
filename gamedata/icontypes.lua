@@ -611,6 +611,10 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
+	armnanotc2plat = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
 	armpb = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
@@ -1195,8 +1199,8 @@ local icontypes = {
 		bitmap = "icons/corcom.png",
 		size = 1.83749986
 	},
-	cordemont4 = {
-		bitmap = "icons/cordemont4.png",
+	cordemon = {
+		bitmap = "icons/cordemon.png",
 		size = 2.625
 	},
 	cordl = {
@@ -1576,6 +1580,10 @@ local icontypes = {
 		size = 0.96599996
 	},
 	cornanotct2 = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
+	cornanotc2plat = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -2162,6 +2170,10 @@ local icontypes = {
 	leglob = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
+	},
+	legmed = {
+		bitmap = "icons/corban_1.6.png",
+		size = 1.85
 	},
 	legmex = {
 		bitmap = "icons/mex_t1.png",

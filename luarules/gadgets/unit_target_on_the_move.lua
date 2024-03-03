@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
@@ -99,7 +98,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- fastpass for units that don't have an attack command for other reasons
-	validUnits[UnitDefNames.legpede.id]=true
+	if UnitDefNames.legpede then
+		validUnits[UnitDefNames.legpede.id] = true
+	end
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
@@ -541,7 +542,7 @@ if gadgetHandler:IsSyncedCode() then
 		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
 		pausedTargets[unitID] = nil
 	end
-	
+
 	local emptyCmdOptions = {}
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 		if type(cmdOptions) ~= 'table' then

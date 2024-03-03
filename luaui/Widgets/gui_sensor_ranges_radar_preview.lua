@@ -90,7 +90,7 @@ local shaderSourceCache = {
 			},
 		uniformFloat = {
 			radarcenter_range = { 2000, 100, 2000, 2000 },
-			resolution = { 32 },
+			resolution = { 64 },
 		  },
 		shaderConfig = shaderConfig,
 	}

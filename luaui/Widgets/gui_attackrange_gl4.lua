@@ -12,7 +12,6 @@ function widget:GetInfo()
 		license = "GPLv2",
 		layer   = -99,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -118,7 +117,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
-	if ud.customParams.onOffName then
+	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
 end
@@ -532,7 +531,7 @@ local vsSrc = [[
 	#line 11000
 
 	float heightAtWorldPos(vec2 w){
-		vec2 uvhm =  heighmapUVatWorldPos(w);
+		vec2 uvhm =  heightmapUVatWorldPos(w);
 		return textureLod(heightmapTex, uvhm, 0.0).x;
 	}
 
@@ -1056,7 +1055,7 @@ function widget:Initialize()
 		unitToggles[i] = v
 	end
 
-	widgetHandler.actionHandler:AddAction(self, "cursor_range_toggle", ToggleCursorRange, nil, "p")
+	widgetHandler:AddAction("cursor_range_toggle", ToggleCursorRange, nil, "p")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	local allyteamlist = Spring.GetAllyTeamList()
@@ -1085,6 +1084,10 @@ function widget:Initialize()
 		cursor_unit_range = value
 		widget:Initialize()
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("cursor_range_toggle", "p")
 end
 
 local gameFrame = 0

@@ -289,7 +289,6 @@ function widgetHandler:LoadConfigData()
 end
 
 function widgetHandler:SaveConfigData()
-	--  self:LoadConfigData()
 	local filetable = {}
 	for i, w in ipairs(self.widgets) do
 		if w.GetConfigData then
@@ -319,49 +318,7 @@ local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
 	if doMoreYield then
-		local doMoreYield = Spring.Yield()
-		if doMoreYield == false then --GetThreadSafety == false
-			--Spring.Echo("WidgetHandler Yield: entering critical section")
-		end
-	end
-end
-
-local function GetWidgetInfo(name, mode)
-
-	do
-		return
-	end -- FIXME
-
-	local lines = VFS.LoadFile(name, mode)
-
-	local infoLines = {}
-
-	for line in lines:gmatch('([^\n]*)\n') do
-		if not line:find('^%s*%-%-') then
-			if line:find('[^\r]') then
-				break -- not commented, not a blank line
-			end
-		end
-		local s, e, source = line:find('^%s*%-%-%>%>(.*)')
-		if source then
-			table.insert(infoLines, source)
-		end
-	end
-
-	local info = {}
-	local chunk, err = loadstring(table.concat(infoLines, '\n'))
-	if not chunk then
-		Spring.Echo('not loading ' .. name .. ': ' .. err)
-	else
-		setfenv(chunk, info)
-		local success, err = pcall(chunk)
-		if not success then
-			Spring.Echo('not loading ' .. name .. ': ' .. err)
-		end
-	end
-
-	for k, v in pairs(info) do
-		Spring.Echo(name, k, 'type: ' .. type(v), '<' .. tostring(v) .. '>')
+		doMoreYield = Spring.Yield()
 	end
 end
 
@@ -374,8 +331,6 @@ function widgetHandler:Initialize()
 	self:LoadConfigData()
 
 	-- do we allow userland widgets?
-	--local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
-	--self.autoUserWidgets = (autoUserWidgets ~= 0)
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
@@ -396,7 +351,6 @@ function widgetHandler:Initialize()
 			dirname,
 			vfsSetting,
 			function(filePath, parentKnownInfo)
-				GetWidgetInfo(filePath, vfsSetting)
 				local widget, knownInfo = self:LoadWidget(filePath, fromZip)
 
 				if
@@ -426,12 +380,6 @@ function widgetHandler:Initialize()
 
 	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP, true)
 	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP, true)
-
-	--[[ TODO
-		How do we handle the case where a user wants to use a custom version of a child widget?
-		Do we even do anything to try and handle it? Does the user need a custom copy of the parent widget too?
-	]]
-
 
 	local function infoComp(w1, w2)
 		local l1 = w1.layer
@@ -516,19 +464,50 @@ function widgetHandler:AddSpadsMessage(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
-	--Spring.Echo(rawmessage,b64message)
 	Spring.SendLuaRulesMsg(b64message)
 end
 
 
 ---@return table | nil, KnownInfo | nil widget if loaded, widgetInfo if that was loaded
-function widgetHandler:LoadWidget(filename, fromZip)
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
 	end
+
+	if enableLocalsAccess then
+		-- enableLocalsAccess makes it so local variables within the widget can be accessed as if they were globals (as
+		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
+		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
+		-- loading again with a code snippet that sets up external access to those variables.
+		localsAccess = localsAccess or VFS.Include('common/testing/locals_access.lua')
+
+		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
+
+		local chunk, err = loadstring(textWithLocalsDetector, filename)
+		if chunk == nil then
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			return nil
+		end
+
+		local widget = widgetHandler:NewWidget()
+		setfenv(chunk, widget)
+		local success, valOrErr = pcall(chunk)
+		if not success then
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			return nil
+		end
+		if err == false then
+			return nil -- widget asked for a silent death
+		end
+
+		local localsNames = valOrErr
+
+		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
+	end
+
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
@@ -544,6 +523,10 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	end
 	if err == false then
 		return nil -- widget asked for a silent death
+	end
+
+	if enableLocalsAccess then
+		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
 	-- user widgets may not access widgetHandler
@@ -624,11 +607,6 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		local md5 = VFS.CalculateHash(text,0)
 		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
-			-- Embed LuaRules message that we enabled a new user widget
-			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
-			--if success == false then
-			--	Spring.Echo("widgetHandler.AddSpadsMessage call failed", tostring(err))
-			--end
 		end
 	end
 
@@ -782,7 +760,6 @@ end
 --------------------------------------------------------------------------------
 
 local function SafeWrapFuncNoGL(func, funcName)
-	local wh = widgetHandler
 	return function(w, ...)
 		-- New method avoids needless table creation, but is limited to at most 2 return values per callin!
 		local r1, r2, r3 = pcall(func, w, ...)
@@ -799,29 +776,10 @@ local function SafeWrapFuncNoGL(func, funcName)
 			Spring.Echo('Removed widget: ' .. name)
 			return nil
 		end
-		--[[
-		local r = { pcall(func, w, ...) }
-		if r[1] then
-			table.remove(r, 1)
-			return unpack(r)
-		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo(r[1])
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r[2]))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
-		end
-		]]--
 	end
 end
 
 local function SafeWrapFuncGL(func, funcName)
-	local wh = widgetHandler
 	return function(w, ...)
 		glPushAttrib(GL.ALL_ATTRIB_BITS)
 		glPopAttrib()
@@ -869,9 +827,10 @@ local function SafeWrapWidget(widget)
 		if widget[ciName] then
 			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
 		end
-		if widget.Initialize then
-			widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
-		end
+	end
+
+	if widget.Initialize then
+		widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
 	end
 end
 
@@ -1039,7 +998,7 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
-function widgetHandler:EnableWidget(name)
+function widgetHandler:EnableWidget(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
@@ -1052,12 +1011,12 @@ function widgetHandler:EnableWidget(name)
 	end
 
 	if not ki.active then
-		Spring.Echo('Loading:  ' .. ki.filename)
+		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
 		end
-		local w = self:LoadWidget(ki.filename, ki.fromZip)
+		local w = self:LoadWidget(ki.filename, ki.fromZip, enableLocalsAccess)
 		if not w then
 			return false
 		end
@@ -2064,7 +2023,6 @@ function widgetHandler:UpdateSelection()
 		if #newSelection > #oldSelection then
 			subselection = false
 		else
-			local newSeen = 0
 			local oldSelectionMap = {}
 			for i = 1, #oldSelection do
 				oldSelectionMap[oldSelection[i]] = true
@@ -2506,10 +2464,10 @@ function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end
@@ -2517,7 +2475,9 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
+		tracy.ZoneBeginN("W:VisibleUnitsChanged:" .. w.whInfo.name)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 end
@@ -2530,10 +2490,10 @@ function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:AlliedUnitRemoved(unitID)
+function widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:AlliedUnitRemoved")
 	for _, w in ipairs(self.AlliedUnitRemovedList) do
-		w:AlliedUnitRemoved(unitID)
+		w:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end

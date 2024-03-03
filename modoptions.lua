@@ -556,12 +556,12 @@ local options={
 	{
 		key    = 'multiplier_energyconversion',
 		name   = 'Energy Conversion Efficiency Multiplier ',
-		desc   = '(Range 0.1 - 1). lower means you get less metal per energy converted',
+		desc   = '(Range 0.1 - 2). lower means you get less metal per energy converted',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
 		min    = 0.1,
-		max    = 1,
+		max    = 2,
 		step   = 0.1,
 	},
 
@@ -846,7 +846,7 @@ local options={
 	{
 		key    = 'releasecandidates',
 		name   = 'Release Candidate Units',
-		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -860,16 +860,6 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
-
-	{
-		key = 'expandedt2sea',
-		name = 'Expanded T2 Sea',
-		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
-		type = 'bool',
-		section = 'options_experimental',
-		def = false,
-	},
-
 
 	{
 		key = 'emprework',
@@ -889,9 +879,19 @@ local options={
 	},
 
 	{
+		key = 'proposed_unit_reworks',
+		name = 'Proposed Unit Reworks',
+		desc = 'Stilleto is reworked with a doubled metal and energy cost, lower aoe, and a more concentrated longer duration emp that is better suited for stunning specific targets.  Mauser and Quaker are reworked to have reduced range and increased speed and increased health to promote more dynamic play in early T2 while having them naturally fall off in late T2',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key = 'lategame_rebalance',
 		name = 'Lategame Rebalance',
 		desc = 'T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.',
+		hidden = true,
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
@@ -1012,6 +1012,16 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
+	
+	{
+		key = 'skyshift',
+		name = 'Skyshift: Air Rework',
+		desc = 'A complete overhaul of air units and mechanics',
+		type = 'bool',
+		def = false,
+		section = 'options_experimental',
+		hidden = true,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1064,26 +1074,6 @@ local options={
 		section = 'options_extra',
 		def  = false,
 	},
-
-	{
-		key		= "unba",
-		name	= "UnbaCom",
-		desc	= "Commanders gaining upgrades with experience! Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "unbatech",
-		name	= "UnbaTech",
-		desc	= "(Requires UnbaCom) Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-		hidden = true,
-	},
-
 	{
 		key     = 'teamcolors_anonymous_mode',
 		name    = 'Anonymous Mode',

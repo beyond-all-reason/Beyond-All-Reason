@@ -2639,6 +2639,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
+		--{ id = "sndambient", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolambient'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volambient", 1) or 100),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("snd_volambient", value)
+		--  end,
+		--},
 		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolunitreply'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
 		--  onload = function(i)
 		--  end,
@@ -3169,6 +3176,16 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
+		  end,
+		},
+
+		{ id = "label_ui_command", group = "control", name = Spring.I18N('ui.settings.option.label_commands'), category = types.advanced },
+		{ id = "label_ui_command_spacer", group = "control", category = types.basic },
+		{ id = "drag_multicommand_shift", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.drag_multicommand_shift'), type = "bool", value = (WG.customformations ~= nil and WG.customformations.getRepeatForSingleUnit()), description = Spring.I18N('ui.settings.option.drag_multicommand_shift_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('CustomFormations2', 'customformations', 'setRepeatForSingleUnit', { 'repeatForSingleUnit' }, value)
 		  end,
 		},
 
@@ -4258,10 +4275,8 @@ function init()
 			end,
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
-
 
 		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 
@@ -6098,6 +6113,9 @@ function widget:Initialize()
 	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame Queue")
 	end
+	if widgetHandler.orderList["Screen Mode/Resolution Switcher"] < 0.5 then
+		widgetHandler:EnableWidget("Screen Mode/Resolution Switcher")
+	end
 
 	-- enable GL4 unit rendering api's
 	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
@@ -6106,7 +6124,6 @@ function widget:Initialize()
 	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
 		widgetHandler:EnableWidget("HighlightUnit API GL4")
 	end
-
 
 	updateGrabinput()
 	widget:ViewResize()

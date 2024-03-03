@@ -37,6 +37,9 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
+local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+local totalUnits = 0
+
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 function addSound(name, file, minDelay, duration, messageKey, unlisted)
@@ -114,31 +117,42 @@ local function AddNotification(name, files, minDelay, duration, messageKey, unli
 end
 
 
-unitsOfInterest = {}
-unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
-unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
-unitsOfInterest[UnitDefNames['armsilo'].id] = 'NuclearSiloDetected'
-unitsOfInterest[UnitDefNames['corsilo'].id] = 'NuclearSiloDetected'
-unitsOfInterest[UnitDefNames['corint'].id] = 'LrpcDetected'
-unitsOfInterest[UnitDefNames['armbrtha'].id] = 'LrpcDetected'
-unitsOfInterest[UnitDefNames['corbuzz'].id] = 'LrpcDetected'
-unitsOfInterest[UnitDefNames['armvulc'].id] = 'LrpcDetected'
-unitsOfInterest[UnitDefNames['armliche'].id] = 'NuclearBomberDetected'
-unitsOfInterest[UnitDefNames['corjugg'].id] = 'JuggernautDetected'
-unitsOfInterest[UnitDefNames['corkorg'].id] = 'KorgothDetected'
-unitsOfInterest[UnitDefNames['armbanth'].id] = 'BanthaDetected'
-unitsOfInterest[UnitDefNames['armepoch'].id] = 'FlagshipDetected'
-unitsOfInterest[UnitDefNames['corblackhy'].id] = 'FlagshipDetected'
--- unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
-unitsOfInterest[UnitDefNames['armthovr'].id] = 'TransportDetected'
-unitsOfInterest[UnitDefNames['corthovr'].id] = 'TransportDetected'
-unitsOfInterest[UnitDefNames['corintr'].id] = 'TransportDetected'
-unitsOfInterest[UnitDefNames['armatlas'].id] = 'AirTransportDetected'
-unitsOfInterest[UnitDefNames['corvalk'].id] = 'AirTransportDetected'
-unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
-unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
-unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
-unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
+local unitsOfInterestNames = {
+	['armemp'] = 'EMPmissilesiloDetected',
+	['armemp'] = 'EMPmissilesiloDetected',
+	['cortron'] = 'TacticalNukeSiloDetected',
+	['armsilo'] = 'NuclearSiloDetected',
+	['corsilo'] = 'NuclearSiloDetected',
+	['corint'] = 'LrpcDetected',
+	['armbrtha'] = 'LrpcDetected',
+	['corbuzz'] = 'LrpcDetected',
+	['armvulc'] = 'LrpcDetected',
+	['armliche'] = 'NuclearBomberDetected',
+	['corjugg'] = 'JuggernautDetected',
+	['corkorg'] = 'KorgothDetected',
+	['armbanth'] = 'BanthaDetected',
+	['armepoch'] = 'FlagshipDetected',
+	['corblackhy'] = 'FlagshipDetected',
+	['cormando'] = 'CommandoDetected',
+	['armthovr'] = 'TransportDetected',
+	['corthovr'] = 'TransportDetected',
+	['corintr'] = 'TransportDetected',
+	['armatlas'] = 'AirTransportDetected',
+	['corvalk'] = 'AirTransportDetected',
+	['armdfly'] = 'AirTransportDetected',
+	['corseah'] = 'AirTransportDetected',
+	['armtship'] = 'SeaTransportDetected',
+	['cortship'] = 'SeaTransportDetected',
+}
+-- convert unitname -> unitDefID
+local unitsOfInterest = {}
+for unitName, sound in pairs(unitsOfInterestNames) do
+	if UnitDefNames[unitName] then
+		unitsOfInterest[UnitDefNames[unitName].id] = sound
+	end
+end
+unitsOfInterestNames = nil
+
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
@@ -553,21 +567,36 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if unitTeam == myTeamID and isCommander[unitDefID] then
-		commanders[unitID] = select(2, spGetUnitHealth(unitID))
+	if unitTeam == myTeamID then
+		if isCommander[unitDefID] then
+			commanders[unitID] = select(2, spGetUnitHealth(unitID))
+		end
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+			queueNotification('MaxUnitsReached')
+		end
 	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	if unitTeam == myTeamID and isCommander[unitDefID] then
-		commanders[unitID] = select(2, spGetUnitHealth(unitID))
+	if unitTeam == myTeamID then
+		if isCommander[unitDefID] then
+			commanders[unitID] = select(2, spGetUnitHealth(unitID))
+		end
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+			queueNotification('MaxUnitsReached')
+		end
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
+
 	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+			queueNotification('MaxUnitsReached')
+		end
+
 		if not hasMadeT2 and isT2[unitDefID] then
 			hasMadeT2 = true
 		end
@@ -652,7 +681,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 						commandersDamages[unitID][gf] = nil
 					end
 				end
-				if totalDamage >= commanders[unitID] * 0.12 then
+				if totalDamage >= commanders[unitID] * 0.2 then
 					queueNotification('ComHeavyDamage')
 				end
 			end
