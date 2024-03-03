@@ -35,7 +35,7 @@ local GADGETS_DIR = Script.GetName():gsub('US$', '') .. '/Gadgets/'
 local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
-local moduleLoader = VFS.Include("common/springUtilities/scriptModuleLoader.lua", nil, VFS.ZIP)
+local moduleLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
 
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
@@ -335,7 +335,7 @@ function gadgetHandler:Initialize()
 	-- stuff the gadgets into unsortedGadgets
 	local unsortedGadgets = {}
 
-	moduleLoader.loadAllModulesInDir(
+	wupgetLoader.loadAllInDir(
 		GADGETS_DIR,
 		VFSMODE,
 		function(gf, parentGadget)
@@ -350,8 +350,8 @@ function gadgetHandler:Initialize()
 				end
 
 				local childGadgets = nil
-				if gadget.GetChildGadgets ~= nil then
-					childGadgets = gadget:GetChildGadgets()
+				if gadget.GetChildPaths ~= nil then
+					childGadgets = gadget:GetChildPaths()
 				end
 
 				return gadget, childGadgets

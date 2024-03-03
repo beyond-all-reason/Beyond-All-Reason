@@ -15,7 +15,7 @@ VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
 
-local moduleLoader = VFS.Include("common/springUtilities/scriptModuleLoader.lua", nil, VFS.ZIP)
+local wupgetLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
 
 local gl = gl
 
@@ -62,7 +62,7 @@ widgetHandler = {
 	configData = {},
 	orderList = {},
 
-	---@class KnownInfo info about widgets that were discovered to exist during WidgetHandler initialization, whether or not they are currently active
+	---@class KnownInfo info about widgets that were discovered to exist during initialization, whether or not they are currently active
 	---@field name string widget name from widget:GetInfo()
 	---@field layer number widget layer from widget:GetInfo()
 	---@field desc string widget description from widget:GetInfo()
@@ -70,11 +70,11 @@ widgetHandler = {
 	---@field filename string Full path to widget from content root + file name
 	---@field basename string Name of the file
 	---@field path string Path to folder containing the widget
-	---@field fromZip boolean Was this widget loaded from VFS.ZIP? (Is it a "core" widget?)
+	---@field fromZip boolean Was this widget loaded from VFS.ZIP?
 	---@field childPaths nil | string[] | boolean local paths to children **OR** boolean true to signal that all other .lua files in this folder are children of this widget
 	---@field active boolean Is the widget currently loaded (or is to be loaded)?
-	---@field _parent KnownInfo parent info (if exists). Set by module loader
-	---@field _children KnownInfo[] child infos (if exists). Set by module loader
+	---@field _parent KnownInfo parent info (if exists). Set by Wupget Loader
+	---@field _children KnownInfo[] child infos (if exists). Set by Wupget Loader
 
 	---@type table<string, KnownInfo>
 	---widget:GetInfo().name to KnownInfo
@@ -347,7 +347,7 @@ function widgetHandler:Initialize()
 	local childWidgetsToInit = {}
 
 	local function loadWidgetsInDir(dirname, vfsSetting, fromZip)
-		moduleLoader.loadAllModulesInDir(
+		wupgetLoader.loadAllInDir(
 			dirname,
 			vfsSetting,
 			function(filePath, parentKnownInfo)
@@ -355,7 +355,8 @@ function widgetHandler:Initialize()
 
 				if
 					widget -- did the widget load correctly AND is it to start enabled?
-					and (fromZip or not zipOnly[widget.whInfo.name]) -- Only trust "core" widgets that come with the game
+					-- Check if this widget is not allowed be loaded from user space
+					and (fromZip or not zipOnly[widget.whInfo.name])
 				then
 					if parentKnownInfo == nil then
 						-- stuff the raw widgets into unsortedWidgets
@@ -569,7 +570,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.path = widget.whInfo.path
 		knownInfo.fromZip = fromZip
-		knownInfo.childPaths = widget.GetChildWidgetPaths and widget.GetChildWidgetPaths()
+		knownInfo.childPaths = widget.GetChildPaths and widget.GetChildPaths()
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
