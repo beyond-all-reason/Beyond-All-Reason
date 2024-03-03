@@ -19,10 +19,12 @@ end
 
 
 
+local licheId = UnitDefNames.armliche.id
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitDefID == UnitDefNames.armliche.id then
-		local opts = {}
-		opts.attackSafetyDistance = 3000
-		Spring.MoveCtrl.SetAirMoveTypeData(unitID, opts)
-	end
+    if unitDefID == licheId then
+        local opts = {}
+        opts.attackSafetyDistance = 3000
+        Spring.MoveCtrl.SetAirMoveTypeData(unitID, opts)
+    end
 end
