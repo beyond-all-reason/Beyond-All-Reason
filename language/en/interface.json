@@ -1431,7 +1431,7 @@
 				"autogroup_persist_descr": "Autogroups persist in new games.\nIf this is enabled, units which were added to an autogroup in previous games\n will be added to the same group in this game.",
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
-				"factoryguard_descr": "Newly created builders will assist their source factory",
+				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
