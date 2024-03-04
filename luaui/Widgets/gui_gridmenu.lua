@@ -104,12 +104,12 @@ local myTeamID = Spring.GetMyTeamID()
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 local hoveredButton, drawnHoveredButton
-local selBuildQueueDefID
+local pregameBlueprintDefID
 
 -- Configurable values
+local stickToBottom = false
 local alwaysReturn = false
 local autoSelectFirst = true
-local stickToBottom = false
 local alwaysShow = false
 local showPrice = false -- false will still show hover
 local showRadarIcon = true -- false will still show hover
@@ -197,6 +197,7 @@ local hoverCellZoom = 0.1 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
+local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
@@ -210,6 +211,8 @@ local rows = 3
 local pages = 1
 local currentPage = 1
 local minimapHeight = 0.235
+
+local updateSelection = true
 local selectedBuilders = {}
 local selectedBuildersCount = 0
 local prevBuildRectsCount = 0
@@ -526,8 +529,8 @@ local function pickBlueprint(uDefID)
 end
 
 
-local function setPreGamestartDefID(uDefID)
-	selBuildQueueDefID = uDefID
+local function setPregameBlueprint(uDefID)
+	pregameBlueprintDefID = uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
 		WG["pregame-build"].setPreGamestartDefID(uDefID)
 	end
@@ -613,7 +616,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return false
 		end
 
-		setPreGamestartDefID(-uDefID)
+		setPregameBlueprint(-uDefID)
 		doUpdate = true
 		return true
 	elseif activeBuilder and currentCategory then
@@ -968,8 +971,6 @@ function widget:ViewResize()
 end
 
 
-local sec = 0
-local updateSelection = true
 function widget:Update(dt)
 	if updateSelection then
 		updateSelection = false
@@ -1622,7 +1623,7 @@ local function drawGrid()
 				cellRects[cellRectID] = rect
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name)
-					or (isPregame and selBuildQueueDefID == uDefID)
+					or (isPregame and pregameBlueprintDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
 				drawCell(
@@ -1727,7 +1728,7 @@ function widget:KeyRelease(key)
 	end
 
 	if isPregame then
-		setPreGamestartDefID(nil)
+		setPregameBlueprint(nil)
 	else
 		clearCategory()
 	end
@@ -1795,7 +1796,7 @@ function widget:MousePress(x, y, button)
 							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 							if isPregame then
-								setPreGamestartDefID(cellCmds[cellRectID].id * -1)
+								setPregameBlueprint(cellCmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellCmds[cellRectID].id) then
 								pickBlueprint(cellCmds[cellRectID].id)
 							end
@@ -1847,12 +1848,10 @@ local function handleButtonHover()
 				if cellRect:contains(x, y) then
 					hoveredCellID = cellRectID
 					local cmd = cellCmds[cellRectID]
-					local uDefID = cmd.id * -1
+					local uDefID = -cmd.id
 					WG["buildmenu"].hoverID = uDefID
 					gl.Color(1, 1, 1, 1)
-					local _, _, meta, _ = Spring.GetModKeyState()
-					if WG["tooltip"] and not meta then
-						-- when meta: unitstats does the tooltip
+					if WG["tooltip"] then
 						local text
 						local textColor = "\255\215\255\215"
 						if units.unitRestricted[uDefID] then
@@ -1873,7 +1872,7 @@ local function handleButtonHover()
 						)
 					end
 
-					-- highlight --if b and not disableInput then
+					-- highlight
 					gl.Blending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(
 						cellRect.x + cellPadding,
@@ -1905,7 +1904,6 @@ local function handleButtonHover()
 
 
 						if WG['tooltip'] then
-							-- when meta: unitstats does the tooltip
 							local textColor = "\255\215\255\215"
 
 							local text = categoryTooltips[cat]
@@ -2158,7 +2156,7 @@ function widget:DrawWorld()
 	end
 
 	if switchedCategory and selectNextFrame then
-		setPreGamestartDefID(-selectNextFrame)
+		setPregameBlueprint(-selectNextFrame)
 		switchedCategory = nil
 		selectNextFrame = nil
 
