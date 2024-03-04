@@ -2,10 +2,10 @@ return {
 	corsnap = {
 		maxacc = 0.04624,
 		maxdec = 0.04624,
-		energycost = 3300,
-		metalcost = 320,
+		energycost = 3100,
+		metalcost = 300,
 		buildpic = "CORSNAP.DDS",
-		buildtime = 3800,
+		buildtime = 3500,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",

@@ -33,7 +33,6 @@ startUnits = nil
 
 
 include("keysym.h.lua")
-VFS.Include("luarules/configs/customcmds.h.lua")
 
 
 SYMKEYS = table.invert(KEYSYMS)

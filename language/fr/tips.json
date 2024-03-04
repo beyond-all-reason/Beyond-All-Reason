@@ -74,6 +74,8 @@
 			"playerResigned": "Un joueur à abandonné",
 			"playerReconnecting": "Un joueur se reconnecte",
 			"playerTimedout": "La connexion d'un joueur est expirée",
+			"raptorsAndScavsMixed": "ATTENTION ! Le mode Raptor et le mode Charognards sont tous les deux activés. Ces deux modes de jeu sont incompatibles l'un avec l'autre. Veuillez quitter la partie et ne sélectionner qu'une seule de ces deux IA. Merci de votre compréhension.",
+			"maxUnitsReached":"Vous avez atteint le nombre maximum d'unités",
 			"unitsReceived":"Vous avez reçu de nouvelles unités",
 			"metalExtractorLost": "Extracteur de métal perdu",
 			"radarLost": "Radar perdu",

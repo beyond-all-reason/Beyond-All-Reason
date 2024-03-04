@@ -1471,24 +1471,28 @@ function SortAllyTeams(vOffset)
         end
     end
 
-    -- add the others
-    local firstenemy = true
-    for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-            if firstenemy then
-                vOffset = vOffset + 13
-                vOffset = vOffset + labelOffset - 3
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -3 -- "Enemies" label
-                firstenemy = false
-            else
-                vOffset = vOffset + (separatorOffset*playerScale)
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -4 -- Enemy teams separator
-            end
-            vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-        end
-    end
+	-- "Enemies" label
+	vOffset = vOffset + 13
+	vOffset = vOffset + labelOffset - 3
+	drawListOffset[#drawListOffset + 1] = vOffset
+	drawList[#drawList + 1] = -3 -- "Enemies" label
+
+	-- add the others
+	if enemyListShow then
+		local firstenemy = true
+		for allyTeamID = 0, allyTeamsCount - 1 do
+			if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+				if firstenemy then
+					firstenemy = false
+				else
+					vOffset = vOffset + (separatorOffset*playerScale)
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = -4 -- Enemy teams separator
+				end
+				vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+			end
+		end
+	end
 
     return vOffset
 end
@@ -1691,13 +1695,13 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList3 then
         timeFastCounter = 0
     end
+	CheckTime() --this also calls CheckPlayers
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
             drawTipText = nil
             tipTextTime = 0
         end
-        CheckTime() --this also calls CheckPlayers
         UpdateRecentBroadcasters()
         UpdateAlliances()
     end
@@ -1896,8 +1900,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                             DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
                         end
                     end
-                elseif drawObject == -4 then
-                    DrawSeparator(drawListOffset[i])
+                elseif drawObject == -4 then -- enemy teams separator
+					if enemyListShow then
+						DrawSeparator(drawListOffset[i])
+					end
                 elseif drawObject == -3 then
                     enemyLabelOffset = drawListOffset[i]
                     local enemyAmount = numberOfEnemies
@@ -1993,8 +1999,14 @@ function DrawLabelTip(text, vOffset, xOffset)
 end
 
 function DrawSeparator(vOffset)
-    vOffset = vOffset - 2
-    RectRound(widgetPosX + 2, widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale), widgetPosX + widgetWidth - 2, widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale), 1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 })
+    vOffset = vOffset - (2.15/playerScale)
+    RectRound(
+		widgetPosX + 2,
+		widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale),
+		widgetPosX + widgetWidth - 2,
+		widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale),
+		1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 }
+	)
 end
 
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons

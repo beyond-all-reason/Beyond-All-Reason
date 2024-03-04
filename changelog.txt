@@ -1,4 +1,9 @@
-﻿# February 2024
+﻿# March 2024
+• [Crocodile and Cayman (T1 hovertanks)] Crocodile cost reduced 290m2600E->270m2400E, Cayman cost reduced 320m3300E->300m3100E
+• [Salamander] EMP resist reduced from 95%->90%
+• [Epoch and Black Hydra] Projectiles for main cannons increased in size, damage, and aoe, with a reduced fire rate  
+
+# February 2024
 • [Grunt] Speed reduced from 84->81
 • [Pawn] Speed increased from 84->87
 • [Demon] Buildtime cost increased from 90000->120000

@@ -2,10 +2,10 @@ return {
 	armanac = {
 		maxacc = 0.05333,
 		maxdec = 0.05333,
-		energycost = 2600,
-		metalcost = 290,
+		energycost = 2400,
+		metalcost = 270,
 		buildpic = "ARMANAC.DDS",
-		buildtime = 3200,
+		buildtime = 3000,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
