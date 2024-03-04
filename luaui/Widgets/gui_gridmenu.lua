@@ -41,15 +41,15 @@ local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 --- STATIC VALUES
 -------------------------------------------------------------------------------
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.gridmenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.gridmenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.gridmenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.gridmenu.category_production")
+local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
 local categoryTooltips = {
-	[BUILDCAT_ECONOMY] = Spring.I18N("ui.gridmenu.category_econ_descr"),
-	[BUILDCAT_COMBAT] = Spring.I18N("ui.gridmenu.category_combat_descr"),
-	[BUILDCAT_UTILITY] = Spring.I18N("ui.gridmenu.category_utility_descr"),
-	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.gridmenu.category_production_descr"),
+	[BUILDCAT_ECONOMY] = Spring.I18N("ui.buildMenu.category_econ_descr"),
+	[BUILDCAT_COMBAT] = Spring.I18N("ui.buildMenu.category_combat_descr"),
+	[BUILDCAT_UTILITY] = Spring.I18N("ui.buildMenu.category_utility_descr"),
+	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.buildMenu.category_production_descr"),
 }
 
 local folder = "LuaUI/Images/groupicons/"
@@ -282,6 +282,7 @@ local function clearDrawLists()
 	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
 end
 
+
 local function checkGuishader(force)
 	if WG["guishader"] then
 		if force and dlistGuishader then
@@ -299,6 +300,7 @@ local function checkGuishader(force)
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 end
+
 
 local function checkGuishaderBuilders()
 	if WG["guishader"] and #builderRects > 1 then
@@ -502,6 +504,28 @@ local function clearCategory()
 end
 
 
+local function queueUnit(uDefID, opts)
+	local udTable = Spring.GetSelectedUnitsSorted()
+	for udidFac, uTable in pairs(udTable) do
+		if units.isFactory[udidFac] then
+			for _, uid in ipairs(uTable) do
+				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
+			end
+		end
+	end
+end
+
+
+local function pickBlueprint(uDefID)
+	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+	if isRepeatMex then
+		WG['areamex'].setAreaMexType(uDefID)
+	end
+	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+end
+
+
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
@@ -516,17 +540,14 @@ end
 
 local function gridmenuCategoryHandler(_, _, args)
 	local cIndex = args and tonumber(args[1])
-
 	if not cIndex or cIndex < 1 or cIndex > 4 then
 		return
 	end
-
 	if not activeBuilder or builderIsFactory or (currentCategory and hotkeyActions["1" .. cIndex]) then
 		return
 	end
 
 	local alt, ctrl, meta, _ = Spring.GetModKeyState()
-
 	if alt or ctrl or meta then
 		return
 	end
@@ -536,28 +557,6 @@ local function gridmenuCategoryHandler(_, _, args)
 	doUpdate = true
 
 	return true
-end
-
-
-local function enqueueUnit(uDefID, opts)
-	local udTable = Spring.GetSelectedUnitsSorted()
-	for udidFac, uTable in pairs(udTable) do
-		if units.isFactory[udidFac] then
-			for _, uid in ipairs(uTable) do
-				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
-			end
-		end
-	end
-end
-
-
-local function selectBuilding(uDefID)
-	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
-	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-	if isRepeatMex then
-		WG['areamex'].setAreaMexType(uDefID)
-	end
-	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 end
 
 
@@ -571,7 +570,6 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	end
 
 	local uDefID = hotkeyActions[tostring(row) .. tostring(col)]
-
 	if not uDefID or units.unitRestricted[-uDefID] then
 		return
 	end
@@ -604,7 +602,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			table.insert(opts, "shift")
 		end
 
-		enqueueUnit(uDefID, opts)
+		queueUnit(uDefID, opts)
 
 		return true
 	elseif isPregame and currentCategory then
@@ -616,9 +614,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		setPreGamestartDefID(-uDefID)
-
 		doUpdate = true
-
 		return true
 	elseif activeBuilder and currentCategory then
 		if args[3] and args[3] == "factory" then
@@ -628,8 +624,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-
-		selectBuilding(uDefID)
+		pickBlueprint(uDefID)
 		return true
 	end
 
@@ -637,14 +632,12 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 end
 
 
-function widget:CommandNotify(cmdID, _, cmdOpts)
-	if cmdID >= 0 then
+local function nextPageHandler()
+	if pages < 2 or not activeBuilder then
 		return
 	end
-
-	if alwaysReturn or not cmdOpts.shift then
-		setCurrentCategory(nil)
-	end
+	currentPage = currentPage == pages and 1 or currentPage + 1
+	doUpdate = true
 end
 
 
@@ -720,24 +713,6 @@ local function cycleBuilder()
 end
 
 
-local function nextPageHandler()
-	if not activeBuilder then
-		return
-	end
-	if pages < 2 then
-		return
-	end
-
-	currentPage = currentPage + 1
-	if currentPage > pages then
-		currentPage = 1
-	end
-	doUpdate = true
-
-	return true
-end
-
-
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -745,11 +720,10 @@ function widget:Initialize()
 
 	units.checkGeothermalFeatures()
 
-	-- For some reason when handler = true widgetHandler:AddAction is not available
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
 
 	reloadBindings()
 
@@ -838,14 +812,6 @@ function widget:Initialize()
 	WG["buildmenu"].reloadBindings = reloadBindings
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
-	end
-end
-
-
--- update queue number
-function widget:UnitFromFactory(_, _, _, factID)
-	if Spring.IsUnitSelected(factID) then
-		doUpdateClock = os.clock() + 0.01
 	end
 end
 
@@ -1074,7 +1040,7 @@ function widget:Update(dt)
 	end
 
 	if selectNextFrame and not isPregame then
-		selectBuilding(selectNextFrame)
+		pickBlueprint(selectNextFrame)
 		selectNextFrame = nil
 		switchedCategory = nil
 
@@ -1831,7 +1797,7 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPreGamestartDefID(cellCmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellCmds[cellRectID].id) then
-								selectBuilding(cellCmds[cellRectID].id)
+								pickBlueprint(cellCmds[cellRectID].id)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(cellCmds[cellRectID].id) then
 							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
@@ -1860,6 +1826,9 @@ end
 
 
 local function handleButtonHover()
+	if not (isPregame or activeBuilder) then
+		return
+	end
 	local x, y, b, b2, b3 = Spring.GetMouseState()
 	local hovering = false
 	if backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y) then
@@ -1869,260 +1838,258 @@ local function handleButtonHover()
 
 	-- draw buildmenu background
 	gl.CallList(dlistBuildmenuBg)
-	if isPregame or activeBuilder then
-		-- pre process + 'highlight' under the icons
-		local hoveredCellID
-		local hoveredButtonNotFound = true
-		if not WG["topbar"] or not WG["topbar"].showingQuit() then
-			if hovering then
-				for cellRectID, cellRect in pairs(cellRects) do
-					if cellRect:contains(x, y) then
-						hoveredCellID = cellRectID
-						local cmd = cellCmds[cellRectID]
-						local uDefID = cmd.id * -1
-						WG["buildmenu"].hoverID = uDefID
-						gl.Color(1, 1, 1, 1)
-						local _, _, meta, _ = Spring.GetModKeyState()
-						if WG["tooltip"] and not meta then
-							-- when meta: unitstats does the tooltip
-							local text
-							local textColor = "\255\215\255\215"
-							if units.unitRestricted[uDefID] then
-								text = Spring.I18N("ui.buildMenu.disabled", {
-									unit = unitTranslatedHumanName[uDefID],
-									textColor = textColor,
-									warnColor = "\255\166\166\166",
-								})
-							else
-								text = unitTranslatedHumanName[uDefID]
-							end
-							WG["tooltip"].ShowTooltip(
-								"buildmenu",
-								"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
-								nil,
-								nil,
-								text
-							)
+	-- pre process + 'highlight' under the icons
+	local hoveredCellID
+	local hoveredButtonNotFound = true
+	if not WG["topbar"] or not WG["topbar"].showingQuit() then
+		if hovering then
+			for cellRectID, cellRect in pairs(cellRects) do
+				if cellRect:contains(x, y) then
+					hoveredCellID = cellRectID
+					local cmd = cellCmds[cellRectID]
+					local uDefID = cmd.id * -1
+					WG["buildmenu"].hoverID = uDefID
+					gl.Color(1, 1, 1, 1)
+					local _, _, meta, _ = Spring.GetModKeyState()
+					if WG["tooltip"] and not meta then
+						-- when meta: unitstats does the tooltip
+						local text
+						local textColor = "\255\215\255\215"
+						if units.unitRestricted[uDefID] then
+							text = Spring.I18N("ui.buildMenu.disabled", {
+								unit = unitTranslatedHumanName[uDefID],
+								textColor = textColor,
+								warnColor = "\255\166\166\166",
+							})
+						else
+							text = unitTranslatedHumanName[uDefID]
 						end
-
-						-- highlight --if b and not disableInput then
-						gl.Blending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(
-							cellRect.x + cellPadding,
-							cellRect.y + cellPadding,
-							cellRect.xEnd - cellPadding,
-							cellRect.yEnd - cellPadding,
-							cellSize * 0.03,
-							1,
-							1,
-							1,
-							1,
-							{ 0, 0, 0, 0.1 * ui_opacity },
-							{ 0, 0, 0, 0.1 * ui_opacity }
+						WG["tooltip"].ShowTooltip(
+							"buildmenu",
+							"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
+							nil,
+							nil,
+							text
 						)
-						gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					end
+
+					-- highlight --if b and not disableInput then
+					gl.Blending(GL_SRC_ALPHA, GL_ONE)
+					RectRound(
+						cellRect.x + cellPadding,
+						cellRect.y + cellPadding,
+						cellRect.xEnd - cellPadding,
+						cellRect.yEnd - cellPadding,
+						cellSize * 0.03,
+						1,
+						1,
+						1,
+						1,
+						{ 0, 0, 0, 0.1 * ui_opacity },
+						{ 0, 0, 0, 0.1 * ui_opacity }
+					)
+					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					break
+				end
+			end
+
+			-- category buttons
+			if not currentCategory then
+				for cat, catRect in pairs(catRects) do
+					if catRect:contains(x, y) then
+						hoveredButton = catRect:getId()
+
+						if hoveredButton ~= drawnHoveredButton then
+							doUpdate = true
+						end
+
+
+						if WG['tooltip'] then
+							-- when meta: unitstats does the tooltip
+							local textColor = "\255\215\255\215"
+
+							local text = categoryTooltips[cat]
+							local index = 0
+							for k, v in pairs(categories) do
+								if v == cat then
+									index = k
+								end
+							end
+
+							local catKey = keyConfig.sanitizeKey(keyLayout[1][index], currentLayout)
+							text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
+
+							WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
+						end
+
+						hoveredButtonNotFound = false
 						break
 					end
 				end
 
-				-- category buttons
-				if not currentCategory then
-					for cat, catRect in pairs(catRects) do
-						if catRect:contains(x, y) then
-							hoveredButton = catRect:getId()
-
-							if hoveredButton ~= drawnHoveredButton then
-								doUpdate = true
-							end
-
-
-							if WG['tooltip'] then
-								-- when meta: unitstats does the tooltip
-								local textColor = "\255\215\255\215"
-
-								local text = categoryTooltips[cat]
-								local index = 0
-								for k, v in pairs(categories) do
-									if v == cat then
-										index = k
-									end
-								end
-
-								local catKey = keyConfig.sanitizeKey(keyLayout[1][index], currentLayout)
-								text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
-
-								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
-							end
-
-							hoveredButtonNotFound = false
-							break
-						end
-					end
-
-				else
-					if backRect and backRect:contains(x, y) then
-						hoveredButton = backRect:getId()
-						hoveredButtonNotFound = false
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
+			else
+				if backRect and backRect:contains(x, y) then
+					hoveredButton = backRect:getId()
+					hoveredButtonNotFound = false
+					if WG['tooltip'] then
+						local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
+						WG['tooltip'].ShowTooltip('buildmenu', text)
 					end
 				end
-				if pages > 1 then
-					-- paginator buttons
-					if nextPageRect and nextPageRect:contains(x, y) then
-						hoveredButton = nextPageRect:getId()
-						hoveredButtonNotFound = false
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
+			end
+			if pages > 1 then
+				-- paginator buttons
+				if nextPageRect and nextPageRect:contains(x, y) then
+					hoveredButton = nextPageRect:getId()
+					hoveredButtonNotFound = false
+					if WG['tooltip'] then
+						local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+						WG['tooltip'].ShowTooltip('buildmenu', text)
 					end
 				end
+			end
 
-				-- builder buttons
-				for i, rect in pairs(builderRects) do
-					if rect:contains(x, y) then
-						hoveredButton = rect:getId()
-						hovering = true
-						hoveredButtonNotFound = false
-
-						local index = 0
-						for unitDefID, _ in pairsByKeys(selectedBuilders) do
-							index = index + 1
-							if index == i then
-								if WG["tooltip"] then
-									WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. unitTranslatedHumanName[unitDefID])
-								end
-							end
-						end
-						break
-					end
-				end
-				if nextBuilderRect:contains(x, y) then
-					hoveredButton = nextBuilderRect:getId()
+			-- builder buttons
+			for i, rect in pairs(builderRects) do
+				if rect:contains(x, y) then
+					hoveredButton = rect:getId()
 					hovering = true
 					hoveredButtonNotFound = false
-					if WG["tooltip"] then
-						local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder")
-						WG["tooltip"].ShowTooltip("buildmenu", text)
-					end
-				end
 
-				if hoveredButton ~= drawnHoveredButton then
-					doUpdate = true
+					local index = 0
+					for unitDefID, _ in pairsByKeys(selectedBuilders) do
+						index = index + 1
+						if index == i then
+							if WG["tooltip"] then
+								WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. unitTranslatedHumanName[unitDefID])
+							end
+						end
+					end
+					break
 				end
 			end
-		end
+			if nextBuilderRect:contains(x, y) then
+				hoveredButton = nextBuilderRect:getId()
+				hovering = true
+				hoveredButtonNotFound = false
+				if WG["tooltip"] then
+					local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder")
+					WG["tooltip"].ShowTooltip("buildmenu", text)
+				end
+			end
 
-		if (not hovering) or (activeBuilder and hoveredButtonNotFound) then
-			if drawnHoveredButton then
+			if hoveredButton ~= drawnHoveredButton then
 				doUpdate = true
 			end
+		end
+	end
 
-			hoveredButton = nil
-			drawnHoveredButton = nil
+	if (not hovering) or (activeBuilder and hoveredButtonNotFound) then
+		if drawnHoveredButton then
+			doUpdate = true
 		end
 
-		-- draw buildmenu content
-		gl.CallList(dlistBuildmenu)
+		hoveredButton = nil
+		drawnHoveredButton = nil
+	end
 
-		-- draw highlight
-		local usedZoom
-		local cellColor
-		if not WG["topbar"] or not WG["topbar"].showingQuit() then
-			if hovering then
-				-- cells
-				if hoveredCellID then
-					local uDefID = cellCmds[hoveredCellID].id * -1
-					local cellIsSelected = (
-						activeCmd
-							and cellCmds[hoveredCellID]
-							and activeCmd == cellCmds[hoveredCellID].name
-					)
-					if
-					not prevHoveredCellID
-						or hoveredCellID ~= prevHoveredCellID
-						or uDefID ~= hoverUdefID
-						or cellIsSelected ~= hoverCellSelected
-						or b ~= prevB
-						or b3 ~= prevB3
-						or cellCmds[hoveredCellID].params[1] ~= prevQueueNr
-					then
-						prevQueueNr = cellCmds[hoveredCellID].params[1]
-						prevB = b
-						prevB3 = b3
-						prevHoveredCellID = hoveredCellID
-						hoverUdefID = uDefID
-						hoverCellSelected = cellIsSelected
-						if hoverDlist then
-							hoverDlist = gl.DeleteList(hoverDlist)
-						end
-						hoverDlist = gl.CreateList(function()
-							-- determine zoom amount and cell color
-							usedZoom = hoverCellZoom
-							if not cellIsSelected then
-								if (b or b2) and cellIsSelected then
-									usedZoom = clickSelectedCellZoom
-								elseif cellIsSelected then
-									usedZoom = selectedCellZoom
-								elseif (b or b2) and not disableInput then
-									usedZoom = clickCellZoom
-								elseif b3 and not disableInput and cellCmds[hoveredCellID].params[1] then
-									-- has queue
-									usedZoom = rightclickCellZoom
-								end
-								-- determine color
-								if (b or b2) and not disableInput then
-									cellColor = { 0.3, 0.8, 0.25, 0.2 }
-								elseif b3 and not disableInput then
-									cellColor = { 1, 0.35, 0.3, 0.2 }
-								else
-									cellColor = { 0.63, 0.63, 0.63, 0 }
-								end
-							else
-								-- selected cell
-								if b or b2 or b3 then
-									usedZoom = clickSelectedCellZoom
-								else
-									usedZoom = selectedCellZoom
-								end
-								cellColor = { 1, 0.85, 0.2, 0.25 }
-							end
-							if not units.unitRestricted[uDefID] then
-								local unsetShowPrice
-								if not showPrice then
-									unsetShowPrice = true
-									showPrice = true
-								end
+	-- draw buildmenu content
+	gl.CallList(dlistBuildmenu)
 
-								drawCell(
-									cellRects[hoveredCellID],
-									cellCmds[hoveredCellID],
-									usedZoom,
-									cellColor,
-									units.unitRestricted[uDefID]
-								)
-
-								if unsetShowPrice then
-									showPrice = false
-									unsetShowPrice = nil
-								end
-							end
-						end)
-					end
+	-- draw highlight
+	local usedZoom
+	local cellColor
+	if not WG["topbar"] or not WG["topbar"].showingQuit() then
+		if hovering then
+			-- cells
+			if hoveredCellID then
+				local uDefID = cellCmds[hoveredCellID].id * -1
+				local cellIsSelected = (
+					activeCmd
+						and cellCmds[hoveredCellID]
+						and activeCmd == cellCmds[hoveredCellID].name
+				)
+				if
+				not prevHoveredCellID
+					or hoveredCellID ~= prevHoveredCellID
+					or uDefID ~= hoverUdefID
+					or cellIsSelected ~= hoverCellSelected
+					or b ~= prevB
+					or b3 ~= prevB3
+					or cellCmds[hoveredCellID].params[1] ~= prevQueueNr
+				then
+					prevQueueNr = cellCmds[hoveredCellID].params[1]
+					prevB = b
+					prevB3 = b3
+					prevHoveredCellID = hoveredCellID
+					hoverUdefID = uDefID
+					hoverCellSelected = cellIsSelected
 					if hoverDlist then
-						gl.CallList(hoverDlist)
+						hoverDlist = gl.DeleteList(hoverDlist)
 					end
+					hoverDlist = gl.CreateList(function()
+						-- determine zoom amount and cell color
+						usedZoom = hoverCellZoom
+						if not cellIsSelected then
+							if (b or b2) and cellIsSelected then
+								usedZoom = clickSelectedCellZoom
+							elseif cellIsSelected then
+								usedZoom = selectedCellZoom
+							elseif (b or b2) and not disableInput then
+								usedZoom = clickCellZoom
+							elseif b3 and not disableInput and cellCmds[hoveredCellID].params[1] then
+								-- has queue
+								usedZoom = rightclickCellZoom
+							end
+							-- determine color
+							if (b or b2) and not disableInput then
+								cellColor = { 0.3, 0.8, 0.25, 0.2 }
+							elseif b3 and not disableInput then
+								cellColor = { 1, 0.35, 0.3, 0.2 }
+							else
+								cellColor = { 0.63, 0.63, 0.63, 0 }
+							end
+						else
+							-- selected cell
+							if b or b2 or b3 then
+								usedZoom = clickSelectedCellZoom
+							else
+								usedZoom = selectedCellZoom
+							end
+							cellColor = { 1, 0.85, 0.2, 0.25 }
+						end
+						if not units.unitRestricted[uDefID] then
+							local unsetShowPrice
+							if not showPrice then
+								unsetShowPrice = true
+								showPrice = true
+							end
+
+							drawCell(
+								cellRects[hoveredCellID],
+								cellCmds[hoveredCellID],
+								usedZoom,
+								cellColor,
+								units.unitRestricted[uDefID]
+							)
+
+							if unsetShowPrice then
+								showPrice = false
+								unsetShowPrice = nil
+							end
+						end
+					end)
+				end
+				if hoverDlist then
+					gl.CallList(hoverDlist)
 				end
 			end
 		end
+	end
 
-		-- draw builders buildoption progress
-		if showBuildProgress then
-			drawBuildProgress()
-		end
+	-- draw builders buildoption progress
+	if showBuildProgress then
+		drawBuildProgress()
 	end
 end
 
@@ -2204,12 +2171,30 @@ end
 --- CHANGE EVENTS
 -------------------------------------------------------------------------------
 
+function widget:CommandNotify(cmdID, _, cmdOpts)
+	if cmdID >= 0 then
+		return
+	end
+
+	if alwaysReturn or not cmdOpts.shift then
+		setCurrentCategory(nil)
+	end
+end
+
 function widget:UnitCommand(_, unitDefID, _, cmdID)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
 		if doUpdateClock == nil then
 			doUpdateClock = os.clock() + 0.01
 		end
+	end
+end
+
+
+-- update queue number
+function widget:UnitFromFactory(_, _, _, factID)
+	if Spring.IsUnitSelected(factID) then
+		doUpdateClock = os.clock() + 0.01
 	end
 end
 

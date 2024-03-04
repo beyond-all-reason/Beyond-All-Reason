@@ -135,13 +135,6 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
-			"homePage": "Go back to main view",
-			"nextPage": "Next page",
-			"previousPage": "Previous page",
-			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
-			"nextBuilder": "Next Builder"
-		},
-		"gridmenu": {
 			"category_econ": "Economy",
 			"category_combat": "Combat",
 			"category_utility": "Utility",
@@ -149,7 +142,12 @@
 			"category_econ_descr": "Show economy structures",
 			"category_combat_descr": "Show combat and defensive structures",
 			"category_utility_descr": "Show utility structures",
-			"category_production_descr": "Show production structures"
+			"category_production_descr": "Show production structures",
+			"homePage": "Go back to main view",
+			"nextPage": "Next page",
+			"previousPage": "Previous page",
+			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
+			"nextBuilder": "Next Builder"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
