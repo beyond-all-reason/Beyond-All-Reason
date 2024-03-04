@@ -17,14 +17,24 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
 
-local licheId = UnitDefNames.armliche.id
+if UnitDefNames.armliche then
+    local liche = {}
+    liche[UnitDefNames.armliche.id] = true
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    if unitDefID == licheId then
-        local opts = {}
-        opts.attackSafetyDistance = 3000
-        Spring.MoveCtrl.SetAirMoveTypeData(unitID, opts)
+    if (UnitDefNames.armliche_scav) then
+        liche[UnitDefNames.armliche_scav.id] = true
     end
+    --epic liche will not respect restrictions, it either dips anyway or flat out refuses to bomb; omission is not an oversight
+
+
+    function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+        if liche[unitDefID] then
+            spMoveCtrlSetAirMoveTypeData(unitID, {attackSafetyDistance = 3000})
+        end
+    end
+else
+    gadgetHandler:RemoveGadget(self)
 end
