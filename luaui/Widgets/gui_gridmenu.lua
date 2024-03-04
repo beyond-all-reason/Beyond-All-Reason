@@ -75,7 +75,7 @@ local groups = {
 local CONFIG = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cellPadding = 0.007,
-	iconPadding = 0.015, -- space between icons
+	iconPadding = 0.015,       -- space between icons
 	iconCornerSize = 0.025,
 	priceFontSize = 0.16,
 	activeAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
@@ -111,7 +111,7 @@ local stickToBottom = false
 local alwaysReturn = false
 local autoSelectFirst = true
 local alwaysShow = false
-local showPrice = false -- false will still show hover
+local showPrice = false    -- false will still show hover
 local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
 local showBuildProgress = true
@@ -224,7 +224,7 @@ local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
-local buildpicsRect = Rect:new(0, 0, 0 ,0)
+local buildpicsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
 local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -265,13 +265,13 @@ orgIconTypes = nil
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
 if Spring.GetModOptions().experimentallegionfaction then
-	startUnits[#startUnits+1] = UnitDefNames.legcom.id
+	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
 end
 local startBuildOptions = {}
 for i, uDefID in pairs(startUnits) do
-	startBuildOptions[#startBuildOptions+1] = uDefID
+	startBuildOptions[#startBuildOptions + 1] = uDefID
 	for u, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
-		startBuildOptions[#startBuildOptions+1] = buildoptionDefID
+		startBuildOptions[#startBuildOptions + 1] = buildoptionDefID
 	end
 end
 startUnits = nil
@@ -897,14 +897,14 @@ function widget:ViewResize()
 
 		-- start with no width and grow dynamically
 		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
-	else -- if stick to side we know cells are 3 row by 4 column
-		local width = 0.2125 -- hardcoded width to match bottom element
+	else                             -- if stick to side we know cells are 3 row by 4 column
+		local width = 0.2125         -- hardcoded width to match bottom element
 		width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
 		width = width * ui_scale
 
 		-- 0.14 is the space required to put this above the bottom-left UI element
 		local posYEnd = math_floor(0.14 * ui_scale * vsy) + widgetSpaceMargin
-		local posY = math_floor(posYEnd + ((0.74 * vsx) * width))/vsy
+		local posY = math_floor(posYEnd + ((0.74 * vsx) * width)) / vsy
 		local posX = 0
 
 		if WG["ordermenu"] and not WG["ordermenu"].getBottomPosition() then
@@ -1352,7 +1352,7 @@ local function drawCategories()
 	end
 	for catIndex, cat in pairs(categories) do
 		local rect = catRects[cat]
-		if(rect:getWidth() ~= 0) then
+		if (rect:getWidth() ~= 0) then
 			local catText = cat
 			local catIcon = CONFIG.categoryIcons[catIndex]
 			local keyText = keyConfig.sanitizeKey(categoryKeys[catIndex], currentLayout)
@@ -1368,7 +1368,7 @@ local function drawCategories()
 			local fontColor = disabled and "\255\100\100\100" or ""
 			font2:Print(fontColor .. catText, rect.x + (bgpadding * 7), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
 
-			if(cat ~= currentCategory) then
+			if (cat ~= currentCategory) then
 				drawButtonHotkey(rect, keyText)
 			end
 			drawButton(rect, opts, catIcon)
@@ -1383,7 +1383,7 @@ local function drawPageAndBackButtons()
 		local backText = "Back"
 		local buttonWidth = backRect:getWidth()
 		local buttonHeight = backRect:getHeight()
-		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
+		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight / 2
 		font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize * 1.1, "co")
 		if not stickToBottom then
 			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
@@ -1851,6 +1851,7 @@ local function handleButtonHover()
 					local uDefID = -cmd.id
 					WG["buildmenu"].hoverID = uDefID
 					gl.Color(1, 1, 1, 1)
+					local _, _, meta, _ = Spring.GetModKeyState()
 					if WG["tooltip"] then
 						local text
 						local textColor = "\255\215\255\215"
@@ -2008,7 +2009,7 @@ local function handleButtonHover()
 						and activeCmd == cellCmds[hoveredCellID].name
 				)
 				if
-				not prevHoveredCellID
+					not prevHoveredCellID
 					or hoveredCellID ~= prevHoveredCellID
 					or uDefID ~= hoverUdefID
 					or cellIsSelected ~= hoverCellSelected
@@ -2109,7 +2110,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-
 		local now = os.clock()
 		if doUpdate or (doUpdateClock and now >= doUpdateClock) then
 			if doUpdateClock and now >= doUpdateClock then
@@ -2163,7 +2163,6 @@ function widget:DrawWorld()
 		doUpdate = true
 	end
 end
-
 
 -------------------------------------------------------------------------------
 --- CHANGE EVENTS
