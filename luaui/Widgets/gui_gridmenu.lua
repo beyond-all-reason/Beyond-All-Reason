@@ -18,39 +18,39 @@ function widget:GetInfo()
 end
 
 
-local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
-	startUnits[#startUnits+1] = UnitDefNames.legcom.id
-end
-local startBuildOptions = {}
-for i, uDefID in pairs(startUnits) do
-	startBuildOptions[#startBuildOptions+1] = uDefID
-	for u, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
-		startBuildOptions[#startBuildOptions+1] = buildoptionDefID
-	end
-end
-startUnits = nil
+-------------------------------------------------------------------------------
+--- CACHED VALUES
+-------------------------------------------------------------------------------
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
+local math_floor = math.floor
+local math_ceil = math.ceil
+local math_max = math.max
+local math_min = math.min
 
-include("keysym.h.lua")
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
+-------------------------------------------------------------------------------
+--- STATIC VALUES
+-------------------------------------------------------------------------------
 
-SYMKEYS = table.invert(KEYSYMS)
-
-local alwaysReturn = false
-local autoSelectFirst = true
-
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-
-local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
-local prevQueueNr, prevB, prevB3
-
-local BUILDCAT_ECONOMY = "Economy"
-local BUILDCAT_COMBAT = "Combat"
-local BUILDCAT_UTILITY = "Utility"
-local BUILDCAT_PRODUCTION = "Build"
-local categoryFontSize, categoryButtonHeight, hotkeyFontSize
+local BUILDCAT_ECONOMY = Spring.I18N("ui.gridmenu.category_econ")
+local BUILDCAT_COMBAT = Spring.I18N("ui.gridmenu.category_combat")
+local BUILDCAT_UTILITY = Spring.I18N("ui.gridmenu.category_utility")
+local BUILDCAT_PRODUCTION = Spring.I18N("ui.gridmenu.category_production")
+local categoryTooltips = {
+	[BUILDCAT_ECONOMY] = Spring.I18N("ui.gridmenu.category_econ_descr"),
+	[BUILDCAT_COMBAT] = Spring.I18N("ui.gridmenu.category_combat_descr"),
+	[BUILDCAT_UTILITY] = Spring.I18N("ui.gridmenu.category_utility_descr"),
+	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.gridmenu.category_production_descr"),
+}
 
 local folder = "LuaUI/Images/groupicons/"
 local groups = {
@@ -72,22 +72,17 @@ local groups = {
 	antinuke = folder .. "antinuke.png",
 }
 
-local Cfgs = {
+local CONFIG = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
-	cfgCellPadding = 0.007,
-	cfgIconPadding = 0.015, -- space between icons
-	cfgIconCornerSize = 0.025,
-	cfgPriceFontSize = 0.16,
-	cfgActiveAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
+	cellPadding = 0.007,
+	iconPadding = 0.015, -- space between icons
+	iconCornerSize = 0.025,
+	priceFontSize = 0.16,
+	activeAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
 	sound_queue_add = "LuaUI/Sounds/buildbar_add.wav",
 	sound_queue_rem = "LuaUI/Sounds/buildbar_rem.wav",
 	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-	categoryTooltips = {
-		[BUILDCAT_ECONOMY] = "Filter economy buildings",
-		[BUILDCAT_COMBAT] = "Filter combat buildings",
-		[BUILDCAT_UTILITY] = "Filter utility buildings",
-		[BUILDCAT_PRODUCTION] = "Filter production buildings",
-	},
+
 	categoryIcons = {
 		groups.energy,
 		groups.weapon,
@@ -100,45 +95,60 @@ local Cfgs = {
 		BUILDCAT_UTILITY,
 		BUILDCAT_PRODUCTION,
 	},
-	categoryKeys = {},
-	vKeyLayout = {},
-	keyLayout = {},
 }
 
-local hotkeyActions = {}
+-------------------------------------------------------------------------------
+
+local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+
 local hoveredButton, drawnHoveredButton
 local selBuildQueueDefID
 
+-- Configurable values
+local alwaysReturn = false
+local autoSelectFirst = true
 local stickToBottom = false
 local alwaysShow = false
-
 local showPrice = false -- false will still show hover
 local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
 local showBuildProgress = true
 
 local activeCmd
-local priceFontSize
 
-local zoomMult = 1.5
-local defaultCellZoom = 0.025 * zoomMult
-local rightclickCellZoom = 0.033 * zoomMult
-local clickCellZoom = 0.07 * zoomMult
-local hoverCellZoom = 0.1 * zoomMult
-local clickSelectedCellZoom = 0.125 * zoomMult
-local selectedCellZoom = 0.135 * zoomMult
+local cellCmds = {}
+local gridOpts = {}
+local gridOptsCount
+local categories = {}
+local currentCategory
+local selectNextFrame, switchedCategory
 
-local bgpadding, iconMargin, activeAreaMargin
-local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
-local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
-local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
-
+local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
+local prevQueueNr, prevB, prevB3
 local activeBuilder, activeBuilderID, builderIsFactory, selectedFactoryUID
-local prevBuildRectsCount = 0
 local buildmenuShows = false
 
--- Helper types to make the code more readable and easy to work with
-Rect = {}
+-------------------------------------------------------------------------------
+--- KEYBIND VALUES
+-------------------------------------------------------------------------------
+
+include("keysym.h.lua")
+
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+local hotkeyActions = {}
+local categoryKeys = {}
+local keyLayout = {}
+local nextPageKey
+local cycleBuilderKey
+
+-------------------------------------------------------------------------------
+--- RECT HELPER
+-------------------------------------------------------------------------------
+
+local Rect = {}
 function Rect:new(x1, y1, x2, y2)
 	local this = {
 		x = x1,
@@ -166,54 +176,48 @@ function Rect:new(x1, y1, x2, y2)
 	return this
 end
 
-local function pairsByKeys(t, f)
-	local a = {}
-	for n in pairs(t) do
-		table.insert(a, n)
-	end
-	table.sort(a, f)
-	local i = 0 -- iterator variable
-	local iter = function() -- iterator function
-		i = i + 1
-		if a[i] == nil then
-			return nil
-		else
-			return a[i], t[a[i]]
-		end
-	end
-	return iter
-end
+-------------------------------------------------------------------------------
+--- INTERFACE VALUES
+-------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-- Get from FlowUI
+local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
+local ui_opacity, ui_scale
 
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ordermenuLeft = vsx / 5
 local advplayerlistLeft = vsx * 0.8
 
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local zoomMult = 1.5
+local defaultCellZoom = 0.025 * zoomMult
+local rightclickCellZoom = 0.033 * zoomMult
+local clickCellZoom = 0.07 * zoomMult
+local hoverCellZoom = 0.1 * zoomMult
+local clickSelectedCellZoom = 0.125 * zoomMult
+local selectedCellZoom = 0.135 * zoomMult
 
-local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local bgpadding, iconMargin, activeAreaMargin
+local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
+local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
+local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
+local categoryFontSize, categoryButtonHeight, hotkeyFontSize, priceFontSize, pageFontSize
+local builderButtonSize
+local disableInput = CONFIG.disableInputWhenSpec and isSpec
 
-local disableInput = Cfgs.disableInputWhenSpec and isSpec
-local backgroundRect = Rect:new(0, 0, 0, 0)
 local columns = 4
 local rows = 3
+local pages = 1
+local currentPage = 1
 local minimapHeight = 0.235
 local selectedBuilders = {}
 local selectedBuildersCount = 0
+local prevBuildRectsCount = 0
+
 local cellRects = {}
-local cellcmds = {}
-local gridOpts = {}
-local gridOptsCount
-local categories = {}
 local catRects = {}
 local builderRects = {}
-local currentCategory
-local currentPage = 1
-local pages = 1
+local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
@@ -223,7 +227,14 @@ local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
+--- Unit prep
 -------------------------------------------------------------------------------
+
+local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
+local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
+
+local showWaterUnits = false
+units.restrictWaterUnits(true)
 
 local unitName = {}
 local unitBuildOptions = {}
@@ -232,6 +243,8 @@ local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
 local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+
+-- unit names and icons
 for udid, ud in pairs(UnitDefs) do
 	unitName[udid] = ud.name
 	unitBuildOptions[udid] = ud.buildOptions
@@ -246,33 +259,28 @@ for udid, ud in pairs(UnitDefs) do
 end
 orgIconTypes = nil
 
+-- starting units
+local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
+if Spring.GetModOptions().experimentallegionfaction then
+	startUnits[#startUnits+1] = UnitDefNames.legcom.id
+end
+local startBuildOptions = {}
+for i, uDefID in pairs(startUnits) do
+	startBuildOptions[#startBuildOptions+1] = uDefID
+	for u, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
+		startBuildOptions[#startBuildOptions+1] = buildoptionDefID
+	end
+end
+startUnits = nil
 
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
+-------------------------------------------------------------------------------
+--- DRAW LISTS
+-------------------------------------------------------------------------------
 
-local math_floor = math.floor
-local math_ceil = math.ceil
-local math_max = math.max
-local math_min = math.min
-
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
-local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
-
--- Get from FlowUI
-local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
-local ui_opacity, ui_scale
-
-local selectNextFrame, switchedCategory
-local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
-local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
-
-local showWaterUnits = false
-units.restrictWaterUnits(true)
+local function clearDrawLists()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
 
 local function checkGuishader(force)
 	if WG["guishader"] then
@@ -292,7 +300,7 @@ local function checkGuishader(force)
 	end
 end
 
-local function checkGuishaderBuilders(force)
+local function checkGuishaderBuilders()
 	if WG["guishader"] and #builderRects > 1 then
 		if prevBuildRectsCount ~= #builderRects then
 			prevBuildRectsCount = #builderRects
@@ -317,10 +325,9 @@ local function checkGuishaderBuilders(force)
 	end
 end
 
-function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
-end
+-------------------------------------------------------------------------------
+--- HOTKEY AND ACTION HANDLING
+-------------------------------------------------------------------------------
 
 local function RefreshCommands()
 	if isPregame and startDefID then
@@ -330,14 +337,6 @@ local function RefreshCommands()
 	gridOpts = {}
 	gridOptsCount = 0
 
-	function tablelength(T)
-		local count = 0
-		for _ in pairs(T) do
-			count = count + 1
-		end
-		return count
-	end
-
 	if activeBuilder then
 		if builderIsFactory then
 			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
@@ -345,13 +344,13 @@ local function RefreshCommands()
 				gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
 			end
 		else
-			categories = Cfgs.buildCategories
+			categories = CONFIG.buildCategories
 			local buildOptions = unitBuildOptions[activeBuilder]
 			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 		end
 	end
 
-	gridOptsCount = tablelength(gridOpts)
+	gridOptsCount = table.count(gridOpts)
 end
 
 
@@ -379,10 +378,11 @@ local function getGridKey(action)
 	return key
 end
 
+
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	Cfgs.keyLayout = { {}, {}, {} }
+	keyLayout = { {}, {}, {} }
 
 	for c = 1, 4 do
 		local categoryAction = "gridmenu_category " .. c
@@ -392,7 +392,7 @@ local function reloadBindings()
 			cKey = ""
 		end
 
-		Cfgs.categoryKeys[c] = cKey
+		categoryKeys[c] = cKey
 
 		for r = 1, 3 do
 			local keyAction = "gridmenu_key " .. r .. " " .. c
@@ -402,7 +402,7 @@ local function reloadBindings()
 				key = ""
 			end
 
-			Cfgs.keyLayout[r][c] = key
+			keyLayout[r][c] = key
 		end
 	end
 
@@ -410,26 +410,10 @@ local function reloadBindings()
 	if not key then
 	end
 
-	Cfgs.NEXT_PAGE_KEY = key
+	nextPageKey = key
 
 	key = getActionHotkey("gridmenu_cycle_builder")
-	Cfgs.CYCLE_BUILDER_KEY = key
-
-	-- Autogenerate bottom layout keys
-	Cfgs.vKeyLayout = {}
-
-	-- For bottom layout, 1-2 row x 1-4 col positions remain the same
-	for r = 1, 2 do
-		Cfgs.vKeyLayout[r] = {}
-		for c = 1, 4 do
-			Cfgs.vKeyLayout[r][c] = Cfgs.keyLayout[r][c]
-		end
-	end
-
-	Cfgs.vKeyLayout[1][5] = Cfgs.keyLayout[3][3]
-	Cfgs.vKeyLayout[1][6] = Cfgs.keyLayout[3][4]
-	Cfgs.vKeyLayout[2][5] = Cfgs.keyLayout[3][1]
-	Cfgs.vKeyLayout[2][6] = Cfgs.keyLayout[3][2]
+	cycleBuilderKey = key
 
 	doUpdate = true
 end
@@ -511,6 +495,13 @@ local function setCurrentCategory(category)
 end
 
 
+local function clearCategory()
+	setCurrentCategory(nil)
+	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+	doUpdate = true
+end
+
+
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
@@ -521,6 +512,7 @@ local function setPreGamestartDefID(uDefID)
 		setCurrentCategory(nil)
 	end
 end
+
 
 local function gridmenuCategoryHandler(_, _, args)
 	local cIndex = args and tonumber(args[1])
@@ -546,6 +538,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	return true
 end
 
+
 local function enqueueUnit(uDefID, opts)
 	local udTable = Spring.GetSelectedUnitsSorted()
 	for udidFac, uTable in pairs(udTable) do
@@ -556,6 +549,7 @@ local function enqueueUnit(uDefID, opts)
 		end
 	end
 end
+
 
 local function selectBuilding(uDefID)
 	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
@@ -597,10 +591,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 		if ctrl then
 			opts = { "right" }
-			Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, "ui")
+			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 		else
 			opts = { "left" }
-			Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
+			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		end
 
 		if alt then
@@ -642,6 +636,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	return false
 end
 
+
 function widget:CommandNotify(cmdID, _, cmdOpts)
 	if cmdID >= 0 then
 		return
@@ -651,6 +646,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 		setCurrentCategory(nil)
 	end
 end
+
 
 local function addBuilderToSelection(unitID, incrementCount)
 	local unitDefID = spGetUnitDefID(unitID)
@@ -681,10 +677,10 @@ local function addBuilderToSelection(unitID, incrementCount)
 	end
 end
 
+
 ---Set active builder based on index in selectedBuilders
 ---@param index number
 ---@return nil
----
 local function setActiveBuilder(index)
 	local i = 0
 	for builder, _ in pairsByKeys(selectedBuilders) do
@@ -702,6 +698,8 @@ local function setActiveBuilder(index)
 	end
 end
 
+
+---Switch to next builder type out of selected builders
 local function cycleBuilder()
 	if selectedBuildersCount <= 1 then
 		return
@@ -721,6 +719,7 @@ local function cycleBuilder()
 	end
 end
 
+
 local function nextPageHandler()
 	if not activeBuilder then
 		return
@@ -737,6 +736,7 @@ local function nextPageHandler()
 
 	return true
 end
+
 
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -841,6 +841,7 @@ function widget:Initialize()
 	end
 end
 
+
 -- update queue number
 function widget:UnitFromFactory(_, _, _, factID)
 	if Spring.IsUnitSelected(factID) then
@@ -848,15 +849,11 @@ function widget:UnitFromFactory(_, _, _, factID)
 	end
 end
 
---------------------
--- DRAW FUNCTIONS --
---------------------
+-------------------------------------------------------------------------------
+--- INTERFACE SETUP
+-------------------------------------------------------------------------------
 
-local function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
+-- Set up all of the UI positioning
 function widget:ViewResize()
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -874,11 +871,11 @@ function widget:ViewResize()
 	categoryButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
 	builderButtonSize = categoryButtonHeight * 2
 
-	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
+	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG["fonts"].getFont(Cfgs.fontFile, 1.2, 0.28, 1.6)
+	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2, 0.28, 1.6)
 
 	if WG["minimap"] then
 		minimapHeight = WG["minimap"].getHeight()
@@ -1000,16 +997,16 @@ function widget:ViewResize()
 	end
 
 	checkGuishader(true)
-	clear()
+	clearDrawLists()
 	doUpdate = true
 end
+
 
 local sec = 0
 local updateSelection = true
 function widget:Update(dt)
 	if updateSelection then
 		updateSelection = false
-		SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
 		activeBuilder = nil
 		activeBuilderID = nil
@@ -1019,14 +1016,14 @@ function widget:Update(dt)
 		selectedBuildersCount = 0
 		currentPage = 1
 
-		if SelectedUnitsCount > 0 then
+		if spGetSelectedUnitsCount() > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
 				addBuilderToSelection(unitID, true)
 			end
 
 			if activeBuilder and not builderIsFactory then
-				categories = Cfgs.buildCategories
+				categories = CONFIG.buildCategories
 			else
 				categories = {}
 			end
@@ -1070,7 +1067,7 @@ function widget:Update(dt)
 			prevAdvplayerlistLeft = advplayerlistLeft
 		end
 
-		disableInput = Cfgs.disableInputWhenSpec and isSpec
+		disableInput = CONFIG.disableInputWhenSpec and isSpec
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
@@ -1107,6 +1104,10 @@ function widget:Update(dt)
 	end
 end
 
+-------------------------------------------------------------------------------
+--- INTERFACE DRAWING
+-------------------------------------------------------------------------------
+
 local function drawBuildMenuBg()
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
@@ -1121,6 +1122,7 @@ local function drawBuildMenuBg()
 		0
 	)
 end
+
 
 local function drawButton(rect, opts, icon)
 	opts = opts or {}
@@ -1349,11 +1351,13 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	end
 end
 
+
 local function drawEmptyCell(rect)
 	local color = { 0.1, 0.1, 0.1, 0.7 }
 	local pad = cellPadding + iconPadding
 	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
 end
+
 
 local function drawButtonHotkey(rect, keyText)
 	if not rect or not keyText then
@@ -1375,7 +1379,6 @@ local function drawButtonHotkey(rect, keyText)
 end
 
 
-
 local function drawCategories()
 	if next(catRects) == nil then
 		setupCategoryRects()
@@ -1384,8 +1387,8 @@ local function drawCategories()
 		local rect = catRects[cat]
 		if(rect:getWidth() ~= 0) then
 			local catText = cat
-			local catIcon = Cfgs.categoryIcons[catIndex]
-			local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
+			local catIcon = CONFIG.categoryIcons[catIndex]
+			local keyText = keyConfig.sanitizeKey(categoryKeys[catIndex], currentLayout)
 
 			local opts = {
 				highlight = (cat == currentCategory),
@@ -1430,7 +1433,7 @@ local function drawPageAndBackButtons()
 
 	if pages > 1 then
 		-- Page button
-		local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
+		local nextKeyText = keyConfig.sanitizeKey(nextPageKey, currentLayout)
 		local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
 
 		local opts = {
@@ -1504,6 +1507,7 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 	end
 end
 
+
 local function drawBuilders()
 	if not activeBuilder or selectedBuildersCount <= 1 then
 		return
@@ -1570,7 +1574,7 @@ local function drawBuilders()
 		)
 	end
 
-	local hotkey = keyConfig.sanitizeKey(Cfgs.CYCLE_BUILDER_KEY, currentLayout) or nil
+	local hotkey = keyConfig.sanitizeKey(cycleBuilderKey, currentLayout) or nil
 	local hotkeyWidth = hotkey and (font2:GetTextWidth(hotkey) * hotkeyFontSize) + (bgpadding * 2) or 0
 
 	-- draw hint
@@ -1602,11 +1606,12 @@ local function drawBuilders()
 	nextBuilderRect = rect
 end
 
+
 local function drawGrid()
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 
-	cellcmds = {}
+	cellCmds = {}
 
 	for row = 1, 3 do
 		for col = 1, 4 do
@@ -1641,9 +1646,9 @@ local function drawGrid()
 			)
 
 			if uDefID and gridOpts[index] then
-				cellcmds[cellRectID] = gridOpts[index]
+				cellCmds[cellRectID] = gridOpts[index]
 
-				gridOpts[index].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", "")
+				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
 				local udef = gridOpts[index]
@@ -1668,10 +1673,11 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
-		selectNextFrame = cellcmds[1].id
+	if cellCmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
+		selectNextFrame = cellCmds[1].id
 	end
 end
+
 
 local function drawBuildMenu()
 	font2:Begin()
@@ -1693,11 +1699,11 @@ local function drawBuildMenu()
 	end
 
 	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+	cellPadding = math_floor(cellSize * CONFIG.cellPadding)
+	iconPadding = math_max(1, math_floor(cellSize * CONFIG.iconPadding))
+	cornerSize = math_floor(cellSize * CONFIG.iconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
 
 	cellRects = {}
 	hotkeyActions = {}
@@ -1709,6 +1715,7 @@ local function drawBuildMenu()
 	font2:End()
 end
 
+
 local function drawBuildProgress()
 	if activeBuilderID then
 		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
@@ -1717,7 +1724,7 @@ local function drawBuildProgress()
 			if unitBuildDefID then
 				-- loop all shown cells
 				for cellRectID, cellRect in pairs(cellRects) do
-					local cellUnitDefID = cellcmds[cellRectID].id * -1
+					local cellUnitDefID = cellCmds[cellRectID].id * -1
 					if unitBuildDefID == cellUnitDefID then
 						local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
 						RectRoundProgress(
@@ -1736,6 +1743,120 @@ local function drawBuildProgress()
 	end
 end
 
+-------------------------------------------------------------------------------
+--- INPUT HANDLING
+-------------------------------------------------------------------------------
+
+function widget:KeyPress(key, modifier, isRepeat)
+	if currentCategory and key == KEYSYMS.ESCAPE then
+		setCurrentCategory(nil)
+		doUpdate = true
+	end
+end
+
+
+function widget:KeyRelease(key)
+	if key ~= KEYSYMS.LSHIFT then
+		return
+	end
+
+	if isPregame then
+		setPreGamestartDefID(nil)
+	else
+		clearCategory()
+	end
+end
+
+
+function widget:MousePress(x, y, button)
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if WG["topbar"] and WG["topbar"].showingQuit() then
+		return
+	end
+
+	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)) then
+		if activeBuilder or (isPregame and startDefID) then
+			if pages > 1 then
+				if nextPageRect and nextPageRect:contains(x, y) then
+					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					nextPageHandler()
+					return true
+				end
+			end
+
+			if currentCategory then
+				if backRect and backRect:contains(x, y) then
+					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					clearCategory()
+					return true
+				end
+			end
+
+
+			for i, rect in pairs(builderRects) do
+				if rect:contains(x, y) then
+					setActiveBuilder(i)
+					doUpdate = true
+					return true
+				end
+			end
+			if nextBuilderRect:contains(x, y) then
+				cycleBuilder()
+				doUpdate = true
+				return true
+			end
+
+			if not disableInput then
+				for cat, catRect in pairs(catRects) do
+					if catRect:contains(x, y) then
+						setCurrentCategory(cat)
+						doUpdate = true
+						Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+						return true
+					end
+				end
+
+				for cellRectID, cellRect in pairs(cellRects) do
+					if
+						cellCmds[cellRectID].id
+						and unitTranslatedHumanName[-cellCmds[cellRectID].id]
+						and cellRect:contains(x, y)
+						and not units.unitRestricted[-cellCmds[cellRectID].id]
+					then
+						if button ~= 3 then
+							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+
+							if isPregame then
+								setPreGamestartDefID(cellCmds[cellRectID].id * -1)
+							elseif spGetCmdDescIndex(cellCmds[cellRectID].id) then
+								selectBuilding(cellCmds[cellRectID].id)
+							end
+						elseif builderIsFactory and spGetCmdDescIndex(cellCmds[cellRectID].id) then
+							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+							Spring.SetActiveCommand(
+								spGetCmdDescIndex(cellCmds[cellRectID].id),
+								3,
+								false,
+								true,
+								Spring.GetModKeyState()
+							)
+						end
+						doUpdateClock = os.clock() + 0.01
+						return true
+					end
+				end
+			end
+			return true
+		elseif alwaysShow then
+			return true
+		end
+	elseif activeBuilder and button == 3 then
+		setCurrentCategory(nil)
+		doUpdate = true
+	end
+end
 
 
 local function handleButtonHover()
@@ -1757,7 +1878,7 @@ local function handleButtonHover()
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cellRect:contains(x, y) then
 						hoveredCellID = cellRectID
-						local cmd = cellcmds[cellRectID]
+						local cmd = cellCmds[cellRectID]
 						local uDefID = cmd.id * -1
 						WG["buildmenu"].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
@@ -1819,7 +1940,7 @@ local function handleButtonHover()
 								-- when meta: unitstats does the tooltip
 								local textColor = "\255\215\255\215"
 
-								local text = Cfgs.categoryTooltips[cat]
+								local text = categoryTooltips[cat]
 								local index = 0
 								for k, v in pairs(categories) do
 									if v == cat then
@@ -1827,7 +1948,7 @@ local function handleButtonHover()
 									end
 								end
 
-								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
+								local catKey = keyConfig.sanitizeKey(keyLayout[1][index], currentLayout)
 								text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
@@ -1914,11 +2035,11 @@ local function handleButtonHover()
 			if hovering then
 				-- cells
 				if hoveredCellID then
-					local uDefID = cellcmds[hoveredCellID].id * -1
+					local uDefID = cellCmds[hoveredCellID].id * -1
 					local cellIsSelected = (
 						activeCmd
-							and cellcmds[hoveredCellID]
-							and activeCmd == cellcmds[hoveredCellID].name
+							and cellCmds[hoveredCellID]
+							and activeCmd == cellCmds[hoveredCellID].name
 					)
 					if
 					not prevHoveredCellID
@@ -1927,9 +2048,9 @@ local function handleButtonHover()
 						or cellIsSelected ~= hoverCellSelected
 						or b ~= prevB
 						or b3 ~= prevB3
-						or cellcmds[hoveredCellID].params[1] ~= prevQueueNr
+						or cellCmds[hoveredCellID].params[1] ~= prevQueueNr
 					then
-						prevQueueNr = cellcmds[hoveredCellID].params[1]
+						prevQueueNr = cellCmds[hoveredCellID].params[1]
 						prevB = b
 						prevB3 = b3
 						prevHoveredCellID = hoveredCellID
@@ -1948,7 +2069,7 @@ local function handleButtonHover()
 									usedZoom = selectedCellZoom
 								elseif (b or b2) and not disableInput then
 									usedZoom = clickCellZoom
-								elseif b3 and not disableInput and cellcmds[hoveredCellID].params[1] then
+								elseif b3 and not disableInput and cellCmds[hoveredCellID].params[1] then
 									-- has queue
 									usedZoom = rightclickCellZoom
 								end
@@ -1978,7 +2099,7 @@ local function handleButtonHover()
 
 								drawCell(
 									cellRects[hoveredCellID],
-									cellcmds[hoveredCellID],
+									cellCmds[hoveredCellID],
 									usedZoom,
 									cellColor,
 									units.unitRestricted[uDefID]
@@ -2005,6 +2126,10 @@ local function handleButtonHover()
 	end
 end
 
+-------------------------------------------------------------------------------
+--- DRAW EVENTS
+-------------------------------------------------------------------------------
+
 function widget:DrawScreen()
 	if WG["buildmenu"] then
 		WG["buildmenu"].hoverID = nil
@@ -2025,7 +2150,7 @@ function widget:DrawScreen()
 			if doUpdateClock and now >= doUpdateClock then
 				doUpdateClock = nil
 			end
-			clear()
+			clearDrawLists()
 			RefreshCommands()
 			doUpdate = nil
 		end
@@ -2047,6 +2172,7 @@ function widget:DrawScreen()
 		handleButtonHover()
 	end
 end
+
 
 function widget:DrawWorld()
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
@@ -2073,6 +2199,11 @@ function widget:DrawWorld()
 	end
 end
 
+
+-------------------------------------------------------------------------------
+--- CHANGE EVENTS
+-------------------------------------------------------------------------------
+
 function widget:UnitCommand(_, unitDefID, _, cmdID)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
@@ -2082,140 +2213,23 @@ function widget:UnitCommand(_, unitDefID, _, cmdID)
 	end
 end
 
+
 function widget:SelectionChanged()
 	updateSelection = true
 end
+
 
 function widget:GameStart()
 	isPregame = false
 	units.checkGeothermalFeatures()
 end
 
-function widget:KeyPress(key, modifier, isRepeat)
-	if currentCategory and key == KEYSYMS.ESCAPE then
-		setCurrentCategory(nil)
-		doUpdate = true
-	end
+
+function widget:PlayerChanged()
+	isSpec = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
 end
 
-function clearCategory()
-	setCurrentCategory(nil)
-	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-	doUpdate = true
-end
-
-function widget:KeyRelease(key)
-	if key ~= KEYSYMS.LSHIFT then
-		return
-	end
-
-	if isPregame then
-		setPreGamestartDefID(nil)
-	else
-		clearCategory()
-	end
-end
-
-function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
-		return
-	end
-	if WG["topbar"] and WG["topbar"].showingQuit() then
-		return
-	end
-
-	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)) then
-		if activeBuilder or (isPregame and startDefID) then
-			if pages > 1 then
-				if nextPageRect and nextPageRect:contains(x, y) then
-					Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-					nextPageHandler()
-					return true
-				end
-			end
-
-			if currentCategory then
-				if backRect and backRect:contains(x, y) then
-					Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-					clearCategory()
-					return true
-				end
-			end
-
-
-			for i, rect in pairs(builderRects) do
-				if rect:contains(x, y) then
-					setActiveBuilder(i)
-					doUpdate = true
-					return true
-				end
-			end
-			if nextBuilderRect:contains(x, y) then
-				cycleBuilder()
-				doUpdate = true
-				return true
-			end
-
-			if not disableInput then
-				for cat, catRect in pairs(catRects) do
-					if catRect:contains(x, y) then
-						setCurrentCategory(cat)
-						doUpdate = true
-						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-						return true
-					end
-				end
-
-				for cellRectID, cellRect in pairs(cellRects) do
-					if
-						cellcmds[cellRectID].id
-						and unitTranslatedHumanName[-cellcmds[cellRectID].id]
-						and cellRect:contains(x, y)
-						and not units.unitRestricted[-cellcmds[cellRectID].id]
-					then
-						if button ~= 3 then
-							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-
-							if isPregame then
-								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
-								selectBuilding(cellcmds[cellRectID].id)
-							end
-						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
-							Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, "ui")
-							Spring.SetActiveCommand(
-								spGetCmdDescIndex(cellcmds[cellRectID].id),
-								3,
-								false,
-								true,
-								Spring.GetModKeyState()
-							)
-						end
-						doUpdateClock = os.clock() + 0.01
-						return true
-					end
-				end
-			end
-			return true
-		elseif alwaysShow then
-			return true
-		end
-	elseif activeBuilder and button == 3 then
-		setCurrentCategory(nil)
-		doUpdate = true
-	end
-end
-
-function widget:Shutdown()
-	clear()
-	hoverDlist = gl.DeleteList(hoverDlist)
-	if WG["guishader"] and dlistGuishader then
-		WG["guishader"].DeleteDlist("buildmenu")
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		dlistGuishader = nil
-	end
-	WG["buildmenu"] = nil
-end
 
 function widget:GetConfigData()
 	return {
@@ -2229,6 +2243,7 @@ function widget:GetConfigData()
 		alwaysShow = alwaysShow,
 	}
 end
+
 
 function widget:SetConfigData(data)
 	if data.alwaysReturn ~= nil then
@@ -2252,4 +2267,16 @@ function widget:SetConfigData(data)
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
 	end
+end
+
+
+function widget:Shutdown()
+	clearDrawLists()
+	hoverDlist = gl.DeleteList(hoverDlist)
+	if WG["guishader"] and dlistGuishader then
+		WG["guishader"].DeleteDlist("buildmenu")
+		WG["guishader"].DeleteDlist("buildmenubuilders")
+		dlistGuishader = nil
+	end
+	WG["buildmenu"] = nil
 end
