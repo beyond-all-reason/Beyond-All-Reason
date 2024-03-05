@@ -430,7 +430,7 @@ function UpdateList(force)
 		)
 	end
 
-	for name, data in pairs(widgetHandler.knownWidgets) do
+	for name, data in pairs(widgetHandler.knownWidgetInfos) do
 		if name ~= myName and name ~= 'Write customparam.__def to files' and not data.parent then
 			if checkTextFilter(name, data) then
 				fullWidgetsList[#fullWidgetsList+1] = { name, data }

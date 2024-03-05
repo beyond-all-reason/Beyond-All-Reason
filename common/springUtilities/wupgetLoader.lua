@@ -10,7 +10,9 @@ end
 ---@field layer number layer from GetInfo()
 ---@field desc string description from GetInfo()
 ---@field author string author from GetInfo()
----@field date string date from GetInfo()
+---@field license string license from GetInfo()
+---@field enabled string enabled from GetInfo(), true if the wupget is to be enabled by default
+---@field handler string handler field from GetInfo(), true if the wupget wants access to the widget/gadget handler
 ---@field filename string Full path to file from content root including file name
 ---@field basename string Name of the file
 ---@field path string Path to directory containing the wupget
@@ -20,9 +22,8 @@ end
 
 ---@param wupget
 ---@param filename
----@param parentInfo
 ---@return WupgetInfo
-local function extractInfo(wupget, filename, parentInfo)
+local function extractInfo(wupget, filename)
 	local basename, path = pathParts(filename)
 	local info = {
 		filename = filename,
@@ -34,23 +35,15 @@ local function extractInfo(wupget, filename, parentInfo)
 		info.name = basename
 		info.layer = 0
 	else
-		local wpInfo = wupget:GetInfo()
-		info.name = wpInfo.name or basename
-		info.layer = wpInfo.layer or 0
-		info.desc = wpInfo.desc or ""
-		info.author = wpInfo.author or ""
-		info.date = wpInfo.date or ""
-		info.license = wpInfo.license or ""
-		info.enabled = wpInfo.enabled or false
-
-		if wupget.GetChildPaths then
-			info.childPaths = wupget:GetChildPaths()
+		for k, v in pairs(wupget:GetInfo() or {}) do
+			info[k] = v
 		end
 
-		if parentInfo ~= nil then
-			info.parent = parentInfo
-			-- don't insert the new info into the parentInfo just yet,
-			-- the current wupget may still fail the loading process
+		info.name = info.name or basename
+		info.layer = info.layer or 0
+
+		if wupget.GetChildPaths then
+			info.childPaths = wupget:GetChildPaths(path)
 		end
 	end
 
@@ -59,7 +52,7 @@ end
 
 --- sorts wupgets by layer, then orderList entry, then name
 ---
---- child wupgets _will_ be placed after their parent wupgets
+--- child wupgets are placed after their parent wupgets and sorted amongst themselves
 ---@return table[] a new list of sorted wupgets
 local function sortedWupgetList(wupgets, orderList, infoAccessor)
 
@@ -186,37 +179,40 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 			return
 		end
 
-		-- Insert the new info into the children of the parentInfo now that it was successfully loaded
 		if parentInfo then
+			newInfo.parent = parentInfo
 			parentInfo.children = parentInfo.children or {}
-			table.insert(parentInfo.children, info)
+			table.insert(parentInfo.children, newInfo)
 		end
 
 		local path = newInfo.path
+		local childPaths = newInfo.childPaths
 		table.insert(loadedFilePaths, fileOrDirPath)
 
-		if recursionDepth <= MAX_RECURSION_DEPTH then
-			recursionDepth = recursionDepth + 1
+		if childPaths ~= nil then
+			if recursionDepth <= MAX_RECURSION_DEPTH then
+				recursionDepth = recursionDepth + 1
 
-			if type(subModulesPaths) == 'boolean' and subModulesPaths == true then
-				loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
-			elseif type(subModulesPaths) == 'table' and #subModulesPaths > 0 then
-				for idx, subModulePath in ipairs(subModulesPaths) do
-					-- check for ../ or ..\
-					if string.find(subModulePath, "%.%.[\\/]") then
-						error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', subModulePath), 2)
-					end
+				if type(childPaths) == 'boolean' and childPaths == true then
+					loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
+				elseif type(childPaths) == 'table' and #childPaths > 0 then
+					for idx, subModulePath in ipairs(childPaths) do
+						-- check for ../ or ..\
+						if string.find(subModulePath, "%.%.[\\/]") then
+							error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', subModulePath), 2)
+						end
 
-					if not string.find(subModulePath, path, nil, true) then
-						subModulesPaths[idx] = path .. subModulePath
+						if not string.find(subModulePath, path, nil, true) then
+							childPaths[idx] = path .. subModulePath
+						end
 					end
+					loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newWupget)
 				end
-				loadFromList(subModulesPaths, vfsMode, loaderCallback, loadedFilePaths, newWupget)
-			end
 
-			recursionDepth = recursionDepth - 1
-		else
-			Spring.Echo(string.format("[Wupget Loader] hit maximum recursion depth (%s) when loading child wupgets!", MAX_RECURSION_DEPTH))
+				recursionDepth = recursionDepth - 1
+			else
+				Spring.Echo(string.format("[Wupget Loader] hit maximum recursion depth (%s) when loading child wupgets!", MAX_RECURSION_DEPTH))
+			end
 		end
 
 	elseif isDir then

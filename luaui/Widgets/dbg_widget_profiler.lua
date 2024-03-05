@@ -117,7 +117,7 @@ end
 
 local userWidgets = {}
 function widget:Initialize()
-	for name, wData in pairs(widgetHandler.knownWidgets) do
+	for name, wData in pairs(widgetHandler.knownWidgetInfos) do
 		userWidgets[name] = (not wData.fromZip)
 	end
 end

@@ -1747,9 +1747,9 @@ function GetWidgetToggleValue(widgetname)
 	if widgetHandler.orderList[widgetname] == nil or widgetHandler.orderList[widgetname] == 0 then
 		return false
 	elseif widgetHandler.orderList[widgetname] >= 1
-		and widgetHandler.knownWidgets ~= nil
-		and widgetHandler.knownWidgets[widgetname] ~= nil then
-		if widgetHandler.knownWidgets[widgetname].active then
+		and widgetHandler.knownWidgetInfos ~= nil
+		and widgetHandler.knownWidgetInfos[widgetname] ~= nil then
+		if widgetHandler.knownWidgetInfos[widgetname].active then
 			return true
 		else
 			return 0.5
@@ -5486,7 +5486,7 @@ function init()
 	end
 
 	local localWidgetCount = 0
-	for name, data in pairs(widgetHandler.knownWidgets) do
+	for name, data in pairs(widgetHandler.knownWidgetInfos) do
 		if not data.fromZip then
 			localWidgetCount = localWidgetCount + 1
 		end
@@ -5932,7 +5932,7 @@ function init()
 		end
 	end
 	local userwidgetsDetected = false
-	for name, data in pairs(widgetHandler.knownWidgets) do
+	for name, data in pairs(widgetHandler.knownWidgetInfos) do
 		if not data.fromZip then
 			if not userwidgetsDetected then
 				userwidgetsDetected = true
@@ -5948,7 +5948,16 @@ function init()
 			if data.author and data.author ~= '' then
 				desc = desc .. (desc ~= '' and '\n' or '')..widgetOptionColor..Spring.I18N('ui.settings.option.author')..': '.. data.author
 			end
-			options[#options+1] = { id = "widget_"..string.gsub(data.basename, ".lua", ""), group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
+			options[#options+1] = {
+				id = "widget_"..string.gsub(data.basename, ".lua", ""),
+				group = "custom", category = types.basic,
+				widget = name,
+				name = name,
+				type = "bool",
+				value = GetWidgetToggleValue(name),
+				description = desc
+			}
+
 			if userwidgetOptions[name] then
 				for k, customOption in pairs(userwidgetOptions[name]) do
 					options[#options+1] = table.copy(customOptions[customOption])

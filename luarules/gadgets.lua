@@ -35,7 +35,7 @@ local GADGETS_DIR = Script.GetName():gsub('US$', '') .. '/Gadgets/'
 local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
-local moduleLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
+local wupgetLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
 
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
@@ -80,7 +80,7 @@ gadgetHandler = {
 
 	orderList = {},
 
-	knownGadgets = {},
+	knownGadgetInfos = {},
 	knownCount = 0,
 	knownChanged = true,
 
@@ -332,16 +332,15 @@ function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
 	local doMoreYield = (Spring.Yield ~= nil);
 
-	-- stuff the gadgets into unsortedGadgets
-	local unsortedGadgets = {}
+	local gadgetsToLoad = {}
 
 	wupgetLoader.loadAllInDir(
 		GADGETS_DIR,
 		VFSMODE,
 		function(gf, parentGadget)
-			local gadget = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
+			local gadget, gadgetInfo = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
 			if gadget then
-				table.insert(unsortedGadgets, gadget)
+				table.insert(gadgetsToLoad, gadget)
 				if not IsSyncedCode() and doMoreYield then
 					doMoreYield = Spring.Yield()
 					if doMoreYield == false then --GetThreadSafety == false
@@ -353,32 +352,15 @@ function gadgetHandler:Initialize()
 				if gadget.GetChildPaths ~= nil then
 					childGadgets = gadget:GetChildPaths()
 				end
-
-				return gadget, childGadgets
 			end
+			return gadgetInfo
 		end
 	)
 
-	-- sort the gadgets
-	table.sort(unsortedGadgets, function(g1, g2)
-		local l1 = g1.ghInfo.layer
-		local l2 = g2.ghInfo.layer
-		if l1 ~= l2 then
-			return (l1 < l2)
-		end
-		local n1 = g1.ghInfo.name
-		local n2 = g2.ghInfo.name
-		local o1 = self.orderList[n1]
-		local o2 = self.orderList[n2]
-		if o1 ~= o2 then
-			return (o1 < o2)
-		else
-			return (n1 < n2)
-		end
-	end)
+	gadgetsToLoad = wupgetLoader.sortedWupgetList(gadgetsToLoad, self.orderList, function(g) return g.ghInfo end)
 
 	-- add the gadgets
-	for _, g in ipairs(unsortedGadgets) do
+	for _, g in ipairs(gadgetsToLoad) do
 		gadgetHandler:InsertGadget(g)
 
 		local gType = ((syncedHandler and "synced") or "unsynced")
@@ -386,7 +368,19 @@ function gadgetHandler:Initialize()
 		local gBaseName = g.ghInfo.basename
 		local gLocalPath = g.ghInfo.localPath
 
-		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s%s>", gType, gName, gLocalPath, gBaseName))
+		local info = self.knownGadgetInfos[gName]
+		if not info.parent then
+			Spring.Log(LOG_SECTION, LOG.INFO, string.format(
+				"Loaded %s gadget:  %-18s  <%s%s>",
+				gType, gName, gLocalPath, gBaseName
+			))
+		else
+			Spring.Log(LOG_SECTION, LOG.INFO, string.format(
+				"Loaded child gadget %-18s > %-18s <%s%s>",
+				info.parent.name, name,
+				localPath, basename
+			))
+		end
 	end
 end
 
@@ -422,12 +416,13 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil -- gadget asked for a quiet death
 	end
 
+	self:LoadGadgetInfo(gadget, filename, basename, path)
+
 	-- raw access to gadgetHandler
-	if gadget.GetInfo and gadget:GetInfo().handler then
+	if gadget.ghInfo.handler then
 		gadget.gadgetHandler = self
 	end
 
-	self:FinalizeGadget(gadget, filename, basename, path)
 	local name = gadget.ghInfo.name
 
 	err = self:ValidateGadget(gadget)
@@ -436,7 +431,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil
 	end
 
-	local knownInfo = self.knownGadgets[name]
+	local knownInfo = self.knownGadgetInfos[name]
 	if knownInfo then
 		if knownInfo.active then
 			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
@@ -445,12 +440,10 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	else
 		-- create a knownInfo table
 		knownInfo = {}
-		knownInfo.desc = gadget.ghInfo.desc
-		knownInfo.author = gadget.ghInfo.author
-		knownInfo.basename = gadget.ghInfo.basename
-		knownInfo.filename = gadget.ghInfo.filename
-		knownInfo.path = gadget.ghInfo.path
-		self.knownGadgets[name] = knownInfo
+		for k, v in pairs(gadget.ghInfo) do
+			knownInfo[k] = v
+		end
+		self.knownGadgetInfos[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
 	end
@@ -467,7 +460,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		end
 	else
 		self.orderList[name] = 0
-		self.knownGadgets[name].active = false
+		self.knownGadgetInfos[name].active = false
 		return nil
 	end
 
@@ -567,25 +560,9 @@ function gadgetHandler:NewGadget()
 	return gadget
 end
 
-function gadgetHandler:FinalizeGadget(gadget, filename, basename, path)
-	local gi = {}
-
-	gi.filename = filename
-	gi.basename = basename
-	gi.path = path
+function gadgetHandler:LoadGadgetInfo(gadget, filename, basename, path)
+	local gi = wupgetLoader.extractInfo(gadget, filename)
 	gi.localPath = string.sub(path, #GADGETS_DIR + 1)
-	if gadget.GetInfo == nil then
-		gi.name = basename
-		gi.layer = 0
-	else
-		local info = gadget:GetInfo()
-		gi.name = info.name or basename
-		gi.layer = info.layer or 0
-		gi.desc = info.desc or ""
-		gi.author = info.author or ""
-		gi.license = info.license or ""
-		gi.enabled = info.enabled or false
-	end
 
 	gadget.ghInfo = {}  --  a proxy table
 	local mt = {
@@ -716,7 +693,7 @@ function gadgetHandler:RemoveGadget(gadget)
 	end
 
 	local name = gadget.ghInfo.name
-	self.knownGadgets[name].active = false
+	self.knownGadgetInfos[name].active = false
 	if gadget.Shutdown then
 		gadget:Shutdown()
 	end
@@ -799,7 +776,7 @@ end
 --------------------------------------------------------------------------------
 
 function gadgetHandler:EnableGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
 		return false
@@ -820,7 +797,7 @@ function gadgetHandler:EnableGadget(name)
 end
 
 function gadgetHandler:DisableGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
 		return false
@@ -838,7 +815,7 @@ function gadgetHandler:DisableGadget(name)
 end
 
 function gadgetHandler:ToggleGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "ToggleGadget(), could not find gadget: " .. tostring(name))
 		return
