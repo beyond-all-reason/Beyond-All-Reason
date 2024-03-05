@@ -295,9 +295,8 @@ Create()
 	animSpeed = 3;
 	nanoNozzle = 0;
 	animSpeed = 60;
-	start-script SmokeUnit();
-	turn luparm to x-axis <45.010989> speed <45>;
-	turn ruparm to x-axis <45.010989> speed <45>;
+	//turn luparm to x-axis <45.010989> speed <45>;
+	//turn ruparm to x-axis <45.010989> speed <45>;
 }
 
 BuildAnim(){
