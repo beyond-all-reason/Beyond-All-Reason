@@ -375,7 +375,7 @@ Create()
 	animSpeed = 4;
 	hide lfirept;
 	hide rfirept;
-	start-script StopMoving();
+	//start-script StopMoving(); // This would place it in power stance on build?
 }
 
 
