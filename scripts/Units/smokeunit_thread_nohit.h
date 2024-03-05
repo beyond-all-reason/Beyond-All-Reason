@@ -9,15 +9,17 @@
 
 // if a unit does not use hitbyweaponid, just hitbyweapon, then the hitbyweapon should use the smokeunit
 
-#define SMOKETHRESHOLD 65
+#ifndef SMOKEPIECE
+	#define SMOKEPIECE base
+#endif
+
+#ifndef SMOKETHRESHOLD
+	#define SMOKETHRESHOLD 65
+#endif
 
 static-var isSmoking;
 SmokeUnit(healthpercent) // ah yes, clever use of stack variables 
 {
-	if( get BUILD_PERCENT_LEFT){
-		isSmoking = 0;
-		return (0);
-	}
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

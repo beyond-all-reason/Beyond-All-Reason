@@ -7,6 +7,23 @@
 //#define MAXTILT 200
 // #include "smokeunit_thread.h"
 
+#ifndef BASEPIECE
+	#define BASEPIECE base
+#endif
+
+#ifndef HITSPEED
+	#define HITSPEED <20.0>
+#endif
+
+#ifndef UNITSIZE
+	#define UNITSIZE 5
+#endif
+
+#ifndef MAXTILT
+	#define MAXTILT 200
+#endif
+
+
 
 HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
@@ -49,6 +66,6 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		isSmoking = 1;
 		start-script SmokeUnit();
 	}	
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	start-script HitByWeapon(dmg, anglez, anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
