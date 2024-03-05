@@ -80,6 +80,14 @@ gadgetHandler = {
 
 	orderList = {},
 
+	---@class GadgetInfo:WupgetInfo info about gadgets that were discovered to exist during initialization, whether or not they are currently active
+	---@field active boolean Is the gadgets currently loaded (or is to be loaded)?
+	---@field localPath string path to gadgets starting from GADGETS_DIR
+
+	---@type table<string, GadgetInfo>
+	---gadget.ghInfo.name to mutable GadgetInfo
+	---
+	---_Only gadgets cataloged in this table can be enabled_
 	knownGadgetInfos = {},
 	knownCount = 0,
 	knownChanged = true,
@@ -416,14 +424,14 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil -- gadget asked for a quiet death
 	end
 
-	self:LoadGadgetInfo(gadget, filename, basename, path)
+	local gadgetInfo = self:LoadGadgetInfo(gadget, filename, basename, path)
 
 	-- raw access to gadgetHandler
-	if gadget.ghInfo.handler then
+	if gadgetInfo.handler then
 		gadget.gadgetHandler = self
 	end
 
-	local name = gadget.ghInfo.name
+	local name = gadgetInfo.name
 
 	err = self:ValidateGadget(gadget)
 	if err then
@@ -437,21 +445,16 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
 			return nil
 		end
+		gadgetInfo = knownInfo
 	else
-		-- create a knownInfo table
-		knownInfo = {}
-		for k, v in pairs(gadget.ghInfo) do
-			knownInfo[k] = v
-		end
-		self.knownGadgetInfos[name] = knownInfo
+		self.knownGadgetInfos[name] = gadgetInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
 	end
-	knownInfo.active = true
+	gadgetInfo.active = true
 
-	local info = gadget.GetInfo and gadget:GetInfo()
 	local order = self.orderList[name]
-	if ((order ~= nil and order > 0) or (order == nil and (info == nil or info.enabled))) then
+	if ((order ~= nil and order > 0) or (order == nil and gadgetInfo.enabled)) then
 		-- this will be an active gadget
 		if order == nil then
 			self.orderList[name] = 12345  -- back of the pack
@@ -460,8 +463,8 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		end
 	else
 		self.orderList[name] = 0
-		self.knownGadgetInfos[name].active = false
-		return nil
+		gadgetInfo.active = false
+		return nil, gadgetInfo
 	end
 
 	if kbytes then
@@ -469,7 +472,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		collectgarbage("collect") -- sweep
 		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode())
 	end
-	return gadget
+	return gadget, gadgetInfo
 end
 
 function gadgetHandler:NewGadget()
@@ -573,6 +576,7 @@ function gadgetHandler:LoadGadgetInfo(gadget, filename, basename, path)
 		__metatable = "protected"
 	}
 	setmetatable(gadget.ghInfo, mt)
+	return gi
 end
 
 function gadgetHandler:ValidateGadget(gadget)
@@ -659,6 +663,9 @@ function gadgetHandler:InsertGadget(gadget)
 	if gadget == nil then
 		return
 	end
+
+	local ki = self.knownGadgetInfos[gadget.ghInfo.name]
+
 	ArrayInsert(self.gadgets, true, gadget)
 	for _, listname in ipairs(callInLists) do
 		local func = gadget[listname]
@@ -675,6 +682,19 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 
 	self:UpdateCallIns()
+	ki.active = true
+
+	if ki.parent then
+		local parentGadget = self:FindGadget(ki.parent.name)
+		if parentGadget then
+			gadget.parent = parentGadget
+			parentGadget.children = parentGadget.children or {}
+			if not table.contains(parentGadget.children, gadget) then
+				table.insert(parentGadget.children, gadget)
+			end
+		end
+	end
+
 	if gadget.Initialize then
 		gadget:Initialize()
 	end
@@ -693,7 +713,17 @@ function gadgetHandler:RemoveGadget(gadget)
 	end
 
 	local name = gadget.ghInfo.name
-	self.knownGadgetInfos[name].active = false
+	local ki = self.knownGadgetInfos[name]
+
+	-- first, remove children (without removing from orderList)
+	if ki.children and #ki.children > 0 then
+		for _, childInfo in ipairs(ki.children) do
+			self:RemoveGadget(self:FindGadget(childInfo.name))
+		end
+	end
+
+	ki.active = false
+
 	if gadget.Shutdown then
 		gadget:Shutdown()
 	end
@@ -781,6 +811,15 @@ function gadgetHandler:EnableGadget(name)
 		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
 		return false
 	end
+
+	-- make sure parent is enabled first
+	if ki.parent and not ki.parent.active then
+		if not self:EnableGadget(ki.parent.name) then
+			Spring.Echo('Failed to activate parent gadget of %s', ki.filename)
+			return false
+		end
+	end
+
 	if not ki.active then
 		Spring.Log(LOG_SECTION, LOG.INFO, 'Loading:  ' .. ki.filename)
 		local order = gadgetHandler.orderList[name]
@@ -792,6 +831,18 @@ function gadgetHandler:EnableGadget(name)
 			return false
 		end
 		self:InsertGadget(w)
+
+		-- re-enable child gadgets if they were previously enabled
+		if ki.children and #ki.children > 0 then
+			for _, childInfo in ipairs(ki.children) do
+				local active = self.knownGadgetInfos[childInfo.name].active
+				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
+
+				if not active and enabled then
+					self:EnableGadget(childInfo.name)
+				end
+			end
+		end
 	end
 	return true
 end

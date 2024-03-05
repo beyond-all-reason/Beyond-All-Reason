@@ -64,12 +64,11 @@ widgetHandler = {
 
 	---@class WidgetInfo:WupgetInfo info about widgets that were discovered to exist during initialization, whether or not they are currently active
 	---@field fromZip boolean Was this widget loaded from VFS.ZIP?
-	---@field childPaths nil | string[] | boolean local paths to children **OR** boolean true to signal that all other .lua files in this folder are children of this widget
 	---@field active boolean Is the widget currently loaded (or is to be loaded)?
 	---@field localPath string path to widget starting from WIDGET_DIRNAME
 
 	---@type table<string, WidgetInfo>
-	---widget:GetInfo().name to WidgetInfo
+	---widget.whInfo.name to mutable WidgetInfo
 	---
 	---_Only widgets cataloged in this table can be enabled_
 	knownWidgetInfos = {},
@@ -787,12 +786,11 @@ local function ArrayRemove(t, w)
 	end
 end
 
-function widgetHandler:InsertWidget(widget, parentWidget)
+function widgetHandler:InsertWidget(widget)
 	if widget == nil then
 		return
 	end
 
-	---@type WidgetInfo
 	local ki = self.knownWidgetInfos[widget.whInfo.name]
 
 	SafeWrapWidget(widget)
@@ -808,7 +806,7 @@ function widgetHandler:InsertWidget(widget, parentWidget)
 	ki.active = true
 
 	if ki.parent then
-		parentWidget = parentWidget or self:FindWidget(ki.parent.name)
+		local parentWidget = self:FindWidget(ki.parent.name)
 		if parentWidget then
 			widget.parent = parentWidget
 			parentWidget.children = parentWidget.children or {}
@@ -829,7 +827,6 @@ function widgetHandler:RemoveWidget(widget)
 	end
 
 	local name = widget.whInfo.name
-	---@type WidgetInfo
 	local ki = self.knownWidgetInfos[name]
 
 	-- first, remove children (without removing from orderList)
@@ -932,7 +929,10 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 
 	-- make sure parent is enabled first
 	if ki.parent and not ki.parent.active then
-		self:EnableWidget(ki.parent.name)
+		if not self:EnableWidget(ki.parent.name) then
+			Spring.Echo('Failed to activate parent widget of %s', ki.filename)
+			return false
+		end
 	end
 
 	if not ki.active then
