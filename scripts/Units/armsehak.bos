@@ -44,7 +44,7 @@ activatescr()
 	}
 
 	sleep 679;
-	return (0);
+	
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
@@ -91,7 +91,7 @@ deactivatescr()
 		sleep 675;
 	}
 	sleep 679;
-	return (0);
+	
 }
 
 
@@ -99,7 +99,7 @@ InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-	return (0);
+	
 }
 
 RequestState(requestedstate, currentstate)
@@ -107,7 +107,7 @@ RequestState(requestedstate, currentstate)
 	if( statechg_StateChanging )
 	{
 		statechg_DesiredState = requestedstate;
-		return (0);
+		
 	}
 	statechg_StateChanging = TRUE;
 	currentstate = statechg_DesiredState;
@@ -126,47 +126,28 @@ RequestState(requestedstate, currentstate)
 		}
 	}
 	statechg_StateChanging = FALSE;
-	return (0);
+	
 }
 
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
+#include "air_barrelroll.h"
 
 Create()
 {
 	call-script InitState();
 	start-script BarrelRoll();
-	return (0);
+	
 }
 
 Activate()
 {
 	start-script RequestState(0);
-	return (0);
+	
 }
 
 Deactivate()
 {
 	start-script RequestState(1);
-	return (0);
+	
 }
 
 StartMoving()
@@ -178,7 +159,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	return (0);
+	
 }
 
 
