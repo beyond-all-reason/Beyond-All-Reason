@@ -1,123 +1,14 @@
 
 #include "exptype.h"
+#include "../factories_common.h"
 
 piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4;
 
-static-var  buildAnimPiece, statechg_DesiredState, statechg_StateChanging;
+static-var  buildAnimPiece;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis <0.000000> now;
-				turn head1 to y-axis <-60.000000> speed <225.000000>;
-				turn head2 to y-axis <0.000000> now;
-				turn head2 to y-axis <60.000000> speed <225.000000>;
-				turn head3 to y-axis <0.000000> now;
-				turn head3 to y-axis <-60.000000> speed <225.000000>;
-				turn head4 to y-axis <0.000000> now;
-				turn head4 to y-axis <60.000000> speed <225.000000>;
-				wait-for-turn head1 around y-axis;
-	}
-	sleep 20;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis <0.000000> speed <225.000000>;
-				turn head2 to y-axis <0.000000> speed <225.000000>;
-				turn head3 to y-axis <0.000000> speed <225.000000>;
-				turn head4 to y-axis <0.000000> speed <225.000000>;
-				wait-for-turn head1 around y-axis;
-	}
-	sleep 20;
-	return (0);
-}
-
-OpenBuildArea()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-	return (0);
-}
-
-CloseBuildArea()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-	return (0);
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenBuildArea();
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseBuildArea();
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -127,8 +18,6 @@ Create()
 	hide nano1;
 	hide pad;
 	buildAnimPiece = 0;
-	call-script InitState();
-	return (0);
 }
 
 #define SMOKEPIECE base
@@ -136,36 +25,23 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-	if( buildAnimPiece == 0 )
-	{
-		pieceIndex = nano1;
-	}
-	if( buildAnimPiece == 1 )
-	{
-		pieceIndex = nano2;
-	}
-	if( buildAnimPiece == 2 )
-	{
-		pieceIndex = nano3;
-	}
-	if( buildAnimPiece == 3 )
-	{
-		pieceIndex = nano4;
-	}
-			buildAnimPiece=buildAnimPiece+1;
-			if( buildAnimPiece >3 )
-	{
-		buildAnimPiece=0;
-	}
-	return (0);
+	buildAnimPiece = (buildAnimPiece + 1) % 2;
+	pieceIndex = nano1 + buildAnimPiece;
 }
 
 
 Activate()
 {
 	signal SIGNAL_TURNON;
-	start-script RequestState(0);
-	return (0);
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn head1 to y-axis <-60.000000> speed <225.000000>;
+	turn head2 to y-axis <60.000000> speed <225.000000>;
+	turn head3 to y-axis <-60.000000> speed <225.000000>;
+	turn head4 to y-axis <60.000000> speed <225.000000>;
+	wait-for-turn head1 around y-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
@@ -173,9 +49,14 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	
+	turn head1 to y-axis <0.000000> speed <225.000000>;
+	turn head2 to y-axis <0.000000> speed <225.000000>;
+	turn head3 to y-axis <0.000000> speed <225.000000>;
+	turn head4 to y-axis <0.000000> speed <225.000000>;
+	wait-for-turn head1 around y-axis;
+			
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -184,8 +65,6 @@ StartBuilding()
 	show nano4;
 	show nano3;
 	show nano2;
-	sleep 150;
-	return (0);
 }
 
 StopBuilding()
@@ -194,17 +73,12 @@ StopBuilding()
 	hide nano4;
 	hide nano3;
 	hide nano2;
-	sleep 150;
-	return (0);
 }
 
 QueryBuildInfo(pieceIndex)
 {
 	pieceIndex = pad;
-	return (0);
 }
-
-
 
 Killed(severity, corpsetype)
 {

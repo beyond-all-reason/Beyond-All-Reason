@@ -1,112 +1,27 @@
-
-
 #include "exptype.h"
+#include "../factories_common.h"
 
 piece  base, head1, head2, nano1, nano2, pad;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
-Go()
-{	
-  turn head1 to y-axis <0> now;
-	turn head1 to y-axis <45> speed <100>;
-	turn head2 to y-axis <0> now;
-	turn head2 to y-axis <-45> speed <100>;
-	wait-for-turn head1 around y-axis;
-	sleep 464;
-  
-  set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-  
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-  
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-  
-	turn head1 to y-axis <0> speed <100>;
-	turn head2 to y-axis <0> speed <100>;
-	wait-for-turn head1 around y-axis;
-	sleep 500;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide pad;
 	hide nano1;
 	hide nano2;
-	spray = base;
-	call-script InitState();
-	return (0);
+	spray = 0;
 }
 
 QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		pieceIndex = nano1;
-	}
-	if( spray != 0 )
-	{
-		pieceIndex = nano2;
-	}
 	spray = !spray;
-	return (0);
+	pieceIndex = nano1 + spray;
 }
-
 
 StartBuilding()
 {
@@ -123,18 +38,26 @@ StopBuilding()
 Activate()
 {
 	signal SIGNAL_TURNON;
-	start-script RequestState(0);
-	return (0);
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn head1 to y-axis <45> speed <100>;
+	turn head2 to y-axis <-45> speed <100>;
+	wait-for-turn head1 around y-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-    sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	sleep 5000;
+	
+	turn head1 to y-axis <0> speed <100>;
+	turn head2 to y-axis <0> speed <100>;
+	wait-for-turn head1 around y-axis;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
 QueryBuildInfo(pieceIndex)
