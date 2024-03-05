@@ -1,66 +1,12 @@
 
 #include "exptype.h"
+#include "../factories_common.h"
 
 piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
-static-var  buildAnimPiece, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn doorr1 to x-axis <170> speed <170>;
-		turn doorr2 to x-axis <-90> speed <170>;
-		turn doorl1 to x-axis <170> speed <170>;
-		turn doorl2 to x-axis <-90> speed <170>;
-		sleep 514;
-	}
-	if( TRUE )
-	{
-		move standr to y-axis [10] speed [20];
-		move standl to y-axis [10] speed [20];
-		sleep 518;
-	}
-
-	if( TRUE )
-	{
-		turn nanor to y-axis <90.016484> speed <173.000000>;
-		turn nanol to y-axis <-90.016484> speed <173.000000>;
-		sleep 519;
-	}
-	sleep 13;
-	return (0);
-}
-
-deactivatescr()
-{
-
-	if( TRUE )
-	{
-		turn nanor to y-axis <0> speed <173.000000>;
-		turn nanol to y-axis <0> speed <173.000000>;
-		sleep 519;
-	}
-	if( TRUE )
-	{
-		move standr to y-axis [0] speed [20];
-		move standl to y-axis [0] speed [20];
-		sleep 518;
-	}
-	if( TRUE )
-	{
-		turn doorr1 to x-axis <0> speed <170>;
-		turn doorr2 to x-axis <0> speed <170>;
-		turn doorl1 to x-axis <0> speed <170>;
-		turn doorl2 to x-axis <0> speed <170>;
-		sleep 514;
-	}
-	sleep 13;
-	return (0);
-}
 
 #define BASEPIECE base
 #define HITSPEED <15.0>
@@ -91,88 +37,12 @@ RockOnWaves()
 	}
 }
 
-
-OpenBuildArea()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseBuildArea()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenBuildArea();
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseBuildArea();
-	call-script deactivatescr();
-
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
 Create()
 {
 	hide emitr;
 	hide emitl;
 
-	buildAnimPiece = 0;
-	call-script InitState();
+	spray = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -182,52 +52,65 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-	if( buildAnimPiece == 0 )
-	{
-		pieceIndex = emitr;
-	}
-	if( buildAnimPiece == 1 )
-	{
-		pieceIndex = emitl;
-	}
-	++buildAnimPiece;
-	if( buildAnimPiece == 2 )
-	{
-		buildAnimPiece = 0;
-	}
-	return (0);
+	spray = (spray + 1) % 2;
+	pieceIndex = nanol + spray;
 }
 
 
 Activate()
 {
 	signal SIGNAL_TURNON;
-	start-script RequestState(0);
-	return (0);
+	set-signal-mask SIGNAL_TURNON;
+	turn doorr1 to x-axis <170> speed <170>;
+	turn doorr2 to x-axis <-90> speed <170>;
+	turn doorl1 to x-axis <170> speed <170>;
+	turn doorl2 to x-axis <-90> speed <170>;
+	wait-for-turn doorr1 around x-axis;
+
+	move standr to y-axis [10] speed [20];
+	move standl to y-axis [10] speed [20];
+	wait-for-move standr along y-axis;
+
+	turn nanor to y-axis <90.016484> speed <173.000000>;
+	turn nanol to y-axis <-90.016484> speed <173.000000>;
+	wait-for-turn nanor around y-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-    sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	sleep 5000;
+	
+	turn nanor to y-axis <0> speed <173.000000>;
+	turn nanol to y-axis <0> speed <173.000000>;
+	wait-for-turn nanor around y-axis;
+	
+	move standr to y-axis [0] speed [20];
+	move standl to y-axis [0] speed [20];
+	wait-for-move standr along y-axis;
+	
+	turn doorr1 to x-axis <0> speed <170>;
+	turn doorr2 to x-axis <0> speed <170>;
+	turn doorl1 to x-axis <0> speed <170>;
+	turn doorl2 to x-axis <0> speed <170>;
+	wait-for-turn doorr1 around x-axis;
+		
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
 {
 	show emitr;
 	show emitl;
-	return (0);
 }
 
 StopBuilding()
 {
 	hide emitr;
 	hide emitl;
-	return (0);
 }
 
 QueryBuildInfo(pieceIndex)
