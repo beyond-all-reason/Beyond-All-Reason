@@ -346,7 +346,7 @@ function gadgetHandler:Initialize()
 		GADGETS_DIR,
 		VFSMODE,
 		function(gf, parentGadget)
-			local gadget, gadgetInfo = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
+			local gadget, gadgetInfo = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)], parentGadget)
 			if gadget then
 				table.insert(gadgetsToLoad, gadget)
 				if not IsSyncedCode() and doMoreYield then
@@ -392,7 +392,7 @@ function gadgetHandler:Initialize()
 	end
 end
 
-function gadgetHandler:LoadGadget(filename, overridevfsmode)
+function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 	local kbytes = false -- set to number to enable
 	if kbytes and collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
 		collectgarbage("collect") -- call it twice, mark
@@ -452,9 +452,13 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		self.knownChanged = true
 	end
 	gadgetInfo.active = true
+	parentInfo = parentInfo or gadgetInfo.parent
 
 	local order = self.orderList[name]
-	if ((order ~= nil and order > 0) or (order == nil and gadgetInfo.enabled)) then
+	if
+		((order ~= nil and order > 0) or (order == nil and gadgetInfo.enabled))
+		and (not parentInfo or (self.orderList[parentInfo.name] and self.orderList[parentInfo.name] > 0))
+	then
 		-- this will be an active gadget
 		if order == nil then
 			self.orderList[name] = 12345  -- back of the pack
@@ -462,6 +466,8 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 			self.orderList[name] = order
 		end
 	else
+		-- unlike widgets, gadgets whose parent is not enabled at start are not allowed to be
+		-- "wanting to be active" (order > 0 but active = false)
 		self.orderList[name] = 0
 		gadgetInfo.active = false
 		return nil, gadgetInfo
@@ -563,6 +569,7 @@ function gadgetHandler:NewGadget()
 	return gadget
 end
 
+---@return GadgetInfo
 function gadgetHandler:LoadGadgetInfo(gadget, filename, basename, path)
 	local gi = wupgetLoader.extractInfo(gadget, filename)
 	gi.localPath = string.sub(path, #GADGETS_DIR + 1)

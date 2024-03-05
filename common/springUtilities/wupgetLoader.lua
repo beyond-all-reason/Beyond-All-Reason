@@ -64,13 +64,18 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 	local infoToWupget = {}
 	---@type table<table, WupgetInfo>
 	local wupgetToInfo = {}
+	---@type table<string, table>
+	local childrenToAdd = {}
 
 	for _, wupget in ipairs(wupgets) do
+		---@type WupgetInfo
 		local info = infoAccessor(wupget)
 		infoToWupget[info] = wupget
 		wupgetToInfo[wupget] = info
-		if not info.parent then
+		if info.parent == nil then
 			resultsList[#resultsList + 1] = wupget
+		else
+			childrenToAdd[info.filename] = wupget
 		end
 	end
 
@@ -96,19 +101,20 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 
 	local function insertChildren(parentIndex, parentInfo)
 		if parentInfo.children and #parentInfo.children > 0 then
-			local childrenToAdd = {}
+			local currentChildren = {}
 
 			for _, childInfo in ipairs(parentInfo.children) do
-				local child = infoToWupget[childInfo]
+				local child = childrenToAdd[childInfo.filename]
 				if child ~= nil then
-					childrenToAdd[#childrenToAdd + 1] =  child
+					currentChildren[#currentChildren + 1] =  child
+					childrenToAdd[childInfo.filename] = nil
 				end
 			end
 
-			table.sort(childrenToAdd, infoComp)
+			table.sort(currentChildren, infoComp)
 
-			for childIdx = #childrenToAdd, 1, -1 do
-				local child = childrenToAdd[childIdx]
+			for childIdx = #currentChildren, 1, -1 do
+				local child = currentChildren[childIdx]
 				table.insert(resultsList, parentIndex + 1, child)
 				insertChildren(parentIndex + 1, wupgetToInfo[child])
 			end
@@ -123,6 +129,10 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 	-- since new entries will keep pushing existing ones back
 	for idx = #resultsList, 1, -1 do
 		insertChildren(idx, wupgetToInfo[resultsList[idx]])
+	end
+
+	if #childrenToAdd > 0 then
+		Spring.Log('Wupget Loader :: sortWupgets()', LOG.ERROR, "Not all child wupgets were placed into sorted list! Count: " .. #childrenToAdd)
 	end
 
 	return resultsList
@@ -196,17 +206,17 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 				if type(childPaths) == 'boolean' and childPaths == true then
 					loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
 				elseif type(childPaths) == 'table' and #childPaths > 0 then
-					for idx, subModulePath in ipairs(childPaths) do
+					for idx, childPath in ipairs(childPaths) do
 						-- check for ../ or ..\
-						if string.find(subModulePath, "%.%.[\\/]") then
-							error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', subModulePath), 2)
+						if string.find(childPath, "%.%.[\\/]") then
+							error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', childPath), 2)
 						end
 
-						if not string.find(subModulePath, path, nil, true) then
-							childPaths[idx] = path .. subModulePath
+						if not string.find(childPath, path, nil, true) then
+							childPaths[idx] = path .. childPath
 						end
 					end
-					loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newWupget)
+					loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newInfo)
 				end
 
 				recursionDepth = recursionDepth - 1
@@ -214,7 +224,6 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 				Spring.Echo(string.format("[Wupget Loader] hit maximum recursion depth (%s) when loading child wupgets!", MAX_RECURSION_DEPTH))
 			end
 		end
-
 	elseif isDir then
 		local mainFileCandidates = VFS.DirList(fileOrDirPath, "*.main.lua", vfsMode)
 

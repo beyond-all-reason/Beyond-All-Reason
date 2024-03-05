@@ -337,7 +337,7 @@ function widgetHandler:Initialize()
 	local fromZip = false
 
 	local function loaderCallback(filePath, parentInfo)
-		local widget, widgetInfo = self:LoadWidget(filePath, fromZip)
+		local widget, widgetInfo = self:LoadWidget(filePath, fromZip, false, parentInfo)
 
 		-- did the widget load correctly AND is it to start enabled?
 		-- Check if this widget is not allowed be loaded from user space
@@ -414,7 +414,7 @@ end
 
 
 ---@return table | nil, WidgetInfo | nil widget if loaded, widgetInfo if that was loaded
-function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentInfo)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
@@ -521,6 +521,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		self.knownChanged = true
 	end
 	widgetInfo.active = true
+	parentInfo = parentInfo or widgetInfo.parent
 
 	-- Enabling
 	local order = self.orderList[name]
@@ -534,10 +535,13 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		end
 	end
 
-	if order then
+	if order and (not parentInfo or (self.orderList[parentInfo.name] and self.orderList[parentInfo.name] > 0)) then
 		self.orderList[name] = order
 	else
-		self.orderList[name] = 0
+		if not parentInfo then
+			-- "wanting to be active" widgets have order > 0 but active = false
+			self.orderList[name] = 0
+		end
 		widgetInfo.active = false
 		return nil, widgetInfo
 	end
@@ -655,6 +659,7 @@ function widgetHandler:NewWidget()
 	return widget
 end
 
+---@return WidgetInfo
 function widgetHandler:LoadWidgetInfo(widget, filename)
 	---@type WidgetInfo
 	local wi = wupgetLoader.extractInfo(widget, filename)
@@ -929,10 +934,11 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 
 	-- make sure parent is enabled first
 	if ki.parent and not ki.parent.active then
-		if not self:EnableWidget(ki.parent.name) then
-			Spring.Echo('Failed to activate parent widget of %s', ki.filename)
-			return false
-		end
+		self:EnableWidget(ki.parent.name, enableLocalsAccess)
+		--if not self:EnableWidget(ki.parent.name, enableLocalsAccess) then
+		--	Spring.Echo('Failed to activate parent widget of %s', ki.filename)
+		--	return false
+		--end
 	end
 
 	if not ki.active then
@@ -955,7 +961,7 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
 
 				if not active and enabled then
-					self:EnableWidget(childInfo.name)
+					self:EnableWidget(childInfo.name, enableLocalsAccess)
 				end
 			end
 		end
@@ -972,6 +978,8 @@ function widgetHandler:DisableWidget(name)
 	if ki.active then
 		local w = self:FindWidget(name)
 		if not w then
+			Spring.Echo("DisableWidget(), found active info but could not find widget: " .. tostring(name))
+			Spring.Debug.TableEcho(ki)
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)
