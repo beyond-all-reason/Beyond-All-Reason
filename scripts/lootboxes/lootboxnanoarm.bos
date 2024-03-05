@@ -6,18 +6,6 @@ piece  base, aim, emitnano;
 static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
 
 
-Activatescr()
-{
-	sleep 1;
-	return (0);
-}
-
-Deactivatescr()
-{
-	sleep 1;
-	return (0);
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -96,33 +84,6 @@ InitState()
 	return (0);
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
 Create()
 {
 	hide emitnano;
@@ -157,32 +118,27 @@ RestoreAfterDelay()
 Activate()
 {
 	start-script RequestState(0);
-	return (0);
 }
 
 Deactivate()
 {
 	start-script RequestState(1);
-	return (0);
 }
 
 StartBuilding(heading)
 {
 	buildHeading = heading;
 	start-script RequestState(0);
-	return (0);
 }
 
 StopBuilding()
 {
 	start-script RequestState(1);
-	return (0);
 }
 
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = emitnano;
-	return (0);
 }
 
 
