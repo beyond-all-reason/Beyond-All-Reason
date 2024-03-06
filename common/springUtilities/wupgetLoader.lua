@@ -60,8 +60,6 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 
 	---@type table[]
 	local resultsList = {}
-	---@type table<WupgetInfo, table>
-	local infoToWupget = {}
 	---@type table<table, WupgetInfo>
 	local wupgetToInfo = {}
 	---@type table<string, table>
@@ -70,7 +68,6 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 	for _, wupget in ipairs(wupgets) do
 		---@type WupgetInfo
 		local info = infoAccessor(wupget)
-		infoToWupget[info] = wupget
 		wupgetToInfo[wupget] = info
 		if info.parent == nil then
 			resultsList[#resultsList + 1] = wupget
