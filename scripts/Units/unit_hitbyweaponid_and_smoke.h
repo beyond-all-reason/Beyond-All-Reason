@@ -23,6 +23,9 @@
 	#define MAXTILT 200
 #endif
 
+#ifndef SMOKETHRESHOLD
+	#define SMOKETHRESHOLD 65
+#endif
 
 
 HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
@@ -46,7 +49,7 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if (healthpercent > 66) {
+		if (healthpercent > SMOKETHRESHOLD) {
 			sleep 97;
 			isSmoking = 0;
 			return;
@@ -54,18 +57,20 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 		if (healthpercent < 4 ) healthpercent = 4;
 		sleep healthpercent * 50;
 
-		if( Rand( 1, 66 ) < healthpercent ) emit-sfx 257 from BASEPIECE;
+		if( Rand( 1, SMOKETHRESHOLD ) < healthpercent ) emit-sfx 257 from BASEPIECE;
 		else emit-sfx 258 from BASEPIECE;
 	}
 }
 
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
+	#if (SMOKETHRESHOLD > 1)
 	if( get BUILD_PERCENT_LEFT) return (100);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
 		start-script SmokeUnit();
 	}	
+	#endif
 	start-script HitByWeapon(dmg, anglez, anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }

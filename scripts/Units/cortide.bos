@@ -34,15 +34,6 @@ RockOnWaves()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-Create()
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
-}
-
 Activate()
 {
 	spin wheel around z-axis speed <35.005495> accelerate <1>;
@@ -53,6 +44,15 @@ Deactivate()
 	stop-spin wheel around z-axis;
 }
 
+Create()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
+	start-script Activate();
+}
 
 
 Killed(severity, corpsetype)

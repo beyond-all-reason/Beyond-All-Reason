@@ -200,16 +200,19 @@ Create()
 
 Activate()
 {
+	get PRINT(11111);
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	get PRINT(22222);
 	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	get PRINT(33333);
 	show beam;
 	start-script RequestState(0);
 	show cagelight_emit;
@@ -223,6 +226,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	get PRINT(44444);
 	hide beam;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
