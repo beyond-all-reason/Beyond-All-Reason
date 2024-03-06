@@ -3,27 +3,11 @@
 
 piece  flare1, flare2, base, gun, turret, exhaust;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 22;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 20;
-}
 
 
 #define BASEPIECE base
@@ -34,37 +18,7 @@ deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -72,17 +26,14 @@ Create()
 	hide exhaust;
 	hide flare1;
 	gun_1 = flare1;
-	call-script InitState();
 }
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -100,7 +51,6 @@ ExecuteRestoreAfterDelay()
 	turn gun to x-axis <0.000000> speed <50.010989>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
-	start-script RequestState(1);
 }
 SetStunned(State)
 {
@@ -119,7 +69,6 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	start-script RequestState(0);
 	turn turret to y-axis heading speed <250.060440>;
 	turn gun to x-axis <0.000000> - pitch speed <150.032967>;
 	wait-for-turn turret around y-axis;
@@ -153,14 +102,7 @@ AimFromWeapon1(pieceIndex)
 }
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare2;
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
 

@@ -3,22 +3,6 @@
 
 piece  base, bombs, thrusta1, thrusta2, thrustb;
 
-static-var  gun_2, statechg_DesiredState, statechg_StateChanging;
-
-// Signal definitions
-#define SIGNAL_AIM2 512
-
-
-activatescr()
-{
-	sleep 10;
-}
-
-deactivatescr()
-{
-	sleep 10;
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -26,37 +10,6 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -64,7 +17,6 @@ Create()
 	hide thrusta1;
 	hide thrusta2;
 	hide bombs;
-	call-script InitState();
 }
 
 Activate()
@@ -72,7 +24,6 @@ Activate()
 	show thrustb;
 	show thrusta1;
 	show thrusta2;
-	start-script RequestState(0);
 }
 
 Deactivate()
@@ -80,15 +31,17 @@ Deactivate()
 	hide thrustb;
 	hide thrusta1;
 	hide thrusta2;
-	start-script RequestState(1);
+}
+
+AimWeapon1()
+{
+	return (1);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = bombs;
 }
-
-
 
 
 Killed(severity, corpsetype)

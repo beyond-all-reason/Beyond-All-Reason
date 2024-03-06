@@ -1,10 +1,10 @@
 
 #include "exptype.h"
 
-piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, 
-		ljet, lthrust, lwing, lmislink, lmissile, lflare, lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;
+piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, lflare,
+		ljet, lthrust, lwing, lmislink, lmissile,  lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;
 
-static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
+static-var  gun_1, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -21,36 +21,6 @@ static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide lthrust;
@@ -64,7 +34,6 @@ Create()
 	hide rflare;
 	hide lflare;
 	gun_1 = rflare;
-	call-script InitState();
 	turn rwing to z-axis <-60> speed <90>;
 	turn lwing to z-axis <60> speed <90>;	
 	while( get BUILD_PERCENT_LEFT )
@@ -78,14 +47,12 @@ Activate()
 {
 	show rthrust;
 	show lthrust;
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide rthrust;
 	hide lthrust;
-	start-script RequestState(1);	
 }
 
 
@@ -128,14 +95,7 @@ RestoreAfterDelay()
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = rflare;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lflare;
-	}
+	pieceIndex = rflare + gun_1;
 }
 
 AimWeapon1(heading, pitch)
@@ -162,23 +122,17 @@ FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
-//		show rflare;
 		show rmissile;
 		sleep 150;
-//		hide rflare;
 		hide rmissile;
-		gun_1 = lflare;
-		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-//		show lflare;
 		show lmissile;
 		sleep 150;
-//		hide lflare;
 		hide lmissile;
-		gun_1 = rflare;
 	}
+	gun_1 = !gun_1;
 }
 
 
