@@ -342,7 +342,6 @@ function widgetHandler:Initialize()
 			-- did the widget load correctly AND is it to start enabled?
 			-- Check if this widget is not allowed be loaded from user space
 			if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
-				-- stuff the raw widgets into unsortedWidgets
 				table.insert(widgetsToLoad, widget)
 			end
 

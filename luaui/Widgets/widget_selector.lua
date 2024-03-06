@@ -444,7 +444,7 @@ function UpdateList(force)
 	end
 	--maxWidth = (maxWidth / fontSize)
 
-	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
+	table.sort(fullWidgetsList, SortWidgetListFunc)
 
 	local sanityDepthLimit = 10
 	local function insertChildWidgets(parentIndex, nameDataPair)
