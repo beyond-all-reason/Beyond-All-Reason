@@ -1,4 +1,4 @@
--- returns:  fileName, dirPath
+---@return string, string basename, path
 local function pathParts(fullpath)
 	local _, _, basename = string.find(fullpath, "([^\\/:]*)$")
 	local _, _, path = string.find(fullpath, "(.*[\\/:])[^\\/:]*$")
@@ -106,7 +106,7 @@ local function sortedWupgetList(wupgets, orderList, infoAccessor)
 			for _, childInfo in ipairs(parentInfo.children) do
 				local child = childrenToAdd[childInfo.filename]
 				if child ~= nil then
-					currentChildren[#currentChildren + 1] =  child
+					currentChildren[#currentChildren + 1] = child
 					childrenToAdd[childInfo.filename] = nil
 				end
 			end
@@ -165,12 +165,9 @@ local function loadAllInDir(dirPath, vfsMode, loaderCallback, loadedFilePaths, p
 end
 
 
-local recursionDepth = 0
-local MAX_RECURSION_DEPTH = 10
-
 function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, parentInfo)
 	loadedFilePaths = loadedFilePaths or {}
-	if table.contains(loadedFilePaths, fileOrDirPath) then
+	if loadedFilePaths[fileOrDirPath] then
 		return
 	end
 
@@ -197,31 +194,23 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 
 		local path = newInfo.path
 		local childPaths = newInfo.childPaths
-		table.insert(loadedFilePaths, fileOrDirPath)
+		loadedFilePaths[fileOrDirPath] = true
 
 		if childPaths ~= nil then
-			if recursionDepth <= MAX_RECURSION_DEPTH then
-				recursionDepth = recursionDepth + 1
-
-				if type(childPaths) == 'boolean' and childPaths == true then
-					loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
-				elseif type(childPaths) == 'table' and #childPaths > 0 then
-					for idx, childPath in ipairs(childPaths) do
-						-- check for ../ or ..\
-						if string.find(childPath, "%.%.[\\/]") then
-							error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', childPath), 2)
-						end
-
-						if not string.find(childPath, path, nil, true) then
-							childPaths[idx] = path .. childPath
-						end
+			if type(childPaths) == 'boolean' and childPaths == true then
+				loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
+			elseif type(childPaths) == 'table' and #childPaths > 0 then
+				for idx, childPath in ipairs(childPaths) do
+					-- check for ../ or ..\
+					if string.find(childPath, "%.%.[\\/]") then
+						error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', childPath), 2)
 					end
-					loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newInfo)
-				end
 
-				recursionDepth = recursionDepth - 1
-			else
-				Spring.Echo(string.format("[Wupget Loader] hit maximum recursion depth (%s) when loading child wupgets!", MAX_RECURSION_DEPTH))
+					if not string.find(childPath, path, nil, true) then
+						childPaths[idx] = path .. childPath
+					end
+				end
+				loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newInfo)
 			end
 		end
 	elseif isDir then

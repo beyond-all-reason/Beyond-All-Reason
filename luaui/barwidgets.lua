@@ -334,30 +334,29 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	local widgetsToLoad = {}
-	local fromZip = false
 
-	local function loaderCallback(filePath, parentInfo)
-		local widget, widgetInfo = self:LoadWidget(filePath, fromZip, false, parentInfo)
+	local function makeLoaderCallback(fromZip)
+		return function(filePath, parentInfo)
+			local widget, widgetInfo = self:LoadWidget(filePath, fromZip, false, parentInfo)
 
-		-- did the widget load correctly AND is it to start enabled?
-		-- Check if this widget is not allowed be loaded from user space
-		if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
-			-- stuff the raw widgets into unsortedWidgets
-			table.insert(widgetsToLoad, widget)
+			-- did the widget load correctly AND is it to start enabled?
+			-- Check if this widget is not allowed be loaded from user space
+			if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
+				-- stuff the raw widgets into unsortedWidgets
+				table.insert(widgetsToLoad, widget)
+			end
+
+			Yield()
+			return widgetInfo
 		end
-
-		Yield()
-		return widgetInfo
 	end
 
 	if self.allowUserWidgets and allowuserwidgets then
-		wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.RAW, loaderCallback)
+		wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.RAW, makeLoaderCallback(false))
 	end
 
-	fromZip = true
-	wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.ZIP, loaderCallback)
-	wupgetLoader.loadAllInDir(WIDGET_DIRNAME_MAP, VFS.MAP, loaderCallback)
-	fromZip = false
+	wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.ZIP, makeLoaderCallback(true))
+	wupgetLoader.loadAllInDir(WIDGET_DIRNAME_MAP, VFS.MAP, makeLoaderCallback(true))
 
 	-- sort the widgets
 	widgetsToLoad = wupgetLoader.sortedWupgetList(widgetsToLoad, self.orderList, function(w) return w.whInfo end)

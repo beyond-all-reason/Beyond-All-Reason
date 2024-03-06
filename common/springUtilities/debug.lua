@@ -9,18 +9,21 @@ end
 local function tableEcho(data, name, indent, tableChecked, seenTables)
 	name = name or "TableEcho"
 	indent = indent or ""
-	seenTables = seenTables or {data}
 	if (not tableChecked) and type(data) ~= "table" then
 		Spring.Echo(indent .. name, data)
 		return
 	end
+
+	-- start with marking the starting table as seen
+	seenTables = seenTables or {data = true}
+
 	Spring.Echo(indent .. name .. " = {")
 	local newIndent = indent .. "    "
 	for name, v in pairs(data) do
 		local ty = type(v)
 		if ty == "table" then
-			if not table.contains(seenTables, v) then
-				table.insert(seenTables, v)
+			if not seenTables[v] then
+				seenTables[v] = true
 				tableEcho(v, name, newIndent, true, seenTables)
 			else
 				Spring.Echo(newIndent .. name .. " = " .. "<recursive value>")

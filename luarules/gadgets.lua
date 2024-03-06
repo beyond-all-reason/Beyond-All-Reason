@@ -355,11 +355,6 @@ function gadgetHandler:Initialize()
 						--Spring.Echo("GadgetHandler Yield: entering critical section")
 					end
 				end
-
-				local childGadgets = nil
-				if gadget.GetChildPaths ~= nil then
-					childGadgets = gadget:GetChildPaths()
-				end
 			end
 			return gadgetInfo
 		end
