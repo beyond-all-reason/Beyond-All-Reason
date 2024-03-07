@@ -416,7 +416,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 		return nil
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
-		return nil -- gadget asked for a quiet death
+		return nil, false -- gadget asked for a quiet death
 	end
 
 	local gadgetInfo = self:LoadGadgetInfo(gadget, filename, basename, path)

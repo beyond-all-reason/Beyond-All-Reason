@@ -168,18 +168,28 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 		return
 	end
 
-	local isScript = string.find(fileOrDirPath, "[%g ]-%.lua") and VFS.FileExists(fileOrDirPath)
-	local isDir = not isScript -- and VFS.DirExists(filePath)
+	local looksLikeALuaFile = string.find(fileOrDirPath, "[%g ]-%.lua")
 
-	if isScript then
+	if looksLikeALuaFile then
+		if not VFS.FileExists(fileOrDirPath, vfsMode) then
+			Spring.Log('Wupget Loader', LOG.ERROR, 'Could not find a file at path: ' .. fileOrDirPath)
+			return
+		end
+
 		local ok, newInfo = pcall(loaderCallback, fileOrDirPath, parentInfo)
 
+		if newInfo == false then
+			-- wupget asked for a silent death, do not produce log spam
+			return
+		end
+
 		if not ok then
-			Spring.Log("[Wupget Loader]", LOG.ERROR, newInfo)
+			Spring.Log("Wupget Loader", LOG.ERROR, newInfo)
 			return
 		end
 
 		if newInfo == nil then
+			Spring.Log('Wupget Loader', LOG.ERROR, 'Could not load a wupget from file: ' .. fileOrDirPath)
 			return
 		end
 
@@ -198,28 +208,33 @@ function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, p
 				loadAllInDir(path, vfsMode, loaderCallback, loadedFilePaths, newInfo)
 			elseif type(childPaths) == 'table' and #childPaths > 0 then
 				for idx, childPath in ipairs(childPaths) do
-					-- check for ../ or ..\
-					if string.find(childPath, "%.%.[\\/]") then
-						error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', childPath), 2)
+					-- check for leading ../ or ..\
+					if string.find(childPath, '^%.%.[\\/]') then
+						error(string.format('children cannot be loaded from a parent directory! path: %s', childPath), 2)
 					end
 
-					if not string.find(childPath, path, nil, true) then
-						childPaths[idx] = path .. childPath
+					-- strip off leading ./ or .\
+					if (string.find(childPath, '^%.[\\/]')) then
+						childPath = childPath:sub(3)
 					end
+
+					-- replaces entry in WupgetInfo with complete path
+					childPaths[idx] = path .. childPath
 				end
 				loadFromList(childPaths, vfsMode, loaderCallback, loadedFilePaths, newInfo)
 			end
 		end
-	elseif isDir then
-		local mainFileCandidates = VFS.DirList(fileOrDirPath, "*.main.lua", vfsMode)
-
-		if #mainFileCandidates >= 2 then
-			Spring.Echo(string.format("[Wupget Loader] more than one file found matching the pattern '*.main.lua'. skipping directory: %s", fileOrDirPath));
+	else
+		local mainFiles = VFS.DirList(fileOrDirPath, "*.main.lua", vfsMode)
+		-- This is not an error for the initial top level load
+		if parentInfo and (not mainFiles or #mainFiles == 0) then
+			Spring.Log('Wupget Loader', LOG.ERROR, 'Could not find any "*.main.lua" files to load in directory: ' .. fileOrDirPath)
 			return
 		end
 
-		if #mainFileCandidates == 1 then
-			loadFromPath(mainFileCandidates[1], vfsMode, loaderCallback, loadedFilePaths, parentInfo)
+		-- multiple main files are fine and will effectively be 'siblings'
+		for _, mainFilePath in pairs(mainFiles) do
+			loadFromPath(mainFilePath, vfsMode, loaderCallback, loadedFilePaths, parentInfo)
 		end
 	end
 end

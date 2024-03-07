@@ -443,7 +443,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 			return nil
 		end
 		if err == false then
-			return nil -- widget asked for a silent death
+			return nil, false -- widget asked for a silent death
 		end
 
 		if widget.GetInfo == nil then
@@ -470,7 +470,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 		return nil
 	end
 	if err == false then
-		return nil -- widget asked for a silent death
+		return nil, false -- widget asked for a silent death
 	end
 
 	if widget.GetInfo == nil then
