@@ -16,6 +16,9 @@ end
 -- load all files ending with ".main.lua" without a parent
 -- (for example, this widget here does not have a parent)
 
+-- Widgets cannot be loaded in as children multiple times attempts to load a path again after the first are ignored
+-- in this case you probably need a .lua file containing shared code to be loaded via VFS.Include()
+
 ---Checked for and called just after GetInfo() during initialization to see if there are child widgets to load
 ---
 ---Returns one of:
@@ -27,10 +30,12 @@ function widget:GetChildPaths()
 	-- paths to child widgets
 	--return {'test_DPAT.lua', 'test_dpat_minimal_example.lua'}
 
-	-- paths to child widgets with leading './' ('../' is not allowed)
-	--return {'./test_DPAT.lua', './test_dpat_minimal_example.lua', '/bad_path.lua'}
+	-- paths to child widgets with leading './' (however, '../' is not allowed)
 	return {'./test_DPAT.lua', './test_dpat_minimal_example.lua'}
 
 	-- load all other in .lua files in this folder as child widgets
-	-- return true
+	--return true
+
+	-- last path points to a non-existent folder and will cause an error to be reported
+	--return {'./test_DPAT.lua', './test_dpat_minimal_example.lua', 'bad_path'}
 end
