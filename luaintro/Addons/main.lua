@@ -206,7 +206,7 @@ local borderSize = math.max(1, math.floor(vsy * 0.0027))
 local fontSize = 40
 local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
 local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
-local font2Size = 46
+local font2Size = 45
 local font2 = gl.LoadFont(fontfile2, font2Size*fontScale, (font2Size/4)*fontScale, 1.3)
 
 function DrawStencilTexture()
@@ -431,7 +431,7 @@ function addon.DrawLoadScreen()
 	local posY = posYorg
 
 	-- tip
-	local lineHeight = font2Size * 1.12
+	local lineHeight = font2Size * 1.45
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
 	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((lineHeight * #tipLines)/vsy)
