@@ -20,19 +20,6 @@ SetStunned(State)
 	}
 }
 
-Activate()
-{
-	show emit1;
-	show emit2;
-	set ARMORED to 1;
-	
-	spin ball1 around y-axis speed <-30.005495> accelerate <1>;
-	spin ball2 around y-axis speed <-30.005495> accelerate <1>;
-	spin collar1 around y-axis speed <60.010989> accelerate <1>;
-	spin collar2 around y-axis speed <60.010989> accelerate <1>;
-}
-
-
 Create()
 {
 	hide emit1;
@@ -44,6 +31,17 @@ Create()
 	start-script Activate();
 }
 
+Activate()
+{
+	show emit1;
+	show emit2;
+	set ARMORED to 1;
+	
+	spin ball1 around y-axis speed <-30.005495> accelerate <1>;
+	spin ball2 around y-axis speed <-30.005495> accelerate <1>;
+	spin collar1 around y-axis speed <60.010989> accelerate <1>;
+	spin collar2 around y-axis speed <60.010989> accelerate <1>;
+}
 
 
 Deactivate()
