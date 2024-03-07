@@ -32,6 +32,7 @@ return {
 		radardistance = 0,
 		radardistancejam = 450,
 		script = "Units/ARMJAM.cob",
+		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 300,
 		trackoffset = 8,

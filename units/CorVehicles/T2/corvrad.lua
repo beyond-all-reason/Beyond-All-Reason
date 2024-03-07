@@ -29,6 +29,7 @@ return {
 		onoffable = false,
 		radardistance = 2200,
 		script = "Units/CORVRAD.cob",
+		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 900,
 		sonardistance = 0,
