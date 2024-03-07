@@ -3,42 +3,19 @@
 
 piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
-static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
+static-var  restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
 
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
 
-
-
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1600 / currentSpeed;
-		sleep 142;
-	}
-}
-
-Smoke()
-{
-	while( TRUE )
-	{
-		if ( isMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 1 from smoke1;
-				emit-sfx 1024 + 1 from smoke2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -73,9 +50,6 @@ Create()
 	hide flare;
 	hide smoke1;
 	hide smoke2;
-	isMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
 	hide flare;
 	gun_1 = 0;
 	aimy1velocity = 0;
@@ -141,24 +115,17 @@ RockUnit(anglex, anglez)
 
 } */
 
-setSFXoccupy(state)
-{
-	terrain = state;
-}
 
 StartMoving()
 {
-	isMoving = TRUE;
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
-	start-script Smoke();
-	start-script UnitSpeed();
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
 }
 
 
 StopMoving()
 {
-	isMoving = FALSE;
   signal SIGNAL_MOVE;
 }
 

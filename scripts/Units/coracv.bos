@@ -6,40 +6,14 @@
 
 piece  base, gun, nano1, nano2, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  isMoving, moveSpeed, animSpeed, terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, nanob;
+static-var  nanob;
 
-activatescr()
-{
-	sleep 40;
-}
 
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	turn cagelight_emit to y-axis <0> speed <1000>;
-	turn cagelight_emit2 to y-axis <0> speed <1000>;
-	sleep 70;
-}
-
-Smoke()
-{
-	while( TRUE )
-	{
-		animSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (animSpeed<4) animSpeed=4;
-		animSpeed = 1800 / animSpeed;
-
-		if( terrain == 4 )
-		{
-			emit-sfx 1024 + 0 from smoke1;
-			emit-sfx 1024 + 0 from smoke2;
-		}
-
-		sleep animSpeed;
-	}
-}
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 0
+#include "../vehicle_dirt_cegs.h"
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -49,35 +23,6 @@ Smoke()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide smoke2;
@@ -86,24 +31,13 @@ Create()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	isMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-setSFXoccupy(state)
-{
-	terrain = state;
 }
 
 StartMoving()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	start-script Smoke();
+	start-script Vehicle_Dirt_Ceg();
 }
 
 
@@ -114,24 +48,24 @@ StopMoving()
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	turn gun to y-axis heading speed <160>;
+	wait-for-turn gun around y-axis;
+
+	set INBUILDSTANCE to 1;
+	
 	show nano1;
 	show nano2;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
-	turn gun to y-axis heading speed <160.038462>;
-	wait-for-turn gun around y-axis;
-	set INBUILDSTANCE to 1;
 	show cagelight_emit;
 	show cagelight_emit2;
 	spin cagelight_emit around y-axis speed <400>;
@@ -140,32 +74,27 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	hide nano1;
-	hide nano2;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	
+	hide nano1;
+	hide nano2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	turn cagelight_emit to y-axis <0> speed <1000>;
 	turn cagelight_emit2 to y-axis <0> speed <1000>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+
+	turn gun to y-axis <0> speed <160>;
+	set INBUILDSTANCE to 0;
 }
 
 QueryNanoPiece(pieceIndex)
 {
-	if (nanob){
-		pieceIndex = nano1;
-		
-	}
-	else{
-		pieceIndex = nano2;
-	}
+	pieceIndex = nano1 + nanob;
 	nanob= !nanob;
 }
-
 
 
 Killed(severity, corpsetype)

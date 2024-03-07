@@ -3,40 +3,17 @@
 
 piece  flare1, flare2, turret, base, sleeve, smoke1, smoke2;
 
-static-var  isMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, ourheading;
-static-var out_of_arc_count;
+static-var  restore_delay, gun_1, ourheading;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1800 / currentSpeed;
-		sleep 142;
-	}
-}
-
-Smoke()
-{
-	while( TRUE )
-	{
-		if ( isMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 1 from smoke1;
-				emit-sfx 1024 + 1 from smoke2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
-
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
 
 
 #define BASEPIECE base
@@ -64,19 +41,11 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide smoke1;
-	isMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
+
 	hide flare1;
 	hide flare2;
 	gun_1 = flare1;
 	restore_delay = 2400;
-	out_of_arc_count = 0;
-}
-
-setSFXoccupy(state)
-{
-	terrain = state;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -86,18 +55,14 @@ SetMaxReloadTime(reloadMS)
 
 StartMoving()
 {
-	isMoving = TRUE;
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
-  start-script UnitSpeed();
-	start-script Smoke();
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
 }
-
 
 StopMoving()
 {
-	isMoving = FALSE;
-  signal SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 static-var  Stunned;
@@ -147,14 +112,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 1 )
-	{
-		sleep 20;
-	}
-	if( gun_1 == 0 )
-	{
-		sleep 20;
-	}
 	gun_1 = !gun_1;
 }
 

@@ -4,31 +4,17 @@
 piece  flare1, flare2, turret, base, sleeve, barrel1, barrel2,
        wake1, wake2;
 
-static-var  isMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1, terrain;
+static-var   restore_delay, gun_1;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
-
-Smoke()
-{
-	while( TRUE )
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1600 / currentSpeed;
-		if ( isMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 1 from wake1;
-				emit-sfx 1024 + 1 from wake2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
+#define VD_PIECE1 wake1
+#define VD_PIECE2 wake2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -49,21 +35,6 @@ RockUnit(anglex, anglez)
 	turn base to x-axis <0.000000> speed <20.000000>;
 }
 
-EmitSFX()
-{
-	while( TRUE )
-	{
-		if( isMoving )
-		{
-			if( terrain == 1 )
-			{
-				emit-sfx 259 from wake1;
-				emit-sfx 259 from wake2;
-			} 
-		}
-		sleep 250;
-	}
-}
 
 Create()
 {
@@ -71,24 +42,14 @@ Create()
 	hide wake1;
 	hide flare2;
 	hide flare1;
-	isMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
 	hide flare1;
 	hide flare2;
-	isMoving = FALSE;
 	gun_1 = flare1;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
-	start-script EmitSFX();
-}
-
-setSFXoccupy(state)
-{
-	terrain = state;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -120,16 +81,14 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	isMoving = TRUE;
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
-	start-script Smoke();
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
 }
 
 StopMoving()
 {
-	isMoving = FALSE;
-  signal SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 AimWeapon1(heading, pitch)

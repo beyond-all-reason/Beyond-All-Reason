@@ -27,8 +27,9 @@ StartMoving(){
 	#define VD_BUBBLECEG 259
 #endif
 
+// Ensure minsleep is >1
 #ifndef VD_MINSLEEP
-	#define VD_MINSLEEP 30
+	#define VD_MINSLEEP 29
 #endif
 
 
@@ -39,7 +40,7 @@ Vehicle_Dirt_Ceg(){
 	while (TRUE){
 		VD_currentSpeed = (get CURRENT_SPEED) * 20 / VD_moveSpeed;
 		if (VD_currentSpeed < 4) VD_currentSpeed = 4;
-		VD_currentSpeed = 1800/VD_currentSpeed + VD_MINSLEEP;
+		VD_currentSpeed = 1800/VD_currentSpeed + VD_MINSLEEP + 1;
 		
 		if (get IN_WATER) {
 		#ifdef VD_AMPHIBIOUS
