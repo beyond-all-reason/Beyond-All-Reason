@@ -156,7 +156,7 @@ return {
 					vtol = 550,
 				},
 			},
-			
+
 			tmaw = {
 				accuracy = 700,
 				areaofeffect = 128,
@@ -178,7 +178,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flameGFXTime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
@@ -203,7 +202,7 @@ return {
 					subs = 10,
 				}
 			},
-			
+
 		},
 		weapons = {
 			[1] = {

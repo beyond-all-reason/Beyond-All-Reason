@@ -120,7 +120,6 @@ return {
 			melee = {
 				areaofeffect = 30,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,

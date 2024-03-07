@@ -113,7 +113,6 @@ return {
 			cor_erad = {
 				areaofeffect = 48,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 4,
 				burstrate = 0.23333,
 				burnblow = true,
