@@ -77,7 +77,7 @@ IdleHover()
 
 			newIdle =  Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);
 			move IDLEBASEPIECE to z-axis [0.25] * newIdle speed [0.25] * (newIdle - IdleZ)*30/IdleSpeed;
-			turn IDLEBASEPIECE to x-axis <0.25> * newIdle speed <0.25> * (newIdle - IdleZ)*30/IdleSpeed;
+			turn IDLEBASEPIECE to x-axis <-0.25> * newIdle speed <0.25> * (newIdle - IdleZ)*30/IdleSpeed;
 			IdleZ = newIdle;
 			
 			sleep 1000*IdleSpeed/30;

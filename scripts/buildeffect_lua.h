@@ -1,5 +1,24 @@
 // These functions are what notify synced gadgets about actual construction taking place. 
 // They are designed to minimize double-calling of stopbuilding from the engine (as its called on all commands) 
+// NOTE:
+// INBUILDSTANCE is only obeyed on construction start, see:
+// NOTE:
+//   technically this block of code should be guarded by
+//   "if (inBuildStance)", but doing so can create zombie
+//   guarders because scripts might not set inBuildStance
+//   to true when guard or repair orders are executed and
+//   SetRepairTarget does not check for it
+//
+//   StartBuild *does* ensure construction will not start
+//   until inBuildStance is set to true by the builder's
+//   script, and there are no cases during construction
+//   when inBuildStance can become false yet the buildee
+//   should be kept from decaying, so this is free from
+//   serious side-effects (when repairing, a builder might
+//   start adding build-power before having fully finished
+//   its opening animation)
+//if (!(inBuildStance || true))
+//	return true;
 
 #define ENABLED 0
 
