@@ -4,99 +4,46 @@
 piece  base, wingl, wingr, thrusta, thrustb, drop,
        doorl, doorr, circle;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-activatescr()
-{
-	if( TRUE )
-	{
-		move wingl to x-axis [-7.0000] speed [7];
-		move wingr to x-axis [7.0000] speed [7];
-		sleep 998;
-	}
-	sleep 44;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move wingl to x-axis [0] speed [7];
-		move wingr to x-axis [0] speed [7];
-		move doorl to x-axis [0] speed [7];
-		move doorr to x-axis [0] speed [7];
-		sleep 998;
-	}
-	sleep 44;
-}
-
-
 #define BASEPIECE base
 #define HITSPEED <105.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	hide thrustb;
 	hide drop;
 	hide thrusta;
-	call-script InitState();
 }
 
 Activate()
 {
 	show thrustb;
 	show thrusta;
-	start-script RequestState(0);
+	
+	move wingl to x-axis [-7.0000] speed [7];
+	move wingr to x-axis [7.0000] speed [7];
 }
 
 Deactivate()
 {
 	hide thrustb;
 	hide thrusta;
-	start-script RequestState(1);
+	
+	move wingl to x-axis [0] speed [7];
+	move wingr to x-axis [0] speed [7];
+	move doorl to x-axis [0] speed [7];
+	move doorr to x-axis [0] speed [7];
 }
 
-AimWeaponX(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	
-		move doorl to x-axis [-5] speed [7];
-		move doorr to x-axis [5] speed [7];
-		return 1;
+	move doorl to x-axis [-5] speed [7];
+	move doorr to x-axis [5] speed [7];
+	return 1;
 }
 
 QueryWeapon1(pieceIndex)
@@ -104,11 +51,17 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = drop;
 }
 
-FireWeaponWeapon1()
+FireWeapon1()
 {
+	turn circle to y-axis  <120> speed <300>;
+	wait-for-turn circle around y-axis;
 	turn circle to y-axis  <240> speed <300>;
 	wait-for-turn circle around y-axis;
-	turn circle to y-axis  <0> now;
+	turn circle to y-axis  <0> speed <300>;
+	wait-for-turn circle around y-axis;
+	sleep 500;
+	move doorl to x-axis [0] speed [7];
+	move doorr to x-axis [0] speed [7];
 
 }
 Killed(severity, corpsetype)
