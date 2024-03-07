@@ -18,24 +18,22 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
+if UnitDefNames.leginfestor then
+    local infestor = {}
+    infestor[UnitDefNames.leginfestor.id] = true
 
-local isBuilding = {}
-local isInfestor = {}
-for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'leginfestor') then
-		isInfestor[udid] = true
-		Spring.Echo(udid)
-	end
-	if ud.isBuilding then
-		isBuilding[udid] = true
-	end
+    if (UnitDefNames.leginfestor_scav) then
+        infestor[UnitDefNames.leginfestor_scav.id] = true
+    end
+
+
+    function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+        if (builderID) then
+            if infestor[unitDefID] and infestor[Spring.GetUnitDefID(builderID)] then
+                Spring.GiveOrderToUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
+            end
+        end
+    end
+else
+    gadgetHandler:RemoveGadget(self)
 end
-
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if builderID and isInfestor[unitDefID] and isInfestor[Spring.GetUnitDefID(builderID)] then
-		local OrderUnit = Spring.GiveOrderToUnit
-		OrderUnit(unitID, CMD.GUARD, { builderID },            { "shift" })
-	end
-end
-
