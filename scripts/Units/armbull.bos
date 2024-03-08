@@ -3,7 +3,7 @@
 
 piece  lflare, rflare, turret, base, rsleeve, lsleeve, rbarrel, lbarrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, gun_1, timeLeft;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -43,6 +43,7 @@ Create()
 	hide smoke2;
 	gun_1 = lflare;
 	restore_delay = 3000;
+	timeLeft = 0;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -67,7 +68,7 @@ StopMoving()
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;
 }
-
+#if 0
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -104,6 +105,54 @@ AimWeapon1(heading, pitch)
 	start-script RestoreAfterDelay();
 	return (1);
 }
+#else
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+}
+
+
+TimeToRestore(addTime){
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;
+    }
+    // The restore section must be atomic :/
+    timeLeft = 0;
+
+	turn turret to y-axis <0.000000> speed <50.000000>;
+	turn rsleeve to x-axis <0.000000> speed <25.000000>;
+	turn lsleeve to x-axis <0.000000> speed <25.000000>;
+}
+
+
+AimWeapon1(heading, pitch)
+{
+    if (timeLeft == 0)
+    {
+        start-script TimeToRestore();
+    }
+    timeLeft = restore_delay;
+   
+    signal SIGNAL_AIM1;
+    set-signal-mask SIGNAL_AIM1;
+
+	turn turret to y-axis heading speed <105.000000>;
+	turn rsleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	turn lsleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn rsleeve around x-axis;
+
+    return (1);
+}
+
+#endif
 
 FireWeapon1()
 {
