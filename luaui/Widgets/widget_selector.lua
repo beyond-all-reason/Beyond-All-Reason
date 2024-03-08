@@ -48,7 +48,11 @@ local sizeMultiplier = 1
 local buttons = {}
 local floor = math.floor
 
-local widgetsList = {}
+---@class NameDataPair a {displayName: string, data: WidgetInfo} pair
+
+---@type NameDataPair[]
+local visibleWidgetsList = {}
+---@type NameDataPair[]
 local fullWidgetsList = {}
 local localWidgetCount = 0
 
@@ -265,7 +269,7 @@ local function UpdateGeometry()
 	minx = floor(midx - halfWidth - (borderx * sizeMultiplier))
 	maxx = floor(midx + halfWidth + (borderx * sizeMultiplier))
 
-	local ySize = (yStep * sizeMultiplier) * math.max(#widgetsList, 8)
+	local ySize = (yStep * sizeMultiplier) * math.max(#visibleWidgetsList, 8)
 	miny = floor(midy - (0.5 * ySize)) - ((fontSize + bgPadding + bgPadding) * sizeMultiplier)
 	maxy = floor(midy + (0.5 * ySize))
 end
@@ -286,12 +290,12 @@ local function UpdateListScroll()
 		startEntry = 1
 	end
 
-	widgetsList = {}
+	visibleWidgetsList = {}
 	local se = startEntry
 	local ee = se + curMaxEntries - 1
 	local n = 1
 	for i = se, ee do
-		widgetsList[n], n = fullWidgetsList[i], n + 1
+		visibleWidgetsList[n], n = fullWidgetsList[i], n + 1
 	end
 end
 
@@ -389,7 +393,7 @@ local function SortWidgetListFunc(nd1, nd2)
 	end
 
 	-- sort by name
-	return (nd1[1] < nd2[1])
+	return (nd1[2].name < nd2[2].name)
 end
 
 function UpdateList(force)
@@ -400,7 +404,7 @@ function UpdateList(force)
 
 	local myName = widget:GetInfo().name
 	--maxWidth = 0
-	widgetsList = {}
+	visibleWidgetsList = {}
 	fullWidgetsList = {}
 
 	local function checkTextFilter(name, data, searchDirection)
@@ -431,29 +435,26 @@ function UpdateList(force)
 	end
 
 	for name, data in pairs(widgetHandler.knownWidgetInfos) do
-		if name ~= myName and name ~= 'Write customparam.__def to files' and not data.parent then
-			if checkTextFilter(name, data) then
-				fullWidgetsList[#fullWidgetsList+1] = { name, data }
-				-- look for the maxWidth
-				local width = fontSize * font:GetTextWidth(name)
-				if width > maxWidth then
-					maxWidth = width
-				end
-			end
+		if name ~= myName and name ~= 'Write customparam.__def to files' and not data.parent and checkTextFilter(name, data) then
+			fullWidgetsList[#fullWidgetsList+1] = { name, data }
 		end
 	end
-	--maxWidth = (maxWidth / fontSize)
 
 	table.sort(fullWidgetsList, SortWidgetListFunc)
 
-	local sanityDepthLimit = 10
-	local function insertChildWidgets(parentIndex, nameDataPair)
+	local function insertChildWidgets(parentIndex, nameDataPair, depth)
 		if nameDataPair[2].children and #nameDataPair[2].children > 0 then
 			local childrenToAdd = {}
 
-			for _, child in ipairs(nameDataPair[2].children) do
-				if checkTextFilter(child.name, child) then
-					childrenToAdd[#childrenToAdd + 1] =  { child.name, child }
+			for idx, child in ipairs(nameDataPair[2].children) do
+				local displayName = '├'
+			    if idx == #nameDataPair[2].children then
+					displayName = '└'
+				end
+				-- non breaking space
+				displayName = string.rep(' ', depth - 1) .. displayName .. ' ' .. child.name
+				if checkTextFilter(displayName, child) then
+					childrenToAdd[#childrenToAdd + 1] =  { displayName, child }
 				end
 			end
 
@@ -462,12 +463,7 @@ function UpdateList(force)
 			for childIdx = #childrenToAdd, 1, -1 do
 				local child = childrenToAdd[childIdx]
 				table.insert(fullWidgetsList, parentIndex + 1, child)
-
-				sanityDepthLimit = sanityDepthLimit - 1
-				if sanityDepthLimit > 0 then
-					insertChildWidgets(parentIndex + 1, { child.name, child })
-				end
-				sanityDepthLimit = sanityDepthLimit + 1
+				insertChildWidgets(parentIndex + 1, child, depth + 1)
 			end
 		end
 	end
@@ -476,11 +472,18 @@ function UpdateList(force)
 	-- also makes it much easier to insert into the list
 	-- since new entries will keep pushing existing ones back
 	for idx = #fullWidgetsList, 1, -1 do
-		insertChildWidgets(idx, fullWidgetsList[idx])
+		insertChildWidgets(idx, fullWidgetsList[idx], 1)
 	end
 
 	localWidgetCount = 0
 	for _, namedata in ipairs(fullWidgetsList) do
+
+		-- look for the maxWidth
+		local width = fontSize * font:GetTextWidth(namedata[1])
+		if width > maxWidth then
+			maxWidth = width
+		end
+
 		if not namedata[2].fromZip then
 			localWidgetCount = localWidgetCount + 1
 		end
@@ -690,14 +693,14 @@ function widget:DrawScreen()
 	local nd = aboveLabel(mx, my)
 	local pointedY = nil
 	local pointedEnabled = false
-	local pointedName = (nd and nd[1]) or nil
+	local pointedName = (nd and nd[2].name) or nil
 	local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
 	sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
 	local prevFromZip = true
 	local customWidgetPosy
-	for _, namedata in ipairs(widgetsList) do
+	for _, namedata in ipairs(visibleWidgetsList) do
 
-		local name = namedata[1]
+		local name = namedata[2].name
 		local data = namedata[2]
 
 		if prevFromZip ~= data.fromZip then
@@ -724,14 +727,7 @@ function widget:DrawScreen()
 		end
 		prevFromZip = data.fromZip
 
-		local childDepth = 0
-		local tmpData = data
-		while(tmpData.parent) do
-			childDepth = childDepth + 1
-			tmpData = tmpData.parent
-		end
-
-		font:Print(color .. string.rep('> ', childDepth) .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+		font:Print(color .. namedata[1], minx + fontSize * 2, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "v")
 		posy = posy - (yStep * sizeMultiplier)
 	end
 	if customWidgetPosy then
@@ -742,10 +738,10 @@ function widget:DrawScreen()
 	end
 
 	-- scrollbar
-	if #widgetsList < #fullWidgetsList then
+	if #visibleWidgetsList < #fullWidgetsList then
 		sby2 = posy + (yStep * sizeMultiplier) - (fontSpace * sizeMultiplier) * 0.5
 		sbheight = sby1 - sby2
-		sbsize = sbheight * #widgetsList / #fullWidgetsList
+		sbsize = sbheight * #visibleWidgetsList / #fullWidgetsList
 		if activescrollbar then
 			startEntry = math.max(0, math.min(
 				floor(#fullWidgetsList *
@@ -811,7 +807,7 @@ function widget:DrawScreen()
 	if WG['tooltip'] ~= nil then
 		local namedata = aboveLabel(mx, my)
 		if namedata then
-			local n = namedata[1]
+			local n = namedata[2].name
 			local d = namedata[2]
 
 			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
@@ -838,7 +834,7 @@ function widget:DrawScreen()
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
 				tooltip = tooltip.."\255\175\175\175" .. Spring.I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  .. d.localPath .. d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end
@@ -991,7 +987,7 @@ function widget:MouseRelease(x, y, mb)
 		if buttonID == 2 then
 			-- disable all widgets, but don't reload
 			for _, namedata in ipairs(fullWidgetsList) do
-				widgetHandler:DisableWidget(namedata[1])
+				widgetHandler:DisableWidget(namedata[2].name)
 			end
 			widgetHandler:SaveConfigData()
 			return -1
@@ -1023,8 +1019,7 @@ function widget:MouseRelease(x, y, mb)
 		return false
 	end
 
-	local name = namedata[1]
-	local data = namedata[2]
+	local name = namedata[2].name
 
 	if mb == 1 then
 		widgetHandler:ToggleWidget(name)
@@ -1043,12 +1038,13 @@ function widget:MouseRelease(x, y, mb)
 	return -1
 end
 
+---@return NameDataPair
 function aboveLabel(x, y)
 	if x < minx or y < (miny + bordery) or
 		x > maxx or y > (maxy - bordery) then
 		return nil
 	end
-	local count = #widgetsList
+	local count = #visibleWidgetsList
 	if count < 1 then
 		return nil
 	end
@@ -1060,7 +1056,7 @@ function aboveLabel(x, y)
 		i = count
 	end
 
-	return widgetsList[i]
+	return visibleWidgetsList[i]
 end
 
 
