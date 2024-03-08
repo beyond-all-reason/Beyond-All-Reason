@@ -452,11 +452,11 @@ function UpdateList(force)
 
 			for idx, child in ipairs(children) do
 			    if idx == #children then
-					branch = "└╌"
-					extraPrefix[idx] = "  "
+					branch = "└╴"
+					extraPrefix[idx] = "  "
 				else
-					branch = "├╌"
-					extraPrefix[idx] = "│ "
+					branch = "├╴"
+					extraPrefix[idx] = "│ "
 				end
 
 				local displayName = _prefix .. branch .. child.name
@@ -479,7 +479,7 @@ function UpdateList(force)
 	-- also makes it much easier to insert into the list
 	-- since new entries will keep pushing existing ones back
 	for idx = #fullWidgetsList, 1, -1 do
-		insertChildWidgets(idx, fullWidgetsList[idx], 1)
+		insertChildWidgets(idx, fullWidgetsList[idx])
 	end
 
 	localWidgetCount = 0
