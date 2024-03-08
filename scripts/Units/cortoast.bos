@@ -69,10 +69,6 @@ Stop()
 	return (0);
 }
 
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
-}
 
 ExecuteRestoreAfterDelay()
 {
@@ -128,13 +124,13 @@ Create()
 Activate()
 {
 	signal SIGNAL_AIM2;
-	start-script RequestState(HIGH_TRAJECTORY);
+	trajectoryMode = HIGH_TRAJECTORY;
 }
 
 Deactivate()
 {
 	signal SIGNAL_AIM2;
-	start-script RequestState(LOW_TRAJECTORY);
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
 aimCommon(heading, pitch)

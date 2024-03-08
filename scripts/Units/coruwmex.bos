@@ -3,54 +3,11 @@
 
 piece  base, drive, emit1, emit2, emit3,emit4;
 
-static-var  resourceRate, statechg_DesiredState, statechg_StateChanging;
+static-var  resourceRate;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
-
-Go()
-{
-	spin drive around y-axis speed resourceRate accelerate 90;
-}
-
-Stop()
-{
-	stop-spin drive around y-axis decelerate 180;
-	wait-for-turn drive around y-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -59,18 +16,10 @@ Create()
 	hide emit4;
 	hide emit1;
 	resourceRate = 0;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
 }
 
-Activate()
+EmitBubbles()
 {
-	start-script RequestState(0);
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 		emit-sfx 259 from emit1;
@@ -81,12 +30,19 @@ Activate()
 	}
 }
 
-Deactivate()
+Activate()
 {
-	start-script RequestState(1);
 	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	spin drive around y-axis speed resourceRate accelerate 90;
+	start-script EmitBubbles()
 }
 
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	stop-spin drive around y-axis decelerate 180;
+}
 
 
 SetSpeed(windOrMetal)
