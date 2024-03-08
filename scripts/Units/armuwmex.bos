@@ -13,7 +13,6 @@ Create()
 {
 	hide emit;
 	resourceRate = 0;
-	call-script InitState();
 }
 
 Activate()

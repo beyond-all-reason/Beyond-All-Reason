@@ -92,7 +92,7 @@ Activate()
 	turn nc2 to z-axis <90> speed <180>;
 	turn nc3 to z-axis <-90> speed <180>;
 	turn nc4 to z-axis <-90> speed <180>;
-	wait-for-turn nc1 aroud z-axis;
+	wait-for-turn nc1 around z-axis;
 	
 	FACTORY_OPEN_BUILD;
 }
@@ -108,7 +108,7 @@ Deactivate()
 	turn nc2 to z-axis <0> speed <180>;
 	turn nc3 to z-axis <0> speed <180>;
 	turn nc4 to z-axis <0> speed <180>;
-	wait-for-turn nc1 aroud z-axis;
+	wait-for-turn nc1 around z-axis;
 	move nt1 to y-axis [0] speed [10];
 	move nt2 to y-axis [0] speed [10];
 	move nt3 to y-axis [0] speed [10];

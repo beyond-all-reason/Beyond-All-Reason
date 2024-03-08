@@ -10,9 +10,9 @@ SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
 }
 

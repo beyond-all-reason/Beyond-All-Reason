@@ -70,7 +70,7 @@ StartBuilding(heading)
 
 		move barrel to z-axis [2.000000] speed [2.000000];
 		wait-for-move barrel along z-axis;
-		readyToBuild = TRUE:
+		readyToBuild = TRUE;
 	}
 
 	set INBUILDSTANCE to 1;
@@ -87,7 +87,7 @@ StopBuilding()
 	sleep 6000;
 
 	set INBUILDSTANCE to 0;
-	readyToBuild = FALSE:
+	readyToBuild = FALSE;
 
 	move ldoor to x-axis [0] speed [2.000000];
 	move rdoor to x-axis [0] speed [2.000000];

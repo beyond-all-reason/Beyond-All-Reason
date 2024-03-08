@@ -30,7 +30,7 @@ Activate()
 
 		move barrel to y-axis [10] speed [20];
 		wait-for-move barrel along y-axis;
-		isOpen = TRUE:
+		isOpen = TRUE;
 	}
 }
 
@@ -46,7 +46,7 @@ Deactivate()
 		move door2 to x-axis [0] speed [13];
 		wait-for-move door1 along x-axis;
 
-		isOpen = FALSE:
+		isOpen = FALSE;
 	}
 }
 

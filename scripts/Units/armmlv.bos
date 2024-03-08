@@ -46,8 +46,6 @@ Create()
 	hide lflare;
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 DetonateMines()

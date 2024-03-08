@@ -3,7 +3,7 @@
 
 piece  base, rfin, lfin, door, prop, turret, gun, nano1, nano2;
 
-static-var  moveSpeed;
+static-var  moveSpeed, currentSpeed;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -74,7 +74,7 @@ StartBuilding(heading, pitch)
 	set-signal-mask SIGNAL_BUILD;
 
 	move turret to y-axis [4.400000] speed [8.800000];
-	wait-for-move turrent along y-axis;
+	wait-for-move turret along y-axis;
 
 	turn gun to y-axis heading speed <160>;
 	wait-for-turn gun around y-axis;

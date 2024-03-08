@@ -66,14 +66,14 @@ Activate()
 	spin fan around y-axis speed <200> accelerate <20>;
 	
 	turn pivot to x-axis <90> speed <90>;
-	wait-for-turn pivot along x-axis;
+	wait-for-turn pivot around x-axis;
 
 	turn finl to z-axis <90> speed <90>;
 	turn finr to z-axis <-90> speed <90>;
 	turn wingl to y-axis <-30> speed <30>;
 	turn wingr to y-axis <30> speed <30>;
-	wait-for-turn finl along z-axis;
-	wait-for-turn wingl along y-axis;
+	wait-for-turn finl around z-axis;
+	wait-for-turn wingl around y-axis;
 }
 
 Deactivate()
@@ -82,14 +82,14 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 
 	turn pivot to x-axis <0> speed <90>;
-	wait-for-turn pivot along x-axis;
+	wait-for-turn pivot around x-axis;
 
 	turn finl to z-axis <0> speed <90>;
 	turn finr to z-axis <0> speed <90>;
 	turn wingl to y-axis <0> speed <30>;
 	turn wingr to y-axis <0> speed <30>;
-	wait-for-turn finl along z-axis;
-	wait-for-turn wingl along y-axis;
+	wait-for-turn finl around z-axis;
+	wait-for-turn wingl around y-axis;
 
 	stop-spin fan around y-axis decelerate <1>;
 }

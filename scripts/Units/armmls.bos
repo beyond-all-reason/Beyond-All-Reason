@@ -52,7 +52,7 @@ Create()
 	hide nanoemit;
 	hide ground;
 	buildHeading = 0;
-	readyToBuild = FALSE:
+	readyToBuild = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -78,8 +78,8 @@ StartBuilding(heading)
 		wait-for-move door1 along x-axis;
 		
 		move nanoturret to y-axis [8] speed [24];
-		wait-for-move nanoturrent along y-axis;
-		readyToBuild = TRUE:
+		wait-for-move nanoturret along y-axis;
+		readyToBuild = TRUE;
 	}	
 
 	turn NanoTurret to y-axis <180>+buildHeading speed <160.000000>;
@@ -104,7 +104,7 @@ StopBuilding()
 	wait-for-turn NanoTurret around y-axis;
 
 	move nanoturret to y-axis [0] speed [24];
-	wait-for-move nanoturrent along y-axis;
+	wait-for-move nanoturret along y-axis;
 	
 	
 	move door1 to x-axis [0] speed [9];

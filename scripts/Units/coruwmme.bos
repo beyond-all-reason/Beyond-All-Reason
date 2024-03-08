@@ -38,10 +38,7 @@ Activate()
 	set ARMORED to 0;
 	while( TRUE )
 	{
-		if( isOn )
-		{
-			emit-sfx 259 from disc;
-		}
+		emit-sfx 259 from disc;
 		sleep 250;
 	}
 }

@@ -3,7 +3,7 @@
 
 piece base, cockpit, rwing, rventblade, rbwing, lwing, lventblade, lbwing, fdoor, bdoor, bombdrop, thrust1;
 
-#define SIGNAL_TURNON
+#define SIGNAL_TURNON 4
 
 #define BASEPIECE base
 #define HITSPEED <35.0>

@@ -63,70 +63,6 @@ BankControl()
 	}
 }
 
-activatescr()
-{
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> now;
-		turn base to x-axis <1.000000> speed <3.000000>;
-		turn box to x-axis <0.000000> now;
-		turn box to x-axis <-20.000000> speed <58.000000>;
-		sleep 352;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <3.000000>;
-		turn box to x-axis <-70.016484> speed <141.000000>;
-		sleep 354;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <-3.000000> speed <9.000000>;
-		turn box to x-axis <-93.021978> speed <64.000000>;
-		sleep 353;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <9.000000>;
-		turn box to x-axis <-90.021978> speed <8.000000>;
-		sleep 355;
-	}
-	sleep 16;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> now;
-		turn base to x-axis <-3.000000> speed <12.000000>;
-		turn box to x-axis <-90.021978> now;
-		turn box to x-axis <-93.021978> speed <12.000000>;
-		sleep 262;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <11.000000>;
-		turn box to x-axis <-70.016484> speed <86.000000>;
-		sleep 266;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <1.000000> speed <4.000000>;
-		turn box to x-axis <-20.000000> speed <189.000000>;
-		sleep 264;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <4.000000>;
-		turn box to x-axis <0.000000> speed <76.000000>;
-		sleep 267;
-	}
-	sleep 13;
-	return (0);
-}
 
 
 #define BASEPIECE base
@@ -137,56 +73,7 @@ deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-	if( !isOpen )
-	{
-		call-script activatescr();
-	}
-	isOpen = 1;
-	return (0);
-}
 
-Stop()
-{
-	isOpen = 0;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 HoverIdle()
 {
@@ -233,7 +120,6 @@ Create()
 	hide flare;
 	isOpen = 0;
 	restore_delay = 3000;
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -255,8 +141,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	turn box to x-axis <90> speed <90.0000>;
 }
 SetStunned(State)
 {
@@ -275,33 +160,28 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( !isOpen )
-	{
-		sleep 200;
-	}
+
+	turn box to x-axis <-90> speed <90.0000>;
+	wait-for-turn box around x-axis;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireWeapon1()
 {
-	sleep 150;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = box;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 

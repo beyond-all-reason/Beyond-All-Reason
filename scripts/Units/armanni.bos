@@ -3,7 +3,7 @@
 
 piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light, aimfromy;
 
-static-var  isOpen, shooting, shotcount;
+static-var  isOpen, shooting, shotcount, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -26,7 +26,7 @@ Open()
 
 	wait-for-move barrel along z-axis;
 	wait-for-turn antenna around x-axis;
-	isOpen = TRUE:
+	isOpen = TRUE;
 }
 
 Close()

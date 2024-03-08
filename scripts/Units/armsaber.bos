@@ -30,7 +30,7 @@ Create()
 		sleep 400;
 	}
 	start-script IdleHover();
-
+}
 
 Activate()
 {

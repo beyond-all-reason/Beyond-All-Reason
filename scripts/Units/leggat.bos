@@ -42,11 +42,6 @@ Create()
 	restore_delay = 200;
 }
 
-setSFXoccupy(state)
-{
-	terrain = state;
-}
-
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;

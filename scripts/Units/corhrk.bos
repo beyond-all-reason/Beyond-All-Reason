@@ -234,14 +234,11 @@ Create()
 	isOpen = 0;
 	restore_delay = 200;
 	animSpeed = 5;
-	call-script InitState();
-	return (0);
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS;
-	return (0);
 }
 
 

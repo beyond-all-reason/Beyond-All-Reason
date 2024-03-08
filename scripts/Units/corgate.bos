@@ -20,7 +20,7 @@ Activate()
 Deactivate()
 {
 	shieldEnabled = 0;
-	spin dish around y-axis speed <0.000000> decelerate <1>;
+	stop-spin dish around y-axis decelerate <1>;
 }
 
 SetStunned(State)

@@ -35,7 +35,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	spin drive around y-axis speed resourceRate accelerate 90;
-	start-script EmitBubbles()
+	start-script EmitBubbles();
 }
 
 Deactivate()

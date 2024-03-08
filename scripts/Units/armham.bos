@@ -335,7 +335,7 @@ ExecuteRestoreAfterDelay()
 		move rvent to x-axis [0.000000] speed [2.400000];
 		move rvent to z-axis [0.000000] speed [0.800000];
 		wait-for-move lvent along x-axis;
-		wait-for-move ;vent along z-axis;
+		wait-for-move lvent along z-axis;
 	}
 }
 
@@ -371,7 +371,7 @@ AimWeapon1(heading, pitch)
 		move rvent to x-axis [1.200000] speed [2.400000];
 		move rvent to z-axis [-0.400000] speed [0.800000];
 		wait-for-move lvent along x-axis;
-		wait-for-move ;vent along z-axis;
+		wait-for-move lvent along z-axis;
 		canAim = 1;
 	}
         signal SIGNAL_AIM1;

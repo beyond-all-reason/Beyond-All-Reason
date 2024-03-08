@@ -53,9 +53,7 @@ SetStunned(State)
 	if (Stunned) {
 	    call-script Deactivate();
 	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Activate();
-	    }
+	    call-script Activate();
 	}
 }
 

@@ -265,7 +265,6 @@ Create()
 	hide nano;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 60;
-	animAmplitude = 70;
 }
 
 StartBuilding(heading, pitch)

@@ -3,7 +3,7 @@
 
 piece  base, smoke;
 
-#define SIGNAL_TURNON
+#define SIGNAL_TURNON 4
 
 SteamVents()
 {
@@ -24,7 +24,6 @@ Create()
 		sleep 250;
 	}
 
-	call-script InitState();
 	start-script Activate();
 }
 

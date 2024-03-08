@@ -43,7 +43,6 @@ Create()
 	hide flare2;
 	gun_1 = flare1;
 	restore_delay = 3000;
-	start-script UnitSpeed();
 }
 
 StartMoving()
