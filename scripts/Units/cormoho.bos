@@ -3,24 +3,17 @@
 
 piece  base, column;
 
-static-var  resourceRate, statechg_DesiredState, statechg_StateChanging;
-static-var  Stunned;
+#define SIGNAL_TURNON 4
 
-activatescr()
-{
-	if( TRUE AND !Stunned )
-	{
-		move column to y-axis [0] speed [32.500000];
-		sleep 772;
-	}
-
-	set ARMORED to 0;
-}
+static-var  resourceRate;
+static-var  Stunned; 
 
 triplepenetration(){
-
+	move column to y-axis [0] speed [32.500000];
+	sleep 500;
+	set ARMORED to 0;
 	while(TRUE){
-		if( statechg_DesiredState == 0 AND !Stunned )
+		if(!Stunned )
 		{
 			move column to y-axis [20] speed (resourceRate/2);
 			wait-for-move column along y-axis;
@@ -33,99 +26,40 @@ triplepenetration(){
 	}
 }
 
-deactivatescr()
-{
-	if( TRUE AND !Stunned )
-	{
-        move column to y-axis [0] speed resourceRate;
-        wait-for-move column along y-axis;
-	}
-
-	set ARMORED to 1;
-
-	sleep 33;
-}
-
-Go()
-{
-	call-script activatescr();
-	//start-script triplepenetration();
-}
-
-Stop()
-{
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
 SetStunned(State)
 {
     Stunned = State;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	resourceRate = 500;
-
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
-	start-script triplepenetration();
-	set ARMORED to 1;
 }
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
 Activate()
-{
-	start-script RequestState(0);
+{	
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	start-script triplepenetration();
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
 }
 
 SetSpeed(windOrMetal)
 {
 	resourceRate = windOrMetal * 500;
 }
-
-
 
 Killed(severity, corpsetype)
 {

@@ -3,68 +3,15 @@
 
 piece  base, disc;
 
-static-var  resourceRate, isOn, statechg_DesiredState, statechg_StateChanging;
+static-var  resourceRate;
 static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
-
-Go()
-{
-	if (Stunned) {
-		return(0);
-	}
-	spin disc around y-axis speed resourceRate accelerate 90;
-	set ARMORED to 0;
-	isOn = 1;
-}
-
-Stop()
-{
-	stop-spin disc around y-axis decelerate 180;
-	isOn = 0;
-	set ARMORED to 1;
-
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
-	isOn = 0;
 	resourceRate = 0;
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -76,17 +23,19 @@ SetStunned(State)
 {
 	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
 }
 
 Activate()
 {
-	start-script RequestState(0);
 	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;	
+	
+	spin disc around y-axis speed resourceRate accelerate 90;
+	set ARMORED to 0;
 	while( TRUE )
 	{
 		if( isOn )
@@ -99,11 +48,10 @@ Activate()
 
 Deactivate()
 {
-	start-script RequestState(1);
 	signal SIGNAL_TURNON;
+	stop-spin disc around y-axis decelerate 180;
+	set ARMORED to 1;
 }
-
-
 
 SetSpeed(windOrMetal)
 {

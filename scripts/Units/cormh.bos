@@ -3,52 +3,13 @@
 
 piece  base, turret, fan, wake, flare1, flare2;
 
-static-var  isOpen, gun_1, restore_delay, statechg_DesiredState,
-            statechg_StateChanging, Wobble_status;
+static-var  isOpen, gun_1, restore_delay, Wobble_status;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_IDLE 8
 #define SIGNAL_IDLE 8
-
-activatescr()
-{
-
-	if( TRUE )
-	{
-		turn turret to x-axis <-90> speed <30>;
-		turn base to x-axis <-2.000000> speed <3.000000>;
-		
-		wait-for-turn turret around x-axis;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <15.000000>;
-		sleep 90;
-	}
-	sleep 20;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn turret to x-axis <0> speed <30>;
-		turn base to x-axis <-2.000000> speed <3.000000>;
-
-		sleep 469;
-	}
-	if( TRUE )
-	{
-		turn base to x-axis <0.000000> speed <15.000000>;
-		sleep 90;
-	}
-	sleep 20;
-	return (0);
-}
 
 WobbleUnit()
 {
@@ -111,54 +72,6 @@ BankControl()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-	call-script activatescr();
-	isOpen = 1;
-	return (0);
-}
-
-Stop()
-{
-	isOpen = 0;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
 Create()
 {
 	hide wake;
@@ -168,7 +81,6 @@ Create()
 	spin fan around z-axis speed <300>;
 	isOpen = 0;
 	restore_delay = 3000;
-	call-script InitState();
 	
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -190,9 +102,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	turn turret to x-axis <0> speed <30>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -217,7 +129,6 @@ HoverIdle()
 	    emit-sfx 1024 + 2 from wake;
 	    sleep 1750;
 	}
-	//return (1);
 }
 
 StartMoving()
@@ -243,56 +154,33 @@ StopMoving()
 	signal SIGNAL_MOVE;
 	signal SIGNAL_IDLE;
 	start-script HoverIdle();
-	return (0);
 }
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( !isOpen )
-	{
-		sleep 200;
-	}
-	start-script RestoreAfterDelay();
+
+	turn turret to x-axis <-90> speed <30>;
+	wait-for-turn turret around x-axis;
+
 	return (1);
 }
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		gun_1 = 1;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		gun_1 = 0;
-		return (0);
-	}
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = base;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
-
-
 
 Killed(severity, corpsetype)
 {

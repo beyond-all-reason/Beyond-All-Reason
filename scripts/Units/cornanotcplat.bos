@@ -33,67 +33,9 @@ RockOnWaves()
 	}
 }
 
-Activatescr()
-{
-	sleep 1;
-}
-
-Deactivatescr()
-{
-	sleep 1;
-}
-
-
-Go()
-{
-	call-script Activatescr();
-	turn aim to y-axis buildHeading speed <320.000000>;
-	wait-for-turn aim around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide emitnano;
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -102,47 +44,17 @@ Create()
 	buildHeading = 0;
 }
 
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn aim to y-axis <0.000000> speed <100.000000>;
-	wait-for-turn aim around y-axis;
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	sleep 5000;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
 StartBuilding(heading)
 {
-	buildHeading = heading;
-	start-script RequestState(0);
+	show emitnano;
+	turn aim to y-axis heading speed <100.000000>;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	start-script RequestState(1);
+	hide emitnano;
+	set INBUILDSTANCE to 0;
 }
 
 QueryNanoPiece(pieceIndex)

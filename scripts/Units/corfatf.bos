@@ -4,7 +4,6 @@
 piece  base;
 
 
-static-var  statechg_DesiredState, statechg_StateChanging;
 
 RockOnWaves()
 {
@@ -36,39 +35,9 @@ RockOnWaves()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -78,12 +47,10 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 

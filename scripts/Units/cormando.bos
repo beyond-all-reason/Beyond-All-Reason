@@ -14,7 +14,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 
-static-var  isMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding, wpn1_lasthead;
+static-var  isMoving, spray, wpn1_lasthead;
 // Generated for N:\animations\cormando_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -311,29 +311,6 @@ StopMoving(){
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
-Go()
-{
-
-	turn luparm to x-axis <-45> speed <187.500000>;
-	turn larm to x-axis <-45> speed <187.500000>;
-	turn ruparm to x-axis <-45> speed <187.500000>;
-	turn rarm to x-axis <-45> speed <187.500000>;
-	sleep 130;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn luparm to x-axis <0> speed <187.500000>;
-	turn larm to x-axis <0> speed <187.500000>;
-	turn ruparm to x-axis <0> speed <187.500000>;
-	turn rarm to x-axis <0> speed <187.500000>;
-	turn aimy1 to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn aimy1 around y-axis;
-
-
-	sleep 200;
-}
 
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
@@ -342,41 +319,12 @@ Stop()
 #define MAXTILT 100
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
 Lights()
 {
-	emit-sfx 1024 + 1 from head;
-	sleep 2000;
-	start-script Lights();
+	while (TRUE){
+		emit-sfx 1024 + 1 from head;
+		sleep 2000;
+	}
 }
 
 Create()
@@ -387,22 +335,26 @@ Create()
 	hide flare;
 	hide aimy1;
 	isMoving = FALSE;
-	notBuilding = 1;
 	turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	//start-script Lights();
 }
 
 StartBuilding(torsoing, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	show lnano;
 	show rnano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+
+	turn luparm to x-axis <-45> speed <187.500000>;
+	turn larm to x-axis <-45> speed <187.500000>;
+	turn ruparm to x-axis <-45> speed <187.500000>;
+	turn rarm to x-axis <-45> speed <187.500000>;
+	wait-for-turn luparm around x-axis;
+
 	turn aimy1 to y-axis torsoing speed <240.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
@@ -410,20 +362,21 @@ StartBuilding(torsoing, pitch)
 
 StopBuilding()
 {
-	hide lnano;
-	hide rnano;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+
+	hide lnano;
+	hide rnano;
+
 	sleep 3000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+	set INBUILDSTANCE to 0;
+
+	turn luparm to x-axis <0> speed <187.500000>;
+	turn larm to x-axis <0> speed <187.500000>;
+	turn ruparm to x-axis <0> speed <187.500000>;
+	turn rarm to x-axis <0> speed <187.500000>;
+	turn aimy1 to y-axis <0.000000> speed <160.000000>;
 }
-
-
-
-
-
 
 QueryWeapon1(pieceIndex)
 {

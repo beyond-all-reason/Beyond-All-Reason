@@ -3,7 +3,7 @@
 
 piece  flare, base, box, wake;
 
-static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging, Wobble_status, pivotAngle;
+static-var  isOpen, restore_delay, Wobble_status, pivotAngle;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
