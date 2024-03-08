@@ -379,9 +379,9 @@ function gadgetHandler:Initialize()
 			))
 		else
 			Spring.Log(LOG_SECTION, LOG.INFO, string.format(
-				"Loaded child gadget %-18s > %-18s <%s%s>",
-				info.parent.name, name,
-				localPath, basename
+				"Loaded %s child gadget: %-18s > %-18s <%s%s>",
+				gType, info.parent.name, gName,
+				gLocalPath, gBaseName
 			))
 		end
 	end

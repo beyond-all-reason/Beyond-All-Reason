@@ -376,7 +376,7 @@ function widgetHandler:Initialize()
 			))
 		else
 			Spring.Echo(string.format(
-				"Loading child widget %-18s > %-18s <%s%s>",
+				"Loading child widget: %-18s > %-18s <%s%s>",
 				info.parent.name, name, localPath, basename
 			))
 		end
