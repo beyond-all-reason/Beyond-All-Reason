@@ -3,7 +3,7 @@
 
 piece  base, beam, nanogun, doorr, doorl, post, wake, turret, cagelight, cagelight_emit;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
+static-var  readyToBuild, Wobble_status;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -71,52 +71,6 @@ BankControl()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-activatescr()
-{
-	turn doorr to z-axis <0.000000> now;
-	turn doorr to z-axis <-67.010989> speed <99.000000>;
-	turn doorl to z-axis <0.000000> now;
-	turn doorl to z-axis <67.010989> speed <99.000000>;
-	sleep 677;
-
-	move doorr to y-axis [-2.000000] speed [2.000000];
-	move doorl to y-axis [-2.000000] speed [2.000000];
-	sleep 688;
-
-	turn post to x-axis <90.021978> speed <131.000000>;
-	turn nanogun to x-axis <-90.021978> speed <131.000000>;
-	sleep 687;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
-	turn post to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn post around y-axis;
-
-	move doorr to y-axis [-2.000000] now;
-	move doorl to y-axis [-2.000000] now;
-	turn doorr to z-axis <-67.148352> now;
-	turn doorl to z-axis <67.148352> now;
-	turn post to x-axis <90.021978> now;
-	turn post to x-axis <0.000000> speed <197.000000>;
-	turn nanogun to x-axis <-90.021978> now;
-	turn nanogun to x-axis <0.000000> speed <197.000000>;
-	sleep 457;
-
-	move doorr to y-axis [0.000000] speed [4.000000];
-	move doorl to y-axis [0.000000] speed [4.000000];
-	sleep 471;
-
-	turn doorr to z-axis <0.000000> speed <143.000000>;
-	turn doorl to z-axis <0.000000> speed <143.000000>;
-	sleep 469;
-}
-
-
 HoverIdle()
 {
 	signal SIGNAL_IDLE;
@@ -154,42 +108,13 @@ StopMoving()
 	return (0);
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide wake;
 	hide beam;
 	hide cagelight_emit;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	readyToBuild = 1;
+
 	while( get(BUILD_PERCENT_LEFT))
 	{
 		sleep 500;
@@ -200,42 +125,71 @@ Create()
 
 Activate()
 {
-	get PRINT(11111);
-	start-script RequestState(0);
+
 }
 
 Deactivate()
 {
-	get PRINT(22222);
-	start-script RequestState(1);
+
 }
 
 StartBuilding(heading, pitch)
-{
-	get PRINT(33333);
-	show beam;
-	start-script RequestState(0);
-	show cagelight_emit;
-	spin cagelight around y-axis speed <225>;
-	while( notBuilding ) sleep 100;
+{	
 	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild) {
+		turn doorr to z-axis <-67> speed <99>;
+		turn doorl to z-axis <67> speed <99>;
+		wait-for-turn doorr around z-axis;
+
+		move doorr to y-axis [-2.000000] speed [2.000000];
+		move doorl to y-axis [-2.000000] speed [2.000000];
+		wait-for-move doorr along y-axis;
+
+		turn post to x-axis <90> speed <131>;
+		turn nanogun to x-axis <-90> speed <131>;
+		wait-for-turn post around x-axis;
+		readyToBuild = TRUE;
+	}
+
 	turn post to y-axis heading speed <160.000000>;
 	wait-for-turn post around y-axis;
+
 	set INBUILDSTANCE to 1;
+
+	show beam;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <225> accelerate <2>;
 }
 
 StopBuilding()
 {
-	get PRINT(44444);
-	hide beam;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	hide beam;
 	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
+	stop-spin cagelight around y-axis decelerate <4>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+
+	
+	turn post to y-axis <0> speed <160>;
+
+	turn post to x-axis <0.000000> speed <197.000000>;
+	turn nanogun to x-axis <0.000000> speed <197.000000>;
+	wait-for-turn post around x-axis;
+
+	move doorr to y-axis [0.000000] speed [4.000000];
+	move doorl to y-axis [0.000000] speed [4.000000];
+	wait-for-move doorr along y-axis;
+
+	turn doorr to z-axis <0.000000> speed <143.000000>;
+	turn doorl to z-axis <0.000000> speed <143.000000>;
+	wait-for-turn doorr around z-axis;
 }
 
 QueryNanoPiece(pieceIndex)

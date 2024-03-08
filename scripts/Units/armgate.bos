@@ -3,57 +3,12 @@
 
 piece  base, shield;
 
-static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
-
-
-ShieldOn()
-{
-	shieldEnabled = 1;
-}
-
-ShieldOff()
-{
-	shieldEnabled = 0;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script ShieldOn();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script ShieldOff();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+static-var  shieldEnabled;
 
 Create()
 {
 	hide shield;
-
 	shieldEnabled = 1;
-	call-script InitState();
 }
 
 #define SMOKEPIECE base
@@ -61,17 +16,16 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	shieldEnabled = 1;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	shieldEnabled = 0;
 }
 
 AimWeapon1(heading, pitch)
 {
-	sleep 100;
 	return (shieldEnabled);
 }
 
@@ -92,7 +46,6 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	sleep 100;
 	return (shieldEnabled);
 }
 

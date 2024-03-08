@@ -3,65 +3,17 @@
 
 piece  base, smoke;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
+#define SIGNAL_TURNON
 
 SteamVents()
 {
-	signal 2;
-	set-signal-mask 2;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 		emit-sfx 257 from smoke;
 		sleep 500;
 	}
-}
-
-Go()
-{
-	set ARMORED to 0;
-	start-script SteamVents();
-
-}
-
-Stop()
-{
-
-	signal 2;
-	set ARMORED to 1;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -73,7 +25,7 @@ Create()
 	}
 
 	call-script InitState();
-	start-script RequestState(0);
+	start-script Activate();
 }
 
 #define SMOKEPIECE base
@@ -81,15 +33,15 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	set ARMORED to 0;
+	start-script SteamVents();
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set ARMORED to 1;
 }
-
-
 
 Killed(severity, corpsetype)
 {

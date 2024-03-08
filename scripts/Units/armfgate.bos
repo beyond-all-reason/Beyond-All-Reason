@@ -3,7 +3,7 @@
 
 piece  base, emit;
 
-static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
+static-var  shieldEnabled;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -13,63 +13,20 @@ static-var  shieldEnabled, statechg_DesiredState, statechg_StateChanging;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-emitOn()
-{
-	shieldEnabled = 1;
-}
-
-emitOff()
-{
-	shieldEnabled = 0;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script emitOn();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script emitOff();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide emit;
 	shieldEnabled = 1;
-	call-script InitState();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	shieldEnabled = 1;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	shieldEnabled = 0;
 }
 
 AimWeapon1(heading, pitch)
@@ -113,7 +70,6 @@ AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = base;
 }
-
 
 
 Killed(severity, corpsetype)

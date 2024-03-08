@@ -52,7 +52,6 @@ Activate()
 
 Deactivate()
 {
-	start-script RequestState(1);	
 	spin dish around y-axis speed <0.000000>;
 	spin turret around y-axis speed <0.000000>;
 	spin spinner around y-axis speed <0.000000>;

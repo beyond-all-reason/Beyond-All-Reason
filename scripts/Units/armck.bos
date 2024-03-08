@@ -5,7 +5,7 @@
 
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, rfoot, lfoot, lcover, rcover, turret, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  notBuilding, isMoving,statechg_DesiredState, statechg_StateChanging;
+static-var  readyToBuild, isMoving,statechg_DesiredState, statechg_StateChanging;
 
 
 #define BASEPIECE pelvis
@@ -287,68 +287,19 @@ UnitSpeed(){
 		sleep 131;
 	}
 }
+
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
-  start-script Walk();
+	start-script Walk();
 }
+
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-  call-script StopWalking();
-}
-
-
-
-Go()
-{
-	turn lcover to z-axis <28> speed <60>;
-	turn rcover to z-axis <-28> speed <60>;
-	wait-for-turn lcover around z-axis;
-	
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight_emit to z-axis <0> speed <1000>;
-	move turret to y-axis [0] speed [16];
-	turn aimy1 to y-axis <0> speed <360>;
-	turn lcover to z-axis <0> speed <60>;
-	turn rcover to z-axis <0> speed <60>;
-	wait-for-turn lcover around z-axis;
-	wait-for-turn aimy1 around y-axis;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	call-script StopWalking();
 }
 
 Create()
@@ -357,47 +308,57 @@ Create()
 	hide aimy1;
 	hide cagelight_emit;
 	isMoving = FALSE;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	readyToBuild = FALSE;
 	animSpeed = 4;
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
 	show nano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
-	move turret to y-axis [4.5] speed [16];
-	turn aimy1 to y-axis heading speed <600.000000>;
+	if (!readyToBuild){
+		turn lcover to z-axis <28> speed <60>;
+		turn rcover to z-axis <-28> speed <60>;
+		wait-for-turn lcover around z-axis;
+
+		move turret to y-axis [4.5] speed [16];
+		readyToBuild = TRUE;
+	}
+
+	turn aimy1 to y-axis heading speed <600>;
 	wait-for-turn aimy1 around y-axis;
+
 	set INBUILDSTANCE to 1;
 	show cagelight_emit;
-	spin cagelight_emit around z-axis speed <150>;
+	spin cagelight_emit around z-axis speed <150> accelerate <2>;
 }
 
 StopBuilding()
 {
-	hide nano;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	
+	hide nano;
 	hide cagelight_emit;
-	turn cagelight_emit to z-axis <0> speed <1000>;
+	stop-spin cagelight_emit around z-axis decelerate <2>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+
+	readyToBuild = FALSE;
+	set INBUILDSTANCE to 0;
+	
+	turn aimy1 to y-axis <0> speed <600>;
+	wait-for-turn aimy1 around y-axis;
+
+	move turret to y-axis [0] speed [16];
+	wait-for-move turret along y-axis;
+			
+	turn lcover to z-axis <0> speed <60>;
+	turn rcover to z-axis <0> speed <60>;
+	wait-for-turn lcover around z-axis;
 }
 
 
@@ -405,7 +366,6 @@ QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = nano;
 }
-
 
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armck_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
