@@ -4,9 +4,7 @@
 piece  pelvis, lflare, rflare, lvent,rvent, lthigh, rthigh,
        torso, rleg, rfoot, lleg, lfoot,rarm, larm, rbarrel, lbarrel, aimy1, aimx1;
 
-static-var  isMoving, canAim, gun_1, gun_2,
-            restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, restore, wpn1_lasthead;
+static-var  isMoving, canAim, gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, restore, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -294,58 +292,6 @@ StopMoving(){
   call-script StopWalking();
 }
 
-Go()
-{
-	if( !canAim )
-	{
-		move lvent to x-axis [-1.200000] speed [2.400000];
-		move lvent to z-axis [-0.400000] speed [0.800000];
-		move rvent to x-axis [1.200000] speed [2.400000];
-		move rvent to z-axis [-0.400000] speed [0.800000];
-		sleep 300;
-		canAim = 1;
-	}
-}
-
-Stop()
-{
-	if( canAim )
-	{
-		canAim = 0;
-		move lvent to x-axis [0.000000] speed [2.400000];
-		move lvent to z-axis [0.000000] speed [0.800000];
-		move rvent to x-axis [0.000000] speed [2.400000];
-		move rvent to z-axis [0.000000] speed [0.800000];
-		sleep 300;
-	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 
 Create()
 {
@@ -363,16 +309,12 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	animSpeed = 4;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
 }
-
-
 
 
 static-var  Stunned;
@@ -385,8 +327,18 @@ ExecuteRestoreAfterDelay()
     turn aimy1 to y-axis <0.000000> speed <90.000000>;
     turn aimx1 to x-axis <0.000000> speed <45.000000>;
     wpn1_lasthead = 1000000;
-    start-script RequestState(1);
+    if( canAim )
+	{
+		canAim = 0;
+		move lvent to x-axis [0.000000] speed [2.400000];
+		move lvent to z-axis [0.000000] speed [0.800000];
+		move rvent to x-axis [0.000000] speed [2.400000];
+		move rvent to z-axis [0.000000] speed [0.800000];
+		wait-for-move lvent along x-axis;
+		wait-for-move ;vent along z-axis;
+	}
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -394,6 +346,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
@@ -411,7 +364,16 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-        start-script RequestState(0);
+    if( !canAim )
+	{
+		move lvent to x-axis [-1.200000] speed [2.400000];
+		move lvent to z-axis [-0.400000] speed [0.800000];
+		move rvent to x-axis [1.200000] speed [2.400000];
+		move rvent to z-axis [-0.400000] speed [0.800000];
+		wait-for-move lvent along x-axis;
+		wait-for-move ;vent along z-axis;
+		canAim = 1;
+	}
         signal SIGNAL_AIM1;
         turn aimy1 to y-axis heading speed <140>;
         turn aimx1 to x-axis <0.000000> - pitch speed <50>;

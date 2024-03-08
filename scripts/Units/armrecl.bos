@@ -3,9 +3,10 @@
 
 piece  base, flare, barrel, ldoor, rdoor, lfin, rfin, screw;
 
-static-var  buildHeading, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
+static-var  readyToBuild, currentSpeed, moveSpeed;
 
 #define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -22,36 +23,6 @@ Propcontrol()
 		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
 		spin screw around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
 		sleep 33;
-	}
-}
-
-activatescr()
-{
-	if( TRUE )
-	{
-		move barrel to z-axis [2.000000] speed [2.000000];
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move ldoor to x-axis [-1.200000] speed [2.000000];
-		move rdoor to x-axis [1.200000] speed [2.000000];
-		sleep 300;
-	}
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move ldoor to x-axis [0.000000] speed [2.000000];
-		move rdoor to x-axis [0.000000] speed [2.000000];
-		sleep 300;
-	}
-	if( TRUE )
-	{
-		move barrel to z-axis [0.000000] speed [2.000000];
-		sleep 200;
 	}
 }
 
@@ -78,80 +49,52 @@ StopMoving()
 	return (0);
 }
 
-Go()
-{
-	call-script activatescr();
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	hide flare;
-	buildHeading = 0;
+	readyToBuild = FALSE;
 	moveSpeed = get MAX_SPEED;
 	start-script Propcontrol();
-	call-script InitState();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 StartBuilding(heading)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild){
+		move ldoor to x-axis [-1.200000] speed [2.000000];
+		move rdoor to x-axis [1.200000] speed [2.000000];
+		wait-for-move ldoor along x-axis;
+
+		move barrel to z-axis [2.000000] speed [2.000000];
+		wait-for-move barrel along z-axis;
+		readyToBuild = TRUE:
+	}
+
+	set INBUILDSTANCE to 1;
+
 	show flare;
-	buildHeading = heading;
-	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide flare;
-	start-script RequestState(1);
+	
+	sleep 6000;
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE:
+
+	move ldoor to x-axis [0] speed [2.000000];
+	move rdoor to x-axis [0] speed [2.000000];
+	wait-for-move ldoor along x-axis;
+
+	move barrel to z-axis [0] speed [2.000000];
+	wait-for-move barrel along z-axis;
 }
 
 QueryNanoPiece(pieceIndex)

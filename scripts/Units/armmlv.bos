@@ -5,8 +5,7 @@ piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel,
  		nanosleeve, lnano, rnano, lflare, rflare; 
 
 
-static-var  gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading;
+static-var  gun_2, oldHeading;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
@@ -59,18 +58,6 @@ DetonateMines()
 		emit-sfx 4096 from base;
 	}
 }
-
-/*
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-*/
 
 StartBuilding(heading, pitch)
 {

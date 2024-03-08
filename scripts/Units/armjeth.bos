@@ -4,9 +4,7 @@
 piece  torso, rflare, lflare, pelvis, lleg, rleg, rthigh, lthigh,
        lturret, lbarrel, rbarrel, rturret, lexhaust, rexhaust, lfoot, rfoot, aimx1, aimy1;
 
-static-var  isMoving, canAim, gun_3, restore_delay,
-            statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, wpn2_lasthead;
+static-var  isMoving, canAim, gun_3, restore_delay,  moveSpeed, currentSpeed, wpn2_lasthead;
 
 // Signal definitions
 #define SIGNAL_AIM3 1024
@@ -268,12 +266,12 @@ StartMoving(){
 	start-script UnitSpeed();
   start-script Walk();
 }
+
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
   call-script StopWalking();
 }
-
 
 
 #define BASEPIECE pelvis
@@ -283,57 +281,6 @@ StopMoving(){
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-	if( !canAim )
-	{
-		turn lturret to z-axis <0.000000> now;
-		turn lturret to z-axis <-45> speed <360>;
-		turn rturret to z-axis <0.000000> now;
-		turn rturret to z-axis <45> speed <360>;
-		sleep 250;
-		canAim = 1;
-	}
-}
-
-Stop()
-{
-	if( canAim )
-	{
-		canAim = 0;
-		turn rturret to z-axis <0> speed <360>;
-		turn lturret to z-axis <0> speed <360>;
-		sleep 250;
-	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 
 Create()
 {
@@ -349,8 +296,6 @@ Create()
 	canAim = 0;
 	gun_3 = torso;
 	restore_delay = 3000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	animSpeed = 3;
 }
 
@@ -359,15 +304,19 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 5;
 }
 
-
-
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
+	if( canAim )
+	{
+		canAim = 0;
+		turn rturret to z-axis <0> speed <360>;
+		turn lturret to z-axis <0> speed <360>;
+		wait-for-turn rturret around z-axis;
+	}
 	set-signal-mask 0;
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	wpn2_lasthead = 1000000;
@@ -398,8 +347,17 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	if( !canAim )
+	{
+		turn lturret to z-axis <0.000000> now;
+		turn lturret to z-axis <-45> speed <360>;
+		turn rturret to z-axis <0.000000> now;
+		turn rturret to z-axis <45> speed <360>;
+		wait-for-turn lturret around z-axis;
+		canAim = 1;
+	}
 	while( !canAim )
 	{
 		return(0);

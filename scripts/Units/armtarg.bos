@@ -3,22 +3,6 @@
 
 piece  base;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
-activatescr()
-{
-
-	sleep 1109;
-}
-
-deactivatescr()
-{
-
-	sleep 1220;
-	set ARMORED to 1;
-}
-
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -46,47 +30,20 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	set ARMORED to 0;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	sleep 1220;
+	set ARMORED to 1;
 }
 
 HitByWeapon(anglex, anglez)

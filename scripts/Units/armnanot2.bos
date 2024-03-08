@@ -3,21 +3,6 @@
 
 piece  base, stand, centerpoint, aim1, aim2, aim3, emitnano1;
 
-static-var  buildHeading,  statechg_DesiredState, statechg_StateChanging;
-
-
-Activatescr()
-{
-	sleep 1;
-	return (0);
-}
-
-Deactivatescr()
-{
-	sleep 1;
-	return (0);
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -27,119 +12,28 @@ Deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-Go()
-{
-	call-script Activatescr();
-	turn centerpoint to y-axis buildHeading speed <320.000000>;
-	wait-for-turn centerpoint around y-axis;
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
 Create()
 {
 	hide emitnano1;
 	hide centerpoint;
-	call-script InitState();
-	buildHeading = 0;
-	return (0);
-}
-
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn centerpoint to y-axis <0.000000> speed <100.000000>;
-	wait-for-turn centerpoint around y-axis;
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	sleep 5000;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-	return (0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-	return (0);
 }
 
 StartBuilding(heading)
 {
     show emitnano1;
-	buildHeading = heading;
-	start-script RequestState(0);
-	return (0);
+	turn centerpoint to y-axis heading speed <320.000000>;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
     hide emitnano1;
-	start-script RequestState(1);
-	return (0);
+	set INBUILDSTANCE to 0;
 }
 
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = emitnano1;
-	return (0);
 }
 
 

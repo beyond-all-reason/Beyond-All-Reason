@@ -8,11 +8,10 @@
 
 piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1; 
 
-static-var  isMoving, notBuilding, nanoNozzle, currentSpeed,	statechg_DesiredState,
-			statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
+static-var  isMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
 
 #define MOVESCALE 250 //Higher values are bigger, 100 is default
-static-var animAmplitude; //Higher values are bigger, 100 is default
+#define animAmplitude 70 //Higher values are bigger, 100 is default
 
 #define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
@@ -236,10 +235,10 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
+
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
@@ -253,114 +252,50 @@ StopMoving(){
 	call-script StopWalking();
 }
 
-
 #define BASEPIECE pelvis
 #define HITSPEED <75.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-
-
 #include "unit_hitbyweaponid_and_smoke.h"
-
-
-Go()
-{
-
-//	turn luparm to x-axis <0.010989> speed <160.000000>;
-//	turn ruparm to x-axis <0.010989> speed <160.000000>;
-}
-
-Stop()
-
-{	
-	set-signal-mask SIGNAL_BUILD;
-	set INBUILDSTANCE to 0;
-	turn head to y-axis <0.000000> speed <160.000000>;
-//	turn luparm to x-axis <45.000000> speed <160.000000>;
-//	turn ruparm to x-axis <45.000000> speed <160.000000>;
-//	wait-for-turn head around y-axis;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	isMoving = FALSE;
-	notBuilding = 1;
-	animspeed = 3;
-	nanoNozzle = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	hide nano;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 60;
 	animAmplitude = 70;
-	//turn luparm to x-axis <45.010989> speed <45>;
-//	turn ruparm to x-axis <45.010989> speed <45>;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
 	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
 	turn head to y-axis heading speed <260.000000>;
 	wait-for-turn head around y-axis;
+	
+	show nano;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	signal SIGNAL_BUILD;	
-	set-signal-mask SIGNAL_BUILD;
-	sleep 1000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;	
+
+	hide nano;
+
+	sleep 6000;
+	
+	set INBUILDSTANCE to 0;
+	turn head to y-axis <0.000000> speed <160.000000>;
 }
-
-
 
 QueryNanoPiece(pieceIndex)
 {
-	pieceIndex = head + nanoNozzle;  //head was nano
-	nanoNozzle = !nanoNozzle;
+	pieceIndex = nano;
 }
 
 

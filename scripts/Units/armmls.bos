@@ -3,10 +3,12 @@
 
 piece  ground, base, door1, door2, NanoTurret, Nanoemit;
 
-static-var  buildHeading, statechg_DesiredState, statechg_StateChanging, oldHead;
+static-var  buildHeading, readyToBuild, oldHead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
+
+#define SIGNAL_BUILD 2
 
 SetDirection(heading)
 {
@@ -45,88 +47,12 @@ RockOnWaves()
 }
 
 
-activatescr()
-{
-	move door1 to y-axis [1] speed [3];
-	move door2 to y-axis [1] speed [3];
-	sleep 333;
-	
-	move door1 to x-axis [3.4] speed [9];
-	move door2 to x-axis [-3.4] speed [9];
-	sleep 333;
-	
-	move nanoturret to y-axis [8] speed [24];
-	sleep 333;
-
-}
-
-deactivatescr()
-{
-
-	move nanoturret to y-axis [0] speed [24];
-	sleep 333;
-	
-	
-	move door1 to x-axis [0] speed [9];
-	move door2 to x-axis [0] speed [9];
-	sleep 333;
-	
-	move door1 to y-axis [0] speed [3];
-	move door2 to y-axis [0] speed [3];
-	sleep 333;
-}
-
-Go()
-{
-	call-script activatescr();
-	turn NanoTurret to y-axis <180>+buildHeading speed <160.000000>;
-	wait-for-turn NanoTurret around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn NanoTurret around y-axis;
-	call-script deactivatescr();
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
-
 Create()
 {
 	hide nanoemit;
 	hide ground;
 	buildHeading = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	readyToBuild = FALSE:
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -134,27 +60,60 @@ Create()
 	start-script RockOnWaves();
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
 StartBuilding(heading)
 {
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
 	show nanoemit;
 	buildHeading = heading;
-	start-script RequestState(0);
+
+	if (!readyToBuild){
+		move door1 to y-axis [1] speed [3];
+		move door2 to y-axis [1] speed [3];
+		wait-for-move door1 along y-axis;
+		
+		move door1 to x-axis [3.4] speed [9];
+		move door2 to x-axis [-3.4] speed [9];
+		wait-for-move door1 along x-axis;
+		
+		move nanoturret to y-axis [8] speed [24];
+		wait-for-move nanoturrent along y-axis;
+		readyToBuild = TRUE:
+	}	
+
+	turn NanoTurret to y-axis <180>+buildHeading speed <160.000000>;
+	wait-for-turn NanoTurret around y-axis;
+	set INBUILDSTANCE to 1;
+	show nanoemit;
 }
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
 	hide nanoemit;
-	start-script RequestState(1);
+
+	sleep 6000;
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+
+	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn NanoTurret around y-axis;
+
+	move nanoturret to y-axis [0] speed [24];
+	wait-for-move nanoturrent along y-axis;
+	
+	
+	move door1 to x-axis [0] speed [9];
+	move door2 to x-axis [0] speed [9];
+	wait-for-move door1 along x-axis;
+	
+	move door1 to y-axis [0] speed [3];
+	move door2 to y-axis [0] speed [3];
+	wait-for-move door1 along y-axis;
 }
 
 waveSplash()

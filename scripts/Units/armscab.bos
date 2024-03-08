@@ -3,7 +3,7 @@
 
 piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1, unstocked, stocked;
 
-static-var  isOpen, isMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming, missiles_stockpiled;
+static-var  isOpen, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -47,7 +47,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <9.141675> speed <572.687209> / animSpeed; //delta=-19.09 
 			turn rthigh to x-axis <6.275950> speed <31.210720> / animSpeed; //delta=1.04 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-0.000000> speed <81.110861> / animSpeed; //delta=-2.70 
 				turn turret to z-axis <-0.000000> speed <93.617241> / animSpeed; //delta=3.12 
 			}
@@ -71,7 +71,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <32.608682> speed <704.010206> / animSpeed; //delta=-23.47 
 			turn rthigh to x-axis <4.174644> speed <63.039193> / animSpeed; //delta=2.10 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=2.02 
 				turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=1.39 
 			}
@@ -94,7 +94,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <-15.954352> speed <1456.891030> / animSpeed; //delta=48.56 
 			turn rthigh to x-axis <-1.470755> speed <169.361952> / animSpeed; //delta=5.65 
 
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-4.034022> speed <60.510330> / animSpeed; //delta=2.02 
 				turn turret to z-axis <-2.780261> speed <41.703917> / animSpeed; //delta=1.39
 			}				
@@ -118,7 +118,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <-18.656665> speed <81.069394> / animSpeed; //delta=2.70 
 			turn rthigh to x-axis <-3.089739> speed <48.569513> / animSpeed; //delta=1.62 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=-2.02 
 				turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=-1.39 
 			}
@@ -142,7 +142,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <17.662758> speed <1089.582700> / animSpeed; //delta=-36.32 
 			turn rthigh to x-axis <-0.000000> speed <92.692156> / animSpeed; //delta=-3.09 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-0.000000> speed <60.510330> / animSpeed; //delta=-2.02 
 				turn turret to z-axis <-0.000000> speed <41.703917> / animSpeed; //delta=-1.39 
 			}
@@ -166,7 +166,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <-0.747325> speed <552.302502> / animSpeed; //delta=18.41 
 			turn rthigh to x-axis <-1.272229> speed <38.166877> / animSpeed; //delta=1.27 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-2.401554> speed <72.046628> / animSpeed; //delta=2.40 
 				turn turret to z-axis <1.966945> speed <59.008359> / animSpeed; //delta=-1.97 
 			}
@@ -190,7 +190,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <-12.641930> speed <356.838135> / animSpeed; //delta=11.89 
 			turn rthigh to x-axis <3.235851> speed <135.242407> / animSpeed; //delta=-4.51 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-4.803109> speed <72.046628> / animSpeed; //delta=2.40 
 				turn turret to z-axis <3.933891> speed <59.008359> / animSpeed; //delta=-1.97 
 			}
@@ -214,7 +214,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmleg to x-axis <-9.947898> speed <80.820945> / animSpeed; //delta=-2.69 
 			turn rthigh to x-axis <7.316307> speed <122.413692> / animSpeed; //delta=-4.08 
 			
-			if ( !isAiming){
+			if ( !isOpen){
 				turn turret to x-axis <-2.703695> speed <62.982395> / animSpeed; //delta=-2.10 
 				turn turret to z-axis <3.120575> speed <24.399476> / animSpeed; //delta=0.81 
 			}
@@ -240,7 +240,7 @@ StopWalking() {
 	turn rmfoot to x-axis <42.174386> speed <534.995911>;
 	turn rmleg to x-axis <-13.647429> speed <364.222757>;
 	turn rthigh to x-axis <0.000000> speed <54.872305>;
-	if ( !isAiming){
+	if ( !isOpen){
 		turn turret to x-axis <-2.703695> speed <20.277715>;
 		turn turret to z-axis <3.120575> speed <23.404310>;
 	}
@@ -343,41 +343,7 @@ Stop()
 {
 	isOpen = 0;
 	call-script deactivatescr();
-	isAiming = FALSE;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	isOpen = FALSE;
 	return (0);
 }
 
@@ -389,13 +355,11 @@ Create()
 	hide stocked;
 	show unstocked;
 	isMoving = FALSE;
-	isOpen = 0;
-	isAiming = FALSE;
-	call-script InitState();
+
+	isOpen = FALSE;
 	animspeed = 4;
 	return (0);
 }
-
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -404,8 +368,15 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+
+	isOpen = FALSE;
+	turn turret to x-axis <0> speed <30>;
+	wait-for-turn turret around x-axis;
+
+	turn ldoor to y-axis <0> speed <30>;
+	turn rdoor to y-axis <0> speed <30>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -421,56 +392,46 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	isAiming = TRUE;
-	while( !isOpen )
+	if( !isOpen )
 	{
-		sleep 100;
+		turn turret to x-axis <90> speed <30>;
+		wait-for-turn turret around x-axis;
+
+		turn ldoor to y-axis <-25> speed <30>;
+		turn rdoor to y-axis <25> speed <30>;
+		wait-for-move ldoor along y-axis;
+		isOpen = TRUE;
 	}
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
-}
-
-
-
-stocked_no()
-{
-	hide stocked;
-	show unstocked;
-}
-
-stocked_yes()
-{
-	show stocked;
-	hide unstocked;
 }
 
 SetStockpile(num_stockpiled)
 {
+	get PRINT(get GAME_FRAME, num_stockpiled);
 	if (num_stockpiled == 0)
 	{
-		start-script stocked_no();
-		sleep 100;
+
+		hide stocked;
+		show unstocked;
 		missiles_stockpiled = 0;
 	}
 	if (num_stockpiled >= 1)
 	{
-		start-script stocked_yes();
-		sleep 100;
+
+		show stocked;
+		hide unstocked;
 		missiles_stockpiled = 1;
 	}
 }

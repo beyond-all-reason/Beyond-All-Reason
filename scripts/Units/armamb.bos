@@ -24,13 +24,10 @@ openTurret()
 	move stand to y-axis [0] speed [34];
 	wait-for-move door1 along y-axis;
 	wait-for-move stand along y-axis;
-	sleep 250;
+
 
 	move barrel to z-axis [0] speed [51];
-	sleep 300;
-
-	sleep 25;
-	return (0);
+	wait-for-move barrel along z-axis;
 }
 
 closeTurret()
@@ -38,9 +35,9 @@ closeTurret()
 	turn stand to y-axis <0> speed <100>;
 	turn turret to x-axis <0> speed <50>;
 	move barrel to z-axis [-16] speed [51];
-	sleep 300;
 	wait-for-turn stand around y-axis;
 	wait-for-turn turret around x-axis;
+	wait-for-move barrel along z-axis;
 
 	move door1 to y-axis [15] speed [45.000000];
 	move door2 to y-axis [15] speed [45.000000];
@@ -55,9 +52,6 @@ closeTurret()
 	turn door3 to x-axis <90.000000> speed <227.093407>;
 	turn door4 to z-axis <90.000000> speed <227.093407>;
 	wait-for-turn door1 around x-axis;
-
-	sleep 17;
-	return (0);
 }
 
 
@@ -78,11 +72,6 @@ Stop()
 	turretOpen = 0;
 	call-script closeTurret();
 	return (0);
-}
-
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
 }
 
 ExecuteRestoreAfterDelay()
@@ -140,13 +129,13 @@ Create()
 Activate()
 {
 	signal SIGNAL_AIM2;
-	start-script RequestState(HIGH_TRAJECTORY);
+	trajectoryMode = HIGH_TRAJECTORY;
 }
 
 Deactivate()
 {
 	signal SIGNAL_AIM2;
-	start-script RequestState(LOW_TRAJECTORY);
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
 aimCommon(heading, pitch)

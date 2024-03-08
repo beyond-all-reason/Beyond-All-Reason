@@ -3,21 +3,18 @@
 
 piece  base, turret, arm, head1, head2, claw1, claw2;
 
-static-var  resourceRate, statechg_DesiredState, statechg_StateChanging;
+static-var  resourceRate;
 static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
-#define SIGNAL_WORK 8
 
 
-Go()
+DoWork()
 {
 	if (Stunned) {
 		return(0);
 	}
-	signal SIGNAL_WORK;
-	set-signal-mask SIGNAL_WORK;
 	
 	spin claw1 around z-axis speed resourceRate accelerate resourceRate/100.0;
 	spin claw2 around z-axis speed -1*resourceRate accelerate resourceRate/100.0;
@@ -36,71 +33,7 @@ Go()
 	}
 }
 
-Stop()
-{
-	stop-spin claw1 around z-axis decelerate resourceRate/100.0;
-	stop-spin claw2 around z-axis decelerate resourceRate/100.0;
-	stop-spin turret around y-axis decelerate resourceRate/300.0;
-	turn arm to z-axis <0> speed <45>;
-	move head1 to x-axis [0] speed [6];
-	move head2 to y-axis [0] speed [6];
-	sleep 3000;
-}
-
-SetStunned(State)
-{
-	Stunned = State;
-	if (Stunned) {
-	    call-script Stop();
-	} else {
-	    call-script Go();
-	}
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			start-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			signal SIGNAL_WORK;
-			start-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	resourceRate = 0;
-	call-script InitState();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
+EmitBubbles(){
 	while( TRUE )
 	{
 		emit-sfx 259 from claw1;
@@ -109,10 +42,38 @@ Activate()
 	}
 }
 
+SetStunned(State)
+{
+	Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
+}
+
+Create()
+{
+	resourceRate = 0;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	start-script DoWork();
+	start-script EmitBubbles();
+}
+
 Deactivate()
 {
-	start-script RequestState(1);
-	signal SIGNAL_TURNON;
+	signal SIGNAL_TURNON;	
+	stop-spin claw1 around z-axis decelerate resourceRate/100.0;
+	stop-spin claw2 around z-axis decelerate resourceRate/100.0;
+	stop-spin turret around y-axis decelerate resourceRate/300.0;
+	turn arm to z-axis <0> speed <45>;
+	move head1 to x-axis [0] speed [6];
+	move head2 to y-axis [0] speed [6];
 }
 
 

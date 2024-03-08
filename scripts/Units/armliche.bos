@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  flare1, flare2, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1, bomb2;
-static-var  inAileronRoll, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  inAileronRoll, gun_1;
 
 
 #define BASEPIECE base
@@ -11,80 +11,6 @@ static-var  inAileronRoll, gun_1, statechg_DesiredState, statechg_StateChanging;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-activatescr()
-{
-	if( TRUE )
-	{
-		move wing1 to x-axis [0.000000] now;
-		move wing1 to x-axis [-2.400000] speed [1.646088];
-		move wing1 to z-axis [0.000000] now;
-		move wing1 to z-axis [-0.500000] speed [0.342920];
-		move wing2 to x-axis [0.000000] now;
-		move wing2 to x-axis [2.449994] speed [1.680371];
-		move wing2 to z-axis [0.000000] now;
-		move wing2 to z-axis [-0.550000] speed [0.377228];
-		turn wing1 to z-axis <0.000000> now;
-		turn wing1 to z-axis <0.890110> speed <0.615385>;
-		turn wing2 to z-axis <0.000000> now;
-		turn wing2 to z-axis <-2.692308> speed <1.846154>;
-		sleep 1458;
-	}
-	sleep 66;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move wing1 to x-axis [-2.400000] now;
-		move wing1 to x-axis [0.000000] speed [1.646088];
-		move wing1 to z-axis [-0.500000] now;
-		move wing1 to z-axis [0.000000] speed [0.342920];
-		move wing2 to x-axis [2.449994] now;
-		move wing2 to x-axis [0.000000] speed [1.680371];
-		move wing2 to z-axis [-0.550000] now;
-		move wing2 to z-axis [0.000000] speed [0.377228];
-		turn wing1 to z-axis <0.890110> now;
-		turn wing1 to z-axis <0.000000> speed <0.615385>;
-		turn wing2 to z-axis <-2.692308> now;
-		turn wing2 to z-axis <0.000000> speed <1.846154>;
-		sleep 1458;
-	}
-	sleep 66;
-}
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 MoveRate2()
 {
@@ -109,7 +35,6 @@ Create()
 	hide flare1;
 	inAileronRoll = 0;
 	gun_1 = flare1;
-	call-script InitState();
 }
 
 Activate()
@@ -117,7 +42,12 @@ Activate()
 	show thrustc;
 	show thrusta;
 	show thrustb;
-	start-script RequestState(0);
+	move wing1 to x-axis [-2.4] speed [2.4];
+	move wing1 to z-axis [-0.5] speed [0.5];
+	move wing2 to x-axis [2.4] speed [2.4];
+	move wing2 to z-axis [-0.5] speed [0.5];
+	turn wing1 to z-axis <0.89> speed <0.89>;
+	turn wing2 to z-axis <-2.69> speed <2.69>;
 }
 
 Deactivate()
@@ -125,7 +55,12 @@ Deactivate()
 	hide thrustc;
 	hide thrusta;
 	hide thrustb;
-	start-script RequestState(1);
+	move wing1 to x-axis [0.000000] speed [2.4];
+	move wing1 to z-axis [0.000000] speed [0.5];
+	move wing2 to x-axis [0.000000] speed [2.4];
+	move wing2 to z-axis [0.000000] speed [0.5];
+	turn wing1 to z-axis <0.000000> speed <0.89>;
+	turn wing2 to z-axis <0.000000> speed <2.69>;
 }
 
 FireWeapon1()
@@ -138,7 +73,6 @@ FireWeapon1()
 	{
 	hide bomb2;
 	}
-	
 	gun_1 = !gun_1;
 }
 
@@ -153,7 +87,6 @@ AimWeapon1()
 	show bomb2;
 	}
 	return (1);
-	
 }
 
 QueryWeapon1(pieceIndex)
