@@ -43,7 +43,7 @@ local function extractInfo(wupget, filename)
 		info.layer = info.layer or 0
 
 		if wupget.GetChildPaths then
-			info.childPaths = wupget:GetChildPaths(path)
+			info.childPaths = wupget:GetChildPaths()
 		end
 	end
 
