@@ -442,17 +442,24 @@ function UpdateList(force)
 
 	table.sort(fullWidgetsList, SortWidgetListFunc)
 
-	local function insertChildWidgets(parentIndex, nameDataPair, depth)
-		if nameDataPair[2].children and #nameDataPair[2].children > 0 then
+	local function insertChildWidgets(parentIndex, nameDataPair, _prefix)
+		_prefix = _prefix or ""
+		local children = nameDataPair[2].children
+		if children and #children > 0 then
 			local childrenToAdd = {}
+			local branch
+			local extraPrefix = {}
 
-			for idx, child in ipairs(nameDataPair[2].children) do
-				local displayName = '├'
-			    if idx == #nameDataPair[2].children then
-					displayName = '└'
+			for idx, child in ipairs(children) do
+			    if idx == #children then
+					branch = "└╌"
+					extraPrefix[idx] = "  "
+				else
+					branch = "├╌"
+					extraPrefix[idx] = "│ "
 				end
-				-- non breaking space
-				displayName = string.rep(' ', depth - 1) .. displayName .. ' ' .. child.name
+
+				local displayName = _prefix .. branch .. child.name
 				if checkTextFilter(displayName, child) then
 					childrenToAdd[#childrenToAdd + 1] =  { displayName, child }
 				end
@@ -463,7 +470,7 @@ function UpdateList(force)
 			for childIdx = #childrenToAdd, 1, -1 do
 				local child = childrenToAdd[childIdx]
 				table.insert(fullWidgetsList, parentIndex + 1, child)
-				insertChildWidgets(parentIndex + 1, child, depth + 1)
+				insertChildWidgets(parentIndex + 1, child, _prefix .. extraPrefix[childIdx])
 			end
 		end
 	end
