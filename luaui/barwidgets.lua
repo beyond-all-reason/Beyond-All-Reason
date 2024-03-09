@@ -818,9 +818,7 @@ function widgetHandler:InsertWidget(widget)
 		if parentWidget then
 			widget.parent = parentWidget
 			parentWidget.children = parentWidget.children or {}
-			if not table.contains(parentWidget.children, widget) then
-				table.insert(parentWidget.children, widget)
-			end
+			ArrayInsert(parentWidget.children, true, widget)
 		end
 	end
 
@@ -861,6 +859,15 @@ function widgetHandler:RemoveWidget(widget)
 	if widget.Shutdown then
 		widget:Shutdown()
 	end
+
+	if ki.parent then
+		widget.parent = nil
+		local parentWidget = self:FindWidget(ki.parent.name)
+		if type(parentWidget.children) == 'table' then
+			ArrayRemove(parentWidget.children, widget)
+		end
+	end
+
 	ArrayRemove(self.widgets, widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)

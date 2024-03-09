@@ -696,9 +696,7 @@ function gadgetHandler:InsertGadget(gadget)
 		if parentGadget then
 			gadget.parent = parentGadget
 			parentGadget.children = parentGadget.children or {}
-			if not table.contains(parentGadget.children, gadget) then
-				table.insert(parentGadget.children, gadget)
-			end
+			ArrayInsert(parentGadget.children, true, gadget)
 		end
 	end
 
@@ -733,6 +731,14 @@ function gadgetHandler:RemoveGadget(gadget)
 
 	if gadget.Shutdown then
 		gadget:Shutdown()
+	end
+
+	if ki.parent then
+		gadget.parent = nil
+		local parentGadget = self:FindGadget(ki.parent.name)
+		if type(parentGadget.children) == 'table' then
+			ArrayRemove(parentGadget.children, gadget)
+		end
 	end
 
 	ArrayRemove(self.gadgets, gadget)
