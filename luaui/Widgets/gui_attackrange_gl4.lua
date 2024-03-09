@@ -21,6 +21,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false                -- only show ranges when shift is held down
 local cursor_unit_range = true          -- displays the range of the unit at the mouse cursor (if there is one)
+local selectionDisableThreshold = 100	-- turns off when selection is above this number
+local selectionFilterThreshold = 50		-- filter units (fighters, added in: thresholdFilteredUnitDefs) from displaying their ranges when selection gets above ## amount of units
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
@@ -108,6 +110,7 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
+local thresholdFilteredUnitDefs = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -120,8 +123,10 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
+	if ud.customParams.fighter or ud.customParams.drone then
+		thresholdFilteredUnitDefs[udid] = true
+	end
 end
-
 
 local chunk, err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
 if chunk then
@@ -1110,7 +1115,7 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] then
+		if not selUnits[unitID] and selUnitCount < selectionDisableThreshold and (selUnitCount < selectionFilterThreshold or not thresholdFilteredUnitDefs[spGetUnitDefID(unitID)]) then
 			AddSelectedUnit(unitID)
 		end
 	end
