@@ -109,7 +109,6 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
-local thresholdFilteredUnitDefs = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -121,9 +120,6 @@ for udid, ud in pairs(UnitDefs) do
 	unitOnOffable[udid] = ud.onOffable
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
-	end
-	if ud.customParams.fighter or ud.customParams.drone then
-		thresholdFilteredUnitDefs[udid] = true
 	end
 end
 
