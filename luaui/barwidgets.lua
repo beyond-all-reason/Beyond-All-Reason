@@ -337,7 +337,12 @@ function widgetHandler:Initialize()
 
 	local function makeLoaderCallback(fromZip)
 		return function(filePath, parentInfo)
-			local widget, widgetInfo = self:LoadWidget(filePath, fromZip, false, parentInfo)
+			local widget, widgetInfo, notLoadedNoError = self:LoadWidget(filePath, fromZip, false, parentInfo)
+			Yield()
+
+			if notLoadedNoError == true then
+				return false
+			end
 
 			-- did the widget load correctly AND is it to start enabled?
 			-- Check if this widget is not allowed be loaded from user space
@@ -345,7 +350,6 @@ function widgetHandler:Initialize()
 				table.insert(widgetsToLoad, widget)
 			end
 
-			Yield()
 			return widgetInfo
 		end
 	end
@@ -411,7 +415,8 @@ function widgetHandler:AddSpadsMessage(contents)
 end
 
 
----@return table | nil, WidgetInfo | nil widget if loaded, widgetInfo if that was loaded
+---@return table | nil, WidgetInfo | nil, boolean | nil
+---widget if loaded, widgetInfo if that was loaded, boolean true if widget was not loaded and to not log an error
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentInfo)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
@@ -443,7 +448,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 			return nil
 		end
 		if err == false then
-			return nil, false -- widget asked for a silent death
+			return nil, nil, true -- widget asked for a silent death
 		end
 
 		if widget.GetInfo == nil then
@@ -470,7 +475,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 		return nil
 	end
 	if err == false then
-		return nil, false -- widget asked for a silent death
+		return nil, nil, true -- widget asked for a silent death
 	end
 
 	if widget.GetInfo == nil then
@@ -930,16 +935,12 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 		return false
 	end
 
-	-- make sure parent is enabled first
-	if ki.parent and not ki.parent.active then
-		self:EnableWidget(ki.parent.name, enableLocalsAccess)
-		--if not self:EnableWidget(ki.parent.name, enableLocalsAccess) then
-		--	Spring.Echo('Failed to activate parent widget of %s', ki.filename)
-		--	return false
-		--end
-	end
-
 	if not ki.active then
+		-- make sure parent is enabled first
+		if ki.parent and not ki.parent.active then
+			self:EnableWidget(ki.parent.name, enableLocalsAccess)
+		end
+
 		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
@@ -977,7 +978,6 @@ function widgetHandler:DisableWidget(name)
 		local w = self:FindWidget(name)
 		if not w then
 			Spring.Echo("DisableWidget(), found active info but could not find widget: " .. tostring(name))
-			Spring.Debug.TableEcho(ki)
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)

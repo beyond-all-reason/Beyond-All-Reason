@@ -137,9 +137,12 @@ end
 
 -- forward declarations as these functions all rely on each other
 
+---@alias LoaderCallback fun(filePath:string, parentInfo: WupgetInfo | nil): WupgetInfo | nil | boolean
+--- WidgetInfo if loaded, nil if failed to load, false if failed to load but not to report an error
+
 ---@param fileOrDirPath string
 ---@param vfsMode
----@param loaderCallback fun(filePath:string, parentInfo: WupgetInfo | nil): WupgetInfo
+---@param loaderCallback LoaderCallback
 ---@param loadedFilePaths WupgetInfo[] | nil
 ---@param parentInfo WupgetInfo | nil
 local function loadFromPath(fileOrDirPath, vfsMode, loaderCallback, loadedFilePaths, parentInfo)
@@ -147,7 +150,7 @@ end
 
 ---@param modulePaths string[]
 ---@param vfsMode
----@param loaderCallback fun(filePath:string, parentInfo: WupgetInfo | nil): WupgetInfo
+---@param loaderCallback LoaderCallback
 ---@param loadedFilePaths WupgetInfo[] | nil
 ---@param parentInfo WupgetInfo | nil
 local function loadFromList(modulePaths, vfsMode, loaderCallback, loadedFilePaths, parentInfo)
@@ -155,7 +158,7 @@ end
 
 ---@param dirPath string
 ---@param vfsMode
----@param loaderCallback fun(filePath:string, parentInfo: WupgetInfo | nil): WupgetInfo
+---@param loaderCallback LoaderCallback
 ---@param loadedFilePaths WupgetInfo[] | nil
 ---@param parentInfo WupgetInfo | nil
 local function loadAllInDir(dirPath, vfsMode, loaderCallback, loadedFilePaths, parentInfo)

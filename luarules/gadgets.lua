@@ -346,15 +346,18 @@ function gadgetHandler:Initialize()
 		GADGETS_DIR,
 		VFSMODE,
 		function(gf, parentGadget)
-			local gadget, gadgetInfo = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)], parentGadget)
+			local gadget, gadgetInfo, notLoadedNoError = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)], parentGadget)
+
+			if not IsSyncedCode() and doMoreYield then
+				doMoreYield = Spring.Yield()
+			end
+
+			if notLoadedNoError == true then
+				return false
+			end
+
 			if gadget then
 				table.insert(gadgetsToLoad, gadget)
-				if not IsSyncedCode() and doMoreYield then
-					doMoreYield = Spring.Yield()
-					if doMoreYield == false then --GetThreadSafety == false
-						--Spring.Echo("GadgetHandler Yield: entering critical section")
-					end
-				end
 			end
 			return gadgetInfo
 		end
@@ -387,6 +390,8 @@ function gadgetHandler:Initialize()
 	end
 end
 
+---@return table | nil, WidgetInfo | nil, boolean | nil
+---gadget if loaded, gadgetInfo if that was loaded, boolean true if widget was not loaded and to not log an error
 function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 	local kbytes = false -- set to number to enable
 	if kbytes and collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
@@ -416,7 +421,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 		return nil
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
-		return nil, false -- gadget asked for a quiet death
+		return nil, nil, true -- gadget asked for a quiet death
 	end
 
 	local gadgetInfo = self:LoadGadgetInfo(gadget, filename, basename, path)
@@ -814,15 +819,15 @@ function gadgetHandler:EnableGadget(name)
 		return false
 	end
 
-	-- make sure parent is enabled first
-	if ki.parent and not ki.parent.active then
-		if not self:EnableGadget(ki.parent.name) then
-			Spring.Echo('Failed to activate parent gadget of %s', ki.filename)
-			return false
-		end
-	end
-
 	if not ki.active then
+		-- make sure parent is enabled first
+		if ki.parent and not ki.parent.active then
+			if not self:EnableGadget(ki.parent.name) then
+				Spring.Echo('Failed to activate parent gadget of %s', ki.filename)
+				return false
+			end
+		end
+
 		Spring.Log(LOG_SECTION, LOG.INFO, 'Loading:  ' .. ki.filename)
 		local order = gadgetHandler.orderList[name]
 		if not order or order <= 0 then
