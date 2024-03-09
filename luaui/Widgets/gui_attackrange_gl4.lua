@@ -21,8 +21,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false                -- only show ranges when shift is held down
 local cursor_unit_range = true          -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 100	-- turns off when selection is above this number
-local selectionFilterThreshold = 50		-- filter units (fighters, added in: thresholdFilteredUnitDefs) from displaying their ranges when selection gets above ## amount of units
+local selectionDisableThreshold = 80	-- turns off when selection is above this number
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
@@ -1115,7 +1114,7 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < selectionDisableThreshold and (selUnitCount < selectionFilterThreshold or not thresholdFilteredUnitDefs[spGetUnitDefID(unitID)]) then
+		if not selUnits[unitID] and selUnitCount < selectionDisableThreshold then
 			AddSelectedUnit(unitID)
 		end
 	end
