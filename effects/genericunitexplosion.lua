@@ -2947,7 +2947,7 @@ local types = {
     --sparks = false,
   },
   phib = {
-    groundflash_small = false,
+    --groundflash_small = false,
     groundflash_large = false,
     groundflash_white = false,
     dirt = true,
