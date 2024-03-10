@@ -123,6 +123,8 @@ local gridOpts = {}
 local gridOptsCount
 local categories = {}
 local currentCategory
+local useLabBuildMode = true
+local labBuildModeActive = false
 local selectNextFrame, switchedCategory
 
 local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
@@ -224,6 +226,7 @@ local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
+local labBuildModeRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
 local nextBuilderRect = Rect:new(0, 0, 0, 0)
@@ -493,6 +496,12 @@ local function setupCategoryRects()
 end
 
 
+local function setLabBuildMode(value)
+	labBuildModeActive = value
+	doUpdate = true
+end
+
+
 local function setCurrentCategory(category)
 	currentCategory = category
 	setupCategoryRects()
@@ -502,6 +511,7 @@ end
 
 local function clearCategory()
 	setCurrentCategory(nil)
+	setLabBuildMode(false)
 	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
 	doUpdate = true
 end
@@ -546,6 +556,11 @@ local function gridmenuCategoryHandler(_, _, args)
 	if not cIndex or cIndex < 1 or cIndex > 4 then
 		return
 	end
+	if (builderIsFactory and useLabBuildMode and not labBuildModeActive) then
+		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+		setLabBuildMode(true)
+		return true
+	end
 	if not activeBuilder or builderIsFactory or (currentCategory and hotkeyActions["1" .. cIndex]) then
 		return
 	end
@@ -564,6 +579,9 @@ end
 
 
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
+	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
+		return
+	end
 	-- validate args
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
@@ -757,6 +775,15 @@ function widget:Initialize()
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
+	WG["gridmenu"].usingLabBuildMode = function()
+		return useLabBuildMode
+	end
+	WG["gridmenu"].useLabBuildMode = function(value)
+		useLabBuildMode = value
+		widget:Update(1000)
+		widget:ViewResize()
+		doUpdate = true
+	end
 	WG["gridmenu"].setCurrentCategory = function(category)
 		setCurrentCategory(category)
 	end
@@ -834,7 +861,7 @@ function widget:ViewResize()
 	TexRectRound = WG.FlowUI.Draw.TexRectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	categoryFontSize = 0.0115 * ui_scale * vsy
+	categoryFontSize = 0.013 * ui_scale * vsy
 	hotkeyFontSize = categoryFontSize + 5
 	pageFontSize = categoryFontSize
 	categoryButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
@@ -894,6 +921,13 @@ function widget:ViewResize()
 			categoriesRect.y + bgpadding,
 			categoriesRect.xEnd,
 			categoriesRect.y + buttonHeight - bgpadding)
+
+		labBuildModeRect = Rect:new(
+			categoriesRect.x,
+			categoriesRect.y + buttonHeight + bgpadding,
+			categoriesRect.xEnd,
+			categoriesRect.yEnd - bgpadding
+		)
 
 		-- start with no width and grow dynamically
 		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
@@ -961,6 +995,13 @@ function widget:ViewResize()
 			categoriesRect.xEnd,
 			categoriesRect.yEnd - padding)
 
+		labBuildModeRect = Rect:new(
+			categoriesRect.x,
+			categoriesRect.y + padding,
+			nextPageRect.x - (2 * bgpadding),
+			categoriesRect.yEnd - padding
+		)
+
 		-- start with no width and grow dynamically
 		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
 	end
@@ -978,6 +1019,7 @@ function widget:Update(dt)
 		activeBuilder = nil
 		activeBuilderID = nil
 		builderIsFactory = false
+		labBuildModeActive = false
 		setCurrentCategory(nil)
 		selectedBuilders = {}
 		selectedBuildersCount = 0
@@ -1276,7 +1318,12 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	end
 
 	-- hotkey draw
-	if cmd.hotkey and (builderIsFactory or (activeBuilder and currentCategory)) then
+	if
+		cmd.hotkey and
+		((builderIsFactory and not useLabBuildMode) or
+		(builderIsFactory and (useLabBuildMode and labBuildModeActive)) or
+		(activeBuilder and currentCategory))
+	then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local keyFontSize = priceFontSize * 1.1
@@ -1378,13 +1425,16 @@ end
 
 
 local function drawPageAndBackButtons()
-	if currentCategory and not builderIsFactory then
+	if
+		(currentCategory and not builderIsFactory) or
+		(builderIsFactory and useLabBuildMode and labBuildModeActive)
+	then
 		-- Back button
 		local backText = "Back"
 		local buttonWidth = backRect:getWidth()
 		local buttonHeight = backRect:getHeight()
 		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight / 2
-		font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize * 1.1, "co")
+		font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize, "co")
 		if not stickToBottom then
 			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 		end
@@ -1416,6 +1466,70 @@ local function drawPageAndBackButtons()
 
 		drawButtonHotkey(nextPageRect, nextKeyText)
 		drawButton(nextPageRect, opts)
+	end
+end
+
+
+local function drawBuildModeButtons()
+	-- lab build mode button
+	if builderIsFactory and useLabBuildMode then
+		if labBuildModeActive then
+			local fontSize = pageFontSize * 1.2
+			local buildModeText = "\255\245\245\245" .. "Build Mode"
+			local containerHeight = categoriesRect:getHeight()
+			local fontHeight = font2:GetTextHeight(buildModeText) * fontSize
+			local fontWidth = font2:GetTextWidth(buildModeText) * fontSize
+			local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+			local left = center - (fontWidth / 2)
+			local fontHeightOffset = fontHeight * 0.3
+			font2:Print(buildModeText, left, (categoriesRect.y + (containerHeight / 2)) - fontHeightOffset, fontSize, "o")
+		else
+			local hotkeys = ""
+			for i = 1, #categoryKeys do
+				hotkeys = hotkeys .. keyConfig.sanitizeKey(categoryKeys[i], currentLayout)
+			end
+
+			local opts = {
+				highlight = false,
+				hovered = hoveredButton and labBuildModeRect:getId() == hoveredButton,
+			}
+
+			if stickToBottom then
+				local rect = labBuildModeRect
+				local fullText = "\255\245\245\245" .. "Enable Build Mode"
+				local height = font2:GetTextHeight(fullText) * pageFontSize
+				local buildModeText, lines = font2:WrapText(fullText, categoriesRect:getWidth() - (bgpadding * 2), nil, pageFontSize * 1.1)
+				local buttonHeight = rect:getHeight()
+				local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
+				local fontHeightOffset = fontHeight * 0.24
+				font2:Print(buildModeText, rect.x + (bgpadding * 3), (rect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "n")
+
+				-- draw hotkeys differently for this button
+				local keyFontHeight = font2:GetTextHeight(hotkeys) * hotkeyFontSize
+				local keyFontWidth = font2:GetTextWidth(hotkeys) * hotkeyFontSize
+				local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+				local left = center - (keyFontWidth / 2)
+
+				local text = "\255\215\255\215" .. hotkeys
+				font2:Print(
+					text,
+					left,
+					rect.y + (keyFontHeight * 0.8),
+					hotkeyFontSize,
+					"o"
+				)
+				drawButton(labBuildModeRect, opts)
+			else
+				local buildModeText = "\255\245\245\245" .. "Enable Build Mode"
+				local buttonHeight = labBuildModeRect:getHeight()
+				local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
+				local fontHeightOffset = fontHeight * 0.24
+				font2:Print(buildModeText, labBuildModeRect.x + (bgpadding * 3), (labBuildModeRect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "o")
+				drawButtonHotkey(labBuildModeRect, hotkeys)
+				drawButton(labBuildModeRect, opts)
+			end
+
+		end
 	end
 end
 
@@ -1678,6 +1792,7 @@ local function drawBuildMenu()
 	drawGrid()
 	drawPageAndBackButtons()
 	drawBuilders()
+	drawBuildModeButtons()
 
 	font2:End()
 end
@@ -1716,7 +1831,7 @@ end
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if currentCategory and key == KEYSYMS.ESCAPE then
-		setCurrentCategory(nil)
+		clearCategory()
 		doUpdate = true
 	end
 end
@@ -1725,6 +1840,10 @@ end
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then
 		return
+	end
+
+	if labBuildModeActive then
+		setLabBuildMode(false)
 	end
 
 	if isPregame then
@@ -1753,7 +1872,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 
-			if currentCategory then
+			if currentCategory or labBuildModeActive then
 				if backRect and backRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					clearCategory()
@@ -1761,6 +1880,12 @@ function widget:MousePress(x, y, button)
 				end
 			end
 
+			if useLabBuildMode and not labBuildModeActive then
+				if labBuildModeRect and labBuildModeRect:contains(x, y) then
+					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					setLabBuildMode(true)
+				end
+			end
 
 			for i, rect in pairs(builderRects) do
 				if rect:contains(x, y) then
@@ -1769,6 +1894,7 @@ function widget:MousePress(x, y, button)
 					return true
 				end
 			end
+
 			if nextBuilderRect:contains(x, y) then
 				cycleBuilder()
 				doUpdate = true
@@ -1820,7 +1946,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 	elseif activeBuilder and button == 3 then
-		setCurrentCategory(nil)
+		clearCategory()
 		doUpdate = true
 	end
 end
@@ -1925,8 +2051,10 @@ local function handleButtonHover()
 						break
 					end
 				end
+			end
 
-			else
+			if currentCategory or labBuildModeActive then
+				-- back button
 				if backRect and backRect:contains(x, y) then
 					hoveredButton = backRect:getId()
 					hoveredButtonNotFound = false
@@ -1936,6 +2064,7 @@ local function handleButtonHover()
 					end
 				end
 			end
+
 			if pages > 1 then
 				-- paginator buttons
 				if nextPageRect and nextPageRect:contains(x, y) then
@@ -1943,6 +2072,18 @@ local function handleButtonHover()
 					hoveredButtonNotFound = false
 					if WG['tooltip'] then
 						local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+						WG['tooltip'].ShowTooltip('buildmenu', text)
+					end
+				end
+			end
+
+			if builderIsFactory and not labBuildModeActive then
+				-- build mode button
+				if labBuildModeRect and labBuildModeRect:contains(x, y) then
+					hoveredButton = labBuildModeRect:getId()
+					hoveredButtonNotFound = false
+					if WG['tooltip'] then
+						local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.buildmode_descr')
 						WG['tooltip'].ShowTooltip('buildmenu', text)
 					end
 				end
