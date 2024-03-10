@@ -563,7 +563,7 @@ function SetModulesPositionX()
     end)
     local pos = 1
 
-    local sizeMult = playerScale + ((1-playerScale)*0.25)
+    local sizeMult = playerScale + ((1-playerScale)*0.2)
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
@@ -804,8 +804,8 @@ end
 
 local function doPlayerUpdate()
     GetAllPlayers()
-    SetModulesPositionX()
     SortList()
+    SetModulesPositionX()
     CreateLists()
 end
 
@@ -861,11 +861,11 @@ function widget:Initialize()
 	end
 
 	GeometryChange()
-	SetModulesPositionX()
 	SetSidePics()
 	InitializePlayers()
 	GetAliveAllyTeams()
 	SortList()
+    SetModulesPositionX()
 
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
@@ -875,8 +875,8 @@ function widget:Initialize()
 		alwaysHideSpecs = value
 		if alwaysHideSpecs and specListShow then
 			specListShow = false
+            SortList()
 			SetModulesPositionX() --why?
-			SortList()
 			CreateLists()
 		end
 	end
@@ -962,8 +962,8 @@ function widget:Initialize()
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
+                SortList()
 				SetModulesPositionX()
-				SortList()
 				CreateLists()
 				break
 			end
@@ -2150,7 +2150,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 local msh = player[playerID].metalShare
-                if es > 0 then
+                if es and es > 0 then
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
@@ -2995,8 +2995,8 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - specsLabelOffset
         if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             specListShow = not specListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -3005,8 +3005,8 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -3789,8 +3789,8 @@ function widget:TextCommand(command)
         else
             specListShow = not specListShow
         end
-        SetModulesPositionX() --why?
         SortList()
+        SetModulesPositionX() --why?
         CreateLists()
     end
 end
