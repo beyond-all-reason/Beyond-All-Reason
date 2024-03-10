@@ -91,12 +91,16 @@ end
 ------------------------------------------
 ---          QUEUE HANDLING            ---
 ------------------------------------------
-local BUILDING_GRID_FORCE_SHOW_REASON = "gui_pregame_build"
+local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
 	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, uDefID ~= nil)
+		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil)
+	end
+
+	if WG['easyfacing'] ~= nil and WG['easyfacing'].setForceShow ~= nil then
+		WG['easyfacing'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
 	local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
@@ -530,9 +534,14 @@ function widget:Shutdown()
 	end
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
+
 	WG['pregame-build'] = nil
 	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, false)
+		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, false)
+	end
+
+	if WG['easyfacing'] ~= nil and WG['easyfacing'].setForceShow ~= nil then
+		WG['easyfacing'].setForceShow(FORCE_SHOW_REASON, false)
 	end
 end
 
