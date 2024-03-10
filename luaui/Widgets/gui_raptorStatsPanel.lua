@@ -14,14 +14,10 @@ function widget:GetInfo()
 	}
 end
 
-local useWaveMsg        = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
-local defIDsEcoValues 	= VFS.Include('LuaRules/gadgets/raptors/common.lua').defIDsEcoValues
+local useWaveMsg            = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
+local defIDsEcoValues       = VFS.Include('LuaRules/gadgets/raptors/common.lua').defIDsEcoValues
 
-local DiffTimers        = Spring.DiffTimers
-local GetGameRulesParam = Spring.GetGameRulesParam
-local GetGameSeconds    = Spring.GetGameSeconds
-local GetTimer          = Spring.GetTimer
-local I18N              = Spring.I18N
+local I18N                  = Spring.I18N
 
 local customScale           = 1
 local widgetScale           = customScale
@@ -34,7 +30,7 @@ if not Spring.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
-if not GetGameRulesParam("raptorDifficulty") then
+if not Spring.GetGameRulesParam("raptorDifficulty") then
 	return false
 end
 
@@ -134,7 +130,7 @@ end
 
 local function RaptorStage(currentTime)
 	local stage = stageGrace
-	if (currentTime and currentTime or GetGameSeconds()) > gameInfo.raptorGracePeriod then
+	if (currentTime and currentTime or Spring.GetGameSeconds()) > gameInfo.raptorGracePeriod then
 		if gameInfo.raptorQueenAnger < 100 then
 			stage = stageMain
 		else
@@ -255,7 +251,7 @@ local function CreatePanelDisplayList()
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
-	local currentTime = GetGameSeconds()
+	local currentTime = Spring.GetGameSeconds()
 	local stage = RaptorStage(currentTime)
 
 	if stage == stageGrace then
@@ -353,9 +349,9 @@ function widget:DrawScreen()
 	end
 
 	if showMarqueeMessage then
-		local t = GetTimer()
+		local t = Spring.GetTimer()
 
-		local waveY = viewSizeY - DiffTimers(t, waveTime) * waveSpeed * viewSizeY
+		local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
 		if waveY > 0 then
 			if refreshMarqueeMessage or not marqueeMessage then
 				marqueeMessage = getMarqueeMessage(messageArgs)
@@ -373,7 +369,7 @@ function widget:DrawScreen()
 		end
 	elseif #resistancesTable > 0 then
 		marqueeMessage = getResistancesMessage()
-		waveTime = GetTimer()
+		waveTime = Spring.GetTimer()
 		showMarqueeMessage = true
 	end
 end
@@ -381,7 +377,7 @@ end
 local function UpdateRules()
 	for i = 1, #rules do
 		local rule = rules[i]
-		gameInfo[rule] = GetGameRulesParam(rule) or 0
+		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
 
 	updatePanel = true
@@ -392,7 +388,7 @@ function RaptorEvent(raptorEventArgs)
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
-		waveTime = GetTimer()
+		waveTime = Spring.GetTimer()
 	end
 
 	if raptorEventArgs.type == "queenResistance" then
@@ -410,7 +406,7 @@ function RaptorEvent(raptorEventArgs)
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
-		waveTime = GetTimer()
+		waveTime = Spring.GetTimer()
 	end
 end
 
