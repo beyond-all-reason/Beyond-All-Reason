@@ -3697,6 +3697,8 @@ function widget:Update(delta)
         forceMainListRefresh = true
     end
     if forceMainListRefresh then
+        SortList()
+        SetModulesPositionX()
         CreateLists()
     else
         local updateMainList2 = timeCounter > updateRate*updateRateMult
