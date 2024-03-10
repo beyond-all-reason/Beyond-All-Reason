@@ -59,7 +59,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local minWidth = 190	-- for the sake of giving the addons some room
+local minWidth = 210	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
