@@ -226,7 +226,7 @@ end
 
 local function DrawPlayerAttractions(stage)
 	local row = stageMain == stage and 3 or 2
-	font:Print(I18N("ui.raptors.playerEcoAttractionLabel"):gsub("ui.raptors.playerEcoAttractionLabel", 'Player Eco Attractions:'), panelMarginX, PanelRow(row), panelFontSize)
+	font:Print(I18N("ui.raptors.playerEcoAttractionLabel"), panelMarginX, PanelRow(row), panelFontSize)
 	for i = 1, #playerEcoAttractionsRender do
 		local playerEcoAttraction = playerEcoAttractionsRender[i]
 		font:SetTextColor(playerEcoAttraction.color.red, playerEcoAttraction.color.green, playerEcoAttraction.color.blue, playerEcoAttraction.color.alpha)
@@ -262,7 +262,7 @@ local function CreatePanelDisplayList()
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
 		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59))
 
-		font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize)
+		font:Print(I18N('ui.raptors.queenETA', { time = '' }), panelMarginX, PanelRow(2), panelFontSize)
 		local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
 		local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
 		font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub('(.*):.*$', '%1')) * panelFontSize, PanelRow(2), panelFontSize)
@@ -272,7 +272,7 @@ local function CreatePanelDisplayList()
 			currentlyResistantTo = {}
 		end
 	elseif stage == stageQueen then
-		font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize)
+		font:Print(I18N('ui.raptors.queenHealth', { health = '' }), panelMarginX, PanelRow(1), panelFontSize)
 		local healthText = tostring(gameInfo.raptorQueenHealth)
 		font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize)
 
