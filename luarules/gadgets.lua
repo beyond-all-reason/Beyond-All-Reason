@@ -424,14 +424,16 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 		return nil, nil, true -- gadget asked for a quiet death
 	end
 
-	local gadgetInfo = self:LoadGadgetInfo(gadget, filename, basename, path)
+	local gadgetInfo = self:LoadOrCreateGadgetInfo(gadget, filename)
+	if type(gadgetInfo) == 'string' then -- is error message
+		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. ' (' .. gadgetInfo .. ')')
+		return nil
+	end
 
 	-- raw access to gadgetHandler
 	if gadgetInfo.handler then
 		gadget.gadgetHandler = self
 	end
-
-	local name = gadgetInfo.name
 
 	err = self:ValidateGadget(gadget)
 	if err then
@@ -439,21 +441,9 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 		return nil
 	end
 
-	local knownInfo = self.knownGadgetInfos[name]
-	if knownInfo then
-		if knownInfo.active then
-			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
-			return nil
-		end
-		gadgetInfo = knownInfo
-	else
-		self.knownGadgetInfos[name] = gadgetInfo
-		self.knownCount = self.knownCount + 1
-		self.knownChanged = true
-	end
-	gadgetInfo.active = true
 	parentInfo = parentInfo or gadgetInfo.parent
 
+	local name = gadgetInfo.name
 	local order = self.orderList[name]
 	if
 		((order ~= nil and order > 0) or (order == nil and gadgetInfo.enabled))
@@ -569,21 +559,39 @@ function gadgetHandler:NewGadget()
 	return gadget
 end
 
----@return GadgetInfo
-function gadgetHandler:LoadGadgetInfo(gadget, filename, basename, path)
-	local gi = wupgetLoader.extractInfo(gadget, filename)
-	gi.localPath = string.sub(path, #GADGETS_DIR + 1)
+---Retrieves previously existing GadgetInfo or creates a new one,
+--- then binds that info to gadget.ghInfo via a read-only proxy table
+---@return GadgetInfo | string GadgetInfo to use or error string
+function gadgetHandler:LoadOrCreateGadgetInfo(gadget, filename)
+	local gadgetInfo = wupgetLoader.extractInfo(gadget, filename)
+
+	local name = gadgetInfo.name
+	local existingInfo = self.knownGadgetInfos[name]
+	if existingInfo then
+		if existingInfo.active then
+			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
+			return nil
+		end
+		gadgetInfo = table.mergeInPlace(existingInfo, gadgetInfo)
+	else
+		self.knownGadgetInfos[name] = gadgetInfo
+		self.knownCount = self.knownCount + 1
+		self.knownChanged = true
+	end
+
+	gadgetInfo.localPath = string.sub(gadgetInfo.path, #GADGETS_DIR + 1)
+	gadgetInfo.active = true
 
 	gadget.ghInfo = {}  --  a proxy table
 	local mt = {
-		__index = gi,
+		__index = gadgetInfo,
 		__newindex = function()
 			error("ghInfo tables are read-only")
 		end,
 		__metatable = "protected"
 	}
 	setmetatable(gadget.ghInfo, mt)
-	return gi
+	return gadgetInfo
 end
 
 function gadgetHandler:ValidateGadget(gadget)

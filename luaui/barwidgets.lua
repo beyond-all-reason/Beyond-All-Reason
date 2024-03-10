@@ -451,11 +451,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 			return nil, nil, true -- widget asked for a silent death
 		end
 
-		if widget.GetInfo == nil then
-			Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
-			return nil
-		end
-
 		local localsNames = valOrErr
 
 		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
@@ -478,16 +473,16 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 		return nil, nil, true -- widget asked for a silent death
 	end
 
-	if widget.GetInfo == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
-		return nil
-	end
-
 	if enableLocalsAccess then
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
-	local widgetInfo = self:LoadWidgetInfo(widget, filename)
+	local widgetInfo = self:LoadOrCreateWidgetInfo(widget, filename, fromZip)
+	if type(widgetInfo) == 'string' then -- is error message
+		Spring.Echo('Failed to load: ' .. basename .. ' (' .. widgetInfo .. ')')
+		return nil
+	end
+
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
 	if widgetInfo.handler then
@@ -510,20 +505,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentI
 		return nil
 	end
 
-	local knownInfo = self.knownWidgetInfos[name]
-	if knownInfo then
-		if knownInfo.active then
-			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
-			return nil
-		end
-		widgetInfo = knownInfo
-	else
-		widgetInfo.fromZip = fromZip
-		self.knownWidgetInfos[name] = widgetInfo
-		self.knownCount = self.knownCount + 1
-		self.knownChanged = true
-	end
-	widgetInfo.active = true
 	parentInfo = parentInfo or widgetInfo.parent
 
 	-- Enabling
@@ -662,22 +643,46 @@ function widgetHandler:NewWidget()
 	return widget
 end
 
----@return WidgetInfo
-function widgetHandler:LoadWidgetInfo(widget, filename)
+---Retrieves previously existing WidgetInfo or creates a new one,
+--- then binds that info to widget.whInfo via a read-only proxy table
+---@return WidgetInfo | string WidgetInfo to use or error string
+function widgetHandler:LoadOrCreateWidgetInfo(widget, filename, fromZip)
+	if widget.GetInfo == nil then
+		return 'no GetInfo() call'
+	end
+
 	---@type WidgetInfo
-	local wi = wupgetLoader.extractInfo(widget, filename)
-	wi.localPath = string.sub(wi.path, #WIDGET_DIRNAME + 1)
+	local widgetInfo = wupgetLoader.extractInfo(widget, filename)
+
+	local name = widgetInfo.name
+	local existingInfo = self.knownWidgetInfos[name]
+	if existingInfo then
+		if existingInfo.active then
+			return 'duplicate name: ' .. existingInfo.name
+		end
+		-- apply any info changes, useful for development
+		widgetInfo = table.mergeInPlace(existingInfo, widgetInfo)
+	else
+		self.knownWidgetInfos[name] = widgetInfo
+		self.knownCount = self.knownCount + 1
+		self.knownChanged = true
+	end
+
+	widgetInfo.localPath = string.sub(widgetInfo.path, #WIDGET_DIRNAME + 1)
+	widgetInfo.fromZip = fromZip
+	widgetInfo.active = true
 
 	widget.whInfo = {}  --  a proxy table
 	local mt = {
-		__index = wi,
+		__index = widgetInfo,
 		__newindex = function()
 			error("whInfo tables are read-only")
 		end,
 		__metatable = "protected"
 	}
+
 	setmetatable(widget.whInfo, mt)
-	return wi;
+	return widgetInfo;
 end
 
 function widgetHandler:ValidateWidget(widget)
