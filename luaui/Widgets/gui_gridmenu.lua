@@ -1884,6 +1884,7 @@ function widget:MousePress(x, y, button)
 				if labBuildModeRect and labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
+					return true
 				end
 			end
 
@@ -1945,9 +1946,9 @@ function widget:MousePress(x, y, button)
 		elseif alwaysShow then
 			return true
 		end
-	elseif activeBuilder and button == 3 then
+	elseif activeBuilder and currentCategory and button == 3 then
 		clearCategory()
-		doUpdate = true
+		return true
 	end
 end
 
