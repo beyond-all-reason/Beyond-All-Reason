@@ -32,51 +32,11 @@ if gadgetHandler:IsSyncedCode() then
 	local teamsWithUnitsToKill = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local teamList = Spring.GetTeamList()
+	local teamInfo = {}
 
 	function gadget:Initialize()
 		if Spring.GetGameFrame() >= leaveWreckageFromFrame then
 			GG.wipeoutWithWreckage = leaveWreckage
-		end
-	end
-
-	local teamList = Spring.GetTeamList()
-	local teamTakeable = {}
-	local function updateTeamTakeable()
-		local allResigned, noneControlling
-		for i=1, #teamList do
-			local teamID = teamList[i]
-			if not teamTakeable[teamID] then
-				teamTakeable[teamID] = {
-					noneControlling = true,
-					allResigned = true,
-					players = GetPlayerList(teamID),
-					isLuaAiGaia = teamID == gaiaTeamID or GetTeamLuaAI(teamID) ~= "",
-					hostingPlayerID = GetAIInfo(teamID) and select(3, GetAIInfo(teamID)) or nil,
-				}
-			end
-
-			allResigned = true
-			noneControlling = true
-
-			-- team is handled by lua scripts
-			if teamTakeable[teamID] then
-				allResigned, noneControlling = false, false
-			end
-
-			for _, playerID in pairs(teamTakeable[teamID].players) do
-				local _, active, spec = GetPlayerInfo(playerID, false)
-				allResigned = allResigned and spec
-				noneControlling = noneControlling and (not active or spec)
-			end
-
-			-- team is handled by skirmish AI, make sure the hosting player is present
-			if teamTakeable[teamID].hostingPlayerID then
-				allResigned = false
-				noneControlling = noneControlling and not select(2, GetPlayerInfo(teamTakeable[teamID].hostingPlayerID, false))
-			end
-
-			teamTakeable[teamID].allResigned = allResigned
-			teamTakeable[teamID].noneControlling = noneControlling
 		end
 	end
 
@@ -101,12 +61,41 @@ if gadgetHandler:IsSyncedCode() then
 			destroyTeam(teamID)
 			teamsWithUnitsToKill[teamID] = nil
 		end
-
-		updateTeamTakeable()
-		for _, teamID in pairs(teamList) do
+		
+		local allResigned, noneControlling
+		for i=1, #teamList do
+			local teamID = teamList[i]
 			if not deadTeam[teamID] then
-				if teamTakeable[teamID].noneControlling then
-					if teamTakeable[teamID].allResigned then
+				if not teamInfo[teamID] then
+					teamInfo[teamID] = {
+						players = GetPlayerList(teamID),
+						isLuaAiGaia = teamID == gaiaTeamID or GetTeamLuaAI(teamID) ~= "",
+						hostingPlayerID = GetAIInfo(teamID) and select(3, GetAIInfo(teamID)) or nil,
+					}
+				end
+
+				allResigned = true
+				noneControlling = true
+
+				-- team is handled by lua scripts
+				if teamInfo[teamID] then
+					allResigned, noneControlling = false, false
+				end
+
+				for _, playerID in pairs(teamInfo[teamID].players) do
+					local _, active, spec = GetPlayerInfo(playerID, false)
+					allResigned = allResigned and spec
+					noneControlling = noneControlling and (not active or spec)
+				end
+
+				-- team is handled by skirmish AI, make sure the hosting player is present
+				if teamInfo[teamID].hostingPlayerID then
+					allResigned = false
+					noneControlling = noneControlling and not select(2, GetPlayerInfo(teamInfo[teamID].hostingPlayerID, false))
+				end
+
+				if noneControlling then
+					if allResigned then
 						destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
 					elseif not droppedTeam[teamID] then
 						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
@@ -119,6 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+
 		for teamID, frame in pairs(droppedTeam) do
 			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				if gameFrame < leaveWreckageFromFrame then
