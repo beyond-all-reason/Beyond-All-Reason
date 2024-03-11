@@ -96,7 +96,7 @@ local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
 	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil)
+		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
 	if WG['easyfacing'] ~= nil and WG['easyfacing'].setForceShow ~= nil then
