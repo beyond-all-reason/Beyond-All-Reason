@@ -1,4 +1,5 @@
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if not Spring.Utilities.Gametype.IsRaptors()
+	or Spring.Utilities.Gametype.IsScavengers() then
 	return false
 end
 
@@ -25,14 +26,6 @@ local font, font2
 local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage    = false
-
-if not Spring.Utilities.Gametype.IsRaptors() then
-	return false
-end
-
-if not Spring.GetGameRulesParam("raptorDifficulty") then
-	return false
-end
 
 local displayList
 local panelTexture               = ":n:LuaUI/Images/raptorpanel.tga"
