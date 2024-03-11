@@ -431,6 +431,7 @@ local unitOrderTable = {
    --ECO NRG GENS
    ['armwin']         = 101000,
    ['corwin']         = 101020,
+   ['legwin']         = 101060,
    ['armwint2']       = 101040, --scavengers
    ['corwint2']       = 101050, --scavengers
    ['armsolar']       = 101070,
