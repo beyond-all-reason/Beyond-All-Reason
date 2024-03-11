@@ -111,6 +111,7 @@ local stickToBottom = false
 local alwaysReturn = false
 local autoSelectFirst = true
 local alwaysShow = false
+local useLabBuildMode = false
 local showPrice = false    -- false will still show hover
 local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
@@ -123,7 +124,6 @@ local gridOpts = {}
 local gridOptsCount
 local categories = {}
 local currentCategory
-local useLabBuildMode = true
 local labBuildModeActive = false
 local selectNextFrame, switchedCategory
 
@@ -775,10 +775,10 @@ function widget:Initialize()
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
-	WG["gridmenu"].usingLabBuildMode = function()
+	WG["gridmenu"].getUseLabBuildMode = function()
 		return useLabBuildMode
 	end
-	WG["gridmenu"].useLabBuildMode = function(value)
+	WG["gridmenu"].setUseLabBuildMode = function(value)
 		useLabBuildMode = value
 		widget:Update(1000)
 		widget:ViewResize()
@@ -2358,6 +2358,7 @@ function widget:GetConfigData()
 	return {
 		alwaysReturn = alwaysReturn,
 		autoSelectFirst = autoSelectFirst,
+		useLabBuildMode = useLabBuildMode,
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
@@ -2374,6 +2375,9 @@ function widget:SetConfigData(data)
 	end
 	if data.autoSelectFirst ~= nil then
 		autoSelectFirst = data.autoSelectFirst
+	end
+	if data.useLabBuildMode ~= nil then
+		useLabBuildMode = data.useLabBuildMode
 	end
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice
