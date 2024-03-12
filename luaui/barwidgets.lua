@@ -102,6 +102,8 @@ widgetHandler = {
 	yViewSizeOld = 1,
 }
 
+---@deprecated now an alias for knownWidgetInfos
+widgetHandler.knownWidgets = widgetHandler.knownWidgetInfos
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()

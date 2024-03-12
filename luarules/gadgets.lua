@@ -107,6 +107,8 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
+---@deprecated now an alias for knownGadgetInfos
+gadgetHandler.knownGadgets = gadgetHandler.knownGadgetInfos
 
 
 -- these call-ins are set to 'nil' if not used
