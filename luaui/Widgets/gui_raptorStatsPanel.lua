@@ -15,17 +15,17 @@ function widget:GetInfo()
 	}
 end
 
-local useWaveMsg            = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
-local defIDsEcoValues       = VFS.Include('LuaRules/gadgets/raptors/common.lua').defIDsEcoValues
+local defIDsEcoValues            = VFS.Include('LuaRules/gadgets/raptors/common.lua').defIDsEcoValues
+local useWaveMsg                 = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua').useWaveMsg
 
-local I18N                  = Spring.I18N
+local I18N                       = Spring.I18N
 
-local customScale           = 1
-local widgetScale           = customScale
+local customScale                = 1
+local widgetScale                = customScale
 local font, font2
 local messageArgs, marqueeMessage
-local refreshMarqueeMessage = false
-local showMarqueeMessage    = false
+local refreshMarqueeMessage      = false
+local showMarqueeMessage         = false
 
 local displayList
 local panelTexture               = ":n:LuaUI/Images/raptorpanel.tga"
@@ -59,10 +59,10 @@ local currentlyResistantToNames  = {}
 local playerEcoAttractionsRaw    = {}
 local playerEcoAttractionsRender = {}
 local teamIDs                    = {}
-local raptorTeamID
 local stageGrace                 = 0
 local stageMain                  = 1
 local stageQueen                 = 2
+local raptorTeamID
 
 local guiPanel --// a displayList
 local updatePanel
