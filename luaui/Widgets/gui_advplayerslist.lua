@@ -114,7 +114,6 @@ local math_isInRect = math.isInRect
 local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
 
-
 local specOffset = 256
 
 --------------------------------------------------------------------------------
@@ -224,7 +223,7 @@ local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, 
 local specJoinedOnce, scheduledSpecFullView
 local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
-local curFrame, PrevGameFrame, MainList, MainList2, MainList3, desiredLosmode, drawListOffset
+local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 8
 
@@ -3472,7 +3471,7 @@ end
 function CheckPlayersChange()
     local sorting = false
     for i = 0, specOffset-1 do
-        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
+        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
@@ -3559,8 +3558,8 @@ function CheckPlayersChange()
         -- sorts the list again if change needs it
         SortList()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
+        forceMainListRefresh = true
     end
-
 end
 
 function GetNeed(resType, teamID)
@@ -3569,10 +3568,8 @@ function GetNeed(resType, teamID)
         return false
     end
     local loss = pull - income
-    if loss > 0 then
-        if loss * 5 > current then
-            return true
-        end
+    if loss > 0 and loss * 5 > current then
+        return true
     end
     return false
 end
@@ -3590,7 +3587,6 @@ function Take(teamID, name, i)
     tookTeamID = teamID
     tookTeamName = name
     tookFrame = Spring.GetGameFrame()
-
     Spring_SendCommands("luarules take2 " .. teamID)
 end
 
@@ -3680,6 +3676,7 @@ function widget:Update(delta)
                     if player[j].totake then
                         player[j] = CreatePlayerFromTeam(player[j].team)
                         SortList()
+                        SetModulesPositionX()
                     end
                 end
             end

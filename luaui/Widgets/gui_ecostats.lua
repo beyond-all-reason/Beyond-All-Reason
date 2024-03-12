@@ -399,7 +399,6 @@ local function setAllyData(allyID)
 		allyData[index] = {}
 		local teamList = GetTeamList(allyID)
 		allyData[index]["teams"] = teamList
-
 	end
 
 	if not (allyData[index].teams and #allyData[index].teams > 0) then
@@ -429,6 +428,10 @@ local function setAllyData(allyID)
 
 	if not allyData[index]["isAlive"] and cfgRemoveDead then
 		allyData[index] = nil
+		if WG['guishader'] and guishaderRectsDlists['ecostats_' .. allyID] then
+			WG['guishader'].DeleteDlist('ecostats_' .. allyID)
+			guishaderRectsDlists['ecostats_' .. allyID] = nil
+		end
 	end
 end
 
