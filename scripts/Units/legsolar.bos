@@ -11,7 +11,7 @@ piece  base, skirt, corecont,
 	  Ecore, E, Er, Er1, Er2, E1, E2, EL, EL1, EL2,
 	  Fcore, F, Fr, Fr1, Fr2, F1, F2, FL, FL1, FL2;//fuck me
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Activating, statechg_DesiredState, statechg_StateChanging;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -44,7 +44,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
-	if( Static_Var_1 )
+	if( Activating )
 	{
 		set ACTIVATION to 0;
 		return (0);
@@ -110,12 +110,6 @@ Go()
 Stop()
 {
 	
-	
-	//turn AL1 to z-axis <3> speed <180.000000>;
-	////turn AL2 to z-axis <3> speed <180.000000>;
-	//turn BL1 to z-axis <3> speed <180.000000>;
-	//turn BL2 to z-axis <3> speed <180.000000>;
-	
 	turn AL1 to y-axis <-179> speed <180.000000>;
 	turn AL2 to y-axis <-179> speed <180.000000>;
 	turn AR1 to y-axis <179> speed <100.000000>;
@@ -146,23 +140,6 @@ Stop()
 	turn FR1 to y-axis <179> speed <100.000000>;
 	turn FR2 to y-axis <179> speed <100.000000>;
 	
-	//move BL1 to x-axis [0.25] speed [20];
-	//move BL2 to x-axis [0.5] speed [20];
-	//move AL1 to x-axis [0.25] speed [20];
-	//move AL2 to x-axis [0.5] speed [20];
-
-	
-
-	
-
-	//move Acore to y-axis [1] speed [100];
-	//move Bcore to y-axis [1] speed [100];
-	//move Ccore to y-axis [1] speed [100];
-	//move Dcore to y-axis [1] speed [100];
-	//move Ecore to y-axis [1] speed [100];
-	//move Fcore to y-axis [1] speed [100];
-	
-	
 	
 	turn A to z-axis <-39.000000> speed <100.000000>;
 	turn B to z-axis <-39.000000> speed <100.000000>;
@@ -176,7 +153,6 @@ Stop()
 
 	wait-for-turn A around z-axis;
 	
-	//hide emit;
 	set ARMORED to 1;
 	set YARD_OPEN to 1;
 }
@@ -219,9 +195,6 @@ Create()
 	turn Fcore to y-axis <300> now;
 	
 	
-	//turn Ar to z-axis <-2> speed <600.000000>;
-	//turn Br to z-axis <-2> speed <600.000000>;
-	
 	turn Fr to x-axis <20.5> now;
 	turn Fl to x-axis <-20.5> now;
 	turn Er to x-axis <20.5> now;
@@ -234,7 +207,6 @@ Create()
 	turn Bl to x-axis <-20.5> now;
 	turn Ar to x-axis <20.5> now;
 	turn Al to x-axis <-20.5> now;
-	
 	
 	
 	turn AL1 to y-axis <-179> now;
@@ -272,12 +244,12 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-	Static_Var_1 = 0;
+	Activating = 0;
 }
 
 Activate()
 {
-	if( Static_Var_1 )
+	if( Activating )
 	{
 		set ACTIVATION to 0;
 		return (0);
@@ -294,15 +266,15 @@ HitByWeapon(anglex, anglez)
 {
 	if( get ACTIVATION )
 	{
-		Static_Var_1 = 1;
+		Activating = 1;
 	}
-	if( Static_Var_1 )
+	if( Activating )
 	{
 		signal 2;
 		set-signal-mask 2;
 		set ACTIVATION to 0;
 		sleep 8000;
-		Static_Var_1 = 0;
+		Activating = 0;
 		set ACTIVATION to 100;
 	}
 }
@@ -312,72 +284,129 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode A type BITMAPONLY | NOHEATCLOUD;
-		explode A type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Ar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Al type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode B type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Br type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Bl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY;
+		explode a type BITMAPONLY;
+		explode b type BITMAPONLY;
+		explode c type BITMAPONLY;
+		explode d type BITMAPONLY;
+		explode e type BITMAPONLY;
+		explode f type BITMAPONLY;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode A type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode B type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode C type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode D type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode E type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode F type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY;
+		explode a type SMOKE | FALL;
+		explode a1 type  FALL;
+		explode a2 type  FALL;
+		explode ar type SMOKE | FALL;
+		explode al type FIRE | SMOKE | FALL;
+		explode b type SMOKE | FALL;
+		explode b1 type  FALL;
+		explode b2 type  FALL;
+		explode br type SMOKE | FALL;
+		explode bl type FIRE | SMOKE | FALL;
+		explode c type SMOKE | FALL;
+		explode c1 type  FALL;
+		explode c2 type  FALL;
+		explode cr type SMOKE | FALL;
+		explode cl type FIRE | SMOKE | FALL;
+		
+		explode d type SMOKE | FALL;
+		explode d1 type  FALL;
+		explode d2 type  FALL;
+		explode dr type SMOKE | FALL;
+		explode dl type FIRE | SMOKE | FALL;
+		explode e type SMOKE | FALL;
+		explode e1 type  FALL;
+		explode e2 type  FALL;
+		explode er type SMOKE | FALL;
+		explode el type FIRE | SMOKE | FALL;
+		explode f type SMOKE | FALL;
+		explode f1 type  FALL;
+		explode f2 type  FALL;
+		explode fr type SMOKE | FALL;
+		explode fl type FIRE | SMOKE | FALL;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode A type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Ar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Al type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode B type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Br type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Bl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type BITMAPONLY;
+		explode a type SMOKE | FALL;
+		explode a1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode a2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode ar type SMOKE | FALL;
+		explode al type FIRE | SMOKE | FALL;
+		explode b type SMOKE | FALL;
+		explode b1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode b2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode br type SMOKE | FALL;
+		explode bl type FIRE | SMOKE | FALL;
+		explode c type SMOKE | FALL;
+		explode c1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode c2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode cr type SMOKE | FALL;
+		explode cl type FIRE | SMOKE | FALL;
+		
+		explode d type SMOKE | FALL;
+		explode d1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dr type SMOKE | FALL;
+		explode dl type FIRE | SMOKE | FALL;
+		explode e type SMOKE | FALL;
+		explode e1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode e2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode er type SMOKE | FALL;
+		explode el type FIRE | SMOKE | FALL;
+		explode f type SMOKE | FALL;
+		explode f1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode f2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode fr type SMOKE | FALL;
+		explode fl type FIRE | SMOKE | FALL;
+			return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode A type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Ar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Al type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode B type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Br type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode Bl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY;
+		explode corecont type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode a type SMOKE | FALL;
+		explode a1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode a2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode ar type SMOKE | FALL;
+		explode al type FIRE | SMOKE | FALL;
+		explode b type SMOKE | FALL;
+		explode b1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode b2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode br type SMOKE | FALL;
+		explode bl type FIRE | SMOKE | FALL;
+		explode c type SMOKE | FALL;
+		explode c1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode c2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode cr type SMOKE | FALL;
+		explode cl type FIRE | SMOKE | FALL;
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	return corpsetype;
+		explode d type SMOKE | FALL;
+		explode d1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dr type SMOKE | FALL;
+		explode dl type FIRE | SMOKE | FALL;
+		explode e type SMOKE | FALL;
+		explode e1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode e2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode er type SMOKE | FALL;
+		explode el type FIRE | SMOKE | FALL;
+		explode f type SMOKE | FALL;
+		explode f1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode f2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode fr type SMOKE | FALL;
+		explode fl type FIRE | SMOKE | FALL;
+	
+		return(corpsetype);
 }
