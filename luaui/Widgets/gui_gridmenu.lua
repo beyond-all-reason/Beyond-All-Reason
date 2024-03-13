@@ -509,14 +509,6 @@ local function setCurrentCategory(category)
 end
 
 
-local function clearCategory()
-	setCurrentCategory(nil)
-	setLabBuildMode(false)
-	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-	doUpdate = true
-end
-
-
 local function queueUnit(uDefID, opts)
 	local udTable = Spring.GetSelectedUnitsSorted()
 	for udidFac, uTable in pairs(udTable) do
@@ -548,6 +540,15 @@ local function setPregameBlueprint(uDefID)
 	if not uDefID then
 		setCurrentCategory(nil)
 	end
+end
+
+
+local function clearCategory()
+	setCurrentCategory(nil)
+	setLabBuildMode(false)
+	setPregameBlueprint(nil)
+	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+	doUpdate = true
 end
 
 
@@ -1846,11 +1847,7 @@ function widget:KeyRelease(key)
 		setLabBuildMode(false)
 	end
 
-	if isPregame then
-		setPregameBlueprint(nil)
-	else
-		clearCategory()
-	end
+	clearCategory()
 end
 
 
