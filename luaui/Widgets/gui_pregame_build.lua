@@ -91,6 +91,20 @@ end
 ------------------------------------------
 ---          QUEUE HANDLING            ---
 ------------------------------------------
+local function handleBuildMenu(shift)
+	local grid = WG["gridmenu"]
+	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		return
+	end
+
+	if shift and grid.getAlwaysReturn() then
+		grid.setCurrentCategory(nil)
+	elseif not shift then
+		grid.clearCategory()
+	end
+end
+
+
 local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
@@ -326,6 +340,7 @@ function widget:MousePress(x, y, button)
 
 						if not anyClashes then
 							buildQueue[#buildQueue + 1] = buildData
+							handleBuildMenu(shift)
 						end
 					else
 						-- don't place mex if the spot is not valid
@@ -335,12 +350,14 @@ function widget:MousePress(x, y, button)
 							end
 						else
 							buildQueue = { buildData }
+							handleBuildMenu(shift)
 						end
 
 					end
 
 					if not shift then
 						setPreGamestartDefID(nil)
+						handleBuildMenu(shift)
 					end
 				end
 
