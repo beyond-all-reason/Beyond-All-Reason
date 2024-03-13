@@ -759,6 +759,9 @@ local function handleReturn()
 	end
 
 	if returnState.waitingForReturnID then
+		log(LOG.DEBUG, string.format(
+			"[handleReturn] waiting for return ID: %s", returnState.waitingForReturnID
+		))
 		return {
 			status = "wait"
 		}
@@ -843,12 +846,14 @@ local function step()
 	local returnResult = handleReturn()
 
 	if returnResult.status == "wait" then
+		log(LOG.DEBUG, "[step] waiting for return")
 		return
 	end
 
 	local waitResult = handleWait()
 
 	if waitResult.status == "wait" then
+		log(LOG.DEBUG, "[step] waiting for explicit wait")
 		return
 	end
 
