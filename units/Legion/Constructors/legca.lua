@@ -39,7 +39,7 @@ return {
 		buildoptions = {
 			"legsolar",
 			"coradvsol",
-			"corwin",
+			"legwin",
 			"corgeo",
 			"coruwgeo",
 			"cormstor",

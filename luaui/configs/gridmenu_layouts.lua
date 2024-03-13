@@ -232,7 +232,7 @@ local unitGrids = {
 	},
 	legassistdrone = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -300,7 +300,7 @@ local unitGrids = {
 	},
 	legassistdrone_land = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},

@@ -91,12 +91,30 @@ end
 ------------------------------------------
 ---          QUEUE HANDLING            ---
 ------------------------------------------
-local BUILDING_GRID_FORCE_SHOW_REASON = "gui_pregame_build"
+local function handleBuildMenu(shift)
+	local grid = WG["gridmenu"]
+	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		return
+	end
+
+	if shift and grid.getAlwaysReturn() then
+		grid.setCurrentCategory(nil)
+	elseif not shift then
+		grid.clearCategory()
+	end
+end
+
+
+local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
 	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, uDefID ~= nil)
+		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
+	end
+
+	if WG['easyfacing'] ~= nil and WG['easyfacing'].setForceShow ~= nil then
+		WG['easyfacing'].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
 	local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
@@ -255,6 +273,10 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	end
 end
 
+local function isUnderwater(unitDefID)
+	return UnitDefs[unitDefID].modCategories.underwater
+end
+
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -266,9 +288,9 @@ function widget:MousePress(x, y, button)
 	-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
 	if preGamestartPlayer then
 		local mx, my = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 		if selBuildQueueDefID then
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 			if button == 1 then
 				local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 				if WG.ExtractorSnap then
@@ -322,6 +344,7 @@ function widget:MousePress(x, y, button)
 
 						if not anyClashes then
 							buildQueue[#buildQueue + 1] = buildData
+							handleBuildMenu(shift)
 						end
 					else
 						-- don't place mex if the spot is not valid
@@ -331,12 +354,14 @@ function widget:MousePress(x, y, button)
 							end
 						else
 							buildQueue = { buildData }
+							handleBuildMenu(shift)
 						end
 
 					end
 
 					if not shift then
 						setPreGamestartDefID(nil)
+						handleBuildMenu(shift)
 					end
 				end
 
@@ -345,6 +370,7 @@ function widget:MousePress(x, y, button)
 				setPreGamestartDefID(nil)
 			end
 		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
 
 			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
@@ -384,7 +410,7 @@ function widget:DrawWorld()
 	local selBuildData
 	if selBuildQueueDefID then
 		local x, y, _ = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(x, y, true)
+		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
 			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
@@ -530,9 +556,14 @@ function widget:Shutdown()
 	end
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
+
 	WG['pregame-build'] = nil
 	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, false)
+		WG['buildinggrid'].setForceShow(FORCE_SHOW_REASON, false)
+	end
+
+	if WG['easyfacing'] ~= nil and WG['easyfacing'].setForceShow ~= nil then
+		WG['easyfacing'].setForceShow(FORCE_SHOW_REASON, false)
 	end
 end
 

@@ -536,7 +536,7 @@ function widget:DrawScreen()
 					prevLockPlayerID = lockPlayerID
 				end
 			end
-			if myTeamPlayerID and (lockPlayerID or (alwaysDisplayName and isSpec)) then
+			if myTeamPlayerID and alwaysDisplayName and isSpec then
 				if lockPlayerID then
 					prevLockPlayerID = lockPlayerID
 					lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
