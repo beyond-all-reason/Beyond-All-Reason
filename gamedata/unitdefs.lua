@@ -69,7 +69,10 @@ end
 if Spring.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
 	scavengersEnabled = true
+elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
+	legionEnabled = true
 end
+
 for _, filename in ipairs(luaFiles) do
 	if legionEnabled or not filename:find('legion') then
 		if scavengersEnabled or not filename:find('scavengers') then
