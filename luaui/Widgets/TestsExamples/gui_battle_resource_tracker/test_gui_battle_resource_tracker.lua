@@ -1,5 +1,9 @@
 local widgetName = "Battle Resource Tracker"
 
+function skip()
+	return Spring.GetGameFrame() <= 0
+end
+
 function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 

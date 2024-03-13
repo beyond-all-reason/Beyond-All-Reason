@@ -1,5 +1,9 @@
 local widgetName = "Self-Destruct Icons"
 
+function skip()
+	return Spring.GetGameFrame() <= 0
+end
+
 function setup()
 	Test.clearMap()
 

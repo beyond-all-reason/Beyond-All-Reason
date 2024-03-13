@@ -1,5 +1,5 @@
 function skip()
-	return not string.find(Game.mapName, "Full Metal Plate")
+	return not string.find(Game.mapName, "Full Metal Plate") or Spring.GetGameFrame() <= 0
 end
 
 function setup()
