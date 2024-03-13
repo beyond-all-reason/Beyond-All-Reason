@@ -292,6 +292,14 @@ registerCallins(widget, function(name, args)
 	callinState.buffer[name][#(callinState.buffer[name]) + 1] = args
 end)
 
+local MAX_START_TESTS_ATTEMPTS = 10
+local queuedStartTests = false
+local startTestsAttempts = 0
+local function queueStartTests()
+	queuedStartTests = true
+	startTestsAttempts = 0
+end
+
 local function startTests(patterns)
 	log(LOG.DEBUG, "[startTests] " .. table.toString({
 		patterns = patterns,
@@ -310,6 +318,27 @@ local function startTests(patterns)
 		)
 		return
 	end
+
+	if not Spring.IsCheatingEnabled() then
+		if not queuedStartTests then
+			-- enable cheats, then wait for it to go through
+			log(LOG.INFO, "Cheats are disabled; attempting to enable them...")
+			Spring.SendCommands("cheat")
+			queueStartTests()
+			return
+		elseif startTestsAttempts < MAX_START_TESTS_ATTEMPTS then
+			-- return and try again next step
+			startTestsAttempts = startTestsAttempts + 1
+			return
+		else
+			-- ran out of retries, so fail
+			log(LOG.ERROR, "Could not enable cheats; tests cannot be run.")
+			queuedStartTests = false
+			return
+		end
+	end
+
+	queuedStartTests = false
 
 	logStartTests()
 
@@ -840,6 +869,11 @@ local function handleWait()
 end
 
 local function step()
+	if queuedStartTests then
+		startTests()
+		return
+	end
+
 	if not testRunState.runningTests then
 		return
 	end
