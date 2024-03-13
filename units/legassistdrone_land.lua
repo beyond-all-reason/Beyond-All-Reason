@@ -42,7 +42,7 @@ return {
 		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"legsolar",
-			"corwin",
+			"legwin",
 			"cormstor",
 			"corestor",
 			"legmex",
