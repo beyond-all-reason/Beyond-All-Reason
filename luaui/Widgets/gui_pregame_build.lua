@@ -273,6 +273,10 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	end
 end
 
+local function isUnderwater(unitDefID)
+	return UnitDefs[unitDefID].modCategories.underwater
+end
+
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -284,9 +288,9 @@ function widget:MousePress(x, y, button)
 	-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
 	if preGamestartPlayer then
 		local mx, my = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 		if selBuildQueueDefID then
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 			if button == 1 then
 				local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 				if WG.ExtractorSnap then
@@ -366,6 +370,7 @@ function widget:MousePress(x, y, button)
 				setPreGamestartDefID(nil)
 			end
 		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
 
 			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
@@ -405,7 +410,7 @@ function widget:DrawWorld()
 	local selBuildData
 	if selBuildQueueDefID then
 		local x, y, _ = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(x, y, true)
+		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
 			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
