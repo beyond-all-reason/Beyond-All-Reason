@@ -302,6 +302,15 @@ local function startTests(patterns)
 		return
 	end
 
+	if not Spring.GetGameRulesParam("isSyncedProxyEnabled") then
+		log(
+			LOG.ERROR,
+			"The Synced Proxy gadget is required in order to run tests. It requires single player, dev mode, " ..
+				"and cheating  to be enabled."
+		)
+		return
+	end
+
 	logStartTests()
 
 	resetState()
