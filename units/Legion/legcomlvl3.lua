@@ -59,7 +59,7 @@ return {
 		upright = true,
 		workertime = 400,--400,
 		buildoptions = {
-			[1] = "corsolar",
+			[1] = "legsolar",
 			[2] = "corwin",
 			[3] = "cormstor",
 			[4] = "corestor",

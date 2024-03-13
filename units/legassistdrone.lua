@@ -36,7 +36,7 @@ return {
 		turnrate = 740,
 		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
-			"corsolar",
+			"legsolar",
 			"coradvsol",
 			"corwin",
 			"corgeo",
