@@ -3558,7 +3558,7 @@ function CheckPlayersChange()
         -- sorts the list again if change needs it
         SortList()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
-        forceMainListRefresh = true
+        CreateLists()
     end
 end
 
@@ -3677,6 +3677,7 @@ function widget:Update(delta)
                         player[j] = CreatePlayerFromTeam(player[j].team)
                         SortList()
                         SetModulesPositionX()
+                        forceMainListRefresh = true
                     end
                 end
             end
