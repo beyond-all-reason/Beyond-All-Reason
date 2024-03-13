@@ -258,7 +258,6 @@ local function handleBuildMenu(shift)
 	endShift = shift
 	if not shift then
 		Spring.SetActiveCommand(0)
-		return
 	end
 	local grid = WG["gridmenu"]
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then

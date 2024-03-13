@@ -108,7 +108,7 @@ void main(void) {
 ]]
 
 local function goodbye(reason)
-    Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: " .. reason)
+    Spring.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
     widgetHandler:RemoveWidget()
 end
 
@@ -173,7 +173,6 @@ function widget:Initialize()
 	if gridVBO then return end
 
     local VBOData = {} -- the lua array that will be uploaded to the GPU
-	Spring.Echo("map size is", Game.mapSizeX, Game.mapSizeZ)
     for row = 0, Game.mapSizeX, spacing do
         for col = 0, Game.mapSizeZ, spacing do
             if row ~= Game.mapSizeX then -- skip last

@@ -399,7 +399,6 @@ local function setAllyData(allyID)
 		allyData[index] = {}
 		local teamList = GetTeamList(allyID)
 		allyData[index]["teams"] = teamList
-
 	end
 
 	if not (allyData[index].teams and #allyData[index].teams > 0) then
@@ -429,6 +428,11 @@ local function setAllyData(allyID)
 
 	if not allyData[index]["isAlive"] and cfgRemoveDead then
 		allyData[index] = nil
+		guishaderRects['ecostats_' .. allyID] = nil
+		if WG['guishader'] and guishaderRectsDlists['ecostats_' .. allyID] then
+			WG['guishader'].DeleteDlist('ecostats_' .. allyID)
+			guishaderRectsDlists['ecostats_' .. allyID] = nil
+		end
 	end
 end
 
@@ -542,6 +546,7 @@ local function removeGuiShaderRects()
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
 				WG['guishader'].DeleteDlist('ecostats_' .. aID)
 				guishaderRectsDlists['ecostats_' .. aID] = nil
+				guishaderRects['ecostats_' .. aID] = nil
 			end
 		end
 	end
