@@ -230,6 +230,88 @@ if not table.shuffle then
 	end
 end
 
+if not table.map then
+	--- Applies a function to all elements of a table and returns a new table with the results.
+	---@generic T, R
+	---@param tbl T[] The input table.
+	---@param callback fun(element: T, index: number, tbl: T[]): R The function to apply to each element. It receives three arguments: the current element, its index, and the original table.
+	---@return R[] A new table containing the results of applying the callback to each element.
+	function table.map(tbl, callback)
+		local result = {}
+		for i = 1, #tbl do
+			result[i] = callback(tbl[i], i, tbl)
+		end
+		return result
+	end
+end
+
+if not table.reduce then
+	--- Reduces a table to a single value by applying a function to each element in order.
+	---@generic T, R
+	---@param tbl T[] The input table.
+	---@param callback fun(acc: R, element: T, index: number, tbl: T[]): R The function to apply to each element. It receives four arguments: the accumulator, the current element, its index, and the original table.
+	---@param initial R The initial value of the accumulator.
+	---@return R The final value of the accumulator after applying the callback to all elements.
+	function table.reduce(tbl, callback, initial)
+		local accumulator = initial
+
+		for i = 1, #tbl do
+			accumulator = callback(accumulator, tbl[i], i, tbl)
+		end
+
+		return accumulator
+	end
+end
+
+if not table.filter then
+	--- Creates a new table containing only the elements that satisfy a given condition.
+	---@generic T
+	---@param tbl T[] The input table.
+	---@param callback fun(element: T, index: number, tbl: T[]): boolean The condition to check for each element. It receives three arguments: the current element, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return T[] A new table containing only the elements that satisfy the condition.
+	function table.filter(tbl, callback)
+		local result = {}
+		for i = 1, #tbl do
+			if callback(tbl[i], i, tbl) then
+				table.insert(result, tbl[i])
+			end
+		end
+		return result
+	end
+end
+
+if not table.every then
+	--- Checks if all elements of a table satisfy a condition.
+	---@generic T
+	---@param tbl T[] The input table.
+	---@param callback fun(element: T, index: number, tbl: T[]): boolean The condition to check for each element. It receives three arguments: the current element, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return boolean True if all elements satisfy the condition, false otherwise.
+	function table.every(tbl, callback)
+		for i = 1, #tbl do
+			if not callback(tbl[i], i, tbl) then
+				return false
+			end
+		end
+		return true
+	end
+end
+
+if not table.some then
+	--- Checks if at least one element of a table satisfies a condition.
+	---@generic T
+	---@param tbl T[] The input table.
+	---@param callback fun(element: T, index: number, tbl: T[]): boolean The condition to check for each element. It receives three arguments: the current element, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return boolean True if at least one element satisfies the condition, false otherwise.
+	function table.some(tbl, callback)
+		for i = 1, #tbl do
+			if callback(tbl[i], i, tbl) then
+				return true
+			end
+		end
+		return false
+	end
+end
+
 if not pairsByKeys then
 	---pairs-like iterator function traversing the table in the order of its keys.
 	---Natural sort order will be used by default, optionally pass a comparator
