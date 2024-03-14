@@ -73,7 +73,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 138,
-				object = "Units/scavboss/CORPRINTER_dead.s3o",
+				object = "Units/CORPRINTER_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
