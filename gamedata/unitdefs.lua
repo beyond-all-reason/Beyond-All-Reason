@@ -90,6 +90,13 @@ elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
 	legionEnabled = true
 end
 
+	Spring.Echo('hornet scavtest here')
+	Spring.Echo(Spring.GetModOptions().experimentalextraunits)
+if Spring.GetModOptions().experimentalextraunits == true then
+	Spring.Echo('hornet scavs loaded')
+	scavengersEnabled = true
+end
+
 for _, filename in ipairs(luaFiles) do
 	if legionEnabled or not filename:find('legion') then
 		if scavengersEnabled or not filename:find('scavengers') then
