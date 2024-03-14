@@ -90,10 +90,7 @@ elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
 	legionEnabled = true
 end
 
-	Spring.Echo('hornet scavtest here')
-	Spring.Echo(Spring.GetModOptions().experimentalextraunits)
 if Spring.GetModOptions().experimentalextraunits == true then
-	Spring.Echo('hornet scavs loaded')
 	scavengersEnabled = true
 end
 
