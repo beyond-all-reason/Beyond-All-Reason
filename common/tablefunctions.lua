@@ -280,13 +280,13 @@ if not table.filter then
 	end
 end
 
-if not table.every then
+if not table.all then
 	--- Checks if all elements of a table satisfy a condition.
 	---@generic T
 	---@param tbl T[] The input table.
 	---@param callback fun(element: T, index: number, tbl: T[]): boolean The condition to check for each element. It receives three arguments: the current element, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
 	---@return boolean True if all elements satisfy the condition, false otherwise.
-	function table.every(tbl, callback)
+	function table.all(tbl, callback)
 		for i = 1, #tbl do
 			if not callback(tbl[i], i, tbl) then
 				return false
@@ -296,13 +296,13 @@ if not table.every then
 	end
 end
 
-if not table.some then
+if not table.any then
 	--- Checks if at least one element of a table satisfies a condition.
 	---@generic T
 	---@param tbl T[] The input table.
 	---@param callback fun(element: T, index: number, tbl: T[]): boolean The condition to check for each element. It receives three arguments: the current element, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
 	---@return boolean True if at least one element satisfies the condition, false otherwise.
-	function table.some(tbl, callback)
+	function table.any(tbl, callback)
 		for i = 1, #tbl do
 			if callback(tbl[i], i, tbl) then
 				return true
