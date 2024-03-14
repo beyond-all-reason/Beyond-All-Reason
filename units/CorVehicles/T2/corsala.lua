@@ -26,7 +26,7 @@ return {
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSALA.s3o",
-		script = "Units/scavboss/CORSALA.cob",
+		script = "Units/CORSALA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 385,
