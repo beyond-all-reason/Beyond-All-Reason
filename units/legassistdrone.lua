@@ -50,7 +50,7 @@ return {
 			"legap",
 			"coreyes",
 			"corrad",
-			"cordrag",
+			"legdrag",
 			"corllt",
 			"corrl",
 			"cordl",
