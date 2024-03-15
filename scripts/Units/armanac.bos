@@ -1,5 +1,9 @@
 
 #include "exptype.h"
+//#define ARRAY_00_POW2_SIZE 6
+//#include "../array_00.h"
+#define ARRAY_01_POW2_SIZE 8
+#include "../array_01.h"
 
 piece  base, flare, turret, wake, sleeve, barrel;
 
@@ -11,7 +15,7 @@ static-var  Wobble_status, restore_delay;
 #define SIGNAL_IDLE 8
 
 #define HOVER_BASE base
-#include "../bankcontrol_wobbleunit.h"
+#include "../bar_hovercraft_common.h"
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
