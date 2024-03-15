@@ -356,6 +356,7 @@ local armorDefs = {
 		"legbastion",
 		"legstarfall",
 		"legflak",
+		"legsolar",
 
 		"coruwgeo",
 		"coruwageo",
