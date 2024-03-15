@@ -2429,6 +2429,16 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
 	},
 
+
+	legsolar = {
+		BaseSoundSelectType = "arm-bld-nrghum",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-solar-alt",
+		BaseSoundActivate   = "arm-bld-solar-activate",
+		BaseSoundDeactivate = "arm-bld-solar-deactivate",
+	},
+
+
 	-- LEGION T1 BOTS
 	legck = {
 		BaseSoundSelectType = "cor-bot-small-sel",

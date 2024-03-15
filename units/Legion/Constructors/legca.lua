@@ -37,7 +37,7 @@ return {
 		turnrate = 240,
 		workertime = 60,
 		buildoptions = {
-			"corsolar",
+			"legsolar",
 			"coradvsol",
 			"legwin",
 			"corgeo",
