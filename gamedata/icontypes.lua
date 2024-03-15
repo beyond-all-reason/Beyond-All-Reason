@@ -2095,6 +2095,26 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdrag = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtf = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtl = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtm = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legfort = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	legdefcarryt1 = {
 		bitmap = "icons/legdefcarryt1.png",
 		size = 1.65999997

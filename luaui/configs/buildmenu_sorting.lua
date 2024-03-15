@@ -527,16 +527,21 @@ local unitOrderTable = {
    ['armdrag']        = 104000,
    ['cordrag']        = 104100,
    ['corscavdrag']    = 104205, --scavengers
+   ['legdrag'] 	      = 104206, --exscavengers
    ['armfort']        = 104300,
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
+   ['legfort']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
+   ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
    ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
+   ['legdtf']         = 104906, --exscavengers
    ['corscavdtm']     = 104915, --scavengers
+   ['legdtm']         = 104916, --exscavengers
 
    --MINES
    ['armmine1']       = 105100,
