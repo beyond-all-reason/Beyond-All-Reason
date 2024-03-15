@@ -436,6 +436,7 @@ local unitOrderTable = {
    ['corwint2']       = 101050, --scavengers
    ['armsolar']       = 101070,
    ['corsolar']       = 101080,
+   ['legsolar']       = 101090,
    ['armadvsol']      = 101100,
    ['coradvsol']      = 101150,
 
