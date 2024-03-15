@@ -23,7 +23,6 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	get PRINT(123);
     turn lsleeve to x-axis <-30> speed <25.00000>;
     turn rsleeve to x-axis <-30> speed <25.00000>;
     spin pole around y-axis speed <25.0>;
