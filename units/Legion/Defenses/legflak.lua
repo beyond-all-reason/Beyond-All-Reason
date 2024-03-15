@@ -6,7 +6,7 @@ return {
 		buildangle = 8192,
 		energycost = 13000,
 		metalcost = 820,
-		buildpic = "ARMFLAK.DDS",
+		buildpic = "LEGLAK.DDS",
 		buildtime = 19000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
