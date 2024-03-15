@@ -1368,7 +1368,7 @@ function widget:DrawScreen()
 							}
 							if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
 								UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.23))
-								if b and (Spring.GetActiveCommand() == 0) then
+								if b and (Spring.GetActiveCommand() > 0) then
 									-- mapmark highlight
 									if chatLines[i].coords then
 										Spring.SetCameraTarget( chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3] )
