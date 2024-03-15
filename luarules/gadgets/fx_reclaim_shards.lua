@@ -18,13 +18,19 @@ local GetFeaturePosition = Spring.GetFeaturePosition
 local SpawnCEG = Spring.SpawnCEG
 local random = math.random
 
-local cegs = {"reclaimshards1", "reclaimshards2", "reclaimshards3"}
+local cegs = { "reclaimshards1", "reclaimshards2", "reclaimshards3" }
 local featureList = {}
 local cegList = {}
 
 for featureDefID, featureDef in pairs(FeatureDefs) do
-	if featureDef.customParams.fromunit then
-		featureList[featureDefID] = -1
+	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
+		featureList[featureDefID] = {
+			minX = (featureDef.model.minx * 0.6),
+			maxX = (featureDef.model.maxx + 1 * 0.6),
+			minZ = (featureDef.model.minz * 0.6),
+			maxZ = (featureDef.model.maxz + 1 * 0.6),
+			y = (featureDef.model.maxy + 1 * 0.5)
+		}
 	end
 end
 
@@ -39,20 +45,13 @@ end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	if not cegList[featureID] then
-		local featureDefs = featureList[featureDefID] or nil
-		if featureDefs then
-			if featureDefs == -1 then
-				local defs = FeatureDefs[featureDefID]
-				featureList[featureDefID] = { minX = (defs.model.minx * 0.6), maxX = (defs.model.maxx + 1 * 0.6), minZ = (defs.model.minz * 0.6), maxZ = (defs.model.maxz + 1 * 0.6), y = (defs.model.maxy + 1 * 0.5) }
-				featureDefs = featureList[featureDefID]
-			end
-			if featureDefs.minX and featureDefs.maxX then
-				local x, y, z = GetFeaturePosition(featureID)
-				x = x + random(featureDefs.minX, featureDefs.maxX)
-				z = z + random(featureDefs.minZ, featureDefs.maxZ)
-				y = y + featureDefs.y
-				cegList[featureID] = { ceg = cegs[random(1, 3)], xs = x, ys = y, zs = z }
-			end
+		local params = featureList[featureDefID] or nil
+		if params then
+			local x, y, z = GetFeaturePosition(featureID)
+			x = x + random(params.minX, params.maxX)
+			z = z + random(params.minZ, params.maxZ)
+			y = y + params.y
+			cegList[featureID] = { ceg = cegs[random(1, #cegs)], xs = x, ys = y, zs = z }
 		end
 	end
 	return true
