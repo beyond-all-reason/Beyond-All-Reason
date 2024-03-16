@@ -988,28 +988,12 @@ local options={
 	},
 
 	{
-		key    = 'teamcolors_icon_dev_mode',
-		name   = "Icon Dev Mode ",
-		desc   = "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="description"},
-			{key="armblue", name="Armada Blue", desc="description"},
-			{key="corred", name="Cortex Red", desc="description"},
-			{key="scavpurp", name="Scavenger Purple", desc="description"},
-			{key="raptororange", name="Raptor Orange", desc="description"},
-			{key="gaiagray", name="Gaia Gray", desc="description"},
-		}
-	},
-
-	{
 		key    		= 'faction_limiter',
-		name   		= 'Limit which factions a team can play.',
+		name   		= 'Team Faction Limiter.',
 		desc   		= 'Input the factions a team should play, seperating teams by a comma, e.g. "armada cortex, legion" = cor/arm vs legion.',
 		type   		= "string",
 		section		= 'options_experimental',
+		hidden		= true,
 		def			= "",
 	},
 	
@@ -1295,16 +1279,6 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
-	{
-		key     = "debugcommands",
-		name    = "Debug Commands",
-		desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
-		section = 'options_experimental',
-		type    = "string",
-		def     = "",
-	},
-
 	{
 		key     = "defaultdecals",
 		name    = "Default Decals",
@@ -1565,6 +1539,44 @@ local options={
 		-- (step <= 0) means that there is no quantization
 	},
 
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- DEV MODE ONLY SECTIONS
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	{
+		key    = 'dev',
+		name   = '_DEV',
+		desc   = '',
+		type   = 'section',
+	},
+
+	{
+		key     = "debugcommands",
+		name    = "Debug Commands",
+		desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'dev',
+		type    = "string",
+		def     = "",
+	},
+	{
+		key    = 'teamcolors_icon_dev_mode',
+		name   = "Icon Dev Mode ",
+		desc   = "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
+		type   = 'list',
+		section = 'dev',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="description"},
+			{key="armblue", name="Armada Blue", desc="description"},
+			{key="corred", name="Cortex Red", desc="description"},
+			{key="scavpurp", name="Scavenger Purple", desc="description"},
+			{key="raptororange", name="Raptor Orange", desc="description"},
+			{key="gaiagray", name="Gaia Gray", desc="description"},
+		}
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options
@@ -1578,7 +1590,7 @@ for i = 1, 9 do
 		key     = "tweakunits" .. i,
 		name    = "Tweak Units " .. i,
 		desc    = "A base64 encoded lua table of unit parameters to change.",
-		section = 'options_extra',
+		section = 'options',
 		type    = "string",
 		def     = "",
 		hidden = true,
@@ -1590,7 +1602,7 @@ for i = 1, 9 do
 		key     = "tweakdefs" .. i,
 		name    = "Tweak Defs " .. i,
 		desc    = "A base64 encoded snippet of code that modifies game definitions.",
-		section = 'options_extra',
+		section = 'options',
 		type    = "string",
 		def     = "",
 		hidden = true,
