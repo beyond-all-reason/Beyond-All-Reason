@@ -61,7 +61,6 @@ local unitlist = {
 	{'cormoho','coruwmme'},
 	{'armsolar','armtide'},
 	{'corsolar','cortide'},
-	{'legsolar','cortide'},
 	{'armlab','armsy'},
 	{'corlab','corsy'},
 	{'armllt','armtl'},
