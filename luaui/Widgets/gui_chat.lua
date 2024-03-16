@@ -1178,7 +1178,8 @@ local function processLine(i)
 	end
 end
 
-local function processLines(force)
+local initialized = false
+local function processLines()
 	clearDisplayLists()
 	chatLines = {}
 	if force then
@@ -1189,10 +1190,10 @@ local function processLines(force)
 		end
 	end
 	for _, params in ipairs(orgLines) do
-		processAddConsoleLine(params[1], params[2], false, force)
+		processAddConsoleLine(params[1], params[2], false, not initialized)
 	end
-
 	currentChatLine = #chatLines
+	initialized = true
 end
 
 local uiSec = 0
@@ -2049,7 +2050,7 @@ function widget:TextCommand(command)
 	end
 end
 
-function widget:ViewResize(vsx, vsy, forceProcessLines)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
 	--widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
@@ -2131,7 +2132,7 @@ end
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
-	widget:ViewResize(vsx,vsy, true)
+	widget:ViewResize()
 
 	Spring.SendCommands("console 0")
 
