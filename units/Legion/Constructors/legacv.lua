@@ -54,7 +54,7 @@ return {
 			[9] = "coruwadvms",
 			[10] = "corarad",
 			[11] = "corshroud",
-			[12] = "legfort",
+			[12] = "legforti",
 			[13] = "corasp",
 			[14] = "cortarg",
 			[15] = "corsd",
