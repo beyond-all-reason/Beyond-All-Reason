@@ -49,7 +49,7 @@ return {
 			"coruwadvms",
 			"corarad",
 			"corshroud",
-			"legfort",
+			"legforti",
 			"corasp",
 			"corfasp",
 			"cortarg",

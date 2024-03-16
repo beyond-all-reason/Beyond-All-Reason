@@ -1,5 +1,5 @@
 return {
-	legfort = {
+	legforti = {
 		maxacc = 0,
 		autoheal = 12,
 		blocking = true,
