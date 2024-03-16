@@ -25,10 +25,10 @@ local cegList = {}
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
 		featureList[featureDefID] = {
-			minX = math.floor(featureDef.model.minx * 0.66),
-			maxX = math.floor(featureDef.model.maxx * 0.66),
-			minZ = math.floor(featureDef.model.minz * 0.66),
-			maxZ = math.floor(featureDef.model.maxz * 0.66),
+			minX = math.max(math.floor(featureDef.model.minx * 0.66), -500) - 1,	-- capping values to prevent and error on too large interval in math.random() param #2
+			maxX = math.min(math.floor(featureDef.model.maxx * 0.66), 500) + 1,
+			minZ = math.max(math.floor(featureDef.model.minz * 0.66), -500) - 1,
+			maxZ = math.min(math.floor(featureDef.model.maxz * 0.66), 500) + 1,
 			y = math.floor(featureDef.model.maxy * 0.66)
 		}
 	end
