@@ -25,11 +25,11 @@ local cegList = {}
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
 		featureList[featureDefID] = {
-			minX = (featureDef.model.minx * 0.6),
-			maxX = (featureDef.model.maxx + 1 * 0.6),
-			minZ = (featureDef.model.minz * 0.6),
-			maxZ = (featureDef.model.maxz + 1 * 0.6),
-			y = (featureDef.model.maxy + 1 * 0.5)
+			minX = math.floor(featureDef.model.minx * 0.66),
+			maxX = math.floor(featureDef.model.maxx * 0.66),
+			minZ = math.floor(featureDef.model.minz * 0.66),
+			maxZ = math.floor(featureDef.model.maxz * 0.66),
+			y = math.floor(featureDef.model.maxy * 0.66)
 		}
 	end
 end
@@ -37,7 +37,7 @@ end
 function gadget:GameFrame(n)
 	if n % 2 == 0 then
 		for featureID, v in pairs(cegList) do
-			SpawnCEG(v.ceg, v.xs, v.ys, v.zs, 0, 1.0, 0, 0, 0)
+			SpawnCEG(v.ceg, v.x, v.y, v.z, 0, 1.0, 0, 0, 0)
 			cegList[featureID] = nil
 		end
 	end
@@ -51,7 +51,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 			x = x + random(params.minX, params.maxX)
 			z = z + random(params.minZ, params.maxZ)
 			y = y + params.y
-			cegList[featureID] = { ceg = cegs[random(1, #cegs)], xs = x, ys = y, zs = z }
+			cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = y, z = z }
 		end
 	end
 	return true
