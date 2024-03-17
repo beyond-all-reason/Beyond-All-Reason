@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
-			model_author = "Mr Bob",
+			model_author = "Yzch",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
