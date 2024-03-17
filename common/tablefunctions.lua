@@ -256,7 +256,11 @@ if not table.reduce then
 		local accumulator = initial
 
 		for i = 1, #tbl do
-			accumulator = callback(accumulator, tbl[i], i, tbl)
+			if i == 1 and accumulator == nil then
+				accumulator = tbl[i]
+			else
+				accumulator = callback(accumulator, tbl[i], i, tbl)
+			end
 		end
 
 		return accumulator
