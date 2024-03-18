@@ -3,13 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lflare, rflare, pole, turret, lsleeve, lbarrel, rsleeve, rbarrel, laim, raim, rshot, lshot, dish;
+piece  base, lflare, rflare, pole, turret, lsleeve, lbarrel, rsleeve, rbarrel, laim, raim, lshot, rshot, dish;
 
 static-var  activating, wpn1_lasthead, restore_delay, gun_switch, inrange, aiming, timer, lastaimed, lastfired, thisframe, thatframe;
 
 // Signal definitions
 #define SIG_AIM				2
-
 
 
 #define SMOKEPIECE base
@@ -61,18 +60,16 @@ RestoreAfterDelay()
 
 
 
-
-SweepFire()
+SweepFire()//nope.
 {
 	while( TRUE )
 	{
 		
-		//cram fire after popping anti unfortunately. can't lead, nor delay the popping shot.
 		thatframe = get (GAME_FRAME);
 		if ((lastaimed > (thatframe - 15)) AND aiming == 1) {
 			
-			emit-sfx 2048+1 from lshot;
-			emit-sfx 2048+1 from rshot;
+			emit-sfx 2048+0 from lshot;
+			emit-sfx 2048+0 from rshot;
 			timer = timer + 1;
 		}
 		if (lastaimed <= (thatframe - 15))
@@ -80,7 +77,7 @@ SweepFire()
 			//inrange = 0;
 			//signal SIG_AIM;
 			//timer = 0;
-			//start-script ExecuteRestoreAfterDelay();
+			start-script ExecuteRestoreAfterDelay();
 		}
 		sleep 20;
 	}
@@ -119,9 +116,6 @@ Create()
 	}
 	start-script ExecuteRestoreAfterDelay();
 }
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
 
 SetMaxReloadTime(Func_Var_1)
@@ -172,16 +166,11 @@ AimWeapon1(heading, pitch)
 	return (1);
 
 
-	//start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	return (1);
 }
 
 
 
-FireWeapon1()
-{
+FireWeapon1() {
 	inrange = 1;
 	aiming = 1;
 	timer = 0;
@@ -203,13 +192,12 @@ Shot1() {
 	}
 }
 //*/
-QueryWeapon1(piecenum)
-{
+QueryWeapon1(piecenum) {
 	piecenum = lshot + gun_switch;
 	return (0);
 }
 
-AimFromWeapon1(piecenum) 		{
+AimFromWeapon1(piecenum) {
 	piecenum = laim;
 	return (0);
 }
