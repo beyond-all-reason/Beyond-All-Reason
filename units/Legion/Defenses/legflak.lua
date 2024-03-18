@@ -156,7 +156,7 @@ return {
 				turret = true,
 				weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3500,
+				weaponvelocity = 3642,
 				damage = {
 					default = 40,
 					vtol = 60,
