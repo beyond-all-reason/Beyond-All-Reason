@@ -3,7 +3,7 @@
 
 piece  base, top, spark, barrel, flare, aimpoint, firepoint;
 
-static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -41,7 +41,25 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-Go()
+Create()
+{
+	hide aimpoint;
+	hide firepoint;
+	hide flare;
+	hide flare;
+	restore_delay = 2000;
+	isOpen = 0;
+	start-script Activate();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	move aimpoint to y-axis [8] now;
+	start-script SmokeUnit();
+	start-script Deactivate();
+}
+
+Activate()
 {
 	set ARMORED to 0;
 	move top to y-axis [8.000000] speed [19.989014];
@@ -51,7 +69,7 @@ Go()
 	isOpen = 1;
 }
 
-Stop()
+Deactivate()
 {
 	set ARMORED to 1;
 	isOpen = 0;
@@ -62,67 +80,6 @@ Stop()
 	wait-for-move spark along z-axis;
 	move top to y-axis [-11.9] speed [48];
 	wait-for-move top along y-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	hide aimpoint;
-	hide firepoint;
-	hide flare;
-	hide flare;
-	restore_delay = 2000;
-	isOpen = 0;
-	call-script InitState();
-	start-script RequestState(0);
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	move aimpoint to y-axis [8] now;
-	start-script SmokeUnit();
-	start-script RequestState(1);
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -137,7 +94,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Deactivate(1);
 }
 SetStunned(State)
 {
@@ -154,7 +111,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	if (!isOpen) start-script Activate(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )

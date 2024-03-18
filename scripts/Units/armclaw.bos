@@ -3,41 +3,10 @@
 
 piece  base, post, turret, barrel, flare, aimpoint, sparkemit, glow;
 
-static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-
-Go()
-{
-	move post to y-axis [4] speed [150.000000];
-	move barrel to z-axis [0.000000] speed [90.000000];
-	wait-for-move post along y-axis;
-	wait-for-move barrel along z-axis;
-	show glow;
-	isOpen = 1;
-	set ARMORED to 0;
-}
-
-Stop()
-{
-	set ARMORED to 1;
-	isOpen = 0;
-	turn turret to x-axis <0.000000> speed <300.000000>;
-	turn post to y-axis <0.000000> speed <300.000000>;
-	move barrel to z-axis [-8.000000] speed [20.000000];
-	wait-for-turn barrel around x-axis;
-	wait-for-turn post around y-axis;
-	hide glow;
-	move post to y-axis [-26.000000] speed [90.000000];
-	wait-for-move post along y-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 EmitSparks()
 {
@@ -46,40 +15,13 @@ EmitSparks()
 	hide sparkemit;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Deactivate();
 }
 SetStunned(State)
 {
@@ -103,7 +45,7 @@ Create()
 	restore_delay = 2000;
 	isOpen = 0;
 	call-script InitState();
-	start-script RequestState(0);
+	start-script Activate();
 	
 	move aimpoint to y-axis [5] speed [150.000000];
 	while( get BUILD_PERCENT_LEFT )
@@ -118,12 +60,27 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	move post to y-axis [4] speed [150.000000];
+	move barrel to z-axis [0.000000] speed [90.000000];
+	wait-for-move post along y-axis;
+	wait-for-move barrel along z-axis;
+	show glow;
+	isOpen = 1;
+	set ARMORED to 0;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	set ARMORED to 1;
+	isOpen = 0;
+	turn turret to x-axis <0.000000> speed <300.000000>;
+	turn post to y-axis <0.000000> speed <300.000000>;
+	move barrel to z-axis [-8.000000] speed [20.000000];
+	wait-for-turn barrel around x-axis;
+	wait-for-turn post around y-axis;
+	hide glow;
+	move post to y-axis [-26.000000] speed [90.000000];
+	wait-for-move post along y-axis;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -133,7 +90,7 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	if (!isOpen) start-script Activate();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )

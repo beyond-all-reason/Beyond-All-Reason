@@ -3,7 +3,7 @@
 
 piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare;
 
-static-var  AboveGround, restore_delay, statechg_DesiredState, statechg_StateChanging, isAiming, frameslefttoshot;
+static-var  AboveGround, restore_delay, isAiming, frameslefttoshot;
 
 
 #define WORMSIZE 120 // This is for scaling move animations
@@ -172,17 +172,17 @@ Motion(){
 }
 
 
-Go()
+Open()
 {
 	set ARMORED to 0;
 	move seg1 to y-axis [0] speed [1] * WORMSIZE;
-	sleep 250;
+
 	segtarget = <0>;
 	wait-for-move seg1 along x-axis;
 	AboveGround = 1;
 }
 
-Stop()
+Close()
 {	
 	set ARMORED to 1;
 	AboveGround = 0;
@@ -196,38 +196,6 @@ Stop()
 	segtarget = <-14>;
 	move seg1 to y-axis [-1.04] * WORMSIZE speed [0.6] * WORMSIZE;
 	wait-for-move seg1 along x-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -250,7 +218,6 @@ Create()
 	aimy1delta =0;
 	aimy1acceleration = AIMY1_ACCELERATION;
 	
-	
 	move seg1 to y-axis [-2.0] * WORMSIZE now;
 
 	hide flare;
@@ -258,25 +225,17 @@ Create()
 	restore_delay = 2000;
 	AboveGround = 0;
 	call-script InitState();
-	start-script RequestState(0);
+	start-script Open();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
  	//move aimpoint to y-axis [8] now;
- 	start-script RequestState(1);
+ 	start-script Close();
  	start-script Motion();
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
 
-Deactivate()
-{
-	start-script RequestState(1);
-}
 
 SetMaxReloadTime(reloadMS)
 {
@@ -290,7 +249,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Close();
 }
 SetStunned(State)
 {
@@ -308,7 +267,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	
-	start-script RequestState(0);
+	start-script Open(0);
 
 	isAiming = 1;
 	signal SIGNAL_AIM1;

@@ -3,73 +3,34 @@
 
 piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, aimpoint;
 
-static-var  isOpen, gun1, restore_delay, statechg_DesiredState,
-            statechg_StateChanging;
+static-var  isOpen, gun1, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
 
-Activatescr()
+Activate()
 {
-	move turret to y-axis [0] speed [40];
-	wait-for-move turret along y-axis;
-	move barrel2 to z-axis [0] speed [28];
-	move barrel1 to z-axis [0] speed [28];
-	sleep 200;
+	if (!isOpen){
+		move turret to y-axis [0] speed [40];
+		wait-for-move turret along y-axis;
+		move barrel2 to z-axis [0] speed [28];
+		move barrel1 to z-axis [0] speed [28];
+		wait-for-move barrel1 along z-axis;
+		isOpen = 1;
+		set ARMORED to 0;
+	}
 }
 
-Deactivatescr()
+Deactivate()
 {
-	move turret to y-axis [-7] speed [40];
-	wait-for-move turret along y-axis;
+	isOpen = 0;
 	move barrel2 to z-axis [-7] speed [28];
 	move barrel1 to z-axis [-7] speed [28];
-	sleep 200;
-}
-
-
-Go()
-{
-	if( !isOpen )
-	{
-		call-script Activatescr();
-	}
-	isOpen = 1;
-	set ARMORED to 0;
-}
-
-Stop()
-{
+	wait-for-move barrel1 along z-axis;
+	move turret to y-axis [-7] speed [40];
+	wait-for-move turret along y-axis;
 	set ARMORED to 1;
-	isOpen = 0;
-	call-script Deactivatescr();
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 static-var  Stunned;
@@ -78,9 +39,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Deactivate();
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -103,9 +64,7 @@ Create()
 	isOpen = 1;
 	gun1 = 0;
 	restore_delay = 3000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	start-script RequestState(0);
+	start-script Activate();
 	set-signal-mask SIGNAL_AIM1;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -124,9 +83,9 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	start-script Activate();
 	while( !isOpen )
 	{
 		sleep 250;
@@ -147,8 +106,6 @@ AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = aimpoint;
 }
-
-
 
 Shot1()
 {

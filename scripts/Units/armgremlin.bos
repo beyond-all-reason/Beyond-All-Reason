@@ -3,12 +3,10 @@
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;
 
-static-var  animating, isMoving, isOpen, isAiming, restore_delay,
-            statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-
 
 
 OpenGun()
@@ -26,19 +24,20 @@ OpenGun()
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
 	move base to y-axis [1.8] speed [3.6];
-	sleep 500;
+	wait-for-turn rdoor around z-axis;
+
 	turn rdoor to z-axis <-180> speed <180>;
 	turn ldoor to z-axis <180> speed <180>;
 	move base to y-axis [3] speed [2];
-	
-	
-	
-	sleep 500;
+
+	wait-for-turn rdoor around z-axis;
+	isOpen = TRUE;
 }
 
 FoldGun()
 {
 
+	isOpen = FALSE;
 	move barrel to z-axis [0] speed [1.6];
 	turn turret to y-axis <0> speed <360>;
 	turn sleeve to x-axis <0> speed <360>;
@@ -57,12 +56,12 @@ FoldGun()
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
 	move base to y-axis [1.8] speed [2.8];
-	sleep 500;
+	wait-for-turn rdoor around z-axis;
 	turn rdoor to z-axis <0> speed <180>;
 	turn ldoor to z-axis <0> speed <180>;
 	move base to y-axis [0] speed [3.6];
-	
-	sleep 500;
+
+	wait-for-turn rdoor around z-axis;
 }
 
 #define BASEPIECE base
@@ -73,102 +72,11 @@ FoldGun()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-Go()
-{
-	isOpen = 1;
-	if( !animating )
-	{
-		while( !isAiming )
-		{
-			sleep 150;
-		}
-		call-script OpenGun();
-		animating = 1;
-	}
-}
-
-Stop()
-{
-	if( animating )
-	{
-		animating = 0;
-		call-script FoldGun();
-	}
-	isOpen = 0;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		sleep 100;
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Movement(moving, aiming, justmoved)
-{
-	justmoved = TRUE;
-	while( TRUE )
-	{
-		moving = isMoving;
-		aiming = isOpen;
-		if( moving )
-		{
-			sleep 100;
-			if( aiming )
-			{
-				isAiming = 1;
-			}
-			else
-			{
-				isAiming = 0;
-			}
-			justmoved = TRUE;
-		}
-		else
-		{
-			isAiming = 1;
-			if( justmoved )
-			{
-
-				justmoved = FALSE;
-			}
-			sleep 300;
-		}
-	}
-}
-
-
-
 Create()
 {
 	hide flare;
-	isMoving = FALSE;
 	isOpen = 0;
-	isAiming = 1;
-	animating = 0;
 	restore_delay = 2000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -181,27 +89,18 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = 6000;
 }
 
-StartMoving()
-{
-	isMoving = TRUE;
-}
-
-StopMoving()
-{
-	isMoving = FALSE;
-}
-
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <360.000000>;
 	turn sleeve to x-axis <0.000000> speed <360.000000>;
-	start-script RequestState(1);
+	start-script FoldGun();
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -217,10 +116,10 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( !animating )
+	start-script OpenGun();
+	while( !isOpen )
 	{
 		sleep 200;
 	}
@@ -250,7 +149,6 @@ QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
 }
-
 
 
 Killed(severity, corpsetype)
