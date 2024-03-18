@@ -28,9 +28,9 @@ local function solarpoint(unitID, unitDefID, team, heading)
     local sunheading = math.atan2(sundir[1], sundir[3]) * (180 / math.pi)
 	
 	
-		Spring.CallCOBScript(unitID, "solarreturn", 5, 1, sundir[1]*182.04, sundir[3]*182.04, sunheading, heading)
+		Spring.CallCOBScript(unitID, "solarreturn", 3, 1, sunheading, heading)
 	else
-		Spring.CallCOBScript(unitID, "solarreturn", 4, 1, 0, 0, 0)
+		Spring.CallCOBScript(unitID, "solarreturn", 3, 0, 0, 0)
 	end
 	
 	return 1

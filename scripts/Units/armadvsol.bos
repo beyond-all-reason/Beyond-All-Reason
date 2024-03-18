@@ -31,31 +31,18 @@ lua_solarpoint(one, heading) {
 	return(0);
 }
 
-solarreturn(status, xvector, zvector, sunheading, unitheading) {
+solarreturn(status, sunheading, unitheading) {
 	//get PRINT(1234567);
 	//get PRINT(HEADING);///this seems to always be 82 here? tf?
 	//get PRINT(555,unitheading);
 	//get PRINT(status, xvector, zvector, sunheading);
 
-	if (status==1) {//trying to standardise directions regardless of base heading as step 1
-		turn container to y-axis <0> now;
+	if (status==1) {
 		turn container to y-axis 0-unitheading now;//returned heading ...
 		turn solarbase to x-axis <30> speed <12>;
-		turn solarbase to y-axis 0 now;
 		turn solarbase to y-axis sunheading*182 speed <25>;
 		turn solarbase to z-axis <0> now;
-		
 	}
-
-	//if (0==2) {//old vector based hack
-		//xdir = 0 - xvector*50;// * 182.04;
-		//zdir = 0 - zvector*50;// * 182.04;
-		//sunheading = sunheading;//this is NOT vector based!
-		//offset = 0 - HEADING;
-		//turn solarbase to y-axis offset now;
-		//turn solarbase to x-axis xdir speed <25.00000>;
-		//turn solarbase to z-axis zdir speed <25.00000>;	
-	//}
 
 
 }
