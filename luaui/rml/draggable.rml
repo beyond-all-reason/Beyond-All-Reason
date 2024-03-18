@@ -1,0 +1,26 @@
+<template name="draggable" content="content">
+
+	<head>
+		<link type="text/rcss" href="rml.rcss" />
+		<link type="text/rcss" href="invader.rcss" />
+		<style>
+
+		</style>
+	</head>
+
+	<body class="draggable">
+		<div id="title_bar">
+			<handle move_target="#document">
+				<div id="icon"></div>
+				<span id="title">Title</span>
+			</handle>
+		</div>
+		<div id="draggable">
+			<div id="content">
+
+			</div>
+		</div>
+		<handle size_target="#document"
+			style="position: absolute; width: 16dp; height: 600dp; bottom: 0px; right: 0px; cursor: resize;"></handle>
+	</body>
+</template>
