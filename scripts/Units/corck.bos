@@ -7,7 +7,7 @@
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
        rfoot, lfoot, beamcase, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  notBuilding, isMoving, statechg_DesiredState, statechg_StateChanging;
+static-var  notBuilding, isMoving;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
@@ -175,15 +175,6 @@ UnitSpeed(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-	turn beamcase to z-axis <-90> speed <180>;
-	wait-for-turn beamcase around z-axis;
-	
-	turn beamhinge to x-axis <90> speed <360>;
-	wait-for-turn beamhinge around x-axis;
-}
-
 Stop()
 {
 	set INBUILDSTANCE to 0;
@@ -200,34 +191,6 @@ Stop()
 	wait-for-turn aimy1 around y-axis;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide lthigh;
@@ -236,32 +199,29 @@ Create()
 	hide aimy1;
 	hide cagelight_emit;
 	isMoving = FALSE;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	animSpeed = 4;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
+	readyToBuild = FALSE;
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	show nano;
-	start-script RequestState(0);
-	//show cagelight_emit;
-	//spin cagelight_emit around z-axis speed <200>;
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+	
+	if (!readyToBuild){
+		turn beamcase to z-axis <-90> speed <180>;
+		wait-for-turn beamcase around z-axis;
+		
+		turn beamhinge to x-axis <90> speed <360>;
+		wait-for-turn beamhinge around x-axis;
+		readyToBuild = TRUE;
+	}
+
 	turn aimy1 to y-axis heading speed <600.000000>;
 	wait-for-turn aimy1 around y-axis;
+
 	set INBUILDSTANCE to 1;
 	show cagelight_emit;
 	spin cagelight around z-axis speed <150>;
@@ -269,15 +229,25 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	hide nano;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	hide nano;
 	hide cagelight_emit;
 	turn cagelight to z-axis <0> speed <1000>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+	readyToBuild = FALSE;
+	
+	set INBUILDSTANCE to 0;
+	
+	turn beamhinge to x-axis <0> speed <360>;
+	wait-for-turn beamhinge around x-axis;	
+
+	turn beamcase to z-axis <0> speed <180>;
+	wait-for-turn beamcase around z-axis;
+	
+	turn aimy1 to y-axis <0.000000> speed <160.000000>;
+	wait-for-turn aimy1 around y-axis;
 }
 
 StartMoving()

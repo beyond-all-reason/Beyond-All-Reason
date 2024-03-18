@@ -3,24 +3,12 @@
 
 piece  base, turret, nano, wake, cagelight, cagelight_emit;
 
-static-var  terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
+static-var  terrain, Wobble_status;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 #define SIGNAL_IDLE 8
-
-activatescr()
-{
-
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
-}
 
 WobbleUnit()
 {
@@ -81,34 +69,6 @@ BankControl()
 	}
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 HoverIdle()
 {
 	signal SIGNAL_IDLE;
@@ -151,9 +111,6 @@ Create()
 	hide nano;
 	hide wake;
 	hide cagelight_emit;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -162,47 +119,39 @@ Create()
 	start-script WobbleUnit();
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	show nano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+
 	turn turret to y-axis heading speed <160.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
+
 	show cagelight_emit;
 	spin cagelight around y-axis speed <225>;
 }
 
 StopBuilding()
 {
-	hide nano;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+
+	hide nano;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <-400>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+	
+	set INBUILDSTANCE to 0;
 }
 
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = nano;
 }
-
 
 
 Killed(severity, corpsetype)

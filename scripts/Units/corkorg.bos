@@ -6,7 +6,7 @@ piece  head, torso, hips, rgunflare, lgunflare, eyeflare, rmispoint,
        rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2, lfootstep, rfootstep;
 
 static-var  ShootingArm, WhichShoulderRocket, isMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
-            restore_delay, SmokeEffectFeet, HandsUp, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead, wpn2_lasthead;
+            restore_delay, SmokeEffectFeet, HandsUp, wpn1_lasthead, wpn2_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -525,25 +525,13 @@ StopMoving(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
+Open()
 {
 	InMotion = 1;
 	if( !HandsUp )
 	{
-		//while( !Aim_while_moving )
-		//{
-		//	sleep 100;
-		//}
 		emit-sfx 4096 + 6 from torso;
 		HandsUp = 1;
-		//move rmissle2 to y-axis [6.000000] speed [10.000000];
-		//move lmissle2 to y-axis [6.000000] speed [10.000000];
-		//turn luparm to x-axis <0.000000> speed <120.000000>;
-		//turn ruparm to x-axis <0.000000> speed <120.000000>;
-		wait-for-turn luparm around x-axis;
-		wait-for-turn ruparm around x-axis;
-		//turn rmissle2 to z-axis <-15.000000> speed <60.000000>;
-		//turn lmissle2 to z-axis <15.000000> speed <60.000000>;
 		turn lshoulder to z-axis <-45.000000> speed <80.000000>;
 		turn rshoulder to z-axis <45.000000> speed <80.000000>;
 		turn rarm to x-axis <-90.000000> speed <120.000000>;
@@ -552,11 +540,10 @@ Go()
 		wait-for-turn ruparm around z-axis;
 		wait-for-turn rarm around x-axis;
 		wait-for-turn larm around x-axis;
-
 	}
 }
 
-Stop()
+Close()
 {
 	if( HandsUp )
 	{
@@ -579,46 +566,8 @@ Stop()
 		turn rshoulder to z-axis <0.000000> speed <50.000000>;
 		turn lshoulder to x-axis <0.000000> speed <50.000000>;
 		turn rshoulder to x-axis <0.000000> speed <50.000000>;
-		//turn rmissle2 to z-axis <0.000000> speed <60.000000>;
-		//turn lmissle2 to z-axis <0.000000> speed <60.000000>;
-		//move rmissle2 to y-axis [0.000000] speed [10.000000];
-		//move lmissle2 to y-axis [0.000000] speed [10.000000];
-	/*	wait-for-turn luparm around x-axis;
-		wait-for-turn ruparm around x-axis;
-		wait-for-turn ruparm around z-axis;
-		wait-for-turn luparm around z-axis;
-		wait-for-turn rarm around x-axis;
-		wait-for-turn larm around x-axis;*/
 	}
 	InMotion = 0;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	//get  PRINT(999, requestedstate,currentstate,statechg_StateChanging);
-	
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 
@@ -647,8 +596,6 @@ Create()
 	WhichShoulderRocket = 0;
 	NotReadytoStomp=1;
 	restore_delay = 2000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -695,7 +642,7 @@ QueryWeapon3(pieceIndex)
 AimWeapon1(heading, pitch)
 {
 
-	start-script RequestState(0);
+	start-script Open(0);
 	signal SIGNAL_BODY;
 	
 	//get PRINT(HandsUp, heading,wpn1_lasthead,wpn2_lasthead);
@@ -744,8 +691,7 @@ RestoreBody() // no need to signal, as threads inherit parents signal masks
 {
 
 	sleep 3000;
-	
-	start-script RequestState(1);
+	start-script Close();
 	//turn aimy1 to y-axis <0.000000> speed <60.000000>;
 	turn lshoulder to x-axis <0.0> speed <150>;
 	turn rshoulder to x-axis <0.0> speed <150>;
@@ -769,7 +715,7 @@ RestoreBody() // no need to signal, as threads inherit parents signal masks
 AimWeapon1(heading, pitch)
 {
 
-	start-script RequestState(0);
+	start-script Open();
 	signal SIGNAL_BODY;
 	set-signal-mask SIGNAL_BODY;
 	

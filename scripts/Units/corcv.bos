@@ -1,44 +1,12 @@
 
 #include "exptype.h"
 
+#define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
 piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
-static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
-
-
-activatescr()
-{
-	turn ldoor to z-axis <0.000000> now;
-	turn ldoor to z-axis <-210> speed <360>;
-	turn rdoor to z-axis <0.000000> now;
-	turn rdoor to z-axis <210> speed <360>;
-	sleep 600;
-
-	move loturret to y-axis [7] speed [12];
-	move upturret to y-axis [5] speed [12];
-	sleep 200;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
-	turn loturret to y-axis <0.000000> speed <160.038462>;
-	turn upturret to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn loturret around y-axis;
-
-	move loturret to y-axis [0] speed [12];
-	move upturret to y-axis [0] speed [12];
-	sleep 200;
-	
-	turn ldoor to z-axis <0> speed <240>;
-	turn rdoor to z-axis <0> speed <240>;
-	sleep 200;
-
-}
+static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed;
 
 WheelControl()
 {
@@ -55,6 +23,18 @@ WheelControl()
 	}
 }
 
+StartMoving()
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script WheelControl();
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+}
+
 #define BASEPIECE base
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -63,43 +43,12 @@ WheelControl()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide beam;
 	hide cagelight_emit;
-	restore_delay = 3000;
-	notBuilding = 1;
+	restore_delay = 6000;
 	moveSpeed = get MAX_SPEED;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -108,40 +57,55 @@ Create()
 	
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+		turn ldoor to z-axis <-210> speed <360>;
+		turn rdoor to z-axis <210> speed <360>;
+		wait-for-turn ldoor around z-axis;
+
+		move loturret to y-axis [7] speed [12];
+		move upturret to y-axis [5] speed [12];
+		wait-for-move upturret along z-axis;
+		readyToBuild = TRUE;
+	}
+
 	show beam;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
 	turn upturret to y-axis heading speed <160.038462>;
 	wait-for-turn upturret around y-axis;
+
 	set INBUILDSTANCE to 1;
+
 	show cagelight_emit;
 	spin cagelight around y-axis speed <250>;
 }
 
 StopBuilding()
 {
-	hide beam;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	
+	hide beam;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <1000>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+	
+	turn loturret to y-axis <0.000000> speed <160.038462>;
+	turn upturret to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn loturret around y-axis;
+
+	move loturret to y-axis [0] speed [12];
+	move upturret to y-axis [0] speed [12];
+	wait-for-move upturret along z-axis;
+	
+	turn ldoor to z-axis <0> speed <240>;
+	turn rdoor to z-axis <0> speed <240>;
+	wait-for-turn ldoor around z-axis;
 }
 
 QueryNanoPiece(pieceIndex)

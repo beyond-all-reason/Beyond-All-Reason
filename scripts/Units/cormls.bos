@@ -3,7 +3,7 @@
 
 piece  base, door1, door2, neck, boom, nano, wake;
 
-static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -35,77 +35,11 @@ RockOnWaves()
 }
 
 
-activatescr()
-{
-		turn door1 to z-axis <-175> speed <360>;
-		turn door2 to z-axis <175> speed <360>;
-		sleep 200;
-
-		move neck to y-axis [3] speed [12];
-		move boom to y-axis [9] speed [24];
-		sleep 200;
-}
-
-deactivatescr()
-{
-		move neck to y-axis [0] speed [12];
-		move boom to y-axis [0] speed [24];
-		sleep 200;
-		turn door1 to z-axis <0> speed <360>;
-		turn door2 to z-axis <0> speed <360>;
-		sleep 200;
-
-}
-
-Go()
-{
-	call-script activatescr();
-	turn boom to y-axis buildHeading speed <160.000000>;
-	wait-for-turn boom around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn boom to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn boom around y-axis;
-	call-script deactivatescr();
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide nano;
 	hide wake;
 	buildHeading = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -113,27 +47,54 @@ Create()
 	start-script RockOnWaves();
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
 
 StartBuilding(heading)
 {
+
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild){
+
+		turn door1 to z-axis <-175> speed <360>;
+		turn door2 to z-axis <175> speed <360>;
+		wait-for-turn door1 around z-axis;
+
+		move neck to y-axis [3] speed [12];
+		move boom to y-axis [9] speed [24];
+		wait-for-move neck along y-axis;
+		readyToBuild = TRUE;
+	}
+
+	turn boom to y-axis heading speed <160.038462>;
+	wait-for-turn boom around y-axis;
+	
+	set INBUILDSTANCE to 1;
+
 	show nano;
-	buildHeading = heading;
-	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	hide nano;
-	start-script RequestState(1);
+
+	sleep 6000;
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+	
+	turn boom to y-axis <0> speed <160.038462>;
+	wait-for-turn boom around y-axis;
+
+	move neck to y-axis [3] speed [12];
+	move boom to y-axis [9] speed [24];
+	wait-for-move boom along y-axis;
+
+	turn door1 to z-axis <-175> speed <360>;
+	turn door2 to z-axis <175> speed <360>;
+	wait-for-turn door1 around z-axis;
 }
 
 waveSplash()

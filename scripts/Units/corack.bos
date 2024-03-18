@@ -7,7 +7,7 @@ piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
        lhindleg, lbeamcase, rbeamcase,  pelvis,
        rbeamhinge, lbeamhinge, aimy1, cagelight, cagelight_emit, cagelight2, cagelight_emit2 ;
 
-static-var  isMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging;
+static-var  isMoving, nanoNozzle, readyToBuild;
             
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_MOVE 1
@@ -118,39 +118,6 @@ StopMoving(){
 }
 
 
-Go()
-{
-	turn lbeamcase to y-axis <-90> speed <180>;
-	turn rbeamcase to y-axis <90> speed <180>;
-	wait-for-turn lbeamcase around y-axis;
-	
-	turn lbeamhinge to x-axis <175> speed <360>;
-	
-	turn rbeamhinge to x-axis <175> speed <360>;
-	wait-for-turn rbeamhinge around x-axis;
-	sleep 520;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	
-	turn lbeamhinge to x-axis <0> speed <360>;
-	turn rbeamhinge to x-axis <0> speed <360>;
-	wait-for-turn rbeamhinge around x-axis;	
-
-	turn lbeamcase to y-axis <0> speed <180>;
-	turn rbeamcase to y-axis <0> speed <180>;
-	wait-for-turn lbeamcase around y-axis;
-	
-
-	
-	turn torso to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn torso around y-axis;
-}
-
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -158,34 +125,6 @@ Stop()
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 
 Create()
@@ -197,32 +136,35 @@ Create()
 	hide cagelight_emit2;
 	isMoving = FALSE;
 	nanoNozzle = 0;
-	notBuilding = 1;
+	readyToBuild = 1;
 	animSpeed = 5;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if(!readyToBuild){
+		turn lbeamcase to y-axis <-90> speed <180>;
+		turn rbeamcase to y-axis <90> speed <180>;
+		wait-for-turn lbeamcase around y-axis;
+		
+		turn lbeamhinge to x-axis <175> speed <360>;
+		turn rbeamhinge to x-axis <175> speed <360>;
+		wait-for-turn rbeamhinge around x-axis;
+
+		readyToBuild = TRUE;
+	}
+
 	show rnano;
 	show lnano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
+
 	set INBUILDSTANCE to 1;
+
 	show cagelight_emit;
 	show cagelight_emit2;
 	spin cagelight_emit around y-axis speed <450>;
@@ -231,18 +173,30 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	hide rnano;
-	hide lnano;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	
+	hide rnano;
+	hide lnano;
 	hide cagelight_emit;
 	hide cagelight_emit2;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
 	
 	turn aimy1 to y-axis <0> speed <160.000000>;
-	start-script RequestState(1);
+	wait-for-turn aimy1 around y-axis;
+	
+	turn lbeamhinge to x-axis <0> speed <360>;
+	turn rbeamhinge to x-axis <0> speed <360>;
+	wait-for-turn rbeamhinge around x-axis;	
+
+	turn lbeamcase to y-axis <0> speed <180>;
+	turn rbeamcase to y-axis <0> speed <180>;
+	wait-for-turn lbeamcase around y-axis;
+	
 }
 
 

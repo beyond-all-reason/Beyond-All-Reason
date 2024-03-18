@@ -3,7 +3,7 @@
 
 piece  base, flare, wake1, wake2, door1, door2, neck, gun ;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
+static-var  notBuilding, readyToBuild;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -36,28 +36,6 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
-activatescr()
-{
-	turn door1 to z-axis <0.000000> now;
-	turn door1 to z-axis <-175> speed <209.241758>;
-	turn door2 to z-axis <0.000000> now;
-	turn door2 to z-axis <175> speed <208.917582>;
-	sleep 1089;
-	move neck to y-axis [12] speed [20];
-	sleep 916;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	turn gun to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn neck around y-axis;
-	move neck to y-axis [0] speed [20];
-	sleep 760;
-	turn door1 to z-axis <0.000000> speed <185.258242>;
-	turn door2 to z-axis <0.000000> speed <184.972527>;
-	sleep 1230;
-}
 
 StartMoving()
 {
@@ -76,33 +54,6 @@ StopMoving()
 	signal SIGNAL_MOVE;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -110,40 +61,49 @@ Create()
 	hide wake2;
 	hide flare;
 	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
+	readyToBuild = FALSE;
 }
 
 StartBuilding(heading, pitch)
 {
-	show flare;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
 	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+		turn door1 to z-axis <-175> speed <209.241758>;
+		turn door2 to z-axis <175> speed <208.917582>;
+		wait-for-turn door1 around z-axis;
+		
+		move neck to y-axis [12] speed [20];
+		wait-for-move neck along y-axis;
+		
+		readyToBuild = TRUE;
+	}
 	turn gun to y-axis heading speed <160.038462>;
 	wait-for-turn gun around y-axis;
+
+	show flare;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	hide flare;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	hide flare;	
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
-	start-script RequestState(1);
+
+	readyToBuild = FALSE;
+	set INBUILDSTANCE to 0;
+
+	turn gun to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn neck around y-axis;
+
+	move neck to y-axis [0] speed [20];
+	wait-for-move neck along y-axis;
+
+	turn door1 to z-axis <0.000000> speed <185.258242>;
+	turn door2 to z-axis <0.000000> speed <184.972527>;
 }
 
 QueryNanoPiece(pieceIndex)

@@ -6,10 +6,7 @@ piece  base, turret, arm, beam, lpump, rpump, nano1, nano2, wake;
 #define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
-static-var  statechg_DesiredState, statechg_StateChanging, notBuilding, nano, pump;
-
-
-
+static-var  nano, pump;
 
 RockOnWaves()
 {
@@ -74,72 +71,15 @@ MovementControl()
 }
 
 
-Go()
-{
-	set INBUILDSTANCE to 1;
-	pump = 1;
-	
-	turn arm to x-axis <45> speed <90>;
-	turn beam to x-axis <-45> speed <180>;
-	wait-for-turn beam around x-axis;
-	sleep 500;
-	start-script MovementControl();
-}
-
-Stop()
-{	
-	set INBUILDSTANCE to 0;
-	pump = 0;
-	
-	turn arm to x-axis <-90> speed <90>;
-	turn beam to x-axis <-180> speed <180>;
-	turn turret to y-axis <0> speed <180>;
-	wait-for-turn beam around x-axis;
-	move lpump to y-axis [0] speed [1];
-	move lpump to x-axis [0] speed [1];
-	sleep 200;	
-}
-
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
 Create()
 {
 	hide wake;
 	hide nano2;
 	hide nano1;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	turn arm to x-axis <-90> now;
 	turn beam to x-axis <-180> now;
+
+	readyToBuild = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -148,54 +88,53 @@ Create()
 	
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
 
 StartBuilding(heading,pitch)
 {
-	show nano1;
-	show nano2;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild){
+		pump = 1;
+		
+		turn arm to x-axis <45> speed <90>;
+		turn beam to x-axis <-45> speed <180>;
+		wait-for-turn beam around x-axis;
+
+	}
+	start-script MovementControl();
+	
 	turn turret to y-axis heading speed <360.000000>;
 	turn beam to x-axis <-45> -pitch speed <90>;
-	set INBUILDSTANCE to 1;
-	
+
+	show nano1;
+	show nano2;
 }
 
 StopBuilding()
 {
-	hide nano1;
-	hide nano2;
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
-	sleep 3000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;
-	start-script RequestState(1);
+	hide nano1;
+	hide nano2;
+
+	sleep 6000;
+	set INBUILDSTANCE to 1;
+	readyToBuild = FALSE;
+
+	turn arm to x-axis <-90> speed <90>;
+	turn beam to x-axis <-180> speed <180>;
+	turn turret to y-axis <0> speed <180>;
+	wait-for-turn beam around x-axis;
+	move lpump to y-axis [0] speed [1];
+	move lpump to x-axis [0] speed [1];
 }
 
 QueryNanoPiece(pieceIndex)
 {
-	if(nano==1)
-	{
-		pieceIndex = nano1;
-	}
-	else
-	{
-		pieceIndex = nano2;
-	}
+	pieceIndex = nano1 + nano;
 	nano = !nano;
 }
-
 
 
 Killed(severity, corpsetype)
