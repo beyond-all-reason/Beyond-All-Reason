@@ -176,14 +176,19 @@ Create()
 	turn Fcore to y-axis <300> now;
 	
 	
-	//second stage might only need 18.5 with new thickness, and/or moving away from A1 a little
-	//other side might need 19 though
-	
-//maybe add 0.4 to remove a gap?
-
 
 	turn Ar to x-axis <20.5> now;
 	turn Al to x-axis <-20.5> now;
+	turn Br to x-axis <20.5> now;
+	turn Bl to x-axis <-20.5> now;
+	turn Cr to x-axis <20.5> now;
+	turn Cl to x-axis <-20.5> now;
+	turn Dr to x-axis <20.5> now;
+	turn Dl to x-axis <-20.5> now;
+	turn Er to x-axis <20.5> now;
+	turn El to x-axis <-20.5> now;
+	turn Fr to x-axis <20.5> now;
+	turn Fl to x-axis <-20.5> now;
 	
 	
 	turn AL1 to y-axis <-179> now;
