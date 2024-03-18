@@ -1,0 +1,10 @@
+.element {
+    padding: 4px;
+    border-radius: 8px;
+    border: 4px black;
+    background-color: rgba(0%, 0%, 0%, 70%);
+    image-color: rgba(100%, 100%, 100%, 1%);
+    decorator:
+        gradient(vertical rgba(100%, 100%, 100%, 15%) rgba(0%, 0%, 0%, 15%)),
+        image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat);
+}
