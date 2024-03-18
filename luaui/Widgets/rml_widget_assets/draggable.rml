@@ -1,7 +1,7 @@
 <template name="draggable" content="content">
 
 	<head>
-		<link type="text/rcss" href="rml.rcss" />
+		<link type="text/rcss" href="/LuaUI/rml_common/styles.rcss" />
 		<link type="text/rcss" href="invader.rcss" />
 		<style>
 

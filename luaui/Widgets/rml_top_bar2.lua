@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar 2",
+		name = "Top Bar Rml Example",
 		desc = "Shows Resources and wind speed. RmlUi edition",
 		author = "Floris & lov",
 		date = "2023",
@@ -46,7 +46,7 @@ local mmSlider
 local blades
 function widget:Initialize()
 	checkSelfStatus()
-	context = rmlui.GetContext("overlay")
+	context = RmlUi.GetContext("common")
 
 	dataModel.resources = {
 		energy = {
@@ -72,9 +72,9 @@ function widget:Initialize()
 			current = Game.tidal
 		}
 	}
-	dm = context:OpenDataModel("data", dataModel)
+	dm = context:OpenDataModel("top_bar_data", dataModel)
 
-	document = context:LoadDocument("luaui/rml/gui_top_bar2.rml", widget)
+	document = context:LoadDocument("LuaUi/Widgets/rml_widget_assets/gui_top_bar2.rml", widget)
 	metalbar = document:GetElementById("metalstorage")
 	energybar = document:GetElementById("energystorage")
 	mmSlider = document:GetElementById("energy")
@@ -87,7 +87,7 @@ function widget:Shutdown()
 		document:Close()
 	end
 	if context then
-		context:RemoveDataModel("data")
+		context:RemoveDataModel("top_bar_data")
 	end
 end
 

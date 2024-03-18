@@ -4,45 +4,43 @@
 
 * {
     box-sizing: border-box;
-    font-family: Exo 2;
+    font-family: "Exo 2";
     font-size: 20px;
 }
 
-body, div,
-h1, h2, h3, h4,
-h5, h6, p,
-hr, pre, datagrid,
+body, div, p, hr, pre,
+h1, h2, h3, h4, h5, h6,
 tabset tabs {
     display: block;
 }
 
 h1 {
     font-size: 2em;
-    margin: .67em 0;
+    margin: .5em 0;
 }
 
 h2 {
     font-size: 1.5em;
-    margin: .75em 0;
+    margin: .5em 0;
 }
 
 h3 {
     font-size: 1.17em;
-    margin: .83em 0;
+    margin: .5em 0;
 }
 
-h4, p {
-    margin: 1.12em 0;
+h4 {
+    margin: .5em 0;
 }
 
 h5 {
     font-size: .83em;
-    margin: 1.5em 0;
+    margin: .25em 0;
 }
 
 h6 {
     font-size: .75em;
-    margin: 1.67em 0;
+    margin: .25em 0;
 }
 
 h1, h2, h3, h4,

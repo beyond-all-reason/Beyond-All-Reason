@@ -1,7 +1,9 @@
 <rml>
     <head>
-        <link type="text/rcss" href="/LuaUI/rml/styles.rcss"/>
-        <link type="text/rcss" href="/LuaUI/rml/flow_ui.rcss"/>
+        <!-- The default styling for html elements, must be imported to be used -->
+        <link type="text/rcss" href="/LuaUI/rml_common/styles.rcss"/>
+        <!-- Style based on the flow_ui api -->
+        <link type="text/rcss" href="/LuaUI/rml_common/flow_ui.rcss"/>
     </head>
     <body
             data-model="data_model_test"
@@ -35,7 +37,7 @@
             <div>&lt;texture src="#101"&gt;</div>
             <texture src="#101"/>
             <div>&lt;texture src="luaui/images/backgroundtile.png"&gt;</div>
-            <texture src="luaui/images/backgroundtile.png"/>
+            <texture style="width: 64px; height: 64px" src="luaui/images/backgroundtile.png"/>
             <div>&lt;texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"&gt;</div>
             <texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"/>
         </div>
