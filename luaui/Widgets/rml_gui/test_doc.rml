@@ -1,0 +1,43 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="/LuaUI/rml/styles.rcss"/>
+        <link type="text/rcss" href="/LuaUI/rml/flow_ui.rcss"/>
+    </head>
+    <body
+            data-model="data_model_test"
+            style="top: 10%; left: 20%; min-width: 300px; height: 70%;"
+    >
+        <handle move_target="#document">
+            <div class="element">
+                <h3 style="margin: 0.25em">Window Top Bar (Click and Drag to Move)</h3>
+            </div>
+        </handle>
+        <div class="element">
+            <span>Below me is a flexbox</span>
+            <div style="display: flex">
+                <div style="background-color: green; width: 250px; height: 50px">
+                    Solid Color Block test
+                </div>
+                <div
+                        class="element"
+                        data-event-mousedown="exampleEventHook('event param example')"
+                        style="cursor: pointer"
+                >
+                    Click me for log spam<br/>
+                    Inserted value: {{exampleValue}}
+                </div>
+            </div>
+        </div>
+        <div class="element">
+            <h4 class="element" style="margin: 0.1em">Custom &lt;texture&gt; Element Demo</h4>
+            <div>&lt;texture src="^101"&gt;</div>
+            <texture src="^101"/>
+            <div>&lt;texture src="#101"&gt;</div>
+            <texture src="#101"/>
+            <div>&lt;texture src="luaui/images/backgroundtile.png"&gt;</div>
+            <texture src="luaui/images/backgroundtile.png"/>
+            <div>&lt;texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"&gt;</div>
+            <texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"/>
+        </div>
+    </body>
+</rml>
