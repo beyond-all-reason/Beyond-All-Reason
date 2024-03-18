@@ -25,12 +25,15 @@ local cegList = {}
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
 		featureList[featureDefID] = {
-			minX = math.max(math.floor(featureDef.model.minx * 0.66), -500) - 1,	-- capping values to prevent and error on too large interval in math.random() param #2
-			maxX = math.min(math.floor(featureDef.model.maxx * 0.66), 500) + 1,
-			minZ = math.max(math.floor(featureDef.model.minz * 0.66), -500) - 1,
-			maxZ = math.min(math.floor(featureDef.model.maxz * 0.66), 500) + 1,
+			minX = math.max(math.floor(featureDef.model.minx * 0.66), -500),	-- capping values to prevent and error on too large interval in math.random() param #2
+			maxX = math.min(math.floor(featureDef.model.maxx * 0.66), 500),
+			minZ = math.max(math.floor(featureDef.model.minz * 0.66), -500),
+			maxZ = math.min(math.floor(featureDef.model.maxz * 0.66), 500),
 			y = math.floor(featureDef.model.maxy * 0.66)
 		}
+		if featureList[featureDefID].minX == featureList[featureDefID].maxX or featureList[featureDefID].minZ == featureList[featureDefID].maxZ  then
+			featureList[featureDefID] = nil	-- to prevent error: "Empty interval in math.random()"
+		end
 	end
 end
 
