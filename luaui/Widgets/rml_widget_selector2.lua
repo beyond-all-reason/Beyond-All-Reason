@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Widget Selector2",
+		name = "Widget Selector RML Example",
 		desc = "Widget selection widget",
 		author = "lov",
 		date = "2023",
@@ -37,11 +37,8 @@ local dataModel = {
 
 local function getWidgets()
 	local myName = widget:GetInfo().name
-	--maxWidth = 0
-	-- local listelement = document:GetElementById("widgetlist")
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if name ~= myName and name ~= 'Write customparam.__def to files' then
-			-- Spring.Echo("E", name, data)
 			local order = widgetHandler.orderList[name]
 			local enabled = (order and (order > 0)) == true
 			widgetList[#widgetList + 1] = {
@@ -69,16 +66,15 @@ function widget:filterList(ev, elm)
 				(data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))))
 	end
 	dm.widgets = widgetList
-	-- dm:__SetDirty("widgets")
 end
 
 function widget:Initialize()
 	getWidgets()
-	context = rmlui.GetContext("overlay")
+	context = RmlUi.GetContext("common")
 
-	dm = context:OpenDataModel("widgetlist", dataModel)
+	dm = context:OpenDataModel("widget_list_data", dataModel)
 
-	document = context:LoadDocument("luaui/rml/widget_selector.rml", widget)
+	document = context:LoadDocument("LuaUi/Widgets/rml_widget_assets/widget_selector.rml", widget)
 	document:Show()
 end
 
@@ -87,7 +83,7 @@ function widget:Shutdown()
 		document:Close()
 	end
 	if context then
-		context:RemoveDataModel("widgetlist")
+		context:RemoveDataModel("widget_list_data")
 	end
 end
 
@@ -96,7 +92,7 @@ function widget:buttonPress(str)
 end
 
 function widget:handleKey(event, elm)
-	if rmlui.key_identifier.ESCAPE == event.parameters.key_identifier then
+	if RmlUi.key_identifier().ESCAPE == event.parameters.key_identifier then
 		local inputText = elm:GetAttribute("value")
 		if inputText == "" then
 			elm:Blur()

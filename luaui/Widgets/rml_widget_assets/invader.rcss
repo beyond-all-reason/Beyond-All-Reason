@@ -1,3 +1,5 @@
+/* copied from one the RmlUi examples */
+/* demonstrates how to use a spritesheet to style RML elements */
 @spritesheet theme
 {
 	src: invader.tga;

@@ -2,8 +2,7 @@
 
 	<head>
 		<title>Top Bar</title>
-		<!-- <link type="text/template" href="draggable.rml" /> -->
-		<link type="text/rcss" href="rml.rcss" />
+		<link type="text/rcss" href="/LuaUI/rml_common/styles.rcss" />
 		<style>
 			body {
 				top: 100px;
@@ -17,7 +16,7 @@
 				font-style: normal;
 				font-size: 1.5em;
 				color: white;
-				cursor: cursor_default;
+				cursor: default;
 			}
 
 			input.range slidertrack {
@@ -65,13 +64,13 @@
 				position: absolute;
 				width: 100%;
 				height: 100%;
-				decorator: image("stripes.png" none repeat left top);
+				decorator: image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat left top);
 				image-color: rgba(85, 85, 85, 80);
 			}
 
 			.windbox {
-				/* decorator: image("stripes.png" none repeat left top);
-				image-color: rgba(85, 85, 85, 80); */
+				decorator: image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat left top);
+				image-color: rgba(85, 85, 85, 80);
 				background-color: rgba(0, 0, 0, 200);
 				height: 70dp;
 				width: 15%;
@@ -313,31 +312,32 @@
 				border-radius: 2px;
 			}
 		</style>
+		<!-- Lua script can be included directly in the document -->
 		<script>
 			function mouseovertooltip(element, show)
-			return function ()
-			element: SetClass("showtooltip", show)
-			end
+				return function ()
+					element:SetClass("showtooltip", show)
+				end
 			end
 
 			function loaded(document)
-			local f = document: GetElementById("metal"): GetChild(1)
-			f: AddEventListener("mouseover", mouseovertooltip(document: GetElementById('metaltooltip'), true))
-			f: AddEventListener("mouseout", mouseovertooltip(document: GetElementById('metaltooltip'), false))
+				local f = document:GetElementById("metal"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('metaltooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('metaltooltip'), false))
 
-			f = document: GetElementById("energy"): GetChild(1)
-			f: AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energytooltip'), true))
-			f: AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energytooltip'), false))
+				f = document:GetElementById("energy"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energytooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energytooltip'), false))
 
-			f = document: GetElementById("energyshare"): GetChild(1)
-			f: AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energysharetooltip'), true))
-			f: AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energysharetooltip'), false))
+				f = document:GetElementById("energyshare"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energysharetooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energysharetooltip'), false))
 			end
 		</script>
 	</head>
 
 	<body onload="loaded(document)">
-		<div id="wrap" data-model="data">
+		<div id="wrap" data-model="top_bar_data">
 			<div class="flex">
 				<div class="rbox" style="margin-right:8px; flex:5">
 					<div class="" style="width: 10%;">
@@ -368,7 +368,7 @@
 								<tooltiptext>The quick brown fox jumps over the lazy dog</tooltiptext>
 							</tooltip>
 							<div style=" flex:4" class="barwrap">
-								<progress id="metalstorage" value="400" max="1000"></progress>
+								<progress id="metalstorage" value="400" max="1000"/>
 								<input type='range' id="metal" class="hiddenresourcetrack resourcetrack metaltrack shareslider"
 									value="100" />
 								<tooltiptext id="metaltooltip" class="slidertooltip">metal slider</tooltiptext>
@@ -405,7 +405,7 @@
 								<tooltiptext>metal income</tooltiptext>
 							</tooltip>
 							<div style=" flex:4" class="barwrap">
-								<progress id="energystorage" value="800" max="1000"></progress>
+								<progress id="energystorage" value="800" max="1000"/>
 								<input type='range' id="energy" class="hiddenresourcetrack resourcetrack energytrack" value="80"
 									onchange="widget:adjustConversion(element,event)" />
 								<input type='range' id="energyshare" class="hiddenresourcetrack shareslider" value="100" />
