@@ -62,7 +62,7 @@ return {
 			[17] = "cortoast",
 			[18] = "corvipe",
 			[19] = "legbastion",
-			[20] = "corflak",
+			[20] = "legflak",
 			[21] = "corscreamer",
 			[22] = "cortron",
 			[23] = "corfmd",
