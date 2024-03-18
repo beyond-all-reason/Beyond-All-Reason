@@ -5,7 +5,7 @@
 
 piece  base, solarbase, container;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, xvector, zvector, sunheading, xdir, zdir, sunheading, offset, unitheading;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, sunheading, unitheading;
 
 
 #define LUA0 110
@@ -13,37 +13,21 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, xvector, zvector, 
 #define LUA2 112
 #define LUA3 113
 
-Go()
-{
-	set ARMORED to 0;
-	return (0);
-}
 
-Stop()
-{
-	set ARMORED to 1;
-	return (0);
-}
-
-lua_solarpoint(one, heading) {
+lua_solarpoint() {
 	//get PRINT(1234);
 	//get PRINT(LUA0, LUA1, LUA2, LUA3);//nani
 	return(0);
 }
 
-solarreturn(status, sunheading, unitheading) {
-	//get PRINT(1234567);
-	//get PRINT(HEADING);///this seems to always be 82 here? tf?
-	//get PRINT(555,unitheading);
-	//get PRINT(status, xvector, zvector, sunheading);
+solarreturn(status, sunheading) {
 
+	unitheading = get(HEADING);
 	if (status==1) {
-		turn container to y-axis 0-unitheading now;//returned heading ...
+		turn container to y-axis 0-unitheading now;
 		turn solarbase to x-axis <30> speed <12>;
 		turn solarbase to y-axis sunheading*182 speed <25>;
-		turn solarbase to z-axis <0> now;
 	}
-
 
 }
 
@@ -56,7 +40,7 @@ Create()
 	{
 		sleep 400;
 	}
-	call-script lua_solarpoint(get HEADING(0));
+	call-script lua_solarpoint();
 	return (0);
 }
 

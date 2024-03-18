@@ -21,21 +21,18 @@ local success
 local mapinfo
 success = false
 
-local function solarpoint(unitID, unitDefID, team, heading) 
+local function solarpoint(unitID, unitDefID, team) 
 	
 	if success then
 
-    local sunheading = math.atan2(sundir[1], sundir[3]) * (180 / math.pi)
-	
-	
-		Spring.CallCOBScript(unitID, "solarreturn", 3, 1, sunheading, heading)
+		local sunheading = math.atan2(sundir[1], sundir[3]) * ((COBSCALE / math.deg(math.tau)) / math.pi)--WIZARDRY INTENSIFIES (182.04)
+		Spring.CallCOBScript(unitID, "solarreturn", 3, 1, sunheading)
 	else
-		Spring.CallCOBScript(unitID, "solarreturn", 3, 0, 0, 0)
+		Spring.CallCOBScript(unitID, "solarreturn", 3, 0, 0)
 	end
 	
 	return 1
 end
-
 
 
 
@@ -52,7 +49,8 @@ function gadget:Initialize()
 			advsols[UnitDefNames.armadvsol_scav.id] = true
 		end
 
-		--only look for advsols that care about the sun
+		--only look for advsols that care about the sun (coradvsol sun agnostic chad)
+		--legadvsol to follow
 		--if (UnitDefNames.legadvsol) then
 			--advsols[UnitDefNames.legadvsol.id] = true
 		--end
