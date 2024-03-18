@@ -57,6 +57,14 @@ Go()
 	turn F to z-axis <140> speed <80.000000>;
 	wait-for-turn A around z-axis;
 	
+
+	turn AR1 to y-axis <45> speed <120.000000>;
+	turn BR1 to y-axis <45> speed <120.000000>;
+	turn CR1 to y-axis <45> speed <120.000000>;
+	turn DR1 to y-axis <45> speed <120.000000>;
+	turn ER1 to y-axis <45> speed <120.000000>;
+	turn FR1 to y-axis <45> speed <120.000000>;
+	wait-for-turn AR1 around y-axis;
 	
 	turn AL1 to y-axis <-45> speed <120.000000>;
 	turn BL1 to y-axis <-45> speed <120.000000>;
@@ -65,14 +73,6 @@ Go()
 	turn EL1 to y-axis <-45> speed <120.000000>;
 	turn FL1 to y-axis <-45> speed <120.000000>;
 
-	wait-for-turn BL1 around y-axis;
-
-	turn AR1 to y-axis <45> speed <120.000000>;
-	turn BR1 to y-axis <45> speed <120.000000>;
-	turn CR1 to y-axis <45> speed <120.000000>;
-	turn DR1 to y-axis <45> speed <120.000000>;
-	turn ER1 to y-axis <45> speed <120.000000>;
-	turn FR1 to y-axis <45> speed <120.000000>;
 
 	turn AL1 to z-axis <0> speed <180.000000>;
 	turn BL1 to z-axis <0> speed <180.000000>;
