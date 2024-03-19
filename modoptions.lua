@@ -958,22 +958,13 @@ local options={
 	},
 
 	{
-		key    		= 'norush',
-		name   		= "No Rush mode",
-		desc   		= "!UNFINISHED! - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
-		type   		= "bool",
-		section		= 'options_experimental',
-		def    		= false,
-	},
-
-	{
 		key    		= 'norushtimer',
 		name   		= "No Rush Time",
-		desc   		= '(Range: 5 - 30). Minutes',
+		desc   		= '(Range: 0 - 30). Minutes',
 		type   		= "number",
 		section		= 'options_experimental',
-		def    		= 5,
-		min    		= 5,
+		def    		= 0,
+		min    		= 0,
 		max    		= 30,
 		step   		= 1,
 	},
