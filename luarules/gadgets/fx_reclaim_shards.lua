@@ -17,6 +17,7 @@ end
 local GetFeaturePosition = Spring.GetFeaturePosition
 local SpawnCEG = Spring.SpawnCEG
 local random = math.random
+local abs = math.abs
 
 local cegs = { "reclaimshards1", "reclaimshards2", "reclaimshards3" }
 local featureList = {}
@@ -32,7 +33,7 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 			y = math.floor(featureDef.model.maxy * 0.66)
 		}
 		if featureList[featureDefID].minX == featureList[featureDefID].maxX or featureList[featureDefID].minZ == featureList[featureDefID].maxZ  then
-			featureList[featureDefID] = nil	-- to prevent error: "Empty interval in math.random()"
+			featureList[featureDefID] = nil	-- to prevent error: "Empty interval in math.random()" .... DID DIDNT HELP :-(
 		end
 	end
 end
@@ -51,8 +52,8 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		local params = featureList[featureDefID] or nil
 		if params then
 			local x, y, z = GetFeaturePosition(featureID)
-			x = x + random(params.minX, params.maxX)
-			z = z + random(params.minZ, params.maxZ)
+			x = x - abs(params.minX) + ((abs(params.minX) + abs(params.maxX)) * random())
+			z = z - abs(params.minZ) + ((abs(params.minZ) + abs(params.maxZ)) * random())
 			y = y + params.y
 			cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = y, z = z }
 		end
