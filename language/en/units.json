@@ -739,7 +739,8 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"boombox": "Boombox"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1476,7 +1477,8 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"boombox": "Congratulations, you found an easter egg! Capture for a surprise!"
 		}
 	}
 }

@@ -3011,6 +3011,10 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
+	boombox = {
+		bitmap = "icons/blank.png",
+		size = 1.0
+	},
 
 	blank = {
 		bitmap = "icons/blank.png",
