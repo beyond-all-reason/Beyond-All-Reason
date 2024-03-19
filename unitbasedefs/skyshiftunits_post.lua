@@ -28,7 +28,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.footprintx = 2
 		uDef.footprintz = 2
 		uDef.health = 370
-		uDef.hoverattack = true
+		uDef.hoverattack = false
 		uDef.maxacc = 0.8
 		uDef.maxaileron = 0.03
 		uDef.maxbank = 0.9
@@ -36,7 +36,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.625
 		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 175
+		uDef.speed = 205
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/ARMFIG.s3o"
@@ -77,7 +77,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				size = 1.75,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
-				sprayangle = 1180,
+				sprayangle = 900,
 				tolerance = 60000,
 				turret = true,
 				weapontype = "Cannon",
@@ -121,7 +121,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.14
 		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
-		uDef.speed = 96
+		uDef.speed = 140
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "MOBILE"
@@ -157,7 +157,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				name = "Light a2g impulse warheads",
 				noselfdamage = true,
 				range = 1000,
-				reloadtime = 14,
+				reloadtime = 10,
 				soundhit = "bombssml1",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
@@ -204,7 +204,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.45
 		uDef.maxrudder = 0.004
 		uDef.maxwaterdepth = 0
-		uDef.speed = 75
+		uDef.speed = 90
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/ARMKAM.s3o"
 		uDef.script = "Units/ARMKAM.cob"
@@ -219,11 +219,11 @@ local function skyshiftUnitTweaks(name, uDef)
 				accuracy = 13,
 				areaofeffect = 240,
 				avoidfeature = false,
-				avoidfriendly = true,
-				burst = 6,
+				avoidfriendly = false,
+				burst = 9,
 				burstrate = 0.05,
 				burnblow = true,
-				collidefriendly = true,
+				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -239,7 +239,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				noselfdamage = true,
 				ownerExpAccWeight = 2.0,
 				range = 900,
-				reloadtime = 9,
+				reloadtime = 5.5,
 				smokePeriod = 4,
 				smoketime = 16,
 				smoketrail = true,
@@ -252,8 +252,8 @@ local function skyshiftUnitTweaks(name, uDef)
 				texture1 = "null",
 				texture2 = "smoketrail",
 				tracks = true,
-				tolerance = 2250,
-				turnrate = 4500,
+				tolerance = 2400,
+				turnrate = 5000,
 				turret = false,
 				weaponacceleration = 700,
 				weapontype = "MissileLauncher",
@@ -261,7 +261,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				wobble = 75,
 				damage = {
 					default = 1,
-					vtol = 120,
+					vtol = 70,
 				},
 			},
 		}
@@ -302,7 +302,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxrudder = 0.00578
 		uDef.maxslope = 10
 		uDef.maxwaterdepth = 0
-		uDef.speed = 210
+		uDef.speed = 250
 		uDef.objectname = "Units/ARMSFIG.s3o"
 		uDef.script = "Units/ARMSFIG.cob"
 		uDef.seismicsignature = 0
@@ -347,7 +347,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				damage = {
-					default = 11,
+					default = 10,
 				},
 			},
 		}
@@ -393,7 +393,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.footprintx = 2
 		uDef.footprintz = 2
 		uDef.health = 345
-		uDef.hoverattack = true
+		uDef.hoverattack = false
 		uDef.maxacc = 0.8
 		uDef.maxaileron = 0.03
 		uDef.maxbank = 0.9
@@ -401,7 +401,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.625
 		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 160
+		uDef.speed = 195
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/CORVENG.s3o"
@@ -450,9 +450,9 @@ local function skyshiftUnitTweaks(name, uDef)
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
-				weaponvelocity = 1000,
+				weaponvelocity = 2000,
 				damage = {
-					default = 35,
+					default = 37,
 				},
 			},
 		}
@@ -491,7 +491,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.14
 		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
-		uDef.speed = 90
+		uDef.speed = 135
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "VTOL"
@@ -525,7 +525,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				name = "Medium a2g incinerating warheads",
 				noselfdamage = true,
 				range = 1280,
-				reloadtime = 14,
+				reloadtime = 10,
 				soundhit = "bombssml1",
 				soundhitwet = "splslrg",
 				soundstart = "bombrel",
@@ -568,12 +568,12 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.health = 80
 		uDef.maxaileron = 0.03
 		uDef.maxacc = 0.7
-		uDef.maxbank = 0.9
+		uDef.maxbank = 0.65
 		uDef.maxelevator = 0.08
-		uDef.maxpitch = 0.75
-		uDef.maxrudder = 0.014
+		uDef.maxpitch = 0.60
+		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 190
+		uDef.speed = 230
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "COMMANDER"
 		uDef.objectname = "Units/CORBW.s3o"
@@ -582,8 +582,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "tinyExplosionGenericSelfd"
 		uDef.sightdistance = 364
 		uDef.turninplaceanglelimit = 360
-		uDef.turnradius = 18
-		uDef.turnrate = 450
+		uDef.turnradius = 24
+		uDef.turnrate = 400
 		uDef.upright = false
 		uDef.usesmoothmesh = 0
 		uDef.weapondefs = {
@@ -612,7 +612,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				paralyzer = true,
 				paralyzetime = 7,
 				range = 220,
-				reloadtime = 1.2,
+				reloadtime = 2.4,
 				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -625,7 +625,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 400,
+					default = 1600,
 				},
 			},
 		}
@@ -660,7 +660,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.hoverattack = true
 		uDef.idleautoheal = 5
 		uDef.idletime = 1800
-		uDef.health = 1300
+		uDef.health = 1500
 		uDef.maxacc = 0.065
 		uDef.maxbank = 0.8
 		uDef.maxdec = 0.85
@@ -669,7 +669,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxrudder = 0.004
 		uDef.maxslope = 10
 		uDef.maxwaterdepth = 0
-		uDef.speed = 75
+		uDef.speed = 90
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/CORCUT.s3o"
 		uDef.script = "Units/CORCUT.cob"
@@ -694,7 +694,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				name = "LongRangeCannon",
 				noselfdamage = true,
 				range = 900,
-				reloadtime = 1.3,
+				reloadtime = 1.2,
 				rgbcolor = "0.8 0.8 0.1",
 				size = 3,
 				soundhit = "xplosml3",
@@ -707,7 +707,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				weaponvelocity = 500,
 				damage = {
 					default = 1,
-					vtol = 300,
+					vtol = 190,
 				},
 			},
 		}
@@ -739,9 +739,7 @@ local function skyshiftUnitTweaks(name, uDef)
 
 	if name == "armwar" or name == "armham" or name == "armflea" or name == "armpw" or name == "armstump" or name == "armfav" or name == "armart" or name == "armflash" or name == "armpincer" or name == "armjanus" or name == "armcom" or name == "armllt" or name == "armbeamer" or name == "armhlt" or name == "armclaw" or name == "armguard" or name == "corstorm" or name == "corthud" or name == "corak" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "corllt" or name == "corhlt" or name == "corhllt" or name == "cormaw" or name == "corpun" or name == "corpship" or name == "corroy" or name == "coresupp" or name == "armroy" or name == "armpship" or name == "armdecade" or name == "armfhlt" or name == "corfhlt" then
 		for weapons, weaponDef in pairs(uDef.weapondefs) do
-        -- Assuming weaponDef is a table that directly contains the damage table
 			if weaponDef.damage and weaponDef.damage.default then
-				-- Update the vtol damage to match the default damage
 				weaponDef.damage.vtol = weaponDef.damage.default
 			end
 		end
@@ -812,7 +810,7 @@ end
 
 
 
-
+--[[
 
 local function skyshiftWeaponTweaks(name, wDef)
 	
@@ -821,8 +819,9 @@ local function skyshiftWeaponTweaks(name, wDef)
 	return wDef
 	
 end
-
+]]
 return {
 	skyshiftUnitTweaks = skyshiftUnitTweaks,
-	skyshiftWeaponTweaks = skyshiftWeaponTweaks,
+	--skyshiftWeaponTweaks = skyshiftWeaponTweaks,
 	}
+	

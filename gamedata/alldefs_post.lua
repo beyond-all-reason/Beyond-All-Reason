@@ -1542,7 +1542,7 @@ end
 
 -- Skyshift: Air rework
 if Spring.GetModOptions().skyshift == true then
-	skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+	skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 end
 
@@ -2010,11 +2010,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Skyshift: Air rework
+		--[[Skyshift: Air rework
 		if Spring.GetModOptions().skyshift == true then
-			skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
-		end
+		end]]
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields
