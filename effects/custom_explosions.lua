@@ -6117,6 +6117,37 @@ local definitions = {
     },
   },
 
+
+	boomboxboom = {
+		shockwave = {
+		  air                = false,
+		  class              = [[CBitmapMuzzleFlame]],
+		  count              = 1,
+		  ground             = true,
+		  underwater         = false,
+		  water              = true,
+		  properties = {
+			colormap           = [[0 0 0 0   1 0.95 0.9 0.09   0.6 0.55 0.35 0.25  0.18 0.11 0.07 0.008   0.10 0.08 0.04 0.006    0.06 0.04 0.02 0.005    0 0 0 0]],
+			dir                = [[0, 1, 0]],
+			--gravity            = [[0.0, 0.1, 0.0]],
+			frontoffset        = 0,
+			fronttexture       = [[explosionwave]],
+			length             = 45,
+			sidetexture        = [[none]],
+			rotParams          = [[-250 r500, -80 r160, -180 r360]],
+			size               = 3.6,
+			sizegrowth         = [[3 r2]],
+			ttl                = 5,
+			pos                = [[0, 0, 0]],
+			drawOrder          = 1,
+		  },
+		},
+	}
+
+
+
+
+
 }
 
 local size = 0.7
