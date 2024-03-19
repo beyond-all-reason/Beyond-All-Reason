@@ -19,9 +19,9 @@ end
 
 local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
+local liche = {}
 
 if UnitDefNames.armliche then
-    local liche = {}
     liche[UnitDefNames.armliche.id] = true
 
     if (UnitDefNames.armliche_scav) then
@@ -29,12 +29,16 @@ if UnitDefNames.armliche then
     end
     --epic liche will not respect restrictions, it either dips anyway or flat out refuses to bomb; omission is not an oversight
 
+end
 
-    function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-        if liche[unitDefID] then
-            spMoveCtrlSetAirMoveTypeData(unitID, {attackSafetyDistance = 3000})
-        end
-    end
-else
-    gadgetHandler:RemoveGadget(self)
+function gadget:Initialize()
+	if table.count(liche) <= 0 then
+		gadgetHandler:RemoveGadget(self)
+	end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if liche[unitDefID] then
+		spMoveCtrlSetAirMoveTypeData(unitID, {attackSafetyDistance = 3000})
+	end
 end
