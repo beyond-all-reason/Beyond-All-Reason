@@ -752,15 +752,6 @@ local options={
 	},
 
 	{
-		key		= "experimentalreversegear",
-		name	= "Reverse gear",
-		desc	= "Allows units to move backwards over short distances",
-		type	= "bool",
-		def		= false,
-		section	= "options_unit_modifiers",
-	},
-
-	{
 		key     = "tweakunits",
 		name    = "Tweak Units",
 		desc    = "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
@@ -1012,7 +1003,7 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
-	
+
 	{
 		key = 'skyshift',
 		name = 'Skyshift: Air Rework',
