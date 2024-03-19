@@ -90,13 +90,6 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	-- Reverse Gear
-	if modOptions.experimentalreversegear == true then
-		if (not uDef.canfly) and uDef.speed then
-			uDef.rspeed = uDef.speed*0.65
-		end
-	end
-
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
@@ -1850,7 +1843,7 @@ end
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" then -- special case
+	if name == "armsolar" or name == "corsolar" or name == "legsolar" then -- special case (but why?)
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then

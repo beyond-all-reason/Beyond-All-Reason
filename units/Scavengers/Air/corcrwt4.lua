@@ -102,7 +102,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flameGFXTime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,

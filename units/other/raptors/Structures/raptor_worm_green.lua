@@ -79,7 +79,6 @@ return {
 				avoidfriendly = 0,
 				burstrate = 0.5,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,

@@ -115,7 +115,6 @@ return {
 			arm_cir = {
 				areaofeffect = 48,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 4,
 				burstrate = 0.26667,
 				burnblow = true,

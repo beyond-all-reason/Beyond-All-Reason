@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1, bomb2;
-static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging;
+piece  flare1, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, active;
 
 
 #define BASEPIECE base
@@ -88,8 +88,13 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+MoveRate1() {
+	active = get(GAME_FRAME);
+}
+
 MoveRate2()
 {
+	active = get(GAME_FRAME);
 	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
 	{
 		Static_Var_1 = 1;
@@ -102,20 +107,26 @@ MoveRate2()
 	}
 }
 
+ReloadBomb() {
+	sleep 9000;
+	show bomb1;
+}
 Create()
 {
+	active = 0;
 	hide thrustc;
 	hide thrusta;
-	hide flare2;
 	hide thrustb;
 	hide flare1;
 	Static_Var_1 = 0;
-	gun_1 = flare1;
+	
+	
 	call-script InitState();
 }
 
 Activate()
 {
+	active = get(GAME_FRAME);
 	show thrustc;
 	show thrusta;
 	show thrustb;
@@ -124,43 +135,32 @@ Activate()
 
 Deactivate()
 {
+	active = 7;
 	hide thrustc;
 	hide thrusta;
 	hide thrustb;
 	start-script RequestState(1);
 }
 
-FirePrimary()
-{
-	if( gun_1 )
-	{
+FirePrimary() {
 	hide bomb1;
-	}
-	else
-	{
-	hide bomb2;
-	}
-	
-	gun_1 = !gun_1;
+	start-script ReloadBomb();
+	return (1);
 }
 
 AimPrimary()
 {
-	if( gun_1 )
-	{
-	show bomb1;
+	if (active < (get(GAME_FRAME) - 60)) {
+		
+		return (1);//only shoot if we've been flying for more than a second
+	} else {
+		return (0);
 	}
-	else
-	{
-	show bomb2;
-	}
-	return (1);
-	
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = gun_1;
+	piecenum = flare1;
 }
 
 SweetSpot(piecenum)
@@ -195,7 +195,6 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		//explode rearthrust type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wing1 type BITMAPONLY | NOHEATCLOUD;
 		explode thrusta type BITMAPONLY | NOHEATCLOUD;
@@ -205,7 +204,6 @@ Killed(severity, corpsetype)
 	corpsetype = 3;
 	explode base type BITMAPONLY | NOHEATCLOUD;
 	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode flare2 type BITMAPONLY | NOHEATCLOUD;
 	explode thrusta type BITMAPONLY | NOHEATCLOUD;
 	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;

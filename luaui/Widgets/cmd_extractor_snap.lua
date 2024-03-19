@@ -255,17 +255,16 @@ end
 -- Since mex snap bypasses normal building behavior, we have to hand hold gridmenu a little bit
 local endShift = false
 local function handleBuildMenu(shift)
+	endShift = shift
+	if not shift then
+		Spring.SetActiveCommand(0)
+	end
 	local grid = WG["gridmenu"]
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
-		if not shift then
-			Spring.SetActiveCommand(0)
-		else
-			endShift = true
-		end
 		return
 	end
 
-	if(not shift and not grid.getAlwaysReturn()) then
+	if (not shift and not grid.getAlwaysReturn()) then
 		grid.clearCategory()
 	elseif grid.getAlwaysReturn() then
 		grid.setCurrentCategory(nil)

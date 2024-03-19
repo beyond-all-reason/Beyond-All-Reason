@@ -59,7 +59,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local minWidth = 190	-- for the sake of giving the addons some room
+local minWidth = 210	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
@@ -113,7 +113,6 @@ local math_isInRect = math.isInRect
 
 local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
-
 
 local specOffset = 256
 
@@ -224,7 +223,7 @@ local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, 
 local specJoinedOnce, scheduledSpecFullView
 local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
-local curFrame, PrevGameFrame, MainList, MainList2, MainList3, desiredLosmode, drawListOffset
+local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 8
 
@@ -563,7 +562,7 @@ function SetModulesPositionX()
     end)
     local pos = 1
 
-    local sizeMult = playerScale + ((1-playerScale)*0.25)
+    local sizeMult = playerScale + ((1-playerScale)*0.2)
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
@@ -804,8 +803,8 @@ end
 
 local function doPlayerUpdate()
     GetAllPlayers()
-    SetModulesPositionX()
     SortList()
+    SetModulesPositionX()
     CreateLists()
 end
 
@@ -861,11 +860,11 @@ function widget:Initialize()
 	end
 
 	GeometryChange()
-	SetModulesPositionX()
 	SetSidePics()
 	InitializePlayers()
 	GetAliveAllyTeams()
 	SortList()
+    SetModulesPositionX()
 
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
@@ -875,8 +874,8 @@ function widget:Initialize()
 		alwaysHideSpecs = value
 		if alwaysHideSpecs and specListShow then
 			specListShow = false
+            SortList()
 			SetModulesPositionX() --why?
-			SortList()
 			CreateLists()
 		end
 	end
@@ -962,8 +961,8 @@ function widget:Initialize()
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
+                SortList()
 				SetModulesPositionX()
-				SortList()
 				CreateLists()
 				break
 			end
@@ -1471,24 +1470,28 @@ function SortAllyTeams(vOffset)
         end
     end
 
-    -- add the others
-    local firstenemy = true
-    for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-            if firstenemy then
-                vOffset = vOffset + 13
-                vOffset = vOffset + labelOffset - 3
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -3 -- "Enemies" label
-                firstenemy = false
-            else
-                vOffset = vOffset + (separatorOffset*playerScale)
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -4 -- Enemy teams separator
-            end
-            vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-        end
-    end
+	-- "Enemies" label
+	vOffset = vOffset + 13
+	vOffset = vOffset + labelOffset - 3
+	drawListOffset[#drawListOffset + 1] = vOffset
+	drawList[#drawList + 1] = -3 -- "Enemies" label
+
+	-- add the others
+	if enemyListShow then
+		local firstenemy = true
+		for allyTeamID = 0, allyTeamsCount - 1 do
+			if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+				if firstenemy then
+					firstenemy = false
+				else
+					vOffset = vOffset + (separatorOffset*playerScale)
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = -4 -- Enemy teams separator
+				end
+				vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+			end
+		end
+	end
 
     return vOffset
 end
@@ -1691,17 +1694,17 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList3 then
         timeFastCounter = 0
     end
+	CheckTime() --this also calls CheckPlayers
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
             drawTipText = nil
             tipTextTime = 0
         end
-        CheckTime() --this also calls CheckPlayers
         UpdateRecentBroadcasters()
         UpdateAlliances()
     end
-    if not onlyMainList3 then
+    if onlyMainList or onlyMainList2 then
         GetAliveAllyTeams()
     end
     if onlyMainList2 or onlyMainList3 then
@@ -1896,8 +1899,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                             DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
                         end
                     end
-                elseif drawObject == -4 then
-                    DrawSeparator(drawListOffset[i])
+                elseif drawObject == -4 then -- enemy teams separator
+					if enemyListShow then
+						DrawSeparator(drawListOffset[i])
+					end
                 elseif drawObject == -3 then
                     enemyLabelOffset = drawListOffset[i]
                     local enemyAmount = numberOfEnemies
@@ -1993,8 +1998,14 @@ function DrawLabelTip(text, vOffset, xOffset)
 end
 
 function DrawSeparator(vOffset)
-    vOffset = vOffset - 2
-    RectRound(widgetPosX + 2, widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale), widgetPosX + widgetWidth - 2, widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale), 1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 })
+    vOffset = vOffset - (2.15/playerScale)
+    RectRound(
+		widgetPosX + 2,
+		widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale),
+		widgetPosX + widgetWidth - 2,
+		widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale),
+		1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 }
+	)
 end
 
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
@@ -2138,7 +2149,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 local msh = player[playerID].metalShare
-                if es > 0 then
+                if es and es > 0 then
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
@@ -2983,8 +2994,8 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - specsLabelOffset
         if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             specListShow = not specListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -2993,8 +3004,8 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -3460,7 +3471,7 @@ end
 function CheckPlayersChange()
     local sorting = false
     for i = 0, specOffset-1 do
-        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
+        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
@@ -3547,8 +3558,8 @@ function CheckPlayersChange()
         -- sorts the list again if change needs it
         SortList()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
+        CreateLists()
     end
-
 end
 
 function GetNeed(resType, teamID)
@@ -3557,10 +3568,8 @@ function GetNeed(resType, teamID)
         return false
     end
     local loss = pull - income
-    if loss > 0 then
-        if loss * 5 > current then
-            return true
-        end
+    if loss > 0 and loss * 5 > current then
+        return true
     end
     return false
 end
@@ -3578,7 +3587,6 @@ function Take(teamID, name, i)
     tookTeamID = teamID
     tookTeamName = name
     tookFrame = Spring.GetGameFrame()
-
     Spring_SendCommands("luarules take2 " .. teamID)
 end
 
@@ -3667,7 +3675,9 @@ function widget:Update(delta)
                 if player[j].allyteam == myAllyTeamID then
                     if player[j].totake then
                         player[j] = CreatePlayerFromTeam(player[j].team)
-                        SortList()
+                        --SortList()
+                        --SetModulesPositionX()
+                        forceMainListRefresh = true
                     end
                 end
             end
@@ -3685,6 +3695,8 @@ function widget:Update(delta)
         forceMainListRefresh = true
     end
     if forceMainListRefresh then
+        SortList()
+        SetModulesPositionX()
         CreateLists()
     else
         local updateMainList2 = timeCounter > updateRate*updateRateMult
@@ -3777,8 +3789,8 @@ function widget:TextCommand(command)
         else
             specListShow = not specListShow
         end
-        SetModulesPositionX() --why?
         SortList()
+        SetModulesPositionX() --why?
         CreateLists()
     end
 end

@@ -21,6 +21,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false                -- only show ranges when shift is held down
 local cursor_unit_range = true          -- displays the range of the unit at the mouse cursor (if there is one)
+local selectionDisableThreshold = 80	-- turns off when selection is above this number
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
@@ -121,7 +122,6 @@ for udid, ud in pairs(UnitDefs) do
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
 end
-
 
 local chunk, err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
 if chunk then
@@ -1110,7 +1110,7 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] then
+		if not selUnits[unitID] and selUnitCount < selectionDisableThreshold then
 			AddSelectedUnit(unitID)
 		end
 	end

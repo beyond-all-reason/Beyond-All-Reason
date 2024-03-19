@@ -752,15 +752,6 @@ local options={
 	},
 
 	{
-		key		= "experimentalreversegear",
-		name	= "Reverse gear",
-		desc	= "Allows units to move backwards over short distances",
-		type	= "bool",
-		def		= false,
-		section	= "options_unit_modifiers",
-	},
-
-	{
 		key     = "tweakunits",
 		name    = "Tweak Units",
 		desc    = "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
@@ -967,22 +958,13 @@ local options={
 	},
 
 	{
-		key    		= 'norush',
-		name   		= "No Rush mode",
-		desc   		= "!UNFINISHED! - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
-		type   		= "bool",
-		section		= 'options_experimental',
-		def    		= false,
-	},
-
-	{
 		key    		= 'norushtimer',
 		name   		= "No Rush Time",
-		desc   		= '(Range: 5 - 30). Minutes',
+		desc   		= '(Range: 0 - 30). Minutes',
 		type   		= "number",
 		section		= 'options_experimental',
-		def    		= 5,
-		min    		= 5,
+		def    		= 0,
+		min    		= 0,
 		max    		= 30,
 		step   		= 1,
 	},
@@ -1012,7 +994,7 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
-	
+
 	{
 		key = 'skyshift',
 		name = 'Skyshift: Air Rework',

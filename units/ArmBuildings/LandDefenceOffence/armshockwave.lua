@@ -35,6 +35,7 @@ return {
 		script = "Units/armshockwave.cob",
 		seismicsignature = 0,
 		selfdestructas = "empblast",
+		selfdestructcountdown = 1,
 		sightdistance = 455,
 		sonarstealth = true,
 		stealth = true,

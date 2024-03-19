@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 61400,
 		canmove = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 8",
 		collisionvolumescales = "137 75 145",
 		collisionvolumetype = "Box",

@@ -431,10 +431,12 @@ local unitOrderTable = {
    --ECO NRG GENS
    ['armwin']         = 101000,
    ['corwin']         = 101020,
+   ['legwin']         = 101060,
    ['armwint2']       = 101040, --scavengers
    ['corwint2']       = 101050, --scavengers
    ['armsolar']       = 101070,
    ['corsolar']       = 101080,
+   ['legsolar']       = 101090,
    ['armadvsol']      = 101100,
    ['coradvsol']      = 101150,
 
@@ -525,16 +527,21 @@ local unitOrderTable = {
    ['armdrag']        = 104000,
    ['cordrag']        = 104100,
    ['corscavdrag']    = 104205, --scavengers
+   ['legdrag'] 	      = 104206, --exscavengers
    ['armfort']        = 104300,
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
+   ['legforti']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
+   ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
    ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
+   ['legdtf']         = 104906, --exscavengers
    ['corscavdtm']     = 104915, --scavengers
+   ['legdtm']         = 104916, --exscavengers
 
    --MINES
    ['armmine1']       = 105100,
@@ -590,6 +597,7 @@ local unitOrderTable = {
 
    ['armflak']        = 153000,
    ['corflak']        = 153500,
+   ['legflak']        = 153600,
    ['armmercury']     = 154000,
    ['corscreamer']    = 154500,
 
