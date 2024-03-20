@@ -108,6 +108,8 @@ local updateTextInputDlist = true
 local textCursorRect
 
 local showTextInput = false
+local textInputOpenFrame = 0
+local refFrame = 0
 local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
@@ -1198,6 +1200,7 @@ end
 
 local uiSec = 0
 function widget:Update(dt)
+	refFrame = refFrame + 1
 	addLastUnitShareMessage()
 
 	cursorBlinkTimer = cursorBlinkTimer + dt
@@ -1803,17 +1806,9 @@ function widget:KeyPress(key)
 	local alt, ctrl, _, shift = Spring.GetModKeyState()
 
 	if key == 13 then -- RETURN	 (keypad enter = 271)
-		if showTextInput then
-			if ctrl or alt or shift then
-				-- switch mode
-				if ctrl then
-					inputMode = ''
-				elseif alt and not isSpec then
-					inputMode = (inputMode == 'a:' and '' or 'a:')
-				else
-					inputMode = (inputMode == 's:' and '' or 's:')
-				end
-			else
+		if showTextInput and (textInputOpenFrame ~= refFrame) then
+			textInputOpenFrame = refFrame
+			if not (ctrl or alt or shift) then
 				-- send chat/cmd
 				if inputText ~= '' then
 					if ssub(inputText, 1, 1) == '/' then
@@ -1824,29 +1819,6 @@ function widget:KeyPress(key)
 				end
 				cancelChatInput()
 			end
-		else
-			cancelChatInput()
-			showTextInput = true
-			if showHistoryWhenChatInput then
-				historyMode = 'chat'
-				maxLinesScroll = maxLinesScrollChatInput
-			end
-			widgetHandler:OwnText()
-			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
-					inputHistoryCurrent = inputHistoryCurrent + 1
-				end
-				inputHistory[inputHistoryCurrent] = ''
-			end
-			if ctrl then
-				inputMode = ''
-			elseif alt then
-				inputMode = isSpec and 's:' or 'a:'
-			elseif shift then
-				inputMode = 's:'
-			end
-			-- again just to be safe, had report locking could still happen
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 
 		updateTextInputDlist = true
@@ -2128,8 +2100,42 @@ function widget:PlayerAdded(playerID)
 	local name = Spring.GetPlayerInfo(playerID, false)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
+local function openChat(team)
+	if textInputOpenFrame == refFrame then
+		return
+	end
+	if not showTextInput then
+		textInputOpenFrame = refFrame
+	end
+	
+	cancelChatInput()
+	showTextInput = true
+	if showHistoryWhenChatInput then
+		historyMode = 'chat'
+		maxLinesScroll = maxLinesScrollChatInput
+	end
+	widgetHandler:OwnText()
+	if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
+		if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
+			inputHistoryCurrent = inputHistoryCurrent + 1
+		end
+		inputHistory[inputHistoryCurrent] = ''
+	end
+
+	if team then
+		inputMode = team
+	end
+	-- again just to be safe, had report locking could still happen
+	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+end
 
 function widget:Initialize()
+
+	widgetHandler:AddAction("chat", function() openChat() end, nil, "p")
+	widgetHandler:AddAction("chatswitchally", function() openChat(isSpec and "s:" or "a:") end, nil, "p")
+	widgetHandler:AddAction("chatswitchspec", function() openChat("s:") end, nil, "p")
+	widgetHandler:AddAction("chatswitchall", function() openChat("") end, nil, "p")
+	
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	widget:ViewResize()
