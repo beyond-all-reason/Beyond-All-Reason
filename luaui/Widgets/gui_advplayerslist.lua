@@ -59,7 +59,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local minWidth = 210	-- for the sake of giving the addons some room
+local minWidth = 230	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
@@ -3675,8 +3675,6 @@ function widget:Update(delta)
                 if player[j].allyteam == myAllyTeamID then
                     if player[j].totake then
                         player[j] = CreatePlayerFromTeam(player[j].team)
-                        --SortList()
-                        --SetModulesPositionX()
                         forceMainListRefresh = true
                     end
                 end
