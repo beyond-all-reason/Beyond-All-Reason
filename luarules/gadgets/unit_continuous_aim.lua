@@ -19,6 +19,7 @@ local convertedUnitsNames = {
 	-- value is reaimtime in frames, engine default is 15
 	['armfav'] = 3,
 	['armbeamer'] = 3,
+	['armamd'] = 3,
 	['armpw'] = 2,
 	['armpwt4'] = 2,
 	['armflea'] = 2,
