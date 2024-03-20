@@ -45,7 +45,7 @@ activatescr()
 		sleep 2000;
 	}
 
-	sleep 2;
+	sleep 3;
 	return (0);
 }
 
@@ -165,22 +165,23 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	while( !Static_Var_1 )
     {
-        sleep 1;
+        sleep 150;
     }
 
     heading = heading - 16384; //Offset
 
     //Make superquick turn if target is far
-    turn z_rotor to x-axis <0.000000> - heading speed <500.000000>;
-    turn head to z-axis <0.000000> - pitch speed <500.000000>;
-    if ( (get ABS(lastheading - heading) < 3000) AND (get ABS(lastpitch - pitch) < 1500) )
-    {
-        lastheading = heading;
-        lastpitch = pitch;
-        return (1);
+    if (get ABS(lastheading) - get ABS(heading) > 12000) {
+        turn z_rotor to x-axis <0.000000> - heading speed <400.000000>;
+        turn head to z-axis <0.000000> - pitch speed <400.000000>;
+        wait-for-turn z_rotor around x-axis;
+        wait-for-turn head around z-axis;
+    } else {
+        turn z_rotor to x-axis <0.000000> - heading speed <60.000000>;
+        turn head to z-axis <0.000000> - pitch speed <60.000000>;
+        wait-for-turn z_rotor around x-axis;
+        wait-for-turn head around z-axis;
     }
-    wait-for-turn z_rotor around x-axis;
-    wait-for-turn head around z-axis;
 
     get PRINT(heading, pitch, (get ABS(lastheading) - get ABS(heading)));
     fireconfirms = 0;
@@ -197,23 +198,26 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-    //gun_1 = flare;
-	//return (0);
+    gun_1 = flare;
+	return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
+	return (0);
 }
 
 AimFromPrimary(piecenum)
-{
+		{
 	piecenum = flare;
+	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
+	return (0);
 }
 
 lights_orange()
