@@ -17,8 +17,20 @@ RmlGuard = true
 		https://mikke89.github.io/RmlUiDoc/index.html
 ]]
 
--- create a common context to be used, data models must have unique name within the same context though
-RmlUi.CreateContext("common")
+--[[ create a common Context to be used for widgets
+	pros:
+		* Documents in the same Context can make use of the same DataModels, allowing for less duplicate data
+		* Documents can be arranged in front/behind of each other dynamically
+	cons:
+		* Documents in the same Context can make use of the same data models, leading to side effects
+		* DataModels must have unique names within the same Context
+
+	If you have lots of DataModel use you may want to create your own Context
+	otherwise you should be able to just use the shared Context
+
+	Contexts created with the Lua API are automatically disposed of when the LuaUi environment is unloaded
+]]
+RmlUi.CreateContext("shared")
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
@@ -36,7 +48,7 @@ RmlUi.LoadFontFace("fonts/monospaced/SourceCodePro-Medium.otf")
 
 -- when "cursor: normal" is set via RCSS, "cursornormal" will be sent to the engine... and so on for the rest
 RmlUi.SetMouseCursorAlias("default", 'cursornormal')
-RmlUi.SetMouseCursorAlias("pointer", 'Move') -- command cursors use the command name. TODO: replace with actual pointer cursor
+RmlUi.SetMouseCursorAlias("pointer", 'Move') -- command cursors use the command name. TODO: replace with actual pointer cursor?
 RmlUi.SetMouseCursorAlias("move", 'uimove')
 RmlUi.SetMouseCursorAlias("nesw-resize", 'uiresized2')
 RmlUi.SetMouseCursorAlias("nwse-resize", 'uiresized1')
