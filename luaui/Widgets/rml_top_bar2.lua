@@ -46,7 +46,7 @@ local mmSlider
 local blades
 function widget:Initialize()
 	checkSelfStatus()
-	context = RmlUi.GetContext("common")
+	context = RmlUi.GetContext("shared")
 
 	dataModel.resources = {
 		energy = {

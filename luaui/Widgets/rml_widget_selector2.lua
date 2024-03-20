@@ -70,7 +70,7 @@ end
 
 function widget:Initialize()
 	getWidgets()
-	context = RmlUi.GetContext("common")
+	context = RmlUi.GetContext("shared")
 
 	dm = context:OpenDataModel("widget_list_data", dataModel)
 
