@@ -1653,11 +1653,6 @@ function widget:DrawScreen()
         gl_CallList(MainList3)
     end
 
-    -- draws share energy/metal sliders
-    if sliderPosition then
-        CreateShareSlider()
-    end
-
     -- handle/draw hover highlight
     local posY
     local x, y, b = Spring.GetMouseState()
@@ -1672,6 +1667,7 @@ function widget:DrawScreen()
         end
     end
 
+    -- draw share energy/metal sliders
     if sliderPosition and ShareSlider then
         gl_CallList(ShareSlider)
     end
@@ -1718,9 +1714,6 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
         CreateBackground()
     end
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
-    if onlyMainList2 then
-        CreateShareSlider()
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -3652,7 +3645,8 @@ function widget:Update(delta)
         Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
     end
 
-    if energyPlayer ~= nil or metalPlayer ~= nil then
+    if sliderPosition and sliderPosition ~= prevSliderPosition then
+        prevSliderPosition = sliderPosition
         CreateShareSlider()
     end
 
