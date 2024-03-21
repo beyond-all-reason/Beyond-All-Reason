@@ -288,7 +288,7 @@ local energyPlayer    -- player to share energy with (nil when no energy sharing
 local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local shareAmount = 0      -- amount of metal/energy to share/ask
 local maxShareAmount    -- max amount of metal/energy to share/ask
-local sliderPosition = 0      -- slider position in metal and energy sharing
+local sliderPosition      -- slider position in metal and energy sharing
 local shareSliderHeight = 80
 local sliderOrigin   -- position of the cursor before dragging the widget
 
@@ -1653,25 +1653,26 @@ function widget:DrawScreen()
         gl_CallList(MainList3)
     end
 
+    -- draws share energy/metal sliders
+    if sliderPosition then
+        CreateShareSlider()
+    end
+
     -- handle/draw hover highlight
-    if mySpecStatus then
-        local posY
-        local x, y, b = Spring.GetMouseState()
-        for _, i in ipairs(drawList) do
-            if i > -1 then -- and i < specOffset
-                posY = widgetPosY + widgetHeight - (player[i].posY or 0)
-                if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+    local posY
+    local x, y, b = Spring.GetMouseState()
+    for _, i in ipairs(drawList) do
+        if i > -1 then -- and i < specOffset
+            posY = widgetPosY + widgetHeight - (player[i].posY or 0)
+            if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+                if mySpecStatus or (myAllyTeamID == player[i].allyteam and not sliderPosition) then
                     UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + (playerOffset*playerScale), nil, b and 0.28 or 0.14)
                 end
             end
         end
     end
 
-    -- draws share energy/metal sliders
-    if not ShareSlider then
-        CreateShareSlider()
-    end
-    if ShareSlider then
+    if sliderPosition and ShareSlider then
         gl_CallList(ShareSlider)
     end
 
@@ -2987,7 +2988,7 @@ function widget:MousePress(x, y, button)
 
     if button == 1 then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
-        sliderPosition = 0
+        sliderPosition = nil
         shareAmount = 0
 
         -- spectators label onclick
