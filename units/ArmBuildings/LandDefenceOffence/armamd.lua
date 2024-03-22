@@ -85,7 +85,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:cloud_huge_white",
+				[1] = "custom:dust_cloud_huge_white",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -116,14 +116,14 @@ return {
 		},
 		weapondefs = {
 			amd_rocket = {
-				areaofeffect = 8,
+				areaofeffect = 1,
 				avoidfeature = false,
 				beamdecay = 0.0,
 				beamtime = 0.7,
 				cannon1name = "barrel",
 				corethickness = 0.4,
 				coverage = 2000;
-				collisionsize = 50,
+				collisionsize = 10,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -135,19 +135,19 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				interceptor = 1,
-				interceptsolo = 1,
+				interceptsolo = 0,
 				laserflaresize = 7,
 				name = "Anti-swarm constant wave g2g laser",
 				noselfdamage = true,
-				range = 2000,
-				reloadtime = 0.85,
+				range = 2500,
+				reloadtime = 0.7,
 				rgbcolor = "0.7 0 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "annigun1",
+				soundstart = "antinukepulsar",
 				soundtrigger = 1,
 				stockpile = true,
-				stockpiletime = 1,
+				stockpiletime = 3,
 				smoketrail = true,
 				smokePeriod = 30,
 				smoketime = 2000,
@@ -164,11 +164,71 @@ return {
 					default = 100000,
 				},
 			},
+			smoke_sound = {
+				name = "Antinuke Smoke",
+				soundhit = "smoke1",
+				weapontype = "Cannon",
+				damage = {
+					default = 0,
+				},
+			},
+			gears_sound = {
+				name = "Antinuke Gears",
+				soundhit = "opening1",
+				weapontype = "Cannon",
+				damage = {
+					default = 0,
+				},
+			},
+			piston_sound = {
+				name = "Antinuke Piston",
+				soundhit = "piston1",
+				weapontype = "Cannon",
+				damage = {
+					default = 0,
+				},
+			},
+			blade_sound = {
+				name = "Antinuke Blade Extend",
+				soundhit = "bladeextend1",
+				weapontype = "Cannon",
+				damage = {
+					default = 0,
+				},
+			},
+			door_sound = {
+				name = "Antinuke Door Sound",
+				soundhit = "door1",
+				weapontype = "Cannon",
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
 				def = "AMD_ROCKET",
 				fastautoretargeting = true,
+			},
+			[2] = {
+				def = "SMOKE_SOUND",
+				onlytargetcategory = "NOTSUB",
+			},
+			[3] = {
+				def = "GEARS_SOUND",
+				onlytargetcategory = "NOTSUB",
+			},
+			[4] = {
+				def = "PISTON_SOUND",
+				onlytargetcategory = "NOTSUB",
+			},
+			[5] = {
+				def = "BLADE_SOUND",
+				onlytargetcategory = "NOTSUB",
+			},
+			[6] = {
+				def = "DOOR_SOUND",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

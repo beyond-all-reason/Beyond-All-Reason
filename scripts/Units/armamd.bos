@@ -18,31 +18,55 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, door1, door2, antenna, greenlight, orangelight, piston, y_hinge, z_rotor, head, barrel;
+piece  base, flare, door1, door2, antenna, greenlight, orangelight, piston, y_hinge, z_rotor, head, barrel, barrel_extend;
 
-static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging, missiles_stockpiled, lastpitch, lastheading, fireconfirms;
+static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging, lastpitch, lastheading, fireconfirms, deactivateCalls;
 
 // Signal definitions
 #define SIG_AIM				2
 
+#define DEACTIVATE_IDLE 5 //How long it takes (In seconds) to shutdown antinuke when idle.
+#define FIRE_CONFIRMS 3 //How much confirmations needed to actually fire a nuke missile (Safety feature to prevent shooting nukes that are still on ground/ascending)
 
 activatescr()
 {
 	if( TRUE )
 	{
-	    show barrel;
-	    emit-sfx 257 from y_hinge; //Big opening smoke
+	    emit-sfx 1024 + 0 from y_hinge; //Big opening smoke
+        emit-sfx 4096 + 1 from y_hinge; //Play smoke1.wav sound
+
 		turn door1 to z-axis <0.000000> now;
-		turn door1 to z-axis <45> speed <20.000000>;
+		turn door1 to z-axis <50> speed <16.70000>;
 		turn door2 to z-axis <0.000000> now;
-		turn door2 to z-axis <-45> speed <20.000000>;
-		sleep 2200;
+		turn door2 to z-axis <-50> speed <16.70000>;
+		emit-sfx 4096 + 2 from y_hinge; //Play opening1.wav sound
+		sleep 1700;
+
 		move piston to y-axis [0.000000] now;
         move piston to y-axis [6.500000] speed [2.16000];
+        emit-sfx 4096 + 3 from y_hinge; //Play piston1.wav sound
         turn y_hinge to z-axis <0.000000> now;
-		sleep 3000;
-        turn y_hinge to z-axis <90> speed <45.000000>;
-		sleep 2000;
+
+		show flare; //Blink 1
+		sleep 500;
+		hide flare;
+		sleep 500;
+		show flare; //Blink 2
+		emit-sfx 4096 + 5 from y_hinge; //Play door1.wav sound
+        sleep 500;
+        hide flare;
+        sleep 500;
+        show flare; //Blink 3
+        sleep 500;
+        hide flare;
+        sleep 500;
+        show flare; //Turned ON
+
+        turn y_hinge to z-axis <90> speed <90.000000>;
+		sleep 1000;
+		move barrel_extend to y-axis [7.6500] speed [22.9500];
+		emit-sfx 4096 + 4 from y_hinge; //Play bladeextend1.wav sound
+		sleep 333;
 	}
 
 	sleep 3;
@@ -51,19 +75,37 @@ activatescr()
 
 deactivatescr()
 {
+    
 	if( TRUE )
 	{
-		//turn door1 to z-axis <-90> now;
-		//turn door1 to z-axis <0.000000> speed <25.000000>;
-		//turn door2 to z-axis <90> now;
-		//turn door2 to z-axis <0.000000> speed <25.000000>;
-		//move piston to y-axis [17.000000] now;
-        //move piston to y-axis [0.000000] speed [6.000000];
-        //sleep 170;
-        //turn y_hinge to z-axis <90.000000> now;
-        //turn y_hinge to z-axis <0> speed <12.000000>;
-        //sleep 85;
-        hide barrel;
+	    turn z_rotor to x-axis <0.000000> speed <60.000000>;
+        turn head to z-axis <0.000000> speed <60.000000>;
+        wait-for-turn z_rotor around x-axis;
+        wait-for-turn head around z-axis;
+        sleep 300;
+        hide flare;
+        sleep 500;
+
+        move barrel_extend to y-axis [0.0000] speed [22.9500];
+        emit-sfx 4096 + 4 from y_hinge; //Play bladeextend1.wav sound
+        sleep 333;
+
+        turn y_hinge to z-axis <90.000000> now;
+        turn y_hinge to z-axis <0> speed <60.000000>;
+        sleep 1500;
+
+        move piston to y-axis [6.500000] now;
+        move piston to y-axis [0.000000] speed [2.16000];
+        sleep 1300;
+
+        turn door1 to z-axis <50.000000> now;
+        turn door1 to z-axis <0> speed <16.70000>;
+        turn door2 to z-axis <-50.000000> now;
+        turn door2 to z-axis <0> speed <16.70000>;
+        emit-sfx 4096 + 2 from y_hinge; //Play opening1.wav sound
+        wait-for-turn door1 around z-axis;
+        wait-for-turn door2 around z-axis;
+        emit-sfx 4096 + 5 from y_hinge; //Play door1.wav sound
 	}
 
 	sleep 14;
@@ -121,13 +163,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-    emit-sfx 1024 + 1 from y_hinge;
-    hide barrel;
 	hide flare;
 	Static_Var_1 = 0;
 	gun_1 = flare;
-	restore_delay = 3000;
-	missiles_stockpiled = 0;
 	hide greenlight;
 	show orangelight;
 	call-script InitState();
@@ -149,12 +187,6 @@ Activate()
 Deactivate()
 {
 	start-script RequestState(1);
-	return (0);
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
 	return (0);
 }
 
@@ -183,7 +215,6 @@ AimPrimary(heading, pitch)
         wait-for-turn head around z-axis;
     }
 
-    get PRINT(heading, pitch, (get ABS(lastheading) - get ABS(heading)));
     fireconfirms = 0;
 
     //Do not fire if target (nuke) is still ascending -> prevents unnecessary early explosion that just causes unwanted mess on enemy side.
@@ -199,25 +230,23 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
     gun_1 = flare;
-	return (0);
+    sleep 5000;
+    call-script Deactivate();
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
-	return (0);
 }
 
 AimFromPrimary(piecenum)
-		{
+{
 	piecenum = flare;
-	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return (0);
 }
 
 lights_orange()
@@ -237,14 +266,12 @@ SetStockpile(num_stockpiled)
 	if (num_stockpiled == 0)
 	{
 		start-script lights_orange();
-		//sleep 100;
-		missiles_stockpiled = 0;
+		sleep 100;
 	}
 	if (num_stockpiled >= 1)
 	{
 		start-script lights_green();
-		//sleep 100;
-		missiles_stockpiled = 1;
+		sleep 100;
 	}
 }
 
