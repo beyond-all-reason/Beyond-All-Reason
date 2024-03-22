@@ -10665,7 +10665,7 @@ local unitLights = {
 	['armamd'] = {
 		redlaseraim = {
 			lightType = 'cone',
-			pieceName = 'barrel',
+			pieceName = 'flare',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4000,
 							dirx = 0, diry = 1, dirz = 0.0001, theta = 0.006,
 							r = 2, g = 0, b = 0, a = 0.85,
@@ -10688,8 +10688,8 @@ local unitLights = {
 			pieceName = 'greenlight',
 			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 32,
-				color2r = 2.5, color2g = 1.15, color2b = 0, colortime = 60,
-				r = 2, g = 0.8, b = 0, a = 1,
+				color2r = 0, color2g = 2.5, color2b = 0, colortime = 60,
+				r = 0, g = 1, b = 0, a = 1,
 				modelfactor = -0.1, specular = 0.3, scattering = 0.3, lensflare = 3,
 				lifetime = 0, sustain = 0, animtype = 0},
 
