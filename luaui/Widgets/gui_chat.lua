@@ -1808,7 +1808,16 @@ function widget:KeyPress(key)
 	if key == 13 then -- RETURN	 (keypad enter = 271)
 		if showTextInput and (textInputOpenFrame ~= refFrame) then
 			textInputOpenFrame = refFrame
-			if not (ctrl or alt or shift) then
+			if ctrl or alt or shift then
+				-- switch mode
+				if ctrl then
+					inputMode = ''
+				elseif alt and not isSpec then
+					inputMode = (inputMode == 'a:' and '' or 'a:')
+				else
+					inputMode = (inputMode == 's:' and '' or 's:')
+				end
+			else
 				-- send chat/cmd
 				if inputText ~= '' then
 					if ssub(inputText, 1, 1) == '/' then
