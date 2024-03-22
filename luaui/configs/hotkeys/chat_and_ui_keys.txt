@@ -29,10 +29,9 @@ bind          Any+space  commandinsert prepend_between // prepend command into t
 
 
 // common chat keys
-bind              enter  chat
-bind          Alt+enter  chatswitchally
-bind        shift+enter  chatswitchspec
-bind         ctrl+enter  chatswitchall
+bind          Any+enter  chat
+bind      Alt+ctrl+sc_a  chatswitchally
+bind      Alt+ctrl+sc_s  chatswitchspec
 
 bind            Any+tab  edit_complete
 bind      Any+backspace  edit_backspace
