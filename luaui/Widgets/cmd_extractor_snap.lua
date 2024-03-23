@@ -297,6 +297,7 @@ end
 function widget:KeyRelease(code)
 	if endShift and (code == KEYSYMS.LSHIFT or code == KEYSYMS.RSHIFT) then
 		Spring.SetActiveCommand(0)
+		endShift = false
 	end
 end
 
