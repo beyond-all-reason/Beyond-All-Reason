@@ -221,7 +221,7 @@ local allyTeamMaxStorage = {}
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
 local specJoinedOnce, scheduledSpecFullView
-local prevClickedPlayer
+local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID, leftPosX, lastSliderSound, release
 local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
@@ -3043,25 +3043,15 @@ function widget:MousePress(x, y, button)
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
-                                local curMapDrawMode = Spring.GetMapDrawMode()
-                                Spring_SendCommands("specteam " .. player[i].team)
-                                if lockPlayerID then
-                                    LockCamera(player[i].ai and nil or i)
-                                else
-                                    if not fullView then
-                                        desiredLosmode = 'los'
-                                        desiredLosmodeChanged = os.clock()
-                                        if Spring.GetMapDrawMode() ~= 'los' then
-                                            Spring.SendCommands("togglelos")
-                                        end
-                                    end
-                                end
-                                CreateMainList()
-                                return true
+                                clickedPlayerTime = os.clock()
+                                clickedPlayerID = clickedPlayer.id
+                                -- handled in Update() after dblclick delay
                             end
                         end
 
                         if i < specOffset and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                            clickedPlayerTime = nil
+                            clickedPlayerID = nil
                             LockCamera(i)
                             prevClickedPlayer = {}
                             SortList()
@@ -3475,9 +3465,6 @@ function CheckPlayersChange()
                         sorting = true
                     end
                 end
-                player[i].name = nil
-                player[i] = {}
-                sorting = true
             end
         elseif active and name ~= nil then
             if spec ~= player[i].spec then
@@ -3511,7 +3498,7 @@ function CheckPlayersChange()
             if player[i].name == nil then
                 player[i] = CreatePlayer(i)
                 if player[i].name ~= nil then
-                    doPlayerUpdate()
+                    forceMainListRefresh = true
                 end
             end
             if allyTeamID ~= player[i].allyteam then
@@ -3603,7 +3590,6 @@ function IsTakeable(teamID)
     end
 end
 
-
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = Spring.GetMouseState()
@@ -3614,6 +3600,26 @@ function widget:Update(delta)
             WG['tooltip'].ShowTooltip('advplayerlist', tipText)
         end
         Spring.SetMouseCursor('cursornormal')
+    end
+
+    if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
+        local curMapDrawMode = Spring.GetMapDrawMode()
+        Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
+        if lockPlayerID then
+            LockCamera(player[clickedPlayerID].ai and nil or i)
+        else
+            if not fullView then
+                desiredLosmode = 'los'
+                desiredLosmodeChanged = os.clock()
+                if Spring.GetMapDrawMode() ~= 'los' then
+                    Spring.SendCommands("togglelos")
+                end
+            end
+        end
+        --CreateMainList()
+        forceMainListRefresh = true
+        clickedPlayerTime = nil
+        clickedPlayerID = nil
     end
 
     totalTime = totalTime + delta

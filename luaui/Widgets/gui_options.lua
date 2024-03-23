@@ -1873,6 +1873,8 @@ function init()
 			shadowslider = 1,
 			grass = false,
 			cusgl4 = false,
+			losrange = false,
+			attackrange_numrangesmult = 0.3,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1891,6 +1893,8 @@ function init()
 			shadowslider = 3,
 			grass = false,
 			cusgl4 = true,
+			losrange = false,
+			attackrange_numrangesmult = 0.5,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1909,6 +1913,8 @@ function init()
 			shadowslider = 4,
 		 	grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.7,
 		},
 		high = {
 			bloomdeferred = true,
@@ -1927,6 +1933,8 @@ function init()
 			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.9,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1945,6 +1953,8 @@ function init()
 			shadowslider = 6,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 1,
 		},
 		custom = {},
 	}
@@ -3471,6 +3481,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
 		  end,
 		},
+		{ id = "advplayerlist_resources", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_resources'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_resources_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_resources", { 'm_active_Table', 'resources' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'resources' }, value, { 'resources', value })
+		  end,
+		},
 		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_income'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_income_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_income", { 'm_active_Table', 'income' })
@@ -4052,6 +4070,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
+		  end,
+		},
+		{ id = "attackrange_numrangesmult", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
+		  onload = function(i)
+			  loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { 'selectionDisableThresholdMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Attack Range GL4', 'attackrange', 'setNumRangesMult', { 'selectionDisableThresholdMult' }, value)
 		  end,
 		},
 
