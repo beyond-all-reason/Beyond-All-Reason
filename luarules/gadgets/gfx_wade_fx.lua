@@ -30,9 +30,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSpawnCEG = Spring.SpawnCEG
 
-local spusCallAsUnit = Spring.UnitScript.CallAsUnit
-local spusEmitSfx    = Spring.UnitScript.EmitSfx
-
 local wadeDepth = {}
 local wadeSfxID = {}
 
@@ -108,14 +105,14 @@ function gadget:GameFrame(n)
 	if n%fold_frames == 0 then
 		if (n <= fold_frames) then
 			local minheight = Spring.GetGroundExtremes()
-			if minheight > 20 then 
+			if minheight > 20 then
 				gadgetHandler:RemoveGadget(self)
-				return 
+				return
 			end
 		end
-		
+
 		local listData = unitsData
-		for i = current_fold, unitsCount, n_folds do
+		for i = current_fold, unitsCount, n_folds do	-- this line errors sometimes: "attempt to compare number with nil"
 			local unitID = listData[i]
 			local data = unit[unitID]
 			local unitDefID = data.defid
