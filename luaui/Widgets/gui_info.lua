@@ -1952,8 +1952,13 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	-- buildmenu unitdef
-	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+	local activeCmdID = select(2, Spring.GetActiveCommand())
+	if activeCmdID and activeCmdID < 0 then
+		displayMode = 'unitdef'
+		displayUnitDefID = -activeCmdID
+
+		-- buildmenu unitdef
+	elseif WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
 		displayMode = 'unitdef'
 		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
 
