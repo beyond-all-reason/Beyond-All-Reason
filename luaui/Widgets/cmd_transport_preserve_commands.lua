@@ -23,19 +23,14 @@ end
 function widget:UnitUnloaded(unitID)
 	if (orders[unitID] and #orders[unitID]) then
 		local newOrders = {}
-		local cmdInsideDist = false
 
 		for i, command in ipairs(orders[unitID]) do
 			if (#command.params >= 3) then
 				local x, y, z = Spring.GetUnitPosition(unitID)
 				local distFromCmd = math.distance3d(x, y, z, command.params[1], command.params[2], command.params[3])
-				Spring.Echo("distance is", distFromCmd)
 				if (distFromCmd <= distToIgnore) then
-					cmdInsideDist = true
+					table.insert(newOrders, { command.id, command.params, command.options })
 				end
-			end
-			if (cmdInsideDist == true) then
-				table.insert(newOrders, { command.id, command.params, command.options })
 			end
 		end
 
