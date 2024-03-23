@@ -275,7 +275,7 @@
 			 particlesizespread = 1.1,
 			 particlespeed      = 1.1,
 			 particlespeedspread = 0,
-			 pos                = [[r-5 r5, 7, r-5 r5]],
+			 pos                = [[r-8 r8, 20, r-8 r8]],
 			 rotParams          = [[-2 r4, -3 r6, -180 r360]],
 			 sizegrowth         = [[r0.1 r0.2]],
 			 sizemod            = 1,

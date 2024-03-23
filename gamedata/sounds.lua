@@ -111,7 +111,7 @@ local soundData = {
 				['^opening1$'] = 3.0 * 0.3,
 				['^piston1$'] = 2.3 * 0.3,
 				['^bladeextend1$'] = 3.0 * 0.3,
-				['^door1$'] = 4.7 * 0.3,
+				['^door1$'] = 8.7 * 0.3,
 			},
 		},
 		pitchmod = {

@@ -10666,6 +10666,8 @@ local unitLights = {
 		redlaseraim = {
 			lightType = 'cone',
 			pieceName = 'flare',
+			alliedOnly = true,
+			alwaysVisible = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4000,
 							dirx = 0, diry = 1, dirz = 0.0001, theta = 0.006,
 							r = 2, g = 0, b = 0, a = 0.85,
