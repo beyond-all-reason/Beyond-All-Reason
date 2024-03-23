@@ -2127,6 +2127,10 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.64999998
 	},
+	legflak = {
+		bitmap = "icons/aa_flak_t2.png",
+		size = 1.5
+	},
 	legfloat = {
 		bitmap = "icons/corparrow.png",
 		size = 1.4
@@ -3010,6 +3014,10 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	boombox = {
+		bitmap = "icons/blank.png",
+		size = 1.0
 	},
 
 	blank = {

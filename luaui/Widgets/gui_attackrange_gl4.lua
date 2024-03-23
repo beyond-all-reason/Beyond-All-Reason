@@ -21,7 +21,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false                -- only show ranges when shift is held down
 local cursor_unit_range = true          -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 80	-- turns off when selection is above this number
+local selectionDisableThreshold = 90	-- turns off when selection is above this number
+local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
@@ -1084,6 +1085,12 @@ function widget:Initialize()
 		cursor_unit_range = value
 		widget:Initialize()
 	end
+	WG.attackrange.getNumRangesMult = function()
+		return selectionDisableThresholdMult
+	end
+	WG.attackrange.setNumRangesMult = function(value)
+		selectionDisableThresholdMult = value
+	end
 end
 
 function widget:Shutdown()
@@ -1110,7 +1117,7 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < selectionDisableThreshold then
+		if not selUnits[unitID] and selUnitCount < math.floor(selectionDisableThreshold * selectionDisableThresholdMult) then
 			AddSelectedUnit(unitID)
 		end
 	end
@@ -1490,7 +1497,7 @@ function widget:GetConfigData()
 	return {
 		shift_only = shift_only,
 		cursor_unit_range = cursor_unit_range,
-		--colorConfig = colorConfig,
+		selectionDisableThresholdMult = selectionDisableThresholdMult,
 	}
 end
 
@@ -1501,7 +1508,7 @@ function widget:SetConfigData(data)
 	if data.cursor_unit_range ~= nil then
 		cursor_unit_range = data.cursor_unit_range
 	end
-	--if data.colorConfig ~= nil then
-	--	colorConfig = data.colorConfig
-	--end
+	if data.selectionDisableThresholdMult ~= nil then
+		selectionDisableThresholdMult = data.selectionDisableThresholdMult
+	end
 end

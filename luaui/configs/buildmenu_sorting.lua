@@ -598,6 +598,7 @@ local unitOrderTable = {
 
    ['armflak']        = 153000,
    ['corflak']        = 153500,
+   ['legflak']        = 153600,
    ['armmercury']     = 154000,
    ['corscreamer']    = 154500,
 

@@ -90,13 +90,6 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	-- Reverse Gear
-	if modOptions.experimentalreversegear == true then
-		if (not uDef.canfly) and uDef.speed then
-			uDef.rspeed = uDef.speed*0.65
-		end
-	end
-
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
@@ -142,57 +135,6 @@ function UnitDef_Post(name, uDef)
 		if name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
-		end
-	end
-
-	-- Control Mode Tweaks
-	if modOptions.scoremode ~= "disabled" then
-		if modOptions.scoremode_chess == true then
-			-- Disable Wrecks
-			uDef.corpse = nil
-			-- Disable Bad Units
-			local factories = {
-				armaap = true,
-				armalab = true,
-				armap = true,
-				armavp = true,
-				armhp = true,
-				armlab = true,
-				armshltx = true,
-				armvp = true,
-				armamsub = true,
-				armasy = true,
-				armfhp = true,
-				armplat = true,
-				armshltxuw = true,
-				armsy = true,
-				coraap = true,
-				coralab = true,
-				corap = true,
-				coravp = true,
-				corgant = true,
-				corhp = true,
-				corlab = true,
-				corvp = true,
-				coramsub = true,
-				corasy = true,
-				corfhp = true,
-				corplat = true,
-				corgantuw = true,
-				corsy = true,
-				armapt3 = true,	-- scav T3 air factory
-				corapt3 = true,	-- scav T3 air factory
-				armnanotc = true,
-				armnanotcplat = true,
-				cornanotc = true,
-				cornanotcplat = true,
-				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
-			}
-			if factories[name] then
-				uDef.maxthisunit = 0
-			end
-		else
-
 		end
 	end
 
@@ -1542,7 +1484,7 @@ end
 
 -- Skyshift: Air rework
 if Spring.GetModOptions().skyshift == true then
-	skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+	skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 end
 
@@ -2010,11 +1952,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Skyshift: Air rework
+		--[[Skyshift: Air rework
 		if Spring.GetModOptions().skyshift == true then
-			skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
-		end
+		end]]
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields

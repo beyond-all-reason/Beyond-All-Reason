@@ -58,7 +58,7 @@ return {
 			"cortoast",
 			"corvipe",
 			"legbastion",
-			"corflak",
+			"legflak",
 			"corscreamer",
 			"cortron",
 			"corfmd",

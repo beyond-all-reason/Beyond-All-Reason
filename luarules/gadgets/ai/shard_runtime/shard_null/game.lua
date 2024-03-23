@@ -85,16 +85,4 @@ function game:GetResources() -- returns a table of Resource objects, takes the n
 	return {}
 end
 
-function game:UsesControlPoints()
-	return false
-end
-
-function game:ControlPointCaptureRadius()
-	return 0
-end
-
-function game:ControlPointNonCapturingUnits()
-	return {}
-end
-
 return game

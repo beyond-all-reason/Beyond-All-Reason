@@ -68,7 +68,6 @@ local runtime_includes = {
 	"spring_lua/unittype",
 	"spring_lua/damage",
 	"spring_lua/feature",
-	"spring_lua/controlpoint"
 }
 
 

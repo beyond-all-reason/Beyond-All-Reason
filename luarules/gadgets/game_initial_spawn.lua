@@ -474,24 +474,22 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
-				if n == 60 then
-					for i = 1, #startUnitList do
-						local x = startUnitList[i].x
-						local y = startUnitList[i].y
-						local z = startUnitList[i].z
-						Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-					end
-				end
-				if n == 90 then
-					for i = 1, #startUnitList do
-						local unitID = startUnitList[i].unitID
-						Spring.MoveCtrl.Disable(unitID)
-						Spring.SetUnitNoDraw(unitID, false)
-						Spring.SetUnitHealth(unitID, { paralyze = 0 })
-					end
-				end
-			end
+            if n == 60 then
+                for i = 1, #startUnitList do
+                    local x = startUnitList[i].x
+                    local y = startUnitList[i].y
+                    local z = startUnitList[i].z
+                    Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+                end
+            end
+            if n == 90 then
+                for i = 1, #startUnitList do
+                    local unitID = startUnitList[i].unitID
+                    Spring.MoveCtrl.Disable(unitID)
+                    Spring.SetUnitNoDraw(unitID, false)
+                    Spring.SetUnitHealth(unitID, { paralyze = 0 })
+                end
+            end
 		end
 		if n > 90 then
 			gadgetHandler:RemoveGadget(self)

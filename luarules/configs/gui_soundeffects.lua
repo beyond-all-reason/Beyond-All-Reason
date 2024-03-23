@@ -2418,7 +2418,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",
 	},
-
+	legflak = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "aarocket-medium-flak",
+	},
 
 	-- LEGION FACTORIES
 	leglab = {

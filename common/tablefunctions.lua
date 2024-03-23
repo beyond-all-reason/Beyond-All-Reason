@@ -6,9 +6,9 @@ run for end users.)
 ]]
 
 if not table.copy then
-	function table:copy()
+	function table.copy(tbl)
 		local copy = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			if type(value) == "table" then
 				copy[key] = table.copy(value)
 			else
@@ -99,9 +99,9 @@ if not table.toString then
 end
 
 if not table.invert then
-	function table:invert()
+	function table.invert(tbl)
 		local inverted = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			inverted[value] = key
 		end
 		return inverted
