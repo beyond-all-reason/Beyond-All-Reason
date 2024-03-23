@@ -35,13 +35,13 @@ local spValidUnitID = Spring.ValidUnitID
 -- Beherith's notes
 --------------------------------------------------------------------------------
 -- TODO:
--- Add health-based brightening
--- Add shield based darkening 
--- Optimize shader
--- Combine Effects of techniques
--- ELECTRORB TOO EXPENSIVE!
-	-- to multiple wraps, like 4 instead of 18 goddamn passes!
--- Ensure SphereVBO indices to triangles are ordered bottom to top!
+-- [x] Add health-based brightening
+-- [ ] Add shield based darkening 
+-- [ ] Optimize shader
+-- [ ] Combine Effects of techniques
+-- [ ] LightningOrb() TOO EXPENSIVE!
+	-- do multiple wraps, like 4 instead of 18 goddamn passes!
+-- [ ] Ensure SphereVBO indices to triangles are ordered bottom to top!
 
 --------------------------------------------------------------------------------
 -- Configuration
