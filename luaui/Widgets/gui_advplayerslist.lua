@@ -3045,21 +3045,7 @@ function widget:MousePress(x, y, button)
                             if i ~= myTeamPlayerID then
                                 clickedPlayerTime = os.clock()
                                 clickedPlayerID = clickedPlayer.id
-                                --local curMapDrawMode = Spring.GetMapDrawMode()
-                                --Spring_SendCommands("specteam " .. player[i].team)
-                                --if lockPlayerID then
-                                --    LockCamera(player[i].ai and nil or i)
-                                --else
-                                --    if not fullView then
-                                --        desiredLosmode = 'los'
-                                --        desiredLosmodeChanged = os.clock()
-                                --        if Spring.GetMapDrawMode() ~= 'los' then
-                                --            Spring.SendCommands("togglelos")
-                                --        end
-                                --    end
-                                --end
-                                --CreateMainList()
-                                --return true
+                                -- handled in Update() after dblclick delay
                             end
                         end
 
