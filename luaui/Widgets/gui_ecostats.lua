@@ -118,19 +118,6 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 end
 
-local function round(num, idp)
-	local mult = 10 ^ (idp or 0)
-	return floor(num * mult + 0.5) / mult
-end
-
-local function formatRes(number)
-	if number < 1000 then
-		return string.format("%d", number)
-	else
-		return string.format("%.1fk", number / 1000)
-	end
-end
-
 local function getTeamSum(allyIndex, param)
 	local tValue = 0
 	local teamList = allyData[allyIndex]["teams"]
@@ -677,7 +664,7 @@ end
 
 local function DrawEText(numberE, vOffset)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberE) })
+		local label = string.formatSI(numberE)
 		font:Begin()
 		font:SetTextColor({ 1, 1, 0, 1 })
 		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
@@ -688,7 +675,7 @@ end
 local function DrawMText(numberM, vOffset)
 	vOffset = vOffset - (borderPadding * 0.5)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberM) })
+		local label = string.formatSI(numberM)
 		font:Begin()
 		font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
 		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
