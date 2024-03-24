@@ -10665,7 +10665,7 @@ local unitLights = {
 	['armamd'] = {
 		redlaseraim = {
 			lightType = 'cone',
-			pieceName = 'flare',
+			pieceName = 'laser',
 			alliedOnly = true,
 			alwaysVisible = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4000,
