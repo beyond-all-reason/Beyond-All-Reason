@@ -250,17 +250,13 @@ if not table.reduce then
 	---@generic K, V, R
 	---@param tbl table<K, V> The input table.
 	---@param callback fun(acc: R, value: V, key: K, tbl: table<K, V>): R The function to apply to each element. It receives four arguments: the accumulator, the element's value, its key, and the original table.
-	---@param initial R The initial value of the accumulator (optional, default: one of the values from the table)
+	---@param initial R The initial value of the accumulator. If no value is specified, the first callback will receive nil as the accumulator value.
 	---@return R The final value of the accumulator after applying the callback to all elements.
 	function table.reduce(tbl, callback, initial)
 		local accumulator = initial
 
 		for k, v in pairs(tbl) do
-			if initial == nil and accumulator == nil then
-				accumulator = v
-			else
-				accumulator = callback(accumulator, v, k, tbl)
-			end
+			accumulator = callback(accumulator, v, k, tbl)
 		end
 
 		return accumulator
