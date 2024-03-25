@@ -137,7 +137,7 @@ return {
 				interceptor = 1,
 				interceptsolo = 0,
 				laserflaresize = 5,
-				name = "Anti-swarm constant wave g2g laser",
+				name = "Taychon intercepting missile weapon",
 				noselfdamage = true,
 				range = 5500,
 				reloadtime = 1.0,
@@ -161,11 +161,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
 				damage = {
-					default = 100000,
+					default = 1500,
 				},
 			},
 			smoke_sound = {
 				name = "Antinuke Smoke",
+				range = 0,
 				soundhit = "smoke1",
 				weapontype = "Cannon",
 				damage = {
@@ -174,6 +175,7 @@ return {
 			},
 			gears_sound = {
 				name = "Antinuke Gears",
+				range = 0,
 				soundhit = "opening1",
 				weapontype = "Cannon",
 				damage = {
@@ -182,6 +184,7 @@ return {
 			},
 			piston_sound = {
 				name = "Antinuke Piston",
+				range = 0,
 				soundhit = "piston1",
 				weapontype = "Cannon",
 				damage = {
@@ -190,6 +193,7 @@ return {
 			},
 			blade_sound = {
 				name = "Antinuke Blade Extend",
+				range = 0,
 				soundhit = "bladeextend1",
 				weapontype = "Cannon",
 				damage = {
@@ -198,6 +202,7 @@ return {
 			},
 			door_sound = {
 				name = "Antinuke Door Sound",
+				range = 0,
 				soundhit = "door1",
 				weapontype = "Cannon",
 				damage = {

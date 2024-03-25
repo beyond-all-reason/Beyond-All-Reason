@@ -10696,6 +10696,17 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 
 		},
+		redlightamd = {
+			lightType = 'point',
+			pieceName = 'redlight',
+			alliedOnly = true,
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 10,
+							r = 1, g = 0, b = 0, a = 1,
+							modelfactor = -0.1, specular = 0.3, scattering = 0.3, lensflare = 3,
+							lifetime = 0, sustain = 0, animtype = 0},
+
+		},
 		side = {
 			lightType = 'point',
 			pieceName = 'base',
