@@ -263,13 +263,13 @@ if not table.reduce then
 	end
 end
 
-if not table.filterList then
-	--- Creates a new (list-style) table containing only the elements that satisfy a given condition.
+if not table.filterArray then
+	--- Creates a new (array-style) table containing only the elements that satisfy a given condition.
 	---@generic V
 	---@param tbl V[] The input table.
 	---@param callback fun(value: V, index: number, tbl: V[]): boolean The condition to check for each element. It receives three arguments: the element's value, its key, and the original table. It should return true if the element satisfies the condition, false otherwise.
 	---@return V[] A new table containing only the elements that satisfy the condition.
-	function table.filterList(tbl, callback)
+	function table.filterArray(tbl, callback)
 		local result = {}
 		for i, v in ipairs(tbl) do
 			if callback(v, i, tbl) then
