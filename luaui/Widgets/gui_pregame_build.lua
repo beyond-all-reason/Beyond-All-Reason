@@ -231,8 +231,7 @@ local function removeUnitShape(id)
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, facing, teamID)
-	local rotationY =  facing * (math.pi/2)
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
@@ -248,13 +247,10 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	gl.DepthTest(false)
 	gl.Color(borderColor)
 	
-	local tl = { (bx - bw), by, (bz - bh) }
-	local tr = { (bx + bw), by, (bz - bh) }
-	local br = { (bx + bw), by, (bz + bh) }
-	local bl = { (bx - bw), by, (bz + bh) }
-
-	
-	gl.Shape(GL.LINE_LOOP, { { v = tl }, { v = tr }, { v = br }, { v = bl} })
+	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
+							 { v = { bx + bw, by, bz - bh } },
+							 { v = { bx + bw, by, bz + bh } },
+							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
 		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
@@ -272,7 +268,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	WG['pregame-build'].selectedID = nil
 	if WG.StopDrawUnitShapeGL4 then
 		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5], myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
 		WG['pregame-build'].selectedID = buildData[1]
 	end
 end
