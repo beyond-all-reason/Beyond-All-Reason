@@ -231,11 +231,15 @@ local function removeUnitShape(id)
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+local function addUnitShape(id, unitDefID, px, py, pz, facing, teamID)
+	local rotationY =  facing * (math.pi/2)
+	local actualX = px
+	local actualY = py
+	local actualZ = pz
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, actualX, actualY, actualZ, rotationY, 1, teamID, nil, nil)
 	return unitshapes[id]
 end
 
@@ -246,11 +250,14 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 
 	gl.DepthTest(false)
 	gl.Color(borderColor)
+	
+	local tl = { (bx - bw), by, (bz - bh) }
+	local tr = { (bx + bw), by, (bz - bh) }
+	local br = { (bx + bw), by, (bz + bh) }
+	local bl = { (bx - bw), by, (bz + bh) }
 
-	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
-							 { v = { bx + bw, by, bz - bh } },
-							 { v = { bx + bw, by, bz + bh } },
-							 { v = { bx - bw, by, bz + bh } } })
+	
+	gl.Shape(GL.LINE_LOOP, { { v = tl }, { v = tr }, { v = br }, { v = bl} })
 
 	if drawRanges then
 		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
@@ -268,7 +275,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	WG['pregame-build'].selectedID = nil
 	if WG.StopDrawUnitShapeGL4 then
 		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5], myTeamID)
 		WG['pregame-build'].selectedID = buildData[1]
 	end
 end
@@ -303,13 +310,18 @@ function widget:MousePress(x, y, button)
 				if not pos then
 					return
 				end
-
-				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
+				local offset = 0;
 				local buildFacing = Spring.GetBuildFacing()
+				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
+				if (buildFacing % 2 == 1) then
+					offset = (math.abs(UnitDefs[selBuildQueueDefID].zsize - UnitDefs[selBuildQueueDefID].xsize)) * 4
+					bx = bx - offset
+					bz = bz - offset
+				end
 				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 				local _, _, meta, shift = Spring.GetModKeyState()
-
+				
 				if (meta or not shift) and cx ~= -100 then
 					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
 
@@ -319,6 +331,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
+
 					if meta then
 						table.insert(buildQueue, 1, buildData)
 
@@ -414,6 +427,12 @@ function widget:DrawWorld()
 		if pos then
 			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
+			local offset = 0
+			if (buildFacing % 2 == 1) then
+				offset = (math.abs(UnitDefs[selBuildQueueDefID].zsize - UnitDefs[selBuildQueueDefID].xsize)) * 4
+				bx = bx - offset
+				bz = bz - offset
+			end
 			selBuildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 		end
 	end
