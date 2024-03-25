@@ -303,14 +303,8 @@ function widget:MousePress(x, y, button)
 				if not pos then
 					return
 				end
-				local offset = 0;
 				local buildFacing = Spring.GetBuildFacing()
-				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
-				if (buildFacing % 2 == 1) then
-					offset = (math.abs(UnitDefs[selBuildQueueDefID].zsize - UnitDefs[selBuildQueueDefID].xsize)) * 4
-					bx = bx - offset
-					bz = bz - offset
-				end
+				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 				local _, _, meta, shift = Spring.GetModKeyState()
@@ -418,14 +412,8 @@ function widget:DrawWorld()
 		local x, y, _ = Spring.GetMouseState()
 		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
-			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
-			local offset = 0
-			if (buildFacing % 2 == 1) then
-				offset = (math.abs(UnitDefs[selBuildQueueDefID].zsize - UnitDefs[selBuildQueueDefID].xsize)) * 4
-				bx = bx - offset
-				bz = bz - offset
-			end
+			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 			selBuildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 		end
 	end
