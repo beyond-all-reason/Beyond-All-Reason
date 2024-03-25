@@ -411,7 +411,7 @@ return {
            },
        },
        length = 3.8,
-       delay = 45,
+       delay = 55,
     },
     ['LrpcDetected'] = {
        sound = {
