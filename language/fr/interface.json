@@ -228,17 +228,17 @@
 			"Low traj": "Haute Traj.",
 			"High traj": "Haute Traj.",
 			"trajectory_tooltip": "Définit la trajectoire des tirs en mode artillerie (tir parabolique ou tir direct)",
+			"hound_weapon_plasma": "Plasma lourd",
+			"hound_weapon_gauss": "Canon gauss",
+			"hound_weapon_toggle_tooltip": "Bascule entre Canon Gauss et Plasma lourd",
 
 			"customOnOff": {
 				"lowTrajectory": "Tir direct",
 				"highTrajectory": "Tir parabolique",
 				"trajectory_tooltip": "Définit l'angle de tir de l'artillerie",
-				"gaussCannon": "Canon gauss",
-				"heavyPlasma": "Plasma lourd",
 				"siegeMode": "Tir dispersé",
 				"suppressiveFire": "Tir focalisé",
 				"siege_tooltip": "Alterne entre un tir focalisé et un tir dispersé plus longue portée.",
-				"gauss_tooltip": "Bascule entre Canon Gauss et Plasma lourd"
 			}
 		},
 		"idleBuilders": {

@@ -34,10 +34,10 @@ end
 local houndWeaponCmdDesc = {
 	id = CMD_HOUND_WEAPON_TOGGLE,
 	type = CMDTYPE.ICON_MODE,
-	tooltip = 'houndtoggle_tooltip',
-	name = 'houndtoggle',
+	tooltip = 'hound_weapon_toggle_tooltip',
+	name = 'hound_weapon_toggle',
 	cursor = 'cursornormal',
-	action = 'houndtoggle',
+	action = 'hound_weapon_toggle',
 	params = { 1, "hound_weapon_gauss", "hound_weapon_plasma" },
 }
 
