@@ -39,7 +39,7 @@ for _, size in pairs(sizes) do
         def.customparams =     {
             model_author = "KDR11k, Beherith",
             normalmaps = "yes",
-            normaltex = "unittextures/raptor_s_normals.png",
+            normaltex = "unittextures/chicken_s_normals.png",
             treeshader = "yes",
             i18nfrom = 'raptor_egg'
         }
