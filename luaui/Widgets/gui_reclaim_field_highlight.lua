@@ -591,6 +591,9 @@ local function UpdateFeatures()
 					end
 				end
 			end
+		else
+			knownFeatures[fID] = nil
+			clusterizingNeeded = true
 		end
 	end
 
