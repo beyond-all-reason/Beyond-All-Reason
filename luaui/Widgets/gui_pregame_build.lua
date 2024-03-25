@@ -233,13 +233,10 @@ end
 
 local function addUnitShape(id, unitDefID, px, py, pz, facing, teamID)
 	local rotationY =  facing * (math.pi/2)
-	local actualX = px
-	local actualY = py
-	local actualZ = pz
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, actualX, actualY, actualZ, rotationY, 1, teamID, nil, nil)
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
 	return unitshapes[id]
 end
 
