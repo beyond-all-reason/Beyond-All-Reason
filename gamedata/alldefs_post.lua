@@ -1489,32 +1489,19 @@ if Spring.GetModOptions().skyshift == true then
 end
 
 if Spring.GetModOptions().proposed_unit_reworks == true then
-	if name == "armmart" then
-		uDef.health = 1070
-		uDef.maxacc = 0.033
-		uDef.maxdec = 0.066
-		uDef.speed = 60
-		uDef.weapondefs.arm_artillery.range = 810
+	if name == "armvp" then			
+		for ix, UnitName in pairs(uDef.buildoptions) do
+			if UnitName == "armsam" then
+				uDef.buildoptions[ix] = "armsam2"
+			end
+		end
 	end
-	if name == "cormart" then
-		uDef.health = 1200
-		uDef.maxacc = 0.03
-		uDef.maxdec = 0.06
-		uDef.speed = 58
-		uDef.weapondefs.cor_artillery.range = 790
-	end
-	if name == "armstil" then
-		uDef.metalcost = 460
-		uDef.energycost = 38000
-		uDef.buildtime = 32000
-		uDef.health = 1880
-		uDef.weapondefs.stiletto_bomb.areaofeffect = 160
-		uDef.weapondefs.stiletto_bomb.burst = 3
-		uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
-		uDef.weapondefs.stiletto_bomb.damage = {
-			default = 6000
-		}
-		uDef.weapondefs.stiletto_bomb.paralyzetime = 20
+	if name == "corvp" then			
+		for ix, UnitName in pairs(uDef.buildoptions) do
+			if UnitName == "cormist" then
+				uDef.buildoptions[ix] = "cormist2"
+			end
+		end
 	end
 end
 
