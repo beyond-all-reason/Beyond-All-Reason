@@ -35,6 +35,7 @@ local GADGETS_DIR = Script.GetName():gsub('US$', '') .. '/Gadgets/'
 local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
+local wupgetLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
 
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
@@ -79,7 +80,15 @@ gadgetHandler = {
 
 	orderList = {},
 
-	knownGadgets = {},
+	---@class GadgetInfo:WupgetInfo info about gadgets that were discovered to exist during initialization, whether or not they are currently active
+	---@field active boolean Is the gadgets currently loaded (or is to be loaded)?
+	---@field localPath string path to gadgets starting from GADGETS_DIR
+
+	---@type table<string, GadgetInfo>
+	---gadget.ghInfo.name to mutable GadgetInfo
+	---
+	---_Only gadgets cataloged in this table can be enabled_
+	knownGadgetInfos = {},
 	knownCount = 0,
 	knownChanged = true,
 
@@ -98,6 +107,8 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
+---@deprecated now an alias for knownGadgetInfos
+gadgetHandler.knownGadgets = gadgetHandler.knownGadgetInfos
 
 
 -- these call-ins are set to 'nil' if not used
@@ -329,62 +340,61 @@ local VFSMODE_OVERRIDE = {
 
 function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
-
-	local unsortedGadgets = {}
-	-- get the gadget names
-	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
-	--  table.sort(gadgetFiles)
-
-	--  for k,gf in ipairs(gadgetFiles) do
-	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
-	--  end
 	local doMoreYield = (Spring.Yield ~= nil);
-	-- stuff the gadgets into unsortedGadgets
-	for k, gf in ipairs(gadgetFiles) do
-		--    Spring.Echo('gf2 = ' .. gf) -- FIXME
-		local gadget = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
-		if gadget then
-			table.insert(unsortedGadgets, gadget)
+
+	local gadgetsToLoad = {}
+
+	wupgetLoader.loadAllInDir(
+		GADGETS_DIR,
+		VFSMODE,
+		function(gf, parentGadget)
+			local gadget, gadgetInfo, notLoadedNoError = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)], parentGadget)
+
 			if not IsSyncedCode() and doMoreYield then
 				doMoreYield = Spring.Yield()
-				if doMoreYield == false then --GetThreadSafety == false
-					--Spring.Echo("GadgetHandler Yield: entering critical section")
-				end
 			end
-		end
-	end
 
-	-- sort the gadgets
-	table.sort(unsortedGadgets, function(g1, g2)
-		local l1 = g1.ghInfo.layer
-		local l2 = g2.ghInfo.layer
-		if l1 ~= l2 then
-			return (l1 < l2)
+			if notLoadedNoError == true then
+				return false
+			end
+
+			if gadget then
+				table.insert(gadgetsToLoad, gadget)
+			end
+			return gadgetInfo
 		end
-		local n1 = g1.ghInfo.name
-		local n2 = g2.ghInfo.name
-		local o1 = self.orderList[n1]
-		local o2 = self.orderList[n2]
-		if o1 ~= o2 then
-			return (o1 < o2)
-		else
-			return (n1 < n2)
-		end
-	end)
+	)
+
+	gadgetsToLoad = wupgetLoader.sortedWupgetList(gadgetsToLoad, self.orderList, function(g) return g.ghInfo end)
 
 	-- add the gadgets
-	for _, g in ipairs(unsortedGadgets) do
+	for _, g in ipairs(gadgetsToLoad) do
 		gadgetHandler:InsertGadget(g)
 
-		local gtype = ((syncedHandler and "synced") or "unsynced")
-		local gname = g.ghInfo.name
-		local gbasename = g.ghInfo.basename
+		local gType = ((syncedHandler and "synced") or "unsynced")
+		local gName = g.ghInfo.name
+		local gBaseName = g.ghInfo.basename
+		local gLocalPath = g.ghInfo.localPath
 
-		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
+		local info = self.knownGadgetInfos[gName]
+		if not info.parent then
+			Spring.Log(LOG_SECTION, LOG.INFO, string.format(
+				"Loaded %s gadget:  %-18s  <%s%s>",
+				gType, gName, gLocalPath, gBaseName
+			))
+		else
+			Spring.Log(LOG_SECTION, LOG.INFO, string.format(
+				"Loaded %s child gadget: %-18s > %-18s <%s%s>",
+				gType, info.parent.name, gName,
+				gLocalPath, gBaseName
+			))
+		end
 	end
 end
 
-function gadgetHandler:LoadGadget(filename, overridevfsmode)
+---@return table | nil, WidgetInfo | nil, boolean | nil
+---gadget if loaded, gadgetInfo if that was loaded, boolean true if widget was not loaded and to not log an error
+function gadgetHandler:LoadGadget(filename, overridevfsmode, parentInfo)
 	local kbytes = false -- set to number to enable
 	if kbytes and collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
 		collectgarbage("collect") -- call it twice, mark
@@ -392,7 +402,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		kbytes = collectgarbage("count")
 	end
 
-	local basename = Basename(filename)
+	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, overridevfsmode or VFSMODE)
 	if text == nil then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. filename)
@@ -413,16 +423,19 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
-		return nil -- gadget asked for a quiet death
+		return nil, nil, true -- gadget asked for a quiet death
+	end
+
+	local gadgetInfo = self:LoadOrCreateGadgetInfo(gadget, filename)
+	if type(gadgetInfo) == 'string' then -- is error message
+		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. ' (' .. gadgetInfo .. ')')
+		return nil
 	end
 
 	-- raw access to gadgetHandler
-	if gadget.GetInfo and gadget:GetInfo().handler then
+	if gadgetInfo.handler then
 		gadget.gadgetHandler = self
 	end
-
-	self:FinalizeGadget(gadget, filename, basename)
-	local name = gadget.ghInfo.name
 
 	err = self:ValidateGadget(gadget)
 	if err then
@@ -430,28 +443,14 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil
 	end
 
-	local knownInfo = self.knownGadgets[name]
-	if knownInfo then
-		if knownInfo.active then
-			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
-			return nil
-		end
-	else
-		-- create a knownInfo table
-		knownInfo = {}
-		knownInfo.desc = gadget.ghInfo.desc
-		knownInfo.author = gadget.ghInfo.author
-		knownInfo.basename = gadget.ghInfo.basename
-		knownInfo.filename = gadget.ghInfo.filename
-		self.knownGadgets[name] = knownInfo
-		self.knownCount = self.knownCount + 1
-		self.knownChanged = true
-	end
-	knownInfo.active = true
+	parentInfo = parentInfo or gadgetInfo.parent
 
-	local info = gadget.GetInfo and gadget:GetInfo()
+	local name = gadgetInfo.name
 	local order = self.orderList[name]
-	if ((order ~= nil and order > 0) or (order == nil and (info == nil or info.enabled))) then
+	if
+		((order ~= nil and order > 0) or (order == nil and gadgetInfo.enabled))
+		and (not parentInfo or (self.orderList[parentInfo.name] and self.orderList[parentInfo.name] > 0))
+	then
 		-- this will be an active gadget
 		if order == nil then
 			self.orderList[name] = 12345  -- back of the pack
@@ -459,9 +458,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 			self.orderList[name] = order
 		end
 	else
+		-- unlike widgets, gadgets whose parent is not enabled at start are not allowed to be
+		-- "wanting to be active" (order > 0 but active = false)
 		self.orderList[name] = 0
-		self.knownGadgets[name].active = false
-		return nil
+		gadgetInfo.active = false
+		return nil, gadgetInfo
 	end
 
 	if kbytes then
@@ -469,7 +470,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		collectgarbage("collect") -- sweep
 		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode())
 	end
-	return gadget
+	return gadget, gadgetInfo
 end
 
 function gadgetHandler:NewGadget()
@@ -560,33 +561,39 @@ function gadgetHandler:NewGadget()
 	return gadget
 end
 
-function gadgetHandler:FinalizeGadget(gadget, filename, basename)
-	local gi = {}
+---Retrieves previously existing GadgetInfo or creates a new one,
+--- then binds that info to gadget.ghInfo via a read-only proxy table
+---@return GadgetInfo | string GadgetInfo to use or error string
+function gadgetHandler:LoadOrCreateGadgetInfo(gadget, filename)
+	local gadgetInfo = wupgetLoader.extractInfo(gadget, filename)
 
-	gi.filename = filename
-	gi.basename = basename
-	if gadget.GetInfo == nil then
-		gi.name = basename
-		gi.layer = 0
+	local name = gadgetInfo.name
+	local existingInfo = self.knownGadgetInfos[name]
+	if existingInfo then
+		if existingInfo.active then
+			Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (duplicate name)')
+			return nil
+		end
+		gadgetInfo = table.mergeInPlace(existingInfo, gadgetInfo)
 	else
-		local info = gadget:GetInfo()
-		gi.name = info.name or basename
-		gi.layer = info.layer or 0
-		gi.desc = info.desc or ""
-		gi.author = info.author or ""
-		gi.license = info.license or ""
-		gi.enabled = info.enabled or false
+		self.knownGadgetInfos[name] = gadgetInfo
+		self.knownCount = self.knownCount + 1
+		self.knownChanged = true
 	end
+
+	gadgetInfo.localPath = string.sub(gadgetInfo.path, #GADGETS_DIR + 1)
+	gadgetInfo.active = true
 
 	gadget.ghInfo = {}  --  a proxy table
 	local mt = {
-		__index = gi,
+		__index = gadgetInfo,
 		__newindex = function()
 			error("ghInfo tables are read-only")
 		end,
 		__metatable = "protected"
 	}
 	setmetatable(gadget.ghInfo, mt)
+	return gadgetInfo
 end
 
 function gadgetHandler:ValidateGadget(gadget)
@@ -673,6 +680,9 @@ function gadgetHandler:InsertGadget(gadget)
 	if gadget == nil then
 		return
 	end
+
+	local ki = self.knownGadgetInfos[gadget.ghInfo.name]
+
 	ArrayInsert(self.gadgets, true, gadget)
 	for _, listname in ipairs(callInLists) do
 		local func = gadget[listname]
@@ -689,6 +699,17 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 
 	self:UpdateCallIns()
+	ki.active = true
+
+	if ki.parent then
+		local parentGadget = self:FindGadget(ki.parent.name)
+		if parentGadget then
+			gadget.parent = parentGadget
+			parentGadget.children = parentGadget.children or {}
+			ArrayInsert(parentGadget.children, true, gadget)
+		end
+	end
+
 	if gadget.Initialize then
 		gadget:Initialize()
 	end
@@ -707,9 +728,27 @@ function gadgetHandler:RemoveGadget(gadget)
 	end
 
 	local name = gadget.ghInfo.name
-	self.knownGadgets[name].active = false
+	local ki = self.knownGadgetInfos[name]
+
+	-- first, remove children (without removing from orderList)
+	if ki.children and #ki.children > 0 then
+		for _, childInfo in ipairs(ki.children) do
+			self:RemoveGadget(self:FindGadget(childInfo.name))
+		end
+	end
+
+	ki.active = false
+
 	if gadget.Shutdown then
 		gadget:Shutdown()
+	end
+
+	if ki.parent then
+		gadget.parent = nil
+		local parentGadget = self:FindGadget(ki.parent.name)
+		if type(parentGadget.children) == 'table' then
+			ArrayRemove(parentGadget.children, gadget)
+		end
 	end
 
 	ArrayRemove(self.gadgets, gadget)
@@ -790,12 +829,21 @@ end
 --------------------------------------------------------------------------------
 
 function gadgetHandler:EnableGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
 		return false
 	end
+
 	if not ki.active then
+		-- make sure parent is enabled first
+		if ki.parent and not ki.parent.active then
+			if not self:EnableGadget(ki.parent.name) then
+				Spring.Echo('Failed to activate parent gadget of %s', ki.filename)
+				return false
+			end
+		end
+
 		Spring.Log(LOG_SECTION, LOG.INFO, 'Loading:  ' .. ki.filename)
 		local order = gadgetHandler.orderList[name]
 		if not order or order <= 0 then
@@ -806,12 +854,24 @@ function gadgetHandler:EnableGadget(name)
 			return false
 		end
 		self:InsertGadget(w)
+
+		-- re-enable child gadgets if they were previously enabled
+		if ki.children and #ki.children > 0 then
+			for _, childInfo in ipairs(ki.children) do
+				local active = self.knownGadgetInfos[childInfo.name].active
+				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
+
+				if not active and enabled then
+					self:EnableGadget(childInfo.name)
+				end
+			end
+		end
 	end
 	return true
 end
 
 function gadgetHandler:DisableGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
 		return false
@@ -829,7 +889,7 @@ function gadgetHandler:DisableGadget(name)
 end
 
 function gadgetHandler:ToggleGadget(name)
-	local ki = self.knownGadgets[name]
+	local ki = self.knownGadgetInfos[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "ToggleGadget(), could not find gadget: " .. tostring(name))
 		return
@@ -1080,7 +1140,7 @@ end
 
 function gadgetHandler:RecvFromSynced(...)
 	local arg1, arg2 = ...
-  if (type(arg1) == 'string') then 
+  if (type(arg1) == 'string') then
 		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
 	else
 		tracy.ZoneBeginN("G:RecvFromSynced")
@@ -1319,7 +1379,7 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-								
+
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(self.AllowCommandList) do
 		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
@@ -1388,8 +1448,8 @@ end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
-									
-	tracy.ZoneBeginN("G:AllowUnitBuildStep")  
+
+	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
@@ -1550,7 +1610,7 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	tracy.ZoneBeginN("G:UnitCreated")  
+	tracy.ZoneBeginN("G:UnitCreated")
 	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitCreatedList) do
@@ -1561,7 +1621,7 @@ function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitFinished")  
+	tracy.ZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
 		g:UnitFinished(unitID, unitDefID, unitTeam)
 	end
@@ -1585,7 +1645,7 @@ function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitDestroyed")  
+	tracy.ZoneBeginN("G:UnitDestroyed")
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitDestroyedList) do
@@ -1611,7 +1671,7 @@ function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitIdle")  
+	tracy.ZoneBeginN("G:UnitIdle")
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
@@ -1627,7 +1687,7 @@ function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, c
 end
 
 function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitPreDamaged")  
+	tracy.ZoneBeginN("G:UnitPreDamaged")
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -1657,7 +1717,7 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 end
 
 function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitDamaged") 
+	tracy.ZoneBeginN("G:UnitDamaged")
 	for _, g in ipairs(self.UnitDamagedList) do
 		g:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	end
@@ -1683,7 +1743,7 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	tracy.ZoneBeginN("G:UnitCommand") 
+	tracy.ZoneBeginN("G:UnitCommand")
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
@@ -1727,7 +1787,7 @@ function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitEnteredLos") 
+	tracy.ZoneBeginN("G:UnitEnteredLos")
 	for _, g in ipairs(self.UnitEnteredLosList) do
 		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
@@ -1743,7 +1803,7 @@ function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitLeftLos") 
+	tracy.ZoneBeginN("G:UnitLeftLos")
 	for _, g in ipairs(self.UnitLeftLosList) do
 		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
@@ -1815,7 +1875,7 @@ end
 --
 
 function gadgetHandler:FeatureCreated(featureID, allyTeam)
-	tracy.ZoneBeginN("G:FeatureCreated") 
+	tracy.ZoneBeginN("G:FeatureCreated")
 	for _, g in ipairs(self.FeatureCreatedList) do
 		g:FeatureCreated(featureID, allyTeam)
 	end
@@ -1824,7 +1884,7 @@ function gadgetHandler:FeatureCreated(featureID, allyTeam)
 end
 
 function gadgetHandler:FeatureDestroyed(featureID, allyTeam)
-	tracy.ZoneBeginN("G:FeatureDestroyed") 
+	tracy.ZoneBeginN("G:FeatureDestroyed")
 	for _, g in ipairs(self.FeatureDestroyedList) do
 		g:FeatureDestroyed(featureID, allyTeam)
 	end
@@ -1889,7 +1949,7 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
-	tracy.ZoneBeginN("G:ProjectileCreated") 
+	tracy.ZoneBeginN("G:ProjectileCreated")
 	for _, g in ipairs(self.ProjectileCreatedList) do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
@@ -1898,7 +1958,7 @@ function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 end
 
 function gadgetHandler:ProjectileDestroyed(proID)
-	tracy.ZoneBeginN("G:ProjectileDestroyed") 
+	tracy.ZoneBeginN("G:ProjectileDestroyed")
 	for _, g in ipairs(self.ProjectileDestroyedList) do
 		g:ProjectileDestroyed(proID)
 	end
@@ -1954,7 +2014,7 @@ function gadgetHandler:SunChanged()
 end
 
 function gadgetHandler:Update(deltaTime)
-	tracy.ZoneBeginN("G:Update") 
+	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
 		g:Update(deltaTime)
 	end
@@ -1982,7 +2042,7 @@ function gadgetHandler:CommandNotify(id, params, options)
 end
 
 function gadgetHandler:DrawGenesis()
-	tracy.ZoneBeginN("G:DrawGenesis") 
+	tracy.ZoneBeginN("G:DrawGenesis")
 	for _, g in ipairs(self.DrawGenesisList) do
 		g:DrawGenesis()
 	end
@@ -1991,7 +2051,7 @@ function gadgetHandler:DrawGenesis()
 end
 
 function gadgetHandler:DrawWorld()
-	tracy.ZoneBeginN("G:DrawWorld") 
+	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
 		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
 		g:DrawWorld()
@@ -2002,7 +2062,7 @@ function gadgetHandler:DrawWorld()
 end
 
 function gadgetHandler:DrawWorldPreUnit()
-	tracy.ZoneBeginN("G:DrawWorldPreUnit") 
+	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
 		g:DrawWorldPreUnit()
 	end
@@ -2075,7 +2135,7 @@ function gadgetHandler:DrawWorldRefraction()
 end
 
 function gadgetHandler:DrawScreenEffects(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreenEffects") 
+	tracy.ZoneBeginN("G:DrawScreenEffects")
 	for _, g in ipairs(self.DrawScreenEffectsList) do
 		g:DrawScreenEffects(vsx, vsy)
 	end
@@ -2084,7 +2144,7 @@ function gadgetHandler:DrawScreenEffects(vsx, vsy)
 end
 
 function gadgetHandler:DrawScreenPost()
-	tracy.ZoneBeginN("G:DrawScreenPost") 
+	tracy.ZoneBeginN("G:DrawScreenPost")
 	for _, g in ipairs(self.DrawScreenPostList) do
 		g:DrawScreenPost(vsx, vsy)
 	end
@@ -2093,7 +2153,7 @@ function gadgetHandler:DrawScreenPost()
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreen") 
+	tracy.ZoneBeginN("G:DrawScreen")
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end
@@ -2102,7 +2162,7 @@ function gadgetHandler:DrawScreen(vsx, vsy)
 end
 
 function gadgetHandler:DrawInMiniMap(mmsx, mmsy)
-	tracy.ZoneBeginN("G:DrawInMiniMap") 
+	tracy.ZoneBeginN("G:DrawInMiniMap")
 	for _, g in ipairs(self.DrawInMiniMapList) do
 		g:DrawInMiniMap(mmsx, mmsy)
 	end

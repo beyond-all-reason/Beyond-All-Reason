@@ -15,6 +15,8 @@ VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
 
+local wupgetLoader = VFS.Include("common/springUtilities/wupgetLoader.lua", nil, VFS.ZIP)
+
 local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
@@ -60,7 +62,16 @@ widgetHandler = {
 	configData = {},
 	orderList = {},
 
-	knownWidgets = {},
+	---@class WidgetInfo:WupgetInfo info about widgets that were discovered to exist during initialization, whether or not they are currently active
+	---@field fromZip boolean Was this widget loaded from VFS.ZIP?
+	---@field active boolean Is the widget currently loaded (or is to be loaded)?
+	---@field localPath string path to widget starting from WIDGET_DIRNAME
+
+	---@type table<string, WidgetInfo>
+	---widget.whInfo.name to mutable WidgetInfo
+	---
+	---_Only widgets cataloged in this table can be enabled_
+	knownWidgetInfos = {},
 	knownCount = 0,
 	knownChanged = true,
 
@@ -71,9 +82,11 @@ widgetHandler = {
 	allowUserWidgets = true,
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
-	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
+	---this is a table of widget md5 values to file names, used for user widget hashing
+	widgetHashes = {},
 
-	WG = {}, -- shared table for widgets
+	---shared table for widgets
+	WG = {},
 
 	globals = {}, -- global vars/funcs
 
@@ -89,6 +102,8 @@ widgetHandler = {
 	yViewSizeOld = 1,
 }
 
+---@deprecated now an alias for knownWidgetInfos
+widgetHandler.knownWidgets = widgetHandler.knownWidgetInfos
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
@@ -308,7 +323,6 @@ local zipOnly = {
 function widgetHandler:Initialize()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
@@ -321,64 +335,57 @@ function widgetHandler:Initialize()
 	-- create the "LuaUI/Config" directory
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
-	local unsortedWidgets = {}
+	local widgetsToLoad = {}
 
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
+	local function makeLoaderCallback(fromZip)
+		return function(filePath, parentInfo)
+			local widget, widgetInfo, notLoadedNoError = self:LoadWidget(filePath, fromZip, false, parentInfo)
+			Yield()
+
+			if notLoadedNoError == true then
+				return false
 			end
+
+			-- did the widget load correctly AND is it to start enabled?
+			-- Check if this widget is not allowed be loaded from user space
+			if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
+				table.insert(widgetsToLoad, widget)
+			end
+
+			return widgetInfo
 		end
 	end
 
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
+	if self.allowUserWidgets and allowuserwidgets then
+		wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.RAW, makeLoaderCallback(false))
 	end
 
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
+	wupgetLoader.loadAllInDir(WIDGET_DIRNAME, VFS.ZIP, makeLoaderCallback(true))
+	wupgetLoader.loadAllInDir(WIDGET_DIRNAME_MAP, VFS.MAP, makeLoaderCallback(true))
 
 	-- sort the widgets
-	table.sort(unsortedWidgets, function(w1, w2)
-		local l1 = w1.whInfo.layer
-		local l2 = w2.whInfo.layer
-		if l1 ~= l2 then
-			return (l1 < l2)
-		end
-		local n1 = w1.whInfo.name
-		local n2 = w2.whInfo.name
-		local o1 = self.orderList[n1]
-		local o2 = self.orderList[n2]
-		if o1 ~= o2 then
-			return (o1 < o2)
-		else
-			return (n1 < n2)
-		end
-	end)
+	widgetsToLoad = wupgetLoader.sortedWupgetList(widgetsToLoad, self.orderList, function(w) return w.whInfo end)
 
 	-- add the widgets
-	for _, w in ipairs(unsortedWidgets) do
+	for _, w in ipairs(widgetsToLoad) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
-		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+		local localPath = w.whInfo.localPath
+
+		local info = self.knownWidgetInfos[name]
+		local source = info.fromZip and "mod:" or "user:"
+
+		if not info.parent then
+			Spring.Echo(string.format(
+				"Loading widget from %s %-18s <%s%s> ...",
+				source, name, localPath, basename
+			))
+		else
+			Spring.Echo(string.format(
+				"Loading child widget: %-18s > %-18s <%s%s>",
+				info.parent.name, name, localPath, basename
+			))
+		end
 		Yield()
 		widgetHandler:InsertWidget(w)
 	end
@@ -410,8 +417,9 @@ function widgetHandler:AddSpadsMessage(contents)
 end
 
 
-
-function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
+---@return table | nil, WidgetInfo | nil, boolean | nil
+---widget if loaded, widgetInfo if that was loaded, boolean true if widget was not loaded and to not log an error
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, parentInfo)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
@@ -442,7 +450,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 		if err == false then
-			return nil -- widget asked for a silent death
+			return nil, nil, true -- widget asked for a silent death
 		end
 
 		local localsNames = valOrErr
@@ -464,16 +472,22 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 	if err == false then
-		return nil -- widget asked for a silent death
+		return nil, nil, true -- widget asked for a silent death
 	end
 
 	if enableLocalsAccess then
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
+	local widgetInfo = self:LoadOrCreateWidgetInfo(widget, filename, fromZip)
+	if type(widgetInfo) == 'string' then -- is error message
+		Spring.Echo('Failed to load: ' .. basename .. ' (' .. widgetInfo .. ')')
+		return nil
+	end
+
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
-	if widget.GetInfo and widget:GetInfo().handler then
+	if widgetInfo.handler then
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
@@ -482,8 +496,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		end
 	end
 
-	self:FinalizeWidget(widget, filename, basename)
-	local name = widget.whInfo.name
+	local name = widgetInfo.name
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1  -- always load the widget selector
 	end
@@ -494,33 +507,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local knownInfo = self.knownWidgets[name]
-	if knownInfo then
-		if knownInfo.active then
-			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
-			return nil
-		end
-	else
-		-- create a knownInfo table
-		knownInfo = {}
-		knownInfo.desc = widget.whInfo.desc
-		knownInfo.author = widget.whInfo.author
-		knownInfo.basename = widget.whInfo.basename
-		knownInfo.filename = widget.whInfo.filename
-		knownInfo.fromZip = fromZip
-		self.knownWidgets[name] = knownInfo
-		self.knownCount = self.knownCount + 1
-		self.knownChanged = true
-	end
-	knownInfo.active = true
-
-	if widget.GetInfo == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
-		return nil
-	end
-
-	-- Get widget information
-	local info = widget:GetInfo()
+	parentInfo = parentInfo or widgetInfo.parent
 
 	-- Enabling
 	local order = self.orderList[name]
@@ -529,18 +516,22 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
+		if widgetInfo.enabled and (widgetInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
 			order = 12345
 		end
 	end
 
-	if order then
+	if order and (not parentInfo or (self.orderList[parentInfo.name] and self.orderList[parentInfo.name] > 0)) then
 		self.orderList[name] = order
 	else
-		self.orderList[name] = 0
-		self.knownWidgets[name].active = false
-		return nil
+		if not parentInfo then
+			-- "wanting to be active" widgets have order > 0 but active = false
+			self.orderList[name] = 0
+		end
+		widgetInfo.active = false
+		return nil, widgetInfo
 	end
+
 	if not fromZip then
 		local md5 = VFS.CalculateHash(text,0)
 		if widgetHandler.widgetHashes[md5] == nil then
@@ -554,7 +545,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		widget:SetConfigData(config)
 	end
 
-	return widget
+	return widget, widgetInfo
 end
 
 function widgetHandler:NewWidget()
@@ -654,33 +645,46 @@ function widgetHandler:NewWidget()
 	return widget
 end
 
-function widgetHandler:FinalizeWidget(widget, filename, basename)
-	local wi = {}
-
-	wi.filename = filename
-	wi.basename = basename
+---Retrieves previously existing WidgetInfo or creates a new one,
+--- then binds that info to widget.whInfo via a read-only proxy table
+---@return WidgetInfo | string WidgetInfo to use or error string
+function widgetHandler:LoadOrCreateWidgetInfo(widget, filename, fromZip)
 	if widget.GetInfo == nil then
-		wi.name = basename
-		wi.layer = 0
-	else
-		local info = widget:GetInfo()
-		wi.name = info.name or basename
-		wi.layer = info.layer or 0
-		wi.desc = info.desc or ""
-		wi.author = info.author or ""
-		wi.license = info.license or ""
-		wi.enabled = info.enabled or false
+		return 'no GetInfo() call'
 	end
+
+	---@type WidgetInfo
+	local widgetInfo = wupgetLoader.extractInfo(widget, filename)
+
+	local name = widgetInfo.name
+	local existingInfo = self.knownWidgetInfos[name]
+	if existingInfo then
+		if existingInfo.active then
+			return 'duplicate name: ' .. existingInfo.name
+		end
+		-- apply any info changes, useful for development
+		widgetInfo = table.mergeInPlace(existingInfo, widgetInfo)
+	else
+		self.knownWidgetInfos[name] = widgetInfo
+		self.knownCount = self.knownCount + 1
+		self.knownChanged = true
+	end
+
+	widgetInfo.localPath = string.sub(widgetInfo.path, #WIDGET_DIRNAME + 1)
+	widgetInfo.fromZip = fromZip
+	widgetInfo.active = true
 
 	widget.whInfo = {}  --  a proxy table
 	local mt = {
-		__index = wi,
+		__index = widgetInfo,
 		__newindex = function()
 			error("whInfo tables are read-only")
 		end,
 		__metatable = "protected"
 	}
+
 	setmetatable(widget.whInfo, mt)
+	return widgetInfo;
 end
 
 function widgetHandler:ValidateWidget(widget)
@@ -802,6 +806,8 @@ function widgetHandler:InsertWidget(widget)
 		return
 	end
 
+	local ki = self.knownWidgetInfos[widget.whInfo.name]
+
 	SafeWrapWidget(widget)
 
 	ArrayInsert(self.widgets, true, widget)
@@ -812,6 +818,16 @@ function widgetHandler:InsertWidget(widget)
 		end
 	end
 	self:UpdateCallIns()
+	ki.active = true
+
+	if ki.parent then
+		local parentWidget = self:FindWidget(ki.parent.name)
+		if parentWidget then
+			widget.parent = parentWidget
+			parentWidget.children = parentWidget.children or {}
+			ArrayInsert(parentWidget.children, true, widget)
+		end
+	end
 
 	if widget.Initialize then
 		widget:Initialize()
@@ -823,18 +839,42 @@ function widgetHandler:RemoveWidget(widget)
 		return
 	end
 
+	local name = widget.whInfo.name
+	local ki = self.knownWidgetInfos[name]
+
+	-- first, remove children (without removing from orderList)
+	if ki.children and #ki.children > 0 then
+		for _, childInfo in ipairs(ki.children) do
+			self:RemoveWidget(self:FindWidget(childInfo.name))
+		end
+	end
+
 	if self.textOwner == widget then
 		self.textOwner = nil
 	end
 
-	local name = widget.whInfo.name
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
+	end
+
 	if widget.GetConfigData then
 		self.configData[name] = widget:GetConfigData()
 	end
-	self.knownWidgets[name].active = false
+
+	ki.active = false
+
 	if widget.Shutdown then
 		widget:Shutdown()
 	end
+
+	if ki.parent then
+		widget.parent = nil
+		local parentWidget = self:FindWidget(ki.parent.name)
+		if type(parentWidget.children) == 'table' then
+			ArrayRemove(parentWidget.children, widget)
+		end
+	end
+
 	ArrayRemove(self.widgets, widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
@@ -899,16 +939,22 @@ end
 --------------------------------------------------------------------------------
 
 function widgetHandler:IsWidgetKnown(name)
-	return self.knownWidgets[name] and true or false
+	return self.knownWidgetInfos[name] and true or false
 end
 
 function widgetHandler:EnableWidget(name, enableLocalsAccess)
-	local ki = self.knownWidgets[name]
+	local ki = self.knownWidgetInfos[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
+
 	if not ki.active then
+		-- make sure parent is enabled first
+		if ki.parent and not ki.parent.active then
+			self:EnableWidget(ki.parent.name, enableLocalsAccess)
+		end
+
 		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
@@ -920,12 +966,24 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 		end
 		self:InsertWidget(w)
 		self:SaveConfigData()
+
+		-- re-enable child widgets if they were previously enabled
+		if ki.children and #ki.children > 0 then
+			for _, childInfo in ipairs(ki.children) do
+				local active = self.knownWidgetInfos[childInfo.name].active
+				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
+
+				if not active and enabled then
+					self:EnableWidget(childInfo.name, enableLocalsAccess)
+				end
+			end
+		end
 	end
 	return true
 end
 
 function widgetHandler:DisableWidget(name)
-	local ki = self.knownWidgets[name]
+	local ki = self.knownWidgetInfos[name]
 	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
 		return false
@@ -933,6 +991,7 @@ function widgetHandler:DisableWidget(name)
 	if ki.active then
 		local w = self:FindWidget(name)
 		if not w then
+			Spring.Echo("DisableWidget(), found active info but could not find widget: " .. tostring(name))
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)
@@ -944,7 +1003,7 @@ function widgetHandler:DisableWidget(name)
 end
 
 function widgetHandler:ToggleWidget(name)
-	local ki = self.knownWidgets[name]
+	local ki = self.knownWidgetInfos[name]
 	if not ki then
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return

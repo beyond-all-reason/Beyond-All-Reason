@@ -117,7 +117,7 @@ end
 
 local userWidgets = {}
 function widget:Initialize()
-	for name, wData in pairs(widgetHandler.knownWidgets) do
+	for name, wData in pairs(widgetHandler.knownWidgetInfos) do
 		userWidgets[name] = (not wData.fromZip)
 	end
 end
@@ -237,12 +237,12 @@ local function StartHook()
 
 	--// hook the InsertWidget function
 	oldInsertWidget = wh.InsertWidget
-	widgetHandler.InsertWidget = function(self, widget)
+	widgetHandler.InsertWidget = function(self, widget, ...)
 		if widget == nil then
 			return
 		end
 
-		oldInsertWidget(self, widget)
+		oldInsertWidget(self, widget, ...)
 
 		for _, callin in ipairs(CallInsList) do
 			local func = widget[callin]
