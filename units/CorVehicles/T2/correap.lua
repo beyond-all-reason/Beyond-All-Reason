@@ -9,13 +9,14 @@ return {
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
-		collisionvolumescales = "34 34 38",
+		collisionvolumescales = "34 34 38", ---not respected used collisionvolumes.lua
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
+		usepiececollisionvolumes = 1, ----collisionvolumes.lua
 		idletime = 1800,
 		leavetracks = true,
 		health = 5300,

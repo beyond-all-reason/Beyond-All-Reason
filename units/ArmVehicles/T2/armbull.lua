@@ -34,6 +34,7 @@ return {
 		tracktype = "armbull_tracks",
 		trackwidth = 44,
 		turninplace = true,
+		usepiececollisionvolumes = 1,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6104,
 		turnrate = 365,
