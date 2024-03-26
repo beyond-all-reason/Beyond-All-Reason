@@ -591,6 +591,9 @@ local function UpdateFeatures()
 					end
 				end
 			end
+		else
+			knownFeatures[fID] = nil
+			clusterizingNeeded = true
 		end
 	end
 
@@ -873,16 +876,7 @@ local function DrawFeatureClusterText()
 		fontSize = max(fontSize, fontSizeMin)
 		fontSize = min(fontSize, fontSizeMax)
 
-		local metal = featureClusters[i].metal
-		local metalText
-
-		if metal < 1000 then
-			metalText = string.format("%.0f", metal) --exact number
-		elseif metal < 10000 then
-			metalText = string.format("%.1fK", math.floor(metal / 100) / 10) --4.5K
-		else
-			metalText = string.format("%.0fK", math.floor(metal / 1000)) --40K
-		end
+		local metalText = string.formatSI(featureClusters[i].metal)
 
 		glColor(numberColor)
 

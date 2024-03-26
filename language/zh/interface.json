@@ -584,13 +584,14 @@
             "setpriority_tooltip":"设置目标优先级:战斗机/轰炸机/无优先级",
             "Low traj":"低抛",
             "trajectory_tooltip":"设置炮台射击模式(向上射击或是向前射击)",
+            "hound_weapon_plasma": "重型等离子炮",
+            "hound_weapon_gauss": "高斯炮",
+            "hound_weapon_toggle_tooltip": "在高斯炮和重型等离子炮之间进行切换",
+
             "customOnOff":{
-              "gaussCannon":"高斯炮",
               "highTrajectory":"高弹道",
-              "gauss_tooltip":"在高斯炮和重型等离子炮之间进行切换",
               "lowTrajectory":"低弹道",
               "trajectory_tooltip":"在低弹道和高弹道之间切换炮台射击角度",
-              "heavyPlasma":"重型等离子炮"
             },
             "Cloaked":"隐形",
             "hotkeyTooltip":"%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",

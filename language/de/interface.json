@@ -222,14 +222,14 @@
 			"Low traj": "Direktes Feuer",
 			"High traj": "Indirektes Feuer",
 			"trajectory_tooltip": "Setzt den Feuermodus im Artilleriezustand (Flache/Steile Flugbahn)",
+			"hound_weapon_plasma": "Schwere Plasmakanonea",
+			"hound_weapon_gauss": "Gauß-Kanone",
+			"hound_weapon_toggle_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone",
 
 			"customOnOff": {
 				"lowTrajectory": "Direktes Feuer",
 				"highTrajectory": "Indirektes Feuer",
 				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um",
-				"gaussCannon": "Gauß-Kanone",
-				"heavyPlasma": "Schwere Plasmakanone",
-				"gauss_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone"
 			}
 		},
 		"idleBuilders": {

@@ -36,6 +36,44 @@ scanToCode["azerty"]["="] = "="
 scanToCode["azerty"]["\\"] = "\\"
 	-- NEEDS CORRECTION ABOVE
 
+scanToCode["colemak"] = {
+	Q = "Q",
+	W = "W",
+	E = "F",
+	R = "P",
+	T = "G",
+	Y = "J",
+	U = "L",
+	I = "U",
+	O = "Y",
+	P = ";",
+	A = "A",
+	S = "R",
+	D = "S",
+	F = "T",
+	G = "D",
+	H = "H",
+	J = "N",
+	K = "E",
+	L = "I",
+	Z = "Z",
+	X = "X",
+	C = "C",
+	V = "V",
+	B = "B",
+	N = "K",
+	M = "M",
+	[";"] = "O",
+	["'"] = "'",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "/",
+	["`"] = "`",
+	["-"] = "-",
+	["="] = "=",
+	["\\"] = "\\",
+}
+
 scanToCode["dvorak"] = {
 	Q = "'",
 	W = ",",
@@ -120,7 +158,14 @@ scanToCode["de-neo"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak', 'de-neo' }
+local layouts = {
+	'qwerty',
+	'qwertz',
+	'azerty',
+	'colemak',
+	'dvorak',
+	'de-neo',
+}
 
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
