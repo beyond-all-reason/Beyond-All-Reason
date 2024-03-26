@@ -173,8 +173,7 @@ QuerySecondary(piecenum)
 		piecenum = flare1;
 	} else {
 		piecenum = flare2;
-	}
-}
+	}}
 
 
 

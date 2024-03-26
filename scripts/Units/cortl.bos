@@ -3,10 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, gun;
+piece  base, flare, gun, turret, sleeves, barrel1, barrel2, flare1, flare2;
+static-var  restore_delay, gun_2;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_PAIM			4
 
 RockOnWaves()
 {
@@ -38,9 +40,41 @@ RockOnWaves()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <90.016484>;
+	turn sleeves to x-axis <0.000000> speed <50.005495>;
+
+	
+	turn gun to y-axis <0.000000> speed <90.021978>;
+
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+
 Create()
 {
 	hide flare;
+	gun_2 = flare1;
+
+	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -66,6 +100,67 @@ QueryPrimary(piecenum)
 {
 	piecenum = flare;
 }
+
+
+
+
+
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_PAIM;
+	set-signal-mask SIG_PAIM;
+	turn turret to y-axis heading speed <200.000000>;
+	turn sleeves to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeves around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	if( gun_2 == 0 )
+	{
+	    emit-sfx 1024 + 0 from flare1;
+		move barrel1 to z-axis [-2.200000] speed [300.000000];
+		wait-for-move barrel1 along z-axis;
+		move barrel1 to z-axis [0.000000] speed [3.000000];
+	}
+	if( gun_2 == 1 )
+	{
+	    emit-sfx 1024 + 0 from flare2;
+		move barrel2 to z-axis [-2.200000] speed [300.000000];
+		wait-for-move barrel2 along z-axis;
+		move barrel2 to z-axis [0.000000] speed [3.000000];
+	}
+	gun_2 = !gun_2;
+}
+
+AimFromSecondary(piecenum)
+{
+	if (gun_2 == 0) {
+		piecenum = barrel1;
+	} else {
+		piecenum = barrel2;
+	}
+}
+
+QuerySecondary(piecenum)
+{
+	if (gun_2 == 0) {
+		piecenum = flare1;
+	} else {
+		piecenum = flare2;
+	}
+}
+
+
+
+
+
+
+
 
 SweetSpot(piecenum)
 {
