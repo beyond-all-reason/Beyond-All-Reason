@@ -135,11 +135,11 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				interceptor = 1,
-				interceptsolo = 0,
+				interceptsolo = 1,
 				laserflaresize = 5,
-				name = "Taychon intercepting missile weapon",
+				name = "Taychon intercepting nuke missile weapon",
 				noselfdamage = true,
-				range = 5500,
+				range = 6000,
 				reloadtime = 1.0,
 				rgbcolor = "0.7 0 1",
 				soundhitdry = "",
@@ -164,46 +164,10 @@ return {
 					default = 1500,
 				},
 			},
-			smoke_sound = {
-				name = "Antinuke Smoke",
+			amd_open = {
+				name = "Antinuke Open",
 				range = 0,
-				soundhit = "smoke1",
-				weapontype = "Cannon",
-				damage = {
-					default = 0,
-				},
-			},
-			gears_sound = {
-				name = "Antinuke Gears",
-				range = 0,
-				soundhit = "opening1",
-				weapontype = "Cannon",
-				damage = {
-					default = 0,
-				},
-			},
-			piston_sound = {
-				name = "Antinuke Piston",
-				range = 0,
-				soundhit = "piston1",
-				weapontype = "Cannon",
-				damage = {
-					default = 0,
-				},
-			},
-			blade_sound = {
-				name = "Antinuke Blade Extend",
-				range = 0,
-				soundhit = "bladeextend1",
-				weapontype = "Cannon",
-				damage = {
-					default = 0,
-				},
-			},
-			door_sound = {
-				name = "Antinuke Door Sound",
-				range = 0,
-				soundhit = "door1",
+				soundhit = "antinukepulsarexp",
 				weapontype = "Cannon",
 				damage = {
 					default = 0,
@@ -216,23 +180,7 @@ return {
 				fastautoretargeting = true,
 			},
 			[2] = {
-				def = "SMOKE_SOUND",
-				onlytargetcategory = "NOTSUB",
-			},
-			[3] = {
-				def = "GEARS_SOUND",
-				onlytargetcategory = "NOTSUB",
-			},
-			[4] = {
-				def = "PISTON_SOUND",
-				onlytargetcategory = "NOTSUB",
-			},
-			[5] = {
-				def = "BLADE_SOUND",
-				onlytargetcategory = "NOTSUB",
-			},
-			[6] = {
-				def = "DOOR_SOUND",
+				def = "AMD_OPEN",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

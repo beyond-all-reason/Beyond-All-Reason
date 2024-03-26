@@ -256,7 +256,7 @@
 	 poof01 = {
 		 air                = true,
 		 class              = [[CSimpleParticleSystem]],
-		 count              = 13,
+		 count              = 5,
 		 ground             = true,
 		 water              = false,
 		 properties = {
@@ -271,7 +271,7 @@
 			 numparticles       = 1,
 			 particlelife       = 60,
 			 particlelifespread = 60,
-			 particlesize       = 20,
+			 particlesize       = 18,
 			 particlesizespread = 1.3,
 			 particlespeed      = 1.1,
 			 particlespeedspread = 0,
