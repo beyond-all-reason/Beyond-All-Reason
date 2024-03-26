@@ -2295,6 +2295,10 @@ local icontypes = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
 	},
+	legwint2 = {
+		bitmap = "icons/wind.png",
+		size = 1.67999995
+	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
 		size = 1.04999995

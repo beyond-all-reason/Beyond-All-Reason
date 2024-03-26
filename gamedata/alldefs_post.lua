@@ -420,7 +420,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
-      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2" --Rename to "legwint2" once energy production issue is solved on legwint2. (See "legwint2.lua" "energymultiplier" parameter)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
