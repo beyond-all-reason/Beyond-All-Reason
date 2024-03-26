@@ -1,7 +1,7 @@
 return {
 	armmart = {
-		maxacc = 0.02159,
-		maxdec = 0.04319,
+		maxacc = 0.033,
+		maxdec = 0.066,
 		energycost = 4900,
 		metalcost = 320,
 		buildpic = "ARMMART.DDS",
@@ -18,10 +18,10 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 890,
+		health = 1070,
 		--maxreversevelocity = 0.948,
 		maxslope = 12,
-		speed = 51.0,
+		speed = 60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "VTOL",
@@ -37,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1946,
-		turnrate = 300,
+		turnrate = 270,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
@@ -132,7 +132,7 @@ return {
 		},
 		weapondefs = {
 			arm_artillery = {
-				accuracy = 900,
+				accuracy = 600,--900,
 				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "arty-medium",
@@ -146,7 +146,7 @@ return {
 				--model = "artshell-medium.s3o",
 				name = "Long-range g2g plasma cannon",
 				noselfdamage = true,
-				range = 940,
+				range = 820,
 				reloadtime = 3.05,
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",

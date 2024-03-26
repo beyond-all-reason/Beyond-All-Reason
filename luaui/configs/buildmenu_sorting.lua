@@ -183,7 +183,9 @@ local unitOrderTable = {
 	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
+	['armsam2']        = 005801, --LAND + AA
 	['cormist']        = 005810,
+	['cormist2']       = 005811,
 	['legrail']		   = 005811,
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS

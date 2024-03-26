@@ -25,8 +25,10 @@ local unitNames = {
   "coraak",
 
   "armsam",
+  "armsam2",
   "armyork",
   "cormist",
+  "cormist2",
   "corsent",
 
   "armah",
