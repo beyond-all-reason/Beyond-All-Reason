@@ -154,7 +154,9 @@ void main() {
 
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
-		myTeamColor.a = 0.0; // do something if we are far out?
+		if (isDynamic == 1u) { // Only hide dynamic units when zoomed out
+			myTeamColor.a = 0.0; // do something if we are far out?
+		}
 	}
 
 	v_parameters = parameters;
