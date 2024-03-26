@@ -19,8 +19,8 @@ local useWaveMsg                = VFS.Include('LuaRules/Configs/raptor_spawn_def
 local I18N                      = Spring.I18N
 local GetGameSeconds            = Spring.GetGameSeconds
 
-local customScale = 1
-local widgetScale = customScale
+local customScale               = 1
+local widgetScale               = customScale
 local font, font2
 local messageArgs, marqueeMessage
 local refreshMarqueeMessage     = false
@@ -125,9 +125,7 @@ local function CreatePanelDisplayList()
 	local stage = RaptorStage(currentTime)
 
 	if stage == stageGrace then
-		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize)
-		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
-		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize)
+		font:Print(I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize)
 	elseif stage == stageMain then
 		local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
 		font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.59))
