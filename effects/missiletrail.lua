@@ -2083,6 +2083,32 @@ local definitions = {
         --},
     },
 
+    ["flaktrailaamg"] = {
+
+
+        engineglow = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[trans]],
+                length             = 1.2,
+               -- lengthgrowth       = -4.5,
+                sidetexture        = [[trail3]],
+                size               = 1.2,
+                sizegrowth         = -0.08,
+                ttl                = 3,
+                pos                = [[0, 2, 0]],
+            },
+        },
+    },
+
   ["missiletrailaa-large"] = {
 
       fire = {

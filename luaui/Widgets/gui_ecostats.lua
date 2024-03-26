@@ -118,19 +118,6 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 end
 
-local function round(num, idp)
-	local mult = 10 ^ (idp or 0)
-	return floor(num * mult + 0.5) / mult
-end
-
-local function formatRes(number)
-	if number < 1000 then
-		return string.format("%d", number)
-	else
-		return string.format("%.1fk", number / 1000)
-	end
-end
-
 local function getTeamSum(allyIndex, param)
 	local tValue = 0
 	local teamList = allyData[allyIndex]["teams"]
@@ -399,7 +386,6 @@ local function setAllyData(allyID)
 		allyData[index] = {}
 		local teamList = GetTeamList(allyID)
 		allyData[index]["teams"] = teamList
-
 	end
 
 	if not (allyData[index].teams and #allyData[index].teams > 0) then
@@ -429,6 +415,11 @@ local function setAllyData(allyID)
 
 	if not allyData[index]["isAlive"] and cfgRemoveDead then
 		allyData[index] = nil
+		guishaderRects['ecostats_' .. allyID] = nil
+		if WG['guishader'] and guishaderRectsDlists['ecostats_' .. allyID] then
+			WG['guishader'].DeleteDlist('ecostats_' .. allyID)
+			guishaderRectsDlists['ecostats_' .. allyID] = nil
+		end
 	end
 end
 
@@ -542,6 +533,7 @@ local function removeGuiShaderRects()
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
 				WG['guishader'].DeleteDlist('ecostats_' .. aID)
 				guishaderRectsDlists['ecostats_' .. aID] = nil
+				guishaderRects['ecostats_' .. aID] = nil
 			end
 		end
 	end
@@ -672,7 +664,7 @@ end
 
 local function DrawEText(numberE, vOffset)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberE) })
+		local label = string.formatSI(numberE)
 		font:Begin()
 		font:SetTextColor({ 1, 1, 0, 1 })
 		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
@@ -683,7 +675,7 @@ end
 local function DrawMText(numberM, vOffset)
 	vOffset = vOffset - (borderPadding * 0.5)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberM) })
+		local label = string.formatSI(numberM)
 		font:Begin()
 		font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
 		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')

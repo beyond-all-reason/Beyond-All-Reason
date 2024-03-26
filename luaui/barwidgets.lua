@@ -267,7 +267,6 @@ function widgetHandler:LoadConfigData()
 end
 
 function widgetHandler:SaveConfigData()
-	--  self:LoadConfigData()
 	local filetable = {}
 	for i, w in ipairs(self.widgets) do
 		if w.GetConfigData then
@@ -297,49 +296,7 @@ local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
 	if doMoreYield then
-		local doMoreYield = Spring.Yield()
-		if doMoreYield == false then --GetThreadSafety == false
-			--Spring.Echo("WidgetHandler Yield: entering critical section")
-		end
-	end
-end
-
-local function GetWidgetInfo(name, mode)
-
-	do
-		return
-	end -- FIXME
-
-	local lines = VFS.LoadFile(name, mode)
-
-	local infoLines = {}
-
-	for line in lines:gmatch('([^\n]*)\n') do
-		if not line:find('^%s*%-%-') then
-			if line:find('[^\r]') then
-				break -- not commented, not a blank line
-			end
-		end
-		local s, e, source = line:find('^%s*%-%-%>%>(.*)')
-		if source then
-			table.insert(infoLines, source)
-		end
-	end
-
-	local info = {}
-	local chunk, err = loadstring(table.concat(infoLines, '\n'))
-	if not chunk then
-		Spring.Echo('not loading ' .. name .. ': ' .. err)
-	else
-		setfenv(chunk, info)
-		local success, err = pcall(chunk)
-		if not success then
-			Spring.Echo('not loading ' .. name .. ': ' .. err)
-		end
-	end
-
-	for k, v in pairs(info) do
-		Spring.Echo(name, k, 'type: ' .. type(v), '<' .. tostring(v) .. '>')
+		doMoreYield = Spring.Yield()
 	end
 end
 
@@ -352,8 +309,6 @@ function widgetHandler:Initialize()
 	self:LoadConfigData()
 
 	-- do we allow userland widgets?
-	--local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
-	--self.autoUserWidgets = (autoUserWidgets ~= 0)
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
@@ -372,7 +327,6 @@ function widgetHandler:Initialize()
 	if self.allowUserWidgets and allowuserwidgets then
 		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
 		for k, wf in ipairs(widgetFiles) do
-			GetWidgetInfo(wf, VFS.RAW)
 			local widget = self:LoadWidget(wf, false)
 			if widget and not zipOnly[widget.whInfo.name] then
 				table.insert(unsortedWidgets, widget)
@@ -384,7 +338,6 @@ function widgetHandler:Initialize()
 	-- stuff the zip widgets into unsortedWidgets
 	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
 	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.ZIP)
 		local widget = self:LoadWidget(wf, true)
 		if widget then
 			table.insert(unsortedWidgets, widget)
@@ -395,7 +348,6 @@ function widgetHandler:Initialize()
 	-- stuff the map widgets into unsortedWidgets
 	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
 	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.MAP)
 		local widget = self:LoadWidget(wf, true)
 		if widget then
 			table.insert(unsortedWidgets, widget)
@@ -454,7 +406,6 @@ function widgetHandler:AddSpadsMessage(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
-	--Spring.Echo(rawmessage,b64message)
 	Spring.SendLuaRulesMsg(b64message)
 end
 
@@ -594,11 +545,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		local md5 = VFS.CalculateHash(text,0)
 		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
-			-- Embed LuaRules message that we enabled a new user widget
-			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
-			--if success == false then
-			--	Spring.Echo("widgetHandler.AddSpadsMessage call failed", tostring(err))
-			--end
 		end
 	end
 
@@ -749,7 +695,6 @@ end
 --------------------------------------------------------------------------------
 
 local function SafeWrapFuncNoGL(func, funcName)
-	local wh = widgetHandler
 	return function(w, ...)
 		-- New method avoids needless table creation, but is limited to at most 2 return values per callin!
 		local r1, r2, r3 = pcall(func, w, ...)
@@ -766,29 +711,10 @@ local function SafeWrapFuncNoGL(func, funcName)
 			Spring.Echo('Removed widget: ' .. name)
 			return nil
 		end
-		--[[
-		local r = { pcall(func, w, ...) }
-		if r[1] then
-			table.remove(r, 1)
-			return unpack(r)
-		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo(r[1])
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r[2]))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
-		end
-		]]--
 	end
 end
 
 local function SafeWrapFuncGL(func, funcName)
-	local wh = widgetHandler
 	return function(w, ...)
 		glPushAttrib(GL.ALL_ATTRIB_BITS)
 		glPopAttrib()
@@ -836,9 +762,10 @@ local function SafeWrapWidget(widget)
 		if widget[ciName] then
 			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
 		end
-		if widget.Initialize then
-			widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
-		end
+	end
+
+	if widget.Initialize then
+		widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
 	end
 end
 
@@ -1982,7 +1909,6 @@ function widgetHandler:UpdateSelection()
 		if #newSelection > #oldSelection then
 			subselection = false
 		else
-			local newSeen = 0
 			local oldSelectionMap = {}
 			for i = 1, #oldSelection do
 				oldSelectionMap[oldSelection[i]] = true

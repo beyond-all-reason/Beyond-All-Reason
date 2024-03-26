@@ -59,7 +59,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local minWidth = 190	-- for the sake of giving the addons some room
+local minWidth = 230	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
@@ -113,7 +113,6 @@ local math_isInRect = math.isInRect
 
 local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
-
 
 local specOffset = 256
 
@@ -222,9 +221,9 @@ local allyTeamMaxStorage = {}
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
 local specJoinedOnce, scheduledSpecFullView
-local prevClickedPlayer
+local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID, leftPosX, lastSliderSound, release
-local curFrame, PrevGameFrame, MainList, MainList2, MainList3, desiredLosmode, drawListOffset
+local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 8
 
@@ -289,7 +288,7 @@ local energyPlayer    -- player to share energy with (nil when no energy sharing
 local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local shareAmount = 0      -- amount of metal/energy to share/ask
 local maxShareAmount    -- max amount of metal/energy to share/ask
-local sliderPosition = 0      -- slider position in metal and energy sharing
+local sliderPosition      -- slider position in metal and energy sharing
 local shareSliderHeight = 80
 local sliderOrigin   -- position of the cursor before dragging the widget
 
@@ -563,7 +562,7 @@ function SetModulesPositionX()
     end)
     local pos = 1
 
-    local sizeMult = playerScale + ((1-playerScale)*0.25)
+    local sizeMult = playerScale + ((1-playerScale)*0.2)
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
@@ -804,8 +803,8 @@ end
 
 local function doPlayerUpdate()
     GetAllPlayers()
-    SetModulesPositionX()
     SortList()
+    SetModulesPositionX()
     CreateLists()
 end
 
@@ -861,11 +860,11 @@ function widget:Initialize()
 	end
 
 	GeometryChange()
-	SetModulesPositionX()
 	SetSidePics()
 	InitializePlayers()
 	GetAliveAllyTeams()
 	SortList()
+    SetModulesPositionX()
 
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
@@ -875,8 +874,8 @@ function widget:Initialize()
 		alwaysHideSpecs = value
 		if alwaysHideSpecs and specListShow then
 			specListShow = false
+            SortList()
 			SetModulesPositionX() --why?
-			SortList()
 			CreateLists()
 		end
 	end
@@ -962,13 +961,25 @@ function widget:Initialize()
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
+                SortList()
 				SetModulesPositionX()
-				SortList()
 				CreateLists()
 				break
 			end
 		end
 	end
+end
+
+
+local function SetOriginalColourNames()
+    -- Saves the original team colours associated to team teamID
+    for playerID, _ in pairs(player) do
+        if player[playerID].name then
+            if not player[playerID].spec then
+                originalColourNames[playerID] = colourNames(player[playerID].team)
+            end
+        end
+    end
 end
 
 function widget:GameFrame(n)
@@ -982,8 +993,8 @@ function widget:GameFrame(n)
         gameStarted = true
         SetSidePics()
         InitializePlayers()
-        SetOriginalColourNames()
         SortList()
+        SetOriginalColourNames()
         forceMainListRefresh = true
     end
 end
@@ -1307,7 +1318,7 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if playerID < specOffset and player[playerID].name and not player[playerID].spec and player[playerID].team then
+        if (playerID < specOffset or player[playerID].ai) and player[playerID].name and not player[playerID].spec and player[playerID].team then
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
@@ -1363,17 +1374,6 @@ function GetDark(red, green, blue)
         return true
     end
     return false
-end
-
-function SetOriginalColourNames()
-    -- Saves the original team colours associated to team teamID
-    for playerID, _ in pairs(player) do
-        if player[playerID].name then
-            if not player[playerID].spec then
-                originalColourNames[playerID] = colourNames(player[playerID].team)
-            end
-        end
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1470,24 +1470,28 @@ function SortAllyTeams(vOffset)
         end
     end
 
-    -- add the others
-    local firstenemy = true
-    for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-            if firstenemy then
-                vOffset = vOffset + 13
-                vOffset = vOffset + labelOffset - 3
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -3 -- "Enemies" label
-                firstenemy = false
-            else
-                vOffset = vOffset + (separatorOffset*playerScale)
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -4 -- Enemy teams separator
-            end
-            vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-        end
-    end
+	-- "Enemies" label
+	vOffset = vOffset + 13
+	vOffset = vOffset + labelOffset - 3
+	drawListOffset[#drawListOffset + 1] = vOffset
+	drawList[#drawList + 1] = -3 -- "Enemies" label
+
+	-- add the others
+	if enemyListShow then
+		local firstenemy = true
+		for allyTeamID = 0, allyTeamsCount - 1 do
+			if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+				if firstenemy then
+					firstenemy = false
+				else
+					vOffset = vOffset + (separatorOffset*playerScale)
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = -4 -- Enemy teams separator
+				end
+				vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+			end
+		end
+	end
 
     return vOffset
 end
@@ -1650,24 +1654,21 @@ function widget:DrawScreen()
     end
 
     -- handle/draw hover highlight
-    if mySpecStatus then
-        local posY
-        local x, y, b = Spring.GetMouseState()
-        for _, i in ipairs(drawList) do
-            if i > -1 then -- and i < specOffset
-                posY = widgetPosY + widgetHeight - (player[i].posY or 0)
-                if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + (playerOffset*playerScale)) then
+    local posY
+    local x, y, b = Spring.GetMouseState()
+    for _, i in ipairs(drawList) do
+        if i > -1 then -- and i < specOffset
+            posY = widgetPosY + widgetHeight - (player[i].posY or 0)
+            if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+                if mySpecStatus or (myAllyTeamID == player[i].allyteam and not sliderPosition) then
                     UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + (playerOffset*playerScale), nil, b and 0.28 or 0.14)
                 end
             end
         end
     end
 
-    -- draws share energy/metal sliders
-    if not ShareSlider then
-        CreateShareSlider()
-    end
-    if ShareSlider then
+    -- draw share energy/metal sliders
+    if sliderPosition and ShareSlider then
         gl_CallList(ShareSlider)
     end
 
@@ -1690,17 +1691,17 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList3 then
         timeFastCounter = 0
     end
+	CheckTime() --this also calls CheckPlayers
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
             drawTipText = nil
             tipTextTime = 0
         end
-        CheckTime() --this also calls CheckPlayers
         UpdateRecentBroadcasters()
         UpdateAlliances()
     end
-    if not onlyMainList3 then
+    if onlyMainList or onlyMainList2 then
         GetAliveAllyTeams()
     end
     if onlyMainList2 or onlyMainList3 then
@@ -1713,9 +1714,6 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
         CreateBackground()
     end
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
-    if onlyMainList2 then
-        CreateShareSlider()
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1895,8 +1893,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                             DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
                         end
                     end
-                elseif drawObject == -4 then
-                    DrawSeparator(drawListOffset[i])
+                elseif drawObject == -4 then -- enemy teams separator
+					if enemyListShow then
+						DrawSeparator(drawListOffset[i])
+					end
                 elseif drawObject == -3 then
                     enemyLabelOffset = drawListOffset[i]
                     local enemyAmount = numberOfEnemies
@@ -1992,8 +1992,14 @@ function DrawLabelTip(text, vOffset, xOffset)
 end
 
 function DrawSeparator(vOffset)
-    vOffset = vOffset - 2
-    RectRound(widgetPosX + 2, widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale), widgetPosX + widgetWidth - 2, widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale), 1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 })
+    vOffset = vOffset - (2.15/playerScale)
+    RectRound(
+		widgetPosX + 2,
+		widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale),
+		widgetPosX + widgetWidth - 2,
+		widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale),
+		1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 }
+	)
 end
 
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
@@ -2137,7 +2143,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 local msh = player[playerID].metalShare
-                if es > 0 then
+                if es and es > 0 then
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
@@ -2357,24 +2363,28 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     end
 end
 
-local function formatRes(number)
-    if number < 1000 then
-        return string.format("%d", number)
-    else
-        return string.format("%.1fk", number / 1000)
-    end
-end
-
 function DrawIncome(energy, metal, posY, dead)
     local fontsize = dead and 4.5 or 8.5
     local sizeMult = playerScale + ((1-playerScale)*0.33)
     fontsize = fontsize * sizeMult
     font:Begin()
     if energy > 0 then
-        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + m_income.width - 2, posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0), fontsize, "or")
+        font:Print(
+			'\255\255\255\050' .. string.formatSI(math.floor(energy)),
+			m_income.posX + widgetPosX + m_income.width - 2,
+			posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
+			fontsize,
+			"or"
+		)
     end
     if metal > 0 then
-        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + m_income.width - 2, posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0), fontsize, "or")
+        font:Print(
+			'\255\235\235\235' .. string.formatSI(math.floor(metal)),
+			m_income.posX + widgetPosX + m_income.width - 2,
+			posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
+			fontsize,
+			"or"
+		)
     end
     font:End()
 end
@@ -2975,15 +2985,15 @@ function widget:MousePress(x, y, button)
 
     if button == 1 then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
-        sliderPosition = 0
+        sliderPosition = nil
         shareAmount = 0
 
         -- spectators label onclick
         posY = widgetPosY + widgetHeight - specsLabelOffset
         if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             specListShow = not specListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -2992,8 +3002,8 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
-            SetModulesPositionX() --why?
             SortList()
+            SetModulesPositionX() --why?
             CreateLists()
             return true
         end
@@ -3031,31 +3041,21 @@ function widget:MousePress(x, y, button)
                     end
                 end
                 if i > -1 then -- and i < specOffset
-                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + (playerOffset*playerScale)) then
+                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
-                                local curMapDrawMode = Spring.GetMapDrawMode()
-                                Spring_SendCommands("specteam " .. player[i].team)
-                                if lockPlayerID then
-                                    LockCamera(player[i].ai and nil or i)
-                                else
-                                    if not fullView then
-                                        desiredLosmode = 'los'
-                                        desiredLosmodeChanged = os.clock()
-                                        if Spring.GetMapDrawMode() ~= 'los' then
-                                            Spring.SendCommands("togglelos")
-                                        end
-                                    end
-                                end
-                                CreateMainList()
-                                return true
+                                clickedPlayerTime = os.clock()
+                                clickedPlayerID = clickedPlayer.id
+                                -- handled in Update() after dblclick delay
                             end
                         end
 
                         if i < specOffset and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                            clickedPlayerTime = nil
+                            clickedPlayerID = nil
                             LockCamera(i)
                             prevClickedPlayer = {}
                             SortList()
@@ -3459,7 +3459,7 @@ end
 function CheckPlayersChange()
     local sorting = false
     for i = 0, specOffset-1 do
-        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
+        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
@@ -3469,9 +3469,6 @@ function CheckPlayersChange()
                         sorting = true
                     end
                 end
-                player[i].name = nil
-                player[i] = {}
-                sorting = true
             end
         elseif active and name ~= nil then
             if spec ~= player[i].spec then
@@ -3505,7 +3502,7 @@ function CheckPlayersChange()
             if player[i].name == nil then
                 player[i] = CreatePlayer(i)
                 if player[i].name ~= nil then
-                    doPlayerUpdate()
+                    forceMainListRefresh = true
                 end
             end
             if allyTeamID ~= player[i].allyteam then
@@ -3546,8 +3543,8 @@ function CheckPlayersChange()
         -- sorts the list again if change needs it
         SortList()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
+        CreateLists()
     end
-
 end
 
 function GetNeed(resType, teamID)
@@ -3556,10 +3553,8 @@ function GetNeed(resType, teamID)
         return false
     end
     local loss = pull - income
-    if loss > 0 then
-        if loss * 5 > current then
-            return true
-        end
+    if loss > 0 and loss * 5 > current then
+        return true
     end
     return false
 end
@@ -3577,7 +3572,6 @@ function Take(teamID, name, i)
     tookTeamID = teamID
     tookTeamName = name
     tookFrame = Spring.GetGameFrame()
-
     Spring_SendCommands("luarules take2 " .. teamID)
 end
 
@@ -3600,7 +3594,6 @@ function IsTakeable(teamID)
     end
 end
 
-
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = Spring.GetMouseState()
@@ -3611,6 +3604,26 @@ function widget:Update(delta)
             WG['tooltip'].ShowTooltip('advplayerlist', tipText)
         end
         Spring.SetMouseCursor('cursornormal')
+    end
+
+    if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
+        local curMapDrawMode = Spring.GetMapDrawMode()
+        Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
+        if lockPlayerID then
+            LockCamera(player[clickedPlayerID].ai and nil or i)
+        else
+            if not fullView then
+                desiredLosmode = 'los'
+                desiredLosmodeChanged = os.clock()
+                if Spring.GetMapDrawMode() ~= 'los' then
+                    Spring.SendCommands("togglelos")
+                end
+            end
+        end
+        --CreateMainList()
+        forceMainListRefresh = true
+        clickedPlayerTime = nil
+        clickedPlayerID = nil
     end
 
     totalTime = totalTime + delta
@@ -3642,7 +3655,8 @@ function widget:Update(delta)
         Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
     end
 
-    if energyPlayer ~= nil or metalPlayer ~= nil then
+    if sliderPosition and sliderPosition ~= prevSliderPosition then
+        prevSliderPosition = sliderPosition
         CreateShareSlider()
     end
 
@@ -3666,7 +3680,7 @@ function widget:Update(delta)
                 if player[j].allyteam == myAllyTeamID then
                     if player[j].totake then
                         player[j] = CreatePlayerFromTeam(player[j].team)
-                        SortList()
+                        forceMainListRefresh = true
                     end
                 end
             end
@@ -3684,6 +3698,8 @@ function widget:Update(delta)
         forceMainListRefresh = true
     end
     if forceMainListRefresh then
+        SortList()
+        SetModulesPositionX()
         CreateLists()
     else
         local updateMainList2 = timeCounter > updateRate*updateRateMult
@@ -3776,8 +3792,8 @@ function widget:TextCommand(command)
         else
             specListShow = not specListShow
         end
-        SetModulesPositionX() --why?
         SortList()
+        SetModulesPositionX() --why?
         CreateLists()
     end
 end

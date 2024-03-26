@@ -11,7 +11,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
 		energystorage = 6000,
-		explodeas = "hugeBuildingExplosionGeneric-uw",
+		explodeas = "largeBuildingExplosionGeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -22,7 +22,7 @@ return {
 		objectname = "Units/ARMUWES.s3o",
 		script = "Units/ARMUWES.cob",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
+		selfdestructas = "largeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 182,
 		yardmap = "oooooooooooooooo",
 		customparams = {

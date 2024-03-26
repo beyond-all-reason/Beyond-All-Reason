@@ -18,6 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 15000,
+		mass = 150000,
 		maxslope = 50,
 		speed = 42.3,
 		maxwaterdepth = 60,
@@ -141,7 +142,8 @@ return {
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "heatray2",
+				soundstart = "heatray1s",
+				soundstartvolume = 70,
 				soundtrigger = 1,
 				targetmoveerror = 0,
 				thickness = 6,
@@ -150,11 +152,11 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 3000,
-					vtol = 750,
+					default = 2000,
+					vtol = 550,
 				},
 			},
-			
+
 			tmaw = {
 				accuracy = 700,
 				areaofeffect = 128,
@@ -176,7 +178,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flameGFXTime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
@@ -201,7 +202,7 @@ return {
 					subs = 10,
 				}
 			},
-			
+
 		},
 		weapons = {
 			[1] = {

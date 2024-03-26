@@ -28,7 +28,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 143,
-		usebuildinggrounddecal = true,
 		waterline = 17,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {

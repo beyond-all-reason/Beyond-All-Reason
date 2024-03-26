@@ -90,13 +90,6 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	-- Reverse Gear
-	if modOptions.experimentalreversegear == true then
-		if (not uDef.canfly) and uDef.speed then
-			uDef.rspeed = uDef.speed*0.65
-		end
-	end
-
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
@@ -142,57 +135,6 @@ function UnitDef_Post(name, uDef)
 		if name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
-		end
-	end
-
-	-- Control Mode Tweaks
-	if modOptions.scoremode ~= "disabled" then
-		if modOptions.scoremode_chess == true then
-			-- Disable Wrecks
-			uDef.corpse = nil
-			-- Disable Bad Units
-			local factories = {
-				armaap = true,
-				armalab = true,
-				armap = true,
-				armavp = true,
-				armhp = true,
-				armlab = true,
-				armshltx = true,
-				armvp = true,
-				armamsub = true,
-				armasy = true,
-				armfhp = true,
-				armplat = true,
-				armshltxuw = true,
-				armsy = true,
-				coraap = true,
-				coralab = true,
-				corap = true,
-				coravp = true,
-				corgant = true,
-				corhp = true,
-				corlab = true,
-				corvp = true,
-				coramsub = true,
-				corasy = true,
-				corfhp = true,
-				corplat = true,
-				corgantuw = true,
-				corsy = true,
-				armapt3 = true,	-- scav T3 air factory
-				corapt3 = true,	-- scav T3 air factory
-				armnanotc = true,
-				armnanotcplat = true,
-				cornanotc = true,
-				cornanotcplat = true,
-				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
-			}
-			if factories[name] then
-				uDef.maxthisunit = 0
-			end
-		else
-
 		end
 	end
 
@@ -451,9 +393,11 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corfgate"
+			uDef.buildoptions[numBuildoptions+2] = "cornanotc2plat"
 		elseif name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armfgate"
+			uDef.buildoptions[numBuildoptions+2] = "armnanotc2plat"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -476,7 +420,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
-      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2" --Rename to "legwint2" once energy production issue is solved on legwint2. (See "legwint2.lua" "energymultiplier" parameter)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
@@ -1540,8 +1484,25 @@ end
 
 -- Skyshift: Air rework
 if Spring.GetModOptions().skyshift == true then
-	skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+	skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
+end
+
+if Spring.GetModOptions().proposed_unit_reworks == true then
+	if name == "armvp" then			
+		for ix, UnitName in pairs(uDef.buildoptions) do
+			if UnitName == "armsam" then
+				uDef.buildoptions[ix] = "armsam2"
+			end
+		end
+	end
+	if name == "corvp" then			
+		for ix, UnitName in pairs(uDef.buildoptions) do
+			if UnitName == "cormist" then
+				uDef.buildoptions[ix] = "cormist2"
+			end
+		end
+	end
 end
 
 --Lategame Rebalance
@@ -1818,7 +1779,7 @@ end
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" then -- special case
+	if name == "armsolar" or name == "corsolar" or name == "legsolar" then -- special case (but why?)
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then
@@ -1978,11 +1939,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Skyshift: Air rework
+		--[[Skyshift: Air rework
 		if Spring.GetModOptions().skyshift == true then
-			skyshiftUnits = VFS.Include("units/other/Skyshift/skyshiftunits_post.lua")
+			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
-		end
+		end]]
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields

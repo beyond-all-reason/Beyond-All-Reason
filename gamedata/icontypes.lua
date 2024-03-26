@@ -611,6 +611,10 @@ local icontypes = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
+	armnanotc2plat = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
 	armpb = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
@@ -704,6 +708,10 @@ local icontypes = {
 		size = 1.25999999
 	},
 	armsam = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
+	armsam2 = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
@@ -1531,6 +1539,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	cormist2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	cormls = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
@@ -1576,6 +1588,10 @@ local icontypes = {
 		size = 0.96599996
 	},
 	cornanotct2 = {
+		bitmap = "icons/nanot2.png",
+		size = 1.64999998
+	},
+	cornanotc2plat = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
 	},
@@ -2087,6 +2103,26 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdrag = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtf = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtl = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtm = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legforti = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	legdefcarryt1 = {
 		bitmap = "icons/legdefcarryt1.png",
 		size = 1.65999997
@@ -2098,6 +2134,10 @@ local icontypes = {
 	legfig = {
 		bitmap = "icons/air.png",
 		size = 0.64999998
+	},
+	legflak = {
+		bitmap = "icons/aa_flak_t2.png",
+		size = 1.5
 	},
 	legfloat = {
 		bitmap = "icons/corparrow.png",
@@ -2163,6 +2203,10 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
 	},
+	legmed = {
+		bitmap = "icons/corban_1.6.png",
+		size = 1.85
+	},
 	legmex = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
@@ -2219,6 +2263,10 @@ local icontypes = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
 	},
+	legsolar = {
+		bitmap = "icons/energy1_1.0.png",
+		size = 1.04999995
+	},	
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002
@@ -2250,6 +2298,14 @@ local icontypes = {
 	legwhisper = {
 		bitmap = "icons/air_t2_radar.png",
 		size = 1.39649999
+	},
+	legwin = {
+		bitmap = "icons/wind.png",
+		size = 1.04999995
+	},
+	legwint2 = {
+		bitmap = "icons/wind.png",
+		size = 1.67999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
@@ -2966,6 +3022,10 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	boombox = {
+		bitmap = "icons/blank.png",
+		size = 1.0
 	},
 
 	blank = {

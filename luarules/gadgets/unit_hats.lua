@@ -63,11 +63,14 @@ local unitDefCanWearHats = {
 }
 
 local vikings = {
-	["Raghna"] = true,
-	--["[teh]Teddy"] = true,
+	["Blodir"] = true,
+	["[teh]Teddy"] = true,
+	["MightySheep"] = true,
+	["Lostdeadman"] = true,
+	["Narnuk"] = true,
 }
 local kings = {
-	["[teh]Teddy"] = true,
+	["[AFF]Chisato"] = true,
 }
 local goldMedals = {
 }

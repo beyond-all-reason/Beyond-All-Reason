@@ -128,7 +128,6 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				metalpershot = 58,
 				energypershot = 2880,
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",

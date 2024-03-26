@@ -1,7 +1,7 @@
 return {
 	cormart = {
-		maxacc = 0.0205,
-		maxdec = 0.04111,
+		maxacc = 0.03,
+		maxdec = 0.06,
 		energycost = 4400,
 		metalcost = 400,
 		buildpic = "CORMART.DDS",
@@ -18,10 +18,10 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 1000,
+		health = 1200,
 		--maxreversevelocity = 1.02,
 		maxslope = 12,
-		speed = 48.0,
+		speed = 58.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "VTOL",
@@ -132,7 +132,7 @@ return {
 		},
 		weapondefs = {
 			cor_artillery = {
-				accuracy = 960,
+				accuracy = 640,--960,
 				areaofeffect = 144,
 				avoidfeature = false,
 				cegtag = "arty-heavy",
@@ -146,7 +146,7 @@ return {
 				--model = "artshell-medium.s3o",
 				name = "PlasmaCannon",
 				noselfdamage = true,
-				range = 915,
+				range = 800,
 				reloadtime = 5,--4.25,
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",

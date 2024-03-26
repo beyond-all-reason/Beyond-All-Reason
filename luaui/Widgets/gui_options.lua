@@ -1873,6 +1873,8 @@ function init()
 			shadowslider = 1,
 			grass = false,
 			cusgl4 = false,
+			losrange = false,
+			attackrange_numrangesmult = 0.3,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1891,6 +1893,8 @@ function init()
 			shadowslider = 3,
 			grass = false,
 			cusgl4 = true,
+			losrange = false,
+			attackrange_numrangesmult = 0.5,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1909,6 +1913,8 @@ function init()
 			shadowslider = 4,
 		 	grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.7,
 		},
 		high = {
 			bloomdeferred = true,
@@ -1927,6 +1933,8 @@ function init()
 			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.9,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1945,6 +1953,8 @@ function init()
 			shadowslider = 6,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 1,
 		},
 		custom = {},
 	}
@@ -2933,6 +2943,13 @@ function init()
 			  saveOptionValue('Grid menu', 'gridmenu', 'setAutoSelectFirst', { 'autoSelectFirst' }, value)
 		  end,
 		},
+		{ id = "gridmenu_labbuildmode", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_labbuildmode'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getUseLabBuildMode ~= nil and WG['gridmenu'].getUseLabBuildMode()), description = Spring.I18N('ui.settings.option.gridmenu_labbuildmode_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setUseLabBuildMode', { 'useLabBuildMode' }, value)
+		  end,
+		},
 
 
 		{ id = "label_ui_cursor", group = "control", name = Spring.I18N('ui.settings.option.label_cursor'), category = types.basic },
@@ -3462,6 +3479,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
+		  end,
+		},
+		{ id = "advplayerlist_resources", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_resources'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_resources_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_resources", { 'm_active_Table', 'resources' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'resources' }, value, { 'resources', value })
 		  end,
 		},
 		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_income'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_income_descr'),
@@ -4047,6 +4072,14 @@ function init()
 			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
 		  end,
 		},
+		{ id = "attackrange_numrangesmult", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
+		  onload = function(i)
+			  loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { 'selectionDisableThresholdMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Attack Range GL4', 'attackrange', 'setNumRangesMult', { 'selectionDisableThresholdMult' }, value)
+		  end,
+		},
 
 		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.defrange_descr') },
 		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = Spring.I18N('ui.settings.option.defrange_allyair_descr'),
@@ -4275,10 +4308,9 @@ function init()
 			end,
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
+		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
-
 
 		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 
@@ -5505,6 +5537,7 @@ function init()
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
+		options[getOptionByID('gridmenu_labbuildmode')] = nil
 	end
 
 

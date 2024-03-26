@@ -752,15 +752,6 @@ local options={
 	},
 
 	{
-		key		= "experimentalreversegear",
-		name	= "Reverse gear",
-		desc	= "Allows units to move backwards over short distances",
-		type	= "bool",
-		def		= false,
-		section	= "options_unit_modifiers",
-	},
-
-	{
 		key     = "tweakunits",
 		name    = "Tweak Units",
 		desc    = "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
@@ -879,9 +870,19 @@ local options={
 	},
 
 	{
+		key = 'proposed_unit_reworks',
+		name = 'Proposed Unit Reworks',
+		desc = 'Stilleto is reworked with a doubled metal and energy cost, lower aoe, and a more concentrated longer duration emp that is better suited for stunning specific targets.  Mauser and Quaker are reworked to have reduced range and increased speed and increased health to promote more dynamic play in early T2 while having them naturally fall off in late T2',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key = 'lategame_rebalance',
 		name = 'Lategame Rebalance',
 		desc = 'T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.',
+		hidden = true,
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
@@ -957,22 +958,13 @@ local options={
 	},
 
 	{
-		key    		= 'norush',
-		name   		= "No Rush mode",
-		desc   		= "!UNFINISHED! - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
-		type   		= "bool",
-		section		= 'options_experimental',
-		def    		= false,
-	},
-
-	{
 		key    		= 'norushtimer',
 		name   		= "No Rush Time",
-		desc   		= '(Range: 5 - 30). Minutes',
+		desc   		= '(Range: 0 - 30). Minutes',
 		type   		= "number",
 		section		= 'options_experimental',
-		def    		= 5,
-		min    		= 5,
+		def    		= 0,
+		min    		= 0,
 		max    		= 30,
 		step   		= 1,
 	},
@@ -1002,7 +994,7 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
-	
+
 	{
 		key = 'skyshift',
 		name = 'Skyshift: Air Rework',
@@ -1307,260 +1299,9 @@ local options={
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Control Victory Options -- Unused gamemode
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-	{
-		key    = 'controlvictoryoptions',
-		name   = 'Control',
-		desc   = 'Allows you to control at a granular level the individual options for Control Point Victory',
-		type   = 'section',
-	},
-	{
-		key="scoremode",
-		name="Scoring Mode",
-		desc="Defines how the game is played",
-		type="list",
-		def="disabled",
-		section="controlvictoryoptions",
-		hidden = true, -- Should NOT be hidden when we work on this again.
-		items={
-			{key="disabled", name="Disabled", desc="Disable Control Points as a victory condition."},
-			{key="countdown", name="Countdown", desc="A Control Point decreases all opponents' scores, zero means defeat."},
-			{key="tugofwar", name="Tug of War", desc="A Control Point steals enemy score, zero means defeat."},
-			--{key="domination", name="Domination", desc="Holding all Control Points will grant 1000 score, first to reach the score limit wins."},
-		}
-	},
-	{
-		key    = 'scoremode_chess',
-		name   = 'Chess Mode',
-		desc   = 'No basebuilding',
-		type   = 'bool',
-		section= 'controlvictoryoptions',
-		hidden = true, -- Should NOT be hidden when we work on this again.
-		def  = true,
-	},
-	{
-		key    = 'scoremode_chess_unbalanced',
-		name   = 'Chess: Unbalanced',
-		desc   = 'Each player gets diffrent set of units',
-		type   = 'bool',
-		section= 'controlvictoryoptions',
-		hidden = true, -- Should NOT be hidden when we work on this again.
-		def  = false,
-	},
-	{
-		key    = 'scoremode_chess_adduptime',
-		name   = 'Chess: Minutes Between New Units Add-up.',
-		desc   = 'Time Between New Units Add-up.',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		hidden = true, -- Should NOT be hidden when we work on this again.
-		def    = 1,
-		min    = 1,
-		max    = 10,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-	{
-		key    = 'scoremode_chess_spawnsperphase',
-		name   = 'Chess: Number of spawns in each phase.',
-		desc   = 'Number of spawns in each phase.',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 1,
-		min    = 1,
-		max    = 10,
-		step   = 1,  -- quantization is aligned to the def value
-		hidden = true,
-		-- (step <= 0) means that there is no quantization
-	},
-	{
-		key    = 'limitscore',
-		name   = 'Initial Score Per Control Point',
-		desc   = 'Initial score amount available.',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		hidden = true, -- Should NOT be hidden when we work on this again.
-		def    = 300,
-		min    = 100,
-		max    = 10000,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-	{
-		key    = "numberofcontrolpoints",
-		name   = "Number of control points (affects initial score)",
-		desc   = "Sets the number of control points on the map and scales the total score amount to match. Has no effect if Preset map configs are enabled.",
-		section= "controlvictoryoptions",
-		type="list",
-		def="13",
-		items={
-			{key="7", name="7", desc=""},
-			{key="13", name="13", desc=""},
-			{key="19", name="19", desc=""},
-			{key="25", name="25", desc=""},
-		},
-		hidden = true,
-    },
-	{
-		key    = "usemapconfig",
-		name   = "Use preset map-specific Control Point locations?",
-		desc   = "Should the control point config for this map be used instead of autogenerated control points?",
-		hidden = true,
-		type   = 'bool',
-		def    = true,
-		section= "controlvictoryoptions",
-    },
-	{
-		key    = "usemexconfig",
-		name   = "Use metal spots as point locations",
-		type   = 'bool',
-		def    = false,
-		section= "controlvictoryoptions",
-		hidden = true, -- Should NOT be hidden when we work on this again.
-    },
-	{
-		key    = 'captureradius',
-		name   = 'Capture points size',
-		desc   = 'Radius around a point in which to capture it.',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 100,
-		min    = 100,
-		max    = 1000,
-		step   = 25,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-		hidden = true,
-	},
-	{
-		key    = 'capturetime',
-		name   = 'Capture Time',
-		desc   = 'Time to capture a point.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 30,
-		min    = 1,
-		max    = 120,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-
-		{
-		key    = 'capturebonus',
-		name   = 'Capture Bonus',
-		desc   = 'Percentage of how much faster capture takes place by adding more units.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 100,
-		min    = 1,
-		max    = 100,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-
-		{
-		key    = 'decapspeed',
-		name   = 'De-Cap Speed',
-		desc   = 'Speed multiplier for neutralizing an enemy point.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 2,
-		min    = 1,
-		max    = 3,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-		{
-		key    = 'starttime',
-		name   = 'Start Time',
-		desc   = 'Number of seconds until control points can be captured.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 0,
-		min    = 0,
-		max    = 300,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-	{
-		key    = 'metalperpoint',
-		name   = 'Metal given per point',
-		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 1,
-		min    = 0,
-		max    = 5,
-		step   = 0.1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-		hidden = true,
-	},
-		{
-		key    = 'energyperpoint',
-		name   = 'Energy given per point',
-		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 75,
-		min    = 0,
-		max    = 500,
-		step   = 0.1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-		hidden = true,
-	},
-	{
-		key    = 'dominationscoretime',
-		name   = 'Domination Score Time',
-		desc   = 'Time needed holding all points to score in multi domination.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 30,
-		min    = 1,
-		max    = 60,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-
-	{
-		key    = 'tugofwarmodifier',
-		name   = 'Tug of War Modifier',
-		desc   = 'The amount of score transfered between opponents when points are captured is multiplied by this amount.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 4,
-		min    = 0,
-		max    = 6,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-	{
-		key    = 'dominationscore',
-		name   = 'Score awarded for Domination',
-		desc   = 'The amount of score awarded when you have scored a domination.',
-		hidden = true,
-		type   = 'number',
-		section= 'controlvictoryoptions',
-		def    = 1000,
-		min    = 500,
-		max    = 1000,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 }
 
 for i = 1, 9 do

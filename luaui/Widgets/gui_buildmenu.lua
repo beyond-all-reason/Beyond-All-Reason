@@ -958,7 +958,9 @@ end
 
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
-	WG['pregame-build'].setPreGamestartDefID(uDefID)
+	if WG['pregame-build'] then
+		WG['pregame-build'].setPreGamestartDefID(uDefID)
+	end
 end
 
 function widget:MousePress(x, y, button)

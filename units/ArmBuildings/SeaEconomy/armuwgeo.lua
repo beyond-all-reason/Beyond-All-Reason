@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMUWGEO.DDS",
 		buildtime = 13100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "60 70 60",
 		collisionvolumetype = "Box",
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landeconomy",
+			subfolder = "armbuildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {

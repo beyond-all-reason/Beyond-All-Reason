@@ -196,7 +196,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 
-	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')
+	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com')
 
 	local isCommander = {}
 	local isRadar = {}
