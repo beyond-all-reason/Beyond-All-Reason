@@ -566,23 +566,23 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) then
+			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) or (module.name == 'income' and playerScale < 0.7) then
 
 			else
 				if mySpecStatus then
 					if module.spec then
-                        if module.name == 'cpuping' or module.name == 'indent' or module.name == 'rank' or module.name == 'country' or module.name == 'side' or module.name == 'ally' or module.name == 'id' or module.name == 'income' or module.name == 'name' then
-                            pos = pos + (module.width*sizeMult)
-                        else
+                        if module.name == 'resources' then
                             pos = pos + module.width
+                        else
+                            pos = pos + (module.width*sizeMult)
                         end
 					end
 				else
 					if module.play then
-                        if module.name == 'cpuping' or module.name == 'indent' or module.name == 'rank' or module.name == 'country' or module.name == 'side' or module.name == 'ally' or module.name == 'id' or module.name == 'income' or module.name == 'name' then
-                            pos = pos + (module.width*sizeMult)
-                        else
+                        if module.name == 'resources' then
                             pos = pos + module.width
+                        else
+                            pos = pos + (module.width*sizeMult)
                         end
 					end
 				end
@@ -2150,7 +2150,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                         end
                     end
-                    if onlyMainList2 and m_income.active and ei then
+                    if onlyMainList2 and m_income.active and ei and playerScale >= 0.7 then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
                             IncomeTip(mouseX, ei, mi)
@@ -2253,8 +2253,8 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     energy = math.min(energy, energyStorage)
     metal = math.min(metal, metalStorage)
     local bordersize = 0.75
-    local paddingLeft = 2
-    local paddingRight = 2
+    local paddingLeft = 2 * playerScale
+    local paddingRight = 2 * playerScale
     local barWidth = m_resources.width - paddingLeft - paddingRight
     local y1Offset
     local y2Offset
@@ -2377,10 +2377,10 @@ function DrawIncome(energy, metal, posY, dead)
     fontsize = fontsize * sizeMult
     font:Begin()
     if energy > 0 then
-        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + m_income.width - 2, posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0), fontsize, "or")
+        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + (5.5*playerScale), posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0), fontsize, "o")
     end
     if metal > 0 then
-        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + m_income.width - 2, posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0), fontsize, "or")
+        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + (5.5*playerScale), posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0), fontsize, "o")
     end
     font:End()
 end
@@ -2572,7 +2572,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
 
     font2:Begin()
     local fontsize = isAbsent and 9 or 14
-    fontsize = fontsize * (playerScale + ((1-playerScale)*0.4))
+    fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
     else
@@ -2660,21 +2660,20 @@ function DrawID(playerID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
-    local deadspace = 0
     font:Begin()
     if dead then
         font:SetTextColor(1, 1, 1, 0.4)
     else
         font:SetTextColor(1, 1, 1, 0.66)
     end
-    font:Print(spacer .. playerID, m_ID.posX + deadspace + widgetPosX + 4.5, posY + (5.3*playerScale), fontsize, "on")
+    font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
 function DrawSkill(skill, posY, dark)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-    font:Print(skill, m_skill.posX + widgetPosX + m_skill.width - 2, posY + (5.3*playerScale), fontsize, "or")
+    font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
