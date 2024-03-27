@@ -1,26 +1,61 @@
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
 
-#define MAX_AIMY1_VELOCITY <3.00>
-#define AIMY1_ACCELERATION <0.15>
-#define AIMY1_JERK <0.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
+// Usage:
+// 1. Tune the defines in your script, see the defaults below, make sure you set the individual pieces!
+// 2. Include this file after piece declarations
+// 3. From the AimWeaponX corresponding to the turret to be accelerated:
+//    call-script TurretAccelerationAim1(heading, pitch)
+// 4. return (1) from AimWeaponX after call-script finishes
 
-RestoreBody() // no need to signal, as threads inherit parents signal masks
+
+#define AIMY1_PIECE_Y aimy1
+//#define AIMY1_PIECE_X aimx1
+
+#ifdef AIMY1_PIECE_X
+	#ifndef AIMY1_PITCH_SPEED 
+		#define AIMY1_PITCH_SPEED <150>
+	#endif
+#endif
+
+#ifndef MAX_AIMY1_VELOCITY
+	#define MAX_AIMY1_VELOCITY <3.00>
+#endif
+
+#ifndef AIMY1_ACCELERATION
+	#define AIMY1_ACCELERATION <0.15>
+#endif
+
+#ifndef AIMY1_JERK
+	#define AIMY1_JERK <0.5>
+#endif
+
+#ifndef AIMY1_PRECISION
+	#define AIMY1_PRECISION <1.2>
+#endif
+
+#ifndef AIMY1_RESTORE_SPEED
+	#define AIMY1_RESTORE_SPEED <1.0>
+#endif
+
+#ifndef AIMY1_RESTORE_DELAY
+	#define AIMY1_RESTORE_DELAY 6000
+#endif
+
+static-var aimy1delta, timetozero, deceleratethreshold;
+static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
+
+RestoreBody1() // no need to signal, as threads inherit parents signal masks
 {
+	sleep AIMY1_RESTORE_DELAY;
+	
+	#ifdef AIMY1_PIECE_X
+		turn AIMY1_PIECE_X to x-axis <0.0> speed AIMY1_PITCH_SPEED;
+	#endif
 
-	sleep 3000;
-	start-script Close();
-	//turn aimy1 to y-axis <0.000000> speed <60.000000>;
-	turn lshoulder to x-axis <0.0> speed <150>;
-	turn rshoulder to x-axis <0.0> speed <150>;
 	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
 		if (aimy1position > 0 ) {
 			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
@@ -31,31 +66,27 @@ RestoreBody() // no need to signal, as threads inherit parents signal masks
 			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
 			aimy1velocity = AIMY1_RESTORE_SPEED;
 		}
-		turn aimy1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
+		turn AIMY1_PIECE_Y to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
 		sleep 30;
 	}
 	aimy1velocity = 0;
 }
 
+TurretAccelerationAim1(heading, pitch){
+	/*
+	// Set up signals in AimWeaponX(heading, pitch)
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// Then 
+	call-script TurretAccelerationAim1(heading, pitch);
+	*/
 
-AimWeapon1(heading, pitch)
-{
-
-	start-script Open();
-	signal SIGNAL_BODY;
-	set-signal-mask SIGNAL_BODY;
+	#ifdef AIMY1_PIECE_X
+		turn AIMY1_PIECE_X to x-axis <0.0> - pitch speed AIMY1_PITCH_SPEED;
+	#endif
 	
-	if( !HandsUp )
-	{
-		return (0);
-	}
-	//signal SIGNAL_HEAD;
-	//We can do this any time
-	turn lshoulder to x-axis <0.0> - pitch speed <150>;
-	turn rshoulder to x-axis <0.0> - pitch speed <150>;	
 	aimy1target = heading;
 	aimy1delta = aimy1target - aimy1position;
-
 	
 	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
 		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
@@ -74,8 +105,10 @@ AimWeapon1(heading, pitch)
 			//pos = t * v - (t*(t-1)*a/2)
 			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
 			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
+			#ifdef AIMY1_DEBUG
+				get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
+			#endif 
+
 			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
 				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
 				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
@@ -91,13 +124,16 @@ AimWeapon1(heading, pitch)
 				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
 				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
 			}
+			// Update our position with our velocity
 			aimy1position = aimy1position + aimy1velocity; 
-			turn aimy1 to y-axis aimy1position now;
 			aimy1delta = aimy1target - aimy1position ; 	
+
+			// Perform the turn with a NOW, this means that this will be run every frame!
+			turn AIMY1_PIECE_Y to y-axis aimy1position now;
 		}
-		sleep 30;
+		sleep 32;
 	}
 	aimy1velocity = 0;
-	start-script RestoreBody();
+	start-script RestoreBody1();
 	return (1);
 }
