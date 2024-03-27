@@ -90,6 +90,15 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
+	if true then
+		if name == "corak" then
+			uDef.objectname = "CORAK.s3o"
+		end
+		if name == "armpw" then
+			uDef.objectname = "ARMPW.s3o"
+		end
+	end
+
 	-- Rebalance Candidates
 
 	if modOptions.experimentalrebalancet2labs == true then --
