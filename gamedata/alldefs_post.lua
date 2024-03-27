@@ -92,10 +92,22 @@ function UnitDef_Post(name, uDef)
 
 	if true then
 		if name == "corak" then
-			uDef.objectname = "CORAK.s3o"
+			uDef.objectname = "apf/CORAK.s3o"
+		end
+		if name == "corack" then
+			uDef.objectname = "apf/CORACK.s3o"
 		end
 		if name == "armpw" then
-			uDef.objectname = "ARMPW.s3o"
+			uDef.objectname = "apf/ARMPW.s3o"
+		end
+		if name == "cordemon" then
+			uDef.objectname = "apf/cordemon.s3o"
+		end
+		if name == "correap" then
+			uDef.objectname = "apf/correap.s3o"
+		end
+		if name == "corstorm" then
+			uDef.objectname = "apf/corstorm.s3o"
 		end
 	end
 

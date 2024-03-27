@@ -18,18 +18,20 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local needsFixing = {}
-local needsFixingName,s = {
+local needsFixing,s = {},1
+for k, v in pairs({
 	corak=7,
 	armpw=7,
-},1
-for k, v in pairs(needsFixingName) do
+	cordemon=3,
+	correap=6,
+	corack=4,
+	corstorm=6,
+}) do
 	local tmp = UnitDefNames[k].id
 	if tmp then
 		needsFixing[tmp] = v
 	end
 end
-needsFixingName = nil
 
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	local amountToFix
