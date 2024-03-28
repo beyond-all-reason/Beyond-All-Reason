@@ -451,7 +451,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
+	local debugUtilities = VFS.Include('common/springUtilities/debug.lua')
 	--or Spring.GetGameSeconds() <= config.gracePeriod
 	function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		tracy.ZoneBeginN("Raptors:squadCommanderGiveOrders")
@@ -501,14 +501,21 @@ if gadgetHandler:IsSyncedCode() then
 				for i, unitID in pairs(units) do
 					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 						-- Spring.Echo("GiveOrderToUnit #" .. i)
-						if not unitCowardCooldown[unitID] then
-							if role == "assault" or role == "healer" or role == "artillery" then
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-							elseif role == "raid" then
-								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-							elseif role == "aircraft" or role == "kamikaze" then
-								local pos = getRandomEnemyPos()
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
+						if unitTargetPool[squadID]
+							and UnitDefs[Spring.GetUnitDefID(unitTargetPool[squadID])].customParams
+							and UnitDefs[Spring.GetUnitDefID(unitTargetPool[squadID])].customParams.iscommander then
+							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
+							Spring.GiveOrderToUnit(unitID, CMD.ATTACK, {Spring.GetUnitTransporter(unitTargetPool[squadID]) or unitTargetPool[squadID]} , {})
+						else
+							if not unitCowardCooldown[unitID] then
+								if role == "assault" or role == "healer" or role == "artillery" then
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
+								elseif role == "raid" then
+									Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
+								elseif role == "aircraft" or role == "kamikaze" then
+									local pos = getRandomEnemyPos()
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
+								end
 							end
 						end
 					end
