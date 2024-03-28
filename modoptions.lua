@@ -940,7 +940,8 @@ local options = {
             { key = "corred", 		name = "Cortex Red", 		desc = "description" },
             { key = "scavpurp", 	name = "Scavenger Purple", 	desc = "description" },
             { key = "raptororange", name = "Raptor Orange", 	desc = "description" },
-            { key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
+			{ key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
+			{ key = "leggren",		name = "Legion Green", 		desc = "description" },
         }
     },
 
