@@ -181,18 +181,20 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 end
 
 local function setGaiaUnitSpecifics(unitID)
-	Spring.SetUnitNeutral(unitID, true)
-	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
-	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitMaxHealth(unitID, 2)
-	Spring.SetUnitBlocking(unitID, false)
-	Spring.SetUnitSensorRadius(unitID, 'los', 0)
-	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-		Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
+	if false then
+		Spring.SetUnitNeutral(unitID, true)
+		Spring.SetUnitNoSelect(unitID, true)
+		Spring.SetUnitStealth(unitID, true)
+		Spring.SetUnitNoMinimap(unitID, true)
+		Spring.SetUnitMaxHealth(unitID, 2)
+		Spring.SetUnitBlocking(unitID, false)
+		Spring.SetUnitSensorRadius(unitID, 'los', 0)
+		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+		for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
+			Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
+		end
 	end
 end
 
