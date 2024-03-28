@@ -451,6 +451,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+
 	--or Spring.GetGameSeconds() <= config.gracePeriod
 	function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		tracy.ZoneBeginN("Raptors:squadCommanderGiveOrders")
