@@ -41,16 +41,6 @@ end
 -- DEFS POST PROCESSING
 -------------------------
 
--- process unitdef
---local vehAdditionalTurnrate = 0
---local vehTurnrateMultiplier = 1.0
---
---local vehAdditionalAcceleration = 0.00
---local vehAccelerationMultiplier = 1
---
---local vehAdditionalVelocity = 0
---local vehVelocityMultiplier = 1
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -89,12 +79,6 @@ function UnitDef_Post(name, uDef)
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
-
-	-- test New sound system!
-	--VFS.Include('luarules/configs/gui_soundeffects.lua')
-	--if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
-	--	Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
-	--end
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
@@ -237,7 +221,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Add balanced extras
+	-- Release candidate units
 	if modOptions.releasecandidates then
 
 		--Shockwave mex
@@ -251,9 +235,6 @@ function UnitDef_Post(name, uDef)
 		if name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
-			--uDef.buildoptions[numBuildoptions+2] = "corsala"
-			--uDef.buildoptions[numBuildoptions+3] = "corforge"
-			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		end
 		if name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
@@ -270,7 +251,6 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
 		end
-
 	end
 
 	-- Add scav units to normal factories and builders
@@ -307,7 +287,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 			uDef.buildoptions[numBuildoptions+5] = "corvac" --corprinter
 		elseif name == "coravp" then
-			printerpresent = false
+			local printerpresent = false
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
 					printerpresent = true
@@ -395,19 +375,10 @@ function UnitDef_Post(name, uDef)
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			--Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
 
-	--[[
-	if uDef.metalcost and uDef.health then
-		uDef.mass = uDef.metalcost
-		if uDef.mass and uDef.name then
-			Spring.Echo(uDef.name.."'s mass is:"..uDef.mass)
-		end
-	end
-	]]
 	if string.find(name, "raptor") and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
@@ -495,10 +466,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-	-- 	Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
-	-- end
-
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
          The engine uses full frames for actual reload times, but forwards the raw
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -511,31 +478,26 @@ function UnitDef_Post(name, uDef)
 		uDef.radaremitheight = 0
 		if uDef.collisionvolumescales then
 			local x = uDef.collisionvolumescales
-			--Spring.Echo(x)
 			local xtab = {}
 			for i in string.gmatch(x, "%S+") do
 				xtab[#xtab+1] = i
 			end
-			--Spring.Echo("Result of volume scales: "..tonumber(xtab[2]))
 			uDef.sightemitheight = uDef.sightemitheight+tonumber(xtab[2])
 			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
 		end
 		if uDef.collisionvolumeoffsets then
 			local x = uDef.collisionvolumeoffsets
-			--Spring.Echo(x)
 			local xtab = {}
 			for i in string.gmatch(x, "%S+") do
 				xtab[#xtab+1] = i
 			end
-			--Spring.Echo("Result of volume offsets: "..tonumber(xtab[2]))
 			uDef.sightemitheight = uDef.sightemitheight+tonumber(xtab[2])
 			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
 		end
-                if uDef.sightemitheight < 40 then
-                        uDef.sightemitheight = 40
-                        uDef.radaremitheight = 40
-                end
-		--Spring.Echo("Final Emit Height: ".. uDef.sightemitheight)
+		if uDef.sightemitheight < 40 then
+				uDef.sightemitheight = 40
+				uDef.radaremitheight = 40
+		end
 	end
 
 	-- Wreck and heap standardization
@@ -582,124 +544,20 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	--if Spring.GetModOptions().airrebalance then
-		--if uDef.weapons then
-		--	local aaMult = 1.05
-		--	for weaponID, w in pairs(uDef.weapons) do
-		--		if w.onlytargetcategory == 'VTOL' then
-		--			local wdef = string.lower(w.def)
-		--			if uDef.weapondefs[wdef] and uDef.weapondefs[wdef].range < 2000 then -- excluding mercury/screamer
-		--				uDef.weapondefs[wdef].range = math.floor((uDef.weapondefs[wdef].range * aaMult) + 0.5)
-		--				if uDef.weapondefs[wdef].flighttime then
-		--					uDef.weapondefs[wdef].flighttime = uDef.weapondefs[wdef].flighttime * (aaMult-((aaMult-1)/3))
-		--				end
-		--			end
-		--		end
-		--	end
-		--end
-
-		if uDef.canfly then
-
-			uDef.crashdrag = 0.01	-- default 0.005
-
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				if not modOptions.experimentalnoaircollisions then
-					uDef.collide = false
-				else
-					uDef.collide = true
-				end
-
-				--local airmult = 1.3
-				--if uDef.energycost then
-				--	uDef.energycost = math.ceil(uDef.energycost*airmult)
-				--end
-				--
-				--if uDef.buildtime then
-				--	uDef.buildtime = math.ceil(uDef.buildtime*airmult)
-				--end
-				--
-				--if uDef.metalcost then
-				--	uDef.metalcost = math.ceil(uDef.metalcost*airmult)
-				--end
-				--
-				--if uDef.builder then
-				--	uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
-				--end
-
-				if uDef.customparams.fighter then
-
-					--if uDef.health then
-					--	uDef.health = math.ceil(uDef.health*1.8)
-					--end
---
-					--if uDef.weapondefs then
-					--	local reloadtimeMult = 1.8
-					--	for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-					--		uDef.weapondefs[weaponDefName].reloadtime = uDef.weapondefs[weaponDefName].reloadtime * reloadtimeMult
-					--		for category, damage in pairs (weaponDef.damage) do
-					--			uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * reloadtimeMult) + 0.5)
-					--		end
-					--	end
-					--end
-					--
-					--uDef.speed = uDef.maxvelocity*1.15
-					--
-					--uDef.maxacc = uDef.maxacc*1.3
-					--
-					---- turn speeds x,y,z
-					--local movementMult = 1.1
-					--uDef.maxelevator = uDef.maxelevator*movementMult
-					--uDef.maxrudder  = uDef.maxrudder*movementMult
-					--uDef.maxaileron = uDef.maxaileron*movementMult
-					--
-					--uDef.turnradius = uDef.turnradius*0.9
-					--
-					--uDef.maxbank = uDef.maxbank*movementMult
-					--uDef.maxpitch = uDef.maxpitch*movementMult
-					--
-					--uDef.maxbank = uDef.maxbank*movementMult
-					--uDef.maxpitch = uDef.maxpitch*movementMult
-
-				else 	-- not fighters
-
-					--local rangeMult = 0.65
-					--if uDef.airsightdistance then
-					--	uDef.airsightdistance = math.floor((uDef.airsightdistance*rangeMult) + 0.5)
-					--end
-					--
-					--if uDef.health then
-					--	uDef.health = math.floor((uDef.health*airmult) + 0.5)
-					--end
-					--
-					--if uDef.weapondefs then
-					--	for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-					--		uDef.weapondefs[weaponDefName].range = math.floor((uDef.weapondefs[weaponDefName].range * rangeMult) + 0.5)
-					--		for category, damage in pairs (weaponDef.damage) do
-					--			uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
-					--		end
-					--	end
-					--end
-				end
+	if uDef.canfly then
+		uDef.crashdrag = 0.01	-- default 0.005
+		if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not modOptions.experimentalnoaircollisions then
+				uDef.collide = false
+			else
+				uDef.collide = true
 			end
 		end
-	--end
-
-	-- vehicles
-    --if uDef.category and string.find(uDef.category, "TANK") then
-    --	if uDef.turnrate ~= nil then
-    --		uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
-    --	end
-    --    	if uDef.maxacc~= nil then
-    --		uDef.maxacc= (uDef.maxacc+ vehAdditionalAcceleration) * vehAccelerationMultiplier
-    --	end
-    --    	if uDef.speed ~= nil then
-    --		uDef.speed = (uDef.speed + vehAdditionalVelocity) * vehVelocityMultiplier
-    --	end
-    --end
+	end
 
 
-if modOptions.emprework == true then
-
+	--- EMP rework
+	if modOptions.emprework == true then
 		if name == "armstil" then
 			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
 			uDef.weapondefs.stiletto_bomb.burst = 3
@@ -792,757 +650,192 @@ if modOptions.emprework == true then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
 
-end
+	end
 
 
---Air rework
-if modOptions.air_rework == true then
-	if name == "armhawk" then
-		uDef.metalcost = 205
-		uDef.energycost = 6500
-		uDef.buildtime = uDef.buildtime * 1.15
-		uDef.maxaileron = 0.02
-		uDef.maxacc = 0.6
-		uDef.speed = 233
-		uDef.maxrudder = 0.016
-		uDef.maxbank = 0.65
-		uDef.health = 730
-		uDef.sightdistance = 550
-		uDef.cruisealtitude = 220
-		uDef.weapondefs.armvtol_advmissile.proximitypriority = 0
-		uDef.weapondefs.armvtol_advmissile.areaofeffect = 52
-		uDef.weapondefs.armvtol_advmissile.impactonly = 0
-		uDef.weapondefs.armvtol_advmissile.flighttime = 2.7
-		uDef.weapondefs.armvtol_advmissile.range = 1430
-		uDef.weapondefs.armvtol_advmissile.reloadtime = 2.7
-		uDef.weapondefs.armvtol_advmissile.startvelocity = 120
-		uDef.weapondefs.armvtol_advmissile.tolerance = 16500
-		uDef.weapondefs.armvtol_advmissile.turnrate = 26000
-		uDef.weapondefs.armvtol_advmissile.weaponacceleration = 350
-		uDef.weapondefs.armvtol_advmissile.damage = {
-			default = 1,
-			vtol = 550,
-		}
+	--Air rework
+	if modOptions.air_rework == true then
+		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
+		uDef = airReworkUnits.airReworkTweaks(name, uDef)
 	end
-	if name == "armfig" then
-		uDef.metalcost = 126
-		uDef.energycost = 3700
-		uDef.buildtime = 4350
-		uDef.speed = 188
-		uDef.maxacc = 0.36
-		uDef.maxrudder = 0.013
-		uDef.maxbank = 0.65
-		uDef.health = 290
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 110
-		uDef.weapondefs.armvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
-		uDef.weapondefs.armvtol_missile.smokePeriod = 8
-		uDef.weapondefs.armvtol_missile.smoketime = 14
-		uDef.weapondefs.armvtol_missile.smokesize = 5.0
-		uDef.weapondefs.armvtol_missile.smokecolor = 0.66
-		uDef.weapondefs.armvtol_missile.cegtag = "missiletrailtiny"
-		uDef.weapondefs.armvtol_missile.proximitypriority = 0
-		uDef.weapondefs.armvtol_missile.flighttime = 1.7
-		uDef.weapondefs.armvtol_missile.range = 530
-		uDef.weapondefs.armvtol_missile.reloadtime = 3
-		uDef.weapondefs.armvtol_missile.startvelocity = 110
-		uDef.weapondefs.armvtol_missile.tolerance = 11000
-		uDef.weapondefs.armvtol_missile.turnrate = 23000
-		uDef.weapondefs.armvtol_missile.name = "Light guided a2a/a2g missile launcher"
-		uDef.weapondefs.armvtol_missile.weaponacceleration = 350
-		uDef.weapondefs.armvtol_missile.canattackground = true
-		uDef.weapondefs.armvtol_missile.damage = {
-			default = 64,
-			vtol = 200,
-		}
-		uDef.weapons[1].onlytargetcategory = "NOTSUB"
-	end
-	if name == "armsfig2" then
-		uDef.metalcost = 450
-		uDef.energycost = 6500
-		uDef.buildtime = 10000
-		uDef.speed = 150
-		uDef.maxacc = 0.8
-		uDef.maxrudder = 0.02
-		uDef.maxbank = 0.15
-		--uDef.maxpitch = 0.02
-		--uDef.maxelevator = 0.02
-		uDef.health = 2250
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 110
-		--uDef.turnradius = 128
-		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
-		uDef.weapondefs.armsfig_weapon.flighttime = 1.4
-		uDef.weapondefs.armsfig_weapon.range = 650
-		uDef.weapondefs.armsfig_weapon.burst = 4
-		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
-		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
-		uDef.weapondefs.armsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.armsfig_weapon.smoketime = 48
-		uDef.weapondefs.armsfig_weapon.smokesize = 10
-		uDef.weapondefs.armsfig_weapon.smoketrail = true
-		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
-		uDef.weapondefs.armsfig_weapon.reloadtime = 3
-		uDef.weapondefs.armsfig_weapon.startvelocity = 180
-		uDef.weapondefs.armsfig_weapon.tolerance = 1000
-		uDef.weapondefs.armsfig_weapon.turnrate = 4000
-		uDef.weapondefs.armsfig_weapon.weaponacceleration = 450
-		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
-		uDef.weapondefs.armsfig_weapon.wobble = 5
-		uDef.weapondefs.armsfig_weapon.dance = 30
-		uDef.weapondefs.armsfig_weapon.damage = {
-			default = 1,
-			vtol = 180,
-		}
-	end
-	if name == "armawac" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.017
-		uDef.maxbank = 0.66
-		uDef.health = 1040
-		uDef.maxacc = 0.4
-		uDef.cruisealtitude = 250
-	end
-	if name == "armpeep" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.health = 133
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.024
-		uDef.maxbank = 0.66
-		uDef.maxacc = 0.4
-		uDef.cruisealtitude = 120
-	end
-	if name == "corawac" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.017
-		uDef.maxbank = 0.66
-		uDef.health = 1140
-		uDef.maxacc = 0.4
-		uDef.cruisealtitude = 250
-	end
-	if name == "corfink" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.health = 150
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.024
-		uDef.maxbank = 0.66
-		uDef.maxacc = 0.4
-	end
-	if name == "corhunt" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.015
-		uDef.maxbank = 0.66
-		uDef.maxacc = 0.4
-		uDef.cruisealtitude = 220
-	end
-	if name == "armsehak" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.7
-		uDef.maxrudder = 0.015
-		uDef.maxbank = 0.66
-		uDef.maxacc = 0.4
-		uDef.cruisealtitude = 220
-	end
-	if name == "corvamp" then
-		uDef.metalcost = 200
-		uDef.energycost = 5500
-		uDef.buildtime = uDef.buildtime * 1.15
-		uDef.maxaileron = 0.02
-		uDef.maxacc = 0.78
-		uDef.maxdec = 0.11
-		uDef.speed = 250
-		uDef.maxrudder = 0.018
-		uDef.maxbank = 0.65
-		uDef.health = 600
-		uDef.sightdistance = 550
-		uDef.cruisealtitude = 220
-		uDef.weapondefs.corvtol_advmissile.impactonly = 0
-		uDef.weapondefs.corvtol_advmissile.proximitypriority = 0
-		uDef.weapondefs.corvtol_advmissile.areaofeffect = 64
-		uDef.weapondefs.corvtol_advmissile.flighttime = 2.4
-		uDef.weapondefs.corvtol_advmissile.range = 1050
-		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.15
-		uDef.weapondefs.corvtol_advmissile.startvelocity = 170
-		uDef.weapondefs.corvtol_advmissile.tolerance = 15500
-		uDef.weapondefs.corvtol_advmissile.turnrate = 27000
-		uDef.weapondefs.corvtol_advmissile.weaponacceleration = 350
-		uDef.weapondefs.corvtol_advmissile.damage = {
-			default = 1,
-			vtol = 340,
-		}
-	end
-	if name == "corveng" then
-		uDef.metalcost = 125
-		uDef.energycost = 3700
-		uDef.buildtime = 4350
-		uDef.speed = 188
-		uDef.maxacc = 0.36
-		uDef.maxrudder = 0.013
-		uDef.maxbank = 0.65
-		uDef.health = 290
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 110
-		uDef.weapondefs.corvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
-		uDef.weapondefs.corvtol_missile.smokePeriod = 8
-		uDef.weapondefs.corvtol_missile.smoketime = 14
-		uDef.weapondefs.corvtol_missile.smokesize = 5.0
-		uDef.weapondefs.corvtol_missile.smokecolor = 0.66
-		uDef.weapondefs.corvtol_missile.cegtag = "missiletrailtiny"
-		uDef.weapondefs.corvtol_missile.proximitypriority = 0
-		uDef.weapondefs.corvtol_missile.flighttime = 1.7
-		uDef.weapondefs.corvtol_missile.range = 530
-		uDef.weapondefs.corvtol_missile.reloadtime = 3
-		uDef.weapondefs.corvtol_missile.startvelocity = 110
-		uDef.weapondefs.corvtol_missile.tolerance = 11000
-		uDef.weapondefs.corvtol_missile.turnrate = 23000
-		uDef.weapondefs.corvtol_missile.weaponacceleration = 350
-		uDef.weapondefs.corvtol_missile.canattackground = true
-		uDef.weapondefs.corvtol_missile.name = "Light guided a2a/a2g missile launcher"
-		uDef.weapondefs.corvtol_missile.damage = {
-			default = 64,
-			vtol = 200,
-		}
-		uDef.weapons[1].onlytargetcategory = "NOTSUB"
-	end
-	if name == "corsfig2" then
-		uDef.metalcost = 520
-		uDef.energycost = 8000
-		uDef.buildtime = 11000
-		uDef.speed = 138
-		uDef.maxacc = 0.8
-		uDef.maxrudder = 0.025
-		uDef.maxbank = 0.15
-		--uDef.maxpitch = 0.02
-		--uDef.maxelevator = 0.02
-		uDef.health = 2450
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 110
-		uDef.turnradius = 128
-		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
-		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
-		uDef.weapondefs.corsfig_weapon.range = 680
-		uDef.weapondefs.corsfig_weapon.areaofeffect = 200
-		uDef.weapondefs.corsfig_weapon.edgeeffectiveness = 0.55
-		uDef.weapondefs.corsfig_weapon.reloadtime = 6.1
-		uDef.weapondefs.corsfig_weapon.startvelocity = 100
-		uDef.weapondefs.corsfig_weapon.tolerance = 12500
-		uDef.weapondefs.corsfig_weapon.turnrate = 19000
-		uDef.weapondefs.corsfig_weapon.weaponacceleration = 250
-		uDef.weapondefs.corsfig_weapon.cegtag = "missiletraillarge-red"
-		uDef.weapondefs.corsfig_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
-		uDef.weapondefs.corsfig_weapon.model = "banishermissile.s3o"
-		uDef.weapondefs.corsfig_weapon.smoketrail = true
-		uDef.weapondefs.corsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.corsfig_weapon.smoketime = 48
-		uDef.weapondefs.corsfig_weapon.smokesize = 11.3
-		uDef.weapondefs.corsfig_weapon.smokecolor = 0.82
-		uDef.weapondefs.corsfig_weapon.soundhit = "corban_b"
-		uDef.weapondefs.corsfig_weapon.soundhitwet = "splsmed"
-		uDef.weapondefs.corsfig_weapon.soundstart = "corban_a"
-		uDef.weapondefs.corsfig_weapon.texture1 = "null"
-		uDef.weapondefs.corsfig_weapon.texture2 = "railguntrail"
-		uDef.weapondefs.corsfig_weapon.weaponvelocity = 650
-		uDef.weapondefs.corsfig_weapon.damage = {
-			default = 1,
-			vtol = 1000,
-		}
-	end
-	if name == "armbrawl" or name == "armkam" or name == "armdfly" or name == "armatlas" or name == "corvalk" or name == "corseah"  or name == "corape" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.75
-		uDef.turnrate = uDef.turnrate * 1.5
-		uDef.cruisealtitude = 100
-		uDef.buildtime = uDef.buildtime * 0.8
-	end
-	if name == "armkam" then
-		uDef.weapondefs.med_emg.burstrate = 0.08
-		uDef.weapondefs.med_emg.reloadtime = 1.15
-	end
-	if name == "corcrw" or name == "corcrwh" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.75
-		--uDef.turnrate = uDef.turnrate * 1.5
-		uDef.cruisealtitude = 80
-	end
-	if name == "armca" or name == "armaca" or name == "corca" or name == "corcsa" or name == "armcsa" or name == "coraca" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.75
-		uDef.turnrate = uDef.turnrate * 1.5
-		uDef.workertime = (uDef.workertime * 7/6) - (uDef.workertime * 7/6 - 5)%5
-		uDef.metalcost = uDef.metalcost * 7/6 - (uDef.metalcost * 7/6)%1
-	end
-	if name == "corbw" then
-		uDef.health = 105
-		uDef.speed = 210
-		uDef.cruisealtitude = 80
-	end
-	if name == "armseap" or name == "corseap" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.65
-		uDef.turnrate = uDef.turnrate * 1.5
-	end
-	if  name == "armsaber" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.65
-		--uDef.turnrate = uDef.turnrate * 1.5
-		uDef.cruisealtitude = 100
-		uDef.weapondefs.vtol_emg2.range = 740
-		uDef.weapondefs.vtol_emg2.reloadtime = 3.1
-		uDef.airStrafe = false
-		uDef.weapondefs.vtol_emg2.damage = {
-			default = 120,
-			vtol = 20,
-		}
-	end
-	if name == "corcut" then
-		uDef.health = uDef.health * 2
-		uDef.metalcost = 370
-		uDef.energycost = 9500
-		uDef.buildtime = 14500
-		uDef.speed = uDef.speed * 0.6
-		--uDef.turnrate = uDef.turnrate * 1.5
-		uDef.cruisealtitude = 100
-		uDef.weapondefs.vtol_rocket2.range = 690
-		uDef.airStrafe = false
-		uDef.weapondefs.vtol_rocket2.areaofeffect = 72
-		uDef.weapondefs.vtol_rocket2.reloadtime = 9.5
-		uDef.weapondefs.vtol_rocket2.sprayangle = 1700
-		uDef.weapondefs.vtol_rocket2.burst = 4
-		uDef.weapondefs.vtol_rocket2.burstrate = 0.15
-		uDef.weapondefs.vtol_rocket2.explosiongenerator = "custom:genericshellexplosion-medium"
-		uDef.weapondefs.vtol_rocket2.weaponvelocity = 550
-		uDef.weapondefs.vtol_rocket2.damage = {
-			default = 140,
-			vtol = 28,
-		}
-	end
-	if name == "armblade" then
-		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.75
-		uDef.turnrate = uDef.turnrate * 1.5
-		uDef.cruisealtitude = 100
-		uDef.weapondefs.vtol_sabot.areaofeffect = 64
-		uDef.weapondefs.vtol_sabot.reloadtime = 6.6
-		uDef.weapondefs.vtol_sabot.range = 630
-		uDef.weapondefs.vtol_sabot.startvelocity = 170
-		uDef.weapondefs.vtol_sabot.damage = {
-			default = 500,
-		}
-	end
-	if name == "corape" then
-		uDef.weapondefs.vtol_rocket.turnrate = 15000
-	end
-	if name == "cortitan" or name == "corshad" or name == "armthund" or name == "armliche" or name == "armstil" or name == "armlance" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.65
-		uDef.maxacc = uDef.maxacc * 1.3
-		uDef.maxbank = 0.65
-		uDef.maxrudder = uDef.maxrudder * 2.2
-		uDef.health = uDef.health * 1.6
-		uDef.sightdistance = 550
-		uDef.cruisealtitude = 120
-	end
-	if name == "corhurc" then
-		uDef.metalcost = uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3 - (uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3)%1
-		uDef.speed = uDef.speed * 0.55
-		uDef.maxbank = 0.5
-		uDef.maxrudder = uDef.maxrudder * 2
-		uDef.maxaileron = uDef.maxaileron *0.7
-		uDef.health = uDef.health * 2.3
-		uDef.sightdistance = 520
-		uDef.weapondefs.coradvbomb.burstrate = 0.26
-		uDef.weapondefs.coradvbomb.damage = {
-			default = 500
-		}
-	end
-	if name == "armpnix" then
-		uDef.metalcost = uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3 - (uDef.metalcost * 1.3 + uDef.energycost / 70 * 0.3)%1
-		uDef.speed = uDef.speed * 0.55
-		uDef.maxbank = 0.5
-		uDef.maxrudder = uDef.maxrudder * 2
-		uDef.maxaileron = uDef.maxaileron *0.7
-		uDef.health = uDef.health * 2.3
-		uDef.sightdistance = 520
-		uDef.weapondefs.armadvbomb.burstrate = 0.35
-		uDef.weapondefs.armadvbomb.burst = 6
-		uDef.weapondefs.armadvbomb.areaofeffect = 220
-	end
-	if name == "corsb" or name == "armsb" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
-		uDef.speed = uDef.speed * 0.78
-		uDef.maxacc = 0.35
-		uDef.maxbank = 0.68
-		uDef.maxrudder = uDef.maxrudder * 2.5
-		uDef.health = uDef.health * 1.4
-		uDef.sightdistance = 720
-		uDef.cruisealtitude = 120
-	end
-	if name == "armaap" then
-		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "armsb"
-		uDef.buildoptions[numBuildoptions+2] = "armsfig2"
-		uDef.buildoptions[numBuildoptions+3] = "armsaber"
-		uDef.buildoptions[numBuildoptions+4] = "armseap"
-	end
-	if name == "coraap" then
-		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "corsb"
-		uDef.buildoptions[numBuildoptions+2] = "corsfig2"
-		uDef.buildoptions[numBuildoptions+3] = "corcut"
-		uDef.buildoptions[numBuildoptions+4] = "corseap"
-	end
-	if name == "corplat" then
-		uDef.buildoptions[5] = "corsfig2"
-	end
-	if name == "armplat" then
-		uDef.buildoptions[5] = "armsfig2"
-	end
-	if name == "armrl" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-	end
-	if name == "armfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
-	end
-	if name == "corfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
-	end
-	if name == "corrl" then
-		uDef.weapondefs.corrl_missile.startvelocity = 111
-		uDef.weapondefs.corrl_missile.flighttime = 2.6
-	end
-	if name == "armferret" then
-		uDef.weapondefs.ferret_missile.areaofeffect = 48
-		uDef.weapondefs.ferret_missile.startvelocity = 120
-		uDef.weapondefs.ferret_missile.weaponacceleration = 210
-		uDef.weapondefs.ferret_missile.weaponvelocity = 1100
-	end
-	if name == "cormadsam" then
-		uDef.weapondefs.madsam_missile.areaofeffect = 48
-		uDef.weapondefs.madsam_missile.startvelocity = 120
-		uDef.weapondefs.madsam_missile.weaponacceleration = 210
-		uDef.weapondefs.madsam_missile.weaponvelocity = 1100
-	end
-	if name == "armmercury" then
-		uDef.weapondefs.arm_advsam.startvelocity = 140
-		uDef.weapondefs.arm_advsam.stockpile = false
-		uDef.weapondefs.arm_advsam.reloadtime = 25
-		uDef.weapondefs.arm_advsam.weaponacceleration = 760
-		uDef.weapondefs.arm_advsam.energypershot = 0
-		uDef.weapondefs.arm_advsam.flighttime = 2.5
-		uDef.weapondefs.arm_advsam.damage.vtol = 1500
-	end
-	if name == "corscreamer" then
-		uDef.weapondefs.cor_advsam.startvelocity = 140
-		uDef.weapondefs.cor_advsam.stockpile = false
-		uDef.weapondefs.cor_advsam.reloadtime = 25
-		uDef.weapondefs.cor_advsam.weaponacceleration = 760
-		uDef.weapondefs.cor_advsam.energypershot = 0
-		uDef.weapondefs.cor_advsam.flighttime = 2.5
-		uDef.weapondefs.cor_advsam.damage.vtol = 1500
-	end
-	if name == "armcir" then
-		uDef.weapondefs.arm_cir.startvelocity = 100
-		uDef.weapondefs.arm_cir.weaponvelocity = 1050
-		uDef.weapondefs.arm_cir.flighttime = 2.7
-	end
-	if name == "corerad" then
-		uDef.weapondefs.cor_erad.startvelocity = 100
-		uDef.weapondefs.cor_erad.weaponvelocity = 1050
-		uDef.weapondefs.cor_erad.flighttime = 2.7
-	end
-	if name == "armjeth" then
-		uDef.weapondefs.armbot_missile.startvelocity = 130
-		uDef.weapondefs.armbot_missile.weaponacceleration = 230
-		uDef.weapondefs.armbot_missile.flighttime = 2.4
-	end
-	if name == "corcrash" then
-		uDef.weapondefs.corbot_missile.startvelocity = 130
-		uDef.weapondefs.corbot_missile.weaponacceleration = 230
-		uDef.weapondefs.corbot_missile.flighttime = 2.4
-	end
-	if name == "armaak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.armaabot_missile1.range = 1300
-		uDef.weapondefs.armaabot_missile1.reloadtime = 1.5
-		uDef.weapondefs.armaabot_missile1.startvelocity = 130
-		uDef.weapondefs.armaabot_missile1.weaponacceleration = 320
-		uDef.weapondefs.armaabot_missile1.flighttime = 2.55
-		uDef.weapondefs.armaabot_missile2.startvelocity = 110
-		uDef.weapondefs.armaabot_missile2.weaponacceleration = 300
-		uDef.weapondefs.armaabot_missile2.flighttime = 2.4
-		uDef.weapondefs.armaabot_missile2.reloadtime = 1.4
-		uDef.weapondefs.armaabot_missile2.range = 880
-		uDef.weapons[5].def = ""
-	end
-	if name == "coraak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.coraabot_missile4.range = 1400
-		uDef.weapondefs.coraabot_missile4.reloadtime = 1.6
-		uDef.weapondefs.coraabot_missile4.startvelocity = 130
-		uDef.weapondefs.coraabot_missile4.weaponacceleration = 320
-		uDef.weapondefs.coraabot_missile4.flighttime = 2.55
-		uDef.weapondefs.coraabot_missile3.range = 970
-		uDef.weapondefs.coraabot_missile3.reloadtime = 1.2
-		uDef.weapondefs.coraabot_missile3.startvelocity = 110
-		uDef.weapondefs.coraabot_missile3.weaponacceleration = 300
-		uDef.weapondefs.coraabot_missile3.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.range = 870
-		uDef.weapondefs.coraabot_missile2.startvelocity = 100
-		uDef.weapondefs.coraabot_missile2.weaponacceleration = 290
-		uDef.weapondefs.coraabot_missile2.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.reloadtime = 1
-		uDef.weapons[6].def = ""
-	end
-	if name == "armyork" then
-		uDef.weapondefs.mobileflak.weaponvelocity = 1000
-	end
-	if name == "corsent" then
-		uDef.weapondefs.mobileflak.weaponvelocity = 1000
-	end
-	if name == "armflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
-	end
-	if name == "corflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
-	end
-	if name == "armsam" then
-		uDef.weapondefs.armtruck_missile.startvelocity = 135
-		uDef.weapondefs.armtruck_missile.weaponacceleration = 230
-		uDef.weapondefs.armtruck_missile.damage.vtol = 200
-	end
-	if name == "cormist" then
-		uDef.weapondefs.cortruck_missile.startvelocity = 135
-		uDef.weapondefs.cortruck_missile.weaponacceleration = 230
-		uDef.weapondefs.cortruck_missile.damage.vtol = 150
-	end
-	if name == "corpt" then
-		uDef.weapondefs.cortruck_missile.startvelocity = 135
-		uDef.weapondefs.cortruck_missile.weaponacceleration = 250
-		uDef.weapondefs.cortruck_missile.damage.vtol = 150
-	end
-	if name == "armpt" then
-		uDef.weapondefs.aamissile.startvelocity = 140
-		uDef.weapondefs.aamissile.weaponacceleration = 270
-		uDef.weapondefs.aamissile.flighttime = 2.1
-	end
-	if name == "corenaa" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
-	end
-	if name == "armfflak" then
-		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
-	end
-	if name == "armlatnk" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
-	end
-	if name == "armamph" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
-	end
-	if name == "armmar" then
-		uDef.weapondefs.armamph_missile.startvelocity = 150
-		uDef.weapondefs.armamph_missile.weaponacceleration = 250
-		uDef.weapondefs.armamph_missile.flighttime = 2
-	end
-	if name == "armaas" then
-		uDef.weapondefs.ga2.startvelocity = 150
-		uDef.weapondefs.ga2.weaponacceleration = 230
-		uDef.weapondefs.ga2.flighttime = 2.5
-		uDef.weapondefs.mobileflak.weaponvelocity = 1000
-	end
-	if name == "corarch" then
-		uDef.weapondefs.ga2.startvelocity = 150
-		uDef.weapondefs.ga2.weaponacceleration = 230
-		uDef.weapondefs.ga2.flighttime = 2.5
-		uDef.weapondefs.mobileflak.weaponvelocity = 1000
-	end
-end
 
--- Skyshift: Air rework
-if Spring.GetModOptions().skyshift == true then
-	skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
-	uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
-end
+	-- Skyshift: Air rework
+	if modOptions.skyshift == true then
+		local skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
+		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
+	end
 
-if Spring.GetModOptions().proposed_unit_reworks == true then
-	if name == "armvp" then
-		for ix, UnitName in pairs(uDef.buildoptions) do
-			if UnitName == "armsam" then
-				uDef.buildoptions[ix] = "armsam2"
+	if modOptions.proposed_unit_reworks == true then
+		if name == "armvp" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "armsam" then
+					uDef.buildoptions[ix] = "armsam2"
+				end
+			end
+		end
+		if name == "corvp" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "cormist" then
+					uDef.buildoptions[ix] = "cormist2"
+				end
 			end
 		end
 	end
-	if name == "corvp" then
-		for ix, UnitName in pairs(uDef.buildoptions) do
-			if UnitName == "cormist" then
-				uDef.buildoptions[ix] = "cormist2"
-			end
+
+	--Lategame Rebalance
+	if modOptions.lategame_rebalance == true then
+		if name == "armamb" then
+			uDef.weapondefs.armamb_gun.reloadtime = 2
+			uDef.weapondefs.armamb_gun_high.reloadtime = 7.7
+		end
+		if name == "cortoast" then
+			uDef.weapondefs.cortoast_gun.reloadtime = 2.35
+			uDef.weapondefs.cortoast_gun_high.reloadtime = 8.8
+		end
+		if name == "armpb" then
+			uDef.weapondefs.armpb_weapon.reloadtime = 1.7
+			uDef.weapondefs.armpb_weapon.range = 700
+		end
+		if name == "corvipe" then
+			uDef.weapondefs.vipersabot.reloadtime = 2.1
+			uDef.weapondefs.vipersabot.range = 700
+		end
+		if name == "armanni" then
+			uDef.metalcost = 4000
+			uDef.energycost = 85000
+			uDef.buildtime = 59000
+		end
+		if name == "corbhmth" then
+			uDef.metalcost = 3600
+			uDef.energycost = 40000
+			uDef.buildtime = 70000
+		end
+		if name == "armbrtha" then
+			uDef.metalcost = 5000
+			uDef.energycost = 71000
+			uDef.buildtime = 94000
+		end
+		if name == "corint" then
+			uDef.metalcost = 5100
+			uDef.energycost = 74000
+			uDef.buildtime = 103000
+		end
+		if name == "armvulc" then
+			uDef.metalcost = 75600
+			uDef.energycost = 902400
+			uDef.buildtime = 1680000
+		end
+		if name == "corbuzz" then
+			uDef.metalcost = 73200
+			uDef.energycost = 861600
+			uDef.buildtime = 1680000
+		end
+		if name == "armmar" then
+			uDef.metalcost = 1070
+			uDef.energycost = 23000
+			uDef.buildtime = 28700
+		end
+		if name == "armraz" then
+			uDef.metalcost = 4200
+			uDef.energycost = 75000
+			uDef.buildtime = 97000
+		end
+		if name == "armthor" then
+			uDef.metalcost = 9450
+			uDef.energycost = 255000
+			uDef.buildtime = 265000
+		end
+		if name == "corshiva" then
+			uDef.metalcost = 1800
+			uDef.energycost = 26500
+			uDef.buildtime = 35000
+			uDef.speed = 50.8
+			uDef.weapondefs.shiva_rocket.tracks = true
+			uDef.weapondefs.shiva_rocket.turnrate = 7500
+		end
+		if name == "corkarg" then
+			uDef.metalcost = 2625
+			uDef.energycost = 60000
+			uDef.buildtime = 79000
+		end
+		if name == "cordemon" then
+			uDef.metalcost = 6300
+			uDef.energycost = 94500
+			uDef.buildtime = 94500
+		end
+		if name == "armstil" then
+			uDef.health = 1300
+			uDef.weapondefs.stiletto_bomb.burst = 3
+			uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
+			uDef.weapondefs.stiletto_bomb.damage = {
+				default = 3000
+			}
+		end
+		if name == "armlance" then
+			uDef.health = 1750
+		end
+		if name == "cortitan" then
+			uDef.health = 1800
+		end
+		if name == "armyork" then
+			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+		end
+		if name == "corsent" then
+			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+		end
+		if name == "armaas" then
+			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+		end
+		if name == "corarch" then
+			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+		end
+		if name == "armflak" then
+			uDef.weapondefs.armflak_gun.reloadtime = 0.6
+		end
+		if name == "corflak" then
+			uDef.weapondefs.armflak_gun.reloadtime = 0.6
+		end
+		if name == "armmercury" then
+			uDef.weapondefs.arm_advsam.reloadtime = 11
+			uDef.weapondefs.arm_advsam.stockpile = false
+		end
+		if name == "corscreamer" then
+			uDef.weapondefs.cor_advsam.reloadtime = 11
+			uDef.weapondefs.cor_advsam.stockpile = false
+		end
+		if name == "armfig" then
+			uDef.metalcost = 77
+			uDef.energycost = 3100
+			uDef.buildtime = 3700
+		end
+		if name == "armsfig" then
+			uDef.metalcost = 95
+			uDef.energycost = 4750
+			uDef.buildtime = 5700
+		end
+		if name == "armhawk" then
+			uDef.metalcost = 155
+			uDef.energycost = 6300
+			uDef.buildtime = 9800
+		end
+		if name == "corveng" then
+			uDef.metalcost = 77
+			uDef.energycost = 3000
+			uDef.buildtime = 3600
+		end
+		if name == "corsfig" then
+			uDef.metalcost = 95
+			uDef.energycost = 4850
+			uDef.buildtime = 5400
+		end
+		if name == "corvamp" then
+			uDef.metalcost = 150
+			uDef.energycost = 5250
+			uDef.buildtime = 9250
 		end
 	end
-end
 
---Lategame Rebalance
-if Spring.GetModOptions().lategame_rebalance == true then
-	if name == "armamb" then
-		uDef.weapondefs.armamb_gun.reloadtime = 2
-		uDef.weapondefs.armamb_gun_high.reloadtime = 7.7
-	end
-	if name == "cortoast" then
-		uDef.weapondefs.cortoast_gun.reloadtime = 2.35
-		uDef.weapondefs.cortoast_gun_high.reloadtime = 8.8
-	end
-	if name == "armpb" then
-		uDef.weapondefs.armpb_weapon.reloadtime = 1.7
-		uDef.weapondefs.armpb_weapon.range = 700
-	end
-	if name == "corvipe" then
-		uDef.weapondefs.vipersabot.reloadtime = 2.1
-		uDef.weapondefs.vipersabot.range = 700
-	end
-	if name == "armanni" then
-		uDef.metalcost = 4000
-		uDef.energycost = 85000
-		uDef.buildtime = 59000
-	end
-	if name == "corbhmth" then
-		uDef.metalcost = 3600
-		uDef.energycost = 40000
-		uDef.buildtime = 70000
-	end
-	if name == "armbrtha" then
-		uDef.metalcost = 5000
-		uDef.energycost = 71000
-		uDef.buildtime = 94000
-	end
-	if name == "corint" then
-		uDef.metalcost = 5100
-		uDef.energycost = 74000
-		uDef.buildtime = 103000
-	end
-	if name == "armvulc" then
-		uDef.metalcost = 75600
-		uDef.energycost = 902400
-		uDef.buildtime = 1680000
-	end
-	if name == "corbuzz" then
-		uDef.metalcost = 73200
-		uDef.energycost = 861600
-		uDef.buildtime = 1680000
-	end
-	if name == "armmar" then
-		uDef.metalcost = 1070
-		uDef.energycost = 23000
-		uDef.buildtime = 28700
-	end
-	if name == "armraz" then
-		uDef.metalcost = 4200
-		uDef.energycost = 75000
-		uDef.buildtime = 97000
-	end
-	if name == "armthor" then
-		uDef.metalcost = 9450
-		uDef.energycost = 255000
-		uDef.buildtime = 265000
-	end
-	if name == "corshiva" then
-		uDef.metalcost = 1800
-		uDef.energycost = 26500
-		uDef.buildtime = 35000
-		uDef.speed = 50.8
-		uDef.weapondefs.shiva_rocket.tracks = true
-		uDef.weapondefs.shiva_rocket.turnrate = 7500
-	end
-	if name == "corkarg" then
-		uDef.metalcost = 2625
-		uDef.energycost = 60000
-		uDef.buildtime = 79000
-	end
-	if name == "cordemon" then
-		uDef.metalcost = 6300
-		uDef.energycost = 94500
-		uDef.buildtime = 94500
-	end
-	if name == "armstil" then
-		uDef.health = 1300
-		uDef.weapondefs.stiletto_bomb.burst = 3
-		uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
-		uDef.weapondefs.stiletto_bomb.damage = {
-			default = 3000
-		}
-	end
-	if name == "armlance" then
-		uDef.health = 1750
-	end
-	if name == "cortitan" then
-		uDef.health = 1800
-	end
-	if name == "armyork" then
-		uDef.weapondefs.mobileflak.reloadtime = 0.8333
-	end
-	if name == "corsent" then
-		uDef.weapondefs.mobileflak.reloadtime = 0.8333
-	end
-	if name == "armaas" then
-		uDef.weapondefs.mobileflak.reloadtime = 0.8333
-	end
-	if name == "corarch" then
-		uDef.weapondefs.mobileflak.reloadtime = 0.8333
-	end
-	if name == "armflak" then
-		uDef.weapondefs.armflak_gun.reloadtime = 0.6
-	end
-	if name == "corflak" then
-		uDef.weapondefs.armflak_gun.reloadtime = 0.6
-	end
-	if name == "armmercury" then
-		uDef.weapondefs.arm_advsam.reloadtime = 11
-		uDef.weapondefs.arm_advsam.stockpile = false
-	end
-	if name == "corscreamer" then
-		uDef.weapondefs.cor_advsam.reloadtime = 11
-		uDef.weapondefs.cor_advsam.stockpile = false
-	end
-	if name == "armfig" then
-		uDef.metalcost = 77
-		uDef.energycost = 3100
-		uDef.buildtime = 3700
-	end
-	if name == "armsfig" then
-		uDef.metalcost = 95
-		uDef.energycost = 4750
-		uDef.buildtime = 5700
-	end
-	if name == "armhawk" then
-		uDef.metalcost = 155
-		uDef.energycost = 6300
-		uDef.buildtime = 9800
-	end
-	if name == "corveng" then
-		uDef.metalcost = 77
-		uDef.energycost = 3000
-		uDef.buildtime = 3600
-	end
-	if name == "corsfig" then
-		uDef.metalcost = 95
-		uDef.energycost = 4850
-		uDef.buildtime = 5400
-	end
-	if name == "corvamp" then
-		uDef.metalcost = 150
-		uDef.energycost = 5250
-		uDef.buildtime = 9250
-	end
-end
+
 	-- Multipliers Modoptions
 
 	-- Health
@@ -1623,8 +916,6 @@ end
 			uDef.buildtime = math.min(uDef.buildtime*x, 16000000)
 		end
 	end
-
-
 
 	--energystorage
 	--metalstorage
@@ -1733,8 +1024,8 @@ local function ProcessSoundDefaults(wd)
 	local defaultDamage = wd.damage and wd.damage.default
 
 	if not defaultDamage or defaultDamage <= 50 then
-	-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
-	-- if not defaultDamage then
+		-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
+		-- if not defaultDamage then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
@@ -2021,23 +1312,10 @@ function WeaponDef_Post(name, wDef)
 		end
 	end
 end
+
 -- process effects
 function ExplosionDef_Post(name, eDef)
-	--[[
-    -- WIP on #645
-    Spring.Echo(name)
-    for k,v in pairs(eDef) do
-        Spring.Echo(" ", k, v, type(k), type(v))
-        if type(v)=="table" then
-            for k1,v1 in pairs(v) do
-                Spring.Echo("  ", k1,v1)
-            end
-        end
-    end
-    if eDef.usedefaultexplosions=="1" then
 
-    end
-    ]]
 end
 
 --------------------------
@@ -2061,24 +1339,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	end
 
 	-- For Decals GL4, disables default groundscars for explosions
-	for id,wDef in pairs(WeaponDefs) do
+	for _,wDef in pairs(WeaponDefs) do
 		wDef.explosionScar = false
 	end
-
-
-	--[[
-	-- Make BeamLasers do their damage up front instead of over time
-	-- Do this at the end so that we don't mess up any magic math
-	for id,wDef in pairs(WeaponDefs) do
-		-- Beamlasers do damage up front
-		if wDef.beamtime ~= nil then
-			beamTimeInFrames = wDef.beamtime * 30
-			--Spring.Echo(wDef.name)
-			--Spring.Echo(beamTimeInFrames)
-			wDef.beamttl = beamTimeInFrames
-			--Spring.Echo(wDef.beamttl)
-			wDef.beamtime = 0.01
-		end
-	end
-	]]--
 end
