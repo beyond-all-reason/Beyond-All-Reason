@@ -572,7 +572,7 @@ function SetModulesPositionX()
 				if mySpecStatus then
 					if module.spec then
                         if module.name == 'resources' then
-                            pos = pos + module.width
+                            pos = pos + module.width*(1-((1-sizeMult)*0.5))
                         else
                             pos = pos + (module.width*sizeMult)
                         end
@@ -580,7 +580,7 @@ function SetModulesPositionX()
 				else
 					if module.play then
                         if module.name == 'resources' then
-                            pos = pos + module.width
+                            pos = pos + module.width*(1-((1-sizeMult)*0.5))
                         else
                             pos = pos + (module.width*sizeMult)
                         end
@@ -2255,7 +2255,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     local bordersize = 0.75
     local paddingLeft = 2 * playerScale
     local paddingRight = 2 * playerScale
-    local barWidth = m_resources.width - paddingLeft - paddingRight
+    local barWidth = (m_resources.width - paddingLeft - paddingRight) * (1-((1-playerScale)*0.5))
     local y1Offset
     local y2Offset
     local sizeMult = playerScale
@@ -2363,24 +2363,28 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     end
 end
 
-local function formatRes(number)
-    if number < 1000 then
-        return string.format("%d", number)
-    else
-        return string.format("%.1fk", number / 1000)
-    end
-end
-
 function DrawIncome(energy, metal, posY, dead)
     local fontsize = dead and 4.5 or 8.5
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
     font:Begin()
     if energy > 0 then
-        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + (5.5*playerScale), posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0), fontsize, "o")
+        font:Print(
+                '\255\255\255\050' .. string.formatSI(math.floor(energy)),
+                m_income.posX + widgetPosX + m_income.width - 2,
+                posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
+                fontsize,
+                "or"
+        )
     end
     if metal > 0 then
-        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + (5.5*playerScale), posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0), fontsize, "o")
+        font:Print(
+                '\255\235\235\235' .. string.formatSI(math.floor(metal)),
+                m_income.posX + widgetPosX + m_income.width - 2,
+                posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
+                fontsize,
+                "or"
+        )
     end
     font:End()
 end
