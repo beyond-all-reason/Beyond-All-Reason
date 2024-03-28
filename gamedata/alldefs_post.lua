@@ -1253,7 +1253,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.laserflaresize = wDef.laserflaresize * 1.15        -- note: thickness affects this too
 			end
 			wDef.texture1 = "largebeam"        -- The projectile texture
-			--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
 			wDef.texture3 = "flare2"    -- Flare texture for #BeamLaser
 			wDef.texture4 = "flare2"    -- Flare texture for #BeamLaser with largeBeamLaser = true
 		end
