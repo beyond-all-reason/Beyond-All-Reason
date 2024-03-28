@@ -1,0 +1,44 @@
+body {
+    position: absolute;
+    bottom: 20%;
+    left: 20%;
+    height: 10%;
+}
+
+.test {
+    width: 0;
+    height: 50%;
+    background-color: #FF5D5D;
+}
+
+.zcontainer {
+    height: 100%;
+    font-size: 10px;
+}
+
+.zsmall {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 20%;
+    height: 20%;
+    font-size: 100%;
+}
+
+.zmed {
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    width: 30%;
+    height: 30%;
+    font-size: 120%;
+}
+
+.zlarge {
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    width: 40%;
+    height: 40%;
+    font-size: 150%;
+}
