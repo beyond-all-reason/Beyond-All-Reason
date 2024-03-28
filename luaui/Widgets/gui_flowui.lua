@@ -511,8 +511,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 
 	-- element
 	cs = cs * 0.6
-	color2[4] = color2[4] * 1.25	-- multiply to compensate for inner border 'highlight'
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] * 1.25 }, { color2[1], color2[2], color2[3], color2[4] * 1.25 })
 
 	-- element - inner darkening to create highlighted border
 	local pad2 = 1
