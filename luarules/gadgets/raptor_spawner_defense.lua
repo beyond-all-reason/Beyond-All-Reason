@@ -451,7 +451,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local debugUtilities = VFS.Include('common/springUtilities/debug.lua')
 	--or Spring.GetGameSeconds() <= config.gracePeriod
 	function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		tracy.ZoneBeginN("Raptors:squadCommanderGiveOrders")
