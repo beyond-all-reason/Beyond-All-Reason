@@ -889,56 +889,6 @@ local options={
 	},
 
 	{
-		key    = 'experimentalimprovedtransports',
-		name   = 'Transport Units Rework',
-		desc   = 'Transport Units Rework',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentalmassoverride',
-		name   = 'Mass Override',
-		desc   = 'Mass Override',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentalrebalancet2labs',
-		name   = 'Rebalance Candidate: Cheaper T2 Factories',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancet2metalextractors',
-		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancet2energy',
-		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
 		key    = 'experimentalrebalancewreckstandarization',
 		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
 		desc   = '',

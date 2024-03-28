@@ -90,54 +90,6 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	-- Rebalance Candidates
-
-	if modOptions.experimentalrebalancet2labs == true then --
-		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
-			uDef.metalcost = 1800 --2900
-		end
-		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
-			uDef.metalcost = 2100 --3200
-		end
-	end
-
-	if modOptions.experimentalrebalancet2metalextractors == true then
-		if name == "armmoho" or name == "armuwmme" then
-			uDef.extractsmetal = 0.002 --0.004
-			uDef.metalcost = 240 --620
-			uDef.energycost = 3000 --7700
-			uDef.buildtime = 12000 --14938
-			uDef.health = 1000 --2500
-			uDef.energyupkeep = 10 --20
-		end
-		if name == "cormoho" or name == "coruwmme" then
-			uDef.extractsmetal = 0.002 --0.004
-			uDef.metalcost = 250 --640
-			uDef.energycost = 3100 --8100
-			uDef.buildtime = 11000 --14125
-			uDef.health = 1400 --3500
-			uDef.energyupkeep = 10 --20
-		end
-		if name == "cormexp" then
-			uDef.extractsmetal = 0.002 --0.004
-			uDef.metalcost = 2000 --2400
-			uDef.energycost = 8500 --12000
-			uDef.health = 2800 --3500
-			uDef.energyupkeep = 10 --20
-		end
-	end
-
-	if modOptions.experimentalrebalancet2energy == true then
-		if name == "armaca" or name == "armack" or name == "armacv" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armwint2"
-		end
-		if name == "coraca" or name == "corack" or name == "coracv" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corwint2"
-		end
-	end
-
 	-- test New sound system!
 	--VFS.Include('luarules/configs/gui_soundeffects.lua')
 	--if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
@@ -439,54 +391,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- if Spring.GetModOptions().experimentalmassoverride then
-	-- 	-- mass override
-	-- 	Spring.Echo("-------------------------")
-	-- 	if uDef.name then
-	-- 		Spring.Echo("Processing Mass Override for unit: "..uDef.name)
-	-- 	else
-	-- 		Spring.Echo("Processing Mass Override for unit: unknown-unit")
-	-- 	end
-	-- 	Spring.Echo("-------------------------")
-
-	-- 	massoverrideFootprintX = 1
-	-- 	if uDef.footprintx and uDef.footprintx > 0 then
-	-- 		massoverrideFootprintX = uDef.footprintx
-	-- 		Spring.Echo("Footprint X: "..uDef.footprintx)
-	-- 	else
-	-- 		Spring.Echo("Missing Footprint X")
-	-- 	end
-
-	-- 	massoverrideFootprintZ = 1
-	-- 	if uDef.footprintz and uDef.footprintz > 0 then
-	-- 		massoverrideFootprintZ = uDef.footprintz
-	-- 		Spring.Echo("Footprint Z: "..uDef.footprintz)
-	-- 	else
-	-- 		Spring.Echo("Missing Footprint Z")
-	-- 	end
-
-	-- 	massoverrideMetalCost = 1
-	-- 	if uDef.metalcost and uDef.metalcost > 0 then
-	-- 		massoverrideMetalCost = uDef.metalcost
-	-- 		Spring.Echo("Metal Cost: "..uDef.metalcost)
-	-- 	else
-	-- 		Spring.Echo("Missing Metal Cost")
-	-- 	end
-
-	-- 	massoverrideHealth = 1
-	-- 	if uDef.health and uDef.health > 0 then
-	-- 		massoverrideHealth = uDef.health
-	-- 		Spring.Echo("Max Health: "..uDef.health)
-	-- 	else
-	-- 		Spring.Echo("Missing Max Health")
-	-- 	end
-
-	-- 	uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
-	-- 	Spring.Echo("-------------------------")
-	-- 	Spring.Echo("Result Mass: "..uDef.mass)
-	-- 	Spring.Echo("-------------------------")
-	-- end
-
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
@@ -634,46 +538,28 @@ function UnitDef_Post(name, uDef)
 		--Spring.Echo("Final Emit Height: ".. uDef.sightemitheight)
 	end
 
+	-- Wreck and heap standardization
 	if not uDef.customparams.iscommander then
-		--local wreckinfo = ''
 		if uDef.featuredefs and uDef.health then
+			-- wrecks
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
-				if modOptions.experimentalrebalancewreckstandarization then
-					if uDef.metalcost and uDef.energycost then
-						if name and not string.find(name, "_scav") then
-							-- if (name and uDef.featuredefs.dead.metal) or uDef.name then
-							-- 	--wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
-							-- end
-							uDef.featuredefs.dead.metal = math.floor(uDef.metalcost*0.6)
-							-- if name and not string.find(name, "_scav") then
-							-- 	--wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
-							-- end
-						end
+				if uDef.metalcost and uDef.energycost then
+					if name and not string.find(name, "_scav") then
+						uDef.featuredefs.dead.metal = math.floor(uDef.metalcost*0.6)
 					end
 				end
 			end
-		end
-
-		if uDef.featuredefs and uDef.health then
+			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
-				if modOptions.experimentalrebalancewreckstandarization then
-					if uDef.metalcost and uDef.energycost then
-						if name and not string.find(name, "_scav") then
-							-- if (name and uDef.featuredefs.heap.metal) or uDef.name then
-							-- 	--wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
-							-- end
-							uDef.featuredefs.heap.metal = math.floor(uDef.metalcost*0.25)
-							-- if name and not string.find(name, "_scav") then
-							-- 	--wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
-							-- end
-						end
+				if uDef.metalcost and uDef.energycost then
+					if name and not string.find(name, "_scav") then
+						uDef.featuredefs.heap.metal = math.floor(uDef.metalcost*0.25)
 					end
 				end
 			end
 		end
-		--if wreckinfo ~= '' then Spring.Echo(wreckinfo) end
     end
 
 	if uDef.maxslope then
@@ -1489,14 +1375,14 @@ if Spring.GetModOptions().skyshift == true then
 end
 
 if Spring.GetModOptions().proposed_unit_reworks == true then
-	if name == "armvp" then			
+	if name == "armvp" then
 		for ix, UnitName in pairs(uDef.buildoptions) do
 			if UnitName == "armsam" then
 				uDef.buildoptions[ix] = "armsam2"
 			end
 		end
 	end
-	if name == "corvp" then			
+	if name == "corvp" then
 		for ix, UnitName in pairs(uDef.buildoptions) do
 			if UnitName == "cormist" then
 				uDef.buildoptions[ix] = "cormist2"
