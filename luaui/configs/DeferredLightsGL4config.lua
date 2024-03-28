@@ -10668,7 +10668,7 @@ local unitLights = {
 			pieceName = 'laser',
 			alliedOnly = true,
 			alwaysVisible = true,
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4000,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5500,
 							dirx = 0, diry = 1, dirz = 0.0001, theta = 0.006,
 							r = 2, g = 0, b = 0, a = 0.85,
 							modelfactor = 0.1, specular = 0.1, scattering = 8, lensflare = 0.1,

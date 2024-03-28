@@ -10,7 +10,7 @@ piece base, door1, door2,                                         //Outter struc
 
 static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging,   //Unit state
             lastpitch, lastheading,                                 //Weapon rotation
-            fireconfirms, deactivateCalls, reloadTime;                          //Special functions
+            fireconfirms, deactivateCalls;                          //Special functions
 
 // Signal definitions
 #define SIG_AIM				2
@@ -42,10 +42,6 @@ updateLight(light) {
     }
 }
 
-randomReloadTime() {
-    reloadTime = RAND (0 , 5);
-}
-
 activatescr(enableSFX)
 {
     if (enableSFX) {
@@ -57,11 +53,11 @@ activatescr(enableSFX)
     turn door2 to z-axis <1> speed <10.0000>;
     wait-for-turn door1 around z-axis;
 
-    turn door1 to z-axis <50> speed <16.70000>;
-    turn door2 to z-axis <-50> speed <16.70000>;
+    turn door1 to z-axis <50> speed <16.66666667>;
+    turn door2 to z-axis <-50> speed <16.66666667>;
     sleep 1000;
 
-    move piston to y-axis [6.500000] speed [2.2000];
+    move piston to y-axis [6.500000] speed [2.1666666];
 
     show laser; //Blink 1
     sleep 500;
@@ -70,6 +66,9 @@ activatescr(enableSFX)
     show laser; //Blink 2
     sleep 500;
     hide laser;
+    sleep 500;
+    turn door1 to z-axis <49> speed <10>;
+    turn door2 to z-axis <-49> speed <10>;
     wait-for-move piston along y-axis; // 4100ms
 
     turn y_hinge to z-axis <90> speed <135.000000>;
@@ -201,7 +200,6 @@ Create()
 	lastpitch = 32000;
 	lastheading = 0;
 	fireconfirms = 0;
-	call-script randomReloadTime();
 }
 
 #define SMOKEPIECE base
@@ -228,11 +226,6 @@ AimPrimary(heading, pitch)
 	while( state != STATE_ON )
     {
         sleep 150;
-    }
-
-    if (reloadTime > 0) {
-        reloadTime = reloadTime - 1;
-        return 0;
     }
 
     show laser;
@@ -276,8 +269,6 @@ FirePrimary()
 {
     hide laser;
     fireconfirms = 0;
-
-    call-script randomReloadTime();
 }
 
 QueryPrimary(piecenum)

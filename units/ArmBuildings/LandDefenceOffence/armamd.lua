@@ -135,11 +135,12 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				interceptor = 1,
-				interceptsolo = 1,
+				interceptsolo = 0,
 				laserflaresize = 5,
 				name = "Taychon intercepting nuke missile weapon",
 				noselfdamage = true,
-				range = 6000,
+				proximitypriority = 0,
+				range = 5500,
 				reloadtime = 1.0,
 				rgbcolor = "0.7 0 1",
 				soundhitdry = "",
@@ -178,6 +179,7 @@ return {
 			[1] = {
 				def = "AMD_ROCKET",
 				fastautoretargeting = true,
+				weaponAimAdjustPriority = 0,
 			},
 			[2] = {
 				def = "AMD_OPEN",
