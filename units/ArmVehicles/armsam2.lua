@@ -39,6 +39,7 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
+			maxrange = 575,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
