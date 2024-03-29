@@ -9,8 +9,7 @@ piece base, door1, door2,                                         //Outter struc
       flare, smoke, laser;                                        //Invisible points
 
 static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging,   //Unit state
-            lastpitch, lastheading,                                 //Weapon rotation
-            fireconfirms, deactivateCalls;                          //Special functions
+            lastpitch, lastheading, deactivateCalls;                           //Weapon rotation + Deactivate system
 
 // Signal definitions
 #define SIG_AIM				2
@@ -22,7 +21,6 @@ static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging,   /
 #define STATE_DEACTIVATING  3
 
 #define DEACTIVATE_IDLE     7       // How long it takes (In seconds) to shutdown ( Deactivate() ) antinuke when idle.
-#define FIRE_CONFIRMS       3       // How much confirmations needed to actually fire a nuke missile (Safety feature to prevent shooting nukes that are still on ground/ascending)
 
 #define SOUND_OPEN          1
 
@@ -199,7 +197,6 @@ Create()
 
 	lastpitch = 32000;
 	lastheading = 0;
-	fireconfirms = 0;
 }
 
 #define SMOKEPIECE base
@@ -244,31 +241,15 @@ AimPrimary(heading, pitch)
         wait-for-turn head around z-axis;
     }
 
-    //Do not fire if target (nuke) is still ascending -> prevents unnecessary early explosion that just causes unwanted mess on enemy side.
-    if ( pitch <= 182 * 10 ) { //Below 10 degrees -> Attack nothing (too dangerous)
-        fireconfirms = 0;
-        //get PRINT(000, pitch, 000);
-    } else if ( pitch >= 182 * 45 ) { //Above 45 degrees -> Safe zone
-	    fireconfirms = FIRE_CONFIRMS; //Fire immediately (Safe zone)
-	    //get PRINT(111, pitch, fireconfirms);
-	} else if ( get ABS(pitch - lastPitch) < 400 OR pitch < lastPitch) { //Below 45 degrees -> Carefull to not fire too early!
-        fireconfirms = fireconfirms + 1;
-        //get PRINT(222, pitch, fireconfirms);
-    } else {
-	    fireconfirms = 0;
-	    //get PRINT(333, pitch);
-	}
-
 	lastpitch = pitch;
 	lastheading = heading;
 
-	return (fireconfirms >= FIRE_CONFIRMS);
+	return;
 }
 
 FirePrimary()
 {
     hide laser;
-    fireconfirms = 0;
 }
 
 QueryPrimary(piecenum)
