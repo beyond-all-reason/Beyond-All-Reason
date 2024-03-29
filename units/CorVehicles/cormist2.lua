@@ -39,6 +39,7 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
+			maxrange = 600,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
