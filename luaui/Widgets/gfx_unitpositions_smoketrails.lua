@@ -50,9 +50,9 @@ local unitPosSmokeShader = nil
 
 local noisetex3dcube =  "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1_mip.dds"
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/unitPosSmoke.vert.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/unitPosSmoke.geom.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/unitPosSmoke.frag.glsl"
+local vsSrcPath = "LuaUI/Widgets/Shaders/unit_positions_smoketrails.vert.glsl"
+local gsSrcPath = "LuaUI/Widgets/Shaders/unit_positions_smoketrails.geom.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/unit_positions_smoketrails.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,

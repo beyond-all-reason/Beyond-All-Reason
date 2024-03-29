@@ -46,6 +46,21 @@ void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusC
 	EmitVertex();
 }
 
+void EmitPair(vec3 center, float width, float rot){
+	g_ux.xy = vec2(-1, 0);
+	
+	
+	g_centerpos =
+	gl_Position = cameraViewProj * 
+	EmitVertex();
+	
+	
+	g_ux.xy = vec2(-1, 0);
+	
+	g_centerpos = 
+	EmitVertex();
+}
+
 #line 22000
 void main(){
 	uint numVertices = dataIn[0].v_numvertices;
@@ -64,6 +79,14 @@ void main(){
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
 	
 	// render order is in order of emission
+	
+	// first two verts are at the unit itself
+	vec3 unitmid = vec3(0);
+	
+	g_ux.xy = vec2(-1, 0);
+	gl_Position = cameraViewProj
+	
+	
 	
 
 		if (numVertices == 4u){ // A quad
