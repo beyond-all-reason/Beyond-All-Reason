@@ -148,7 +148,7 @@ return {
 				soundstart = "antinukepulsar",
 				soundtrigger = 1,
 				stockpile = true,
-				stockpiletime = 3,
+				stockpiletime = 2,
 				smoketrail = true,
 				smokePeriod = 30,
 				smoketime = 2000,
