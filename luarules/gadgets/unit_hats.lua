@@ -70,7 +70,7 @@ local vikings = {
 	["Narnuk"] = true,
 }
 local kings = {
-	["[AFF]Chisato"] = true,
+	["Chisato"] = true,
 }
 local goldMedals = {
 }
