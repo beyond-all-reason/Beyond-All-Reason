@@ -3607,7 +3607,7 @@ function widget:Update(delta)
         local curMapDrawMode = Spring.GetMapDrawMode()
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
         if lockPlayerID then
-            LockCamera(player[clickedPlayerID].ai and nil or i)
+            LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         else
             if not fullView then
                 desiredLosmode = 'los'
