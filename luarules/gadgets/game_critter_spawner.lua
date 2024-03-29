@@ -6,7 +6,7 @@ function gadget:GetInfo()
         date      = "2024",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
-        enabled   = false
+        enabled   = true
     }
 end
 
@@ -52,12 +52,12 @@ function gadget:GameFrame(frame)
             table.insert(crittersPresent, 442)--add penwins
         end
 
+		--Spring.Echo('hornet cp', #crittersPresent)
 
 
     end
 end
 
-Spring.Echo('hornet here')
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     local frame = Spring.GetGameFrame ()
     if frame < 10 then
@@ -73,10 +73,11 @@ end
 
 
 
+--Spring.Echo('hornet critters here')
 
 
 function gadget:FeatureDestroyed(featureID, allyTeamID)
-
+	--Spring.Echo('hornet fd')
     if allyTeamID==2 then
         --10% 1, 3.333% 2, ~1% 3
 
