@@ -60,7 +60,7 @@ function gadget:GameFrame(frame)
             for i = 1, #metalSpots do
                 local spot = metalSpots[i]
                 if spot then
-                    spawnRandomEggField(spot.x, Spring.GetGroundHeight(spot.x, spot.z), spot.z, spread)
+                    spawnRandomEggField(spot.x, Spring.GetGroundHeight(spot.x, spot.z), spot.z, 600)
                 end
             end
         else
