@@ -135,23 +135,12 @@ Go()
 
 Stop()
 {
+    statechg_DesiredState = STATE_OFF;
     state = STATE_DEACTIVATING;
     call-script updateLight();
 
 	start-script deactivatescr();
 	return (0);
-}
-
-AutoDeactivate() {
-    while (deactivateCalls <= DEACTIVATE_IDLE) {
-        sleep 1000;
-        if (state == STATE_ON)
-            deactivateCalls = deactivateCalls + 1;
-    }
-
-    call-script Stop();
-    statechg_DesiredState = STATE_OFF;
-    state = STATE_OFF;
 }
 
 RequestState(requestedstate, currentstate)
@@ -172,7 +161,6 @@ RequestState(requestedstate, currentstate)
 		{
 			call-script Go();
 			currentstate = STATE_ON;
-			start-script AutoDeactivate();
 		}
 		if( statechg_DesiredState == STATE_OFF AND state != STATE_DEACTIVATING )
 		{
@@ -216,10 +204,25 @@ Deactivate()
 
 AimPrimary(heading, pitch)
 {
+	start-script RequestState(STATE_ON);
+	signal SIG_AIM;
+    set-signal-mask SIG_AIM;
+	while( state != STATE_ON )
+    {
+        sleep 150;
+    }
+
+    show laser;
+    heading = heading - 16384; //Offset
+    turn z_rotor to x-axis <0.000000> - heading speed <600.000000>;
+    turn head to z-axis <0.000000> - pitch speed <600.000000>;
+
+    return (1);
+
     deactivateCalls = 0;
     start-script RequestState(STATE_ON);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	//signal SIG_AIM;
+	//set-signal-mask SIG_AIM;
 	while( state != STATE_ON )
     {
         sleep 150;
@@ -232,13 +235,13 @@ AimPrimary(heading, pitch)
     if (get ABS(lastheading) - get ABS(heading) > 12000) {
         turn z_rotor to x-axis <0.000000> - heading speed <750.000000>;
         turn head to z-axis <0.000000> - pitch speed <750.000000>;
-        wait-for-turn z_rotor around x-axis;
-        wait-for-turn head around z-axis;
+        //wait-for-turn z_rotor around x-axis;
+        //wait-for-turn head around z-axis;
     } else {
         turn z_rotor to x-axis <0.000000> - heading speed <180.000000>;
         turn head to z-axis <0.000000> - pitch speed <180.000000>;
-        wait-for-turn z_rotor around x-axis;
-        wait-for-turn head around z-axis;
+        //wait-for-turn z_rotor around x-axis;
+        //wait-for-turn head around z-axis;
     }
 
 	lastpitch = pitch;
