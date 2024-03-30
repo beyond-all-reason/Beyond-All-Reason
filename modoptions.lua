@@ -1028,6 +1028,16 @@ local options={
 	--},
 
 	{
+		key		= "april1",
+		name	= "tomfooleryMode",
+		desc	= "turns toms into fools or something",
+		type	= "bool",
+		def		= true, -- false,
+		hidden	= false,-- true,
+		section	= "options_extra",
+	},
+
+	{
 		key="map_waterlevel",
 		name="Water Level",
 		desc="Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",

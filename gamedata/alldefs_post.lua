@@ -90,23 +90,24 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	if true then
+	if Spring.GetModOptions().april1 == true then
 		if name == "corak" then
 			uDef.objectname = "apf/CORAK.s3o"
-		end
-		if name == "corack" then
+		elseif name == "corllt" then
+			uDef.objectname = "apf/CORllt.s3o"
+		elseif name == "corhllt" then
+			uDef.objectname = "apf/CORhllt.s3o"
+		elseif name == "corack" then
 			uDef.objectname = "apf/CORACK.s3o"
-		end
-		if name == "armpw" then
+		elseif name == "corck" then
+			uDef.objectname = "apf/CORCK.s3o"
+		elseif name == "armpw" then
 			uDef.objectname = "apf/ARMPW.s3o"
-		end
-		if name == "cordemon" then
+		elseif name == "cordemon" then
 			uDef.objectname = "apf/cordemon.s3o"
-		end
-		if name == "correap" then
+		elseif name == "correap" then
 			uDef.objectname = "apf/correap.s3o"
-		end
-		if name == "corstorm" then
+		elseif name == "corstorm" then
 			uDef.objectname = "apf/corstorm.s3o"
 		end
 	end

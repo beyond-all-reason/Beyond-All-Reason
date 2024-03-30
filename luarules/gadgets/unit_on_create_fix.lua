@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if false then
+if Spring.GetModOptions().april1 ~= true then
 	return
 end
 
@@ -24,8 +24,11 @@ for k, v in pairs({
 	armpw=7,
 	cordemon=3,
 	correap=6,
-	corack=4,
-	corstorm=6,
+	corack=6,
+	corck=6,
+	corstorm=7,
+	corhllt=8,
+	corllt=8,
 }) do
 	local tmp = UnitDefNames[k].id
 	if tmp then
