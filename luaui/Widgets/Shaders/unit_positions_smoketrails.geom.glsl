@@ -165,7 +165,7 @@ void main(){
 	
 	vec4 currposrot = dataIn[0].v_drawpos;
 	vec4 nextposrot = vec4(0);
-	EmitSegment(currposrot, vec2(width, 0), vec3(0), 0);
+	EmitSegment(currposrot, vec2(width, 0), vec3(0), 1);
 	
 	// REPEAT UNTIL
 	int steps = 31;
@@ -177,6 +177,13 @@ void main(){
 		// Roll it around
 		texIndex += numSamples;
 		texIndex = texIndex - numSamples * (texIndex /numSamples);
+		
+		
+		//texIndex += timeback;
+		int whole = timeback * (texIndex /timeback);
+		int rem = texIndex - whole;
+		texIndex = whole;
+		float partial = float(rem)/float(timeback);
 		
 		
 		ivec2 sampleXY = ivec2(texIndex * 2, slot);
@@ -195,14 +202,14 @@ void main(){
 		vec4 nextproj = cameraViewProj * vec4(nextposrot.xyz, 1.0);
 		
 		vec3 proj3 = normalize(currproj.xyz- nextproj.xyz);
-		//projected.xy = currposrot.xz - nextposrot.xz;
+		//projected.xy = currpsrot.xz - nextposrot.xz;
 		//projected.xy = normalize(projected.xy);
 		//float newangle = atan(projected.y, projected.x);
 		//nextposrot.w = newangle;
 		//projected.xy  = projected.xy * 0.5 + 0.5;
-		vec2 lw = vec2(width + float(i) * 1, 0);
+		vec2 lw = vec2(width + (float(i) + partial) * 3, 0);
 		
-		
+		nextposrot.y += (float(i) + partial) ;
 		vec3 col = normalize(proj3);
 		
 		EmitSegment(nextposrot, lw, col , float(i)/float(steps));

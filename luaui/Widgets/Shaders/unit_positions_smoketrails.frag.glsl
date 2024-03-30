@@ -30,9 +30,9 @@ void main(void)
 		if (fragColor.a < 0.01) discard;
 	#endif
 	//return;
-	vec3 noisePos = g_centerpos.xyz - vec3(0, 0.2 * timeInfo.x,0);
+	vec3 noisePos = g_centerpos.xyz - vec3(0, 0.5 * timeInfo.x,0);
 	vec4 noise = texture(noisetex3dcube, noisePos * 0.01);
-	fragColor.rgb = vec3(noise.r);
+	fragColor.rgb = vec3(noise.a);
 	fragColor.a = noise.a * (1.0 - abs(g_centerpos.w)) ;
 	fragColor.a *= (1.0 - g_uv.w);
 }
