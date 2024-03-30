@@ -36,8 +36,8 @@ end
 local GL_RGBA32F_ARB = 0x8814
 
 
-local autoreload = false
-local texX, texY =  256, 4096
+local autoreload = true
+local texX, texY =  512, 256
 
 local unitPosShader
 local unitPosTexture
@@ -55,8 +55,8 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/unit_positions_texture.frag.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/unit_positions_texture.vert.glsl",
+		vssrcpath = "LuaUI/Widgets/Shaders/unit_positions_texture.vert.glsl",
+		fssrcpath = "LuaUI/Widgets/Shaders/unit_positions_texture.frag.glsl",
 		uniformFloat = {
 			time = 1.0,
 		},
@@ -70,7 +70,7 @@ local shaderSourceCache = {
 			},
 	}
 
-local function CreateLosTexture()
+local function CreateUnitPosTexture()
 	return gl.CreateTexture(texX, texY, {
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
@@ -95,10 +95,18 @@ local function initGL4()
   unitPosIntanceVBO.primitiveType = GL.TRIANGLES
   unitPosIntanceVBO.indexVBO = makeRectIndexVBO()
   unitPosIntanceVBO.VAO:AttachIndexBuffer(unitPosIntanceVBO.indexVBO)
+  unitPosTexture = CreateUnitPosTexture()  
 end
 
-local function GetUnitPOSTexture(allyTeam)
+local function GetUnitPosTexture()
 	return unitPosTexture
+end
+
+local function GetUnitIDtoSlot()
+	return unitIDtoSlot
+end
+local function GetTexXY()
+	return texX, texY
 end
 
 function widget:Initialize()
@@ -124,20 +132,27 @@ function widget:Initialize()
 	end
 	
 	WG['unitPosAPI'] = {}
-	WG['unitPosAPI'].GetUnitPOSTexture = GetUnitPOSTexture
-	WG['unitPosAPI'].unitIDtoSlot = unitIDtoSlot
-	widgetHandler:RegisterGlobal('GetUnitPOSTexture', WG['unitPosAPI'].GetUnitPOSTexture)
+	WG['unitPosAPI'].GetUnitPosTexture = GetUnitPosTexture
+	WG['unitPosAPI'].GetUnitIDtoSlot = GetUnitIDtoSlot
+	WG['unitPosAPI'].GetTexXY = GetTexXY
+	widgetHandler:RegisterGlobal('GetUnitPosTexture', WG['unitPosAPI'].GetUnitPosTexture)
+	widgetHandler:RegisterGlobal('GetUnitIDtoSlot', WG['unitPosAPI'].GetUnitIDtoSlot)
+	widgetHandler:RegisterGlobal('GetTexXY', WG['unitPosAPI'].GetTexXY)
 end
 
 function widget:Shutdown()
 	if infoTexture then gl.DeleteTexture(infoTexture) end
 	WG['unitPosAPI'] = nil
-	widgetHandler:DeregisterGlobal('GetUnitPOSTexture')
+	widgetHandler:DeregisterGlobal('GetUnitPosTexture')
+	widgetHandler:DeregisterGlobal('GetUnitIDtoSlot')
+	widgetHandler:DeregisterGlobal('GetTexXY')
 end
 
 local gameFrame = false
 function widget:GameFrame(n)
-	gameFrame = true
+	if (n % 1) == 0 then 
+		gameFrame = true
+	end
 end
 
 function widget:Update()
@@ -145,12 +160,13 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if not mobileUnitDefs[unitDefID] then return end
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
 	local gf = Spring.GetGameFrame()
 	local slot = freeslots[numfreeslots]
 	freeslots[numfreeslots] = nil
 	numfreeslots = numfreeslots - 1
 	unitIDtoSlot[unitID] = slot
+	
+	--Spring.Echo("UnitPositions added unit ", UnitDefs[unitDefID].name, "at", slot, numfreeslots)
 	pushElementInstance(
 		unitPosIntanceVBO, -- push into this Instance VBO Table
 		{
@@ -168,8 +184,8 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	--Spring.Echo("widget:VisibleUnitsChanged",extVisibleUnits, extNumVisibleUnits)
 	freeslots = {} -- an array of which slots are free
-	numfreeslots = texX
-	for i=1, numfreeslots do freeslots[i] = texX - i end
+	numfreeslots = texY
+	for i=1, numfreeslots do freeslots[i] = texY - i end
 	for k,_ in pairs(unitIDtoSlot) do unitIDtoSlot[k] = nil end
 	
 	clearInstanceTable(unitPosIntanceVBO)
@@ -178,15 +194,23 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID)
-	if not mobileUnitDefs[unitDefID] then return end
+function widget:VisibleUnitRemoved(unitID, unitDefID)
+	--unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	--if not mobileUnitDefs[unitDefID] then return end
 	--Spring.Echo("widget:VisibleUnitRemoved",unitID)
 	if unitPosIntanceVBO.instanceIDtoIndex[unitID] then 
 		popElementInstance(unitPosIntanceVBO, unitID)
+		
+		--Spring.Echo("UnitPositions removed unit ", UnitDefs[unitDefID].name, "at", unitIDtoSlot[unitID], numfreeslots)
 		numfreeslots = numfreeslots + 1
 		freeslots[numfreeslots] = unitIDtoSlot[unitID]
 		unitIDtoSlot[unitID] = nil
 	end
+end
+local function renderToTextureFunc() 	
+	gl.Blending(GL.ONE, GL.ZERO)
+	unitPosIntanceVBO:draw()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 local function UpdateUnitPOSTexture()
@@ -200,25 +224,36 @@ end
 
 function widget:DrawWorldPreUnit()
 	if gameFrame then
-			UpdateUnitPOSTexture(UpdateUnitPOSTexture)
-			gameFrame = false
+		UpdateUnitPOSTexture(UpdateUnitPOSTexture)
+		gameFrame = false
 	end
 end
 
-local function renderToTextureFunc() 	
-	gl.Blending(GL.ONE, GL.ZERO)
-	unitPosIntanceVBO:draw()
-end
 
 function widget:DrawScreen() -- the debug display output
 	if autoreload then
-		Spring.Echo(texY - numfreeslots)
+		--Spring.Echo(texY - numfreeslots, texX, texY, numfreeslots)
 		unitPosShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or unitPosShader
 		gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Texture(0, unitPosTexture)
-		gl.TexRect(0, 0, texX, texY, 0, 0, 1, (texY - numfreeslots)/texY)
+		gl.TexRect(0, 0, texX * 2 , (texY - numfreeslots) * 2, 0, 0, 1, (texY - numfreeslots)/texY)
+		--gl.TexRect(0, 0, texX * 2, texY *2 , 0, 0, 1, 1)
 		gl.Texture(0, false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	end
+	
+	if false then 
+		gl.DepthMask(false) -- dont write to depth buffer
+		gl.Culling(false) -- cause our tris are reversed in plane vbo
+		unitPosShader:Activate()
+		
+		gl.Blending(GL.ONE, GL.ZERO)
+		unitPosIntanceVBO:draw()
+	
+		unitPosShader:Deactivate()
+		gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
 

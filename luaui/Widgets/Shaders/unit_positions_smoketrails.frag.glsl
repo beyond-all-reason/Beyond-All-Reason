@@ -8,7 +8,6 @@
 //__DEFINES__
 
 #line 30000
-uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
 in DataGS {
 	vec4 g_centerpos;
@@ -22,11 +21,11 @@ void main(void)
 {
 	vec4 texcolor = vec4(1.0);
 	#if (USETEXTURE == 1)
-		texcolor = texture(DrawPrimitiveAtUnitTexture, g_uv.xy);
+		texcolor = texture(noisetex3dcube, g_centerpos.xyz);
 	#endif
-	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * TRANSPARENCY + addRadius);
+	fragColor.rgba = vec4(g_uv.rgb * texcolor.rgb , texcolor.a  );
 	POST_SHADING
-	//fragColor.rgba = vec4(1.0);
+	fragColor.rgba = vec4(g_uv.rgb, 1.0);
 	#if (DISCARD == 1)
 		if (fragColor.a < 0.01) discard;
 	#endif

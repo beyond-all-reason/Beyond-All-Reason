@@ -7,8 +7,8 @@
 #line 5000
 
 layout (location = 0) in vec4 lengthwidthcornerheight;
-layout (location = 1) in vec4 parameters; // lifestart, ismine
-layout (location = 2) in vec4 uvoffsets; // this is optional, for using an Atlas
+layout (location = 1) in vec4 slot_start_step_gf; // lifestart, ismine
+layout (location = 2) in vec4 emitoffsets; // this is optional, for using an Atlas
 layout (location = 3) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -37,7 +37,7 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 #define UNITID (uni[instData.y].composite >> 16)
 
-#line 10000
+#line 10041
 
 uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
@@ -48,8 +48,9 @@ out DataVS {
 	vec4 v_color;
 	vec4 v_lengthwidthcornerheight;
 	vec4 v_centerpos;
-	vec4 v_uvoffsets;
-	vec4 v_parameters;
+	vec4 v_emitoffsets;
+	vec4 v_slot_start_step_gf;
+	vec4 v_drawpos;
 };
 
 layout(std140, binding=0) readonly buffer MatrixBuffer {
@@ -69,14 +70,16 @@ void main()
 
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
 	v_rotationY = atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
-	v_uvoffsets = uvoffsets;
-	v_parameters = parameters;
-	v_color = teamColor[teamID];  // We can lookup the teamcolor right here
+	v_emitoffsets = emitoffsets;
+	v_slot_start_step_gf = slot_start_step_gf;
+	v_slot_start_step_gf.w = timeInfo.x;
+	//v_parameters = parameters;
+	//v_color = teamColor[teamID];  // We can lookup the teamcolor right here
 	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
 	v_lengthwidthcornerheight = lengthwidthcornerheight;
 
-	v_numvertices = numvertices;
-	if (vertexClipped(gl_Position,)) v_numvertices = 0; // Make no primitives on stuff outside of screen
+	v_numvertices = 80;
+	if (vertexClipped(gl_Position,1.1)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	// TODO: take into account size of primitive before clipping
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
@@ -86,6 +89,8 @@ void main()
 	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
 
 	v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
+	
+	v_drawpos = uni[instData.y].drawPos; 
 
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn

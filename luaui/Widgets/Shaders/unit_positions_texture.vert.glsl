@@ -42,24 +42,26 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #line 10000
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
 
 out DataVS {
+	vec4 v_params; //idx, gfstart, currtime
 	vec4 v_pos; 
 	vec4 v_vel;
-	vec4 v_params; //idx, gfstart, currtime
 };
 
 void main()
 {	
-	v_pos = uni[instData.y].drawpos;
+	v_pos = uni[instData.y].drawPos;
 	v_vel = uni[instData.y].speed;
 	v_vel.w = uni[instData.y].health / uni[instData.y].maxHealth;
-	v_params = uvoffsets;
-	v_params.z = timeInfo.x;
+	v_params = vec4(uvoffsets.xy, timeInfo.x, 0.0);
 	
 	vec2 xy = position_xy_uv.xy;
 	float idx = uvoffsets.x;
 	vec4 vpos = vec4(xy.x, (idx+xy.y)/TEXY, 0.5, 1.0);
-	
+	vpos.xy = NORM2SNORM(vpos.xy);
+	// Output space is [-1, +1]
 	gl_Position = vpos;
+	//gl_Position = vec4(xy.x * 100, xy.y* 100 , 0.5, 1.0);
 }

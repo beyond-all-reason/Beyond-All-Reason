@@ -21,12 +21,27 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 -- License: Lua code GPL V2, GLSL shader code: (c) Beherith (mysterme@gmail.com)
 -------------------------------------------------
 
+----------------------------------------------------
+--
+--
+-- Vertex Shader Inputs
+--	-- slotID, StartFrame, framestep, gameframe
+--  -- Emission offsets XZY
+--  -- startwidth, endwidth, riseRate
+--  -- windX, windZ
+--  -- RiseRate
+--  -- 
+----------------------------------------------------
+
 
 local myvisibleUnits = {} -- table of unitID : unitDefID
+
+-- From API_UNIT_POSITIONS:
 local unitIDtoSlot
 local unitPosTexture
+local texX, texY
 
-local autoreload = false
+local autoreload = true
 
 local unitPosSmoke = {}
 
@@ -69,61 +84,59 @@ local shaderSourceCache = {
 		shaderConfig = shaderConfig,
 	}
 
-local function InitunitPosSmoke(DPATname)
-	
-	shaderSourceCache.shaderName = DPATname .. "Shader GL4"
-	
+
+
+local texture = "luaui/images/solid.png"
+
+local function initGL4()
+		
 	unitPosSmokeShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 
 	if not unitPosSmokeShader then 
-		Spring.Echo("Failed to compile shader for ", DPATname)
-		return nil
+		Spring.Echo("Failed to compile shader for unitPosSmoke")
+		--return nil
 	end
 
 	unitPosSmokeVBO = makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthcorner', size = 4},
-			{id = 1, name = 'parameters', size = 4},
+			{id = 1, name = 'slot_start_step_gf', size = 4},
 			{id = 2, name = 'uvoffsets', size = 4},
 			{id = 3, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
 		64, -- maxelements
-		DPATname .. "VBO", -- name
+		"unitPosSmokeVBO", -- name
 		3  -- unitIDattribID (instData)
 	)
 	if unitPosSmokeVBO == nil then 
-		Spring.Echo("Failed to create unitPosSmokeVBO for ", DPATname) 
-		return nil
+		Spring.Echo("Failed to create unitPosSmokeVBO for unitPosSmoke") 
+		--return nil
 	end
 
 	local unitPosSmokeVAO = gl.GetVAO()
 	unitPosSmokeVAO:AttachVertexBuffer(unitPosSmokeVBO.instanceVBO)
 	unitPosSmokeVBO.VAO = unitPosSmokeVAO
-	return  unitPosSmokeVBO, unitPosSmokeShader
-end
-
-local texture = "luaui/images/solid.png"
-
-local function initGL4()
-	InitunitPosSmoke(shaderConfig, "unitpos smoke ")
+	
 	if unitPosSmokeVBO == nil then 
-		widgetHandler:RemoveWidget()
+		--widgetHandler:RemoveWidget()
 	end
+	return unitPosSmokeVBO and unitPosSmokeShader
 end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if not unitIDtoSlot[unitID] then return end
-	Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
+
 	local teamID = Spring.GetUnitTeam(unitID) or 0 
 	local gf = Spring.GetGameFrame()
 	myvisibleUnits[unitID] = unitDefID
 	local slot = unitIDtoSlot[unitID]
+	Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, slot)
 	pushElementInstance(
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
-			96, 96, 8, 8,  -- lengthwidthcornerheight
-			slot, gf, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			16, 16, 8, 8,  -- lengthwidthcornerheight
+			slot, gf, 1, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
@@ -160,12 +173,14 @@ function widget:DrawWorldPreUnit()
 	end
 	
 	if unitPosSmokeVBO.usedElements > 0 then
+		gl.Culling(false)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
 		gl.Texture(0, unitPosTexture)
 		gl.Texture(1, noisetex3dcube)
 		unitPosSmokeShader:Activate()
 		unitPosSmokeShader:SetUniform("iconDistance", 99999) -- pass
-		gl.DepthTest(true)
-		gl.DepthMask(false)
+		--gl.DepthTest(true)
 		unitPosSmokeVBO.VAO:DrawArrays(GL.POINTS, unitPosSmokeVBO.usedElements)
 		unitPosSmokeShader:Deactivate()
 		gl.Texture(0, false)
@@ -174,12 +189,28 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:Initialize()
-	initGL4()
+	if not WG['unitPosAPI'] then 
+		Spring.Echo("Unitpos smoketrails requres UnitPos API")
+		return nil
+	end
+	
+	unitIDtoSlot = WG['unitPosAPI'].GetUnitIDtoSlot()
+	unitPosTexture = WG['unitPosAPI'].GetUnitPosTexture()
+	texX, texY = WG['unitPosAPI'].GetTexXY()
+	
+	shaderConfig.TEXX = texX
+	shaderConfig.TEXY = texY
+	
+	if not initGL4() then
+		Spring.Echo("INIT FAILED")
+		return 
+	end
+	
+
+
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 	
-	unitIDtoSlot = WG['unitPosAPI'].unitIDtoSlot
-	unitPosTexture = WG['unitPosAPI'].GetUnitPosTexture()
 end
