@@ -225,6 +225,20 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			end
 		end
+
+		if modOptions.unit_restrictions_noendgamelrpc then
+			local LRPCs = {
+				armvulc = true,
+				corbuzz = true,
+				legstarfall = true,
+				armvulc_scav = true,
+				corbuzz_scav = true,
+				legstarfall_scav = true,
+			}
+			if LRPCs[name] then
+				uDef.maxthisunit = 0
+			end
+		end
 	end
 
 	-- Release candidate units

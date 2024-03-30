@@ -201,6 +201,15 @@ local options = {
         def    	= false,
     },
 
+    {
+        key    	= "unit_restrictions_noendgamelrpc",
+        name   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        desc   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        type   	= "bool",
+        section	= "restrictions",
+        def    	= false,
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Scavengers
