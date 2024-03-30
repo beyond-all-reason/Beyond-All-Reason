@@ -125,7 +125,7 @@ Deactivate()
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
-	return;
+	return (0);
 }
 
 AimPrimary(heading, pitch)
@@ -138,13 +138,13 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	return;
+	return (0);
 }
 
 QueryPrimary(piecenum)
 {
 			piecenum=dummy;
-	return;
+	return (0);
 }
 
 AimFromPrimary(piecenum)
@@ -155,7 +155,7 @@ AimFromPrimary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return;
+	return (0);
 }
 
 Killed(severity, corpsetype)

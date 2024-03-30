@@ -220,7 +220,7 @@
         texture            = [[smoke_puff]],
       },
     },
-  },
+  }, 
   ["dust_cloud_huge"] = {
     poof01 = {
       air                = false,

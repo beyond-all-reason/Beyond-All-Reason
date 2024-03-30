@@ -168,7 +168,7 @@ return {
 			amd_open = {
 				name = "Antinuke Open",
 				range = 0,
-				soundhit = "antinukepulsarexp",
+				soundhit = "armamdopen",
 				weapontype = "Cannon",
 				damage = {
 					default = 0,
@@ -179,7 +179,6 @@ return {
 			[1] = {
 				def = "AMD_ROCKET",
 				fastautoretargeting = true,
-				weaponAimAdjustPriority = 0,
 			},
 			[2] = {
 				def = "AMD_OPEN",
