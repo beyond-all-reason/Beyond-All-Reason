@@ -29,12 +29,12 @@ function SetAim(interceptorID, ready)
 	if t_type[interceptorID] == "StarburstLauncher" then
 		DebugEcho(interceptorID, "Weapon Aim: " .. tostring(ready));
 		if ready then
-			Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 1);
+			--Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 1);
 			Spring.SetUnitWeaponState(interceptorID, 1, "range", 72000);
-			Spring.SetUnitUseWeapons(interceptorID, false, true);
+			--Spring.SetUnitUseWeapons(interceptorID, false, true);
 		else
-			Spring.SetUnitUseWeapons(interceptorID, false, false);
-			Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 0);
+			--Spring.SetUnitUseWeapons(interceptorID, false, false);
+			--Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 0);
 			Spring.SetUnitWeaponState(interceptorID, 1, "range", 0);
 		end
 	elseif t_type[interceptorID] == "BeamLaser" then
@@ -87,8 +87,9 @@ function gadget:GameFrame(f)
 			if t_target[interceptorID] == nil then
 				time = time + 60;
 				--DebugEcho(interceptorID, "Countdown: " .. tostring(time))
-				if time >= 540 then
-					Spring.CallCOBScript(interceptorID, "Stop", 0);
+				if time >= 420 then
+					Spring.CallCOBScript(interceptorID, "Deactivate", 0);
+					SetAim(proOwnerID, true); --Unpause making stockpiles (For some units like StarburstLauncher)
 
 					t_deactivate[interceptorID] = nil;
 				else
