@@ -30,7 +30,12 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --  -- startwidth, endwidth, riseRate
 --  -- windX, windZ
 --  -- RiseRate
---  -- 
+--  
+-- Types of Streamers:
+-- Ground hugging wake
+-- Camera facing volsmoke
+-- Chemtrailstreamer
+
 ----------------------------------------------------
 
 
@@ -163,7 +168,8 @@ function widget:VisibleUnitRemoved(unitID)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+--function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	if Spring.IsGUIHidden() then
 		return
 	end
@@ -173,7 +179,7 @@ function widget:DrawWorldPreUnit()
 	end
 	
 	if unitPosSmokeVBO.usedElements > 0 then
-		gl.Culling(false)
+		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
 		gl.DepthMask(false)
 		gl.Texture(0, unitPosTexture)

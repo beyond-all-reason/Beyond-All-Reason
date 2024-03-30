@@ -80,23 +80,30 @@ void EmitQuad(vec4 posrot1, vec4 posrot2, float width, float r, float g){
 	
 }
 
-void EmitSegment(vec4 posrot1, float width, float r, float g){
-	g_uv.rgb = vec3 (r,0,g);
+void EmitSegment(vec4 posrot1, vec2 lw, vec3 col, float progress){
+	g_uv.rgb = col;
+	g_uv.w = progress;
 	//g_uv.r = posrot1.w;
 	//g_uv.g = posrot2.w;
 	
 	vec3 p;
 	mat3 rotmat;
 	rotmat = rotation3dY(posrot1.w);
+	mat3 rot2 = rotation3dZ(0);
+	//rotmat = rotation3dY(0);
 	
-	p = posrot1.xyz + rotmat * vec3(width, 0,0);
+
+	
+	p = posrot1.xyz +  (rotmat * vec3(-lw.x,0,-lw.y));
+	g_centerpos = vec4(p, 1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
 	
-	
-	p = posrot1.xyz + rotmat * vec3(-width, 0,0);
+	p = posrot1.xyz +  (rotmat * vec3(lw.x,0,lw.y));
+	g_centerpos = vec4(p, -1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
+	
 }
 
 
@@ -125,13 +132,13 @@ void main(){
 	g_uv.xy = vec2(-1, 0);
 	gl_Position = cameraViewProj * centerpos;
 	
-	
+	/*
 		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0, 1.414);
 		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0, 1.414);
 		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0, 1.414);
 		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0, 1.414);
 		EndPrimitive();
-
+*/
 
 	// UNIT TRAILS:
 	
@@ -154,15 +161,15 @@ void main(){
 	///int 
 	
 	//Start by drawing one segment from currpos to previous known pos:
-	int timeback = 8;
+	int timeback = 4;
 	
 	vec4 currposrot = dataIn[0].v_drawpos;
 	vec4 nextposrot = vec4(0);
-	EmitSegment(currposrot, width, 0,0);
+	EmitSegment(currposrot, vec2(width, 0), vec3(0), 0);
 	
 	// REPEAT UNTIL
-	
-	for (int i = 0; i < 30; i ++){
+	int steps = 31;
+	for (int i = 0; i < steps; i ++){
 	
 	
 		int texIndex = nowFrameIndex - timeback * (i + 1) ; 
@@ -179,8 +186,34 @@ void main(){
 		// emit this quad, at width of 16
 		
 		float progress = fract(float(texIndex) / float(numSamples));
+		// if you want a ground trail, use the units rot.
+		// otherwise, interpo between 
 		
-		EmitSegment(nextposrot, width, 0, progress );
+		// calc angle by projecting diff onto screen?
+		
+		vec4 currproj = cameraViewProj * vec4(currposrot.xyz, 1.0);
+		vec4 nextproj = cameraViewProj * vec4(nextposrot.xyz, 1.0);
+		
+		vec3 proj3 = normalize(currproj.xyz- nextproj.xyz);
+		//projected.xy = currposrot.xz - nextposrot.xz;
+		//projected.xy = normalize(projected.xy);
+		//float newangle = atan(projected.y, projected.x);
+		//nextposrot.w = newangle;
+		//projected.xy  = projected.xy * 0.5 + 0.5;
+		vec2 lw = vec2(width + float(i) * 1, 0);
+		
+		
+		vec3 col = normalize(proj3);
+		
+		EmitSegment(nextposrot, lw, col , float(i)/float(steps));
+		
+		
+	
+		
+	
+		
+		
+		
 		//EmitQuad(currposrot, nextposrot, width, float(texIndex) / float(numSamples), progress);
 		
 		currposrot = nextposrot;
