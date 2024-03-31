@@ -1000,8 +1000,8 @@ local options = {
 		name	= "tomfooleryMode",
 		desc	= "turns toms into fools or something",
 		type	= "bool",
-		def		= false,
-		hidden	= true,
+		def		= true,
+		hidden	= false,
 		section	= "options_extra",
 	},
 
