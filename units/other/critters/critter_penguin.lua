@@ -85,7 +85,7 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrfir3",
+				soundstart = "pensquawk1",
 				soundtrigger = 1,
 				targetborder = 0.75,
 				targetmoveerror = 0.1,
@@ -98,23 +98,23 @@ return {
 					nohealthbars = true,
 				},
 				damage = {
-					default = 10,
+					default = 4,
 					subs = 1,
 					vtol = 1,
 				},
 			},
 		},
 		weapons = {
-			-- [1] = {
-			-- 	badtargetcategory = "VTOL",
-			-- 	def = "EYELASER",
-			-- 	onlytargetcategory = "NOTSUB",
-			-- },
-			-- [2] = {
-			-- 	badtargetcategory = "VTOL",
-			-- 	def = "EYELASER",
-			-- 	onlytargetcategory = "NOTSUB",
-			-- },
+			[1] = {
+			 	badtargetcategory = "VTOL",
+			 	def = "EYELASER",
+			 	onlytargetcategory = "NOTSUB",
+			 },
+			 [2] = {
+			 	badtargetcategory = "VTOL",
+			 	def = "EYELASER",
+			 	onlytargetcategory = "NOTSUB",
+			},
 		},
 	},
 }
