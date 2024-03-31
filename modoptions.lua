@@ -995,6 +995,16 @@ local options = {
     --	section	= "options_extra",
     --},
 
+	{
+		key		= "april1",
+		name	= "tomfooleryMode",
+		desc	= "turns toms into fools or something",
+		type	= "bool",
+		def		= true,
+		hidden	= false,
+		section	= "options_extra",
+	},
+
     {
         key 	= "map_waterlevel",
         name 	= "Water Level",
