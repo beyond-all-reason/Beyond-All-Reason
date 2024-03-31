@@ -21,28 +21,22 @@ end
 local needsFixing,s = {},1
 for k, v in pairs({
 	corak=7,
-
 	corstorm=7,
-
 	corck=6,
 	corack=6,
 	correap=6,
-
 	corllt=8,
 	corhllt=8,
-
 	cordemon=3,
-
 	armpw=7,
-
 	armcv=5,
 	armrock=6,
 	armbull=6,
 	armllt=6,
 }) do
-	local tmp = UnitDefNames[k].id
-	if tmp then
-		needsFixing[tmp] = v
+	local tmp = UnitDefNames[k]
+	if tmp and tmp.id then
+		needsFixing[tmp.id] = v
 	end
 end
 
