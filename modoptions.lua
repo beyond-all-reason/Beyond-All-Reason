@@ -1010,7 +1010,7 @@ local options = {
 		name	= "extraTomfooleryMode",
 		desc	= "turns toms into fools or something (critters rise up!)",
 		type	= "bool",
-		def		= true,
+		def		= false,
 		hidden	= false,
 		section	= "options_extra",
 	},
