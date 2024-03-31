@@ -41,7 +41,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "TINYBUG_DEATH",
 		selfdestructcountdown = 0,
-		sightdistance = 150,
+		sightdistance = 500,
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
