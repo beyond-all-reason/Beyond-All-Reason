@@ -38,7 +38,7 @@ return {
 		script = "Critters/critter_duck.lua",
 		seismicsignature = 0,
 		selfdestructcountdown = 0,
-		sightdistance = 0,
+		sightdistance = 500,
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
