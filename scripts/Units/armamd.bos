@@ -3,13 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece base, door1, door2,                                         //Outter structure
-      greenlight, orangelight, redlight,                           //Antena lights
-      piston, y_hinge, z_rotor, head, barrel, barrel_extend,      //Weapon
-      flare, smoke, laser;                                        //Invisible points
+piece base, door1, door2,                                           //Outter structure
+      greenlight, orangelight, redlight,                            //Antena lights
+      piston, y_hinge, z_rotor, head, barrel, barrel_extend,        //Weapon
+      flare, smoke, laser;                                          //Invisible points
 
-static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging,   //Unit state
-            lastpitch, lastheading, deactivateCalls;                           //Weapon rotation + Deactivate system
+static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging;   //Unit states
 
 // Signal definitions
 #define SIG_AIM				2
@@ -20,11 +19,9 @@ static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging,   /
 #define STATE_ACTIVATING    2
 #define STATE_DEACTIVATING  3
 
-#define DEACTIVATE_IDLE     7       // How long it takes (In seconds) to shutdown ( Deactivate() ) antinuke when idle.
-
 #define SOUND_OPEN          1
 
-updateLight(light) {
+UpdateLight(light) {
     hide greenlight;
     hide orangelight;
     hide redlight;
@@ -43,8 +40,8 @@ updateLight(light) {
 activatescr(enableSFX)
 {
     if (enableSFX) {
-        emit-sfx 1024 + 0 from smoke; //Big opening smoke
-        emit-sfx 4096 + SOUND_OPEN from smoke; //Play opening sound
+        emit-sfx 1024 + 0 from smoke;           //Big opening smoke
+        emit-sfx 4096 + SOUND_OPEN from smoke;  //Play opening sound
     }
 
     turn door1 to z-axis <-1> speed <10.0000>;
@@ -122,7 +119,7 @@ InitState()
 Go()
 {
     state = STATE_ACTIVATING;
-    call-script updateLight();
+    call-script UpdateLight();
 
     if (state == STATE_DEACTIVATING) { // In rare cases, when another nuke is detected while being deactivating
         signal SIG_DEACTIVATE;
@@ -137,7 +134,7 @@ Stop()
 {
     statechg_DesiredState = STATE_OFF;
     state = STATE_DEACTIVATING;
-    call-script updateLight();
+    call-script UpdateLight();
 
 	start-script deactivatescr();
 	return (0);
@@ -154,7 +151,6 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = TRUE;
 	currentstate = statechg_DesiredState;
 	statechg_DesiredState = requestedstate;
-	//get PRINT(99, requestedstate, currentstate, statechg_DesiredState);
 	while( statechg_DesiredState != state )
 	{
 		if( statechg_DesiredState == STATE_ON AND state != STATE_ACTIVATING )
@@ -182,9 +178,6 @@ Create()
 
 	state = STATE_OFF;
 	call-script InitState();
-
-	lastpitch = 32000;
-	lastheading = 0;
 }
 
 #define SMOKEPIECE base
@@ -204,60 +197,35 @@ Deactivate()
 
 AimPrimary(heading, pitch)
 {
+    show laser;
+
 	start-script RequestState(STATE_ON);
+
 	signal SIG_AIM;
     set-signal-mask SIG_AIM;
+
 	while( state != STATE_ON )
     {
         sleep 150;
     }
 
-    show laser;
     heading = heading - 16384; //Offset
     turn z_rotor to x-axis <0.000000> - heading speed <600.000000>;
     turn head to z-axis <0.000000> - pitch speed <600.000000>;
 
     return (1);
-
-    deactivateCalls = 0;
-    start-script RequestState(STATE_ON);
-	//signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
-	while( state != STATE_ON )
-    {
-        sleep 150;
-    }
-
-    show laser;
-    heading = heading - 16384; //Offset
-
-    //Make superquick turn if target is far
-    if (get ABS(lastheading) - get ABS(heading) > 12000) {
-        turn z_rotor to x-axis <0.000000> - heading speed <750.000000>;
-        turn head to z-axis <0.000000> - pitch speed <750.000000>;
-        //wait-for-turn z_rotor around x-axis;
-        //wait-for-turn head around z-axis;
-    } else {
-        turn z_rotor to x-axis <0.000000> - heading speed <180.000000>;
-        turn head to z-axis <0.000000> - pitch speed <180.000000>;
-        //wait-for-turn z_rotor around x-axis;
-        //wait-for-turn head around z-axis;
-    }
-
-	lastpitch = pitch;
-	lastheading = heading;
-
-	return;
 }
 
 FirePrimary()
 {
     hide laser;
+    return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
+	return (0);
 }
 
 AimFromPrimary(piecenum)
@@ -268,6 +236,7 @@ AimFromPrimary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
+	return (0);
 }
 
 SetStockpile(num_stockpiled)
@@ -275,14 +244,14 @@ SetStockpile(num_stockpiled)
 	if (num_stockpiled == 0)
 	{
 	    stockpiled = FALSE;
-		call-script updateLight();
+		call-script UpdateLight();
 
 		sleep 100;
 	}
 	if (num_stockpiled >= 1)
 	{
 	    stockpiled = TRUE;
-		call-script updateLight();
+		call-script UpdateLight();
 		sleep 100;
 	}
 }

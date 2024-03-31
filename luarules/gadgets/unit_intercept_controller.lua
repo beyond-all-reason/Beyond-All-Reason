@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name         = "Advanced interceptor control",
-		desc         = "Description as normally shown in tooltip",
+		name         = "Interceptor Controller",
+		desc         = "Controls Interceptors more precisely",
 		author       = "Yzch",
 		date         = "28.03.2024",
 		license      = "GNU GPL, v2 or later",
@@ -14,9 +14,21 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local t_target = {}; --Table that contains current target ID for every antinuke
-local t_type = {}; --Table that contains current weapon type for every antinuke
-local t_deactivate = {}; --Table that contains deactivate countdown for every antinuke
+--Weapon types
+local STARBUSTLAUNCHER = 1;
+local BEAMLASER = 2;
+local weaponTypes = {
+	--Nothing = 0,
+	StarburstLauncher = 1,
+	BeamLaser = 2,
+};
+
+--Tables
+local an_targetId = {}; 		--Table that contains current antinuke's target ID.
+local an_wType = {};		 	--Table that contains current antinuke's weapon type.
+local an_range = {}; 			--Table that contains original antinuke's range.
+local an_deactivateTimer = {}; 	--Table that contains current antinuke's deactivate timer.
+
 local debug_allowed = true; --Enables printing in console
 
 function DebugEcho(ID, text)
@@ -26,74 +38,58 @@ function DebugEcho(ID, text)
 end
 
 function SetAim(interceptorID, ready)
-	if t_type[interceptorID] == "StarburstLauncher" then
-		DebugEcho(interceptorID, "Weapon Aim: " .. tostring(ready));
-		if ready then
-			--Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 1);
-			Spring.SetUnitWeaponState(interceptorID, 1, "range", 72000);
-			--Spring.SetUnitUseWeapons(interceptorID, false, true);
-		else
-			--Spring.SetUnitUseWeapons(interceptorID, false, false);
-			--Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 0);
-			Spring.SetUnitWeaponState(interceptorID, 1, "range", 0);
-		end
-	elseif t_type[interceptorID] == "BeamLaser" then
-		if ready then
-			Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 1);
-		else
-			Spring.SetUnitWeaponState(interceptorID, 1, "projectiles", 0);
-		end
+	if ready then
+		DebugEcho(interceptorID, "Weapon Range: " .. tostring(an_range[interceptorID]));
+		Spring.SetUnitWeaponState(interceptorID, 1, "range", an_range[interceptorID]);
+	else
+		Spring.SetUnitWeaponState(interceptorID, 1, "range", 0);
 	end
 end
 
 function AimPrimaryCheck(interceptorID, targetProjectileID)
-	if t_type[interceptorID] == "StarburstLauncher" then --No restrictions, fire immediately
-		--DebugEcho(interceptorID, "Prevailer fire!");
+	if an_wType[interceptorID] == STARBUSTLAUNCHER then --No restrictions, fire immediately
 		SetAim(interceptorID, true);
-	elseif t_type[interceptorID] == "BeamLaser" then --Restricted, fire later to avoid unwanted early damage on ground
+	elseif an_wType[interceptorID] == BEAMLASER then --Restricted, fire later to avoid unwanted early damage on ground
 		local velX, velY, velZ = Spring.GetProjectileVelocity(targetProjectileID);
 
 		if velY == nil then
-			t_target[interceptorID] = nil;
+			an_targetId[interceptorID] = nil;
 			DebugEcho(interceptorID, "Target lost!");
 		else
-			--Spring.SetUnitUseWeapons(interceptorID, false, false);
 			local vel2d = math.abs(velX) + math.abs(velZ);
 
 			if (vel2d <= 0.1) then -- Prevents interceptors from firing asceding missiles
 				--DebugEcho(interceptorID, "Citadel's missile is ascending! |Vel2D: " .. tostring(vel2d));
 				SetAim(interceptorID, false);
-				--Spring.SetUnitUseWeapons(interceptorID, false, false);
 			else
 				--DebugEcho(interceptorID, "Citadel's missile is DESCENDING! |Vel2D: " .. tostring(vel2d));
 				SetAim(interceptorID, true);
-				--Spring.SetUnitUseWeapons(interceptorID, false, true);
 			end
 		end
 	else
 		DebugEcho(interceptorID, "No weapon found");
-		DebugEcho(interceptorID, tostring(t_type[interceptorID]));
+		DebugEcho(interceptorID, tostring(an_wType[interceptorID]));
 	end
 end
 
 function gadget:GameFrame(f)
-	--Spring.Echo("Frame! " .. tostring(f));
 	if f % 60 == 1 then
-		for interceptorID, targetProjectileID in pairs(t_target) do
+		for interceptorID, targetProjectileID in pairs(an_targetId) do
 			AimPrimaryCheck(interceptorID, targetProjectileID);
 		end
 
-		for interceptorID, time in pairs(t_deactivate) do
-			if t_target[interceptorID] == nil then
+		for interceptorID, time in pairs(an_deactivateTimer) do
+			if an_targetId[interceptorID] == nil then
 				time = time + 60;
 				--DebugEcho(interceptorID, "Countdown: " .. tostring(time))
 				if time >= 420 then
 					Spring.CallCOBScript(interceptorID, "Deactivate", 0);
-					SetAim(proOwnerID, true); --Unpause making stockpiles (For some units like StarburstLauncher)
+					SetAim(interceptorID, true); --Give back original range
 
-					t_deactivate[interceptorID] = nil;
+					an_range[interceptorID] = nil;
+					an_deactivateTimer[interceptorID] = nil;
 				else
-					t_deactivate[interceptorID] = time;
+					an_deactivateTimer[interceptorID] = time;
 				end
 			end
 		end
@@ -101,73 +97,82 @@ function gadget:GameFrame(f)
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if t_target[proOwnerID] == nil then
+	if an_targetId[proOwnerID] == nil then
 		return;
 	end
 
-	if (t_type[proOwnerID] == "StarburstLauncher") then
+	if (an_wType[proOwnerID] == STARBUSTLAUNCHER) then
 		local WeaponDef = WeaponDefs[weaponDefID]
 		if WeaponDef.interceptor == 1 then
-			Spring.SetProjectileTarget(proID, t_target[proOwnerID], string.byte('p')); --Set correct target (original target is buggy)
-			DebugEcho(proOwnerID, "Antinuke fired missile! |TargetID: " .. tostring(t_target[proOwnerID]));
+			Spring.SetProjectileTarget(proID, an_targetId[proOwnerID], string.byte('p')); --Set correct target (original target is buggy)
+			DebugEcho(proOwnerID, "Antinuke fired missile! |TargetID: " .. tostring(an_targetId[proOwnerID]));
 			SetAim(proOwnerID, false);
-			t_target[proOwnerID] = nil;
-			t_type[proOwnerID] = nil;
+			an_targetId[proOwnerID] = nil;
+			an_wType[proOwnerID] = nil;
 		end
 	end
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
-	if t_target[AttackerID] == nil then
+	if an_targetId[AttackerID] == nil then
 		return;
 	end
 
-	if (t_type[AttackerID] == "BeamLaser") then
+	if (an_wType[AttackerID] == BEAMLASER) then
 		local WeaponDef = WeaponDefs[weaponDefID]
 		if WeaponDef.interceptor == 1 then
-			DebugEcho(AttackerID, "Antinuke fired missile! |TargetID: " .. tostring(t_target[AttackerID]));
-			t_target[AttackerID] = nil;
-			t_type[AttackerID] = nil;
+			DebugEcho(AttackerID, "Antinuke fired missile! |TargetID: " .. tostring(an_targetId[AttackerID]));
+			an_targetId[AttackerID] = nil;
+			an_wType[AttackerID] = nil;
 		end
 	end
 end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
-	local interp = Spring.GetProjectileIsIntercepted(targetProjectileID);
-
-	if t_target[interceptorUnitID] ~= nil then
-		--Spring.Echo("Oh no! Citadel is busy " .. tostring(interceptorUnitID) .. " | " .. tostring(table[interceptorUnitID] ));
+	if an_targetId[interceptorUnitID] ~= nil then
 		return false;
 	end
 
-	--local targetType, isUserTarget, target = Spring.GetUnitWeaponTarget(interceptorUnitID, interceptorWeaponID);
-	--Spring.Echo(string.format("%d | %d | %d Intercepted: ", interceptorUnitID, targetProjectileID, target)  .. tostring(interp));
-
+	local interp = Spring.GetProjectileIsIntercepted(targetProjectileID);
 	if interp == false then
 		local reloadState = Spring.GetUnitWeaponState(interceptorUnitID, interceptorWeaponID, "reloadState");
 		reloadState = reloadState - Spring.GetGameFrame();
 		if reloadState > 0 then --Interceptor not reloaded yet
-			--DebugEcho(interceptorUnitID, "Reload state: " .. tostring(reloadState));
 			return false;
 		end
 
 		local unitDefID = Spring.GetUnitDefID(interceptorUnitID);
 		local unitType = WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].type;
-		if unitType == "StarburstLauncher" then --Ignore projectile, if it's too close
-			local pX, pY, pZ = Spring.GetProjectilePosition(targetProjectileID);
-			local uX, uY, uZ = Spring.GetUnitPosition(interceptorUnitID);
+		local weaponTypeId = 0;
 
-			local distance = math.distance2d(pX, pZ, uX, uZ);
-			if distance <= 1200 then
-				DebugEcho(interceptorUnitID, "Too close: " .. tostring(distance));
-				return false;
+		for weaponName, weaponId in pairs(weaponTypes) do
+			if weaponName == unitType then
+				weaponTypeId = weaponId;
 			end
-			DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(distance));
 		end
 
-		t_target[interceptorUnitID] = targetProjectileID;
-		t_type[interceptorUnitID] = unitType;
-		t_deactivate[interceptorUnitID] = 0;
+		if weaponTypeId == STARBUSTLAUNCHER then --Ignore projectile, if it's too close
+			local velX, velY, velZ = Spring.GetProjectileVelocity(targetProjectileID);
+			if velY < -2 then
+				local pX, pY, pZ = Spring.GetProjectilePosition(targetProjectileID);
+				local uX, uY, uZ = Spring.GetUnitPosition(interceptorUnitID);
+
+				local distance = math.diag(pX - uX, pZ - uZ);
+				--local distance = math.diag(pX - uX, pY - uY, pZ - uZ)
+				if distance <= 4000 then
+					DebugEcho(interceptorUnitID, "Too close: " .. tostring(distance));
+					return false;
+				end
+				DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(distance));
+			end
+		end
+
+		an_targetId[interceptorUnitID] = targetProjectileID;
+		an_wType[interceptorUnitID] = weaponTypeId;
+		if an_range[interceptorUnitID] == nil then
+			an_range[interceptorUnitID] = Spring.GetUnitWeaponState(interceptorUnitID, 1, "range");
+		end
+		an_deactivateTimer[interceptorUnitID] = 0;
 
 		--DebugEcho(interceptorUnitID, "Antinuke accepted missile! |TargetID: " .. tostring(t_target[interceptorUnitID]));
 		AimPrimaryCheck(interceptorUnitID, targetProjectileID);
