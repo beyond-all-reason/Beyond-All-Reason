@@ -997,8 +997,8 @@ local options = {
 
 	{
 		key		= "april1",
-		name	= "tomfooleryMode",
-		desc	= "turns toms into fools or something (hats only)",
+		name	= "Hats (April Fools)",
+		desc	= "Hats (April Fools)",
 		type	= "bool",
 		def		= true,
 		hidden	= false,
@@ -1007,8 +1007,8 @@ local options = {
 
 	{
 		key		= "april1extra",
-		name	= "extraTomfooleryMode",
-		desc	= "turns toms into fools or something (critters rise up!)",
+		name	= "Aggressive Critters (April Fools)",
+		desc	= "Aggressive Critters (April Fools)",
 		type	= "bool",
 		def		= false,
 		hidden	= false,
