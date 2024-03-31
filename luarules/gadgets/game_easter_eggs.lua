@@ -10,7 +10,7 @@ function gadget:GetInfo()
     }
 end
 
-if Spring.GetModOption("easterEggHunt") ~= true then
+if Spring.GetModOptions().easterEggHunt ~= true then
 	return false
 end
 
