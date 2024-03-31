@@ -68,7 +68,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if frame < 10 then
 
         --scan for critters present
-        if teamID == gaiaID and string.find("critter_", UnitDefs[unitDefID].name) then --rough double check, this should be only critters anyway
+        if teamID == gaiaID and string.find(UnitDefs[unitDefID].name, "critter_") then --rough double check, this should be only critters anyway
             initialUnits[unitDefID] = unitDefID
         end
     
