@@ -10,9 +10,9 @@ function gadget:GetInfo()
     }
 end
 
-if true then
-    return -- kill it for now
-end
+--if true then
+--    return -- kill it for now
+--end
 
 if not gadgetHandler:IsSyncedCode() then
     return
