@@ -10,6 +10,10 @@ function gadget:GetInfo()
     }
 end
 
+if true then
+    return
+end
+
 
 local initialUnits = {}
 local crittersPresent = {}
@@ -42,14 +46,14 @@ function gadget:GameFrame(frame)
 		--clean critters list of irrelevants, if empty add penguins
 
         for id, unit in pairs(initialUnits) do
-            if id==437 or id==438 or id==439 or id==442 then ---ant crab duck penguin
+            if id==UnitDefNames['critter_ant'].id or id==UnitDefNames['critter_crab'].id or id==UnitDefNames['critter_duck'].id or id==UnitDefNames['critter_penguin'].id then ---ant crab duck penguin
                 table.insert(crittersPresent, id)
             end
         end
 
 
         if #crittersPresent == 0 then
-            table.insert(crittersPresent, 442)--add penwins
+            table.insert(crittersPresent, UnitDefNames['critter_penguin'].id)--add penwins
         end
 
 		--Spring.Echo('hornet cp', #crittersPresent)
