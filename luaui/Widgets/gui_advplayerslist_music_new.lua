@@ -18,6 +18,7 @@ Spring.CreateDir("music/custom/war")
 Spring.CreateDir("music/custom/bossfight")
 Spring.CreateDir("music/custom/gameover")
 Spring.CreateDir("music/custom/menu")
+Spring.CreateDir("music/custom/boombox")
 
 ----------------------------------------------------------------------
 -- CONFIG
@@ -27,10 +28,10 @@ local showGUI = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 30000
-local warMeterResetTime = 60 -- seconds
+local warHighLevel = 40000
+local warMeterResetTime = 30 -- seconds
 local interruptionMinimumTime = 20 -- seconds
-local interruptionMaximumTime = 40 -- seconds
+local interruptionMaximumTime = 60 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -51,12 +52,13 @@ local warhighTracks = {}
 local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
+local boomboxTracks = {}
 
 local menuTracks = {}
 local loadingTracks = {}
 
 local currentTrack
-local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, boomboxTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
@@ -80,6 +82,7 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
+	local boomboxTracksNew				= VFS.DirList(musicDirNew..'/boombox', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -91,7 +94,7 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
 	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
 	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
-
+	local boomboxTracksCustom		= VFS.DirList(musicDirCustom..'/boombox', allowedExtensions)
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
@@ -121,6 +124,7 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracks, bossFightTracksNew)
 		table.append(menuTracks, menuTracksNew)
 		table.append(loadingTracks, loadingTracksNew)
+		table.append(boomboxTracks, boomboxTracksNew)
 	end
 
 	if customSoundtrackEnabled then
@@ -133,6 +137,7 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracks, bossFightTracksCustom)
 		table.append(menuTracks, menuTracksCustom)
 		table.append(loadingTracks, loadingTracksCustom)
+		table.append(boomboxTracks, boomboxTracksCustom)
 	end
 
 	if #bossFightTracks == 0 then
@@ -149,6 +154,10 @@ local function ReloadMusicPlaylists()
 
 	if #menuTracks == 0 then
 		menuTracks = peaceTracks
+	end
+
+	if #boomboxTracks == 0 then
+		boomboxTracks = bossFightTracks
 	end
 	----------------------------------SHUFFLE--------------------------------------
 
@@ -173,6 +182,7 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 	bossFightTracks = shuffleMusic(bossFightTracks)
+	boomboxTracks 	= shuffleMusic(boomboxTracks)
 
 	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
 	-- Spring.Echo("----- peaceTracks -----")
@@ -224,6 +234,12 @@ local function ReloadMusicPlaylists()
 		gameoverTracksPlayCounter = math.random(#gameoverTracks)
 	else
 		gameoverTracksPlayCounter = 1
+	end
+
+	if #boomboxTracks > 1 then
+		boomboxTracksPlayCounter = math.random(#boomboxTracks)
+	else
+		boomboxTracksPlayCounter = 1
 	end
 end
 
@@ -1074,5 +1090,27 @@ function widget:UnitFinished()
 	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
 		--Spring.Echo("silenceTimer: ", silenceTimer)
 		silenceTimer = silenceTimer - 5
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if unitTeam == Spring.GetMyTeamID() and UnitDefs[unitDefID].name == "boombox" and (not appliedSpectatorThresholds) then
+		currentTrack = boomboxTracks[boomboxTracksPlayCounter]
+		boomboxTracksPlayCounter = boomboxTracksPlayCounter + 1
+		if not boomboxTracks[boomboxTracksPlayCounter] then
+			boomboxTracksPlayCounter = 1
+		end
+		Spring.StopSoundStream()
+		Spring.PlaySoundStream(currentTrack, 1)
+		playing = true
+		Spring.SetConfigInt('music', (playing and 1 or 0))
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		interruptionTime = totalTime + 2
+		if fadeDirection then
+			setMusicVolume(fadeLevel)
+		else
+			setMusicVolume(100)
+		end
+		createList()
 	end
 end

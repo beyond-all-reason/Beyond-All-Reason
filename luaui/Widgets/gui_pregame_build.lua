@@ -246,7 +246,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 
 	gl.DepthTest(false)
 	gl.Color(borderColor)
-
+	
 	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
 							 { v = { bx + bw, by, bz - bh } },
 							 { v = { bx + bw, by, bz + bh } },
@@ -303,13 +303,12 @@ function widget:MousePress(x, y, button)
 				if not pos then
 					return
 				end
-
-				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 				local buildFacing = Spring.GetBuildFacing()
+				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 				local _, _, meta, shift = Spring.GetModKeyState()
-
+				
 				if (meta or not shift) and cx ~= -100 then
 					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
 
@@ -319,6 +318,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
+
 					if meta then
 						table.insert(buildQueue, 1, buildData)
 
@@ -412,8 +412,8 @@ function widget:DrawWorld()
 		local x, y, _ = Spring.GetMouseState()
 		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
-			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 			selBuildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 		end
 	end

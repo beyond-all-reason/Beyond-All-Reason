@@ -711,6 +711,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	armsam2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	armsb = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
@@ -1535,6 +1539,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	cormist2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	cormls = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
@@ -2295,6 +2303,10 @@ local icontypes = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
 	},
+	legwint2 = {
+		bitmap = "icons/wind.png",
+		size = 1.67999995
+	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
 		size = 1.04999995
@@ -3010,6 +3022,10 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	boombox = {
+		bitmap = "icons/blank.png",
+		size = 1.0
 	},
 
 	blank = {

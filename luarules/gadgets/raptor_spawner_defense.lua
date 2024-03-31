@@ -1277,7 +1277,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if not unitDef.canMove then
+		if not unitDef.canMove or (unitDef.customParams and unitDef.customParams.iscommander) then
 			-- Calculate an eco value based on energy and metal production
 			local ecoValue = 1
 			if unitDef.energyMake then
