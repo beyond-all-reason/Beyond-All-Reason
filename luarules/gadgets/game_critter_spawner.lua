@@ -10,16 +10,17 @@ function gadget:GetInfo()
     }
 end
 
-if true then
-    return
-end
+--if true then
+--    return
+--end
 
 
 local initialUnits = {}
 local crittersPresent = {}
 local critterNames = {}
 local gaiaID = Spring.GetGaiaTeamID()
-local currentCritter = 442
+local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID))
+local currentCritter = UnitDefNames['critter_penguin'].id
 
 if not gadgetHandler:IsSyncedCode() then
     return
@@ -67,7 +68,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if frame < 10 then
 
         --scan for critters present
-        if teamID == gaiaID and unitDefID > 430 and unitDefID < 450 then --rough double check, this should be only critters anyway
+        if teamID == gaiaID and string.find("critter_", UnitDefs[unitDefID].name) then --rough double check, this should be only critters anyway
             initialUnits[unitDefID] = unitDefID
         end
     
@@ -82,12 +83,11 @@ end
 
 function gadget:FeatureDestroyed(featureID, allyTeamID)
 	--Spring.Echo('hornet fd')
-    if allyTeamID==2 then
+    if allyTeamID == gaiaAllyID then
         --10% 1, 3.333% 2, ~1% 3
 
         if math.random(1,10) == 1 then
             currentCritter = crittersPresent[math.random(1, #crittersPresent)]
-            --currentCritter = 442 --testing force; ant 437, crab 438, duck 439, penguin 442
             local posx, posy, posz = Spring.GetFeaturePosition(featureID)
             local critterID = Spring.CreateUnit(currentCritter, posx, posy, posz, "north", Spring.GetGaiaTeamID())
             Spring.SetUnitBlocking(critterID, false)
@@ -107,7 +107,7 @@ function gadget:FeatureDestroyed(featureID, allyTeamID)
         --seperate gull roll
         if math.random(1,20) == 1 then
             local posx, posy, posz = Spring.GetFeaturePosition(featureID)
-            local critterID = Spring.CreateUnit(441, posx, posy, posz+5, "north", Spring.GetGaiaTeamID())
+            local critterID = Spring.CreateUnit(UnitDefNames['critter_gull'].id, posx, posy, posz+5, "north", Spring.GetGaiaTeamID())
         end
 
 
