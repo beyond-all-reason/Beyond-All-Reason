@@ -10,9 +10,9 @@ function gadget:GetInfo()
     }
 end
 
---if true then
---    return
---end
+if Spring.GetModOptions().april1extra ~= true then
+	return false
+end
 
 
 local initialUnits = {}
@@ -71,8 +71,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         if teamID == gaiaID and string.find(UnitDefs[unitDefID].name, "critter_") then --rough double check, this should be only critters anyway
             initialUnits[unitDefID] = unitDefID
         end
-    
-		
+
+
     end
 end
 
@@ -111,6 +111,6 @@ function gadget:FeatureDestroyed(featureID, allyTeamID)
         end
 
 
-        
+
     end
 end
