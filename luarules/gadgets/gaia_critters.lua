@@ -181,7 +181,7 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 end
 
 local function setGaiaUnitSpecifics(unitID)
-	if false then
+	if Spring.GetModOptions().april1extra ~= true then
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitNoSelect(unitID, true)
 		Spring.SetUnitStealth(unitID, true)

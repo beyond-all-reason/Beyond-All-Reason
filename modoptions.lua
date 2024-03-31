@@ -998,10 +998,29 @@ local options = {
 	{
 		key		= "april1",
 		name	= "tomfooleryMode",
-		desc	= "turns toms into fools or something",
+		desc	= "turns toms into fools or something (hats only)",
 		type	= "bool",
 		def		= true,
 		hidden	= false,
+		section	= "options_extra",
+	},
+
+	{
+		key		= "april1extra",
+		name	= "extraTomfooleryMode",
+		desc	= "turns toms into fools or something (critters rise up!)",
+		type	= "bool",
+		def		= true,
+		hidden	= false,
+		section	= "options_extra",
+	},
+
+	{
+		key		= "easterEggHunt",
+		name	= "Easter Eggs Hunt",
+		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+		type	= "bool",
+		def		= true,
 		section	= "options_extra",
 	},
 

@@ -11,11 +11,11 @@ function gadget:GetInfo()
 end
 
 if Spring.GetModOptions().april1 ~= true then
-	return
+	return false
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	return
+	return false
 end
 
 local needsFixing,s = {},1
