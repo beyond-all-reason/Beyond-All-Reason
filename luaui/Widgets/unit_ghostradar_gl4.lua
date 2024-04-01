@@ -160,14 +160,19 @@ function widget:Update(dt)
 	end
 end
 
+local gameover = false
+function widget:GameOver()
+	gameover = true
+end
+
 function widget:GetConfigData()
 	return {
-		dots = dots,
+		dots = gameover and {} or data.dots,
 	}
 end
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.dots ~= nil then
-		dots = data.dots
+		dots = not data.dots
 	end
 end
