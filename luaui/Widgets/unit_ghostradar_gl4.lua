@@ -173,6 +173,6 @@ end
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.dots ~= nil then
-		dots = not data.dots
+		dots = data.dots
 	end
 end
