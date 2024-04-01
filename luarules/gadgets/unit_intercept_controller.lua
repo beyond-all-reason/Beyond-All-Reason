@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
---Weapon types
+--Weapon types -> Comparing numbers is faster than comparing strings
 local STARBUSTLAUNCHER = 1;
 local BEAMLASER = 2;
 
@@ -40,7 +40,6 @@ end
 
 function SetAim(interceptorID, ready)
 	if ready then
-		--DebugEcho(interceptorID, "Weapon Range: " .. tostring(an_range[interceptorID]));
 		Spring.SetUnitWeaponState(interceptorID, 1, "range", an_range[interceptorID]);
 	else
 		Spring.SetUnitWeaponState(interceptorID, 1, "range", 0);
@@ -51,19 +50,15 @@ function AimPrimaryCheck(interceptorID, targetProjectileID)
 	if an_wType[interceptorID] == STARBUSTLAUNCHER then --No restrictions, fire immediately
 		SetAim(interceptorID, true);
 	elseif an_wType[interceptorID] == BEAMLASER then --Restricted, fire later to avoid unwanted early damage on ground
-		local velX, velY, velZ = Spring.GetProjectileVelocity(targetProjectileID);
+		local _, velY, _ = Spring.GetProjectileVelocity(targetProjectileID);
 
 		if velY == nil then
 			an_targetId[interceptorID] = nil;
 			DebugEcho(interceptorID, "Target lost!");
 		else
-			--local speed = math.speed3d(velX, velY, velZ);
-
 			if velY > -5 then -- Prevents interceptors from firing missiles too early -> balance thing
-				--DebugEcho(interceptorID, "Citadel's missile is ascending! |Vel2D: " .. tostring(vel2d));
 				SetAim(interceptorID, false);
 			else
-				--DebugEcho(interceptorID, "Citadel's missile is DESCENDING! |Vel2D: " .. tostring(vel2d));
 				SetAim(interceptorID, true);
 			end
 		end
@@ -107,7 +102,6 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		local WeaponDef = WeaponDefs[weaponDefID]
 		if WeaponDef.interceptor == 1 then
 			Spring.SetProjectileTarget(proID, an_targetId[proOwnerID], string.byte('p')); --Set correct target (original target is buggy)
-			DebugEcho(proOwnerID, "Antinuke fired missile! |TargetID: " .. tostring(an_targetId[proOwnerID]));
 			SetAim(proOwnerID, false);
 			an_targetId[proOwnerID] = nil;
 			an_wType[proOwnerID] = nil;
@@ -123,7 +117,6 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
 	if (an_wType[AttackerID] == BEAMLASER) then
 		local WeaponDef = WeaponDefs[weaponDefID]
 		if WeaponDef.interceptor == 1 then
-			DebugEcho(AttackerID, "Antinuke fired missile! |TargetID: " .. tostring(an_targetId[AttackerID]));
 			an_targetId[AttackerID] = nil;
 			an_wType[AttackerID] = nil;
 		end
@@ -157,8 +150,7 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 			local velX, velY, velZ = Spring.GetProjectileVelocity(targetProjectileID);
 			if velY < -2 then
 				local pX, pY, pZ = Spring.GetProjectilePosition(targetProjectileID);
-				--local uX, uY, uZ = Spring.GetUnitPosition(interceptorUnitID);
-				local targetType, tarPos = Spring.GetProjectileTarget(targetProjectileID);
+				local _, tarPos = Spring.GetProjectileTarget(targetProjectileID);
 
 				local projSpeed = math.speed3d(velX, velY, velZ) * 5;
 				local newX = pX + (velX * projSpeed);
@@ -166,20 +158,9 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 				local newZ = pZ + (velZ * projSpeed);
 				local distance = math.diag(tarPos[1] - newX, tarPos[3] - newZ);
 
-				if distance <= 1000 or newY < tarPos[2] then
-					DebugEcho(interceptorUnitID, "Too close: " .. tostring(distance) .. " |S: " .. tostring(projSpeed) .. " |NX: " .. tostring(newX) .. " |NZ: " .. tostring(newZ) .. " |TarX: " .. tostring(tarPos[1]) .. " |tarZ: " .. tostring(tarPos[3]) .. " |X: " .. tostring(pX) .. " |Z: " .. tostring(pZ));
+				if distance <= 1000 or newY < tarPos[2] then --Too late to fire antinuke
 					return false;
 				end
-				DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(distance) .. " |S: " .. tostring(projSpeed) .. " |NX: " .. tostring(newX) .. " |NZ: " .. tostring(newZ) .. " |TarX: " .. tostring(tarPos[1]) .. " |tarZ: " .. tostring(tarPos[3]) .. " |X: " .. tostring(pX) .. " |Z: " .. tostring(pZ));
-
-				--local posYDifference = pY - uY;
-				--local distance = math.diag(pX - uX, pZ - uZ);
-				--local distance = math.diag(pX - uX, pY - uY, pZ - uZ)
-				--if posYDifference <= 2000  then
-				--	DebugEcho(interceptorUnitID, "Too close: " .. tostring(posYDifference));
-				--	return false;
-				--end
-				--DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(posYDifference));
 			end
 		end
 
@@ -190,7 +171,6 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 		end
 		an_deactivateTimer[interceptorUnitID] = 0;
 
-		--DebugEcho(interceptorUnitID, "Antinuke accepted missile! |TargetID: " .. tostring(t_target[interceptorUnitID]));
 		AimPrimaryCheck(interceptorUnitID, targetProjectileID);
 		Spring.SetProjectileIsIntercepted(targetProjectileID, true);
 		return true;
