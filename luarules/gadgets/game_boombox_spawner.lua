@@ -123,3 +123,10 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
     end
 end
 
+function gadget:UnitDestroyed(unitID, unitDefID)
+    if UnitDefs[unitDefID].name == "boombox" then
+        SelfDQueue[unitID] = nil
+        AliveBoomboxes[unitID] = nil
+    end
+end
+
