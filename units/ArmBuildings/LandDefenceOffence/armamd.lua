@@ -118,6 +118,9 @@ return {
 			amd_rocket = {
 				areaofeffect = 1,
 				avoidfeature = false,
+				avoidfriendly = false;
+				avoidenemy = false;
+				avoidneutral = false;
 				beamdecay = 0.0,
 				beamtime = 0.6,
 				cannon1name = "barrel",
@@ -125,13 +128,14 @@ return {
 				coverage = 2000;
 				collideenemy = false,
 				collidefriendly = false,
+				collidefeature = false,
 				collideneutral = false,
 				collisionsize = 10,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.2,
-				energypershot = 0,
+				energypershot = 7500,
 				explosiongenerator = "custom:laserhit-beamer",
 				firestarter = 30,
 				impactonly = 1,
@@ -140,6 +144,7 @@ return {
 				interceptor = 1,
 				interceptsolo = 0,
 				laserflaresize = 5,
+				metalpershot = 150,
 				name = "Taychon intercepting nuke missile weapon",
 				noselfdamage = true,
 				proximitypriority = 0,
@@ -151,7 +156,7 @@ return {
 				soundstart = "antinukepulsar",
 				soundtrigger = 1,
 				stockpile = true,
-				stockpiletime = 2,
+				stockpiletime = 90,
 				smoketrail = true,
 				smokePeriod = 30,
 				smoketime = 2000,
