@@ -30,7 +30,7 @@ local an_wType = {};		 	--Table that contains current antinuke's weapon type.
 local an_range = {}; 			--Table that contains original antinuke's range.
 local an_deactivateTimer = {}; 	--Table that contains current antinuke's deactivate timer.
 
-local debug_allowed = true; --Enables printing in console
+local debug_allowed = false; --Enables printing in console
 
 function DebugEcho(ID, text)
 	if debug_allowed then
@@ -77,11 +77,12 @@ function gadget:GameFrame(f)
 		for interceptorID, time in pairs(an_deactivateTimer) do
 			if an_targetId[interceptorID] == nil then
 				time = time + 60;
-				--DebugEcho(interceptorID, "Countdown: " .. tostring(time))
+				DebugEcho(interceptorID, "Countdown: " .. tostring(time))
 				if time >= 420 then
 					Spring.CallCOBScript(interceptorID, "Deactivate", 0);
 					SetAim(interceptorID, true); --Give back original range
 
+					DebugEcho(interceptorID, "Deactivating!");
 					an_wType[interceptorID] = nil;
 					an_range[interceptorID] = nil;
 					an_deactivateTimer[interceptorID] = nil;
@@ -125,6 +126,11 @@ end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
 	if an_targetId[interceptorUnitID] ~= nil then
+		return false;
+	end
+
+	local stockpiled = Spring.GetUnitStockpile(interceptorUnitID);
+	if stockpiled <= 0 then
 		return false;
 	end
 
