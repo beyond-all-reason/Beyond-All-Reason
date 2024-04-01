@@ -1207,30 +1207,13 @@ local options = {
     },
 
     {
-        key    	= "teamcolors_icon_dev_mode",
-        name   	= "Icon Dev Mode ",
-        desc   	= "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "disabled",
-        items 	= {
-            { key = "disabled", 	name = "Disabled", 			desc = "description" },
-            { key = "armblue", 		name = "Armada Blue", 		desc = "description" },
-            { key = "corred", 		name = "Cortex Red", 		desc = "description" },
-            { key = "scavpurp", 	name = "Scavenger Purple", 	desc = "description" },
-            { key = "raptororange", name = "Raptor Orange", 	desc = "description" },
-			{ key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
-			{ key = "leggren",		name = "Legion Green", 		desc = "description" },
-        }
-    },
-
-    {
         key    	= "faction_limiter",
-        name   	= "Limit which factions a team can play.",
-        desc   	= "Input the factions a team should play, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
+        name   	= "Team Faction Limiter",
+        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
         type   	= "string",
         section	= "options_experimental",
         def		= "",
+		hidden	= true,
     },
 
     {
@@ -1282,23 +1265,54 @@ local options = {
         step   	= 0.1,
     },
 
-    {
-        key     = "debugcommands",
-        name    = "Debug Commands",
-        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
-        section = "options_experimental",
-        type    = "string",
-        def     = "",
-    },
 
     {
         key     = "defaultdecals",
         name    = "Default Decals",
-        desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "Use the default explosion decals instead of Decals GL4",
         section = "options_experimental",
         type    = "bool",
         def     =  true,
         hidden 	= true,
+    },
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- DEV mode only mod option otherwise hidden by chobby
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    {
+        key		= "dev",
+        name	= "_DEV",
+        desc	= "tab that should be hidden by chobby",
+        hidden 	= true,
+        type	= "section",
+    },
+    {
+        key    	= "teamcolors_icon_dev_mode",
+        name   	= "Icon Dev Mode ",
+        desc   	= "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
+        type   	= "list",
+        section = "dev",
+        def  	= "disabled",
+        items 	= {
+            { key = "disabled", 	name = "Disabled", 			desc = "description" },
+            { key = "armblue", 		name = "Armada Blue", 		desc = "description" },
+            { key = "corred", 		name = "Cortex Red", 		desc = "description" },
+            { key = "scavpurp", 	name = "Scavenger Purple", 	desc = "description" },
+            { key = "raptororange", name = "Raptor Orange", 	desc = "description" },
+			{ key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
+			{ key = "leggren",		name = "Legion Green", 		desc = "description" },
+        }
+    },
+    {
+        key     = "debugcommands",
+        name    = "Debug Commands",
+        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "string",
+        def     = "",
     },
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
