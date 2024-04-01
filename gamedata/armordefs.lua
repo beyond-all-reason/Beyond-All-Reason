@@ -484,6 +484,7 @@ local armorDefs = {
 		"legphoenix",
 		"legstronghold",
 		"legwhisper",
+		"critter_gull",
 	},
 	shields = {
 		"armgate",

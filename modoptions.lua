@@ -201,6 +201,15 @@ local options = {
         def    	= false,
     },
 
+    {
+        key    	= "unit_restrictions_noendgamelrpc",
+        name   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        desc   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        type   	= "bool",
+        section	= "restrictions",
+        def    	= false,
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Scavengers
@@ -985,6 +994,35 @@ local options = {
     --	def    	= true,
     --	section	= "options_extra",
     --},
+
+	{
+		key		= "april1",
+		name	= "Hats (April Fools)",
+		desc	= "Hats (April Fools)",
+		type	= "bool",
+		def		= true,
+		hidden	= false,
+		section	= "options_extra",
+	},
+
+	{
+		key		= "april1extra",
+		name	= "Aggressive Critters (April Fools)",
+		desc	= "Aggressive Critters (April Fools)",
+		type	= "bool",
+		def		= false,
+		hidden	= false,
+		section	= "options_extra",
+	},
+
+	{
+		key		= "easterEggHunt",
+		name	= "Easter Eggs Hunt",
+		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+		type	= "bool",
+		def		= true,
+		section	= "options_extra",
+	},
 
     {
         key 	= "map_waterlevel",

@@ -10,12 +10,12 @@ function gadget:GetInfo()
     }
 end
 
-if true then
-    return -- kill it for now
+if Spring.GetModOptions().easterEggHunt ~= true then
+	return false
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return
+    return false
 end
 
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}

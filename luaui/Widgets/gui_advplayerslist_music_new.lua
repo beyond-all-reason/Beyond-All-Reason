@@ -1106,11 +1106,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		Spring.SetConfigInt('music', (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
-		if fadeDirection then
-			setMusicVolume(fadeLevel)
-		else
-			setMusicVolume(100)
-		end
+		fadeDirection = 1
+		fadeOutSkipTrack = false
+		setMusicVolume(100)
 		createList()
 	end
 end

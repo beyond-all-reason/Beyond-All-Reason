@@ -62,6 +62,13 @@ local unitDefCanWearHats = {
 	[UnitDefNames.armdecom.id] = true,
 }
 
+ if Spring.GetModOptions().experimentallegionfaction then
+	unitDefCanWearHats[UnitDefNames.legcom.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl2.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
+ end
+
 local vikings = {
 	["Blodir"] = true,
 	["[teh]Teddy"] = true,
@@ -78,10 +85,17 @@ local silverMedals = {
 }
 local bronzeMedals = {
 }
+local uniques = {--playername, hat ident, CaSe MaTtErS
+	['PtaQ'] = 'ptaq',
+	['Hornet'] = 'hornet',
+}
+
 function gadget:GameFrame(gf)
 	if gf == 90 then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
+		
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
+
 			if not spec then
 				local units = Spring.GetTeamUnits(teamID)
 				for k = 1, #units do
@@ -95,6 +109,13 @@ function gadget:GameFrame(gf)
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
+
+						if (uniques[playerName]~=nil) and (UnitDefNames['cor_hat_' .. uniques[playerName]] ~= nil) then
+							local hatDefID = UnitDefNames['cor_hat_' .. uniques[playerName]].id
+							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+							gadget:UnitGiven(unitID, hatDefID, teamID)
+						end
+						
 						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv then
