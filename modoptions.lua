@@ -844,7 +844,7 @@ local options = {
 	},
 
 	{
-		key		= "easterEggHunt",
+		key		= "easter_egg_hunt",
 		name	= "Easter Eggs Hunt",
 		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
 		type	= "bool",
