@@ -154,10 +154,10 @@ return {
 				texture3 = "null",
 				tolerance = 4000,
 				turnrate = 5500,
-				weaponacceleration = 100,
+				weaponacceleration = 120,
 				weapontimer = 5.5,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 1600,
+				weaponvelocity = 1200,
 				customparams = {
 					place_target_on_ground = "true",
 				},

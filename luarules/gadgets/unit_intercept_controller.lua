@@ -17,6 +17,7 @@ end
 --Weapon types
 local STARBUSTLAUNCHER = 1;
 local BEAMLASER = 2;
+
 local weaponTypes = {
 	--Nothing = 0,
 	StarburstLauncher = 1,
@@ -39,7 +40,7 @@ end
 
 function SetAim(interceptorID, ready)
 	if ready then
-		DebugEcho(interceptorID, "Weapon Range: " .. tostring(an_range[interceptorID]));
+		--DebugEcho(interceptorID, "Weapon Range: " .. tostring(an_range[interceptorID]));
 		Spring.SetUnitWeaponState(interceptorID, 1, "range", an_range[interceptorID]);
 	else
 		Spring.SetUnitWeaponState(interceptorID, 1, "range", 0);
@@ -56,9 +57,9 @@ function AimPrimaryCheck(interceptorID, targetProjectileID)
 			an_targetId[interceptorID] = nil;
 			DebugEcho(interceptorID, "Target lost!");
 		else
-			local vel2d = math.abs(velX) + math.abs(velZ);
+			--local speed = math.speed3d(velX, velY, velZ);
 
-			if (vel2d <= 0.1) then -- Prevents interceptors from firing asceding missiles
+			if velY > -5 then -- Prevents interceptors from firing missiles too early -> balance thing
 				--DebugEcho(interceptorID, "Citadel's missile is ascending! |Vel2D: " .. tostring(vel2d));
 				SetAim(interceptorID, false);
 			else
@@ -86,6 +87,7 @@ function gadget:GameFrame(f)
 					Spring.CallCOBScript(interceptorID, "Deactivate", 0);
 					SetAim(interceptorID, true); --Give back original range
 
+					an_wType[interceptorID] = nil;
 					an_range[interceptorID] = nil;
 					an_deactivateTimer[interceptorID] = nil;
 				else
@@ -155,15 +157,29 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 			local velX, velY, velZ = Spring.GetProjectileVelocity(targetProjectileID);
 			if velY < -2 then
 				local pX, pY, pZ = Spring.GetProjectilePosition(targetProjectileID);
-				local uX, uY, uZ = Spring.GetUnitPosition(interceptorUnitID);
+				--local uX, uY, uZ = Spring.GetUnitPosition(interceptorUnitID);
+				local targetType, tarPos = Spring.GetProjectileTarget(targetProjectileID);
 
-				local distance = math.diag(pX - uX, pZ - uZ);
-				--local distance = math.diag(pX - uX, pY - uY, pZ - uZ)
-				if distance <= 4000 then
-					DebugEcho(interceptorUnitID, "Too close: " .. tostring(distance));
+				local projSpeed = math.speed3d(velX, velY, velZ) * 5;
+				local newX = pX + (velX * projSpeed);
+				local newY = pY + (velY * projSpeed);
+				local newZ = pZ + (velZ * projSpeed);
+				local distance = math.diag(tarPos[1] - newX, tarPos[3] - newZ);
+
+				if distance <= 1000 or newY < tarPos[2] then
+					DebugEcho(interceptorUnitID, "Too close: " .. tostring(distance) .. " |S: " .. tostring(projSpeed) .. " |NX: " .. tostring(newX) .. " |NZ: " .. tostring(newZ) .. " |TarX: " .. tostring(tarPos[1]) .. " |tarZ: " .. tostring(tarPos[3]) .. " |X: " .. tostring(pX) .. " |Z: " .. tostring(pZ));
 					return false;
 				end
-				DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(distance));
+				DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(distance) .. " |S: " .. tostring(projSpeed) .. " |NX: " .. tostring(newX) .. " |NZ: " .. tostring(newZ) .. " |TarX: " .. tostring(tarPos[1]) .. " |tarZ: " .. tostring(tarPos[3]) .. " |X: " .. tostring(pX) .. " |Z: " .. tostring(pZ));
+
+				--local posYDifference = pY - uY;
+				--local distance = math.diag(pX - uX, pZ - uZ);
+				--local distance = math.diag(pX - uX, pY - uY, pZ - uZ)
+				--if posYDifference <= 2000  then
+				--	DebugEcho(interceptorUnitID, "Too close: " .. tostring(posYDifference));
+				--	return false;
+				--end
+				--DebugEcho(interceptorUnitID, "Distance ok: " .. tostring(posYDifference));
 			end
 		end
 
