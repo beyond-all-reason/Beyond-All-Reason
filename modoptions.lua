@@ -1137,7 +1137,6 @@ local options = {
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
-		hidden	= true,
     },
 
     {
@@ -1214,6 +1213,7 @@ local options = {
         type   	= "string",
         section	= "options_experimental",
         def		= "",
+		hidden	= true,
     },
 
     {
