@@ -138,7 +138,7 @@ return {
 				name = "ICBM intercepting missile launcher",
 				noselfdamage = true,
 				range = 72000,
-				reloadtime = 2,
+				reloadtime = 2.4,
 				smoketrail = true,
 				smokePeriod = 9,
 				smoketime = 110,
