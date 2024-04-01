@@ -160,9 +160,14 @@ function widget:Update(dt)
 	end
 end
 
+local gameover = false
+function widget:GameOver()
+	gameover = true
+end
+
 function widget:GetConfigData()
 	return {
-		dots = dots,
+		dots = gameover and {} or dots,
 	}
 end
 

@@ -67,7 +67,7 @@ function gadget:GameFrame(frame)
             if math.random(1,10) == 1 then 
                 for j = 1,1000 do
                     local posx = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
-                    local posz = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
+                    local posz = math.random(math.floor(Game.mapSizeZ*0.02), math.ceil(Game.mapSizeZ*0.98))
                     local posy = Spring.GetGroundHeight(posx, posz)
                     local blockerDistance = getNearestBlocker(posx, posz)
                     if posy > 0 and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true) and blockerDistance > 196 then
@@ -120,6 +120,13 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
         return false
     else
         return true
+    end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID)
+    if UnitDefs[unitDefID].name == "boombox" then
+        SelfDQueue[unitID] = nil
+        AliveBoomboxes[unitID] = nil
     end
 end
 
