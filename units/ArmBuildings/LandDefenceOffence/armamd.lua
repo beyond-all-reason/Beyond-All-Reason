@@ -118,9 +118,9 @@ return {
 			amd_rocket = {
 				areaofeffect = 1,
 				avoidfeature = false,
-				avoidfriendly = false;
-				avoidenemy = false;
-				avoidneutral = false;
+				avoidfriendly = false,
+				avoidenemy = false,
+				avoidneutral = false,
 				beamdecay = 0.0,
 				beamtime = 0.6,
 				cannon1name = "barrel",
