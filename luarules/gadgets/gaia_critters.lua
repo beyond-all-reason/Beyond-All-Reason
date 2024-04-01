@@ -193,7 +193,7 @@ local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 		for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {1}, 0)
+			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
 			--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
 		end
 	end
