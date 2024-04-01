@@ -109,6 +109,14 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "apf/armbull.s3o"
 		elseif name == "armllt" then
 			uDef.objectname = "apf/armllt.s3o"
+		elseif name == "armwin" then
+			uDef.objectname = "apf/armwin.s3o"
+		elseif name == "armham" then
+			uDef.objectname = "apf/armham.s3o"
+		elseif name == "corwin" then
+			uDef.objectname = "apf/corwin.s3o"
+		elseif name == "corthud" then
+			uDef.objectname = "apf/corthud.s3o"
 		end
 	end
 
