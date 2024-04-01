@@ -73,7 +73,7 @@ else
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		if not mySpec and attackerTeam == myTeamID and (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) then
-			local msg = string.format("l0g%s:%d:%s:%d:%d:%d", validation,
+			local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation,
 				Spring.GetGameFrame(), 'ud',
 				unitTeam, attackerTeam, unitDefID)
 			spSendLuaRulesMsg(msg)

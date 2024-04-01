@@ -111,6 +111,7 @@ local armorDefs = {
 		"armrl",
 		"armrock",
 		"armsam",
+		"armsam2",
 		"armscab",
 		"armsd",
 		"armsh",
@@ -183,6 +184,7 @@ local armorDefs = {
 		"cormex",
 		"cormh",
 		"cormist",
+		"cormist2",
 		"cormmkr",
 		"cormoho",
 		"cormort",
@@ -355,6 +357,7 @@ local armorDefs = {
 		"corapt3",
 		"legbastion",
 		"legstarfall",
+		"legflak",
 		"legsolar",
 
 		"coruwgeo",
@@ -481,6 +484,7 @@ local armorDefs = {
 		"legphoenix",
 		"legstronghold",
 		"legwhisper",
+		"critter_gull",
 	},
 	shields = {
 		"armgate",

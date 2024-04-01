@@ -12,8 +12,7 @@ end
 
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local processPlayerChangedFrame
-local processPlayerChangedPlayerID
+local processPlayerChangedFrame, processPlayerChangedPlayerID
 
 local function switchToTeam(teamID)
 	local oldMapDrawMode = Spring.GetMapDrawMode()
@@ -31,6 +30,7 @@ local function processPlayerChanged(playerID)
 		local _, _, isPlayerTeamDead = Spring.GetTeamInfo(teamID, false)
 		if isPlayerTeamDead and myTeamID == teamID then
 			local myAllyTeamID = Spring.GetMyAllyTeamID()
+			-- first try alive team mates
 			local teamList = Spring.GetTeamList(myAllyTeamID)
 			for _, teamListID in ipairs(teamList) do
 				local _, _, isDead = Spring.GetTeamInfo(teamListID, false)

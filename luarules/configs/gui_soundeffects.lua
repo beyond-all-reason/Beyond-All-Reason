@@ -2347,6 +2347,34 @@ GUIUnitSoundEffects = {
 	},
 
 	-- LEGION T1 BUILDINGS
+
+	legdrag = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall",
+	},
+	legdtf = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "flame-alt",
+	},
+	legdtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "lightning",
+	},
+	legdtm = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
+	legforti = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall-t2",
+	},
+
+
 	legwin = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
@@ -2390,7 +2418,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-large",
 	},
-
+	legflak = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "aarocket-medium-flak",
+	},
 
 	-- LEGION FACTORIES
 	leglab = {

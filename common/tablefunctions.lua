@@ -6,9 +6,9 @@ run for end users.)
 ]]
 
 if not table.copy then
-	function table:copy()
+	function table.copy(tbl)
 		local copy = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			if type(value) == "table" then
 				copy[key] = table.copy(value)
 			else
@@ -99,9 +99,9 @@ if not table.toString then
 end
 
 if not table.invert then
-	function table:invert()
+	function table.invert(tbl)
 		local inverted = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			inverted[value] = key
 		end
 		return inverted
@@ -227,6 +227,105 @@ if not table.shuffle then
 			local j = math.random(i, #sequence)
 			sequence[i], sequence[j] = sequence[j], sequence[i]
 		end
+	end
+end
+
+if not table.map then
+	--- Applies a function to all elements of a table and returns a new table with the results.
+	---@generic K, V, R
+	---@param tbl table<K, V> The input table.
+	---@param callback fun(value: V, key: K, tbl: table<K, V>): R The function to apply to each element. It receives three arguments: the element's value, its key, and the original table.
+	---@return R[] A new table containing the results of applying the callback to each element.
+	function table.map(tbl, callback)
+		local result = {}
+		for k, v in pairs(tbl) do
+			result[k] = callback(v, k, tbl)
+		end
+		return result
+	end
+end
+
+if not table.reduce then
+	--- Reduces a table to a single value by applying a function to each element in order.
+	---@generic K, V, R
+	---@param tbl table<K, V> The input table.
+	---@param callback fun(acc: R, value: V, key: K, tbl: table<K, V>): R The function to apply to each element. It receives four arguments: the accumulator, the element's value, its key, and the original table.
+	---@param initial R The initial value of the accumulator. If no value is specified, the first callback will receive nil as the accumulator value.
+	---@return R The final value of the accumulator after applying the callback to all elements.
+	function table.reduce(tbl, callback, initial)
+		local accumulator = initial
+
+		for k, v in pairs(tbl) do
+			accumulator = callback(accumulator, v, k, tbl)
+		end
+
+		return accumulator
+	end
+end
+
+if not table.filterArray then
+	--- Creates a new (array-style) table containing only the elements that satisfy a given condition.
+	---@generic V
+	---@param tbl V[] The input table.
+	---@param callback fun(value: V, index: number, tbl: V[]): boolean The condition to check for each element. It receives three arguments: the element's value, its key, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return V[] A new table containing only the elements that satisfy the condition.
+	function table.filterArray(tbl, callback)
+		local result = {}
+		for i, v in ipairs(tbl) do
+			if callback(v, i, tbl) then
+				result[#result + 1] = v
+			end
+		end
+		return result
+	end
+end
+
+if not table.filterTable then
+	--- Creates a new (dictionary-style) table containing only the elements that satisfy a given condition.
+	---@generic K, V, R
+	---@param tbl table<K, V> The input table.
+	---@param callback fun(value: V, key: K, tbl: table<K, V>): boolean The condition to check for each element. It receives three arguments: the element's value, its index, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return table<K, V> A new table containing only the elements that satisfy the condition.
+	function table.filterTable(tbl, callback)
+		local result = {}
+		for k, v in pairs(tbl) do
+			if callback(v, k, tbl) then
+				result[k] = v
+			end
+		end
+		return result
+	end
+end
+
+if not table.all then
+	--- Checks if all elements of a table satisfy a condition.
+	---@generic K, V, R
+	---@param tbl table<K, V> The input table.
+	---@param callback fun(value: V, key: K, tbl: table<K, V>): boolean The condition to check for each element. It receives three arguments: the element's value, its key, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return boolean True if all elements satisfy the condition, false otherwise.
+	function table.all(tbl, callback)
+		for k, v in pairs(tbl) do
+			if not callback(v, k, tbl) then
+				return false
+			end
+		end
+		return true
+	end
+end
+
+if not table.any then
+	--- Checks if at least one element of a table satisfies a condition.
+	---@generic K, V, R
+	---@param tbl table<K, V> The input table.
+	---@param callback fun(value: V, key: K, tbl: table<K, V>): boolean The condition to check for each element. It receives three arguments: the element's value, its key, and the original table. It should return true if the element satisfies the condition, false otherwise.
+	---@return boolean True if at least one element satisfies the condition, false otherwise.
+	function table.any(tbl, callback)
+		for k, v in pairs(tbl) do
+			if callback(v, k, tbl) then
+				return true
+			end
+		end
+		return false
 	end
 end
 

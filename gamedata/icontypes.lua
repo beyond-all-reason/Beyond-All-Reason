@@ -711,6 +711,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	armsam2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	armsb = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
@@ -1535,6 +1539,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	cormist2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	cormls = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
@@ -2095,6 +2103,26 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdrag = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtf = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtl = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legdtm = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legforti = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	legdefcarryt1 = {
 		bitmap = "icons/legdefcarryt1.png",
 		size = 1.65999997
@@ -2106,6 +2134,10 @@ local icontypes = {
 	legfig = {
 		bitmap = "icons/air.png",
 		size = 0.64999998
+	},
+	legflak = {
+		bitmap = "icons/aa_flak_t2.png",
+		size = 1.5
 	},
 	legfloat = {
 		bitmap = "icons/corparrow.png",
@@ -2270,6 +2302,10 @@ local icontypes = {
 	legwin = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
+	},
+	legwint2 = {
+		bitmap = "icons/wind.png",
+		size = 1.67999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
@@ -2986,6 +3022,10 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	boombox = {
+		bitmap = "icons/blank.png",
+		size = 1.0
 	},
 
 	blank = {

@@ -4,7 +4,13 @@ if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetMo
 	spawnpadSpawnEnabled = true
 end
 
-local UDN = UnitDefNames
+if not UnitDefNames.armrespawn then
+	spawnpadSpawnEnabled = false
+end
+
+if not spawnpadSpawnEnabled then
+	return
+end
 
 function gadget:GetInfo()
     return {
@@ -17,6 +23,8 @@ function gadget:GetInfo()
       enabled   = spawnpadSpawnEnabled,
     }
 end
+
+local UDN = UnitDefNames
 
 if not gadgetHandler:IsSyncedCode() then
 	return false

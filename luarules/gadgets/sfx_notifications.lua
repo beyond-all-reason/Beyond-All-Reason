@@ -60,18 +60,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local nukesNames = {
-		["armsilo_nuclear_missile"] = true,
-		["corsilo_crblmssl"] = true,
-		["armsilo_scav_nuclear_missile"] = true,
-		["corsilo_scav_crblmssl"] = true,
-		["raptor_turret_meteor_t4_v1_weapon"] = true,
-		--["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"] = true,
+		armsilo_nuclear_missile = true,
+		corsilo_crblmssl = true,
+		armsilo_scav_nuclear_missile = true,
+		corsilo_scav_crblmssl = true,
+		raptor_turret_meteor_t4_v1_weapon = true,
+		--raptor_allterrain_arty_basic_t4_v1_meteorlauncher = true,
 	}
 	-- convert weaponname -> weaponDefID
 	local nukes = {}
 	for name, params in pairs(nukesNames) do
 		if WeaponDefNames[name] then
-			nukesNames[WeaponDefNames[name].id] = params
+			nukes[WeaponDefNames[name].id] = params
 		end
 	end
 	nukesNames = nil
@@ -196,7 +196,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 
-	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')
+	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com')
 
 	local isCommander = {}
 	local isRadar = {}

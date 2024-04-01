@@ -1058,3 +1058,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 end
+
+if Spring.GetGameFrame() <= 0 then
+	Spring.SendLuaRulesMsg('aprilfools ' .. ((os.date("%m") == "4" and os.date("%d") <= "2") and '1' or '0'))
+end

@@ -11,18 +11,13 @@ static-var  WindSpeed, WindDirection, LastDirection, Built, Stunned;
 Go()
 {
 	sleep RAND(1, 500);
-	
-	//Take 7s to turn and accelerate
-	//Angular speed is always positive, even if the angle is negative. The speed is in Spring angles/second (sa/s). 
-	var DirectionDelta;
-	DirectionDelta = WindDirection - LastDirection;
-	if (DirectionDelta < 0 ) DirectionDelta = 0 - DirectionDelta;
-	if (DirectionDelta > <180>) DirectionDelta = DirectionDelta - <180>;
-	//get PRINT(get GAME_FRAME,DirectionDelta, WindSpeed, WindDirection);
-	
-	turn cradle to y-axis WindDirection speed DirectionDelta/7;
+
+	//get PRINT(get GAME_FRAME, WindSpeed, WindDirection);
+	//No wind direction, because it's vertical turbine.
+
+	spin cradle around y-axis speed WindSpeed / -5.0 accelerate <1.0>;
 	spin fan around y-axis speed WindSpeed accelerate <1.0>;
-	//The angular acceleration should always be positive, even if you are spinning the piece at a negative angular speed. 
+	//The angular acceleration should always be positive, even if you are spinning the piece at a negative angular speed.
 	//It is measured in Spring angles per frame-second (sa/f*s); in other words, 
 	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second. 
 	//spin [piece] around [axis] speed [angular speed] accelerate [angular acceleration];
