@@ -167,7 +167,7 @@ end
 
 function widget:GetConfigData()
 	return {
-		dots = gameover and {} or data.dots,
+		dots = gameover and {} or dots,
 	}
 end
 
