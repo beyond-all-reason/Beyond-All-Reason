@@ -265,13 +265,13 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 				if isnewid then iT.VAO:AddUnitsToSubmission(unitID) end
 			elseif objecttype == "unitDefID" then	-- TODO
 				iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, teamID, thisInstanceIndex-1)
-				iT.VAO:AddUnitDefsToSubmission(unitID)
+				if isnewid then iT.VAO:AddUnitDefsToSubmission(unitID) end
 			elseif objecttype == "featureID" then
 				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-				iT.VAO:AddFeaturesToSubmission(unitID)
+				if isnewid then iT.VAO:AddFeaturesToSubmission(unitID) end
 			elseif objecttype == "featureDefID" then
 				iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-				iT.VAO:AddFeatureDefsToSubmission(unitID)
+				if isnewid then iT.VAO:AddFeatureDefsToSubmission(unitID) end
 			end
 
 		end
