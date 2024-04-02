@@ -133,7 +133,7 @@ return {
 				reloadtime = 2.25,
 				size = 2,
 				soundhit = "xplomed1",
-				soundhitwet = "splshmed",
+				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
 				soundstartvolume = 2,
 				sprayangle = 1000,
