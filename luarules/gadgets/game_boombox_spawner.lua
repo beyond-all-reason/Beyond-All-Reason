@@ -18,16 +18,6 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-AprilFoolsPlayerIDs = {}
-
-AprilFoolsCounter = 0
-function gadget:RecvLuaMsg(msg, playerID)
-    if string.find(msg, "aprilfools 1") and not AprilFoolsPlayerIDs[playerID] then
-        AprilFoolsCounter = AprilFoolsCounter + 1
-        AprilFoolsPlayerIDs[playerID] = true
-    end
-end
-
 local AliveBoomboxes = {}
 local SelfDQueue = {}
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
@@ -63,11 +53,10 @@ end
 function gadget:GameFrame(frame)
     if frame == 1 then
         for i = 1,10*#Spring.GetTeamList() do
-            --if (AprilFoolsCounter >= #Spring.GetPlayerList()*0.4 and math.random(1,10) == 1) or math.random(1,10000) == 1 then -- date detection doesn't seem to work as expected
-            if math.random(1,10) == 1 then 
+            if math.random(1,10000) == 1 then 
                 for j = 1,1000 do
                     local posx = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
-                    local posz = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
+                    local posz = math.random(math.floor(Game.mapSizeZ*0.02), math.ceil(Game.mapSizeZ*0.98))
                     local posy = Spring.GetGroundHeight(posx, posz)
                     local blockerDistance = getNearestBlocker(posx, posz)
                     if posy > 0 and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true) and blockerDistance > 196 then
@@ -120,6 +109,13 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
         return false
     else
         return true
+    end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID)
+    if UnitDefs[unitDefID].name == "boombox" then
+        SelfDQueue[unitID] = nil
+        AliveBoomboxes[unitID] = nil
     end
 end
 
