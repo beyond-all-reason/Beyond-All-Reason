@@ -32,6 +32,7 @@ void main(void){
 	if ((fragCoord.x & 1u) == 1u) {
 		// odd
 		fragColor = v_vel;
+		fragColor.a = CURRTIME;
 	}else{
 	  //even
 		fragColor = v_pos;

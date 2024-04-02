@@ -38,7 +38,12 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 -- Types of particleEmitters
 --	Will literally just emit 40 quads
 
-
+-- Notes:
+	-- Maybe units that turn shouldnt even emit quads
+	-- pass in max velocity to units as well 
+	-- Figure out if a unit is too slow to emit
+	-- Check if the emit times are actually valid!
+	
 ----------------------------------------------------
 
 
@@ -145,7 +150,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
 			16, 16, 8, 8,  -- lengthwidthcornerheight
-			slot, gf, 1, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			slot, gf, 4, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},

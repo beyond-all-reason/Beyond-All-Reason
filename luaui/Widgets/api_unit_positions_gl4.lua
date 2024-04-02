@@ -37,7 +37,7 @@ local GL_RGBA32F_ARB = 0x8814
 
 
 local autoreload = true
-local texX, texY =  512, 256
+local texX, texY =  512, 2048
 
 local unitPosShader
 local unitPosTexture
@@ -170,7 +170,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	pushElementInstance(
 		unitPosIntanceVBO, -- push into this Instance VBO Table
 		{
-			slot, gf, 0, 0,
+			slot, gf, 1, 0,
 			0, 0, 0, 0, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},

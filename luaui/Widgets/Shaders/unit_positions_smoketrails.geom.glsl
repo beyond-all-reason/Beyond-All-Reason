@@ -106,6 +106,39 @@ void EmitSegment(vec4 posrot1, vec2 lw, vec3 col, float progress){
 	
 }
 
+void GetVelPosXFramesAgo(ivec4 slot_start_step_gf, int timeback, out vec4 posrot, out vec4 velvalid){
+		int slot = slot_start_step_gf.x;
+		int startframe = slot_start_step_gf.y;
+		int stepsize = slot_start_step_gf.z;
+		int nowFrame = slot_start_step_gf.w;
+		
+		int desiredFrame = nowFrame - timeback;
+		
+		// Wrap small texIndex back around once
+		int texIndex = desiredFrame + (TEXX/2);
+		texIndex = texIndex - (TEXX/2) * (texIndex /(TEXX/2));
+		
+		int modStepSize = texIndex - 4 * (texIndex /4);
+		texIndex = texIndex - modStepSize;
+		desiredFrame = desiredFrame - modStepSize;
+		
+		ivec2 sampleXY;
+		sampleXY = ivec2(texIndex * 2, slot);
+		posrot = texelFetch(unitPosTexture, sampleXY, 0); 
+		sampleXY.x += 1;
+		velvalid = texelFetch(unitPosTexture, sampleXY, 0); 
+
+		if (int(velvalid.w) == desiredFrame){
+			velvalid.a = 1.0;
+		}else{
+		//if (desiredFrame < startframe)
+		//	velvalid.a = 0.0;
+			velvalid.w = 0.0;
+		
+		}
+
+}
+
 
 #line 22065
 void main(){
@@ -120,7 +153,7 @@ void main(){
 	emitoffsets = dataIn[0].v_emitoffsets; // if an atlas is used, then use this, otherwise dont
 
 	float length = dataIn[0].v_lengthwidthcornerheight.x;
-	float width = dataIn[0].v_lengthwidthcornerheight.y;
+	float width = dataIn[0].v_lengthwidthcornerheight.y * 0.2;
 	float cs = dataIn[0].v_lengthwidthcornerheight.z;
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
 	
@@ -168,12 +201,15 @@ void main(){
 	EmitSegment(currposrot, vec2(width, 0), vec3(0), 1);
 	
 	// REPEAT UNTIL
-	int steps = 31;
+	int steps = 40;
 	
 	vec3 left = currposrot.xyz;
 	vec3 right = currposrot.xyz;
 	for (int i = 0; i < steps; i ++){
-	
+		vec4 posrotat;
+		vec4 velvalidat;
+		GetVelPosXFramesAgo(iparams, i * 4, posrotat, velvalidat);
+		float progress = float(i*step) * float(step*steps);
 	
 		int texIndex = nowFrameIndex - timeback * (i + 1) ; 
 		
@@ -191,11 +227,12 @@ void main(){
 		
 		ivec2 sampleXY = ivec2(texIndex * 2, slot);
 		vec4 posSample = texelFetch(unitPosTexture, sampleXY, 0); 
-		nextposrot = posSample;
+		nextposrot = posrotat;
 		
 		// emit this quad, at width of 16
 		
-		float progress = fract(float(texIndex) / float(numSamples));
+		//float progress = fract(float(texIndex) / float(numSamples * steps));
+		//float progress = fract(float(texIndex) / float(numSamples * steps));
 		// if you want a ground trail, use the units rot.
 		// otherwise, interpo between 
 		
@@ -206,7 +243,7 @@ void main(){
 		
 		vec3 proj3 = normalize(currproj.xyz- nextproj.xyz);
 
-		vec2 lw = vec2(width + (float(i) + partial) * 3, 0);
+		vec2 lw = vec2(width + (float(i) + partial) * 0.1, 0);
 		
 		nextposrot.y += (float(i) + partial) ;
 		vec3 col = normalize(proj3);
@@ -219,7 +256,7 @@ void main(){
 		
 		
 		vec4 posrot1  = nextposrot;
-		g_uv.rgb = col;
+		g_uv.rgb = velvalidat.www;
 		g_uv.w = progress;
 		
 		vec3 p;
@@ -228,7 +265,7 @@ void main(){
 		mat3 rot2 = rotation3dZ(0);
 		//rotmat = rotation3dY(0);
 		
-		
+		if (velvalidat.w > 0.5){
 		p = posrot1.xyz +  (rotmat * vec3(-lw.x,0,-lw.y));
 		g_centerpos = vec4(p, 1.0);
 		gl_Position = cameraViewProj * vec4(  p , 1.0);
@@ -241,6 +278,7 @@ void main(){
 		
 		
 		currposrot = nextposrot;
+		}
 	
 	}
 	
