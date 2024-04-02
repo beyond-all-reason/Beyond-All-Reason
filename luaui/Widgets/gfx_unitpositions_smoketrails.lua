@@ -32,9 +32,12 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --  -- RiseRate
 --  
 -- Types of Streamers:
--- Ground hugging wake
--- Camera facing volsmoke
--- Chemtrailstreamer
+-- 	Ground hugging wake
+-- 	Camera facing volsmoke
+-- 	Chemtrailstreamer
+-- Types of particleEmitters
+--	Will literally just emit 40 quads
+
 
 ----------------------------------------------------
 
@@ -82,6 +85,7 @@ local shaderSourceCache = {
 		uniformInt = {
 			unitPosTexture = 0,
 			noisetex3dcube = 1,
+			minimap = 2,
 			},
 		uniformFloat = {
 			iconDistance = 20000.0,
@@ -183,7 +187,9 @@ function widget:DrawWorld()
 		gl.DepthTest(false)
 		gl.DepthMask(false)
 		gl.Texture(0, unitPosTexture)
-		gl.Texture(1, noisetex3dcube)
+		gl.Texture(1, noisetex3dcube)		
+		gl.Texture(2, "$minimap")
+
 		unitPosSmokeShader:Activate()
 		unitPosSmokeShader:SetUniform("iconDistance", 99999) -- pass
 		--gl.DepthTest(true)
@@ -191,6 +197,7 @@ function widget:DrawWorld()
 		unitPosSmokeShader:Deactivate()
 		gl.Texture(0, false)
 		gl.Texture(1, false)
+		gl.Texture(2, false)
 	end
 end
 

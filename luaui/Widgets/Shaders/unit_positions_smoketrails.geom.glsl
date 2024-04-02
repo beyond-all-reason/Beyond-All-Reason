@@ -169,6 +169,9 @@ void main(){
 	
 	// REPEAT UNTIL
 	int steps = 31;
+	
+	vec3 left = currposrot.xyz;
+	vec3 right = currposrot.xyz;
 	for (int i = 0; i < steps; i ++){
 	
 	
@@ -202,26 +205,40 @@ void main(){
 		vec4 nextproj = cameraViewProj * vec4(nextposrot.xyz, 1.0);
 		
 		vec3 proj3 = normalize(currproj.xyz- nextproj.xyz);
-		//projected.xy = currpsrot.xz - nextposrot.xz;
-		//projected.xy = normalize(projected.xy);
-		//float newangle = atan(projected.y, projected.x);
-		//nextposrot.w = newangle;
-		//projected.xy  = projected.xy * 0.5 + 0.5;
+
 		vec2 lw = vec2(width + (float(i) + partial) * 3, 0);
 		
 		nextposrot.y += (float(i) + partial) ;
 		vec3 col = normalize(proj3);
 		
-		EmitSegment(nextposrot, lw, col , float(i)/float(steps));
+		//EmitSegment(nextposrot, lw, col , float(i)/float(steps));
 		
 		
-	
-		
-	
+		vec3 tonext = normalize(nextposrot.xyz- currposrot.xyz);
 		
 		
 		
-		//EmitQuad(currposrot, nextposrot, width, float(texIndex) / float(numSamples), progress);
+		vec4 posrot1  = nextposrot;
+		g_uv.rgb = col;
+		g_uv.w = progress;
+		
+		vec3 p;
+		mat3 rotmat;
+		rotmat = rotation3dY(posrot1.w);
+		mat3 rot2 = rotation3dZ(0);
+		//rotmat = rotation3dY(0);
+		
+		
+		p = posrot1.xyz +  (rotmat * vec3(-lw.x,0,-lw.y));
+		g_centerpos = vec4(p, 1.0);
+		gl_Position = cameraViewProj * vec4(  p , 1.0);
+		EmitVertex();
+		
+		p = posrot1.xyz +  (rotmat * vec3(lw.x,0,lw.y));
+		g_centerpos = vec4(p, -1.0);
+		gl_Position = cameraViewProj * vec4(  p , 1.0);
+		EmitVertex();
+		
 		
 		currposrot = nextposrot;
 	
