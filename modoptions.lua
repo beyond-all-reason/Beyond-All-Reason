@@ -828,8 +828,8 @@ local options = {
 		name	= "Hats (April Fools)",
 		desc	= "Hats (April Fools)",
 		type	= "bool",
-		def		= true,
-		hidden	= false,
+		def		= false,
+		hidden	= true,
 		section	= "options_extra",
 	},
 
@@ -839,7 +839,7 @@ local options = {
 		desc	= "Aggressive Critters (April Fools)",
 		type	= "bool",
 		def		= false,
-		hidden	= false,
+		hidden	= true,
 		section	= "options_extra",
 	},
 
@@ -848,7 +848,8 @@ local options = {
 		name	= "Easter Eggs Hunt",
 		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
 		type	= "bool",
-		def		= true,
+		def		= false,
+        hidden	= true,
 		section	= "options_extra",
 	},
 
