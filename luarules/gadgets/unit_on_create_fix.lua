@@ -27,12 +27,16 @@ for k, v in pairs({
 	correap=6,
 	corllt=8,
 	corhllt=8,
-	cordemon=3,
+	cordemon=4,
 	armpw=7,
 	armcv=5,
 	armrock=6,
 	armbull=6,
 	armllt=6,
+	corwin=7,
+	armwin=6,
+	armham=5,
+	corthud=6,
 }) do
 	local tmp = UnitDefNames[k]
 	if tmp and tmp.id then
@@ -47,6 +51,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 		local pieceID = Spring.GetUnitPieceMap(unitID)
 		for i = 1, amountToFix do if i~=s then
 				Spring.SetUnitPieceVisible(unitID, pieceID["h"..i], false)
+		else Spring.SetUnitPieceMatrix(unitID, pieceID["h"..i], { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1})
 			end
 		end
 	end
