@@ -175,7 +175,7 @@ local function drawEtaText(timeLeft, yoffset)
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
-		etaPrefix = ((timeLeft>0) and etaPrefix) or " \255\255\1\1CANCELED "
+		etaPrefix = ((timeLeft>0) and etaPrefix) or ("\255\255\1\1"..Spring.I18N('ui.buildEstimate.cancelled').." ")
 		timeLeft = math.abs(timeLeft)
 		local minutes = timeLeft / 60
 		local seconds = timeLeft % 60
