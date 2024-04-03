@@ -155,8 +155,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	pushElementInstance(
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
-			16, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
-			slot, gf, 4,80,  -- slot_start_step_segments
+			8, 16, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
+			slot, gf, 8,80,  -- slot_start_step_segments
 			0, 0, 0, 1, -- xyz emit position offsets, w unused
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},

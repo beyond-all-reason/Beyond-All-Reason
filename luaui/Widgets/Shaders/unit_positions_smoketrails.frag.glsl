@@ -35,11 +35,11 @@ void main(void)
 	float progress = 1.0 -  g_uv.w * g_uv.w;
 	// BILLBOARDS:
 	#if 1
-		noisePos = (g_centerpos.xyz - vec3(0, 0.1 * timeInfo.x,0)) * 0.01 + g_uv.zzz;
+		noisePos = (g_centerpos.xyz - vec3(0, 0.2 * timeInfo.x,0)) * 0.01 + g_uv.zzz;
 		noise = texture(noisetex3dcube, noisePos);
 		vec2 distcenter = (abs(g_uv.xy * 2.0 - 1.0));
 		float alphacircle = 1.0 - dot(distcenter, distcenter);
-		fragColor.rgba = vec4(vec3(noise.a), alphacircle * progress * noise.z);
+		fragColor.rgba = vec4(vec3(noise.a), alphacircle * progress * noise.a);
 		fragColor.rgba = vec4(vec3(g_uv.rgb), 1 );
 		return;
 	#endif

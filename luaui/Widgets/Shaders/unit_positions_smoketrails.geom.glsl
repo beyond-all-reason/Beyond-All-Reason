@@ -6,8 +6,8 @@
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
-
-layout(points) in;
+//layout(invocations = 4​) in;
+layout(points, invocations = 4) in;
 layout(triangle_strip, max_vertices = MAXVERTICES) out; // at least 1024/ numfloats output, and builtins like gl_Position counts as 4 floats towards this
 // 128 max on my hw
 #line 20013
@@ -139,7 +139,7 @@ void GetVelPosXFramesAgo(ivec4 slot_start_step_segments, int timeback, out vec4 
 		
 		// Make sure that even if our stepsize isnt 1, we dont jitter
 		int modStepSize = texIndex - stepsize * (texIndex /stepsize);
-		texIndex = texIndex - modStepSize;
+		texIndex = texIndex - modStepSize  + 2 * gl_InvocationID;
 		desiredFrame = desiredFrame - modStepSize;
 		
 		ivec2 sampleXY;
@@ -269,19 +269,19 @@ void main(){
 		vec4 nextposrot;
 		vec4 velvalidat;
 		
-		GetVelPosXFramesAgo(slot_start_step_gameframe, i * stepsize, nextposrot, velvalidat);
+		GetVelPosXFramesAgo(slot_start_step_gameframe, i * stepsize + 2* gl_InvocationID, nextposrot, velvalidat);
 		//float progress = (float(i * stepsize) + fracprogress) / float(numsegments*stepsize);
-		float progress = (float(i * stepsize) + fracprogress) / float(numsegments*stepsize);
+		float progress = (float(i * stepsize +  2* gl_InvocationID) + fracprogress) / float(numsegments*stepsize);
 	
 		vec2 lw = vec2(width)  + (progress) * growth;
 		
 		nextposrot.y += (rise * progress) * 0.1 ;
 
-		if (velvalidat.w > 0.5){
+		//if (velvalidat.w > 0.5){
 			//EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(0), progress);
 			EmitBillBoard(currposrot, vec3(0), lw, vec3(rnd), progress);
 			currposrot = nextposrot;
-		}
+		//}
 	}
 	//EndPrimitive();
 	#endif
