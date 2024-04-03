@@ -73,6 +73,7 @@ local shaderConfig = {
 	POST_GEOMETRY = "gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w);",	--"g_uv.zw = dataIn[0].v_parameters.xy;", -- noop
 	POST_SHADING = "fragColor.rgba = fragColor.rgba;", -- noop
 	MAXVERTICES = 80, -- The max number of vertices we can emit,  at least 1024/ numfloats output, and builtins like gl_Position counts as 4 floats towards this
+	-- 128 is the max on my hardware
 }
 
 ---- GL4 Backend Stuff----
@@ -155,7 +156,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
 			16, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
-			slot, gf, 4,30,  -- slot_start_step_segments
+			slot, gf, 4,80,  -- slot_start_step_segments
 			0, 0, 0, 1, -- xyz emit position offsets, w unused
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
@@ -195,7 +196,7 @@ function widget:DrawWorld()
 	if unitPosSmokeVBO.usedElements > 0 then
 		gl.Culling(GL.BACK)
 		--gl.Culling(false)
-		gl.DepthTest(false)
+		gl.DepthTest(true)
 		gl.DepthMask(false)
 		gl.Texture(0, unitPosTexture)
 		gl.Texture(1, noisetex3dcube)		

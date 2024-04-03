@@ -11,7 +11,7 @@
 uniform float iconDistance = 20000.0;
 in DataGS {
 	vec4 g_centerpos; // xyz, and width [-1,1] packed into w
-	vec4 g_uv; // x is length ,y , z , w progress
+	vec4 g_uv; // x is length ,y , z is index , w progress
 };
 
 uniform sampler3D noisetex3dcube;
@@ -30,9 +30,26 @@ void main(void)
 	#endif
 	fragColor.a = (1.0 );
 	fragColor.r = abs(g_centerpos.w);
-	//return;
-	vec3 noisePos = g_centerpos.xyz - vec3(0, 0.5 * timeInfo.x,0);
-	vec4 noise = texture(noisetex3dcube, noisePos * 0.01);
+	vec4 noise;
+	vec3 noisePos;
+	float progress = 1.0 -  g_uv.w * g_uv.w;
+	// BILLBOARDS:
+	#if 1
+		noisePos = (g_centerpos.xyz - vec3(0, 0.1 * timeInfo.x,0)) * 0.01 + g_uv.zzz;
+		noise = texture(noisetex3dcube, noisePos);
+		vec2 distcenter = (abs(g_uv.xy * 2.0 - 1.0));
+		float alphacircle = 1.0 - dot(distcenter, distcenter);
+		fragColor.rgba = vec4(vec3(noise.a), alphacircle * progress * noise.z);
+		fragColor.rgba = vec4(vec3(g_uv.rgb), 1 );
+		return;
+	#endif
+	
+	return;
+	
+	
+	
+	noisePos = g_centerpos.xyz - vec3(0, 0.5 * timeInfo.x,0);
+	noise = texture(noisetex3dcube, noisePos * 0.01);
 	fragColor.rgb = vec3(noise.a);
 	fragColor.a = noise.a * (1.0 - abs(g_centerpos.w)) ;
 	fragColor.a *= (1.0 -  g_uv.w);

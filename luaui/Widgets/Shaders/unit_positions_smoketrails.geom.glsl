@@ -9,6 +9,7 @@
 
 layout(points) in;
 layout(triangle_strip, max_vertices = MAXVERTICES) out; // at least 1024/ numfloats output, and builtins like gl_Position counts as 4 floats towards this
+// 128 max on my hw
 #line 20013
 
 uniform float addRadius = 0.0;
@@ -33,6 +34,9 @@ mat3 rotBillboard;
 vec4 centerpos;
 vec4 emitoffsets;
 
+float rand(vec2 co){ // a pretty crappy random function
+		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+	}
 
 void EmitHorizontalConnectingQuad(vec4 posrot1, vec4 posrot2, float width, float r, float g){
 	g_uv.rgb = vec3 (r,0,g);
@@ -74,25 +78,26 @@ void EmitBillBoard(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, float progr
 	rotmat = rotation3dY(posrot1.w);
 	//rotBillboard = rotmat;
 	
+	g_uv.xy = vec2(1,1);
 	p = posrot1.xyz + (rotmat * emitoffset + rotBillboard * rotmat *  vec3(lw.x, 0, lw.y));
 	g_centerpos = vec4(p, -1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
 	
-	
+	g_uv.xy = vec2(0,1);
 	p = posrot1.xyz +  (rotmat * emitoffset + rotBillboard * rotmat * vec3(-lw.x, 0, lw.y));
 	g_centerpos = vec4(p, 1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
 	
 	
-	
+	g_uv.xy = vec2(1,0);
 	p = posrot1.xyz + (rotmat * emitoffset + rotBillboard * rotmat * vec3(lw.x, 0, -lw.y));
 	g_centerpos = vec4(p, -1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
 	
-	
+	g_uv.xy = vec2(0,0);
 	p = posrot1.xyz + (rotmat * emitoffset + rotBillboard * rotmat * vec3(-lw.x, 0, -lw.y));
 	g_centerpos = vec4(p, 1.0);
 	gl_Position = cameraViewProj * vec4( p, 1.0);
@@ -159,7 +164,7 @@ void main(){
 	emitoffsets = dataIn[0].v_emitoffsets; // if an atlas is used, then use this, otherwise dont
 
 	// Unpack parameters
-	float width = dataIn[0].v_widthgrowthrisemaxvel.x;
+	float width = dataIn[0].v_widthgrowthrisemaxvel.x ;
 	float growth = dataIn[0].v_widthgrowthrisemaxvel.y;
 	float rise = dataIn[0].v_widthgrowthrisemaxvel.z;
 	float maxvel = dataIn[0].v_widthgrowthrisemaxvel.w;
@@ -175,6 +180,8 @@ void main(){
 	slot_start_step_gameframe.w = int(timeInfo.x);
 	int gameframe = int(timeInfo.x);
 	
+	float rnd = rand(vec2(float(slot)));
+	
 	// Use a fake modulo operator to get the 
 	//int nowFrameIndex = gameframe - (TEXX/2) * (gameframe / (TEXX/2));
 	//int startFrameIndex = start - (TEXX/2) * ( start / (TEXX/2));
@@ -189,6 +196,7 @@ void main(){
 	
 	
 	#if 0
+	// ------------- Simple horizontal ribbon: ----------------------
 	vec4 currposrot = dataIn[0].v_drawpos;
 	//Start by drawing one segment from currpos to previous known pos:
 	// first two verts are at the unit itself
@@ -208,6 +216,35 @@ void main(){
 		nextposrot.y += (rise * progress) ;
 
 		if (velvalidat.w > 0.5){
+			EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(1), progress);
+			currposrot = nextposrot;
+		}
+	}
+	EndPrimitive();
+	#endif
+	
+	#if 0
+	// ------------- Billboard ribbon: ----------------------
+	
+	vec4 currposrot = dataIn[0].v_drawpos;
+	//Start by drawing one segment from currpos to previous known pos:
+	// first two verts are at the unit itself
+	EmitHorizontalSegment(currposrot, emitoffsets.xyz, vec2(width, 0), vec3(0), 1);
+	
+	// REPEAT UNTIL
+	
+	for (int i = 0; i < numsegments; i ++){
+		vec4 nextposrot;
+		vec4 velvalidat;
+		
+		GetVelPosXFramesAgo(slot_start_step_gameframe, i * stepsize, nextposrot, velvalidat);
+		float progress = (float(i * stepsize) + fracprogress) / float(numsegments*stepsize);
+		
+		vec2 lw = vec2(width + ( progress) * growth , 0);
+		
+		nextposrot.y += (rise * progress) ;
+
+		if (velvalidat.w > 0.5){
 			EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(0), progress);
 			currposrot = nextposrot;
 		}
@@ -218,11 +255,14 @@ void main(){
 	#if 1
 	
 	// ------------- Billboard puffs: ----------------------
+	// MAXVERTICES / 4 billboards
+	numsegments = min(numsegments, MAXVERTICES/4);
+	
 	vec4 currposrot = dataIn[0].v_drawpos;
 	//Start by drawing one segment from currpos to previous known pos:
 	// first two verts are at the unit itself
 	//EmitHorizontalSegment(currposrot, emitoffsets.xyz, vec2(width, 0), vec3(0), 1);
-	EmitBillBoard(currposrot, vec3(100), vec2(2*width, 2*width), vec3(0), 1);
+	EmitBillBoard(currposrot, vec3(0), vec2(width, width), vec3(0), 1);
 	// REPEAT UNTIL
 	
 	for (int i = 0; i < numsegments; i ++){
@@ -230,15 +270,16 @@ void main(){
 		vec4 velvalidat;
 		
 		GetVelPosXFramesAgo(slot_start_step_gameframe, i * stepsize, nextposrot, velvalidat);
+		//float progress = (float(i * stepsize) + fracprogress) / float(numsegments*stepsize);
 		float progress = (float(i * stepsize) + fracprogress) / float(numsegments*stepsize);
 	
-		vec2 lw = vec2(width)  + ( progress) * growth;
+		vec2 lw = vec2(width)  + (progress) * growth;
 		
-		nextposrot.y += (rise * progress) ;
+		nextposrot.y += (rise * progress) * 0.1 ;
 
 		if (velvalidat.w > 0.5){
 			//EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(0), progress);
-			EmitBillBoard(currposrot, vec3(10), vec2(2*width, 2*width), vec3(0), progress);
+			EmitBillBoard(currposrot, vec3(0), lw, vec3(rnd), progress);
 			currposrot = nextposrot;
 		}
 	}
