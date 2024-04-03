@@ -471,7 +471,7 @@
 		},
 		"buildEstimate": {
 			"time": "ETA",
-			"cancelled": "CANCELLED"
+			"cancelled": "Decaying"
 		},
 		"statusBars": {
 			"building": "Building",
