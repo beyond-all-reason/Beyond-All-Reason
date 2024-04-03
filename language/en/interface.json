@@ -470,7 +470,8 @@
 			"metalExtraction": "Metal extraction: %{amount}"
 		},
 		"buildEstimate": {
-			"time": "ETA"
+			"time": "ETA",
+			"cancelled": "Decaying"
 		},
 		"statusBars": {
 			"building": "Building",
