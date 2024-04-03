@@ -975,7 +975,7 @@ local function SetOriginalColourNames()
     -- Saves the original team colours associated to team teamID
     for playerID, _ in pairs(player) do
         if player[playerID].name then
-            if not player[playerID].spec then
+            if not player[playerID].spec and playerID < specOffset then
                 originalColourNames[playerID] = colourNames(player[playerID].team)
             end
         end
@@ -2487,9 +2487,9 @@ function colourNames(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-    local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-    local G255 = math.floor(nameColourG * 255)
-    local B255 = math.floor(nameColourB * 255)
+    local R255 = math.max(1, math.floor(nameColourR * 255))  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+    local G255 = math.max(1, math.floor(nameColourG * 255))
+    local B255 = math.max(1, math.floor(nameColourB * 255))
     if R255 % 10 == 0 then
         R255 = R255 + 1
     end
