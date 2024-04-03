@@ -117,8 +117,8 @@ local function initGL4()
 	unitPosSmokeVBO = makeInstanceVBOTable(
 		{
 			
-			{id = 0, name = 'widthgrowthrisemaxvel', size = 4},-- InitWidth, WidthGrowth, RiseRate, faderate
-			{id = 1, name = 'slot_start_step_gf', size = 4},
+			{id = 0, name = 'widthgrowthrisemaxvel', size = 4},-- InitWidth, WidthGrowth, RiseRate, maxvelocity
+			{id = 1, name = 'slot_start_step_segments', size = 4, type = GL.INT},
 			{id = 2, name = 'emitoffsets', size = 4},
 			{id = 3, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
@@ -154,9 +154,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	pushElementInstance(
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
-			16, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvelheight
-			slot, gf, 4,0,  -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 0, 0, 1, -- These are our default UV atlas tranformations
+			16, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
+			slot, gf, 4,30,  -- slot_start_step_segments
+			0, 0, 0, 1, -- xyz emit position offsets, w unused
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,
@@ -194,6 +194,7 @@ function widget:DrawWorld()
 	
 	if unitPosSmokeVBO.usedElements > 0 then
 		gl.Culling(GL.BACK)
+		--gl.Culling(false)
 		gl.DepthTest(false)
 		gl.DepthMask(false)
 		gl.Texture(0, unitPosTexture)

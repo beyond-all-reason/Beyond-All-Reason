@@ -7,7 +7,7 @@
 #line 5000
 
 layout (location = 0) in vec4 widthgrowthrisemaxvel;
-layout (location = 1) in vec4 slot_start_step_gf; // lifestart, ismine
+layout (location = 1) in ivec4 slot_start_step_segments; // lifestart, ismine
 layout (location = 2) in vec4 emitoffsets; // this is optional, for using an Atlas
 layout (location = 3) in uvec4 instData;
 
@@ -43,12 +43,11 @@ uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
 
 out DataVS {
-	uint v_numvertices;
 	vec4 v_widthgrowthrisemaxvel;
 	vec4 v_centerpos;
 	vec4 v_emitoffsets;
-	vec4 v_slot_start_step_gf;
 	vec4 v_drawpos;
+	ivec4 v_slot_start_step_segments;
 };
 
 layout(std140, binding=0) readonly buffer MatrixBuffer {
@@ -68,14 +67,13 @@ void main()
 
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
 	v_emitoffsets = emitoffsets;
-	v_slot_start_step_gf = slot_start_step_gf;
-	v_slot_start_step_gf.w = timeInfo.x;
+	v_slot_start_step_segments = slot_start_step_segments;
 	//v_parameters = parameters;
 	//v_color = teamColor[teamID];  // We can lookup the teamcolor right here
 	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
 	v_widthgrowthrisemaxvel = widthgrowthrisemaxvel;
 
-	v_numvertices = 80;
+	int v_numvertices = 32;
 	if (vertexClipped(gl_Position,1.1)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	// TODO: take into account size of primitive before clipping
 
@@ -83,12 +81,12 @@ void main()
 	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
 	if (cameraDistance > iconDistance) v_numvertices = 0;
 
-	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
-
 	v_centerpos.y += widthgrowthrisemaxvel.w; // Add per-instance height offset
 	
 	v_drawpos = uni[instData.y].drawPos; 
 
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
+	
+	v_slot_start_step_segments.w = min(v_numvertices, v_slot_start_step_segments.w);
 }

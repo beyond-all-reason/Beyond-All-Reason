@@ -23,14 +23,14 @@ void main(void)
 	vec4 texcolor = vec4(1.0);
 
 	fragColor.rgba = vec4(g_uv.rgb * texcolor.rgb , texcolor.a  );
-	POST_SHADING
+	// POST_SHADING
 	fragColor.rgba = vec4(g_uv.rgw, 0.6);
 	#if (DISCARD == 1)
 		if (fragColor.a < 0.01) discard;
 	#endif
-	//fragColor.a = (1.0 -  g_uv.w);
+	fragColor.a = (1.0 );
 	fragColor.r = abs(g_centerpos.w);
-	return;
+	//return;
 	vec3 noisePos = g_centerpos.xyz - vec3(0, 0.5 * timeInfo.x,0);
 	vec4 noise = texture(noisetex3dcube, noisePos * 0.01);
 	fragColor.rgb = vec3(noise.a);
