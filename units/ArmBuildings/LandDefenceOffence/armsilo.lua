@@ -119,7 +119,6 @@ return {
 				collidefeature = false,
 				collidefriendly = false,
 				commandfire = true,
-				collisionsize = 900000,
 				craterareaofeffect = 1280,
 				craterboost = 2.4,
 				cratermult = 1.2,
