@@ -33,6 +33,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --  
 -- Types of Streamers:
 -- 	Ground hugging wake
+	-- for vec tracks and for ship wakes
 -- 	Camera facing volsmoke
 -- 	Chemtrailstreamer
 -- Types of particleEmitters
@@ -48,6 +49,8 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 
 local myvisibleUnits = {} -- table of unitID : unitDefID
+
+local maxVelocityUnitDef = {}
 
 -- From API_UNIT_POSITIONS:
 local unitIDtoSlot
@@ -113,9 +116,10 @@ local function initGL4()
 
 	unitPosSmokeVBO = makeInstanceVBOTable(
 		{
-			{id = 0, name = 'lengthwidthcorner', size = 4},
+			
+			{id = 0, name = 'widthgrowthrisemaxvel', size = 4},-- InitWidth, WidthGrowth, RiseRate, faderate
 			{id = 1, name = 'slot_start_step_gf', size = 4},
-			{id = 2, name = 'uvoffsets', size = 4},
+			{id = 2, name = 'emitoffsets', size = 4},
 			{id = 3, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
 		64, -- maxelements
@@ -146,12 +150,13 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	myvisibleUnits[unitID] = unitDefID
 	local slot = unitIDtoSlot[unitID]
 	Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, slot)
+
 	pushElementInstance(
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
-			16, 16, 8, 8,  -- lengthwidthcornerheight
-			slot, gf, 4, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			16, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvelheight
+			slot, gf, 4,0,  -- the gameFrame (for animations), and any other parameters one might want to add
+			0, 0, 0, 1, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,
@@ -224,7 +229,9 @@ function widget:Initialize()
 		return 
 	end
 	
-
+	for unitDefID, unitDef in pairs(UnitDefs) do 
+		maxVelocityUnitDef[unitDefID] = unitDef.speed or 0
+	end
 
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then

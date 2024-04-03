@@ -18,9 +18,7 @@ uniform sampler2D unitPosTexture;
 
 in DataVS {
 	uint v_numvertices;
-	float v_rotationY;
-	vec4 v_color;
-	vec4 v_lengthwidthcornerheight;
+	vec4 v_widthgrowthrisemaxvel;
 	vec4 v_centerpos;
 	vec4 v_emitoffsets;
 	vec4 v_slot_start_step_gf;
@@ -36,16 +34,6 @@ mat3 rotBillboard;
 vec4 centerpos;
 vec4 emitoffsets;
 
-void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusCorr){
-	g_uv.xy = vec2(u,v);
-	vec3 primitiveCoords = vec3(x,y,z);
-	vec3 vecnorm = normalize(primitiveCoords);
-	//PRE_OFFSET
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotBillboard * (addRadius * addRadiusCorr * vecnorm + primitiveCoords ), 1.0);
-	//g_uv.zw = dataIn[0].v_parameters.zw;
-	POST_GEOMETRY
-	EmitVertex();
-}
 
 void EmitQuad(vec4 posrot1, vec4 posrot2, float width, float r, float g){
 	g_uv.rgb = vec3 (r,0,g);
@@ -118,9 +106,13 @@ void GetVelPosXFramesAgo(ivec4 slot_start_step_gf, int timeback, out vec4 posrot
 		int texIndex = desiredFrame + (TEXX/2);
 		texIndex = texIndex - (TEXX/2) * (texIndex /(TEXX/2));
 		
-		int modStepSize = texIndex - 4 * (texIndex /4);
+		int modStepSize = texIndex - stepsize * (texIndex /stepsize);
 		texIndex = texIndex - modStepSize;
 		desiredFrame = desiredFrame - modStepSize;
+		
+		//int fracprogress = nowFrame - stepsize * (nowFrame / stepsize);
+		//progress = float(i * stepsize + fracprogress) / float(steps*step);
+
 		
 		ivec2 sampleXY;
 		sampleXY = ivec2(texIndex * 2, slot);
@@ -152,26 +144,17 @@ void main(){
 
 	emitoffsets = dataIn[0].v_emitoffsets; // if an atlas is used, then use this, otherwise dont
 
-	float length = dataIn[0].v_lengthwidthcornerheight.x;
-	float width = dataIn[0].v_lengthwidthcornerheight.y * 0.2;
-	float cs = dataIn[0].v_lengthwidthcornerheight.z;
-	float height = dataIn[0].v_lengthwidthcornerheight.w;
+	float width = dataIn[0].v_widthgrowthrisemaxvel.x;
+	float growth = dataIn[0].v_widthgrowthrisemaxvel.y;
+	float rise = dataIn[0].v_widthgrowthrisemaxvel.z;
+	float maxvel = dataIn[0].v_widthgrowthrisemaxvel.w;
 	
 	// render order is in order of emission
 	
 	// first two verts are at the unit itself
-	vec3 unitmid = vec3(0);
 	
 	g_uv.xy = vec2(-1, 0);
 	gl_Position = cameraViewProj * centerpos;
-	
-	/*
-		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0, 1.414);
-		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0, 1.414);
-		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0, 1.414);
-		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0, 1.414);
-		EndPrimitive();
-*/
 
 	// UNIT TRAILS:
 	
@@ -186,15 +169,8 @@ void main(){
 	int nowFrameIndex = gameframe - numSamples * (gameframe / numSamples);
 	int startFrameIndex = start - numSamples * ( start / numSamples);
 	
-	//int fragmentIndex;
-	
-	// fuck we need to pass in the max too!
-	
-	//int GameFrame = int(timeInfo.x);
-	///int 
 	
 	//Start by drawing one segment from currpos to previous known pos:
-	int timeback = 4;
 	
 	vec4 currposrot = dataIn[0].v_drawpos;
 	vec4 nextposrot = vec4(0);
@@ -206,78 +182,39 @@ void main(){
 	vec3 left = currposrot.xyz;
 	vec3 right = currposrot.xyz;
 	for (int i = 0; i < steps; i ++){
-		vec4 posrotat;
+		vec4 nextposrot;
 		vec4 velvalidat;
-		GetVelPosXFramesAgo(iparams, i * 4, posrotat, velvalidat);
-		float progress = float(i*step) * float(step*steps);
+		
+		GetVelPosXFramesAgo(iparams, i * step, nextposrot, velvalidat );
+		int fracprogress = gameframe - step * (gameframe / step);
+		float progress = (float(i * step + fracprogress) + timeInfo.w) / float(steps*step);
 	
-		int texIndex = nowFrameIndex - timeback * (i + 1) ; 
+		vec2 lw = vec2(width + ( progress) * growth , 0);
 		
-		// Roll it around
-		texIndex += numSamples;
-		texIndex = texIndex - numSamples * (texIndex /numSamples);
-		
-		
-		//texIndex += timeback;
-		int whole = timeback * (texIndex /timeback);
-		int rem = texIndex - whole;
-		texIndex = whole;
-		float partial = float(rem)/float(timeback);
-		
-		
-		ivec2 sampleXY = ivec2(texIndex * 2, slot);
-		vec4 posSample = texelFetch(unitPosTexture, sampleXY, 0); 
-		nextposrot = posrotat;
-		
-		// emit this quad, at width of 16
-		
-		//float progress = fract(float(texIndex) / float(numSamples * steps));
-		//float progress = fract(float(texIndex) / float(numSamples * steps));
-		// if you want a ground trail, use the units rot.
-		// otherwise, interpo between 
-		
-		// calc angle by projecting diff onto screen?
-		
-		vec4 currproj = cameraViewProj * vec4(currposrot.xyz, 1.0);
-		vec4 nextproj = cameraViewProj * vec4(nextposrot.xyz, 1.0);
-		
-		vec3 proj3 = normalize(currproj.xyz- nextproj.xyz);
+		nextposrot.y += (rise * progress) ;
 
-		vec2 lw = vec2(width + (float(i) + partial) * 0.1, 0);
-		
-		nextposrot.y += (float(i) + partial) ;
-		vec3 col = normalize(proj3);
-		
-		//EmitSegment(nextposrot, lw, col , float(i)/float(steps));
-		
-		
-		vec3 tonext = normalize(nextposrot.xyz- currposrot.xyz);
-		
-		
 		
 		vec4 posrot1  = nextposrot;
-		g_uv.rgb = velvalidat.www;
-		g_uv.w = progress;
+		g_uv.w = velvalidat.w;
+		g_uv.g = velvalidat.w;
+		g_uv.rgw = vec3(progress);
 		
 		vec3 p;
-		mat3 rotmat;
-		rotmat = rotation3dY(posrot1.w);
-		mat3 rot2 = rotation3dZ(0);
-		//rotmat = rotation3dY(0);
+		mat3 rotmat = rotation3dY(posrot1.w);
 		
 		if (velvalidat.w > 0.5){
-		p = posrot1.xyz +  (rotmat * vec3(-lw.x,0,-lw.y));
-		g_centerpos = vec4(p, 1.0);
-		gl_Position = cameraViewProj * vec4(  p , 1.0);
-		EmitVertex();
 		
-		p = posrot1.xyz +  (rotmat * vec3(lw.x,0,lw.y));
-		g_centerpos = vec4(p, -1.0);
-		gl_Position = cameraViewProj * vec4(  p , 1.0);
-		EmitVertex();
-		
-		
-		currposrot = nextposrot;
+			p = posrot1.xyz +  (rotmat * vec3(-lw.x,0,-lw.y));
+			g_centerpos = vec4(p, 1.0);
+			gl_Position = cameraViewProj * vec4(  p , 1.0);
+			EmitVertex();
+			
+			p = posrot1.xyz +  (rotmat * vec3(lw.x,0,lw.y));
+			g_centerpos = vec4(p, -1.0);
+			gl_Position = cameraViewProj * vec4(  p , 1.0);
+			EmitVertex();
+			
+			currposrot = nextposrot;
 		}
 	
 	}

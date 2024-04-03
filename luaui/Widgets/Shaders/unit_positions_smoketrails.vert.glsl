@@ -6,7 +6,7 @@
 
 #line 5000
 
-layout (location = 0) in vec4 lengthwidthcornerheight;
+layout (location = 0) in vec4 widthgrowthrisemaxvel;
 layout (location = 1) in vec4 slot_start_step_gf; // lifestart, ismine
 layout (location = 2) in vec4 emitoffsets; // this is optional, for using an Atlas
 layout (location = 3) in uvec4 instData;
@@ -44,9 +44,7 @@ uniform float iconDistance = 20000.0;
 
 out DataVS {
 	uint v_numvertices;
-	float v_rotationY;
-	vec4 v_color;
-	vec4 v_lengthwidthcornerheight;
+	vec4 v_widthgrowthrisemaxvel;
 	vec4 v_centerpos;
 	vec4 v_emitoffsets;
 	vec4 v_slot_start_step_gf;
@@ -69,14 +67,13 @@ void main()
 	mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
 
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
-	v_rotationY = atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
 	v_emitoffsets = emitoffsets;
 	v_slot_start_step_gf = slot_start_step_gf;
 	v_slot_start_step_gf.w = timeInfo.x;
 	//v_parameters = parameters;
 	//v_color = teamColor[teamID];  // We can lookup the teamcolor right here
 	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
-	v_lengthwidthcornerheight = lengthwidthcornerheight;
+	v_widthgrowthrisemaxvel = widthgrowthrisemaxvel;
 
 	v_numvertices = 80;
 	if (vertexClipped(gl_Position,1.1)) v_numvertices = 0; // Make no primitives on stuff outside of screen
@@ -88,7 +85,7 @@ void main()
 
 	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
 
-	v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
+	v_centerpos.y += widthgrowthrisemaxvel.w; // Add per-instance height offset
 	
 	v_drawpos = uni[instData.y].drawPos; 
 
