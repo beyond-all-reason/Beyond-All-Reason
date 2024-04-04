@@ -67,7 +67,6 @@ Create()
 	hide flare2;
 	restore_delay = 3000;
 	gun_1 = 0;
-    turn gunbase to x-axis <-30> speed <25.00000>;
     spin mount around y-axis speed <25.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -156,7 +155,7 @@ QueryPrimary(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = mount;
+	piecenum = gunbase;
 }
 
 
