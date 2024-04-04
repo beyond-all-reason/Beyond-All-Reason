@@ -24,7 +24,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORMADSAM.s3o",
-		script = "Units/CORMADSAM.lua",
+		script = "Units/CORMADSAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,

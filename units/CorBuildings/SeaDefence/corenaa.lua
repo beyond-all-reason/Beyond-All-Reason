@@ -119,7 +119,7 @@ return {
 				reloadtime = 0.53333,
 				size = 4.5,
 				sizedecay = 0.08,
-				soundhit = "flakhit",
+				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
 				stages = 8,

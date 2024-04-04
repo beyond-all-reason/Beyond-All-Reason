@@ -133,6 +133,7 @@ return {
 				reloadtime = 8,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
+				soundhitvolume = 22,
 				startvelocity = 150,
 				tolerance = 8000,
 				tracks = true,
