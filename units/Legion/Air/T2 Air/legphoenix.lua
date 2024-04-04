@@ -158,7 +158,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				proximitypriority = -1,
-				range = 550,
+				range = 950,--this is VERTICAL, not lateral
 				reloadtime = 8,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.9 1.0 0.5",

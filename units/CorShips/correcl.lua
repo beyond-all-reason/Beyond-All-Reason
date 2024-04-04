@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,
-		sonardistance = 50,
+		sonardistance = 150,
 		terraformspeed = 2250,
 		turninplace = true,
 		turninplaceanglelimit = 90,

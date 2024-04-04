@@ -983,6 +983,14 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
+	cor_hat_hornet = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
+	cor_hat_ptaq = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
 	coraak = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
