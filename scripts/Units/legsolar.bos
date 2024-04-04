@@ -4,12 +4,12 @@
 #include "exptype.h"
 
 piece  base, skirt, corecont,
-	  Acore, A, Ar, Ar1, Ar2, A1, A2, AL, AL1, AL2,
-	  Bcore, B, Br, Br1, Br2, B1, B2, BL, BL1, BL2,
-	  Ccore, C, Cr, Cr1, Cr2, C1, C2, CL, CL1, CL2,
-	  Dcore, D, Dr, Dr1, Dr2, D1, D2, DL, DL1, DL2,
-	  Ecore, E, Er, Er1, Er2, E1, E2, EL, EL1, EL2,
-	  Fcore, F, Fr, Fr1, Fr2, F1, F2, FL, FL1, FL2;//fuck me
+	  Acore, A, Ar, Ar1, A1, AL, AL1,
+	  Bcore, B, Br, Br1, B1, BL, BL1,
+	  Ccore, C, Cr, Cr1, C1, CL, CL1,
+	  Dcore, D, Dr, Dr1, D1, DL, DL1,
+	  Ecore, E, Er, Er1, E1, EL, EL1,
+	  Fcore, F, Fr, Fr1, F1, FL, FL1;//fuck me SLIGHTLY LESS
 
 static-var  Activating, statechg_DesiredState, statechg_StateChanging;
 
@@ -57,47 +57,29 @@ Go()
 	turn F to z-axis <140> speed <80.000000>;
 	wait-for-turn A around z-axis;
 	
-	
-	turn AL1 to y-axis <-45> speed <120.000000>;
-	turn AL2 to y-axis <-45> speed <120.000000>;
-	turn BL1 to y-axis <-45> speed <120.000000>;
-	turn BL2 to y-axis <-45> speed <120.000000>;
-	turn CL1 to y-axis <-45> speed <120.000000>;
-	turn CL2 to y-axis <-45> speed <120.000000>;
-	turn DL1 to y-axis <-45> speed <120.000000>;
-	turn DL2 to y-axis <-45> speed <120.000000>;
-	turn EL1 to y-axis <-45> speed <120.000000>;
-	turn EL2 to y-axis <-45> speed <120.000000>;
-	turn FL1 to y-axis <-45> speed <120.000000>;
-	turn FL2 to y-axis <-45> speed <120.000000>;
-
-	wait-for-turn BL1 around y-axis;
 
 	turn AR1 to y-axis <45> speed <120.000000>;
-	turn AR2 to y-axis <45> speed <120.000000>;
 	turn BR1 to y-axis <45> speed <120.000000>;
-	turn BR2 to y-axis <45> speed <120.000000>;
 	turn CR1 to y-axis <45> speed <120.000000>;
-	turn CR2 to y-axis <45> speed <120.000000>;
 	turn DR1 to y-axis <45> speed <120.000000>;
-	turn DR2 to y-axis <45> speed <120.000000>;
 	turn ER1 to y-axis <45> speed <120.000000>;
-	turn ER2 to y-axis <45> speed <120.000000>;
 	turn FR1 to y-axis <45> speed <120.000000>;
-	turn FR2 to y-axis <45> speed <120.000000>;
+	wait-for-turn AR1 around y-axis;
+	
+	turn AL1 to y-axis <-45> speed <120.000000>;
+	turn BL1 to y-axis <-45> speed <120.000000>;
+	turn CL1 to y-axis <-45> speed <120.000000>;
+	turn DL1 to y-axis <-45> speed <120.000000>;
+	turn EL1 to y-axis <-45> speed <120.000000>;
+	turn FL1 to y-axis <-45> speed <120.000000>;
+
 
 	turn AL1 to z-axis <0> speed <180.000000>;
-	turn AL2 to z-axis <0> speed <180.000000>;
 	turn BL1 to z-axis <0> speed <180.000000>;
-	turn BL2 to z-axis <0> speed <180.000000>;
 	turn CL1 to z-axis <0> speed <180.000000>;
-	turn CL2 to z-axis <0> speed <180.000000>;
 	turn DL1 to z-axis <0> speed <180.000000>;
-	turn DL2 to z-axis <0> speed <180.000000>;
 	turn EL1 to z-axis <0> speed <180.000000>;
-	turn EL2 to z-axis <0> speed <180.000000>;
 	turn FL1 to z-axis <0> speed <180.000000>;
-	turn FL2 to z-axis <0> speed <180.000000>;
 
 	wait-for-turn AR1 around y-axis;
 
@@ -111,34 +93,22 @@ Stop()
 {
 	
 	turn AL1 to y-axis <-179> speed <180.000000>;
-	turn AL2 to y-axis <-179> speed <180.000000>;
 	turn AR1 to y-axis <179> speed <100.000000>;
-	turn AR2 to y-axis <179> speed <100.000000>;
 
 	turn BL1 to y-axis <-179> speed <180.000000>;
-	turn BL2 to y-axis <-179> speed <180.000000>;
 	turn BR1 to y-axis <179> speed <100.000000>;
-	turn BR2 to y-axis <179> speed <100.000000>;
 	
 	turn CL1 to y-axis <-179> speed <180.000000>;
-	turn CL2 to y-axis <-179> speed <180.000000>;
 	turn CR1 to y-axis <179> speed <100.000000>;
-	turn CR2 to y-axis <179> speed <100.000000>;
 
 	turn DL1 to y-axis <-179> speed <180.000000>;
-	turn DL2 to y-axis <-179> speed <180.000000>;
 	turn DR1 to y-axis <179> speed <100.000000>;
-	turn DR2 to y-axis <179> speed <100.000000>;
 	
 	turn EL1 to y-axis <-179> speed <180.000000>;
-	turn EL2 to y-axis <-179> speed <180.000000>;
 	turn ER1 to y-axis <179> speed <100.000000>;
-	turn ER2 to y-axis <179> speed <100.000000>;
 
 	turn FL1 to y-axis <-179> speed <180.000000>;
-	turn FL2 to y-axis <-179> speed <180.000000>;
 	turn FR1 to y-axis <179> speed <100.000000>;
-	turn FR2 to y-axis <179> speed <100.000000>;
 	
 	
 	turn A to z-axis <-39.000000> speed <100.000000>;
@@ -187,7 +157,18 @@ Create()
 {	
 	//unhack
 	hide skirt;
+	
+	
+	
 	move corecont to y-axis [26] now;
+	//move Al to y-axis [300] now;
+	//move Ar to y-axis [300] now;
+	//move A1 to y-axis [300] now;
+	
+	
+	
+	
+	
 	turn Bcore to y-axis <60> now;
 	turn Ccore to y-axis <120> now;
 	turn Dcore to y-axis <180> now;
@@ -195,49 +176,38 @@ Create()
 	turn Fcore to y-axis <300> now;
 	
 	
-	turn Fr to x-axis <20.5> now;
-	turn Fl to x-axis <-20.5> now;
-	turn Er to x-axis <20.5> now;
-	turn El to x-axis <-20.5> now;
-	turn Dr to x-axis <20.5> now;
-	turn Dl to x-axis <-20.5> now;
-	turn Cr to x-axis <20.5> now;
-	turn Cl to x-axis <-20.5> now;
-	turn Br to x-axis <20.5> now;
-	turn Bl to x-axis <-20.5> now;
+
 	turn Ar to x-axis <20.5> now;
 	turn Al to x-axis <-20.5> now;
+	turn Br to x-axis <20.5> now;
+	turn Bl to x-axis <-20.5> now;
+	turn Cr to x-axis <20.5> now;
+	turn Cl to x-axis <-20.5> now;
+	turn Dr to x-axis <20.5> now;
+	turn Dl to x-axis <-20.5> now;
+	turn Er to x-axis <20.5> now;
+	turn El to x-axis <-20.5> now;
+	turn Fr to x-axis <20.5> now;
+	turn Fl to x-axis <-20.5> now;
 	
 	
 	turn AL1 to y-axis <-179> now;
-	turn AL2 to y-axis <-179> now;
 	turn AR1 to y-axis <179> now;
-	turn AR2 to y-axis <179> now;
 
 	turn BL1 to y-axis <-179> now;
-	turn BL2 to y-axis <-179> now;
 	turn BR1 to y-axis <179> now;
-	turn BR2 to y-axis <179> now;
 	
 	turn CL1 to y-axis <-179> now;
-	turn CL2 to y-axis <-179> now;
 	turn CR1 to y-axis <179> now;
-	turn CR2 to y-axis <179> now;
 
 	turn DL1 to y-axis <-179> now;
-	turn DL2 to y-axis <-179> now;
 	turn DR1 to y-axis <179> now;
-	turn DR2 to y-axis <179> now;
 	
 	turn EL1 to y-axis <-179> now;
-	turn EL2 to y-axis <-179> now;
 	turn ER1 to y-axis <179> now;
-	turn ER2 to y-axis <179> now;
 
 	turn FL1 to y-axis <-179> now;
-	turn FL2 to y-axis <-179> now;
 	turn FR1 to y-axis <179> now;
-	turn FR2 to y-axis <179> now;
 	
 	
 	
@@ -305,33 +275,27 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY;
 		explode a type SMOKE | FALL;
 		explode a1 type  FALL;
-		explode a2 type  FALL;
 		explode ar type SMOKE | FALL;
 		explode al type FIRE | SMOKE | FALL;
 		explode b type SMOKE | FALL;
 		explode b1 type  FALL;
-		explode b2 type  FALL;
 		explode br type SMOKE | FALL;
 		explode bl type FIRE | SMOKE | FALL;
 		explode c type SMOKE | FALL;
 		explode c1 type  FALL;
-		explode c2 type  FALL;
 		explode cr type SMOKE | FALL;
 		explode cl type FIRE | SMOKE | FALL;
 		
 		explode d type SMOKE | FALL;
 		explode d1 type  FALL;
-		explode d2 type  FALL;
 		explode dr type SMOKE | FALL;
 		explode dl type FIRE | SMOKE | FALL;
 		explode e type SMOKE | FALL;
 		explode e1 type  FALL;
-		explode e2 type  FALL;
 		explode er type SMOKE | FALL;
 		explode el type FIRE | SMOKE | FALL;
 		explode f type SMOKE | FALL;
 		explode f1 type  FALL;
-		explode f2 type  FALL;
 		explode fr type SMOKE | FALL;
 		explode fl type FIRE | SMOKE | FALL;
 		return(corpsetype);
@@ -342,33 +306,27 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY;
 		explode a type SMOKE | FALL;
 		explode a1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode a2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode ar type SMOKE | FALL;
 		explode al type FIRE | SMOKE | FALL;
 		explode b type SMOKE | FALL;
 		explode b1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode b2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode br type SMOKE | FALL;
 		explode bl type FIRE | SMOKE | FALL;
 		explode c type SMOKE | FALL;
 		explode c1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode c2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode cr type SMOKE | FALL;
 		explode cl type FIRE | SMOKE | FALL;
 		
 		explode d type SMOKE | FALL;
 		explode d1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode d2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode dr type SMOKE | FALL;
 		explode dl type FIRE | SMOKE | FALL;
 		explode e type SMOKE | FALL;
 		explode e1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode e2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode er type SMOKE | FALL;
 		explode el type FIRE | SMOKE | FALL;
 		explode f type SMOKE | FALL;
 		explode f1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode f2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode fr type SMOKE | FALL;
 		explode fl type FIRE | SMOKE | FALL;
 			return(corpsetype);
@@ -378,33 +336,27 @@ Killed(severity, corpsetype)
 		explode corecont type EXPLODE_ON_HIT | SMOKE | FALL;
 		explode a type SMOKE | FALL;
 		explode a1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode a2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode ar type SMOKE | FALL;
 		explode al type FIRE | SMOKE | FALL;
 		explode b type SMOKE | FALL;
 		explode b1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode b2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode br type SMOKE | FALL;
 		explode bl type FIRE | SMOKE | FALL;
 		explode c type SMOKE | FALL;
 		explode c1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode c2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode cr type SMOKE | FALL;
 		explode cl type FIRE | SMOKE | FALL;
 		
 		explode d type SMOKE | FALL;
 		explode d1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode d2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode dr type SMOKE | FALL;
 		explode dl type FIRE | SMOKE | FALL;
 		explode e type SMOKE | FALL;
 		explode e1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode e2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode er type SMOKE | FALL;
 		explode el type FIRE | SMOKE | FALL;
 		explode f type SMOKE | FALL;
 		explode f1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode f2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode fr type SMOKE | FALL;
 		explode fl type FIRE | SMOKE | FALL;
 	

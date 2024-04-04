@@ -239,11 +239,11 @@ local function drawOrientation()
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
 	if not coords then return end
-	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3] )
-
+	
+	local facing = spGetBuildFacing()
+	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3], facing )
 	local transSpace = unitZsize[unitDefID] * 4   --should be ysize but its not there?!?
 	local transX, transZ
-	local facing = spGetBuildFacing()
 	if facing == 0 then
 		transX = 0
 		transZ = transSpace

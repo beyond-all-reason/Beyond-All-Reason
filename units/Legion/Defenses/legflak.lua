@@ -138,7 +138,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				mygravity = 0.01,
-				name = "Heavy antiair gatling gun",
+				name = "Heavy Anti-Air Gatling Gun",
 				noselfdamage = true,
 				predictboost = 1,
 				range = 850,
