@@ -16121,7 +16121,7 @@ local unitLights = {
 		glow1 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 19, posz = 24, radius = 24,
+			lightConfig = { posx = 0, posy = 22, posz = 26, radius = 32,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.14,
 							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
@@ -16130,7 +16130,7 @@ local unitLights = {
 		glow2 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -20, posy = 19, posz = -12, radius = 24,
+			lightConfig = { posx = -22, posy = 22, posz = -13, radius = 32,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.14,
 							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
@@ -16139,7 +16139,7 @@ local unitLights = {
 		glow3 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 20, posy = 19, posz = -12, radius = 24,
+			lightConfig = { posx = 22, posy = 22, posz = -13, radius = 32,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.14,
 							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
