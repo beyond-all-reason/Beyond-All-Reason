@@ -263,7 +263,7 @@ Create()
 	return (0);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

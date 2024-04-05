@@ -374,7 +374,7 @@ UnitSpeed(){
  }
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal 16;
 	isMoving = TRUE;

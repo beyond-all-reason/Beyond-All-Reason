@@ -106,7 +106,7 @@ StopBuilding()
 	turn rwheel to y-axis <0> speed <120.000000>;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script Steering();
 }

@@ -179,7 +179,7 @@ Deactivate()
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	//spin flwheel around x-axis speed <50> accelerate <10>;
 	//spin blwheel around x-axis speed <50> accelerate <10>;

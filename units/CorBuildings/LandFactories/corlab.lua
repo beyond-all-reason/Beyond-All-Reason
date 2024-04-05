@@ -26,7 +26,7 @@ return {
 		metalstorage = 100,
 		objectname = "Units/CORLAB.s3o",
 		--radardistance = 50,
-		script = "Units/CORLAB.lua",
+		script = "Units/CORLAB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 290,

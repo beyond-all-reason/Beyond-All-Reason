@@ -470,7 +470,7 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

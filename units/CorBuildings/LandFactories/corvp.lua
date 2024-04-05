@@ -27,7 +27,7 @@ return {
 		metalstorage = 100,
 		objectname = "Units/CORVP.s3o",
 		--radardistance = 50,
-		script = "Units/CORVP.lua",
+		script = "Units/CORVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,

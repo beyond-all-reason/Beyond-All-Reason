@@ -30,7 +30,7 @@ Create()
 {
 	return (0);
 }
-StartMoving()
+StartMoving(reversing)
 {
 	spin fwheel around x-axis speed <50> accelerate <10>;
 	spin rwheel around x-axis speed <50> accelerate <10>;

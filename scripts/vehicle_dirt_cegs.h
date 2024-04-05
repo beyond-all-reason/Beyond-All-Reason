@@ -1,5 +1,5 @@
 // For emitting dirt while moving
-// Always ensure this is start-scripted from StartMoving(), with a signal mask on move!
+// Always ensure this is start-scripted from StartMoving(reversing), with a signal mask on move!
 
 //#define VD_PIECE1 smoke1
 //#define VD_PIECE2 smoke2
@@ -10,7 +10,7 @@
 
 /*
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Vehicle_Dirt_Ceg();

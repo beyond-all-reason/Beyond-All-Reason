@@ -37,7 +37,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

@@ -28,7 +28,7 @@ Propcontrol()
 #define SMOKEPROBABILITY 0
 #include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

@@ -27,7 +27,7 @@ RockUnit(anglex, anglez)
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-7> speed <11>;
 	wait-for-turn base around x-axis;

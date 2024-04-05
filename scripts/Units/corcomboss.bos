@@ -446,7 +446,7 @@ Create()
 	return (0);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	gun_3 = torso;

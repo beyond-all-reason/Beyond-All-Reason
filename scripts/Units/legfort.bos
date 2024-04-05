@@ -150,7 +150,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	sleep 1000;
 }

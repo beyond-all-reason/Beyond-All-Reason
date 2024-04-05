@@ -53,7 +53,7 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

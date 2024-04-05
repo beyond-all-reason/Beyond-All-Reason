@@ -81,7 +81,7 @@ Deactivate()
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 }

@@ -21,7 +21,7 @@ static-var  restore_delay, gun_3;
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	spin fwheel around x-axis speed <150.032967>;
 	spin blwheel around x-axis speed <150.032967>;

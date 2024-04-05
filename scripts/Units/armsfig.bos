@@ -47,7 +47,7 @@ Deactivate()
 	turn wingr to z-axis <0> speed <90.000000>;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

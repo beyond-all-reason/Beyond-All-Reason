@@ -52,7 +52,7 @@ Create()
 
 
 
-StartMoving()
+StartMoving(reversing)
 {
     dishturn = 0;
     start-script Steering();

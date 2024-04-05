@@ -376,7 +376,7 @@ Create()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

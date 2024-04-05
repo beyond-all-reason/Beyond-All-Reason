@@ -70,7 +70,7 @@ Create()
 //	return (0);
 //}
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script Steering();
 }

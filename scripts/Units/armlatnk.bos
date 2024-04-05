@@ -96,7 +96,7 @@ Create()
 	return (0);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	spin wheels around x-axis speed <140.000000> accelerate <5.000000>;
 	

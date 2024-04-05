@@ -385,7 +385,7 @@ Create()
 	start-script Movement();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	//set-signal-mask SIGNAL_MOVE;

@@ -37,7 +37,7 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 }
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-7> speed <7>;
 	move base to y-axis [1] speed [1];

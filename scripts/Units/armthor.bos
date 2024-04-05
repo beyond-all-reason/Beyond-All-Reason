@@ -56,7 +56,7 @@ Create()
 	last_tesla_pitch = -1000000;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
   signal SIGNAL_MOVE;
   set-signal-mask SIGNAL_MOVE;

@@ -476,7 +476,7 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	isMoving=TRUE;
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

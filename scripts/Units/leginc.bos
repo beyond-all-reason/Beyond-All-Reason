@@ -124,7 +124,7 @@ UnitSpeed(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

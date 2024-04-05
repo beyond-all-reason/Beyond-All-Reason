@@ -177,7 +177,7 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 }

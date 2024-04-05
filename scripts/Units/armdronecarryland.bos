@@ -107,7 +107,7 @@ Steering(heading, steer, currentSpeed)
 	}
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script Steering();
 }

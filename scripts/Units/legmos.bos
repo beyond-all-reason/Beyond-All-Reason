@@ -115,7 +115,7 @@ FireWeapon1()
 	start-script RestoreAfterDelay();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = 1;
 	start-script RestoreAfterDelay();

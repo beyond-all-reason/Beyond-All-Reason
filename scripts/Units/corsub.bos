@@ -42,7 +42,7 @@ Create()
 	gun_1 = tube1;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

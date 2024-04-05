@@ -251,7 +251,7 @@ Create()
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 }

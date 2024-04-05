@@ -455,7 +455,7 @@ UnitSpeed(){
 		sleep 98;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();

@@ -337,7 +337,7 @@ StopBuilding()
 	turn aimy1 to x-axis <0> speed <5>;	
 }
 
-StartMoving()
+StartMoving(reversing)
 {
   	signal SIGNAL_MOVE;
   	set-signal-mask SIGNAL_MOVE;

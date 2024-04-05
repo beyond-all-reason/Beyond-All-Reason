@@ -390,7 +390,7 @@ Create()
 	gun_1 = torso;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

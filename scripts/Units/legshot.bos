@@ -448,7 +448,7 @@ Create()
 	restore_delay = 10000;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

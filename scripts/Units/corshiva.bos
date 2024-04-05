@@ -627,7 +627,7 @@ SetMaxReloadTime(maxtime_ms) //this is called by engine immediately after Create
 	//restore_delay = maxtime_ms;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;

@@ -350,7 +350,7 @@ Create()
 	animSpeed = 4;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

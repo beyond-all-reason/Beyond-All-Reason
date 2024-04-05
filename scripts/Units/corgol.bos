@@ -44,7 +44,7 @@ Create()
 	restore_delay = 3000;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;

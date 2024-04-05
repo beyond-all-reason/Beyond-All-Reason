@@ -91,7 +91,7 @@ QueryWeapon1(pieceIndex)
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	spin lwheel around x-axis speed <150> accelerate <15>;
 	spin rwheel around x-axis speed <150> accelerate <15>;

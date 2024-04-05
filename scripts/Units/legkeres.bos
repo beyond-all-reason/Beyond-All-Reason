@@ -18,7 +18,7 @@ static-var  restore_delay, last_gun_heading;
 #define UNITSIZE 7
 #define MAXTILT 100
 
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-3> speed <11>;
 	wait-for-turn base around x-axis;

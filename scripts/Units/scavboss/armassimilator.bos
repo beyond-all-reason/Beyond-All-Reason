@@ -175,7 +175,7 @@ Create()
 	start-script SmokeUnit();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 
 	isMoving = TRUE;

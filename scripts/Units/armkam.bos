@@ -141,7 +141,7 @@ FireWeapon1()
 	start-script RestoreAfterDelay();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script RestoreAfterDelay();
 	signal SIGNAL_MOVE;

@@ -250,7 +250,7 @@ StopBuilding()
 	wait-for-turn aimy1 around y-axis;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

@@ -330,7 +330,7 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	sleep 1000;
 }

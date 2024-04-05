@@ -63,7 +63,7 @@ Create()
 	restore_delay = 4000;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
     start-script Steering();
 }

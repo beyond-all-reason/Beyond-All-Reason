@@ -854,7 +854,7 @@ ShowMedalBronze()
 	show medalbronze;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	gun_3 = torso;

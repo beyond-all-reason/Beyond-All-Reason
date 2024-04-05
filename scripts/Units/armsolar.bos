@@ -3,8 +3,9 @@
 
 piece  base, dish1, dish2, dish3, dish4, emit;
 
-static-var  activationState, statechg_DesiredState, statechg_StateChanging;
+static-var  recentlyHit;
 
+#define SIGNAL_TURNON 4
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -34,13 +35,28 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-Go()
+Create()
 {
-	if( activationState )
+	start-script SmokeUnit();
+	recentlyHit = 0;
+}
+
+// open it on when built
+// close it up when hit
+// open it when time passed
+// dont open it while hit
+// dont reopen it if off after being hit
+// dont let any of the above conflict in time. 
+
+
+Activate()
+{
+	if( recentlyHit )
 	{
-		set ACTIVATION to 0;
+		set ACTIVATION to 0; // dont open it while hit, feedback it
 		return (0);
 	}
+
 	turn dish1 to x-axis <-90.016484> speed <60.000000>;
 	turn dish3 to x-axis <90.016484> speed <60.000000>;
 	turn dish2 to z-axis <-90.016484> speed <60.000000>;
@@ -52,10 +68,12 @@ Go()
 	show emit;
 	set ARMORED to 0;
 	set YARD_OPEN to 0;
+	set ACTIVATION to 100;
 }
 
-Stop()
+Deactivate()
 {
+	set ACTIVATION to 0;
 	turn dish1 to x-axis <0.000000> speed <120.000000>;
 	turn dish3 to x-axis <0.000000> speed <120.000000>;
 	turn dish2 to z-axis <0.000000> speed <120.000000>;
@@ -69,70 +87,18 @@ Stop()
 	set YARD_OPEN to 1;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	start-script SmokeUnit();
-	activationState = 0;
-}
-
-Activate()
-{
-	if( activationState )
-	{
-		set ACTIVATION to 0;
-		return (0);
-	}
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
-		activationState = 1;
-	}
-	if( activationState )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		activationState = 0;
-		set ACTIVATION to 100;
-	}
+
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	recentlyHit = 1;
+	start-script Deactivate();
+
+	sleep 8000;
+	recentlyHit = 0;
+	
+	start-script Activate();
 }
 
 

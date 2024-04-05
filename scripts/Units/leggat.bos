@@ -47,7 +47,7 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	spin lwheel around x-axis speed <110> accelerate <5>;
 	spin rwheel around x-axis speed <110> accelerate <5>;

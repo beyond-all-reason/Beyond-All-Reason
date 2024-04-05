@@ -26,7 +26,7 @@ RockUnit(anglex, anglez)
 #define MAXTILT 100
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-7> speed <11>;
 	wait-for-turn base around x-axis;

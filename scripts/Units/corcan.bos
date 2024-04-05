@@ -242,7 +242,7 @@ UnitSpeed(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	set-signal-mask SIGNAL_MOVE;

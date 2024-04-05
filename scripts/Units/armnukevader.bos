@@ -47,7 +47,7 @@ Create()
 
 
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	move leg1 to y-axis [0] speed [28];

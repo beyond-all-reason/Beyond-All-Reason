@@ -1,40 +1,16 @@
 
 #include "exptype.h"
 
+
 piece  base, fan, d1,d2,d3,d4;
 
-static-var  activationState, statechg_DesiredState, statechg_StateChanging;
+static-var  recentlyHit, wantOpen;
 
-activatescr()
-{
-	set ACTIVATION to 100;
-	turn d1 to x-axis <90> speed <30>;
-	turn d3 to x-axis <-90> speed <30>;
-	turn d1 to y-axis <180> speed <60>;
-	turn d3 to y-axis <180> speed <60>;
-	
-	turn d2 to z-axis <-90> speed <30>;
-	turn d4 to z-axis <90> speed <30>;
-	turn d2 to y-axis <180> speed <60>;
-	turn d4 to y-axis <180> speed <60>;
-	spin fan around y-axis speed <15> accelerate <0.1>;
-}
+#define DEBUG
+#define WRAPFUNCTIONS
+#include "../debug.h"
 
-deactivatescr()
-{
-
-	turn d1 to x-axis <0> speed <30>;
-	turn d3 to x-axis <0> speed <30>;
-	turn d1 to y-axis <0> speed <60>;
-	turn d3 to y-axis <0> speed <60>;
-	
-	turn d2 to z-axis <0> speed <30>;
-	turn d4 to z-axis <0> speed <30>;
-	turn d2 to y-axis <0> speed <60>;
-	turn d4 to y-axis <0> speed <60>;
-	
-	stop-spin fan around y-axis decelerate <0.2>;
-}
+#define SIGNAL_TURNON 4
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -63,72 +39,93 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = 1;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = 0;
-}
+
 
 Create()
 {
-	statechg_DesiredState = 1;
-	statechg_StateChanging = 0;
 	start-script SmokeUnit();
-	activationState = 0;
+	recentlyHit = 0;
+	wantOpen = 1;
+	DEBUGFUNC(CREATE,0,0);
+}
+
+// open it on when built
+// close it up when hit
+// open it when time passed
+// dont open it while hit
+// dont reopen it if off after being hit !!!
+// dont let any of the above conflict in time. 
+
+Open()
+{
+	turn d1 to x-axis <90> speed <30>;
+	turn d3 to x-axis <-90> speed <30>;
+	turn d1 to y-axis <180> speed <60>;
+	turn d3 to y-axis <180> speed <60>;
+	
+	turn d2 to z-axis <-90> speed <30>;
+	turn d4 to z-axis <90> speed <30>;
+	turn d2 to y-axis <180> speed <60>;
+	turn d4 to y-axis <180> speed <60>;
+	wait-for-turn d1 around x-axis;
+	spin fan around y-axis speed <15> accelerate <0.1>;
+	set ARMORED to 0;
+	set YARD_OPEN to 0;
+	set ACTIVATION to 100;
+}
+
+Close()
+{
+	set ACTIVATION to 0;
+
+	stop-spin fan around y-axis decelerate <0.2>;
+
+	turn d1 to x-axis <0> speed <30>;
+	turn d3 to x-axis <0> speed <30>;
+	turn d1 to y-axis <0> speed <60>;
+	turn d3 to y-axis <0> speed <60>;
+	
+	turn d2 to z-axis <0> speed <30>;
+	turn d4 to z-axis <0> speed <30>;
+	turn d2 to y-axis <0> speed <60>;
+	turn d4 to y-axis <0> speed <60>;
+	wait-for-turn d1 around x-axis;
+
+	set ARMORED to 1;
+	set YARD_OPEN to 1;
 }
 
 Activate()
 {
-	if( activationState )
+	get PRINT(8);
+	//wantOpen = 1;
+	if( recentlyHit )
 	{
-		set ACTIVATION to 0;
+		set ACTIVATION to 0; // dont open it while hit, feedback it
 		return (0);
 	}
-	set ARMORED to 0;
-	start-script RequestState(0);
+	call-script Open();
 }
 
 Deactivate()
 {
-	set ARMORED to 1;
-	start-script RequestState(1);
+	//wantOpen = 0;
+	get PRINT(-8);
+	call-script Close();
 }
 
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
-		activationState = 1;
-	}
-	if( activationState )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		activationState = 0;
-		set ACTIVATION to 100;
-	}
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	recentlyHit = 1;
+	start-script Close();
+
+	sleep 8000;
+	recentlyHit = 0;
+	//if (wantOpen){
+		start-script Open();
+	//}
 }
 
 

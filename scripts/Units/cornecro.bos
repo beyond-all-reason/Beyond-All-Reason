@@ -205,7 +205,7 @@ StopBuilding()
 	turn aimy1 to x-axis <0> speed <5>;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 	signal SIGNAL_MOVE;

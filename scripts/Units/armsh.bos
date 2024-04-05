@@ -83,7 +83,7 @@ HoverIdle()
 	//return (1);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	spin fan around z-axis speed <1400> accelerate <100>; 
 	signal SIGNAL_MOVE;

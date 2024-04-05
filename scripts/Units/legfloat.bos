@@ -123,7 +123,7 @@ HitByWeaponId(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
 	return (100);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script Steering();
 	moving = 1;

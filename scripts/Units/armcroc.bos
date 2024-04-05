@@ -80,7 +80,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
 }

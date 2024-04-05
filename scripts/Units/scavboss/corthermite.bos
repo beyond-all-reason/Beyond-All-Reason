@@ -215,7 +215,7 @@ StopWalk()
 	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
