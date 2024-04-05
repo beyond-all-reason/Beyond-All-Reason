@@ -13,15 +13,6 @@ static-var  weapon1barrel, weapon2barrel, restore_delay, gun_1, gun_2, oldHead;
 #define SIGNAL_MOVE 1
 
 
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn ground to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
-	oldHead = heading;
-}
-
 MoveBarrelBlast(flarepiece) // Pass whichever piece you want to locate on XZ
 {
 

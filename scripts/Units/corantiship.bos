@@ -10,15 +10,6 @@ static-var  Stunned, oldHead;
 
 #define SIGNAL_AIM2 512
 
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn ground to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
-	oldHead = heading;
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <10.0>
