@@ -321,6 +321,15 @@ local function startTests(patterns)
 		return
 	end
 
+	if Spring.GetModOptions().deathmode ~= 'neverend' then
+		log(
+			LOG.ERROR,
+			"deathmode='neverend' game end mode is required in order to run tests, so that the game stays " ..
+				"active between tests"
+		)
+		return
+	end
+
 	if not Spring.IsCheatingEnabled() then
 		if not queuedStartTests then
 			-- enable cheats, then wait for it to go through
