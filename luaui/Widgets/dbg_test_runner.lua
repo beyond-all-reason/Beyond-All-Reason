@@ -294,9 +294,11 @@ end)
 
 local MAX_START_TESTS_ATTEMPTS = 10
 local queuedStartTests = false
+local queuedStartTestsPatterns = nil
 local startTestsAttempts = 0
-local function queueStartTests()
+local function queueStartTests(patterns)
 	queuedStartTests = true
+	queuedStartTestsPatterns = patterns
 	startTestsAttempts = 0
 end
 
@@ -324,7 +326,7 @@ local function startTests(patterns)
 			-- enable cheats, then wait for it to go through
 			log(LOG.INFO, "Cheats are disabled; attempting to enable them...")
 			Spring.SendCommands("cheat")
-			queueStartTests()
+			queueStartTests(patterns)
 			return
 		elseif startTestsAttempts < MAX_START_TESTS_ATTEMPTS then
 			-- return and try again next step
@@ -870,7 +872,7 @@ end
 
 local function step()
 	if queuedStartTests then
-		startTests()
+		startTests(queuedStartTestsPatterns)
 		return
 	end
 
