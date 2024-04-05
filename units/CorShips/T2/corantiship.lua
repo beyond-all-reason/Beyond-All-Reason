@@ -22,7 +22,6 @@ return {
 		energymake = 300,
 		energypershot = 7500,
 		energystorage = 1500,
-		energyupkeep = 25,
 		explodeas = "minifusionExplosion",
 		floater = true,
 		footprintx = 7,
