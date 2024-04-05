@@ -45,7 +45,7 @@ return {
 		workertime = 90,
 		buildoptions = {
 			"legsolar",
-			"coradvsol",
+			"legadvsol",
 			"legwin",
 			"corgeo",
 			"cormstor",
