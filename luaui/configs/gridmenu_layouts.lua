@@ -503,7 +503,7 @@ local unitGrids = {
 	},
    legck = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -572,7 +572,7 @@ local unitGrids = {
 	},
     legcv = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -640,7 +640,7 @@ local unitGrids = {
 	},
     legca = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},

@@ -2019,6 +2019,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
+	legadvsol = {
+		bitmap = "icons/energy2_1.18.png",
+		size = 1.23899984
+	},
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
