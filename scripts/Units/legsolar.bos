@@ -195,6 +195,17 @@ Create()
 	turn Fcore to y-axis <300> now;
 	
 	
+	
+	turn A to z-axis <-39.000000> now;
+	turn B to z-axis <-39.000000> now;
+	turn C to z-axis <-39.000000> now;
+	turn D to z-axis <-39.000000> now;
+	turn E to z-axis <-39.000000> now;
+	turn F to z-axis <-39.000000> now;
+
+	
+	
+	
 	turn Fr to x-axis <20.5> now;
 	turn Fl to x-axis <-20.5> now;
 	turn Er to x-axis <20.5> now;
