@@ -221,7 +221,7 @@ function gadget:Initialize()
 
 	local mapname = Game.mapName:lower()
 	for name, config in pairs(critterConfig) do
-		if string.find(mapname, name) then
+		if string.find(mapname, name, 1, true) then
 			mapConfig = config
 			break
 		end

@@ -3,6 +3,7 @@ local ceil = math.ceil
 local multiplier = rnd(1, 100) / 100        -- use this if you want a bit of uniformity amongst multiple randoms
 
 
+-- USE LOWERCASE MAPNAMES (partial mapnames work too!)
 local critterConfig = {
 
 	["avalanche"] = {
@@ -31,7 +32,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 4333, z = 3777, r = 2400 }, unitNames = { ["critter_gull"] = rnd(4, 6) } },
 	},
 
-	["Crescent_Bay_V2"] = {
+	["crescent_bay"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 12200, z2 = 12200 }, unitNames = { ["critter_goldfish"] = rnd(20, 30) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 12200, z2 = 12200 }, unitNames = { ["critter_gull"] = rnd(10, 15) } },
 		{ spawnCircle = { x = 1335, z = 6601, r = 100 }, unitNames = { ["critter_penguin"] = rnd(10, 15) } },
@@ -91,7 +92,7 @@ local critterConfig = {
 	["hotlips"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 11200, z2 = 9150 }, unitNames = { ["critter_ant"] = rnd(20, 30) } },
 	},
-	
+
 	["nuclear winter"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10100, z2 = 6100 }, unitNames = { ["critter_penguin"] = rnd(9, 13) } },
 	},
@@ -100,11 +101,11 @@ local critterConfig = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 9000, z2 = 9000 }, unitNames = { ["critter_goldfish"] = rnd(10, 20) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 9000, z2 = 9000 }, unitNames = { ["critter_gull"] = rnd(10, 20) } },
 	},
-	
+
 	["melting glacier"] = {
 		{ spawnCircle = { x = 5200, z = 4000, r = 2400 }, unitNames = { ["critter_penguin"] = rnd(3, 15) }},
 	},
-	
+
 	["mescaline"] = {
 		{ spawnCircle = { x = 1933, z = 6080, r = 30 }, unitNames = { ["critter_goldfish"] = rnd(-5, 1) }, nowatercheck = true },
 		{ spawnCircle = { x = 1933, z = 6080, r = 500 }, unitNames = { ["critter_gull"] = rnd(-3, 1) } },
@@ -186,11 +187,11 @@ local critterConfig = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 15000, z2 = 15000 }, unitNames = { ["critter_goldfish"] = rnd(100, 150) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 15000, z2 = 15000 }, unitNames = { ["critter_gull"] = rnd(15, 30) } },
 	},
-	
+
 	["sulphur springs"] = {
 		{ spawnCircle = { x = 4300, z = 8000, r = 2000 }, unitNames = { ["critter_ant"] = rnd(3, 10) } },
 	},
-	
+
 	["supreme battlefield"] = {
 		{ spawnCircle = { x = 11500, z = 12500, r = 2700 }, unitNames = { ["critter_goldfish"] = rnd(3, 10) } },
 		{ spawnCircle = { x = 15000, z = 10500, r = 300 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
@@ -339,6 +340,19 @@ local critterConfig = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 7150, z2 = 7150 }, unitNames = { ["critter_ant"] = rnd(5, 10) } },
 	},
 
+	["world in flames v"] = {
+		{ spawnBox = { x1 = 50, z1 = 400, x2 = 16200, z2 = 7300 }, unitNames = { ["critter_goldfish"] = rnd(120, 170) } },
+		{ spawnCircle = { x = 2200, z = 5000, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
+		{ spawnCircle = { x = 12300, z = 5500, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
+		{ spawnCircle = { x = 14300, z = 3100, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
+		{ spawnCircle = { x = 7000, z = 2400, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
+		{ spawnBox = { x1 = 50, z1 = 7650, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_penguin"] = rnd(14, 20) } },
+		{ spawnCircle = { x = 5050, z = 7450, r = 220 }, unitNames = { ["critter_penguin"] = rnd(5, 7) } },
+		{ spawnCircle = { x = 15300, z = 7500, r = 220 }, unitNames = { ["critter_penguin"] = rnd(4, 6) } },
+		{ spawnCircle = { x = 14300, z = 5150, r = 500 }, unitNames = { ["critter_ant"] = rnd(4, 6) } },
+		{ spawnCircle = { x = 14600, z = 4350, r = 280 }, unitNames = { ["critter_ant"] = rnd(2, 3) } },
+		{ spawnCircle = { x = 8900, z = 2400, r = 160 }, unitNames = { ["critter_duck"] = rnd(1, 2) } },
+	},
 
 }
 
