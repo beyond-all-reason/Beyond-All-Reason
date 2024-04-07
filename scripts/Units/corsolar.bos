@@ -6,8 +6,7 @@ piece  base, fan, d1,d2,d3,d4;
 
 static-var  recentlyHit, wantOpen;
 
-#define DEBUG
-#define WRAPFUNCTIONS
+//#define DEBUG
 #include "../debug.h"
 
 #define SIGNAL_TURNON 4
@@ -43,10 +42,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	dbg();
 	start-script SmokeUnit();
 	recentlyHit = 0;
 	wantOpen = 1;
-	DEBUGFUNC(CREATE,0,0);
 }
 
 // open it on when built
@@ -54,7 +53,11 @@ Create()
 // open it when time passed
 // dont open it while hit
 // dont reopen it if off after being hit !!!
-// dont let any of the above conflict in time. 
+// dont let any of the above conflict in time.
+// dont change state while stunned
+// obey desired state changes while closed for hit
+
+
 
 Open()
 {
@@ -69,8 +72,8 @@ Open()
 	turn d4 to y-axis <180> speed <60>;
 	wait-for-turn d1 around x-axis;
 	spin fan around y-axis speed <15> accelerate <0.1>;
+	
 	set ARMORED to 0;
-	set YARD_OPEN to 0;
 	set ACTIVATION to 100;
 }
 
@@ -92,16 +95,14 @@ Close()
 	wait-for-turn d1 around x-axis;
 
 	set ARMORED to 1;
-	set YARD_OPEN to 1;
 }
 
 Activate()
 {
-	get PRINT(8);
-	//wantOpen = 1;
 	if( recentlyHit )
 	{
 		set ACTIVATION to 0; // dont open it while hit, feedback it
+		wantOpen = 1;
 		return (0);
 	}
 	call-script Open();
@@ -109,23 +110,25 @@ Activate()
 
 Deactivate()
 {
-	//wantOpen = 0;
-	get PRINT(-8);
 	call-script Close();
 }
 
 HitByWeapon(anglex, anglez)
 {
+	if (!recentlyHit){
+		start-script Close(); 
+		recentlyHit = 1;
+		wantOpen = get ACTIVATION;
+	}
+	// Signal after Close() so as not to interrupt it
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	recentlyHit = 1;
-	start-script Close();
 
 	sleep 8000;
 	recentlyHit = 0;
-	//if (wantOpen){
+	if (wantOpen){
 		start-script Open();
-	//}
+	}
 }
 
 
