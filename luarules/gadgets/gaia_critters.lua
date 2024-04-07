@@ -181,21 +181,19 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 end
 
 local function setGaiaUnitSpecifics(unitID)
-	if Spring.GetModOptions().april1extra ~= true then
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitNoSelect(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitNoMinimap(unitID, true)
-		Spring.SetUnitMaxHealth(unitID, 2)
-		Spring.SetUnitBlocking(unitID, false)
-		Spring.SetUnitSensorRadius(unitID, 'los', 0)
-		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-		for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
-			--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
-		end
+	Spring.SetUnitNeutral(unitID, true)
+	Spring.SetUnitNoSelect(unitID, true)
+	Spring.SetUnitStealth(unitID, true)
+	Spring.SetUnitNoMinimap(unitID, true)
+	Spring.SetUnitMaxHealth(unitID, 2)
+	Spring.SetUnitBlocking(unitID, false)
+	Spring.SetUnitSensorRadius(unitID, 'los', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
+		Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
+		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
 	end
 end
 
