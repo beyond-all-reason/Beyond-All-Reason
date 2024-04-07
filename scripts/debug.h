@@ -1,153 +1,835 @@
 // This debugging header defines a lua debugging function as a helper
-/*
+//
+// 1. Include this file
+//
+// 2. Before the include, specify if you want debugging on with:
+//	#define DEBUG
+//	- If the above define is not present, nothing is output, and all debug commands are stripped from the compiled file
+//	- So that means that you can leave in your instrumention, just comment the #define DEBUG (leave in the include file though!)
+//
+// 3. To print each time a builtin engine callin is called (see list below), rename the function like so:
+//	Open() -> print_Open()
+//	- Any arguments passed will also be forwarded correctly and printed out
+//	- Do not print_FUNCTIONS whos return values, such as AimWeaponX and Killed
+//
+// 4.A. RECOMMENDED USAGE: To write a debug message at any point use 
+//	dbg(args);
+//	- This will also smartly print out what line of the BOS file the print comes from
+//	- You can pass up to 8 arguments
+//	- Note that to figure out which function this was called from, the Lua counterpart of this debug header (dbg_cob_debug.lua) will read the .bos file 
+//
+// 4.B. To write a debug message with a known callin, like in Activate, use:
+//	dbg_Activate(args,...);
+//	-- This will also name the function and line. 
+//
+// 5. Interpret infolog.
+//	f:<25805.000> u:05541 corsolar.Open:74  p1=5 p2=6 p3=7 p4=8
+//	- f:<gameframe.order> can tell you what gameframe it happened in, and also the order within the gameframe.
+//	- u:05541 is the unitID
+//	- corsolar.Open:74  unitDefName, the name of the BOS function (unless vanilla dbg()), and the line of BOS code it came from
+//	- p1=5 p2=6 p3=7 p4=8  values of any parameters passed
 
-
-
-*/
-
-python code to generate all known callins and masks
-
-numweapons = 6
-weaponfuncs = [('AimWeapon',2), ('AimFromWeapon',1), ('FireWeapon',0), ('Shot',0), ('QueryWeapon',0), ('EndBurst',0), ('BlockShot',3), ('TargetWeight',2)]
-otherfuncsparams = [
-	('Create',0), 
-	('Activate',0), 
-	('Deactivate',0),
-	('StartMoving',1),
-	('StopMoving',0),
-	('SetSFXOccupy',1),
-	('MoveRate0',0),
-	('MoveRate1',0),
-	('MoveRate2',0),
-	('MoveRate3',0),
-	('SetDirection',1),
-	('SetSpeed',0),
-	('RockUnit',2),
-	('HitByWeapon',2),
-	('HitByWeaponID',4),
-	('SetMaxReloadTime',1),
-	('StartBuilding',2),
-	('StopBuilding',0),
-	('QueryNanoPiece',1),
-	('QueryBuildInfo',1),
-	('Falling',0),
-	('Landed',0),
-	('QueryTransport',1),
-	('BeginTransport',1),
-	('EndTransport',0),
-	('TransportPickup',1),
-	('TransportDrop',2),
-	('StartUnload',0),
-	('QueryLandingPadCount',1),
-	('QueryLandingPad',0),
-
-	]
+// IMPORTANT NOTE:
+// DO NOT print_ FUNCTIONS whos return values you need!
 
 #ifdef DEBUG
-lua_CobDebug(callerID, line, param1, param2)
+lua_CobDebug(callerID, line, p1, p2, p3, p4, p5, p6, p7, p8)
 {
-	param1 = param1;
 	return 0;
-	
-	
-	
-	
 }
-	// known callins:
-	#define CREATE 			1
-	#define ACTIVATE 		2
-	#define DEACTIVATE		3
-	#define KILLED 			4
-	#define STARTMOVING 	5
-	#define STOPMOVING 		6
-	
-	#define AIMWEAPON1 		10
-	#define AIMFROMWEAPON1 	11
-	#define FireWeapon1 	12
-	#define Shot1			13
-	#define QueryWeapon1	14
-	#define EndBurst1		15
-	#define BlockShot1		16
-	#define TargetWeight1	17
-	
-	#define AIMWEAPON2 		20
-	#define AIMFROMWEAPON2 	22
-	#define FireWeapon2 	22
-	#define Shot2			23
-	#define QueryWeapon2	24
-	#define EndBurst2		25
-	#define BlockShot2		26
-	#define TargetWeight2	27
-	
-	#define AIMWEAPON3 		30
-	#define AIMFROMWEAPON3 	33
-	#define FireWeapon3 	32
-	#define Shot3			33
-	#define QueryWeapon3	34
-	#define EndBurst3		35
-	#define BlockShot3		36
-	#define TargetWeight3	37
-	
-	#define AIMWEAPON4 		40
-	#define AIMFROMWEAPON4 	44
-	#define FireWeapon4 	42
-	#define Shot4			43
-	#define QueryWeapon4	44
-	#define EndBurst4		45
-	#define BlockShot4		46
-	#define TargetWeight4	47
-	
-	#define AIMWEAPON5 		50
-	#define AIMFROMWEAPON5 	55
-	#define FireWeapon5 	52
-	#define Shot5			53
-	#define QueryWeapon5	54
-	#define EndBurst5		55
-	#define BlockShot5		56
-	#define TargetWeight5	57
-	
-	#define AIMWEAPON6 		60
-	#define AIMFROMWEAPON6 	66
-	#define FireWeapon6 	62
-	#define Shot6			63
-	#define QueryWeapon6	64
-	#define EndBurst6		65
-	#define BlockShot6		66
-	#define TargetWeight6	67
-	
-	#define AIMWEAPON7 		70
-	#define AIMFROMWEAPON7 	77
-	#define FireWeapon7 	72
-	#define Shot7			73
-	#define QueryWeapon7	74
-	#define EndBurst7		75
-	#define BlockShot7		76
-	#define TargetWeight7	77
-	
-	#define MOVERATE0 		80
-	#define MOVERATE1 		81
-	#define MOVERATE2 		82
-	#define MOVERATE3 		83
-	#define SETDIRECTION 	84
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	#define SETSPEED 		85
-	
-	#define RockUnit		
 
-	// the -3 is needed because of the 
-	#define	DEBUGFUNC(callerID, param1, param2) call-script lua_CobDebug(callerID, __LINE__, param1, param2)
-
-	#ifdef WRAPFUNCTIONS
-		#define Create() Create(){call-script lua_CobDebug(CREATE, __LINE__, 0,0); call-script wrap_Create();} \
-			wrap_Create()
-	#endif
-
+	#define dbg(...) call-script lua_CobDebug(1, __LINE__, ## __VA_ARGS__ ); 
 #else
-	#define DEBUGFUNC(a,b) 
+	
+	#define dbg(...)
 #endif
 
+#ifdef DEBUG
+	#define dbg_signal(x) call-script lua_CobDebug(1000, __LINE__,x ); signal x// oooh not captureable
+#else
+	#define dbg_signal(x) signal x// oooh not captureable
+#endif
+
+
+#ifdef DEBUG
+	#define print_Debug(...) Debug(__VA_ARGS__) {call-script lua_CobDebug(1, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Debug(__VA_ARGS__);} \
+		wrap_Debug(__VA_ARGS__)
+	#define dbg_Debug(...) call-script lua_CobDebug(1, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Debug(...) Debug(__VA_ARGS__)
+	#define dbg_Debug(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Open(...) Open(__VA_ARGS__) {call-script lua_CobDebug(2, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Open(__VA_ARGS__);} \
+		wrap_Open(__VA_ARGS__)
+	#define dbg_Open(...) call-script lua_CobDebug(2, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Open(...) Open(__VA_ARGS__)
+	#define dbg_Open(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Close(...) Close(__VA_ARGS__) {call-script lua_CobDebug(3, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Close(__VA_ARGS__);} \
+		wrap_Close(__VA_ARGS__)
+	#define dbg_Close(...) call-script lua_CobDebug(3, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Close(...) Close(__VA_ARGS__)
+	#define dbg_Close(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TryTransition(...) TryTransition(__VA_ARGS__) {call-script lua_CobDebug(4, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TryTransition(__VA_ARGS__);} \
+		wrap_TryTransition(__VA_ARGS__)
+	#define dbg_TryTransition(...) call-script lua_CobDebug(4, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TryTransition(...) TryTransition(__VA_ARGS__)
+	#define dbg_TryTransition(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Killed(...) Killed(__VA_ARGS__) {call-script lua_CobDebug(5, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Killed(__VA_ARGS__);} \
+		wrap_Killed(__VA_ARGS__)
+	#define dbg_Killed(...) call-script lua_CobDebug(5, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Killed(...) Killed(__VA_ARGS__)
+	#define dbg_Killed(...)
+#endif
+
+#ifdef DEBUG
+	#define print_ExecuteRestoreAfterDelay(...) ExecuteRestoreAfterDelay(__VA_ARGS__) {call-script lua_CobDebug(6, __LINE__, ## __VA_ARGS__ ); call-script  wrap_ExecuteRestoreAfterDelay(__VA_ARGS__);} \
+		wrap_ExecuteRestoreAfterDelay(__VA_ARGS__)
+	#define dbg_ExecuteRestoreAfterDelay(...) call-script lua_CobDebug(6, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_ExecuteRestoreAfterDelay(...) ExecuteRestoreAfterDelay(__VA_ARGS__)
+	#define dbg_ExecuteRestoreAfterDelay(...)
+#endif
+
+#ifdef DEBUG
+	#define print_SetStunned(...) SetStunned(__VA_ARGS__) {call-script lua_CobDebug(7, __LINE__, ## __VA_ARGS__ ); call-script  wrap_SetStunned(__VA_ARGS__);} \
+		wrap_SetStunned(__VA_ARGS__)
+	#define dbg_SetStunned(...) call-script lua_CobDebug(7, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_SetStunned(...) SetStunned(__VA_ARGS__)
+	#define dbg_SetStunned(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Walk(...) Walk(__VA_ARGS__) {call-script lua_CobDebug(8, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Walk(__VA_ARGS__);} \
+		wrap_Walk(__VA_ARGS__)
+	#define dbg_Walk(...) call-script lua_CobDebug(8, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Walk(...) Walk(__VA_ARGS__)
+	#define dbg_Walk(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StopWalking(...) StopWalking(__VA_ARGS__) {call-script lua_CobDebug(9, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StopWalking(__VA_ARGS__);} \
+		wrap_StopWalking(__VA_ARGS__)
+	#define dbg_StopWalking(...) call-script lua_CobDebug(9, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StopWalking(...) StopWalking(__VA_ARGS__)
+	#define dbg_StopWalking(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Create(...) Create(__VA_ARGS__) {call-script lua_CobDebug(10, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Create(__VA_ARGS__);} \
+		wrap_Create(__VA_ARGS__)
+	#define dbg_Create(...) call-script lua_CobDebug(10, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Create(...) Create(__VA_ARGS__)
+	#define dbg_Create(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Activate(...) Activate(__VA_ARGS__) {call-script lua_CobDebug(11, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Activate(__VA_ARGS__);} \
+		wrap_Activate(__VA_ARGS__)
+	#define dbg_Activate(...) call-script lua_CobDebug(11, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Activate(...) Activate(__VA_ARGS__)
+	#define dbg_Activate(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Deactivate(...) Deactivate(__VA_ARGS__) {call-script lua_CobDebug(12, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Deactivate(__VA_ARGS__);} \
+		wrap_Deactivate(__VA_ARGS__)
+	#define dbg_Deactivate(...) call-script lua_CobDebug(12, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Deactivate(...) Deactivate(__VA_ARGS__)
+	#define dbg_Deactivate(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StartMoving(...) StartMoving(__VA_ARGS__) {call-script lua_CobDebug(13, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StartMoving(__VA_ARGS__);} \
+		wrap_StartMoving(__VA_ARGS__)
+	#define dbg_StartMoving(...) call-script lua_CobDebug(13, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StartMoving(...) StartMoving(__VA_ARGS__)
+	#define dbg_StartMoving(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StopMoving(...) StopMoving(__VA_ARGS__) {call-script lua_CobDebug(14, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StopMoving(__VA_ARGS__);} \
+		wrap_StopMoving(__VA_ARGS__)
+	#define dbg_StopMoving(...) call-script lua_CobDebug(14, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StopMoving(...) StopMoving(__VA_ARGS__)
+	#define dbg_StopMoving(...)
+#endif
+
+#ifdef DEBUG
+	#define print_SetSFXOccupy(...) SetSFXOccupy(__VA_ARGS__) {call-script lua_CobDebug(15, __LINE__, ## __VA_ARGS__ ); call-script  wrap_SetSFXOccupy(__VA_ARGS__);} \
+		wrap_SetSFXOccupy(__VA_ARGS__)
+	#define dbg_SetSFXOccupy(...) call-script lua_CobDebug(15, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_SetSFXOccupy(...) SetSFXOccupy(__VA_ARGS__)
+	#define dbg_SetSFXOccupy(...)
+#endif
+
+#ifdef DEBUG
+	#define print_MoveRate0(...) MoveRate0(__VA_ARGS__) {call-script lua_CobDebug(16, __LINE__, ## __VA_ARGS__ ); call-script  wrap_MoveRate0(__VA_ARGS__);} \
+		wrap_MoveRate0(__VA_ARGS__)
+	#define dbg_MoveRate0(...) call-script lua_CobDebug(16, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_MoveRate0(...) MoveRate0(__VA_ARGS__)
+	#define dbg_MoveRate0(...)
+#endif
+
+#ifdef DEBUG
+	#define print_MoveRate1(...) MoveRate1(__VA_ARGS__) {call-script lua_CobDebug(17, __LINE__, ## __VA_ARGS__ ); call-script  wrap_MoveRate1(__VA_ARGS__);} \
+		wrap_MoveRate1(__VA_ARGS__)
+	#define dbg_MoveRate1(...) call-script lua_CobDebug(17, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_MoveRate1(...) MoveRate1(__VA_ARGS__)
+	#define dbg_MoveRate1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_MoveRate2(...) MoveRate2(__VA_ARGS__) {call-script lua_CobDebug(18, __LINE__, ## __VA_ARGS__ ); call-script  wrap_MoveRate2(__VA_ARGS__);} \
+		wrap_MoveRate2(__VA_ARGS__)
+	#define dbg_MoveRate2(...) call-script lua_CobDebug(18, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_MoveRate2(...) MoveRate2(__VA_ARGS__)
+	#define dbg_MoveRate2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_MoveRate3(...) MoveRate3(__VA_ARGS__) {call-script lua_CobDebug(19, __LINE__, ## __VA_ARGS__ ); call-script  wrap_MoveRate3(__VA_ARGS__);} \
+		wrap_MoveRate3(__VA_ARGS__)
+	#define dbg_MoveRate3(...) call-script lua_CobDebug(19, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_MoveRate3(...) MoveRate3(__VA_ARGS__)
+	#define dbg_MoveRate3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_SetDirection(...) SetDirection(__VA_ARGS__) {call-script lua_CobDebug(20, __LINE__, ## __VA_ARGS__ ); call-script  wrap_SetDirection(__VA_ARGS__);} \
+		wrap_SetDirection(__VA_ARGS__)
+	#define dbg_SetDirection(...) call-script lua_CobDebug(20, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_SetDirection(...) SetDirection(__VA_ARGS__)
+	#define dbg_SetDirection(...)
+#endif
+
+#ifdef DEBUG
+	#define print_SetSpeed(...) SetSpeed(__VA_ARGS__) {call-script lua_CobDebug(21, __LINE__, ## __VA_ARGS__ ); call-script  wrap_SetSpeed(__VA_ARGS__);} \
+		wrap_SetSpeed(__VA_ARGS__)
+	#define dbg_SetSpeed(...) call-script lua_CobDebug(21, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_SetSpeed(...) SetSpeed(__VA_ARGS__)
+	#define dbg_SetSpeed(...)
+#endif
+
+#ifdef DEBUG
+	#define print_RockUnit(...) RockUnit(__VA_ARGS__) {call-script lua_CobDebug(22, __LINE__, ## __VA_ARGS__ ); call-script  wrap_RockUnit(__VA_ARGS__);} \
+		wrap_RockUnit(__VA_ARGS__)
+	#define dbg_RockUnit(...) call-script lua_CobDebug(22, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_RockUnit(...) RockUnit(__VA_ARGS__)
+	#define dbg_RockUnit(...)
+#endif
+
+#ifdef DEBUG
+	#define print_HitByWeapon(...) HitByWeapon(__VA_ARGS__) {call-script lua_CobDebug(23, __LINE__, ## __VA_ARGS__ ); call-script  wrap_HitByWeapon(__VA_ARGS__);} \
+		wrap_HitByWeapon(__VA_ARGS__)
+	#define dbg_HitByWeapon(...) call-script lua_CobDebug(23, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_HitByWeapon(...) HitByWeapon(__VA_ARGS__)
+	#define dbg_HitByWeapon(...)
+#endif
+
+#ifdef DEBUG
+	#define print_HitByWeaponID(...) HitByWeaponID(__VA_ARGS__) {call-script lua_CobDebug(24, __LINE__, ## __VA_ARGS__ ); call-script  wrap_HitByWeaponID(__VA_ARGS__);} \
+		wrap_HitByWeaponID(__VA_ARGS__)
+	#define dbg_HitByWeaponID(...) call-script lua_CobDebug(24, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_HitByWeaponID(...) HitByWeaponID(__VA_ARGS__)
+	#define dbg_HitByWeaponID(...)
+#endif
+
+#ifdef DEBUG
+	#define print_SetMaxReloadTime(...) SetMaxReloadTime(__VA_ARGS__) {call-script lua_CobDebug(25, __LINE__, ## __VA_ARGS__ ); call-script  wrap_SetMaxReloadTime(__VA_ARGS__);} \
+		wrap_SetMaxReloadTime(__VA_ARGS__)
+	#define dbg_SetMaxReloadTime(...) call-script lua_CobDebug(25, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_SetMaxReloadTime(...) SetMaxReloadTime(__VA_ARGS__)
+	#define dbg_SetMaxReloadTime(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StartBuilding(...) StartBuilding(__VA_ARGS__) {call-script lua_CobDebug(26, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StartBuilding(__VA_ARGS__);} \
+		wrap_StartBuilding(__VA_ARGS__)
+	#define dbg_StartBuilding(...) call-script lua_CobDebug(26, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StartBuilding(...) StartBuilding(__VA_ARGS__)
+	#define dbg_StartBuilding(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StopBuilding(...) StopBuilding(__VA_ARGS__) {call-script lua_CobDebug(27, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StopBuilding(__VA_ARGS__);} \
+		wrap_StopBuilding(__VA_ARGS__)
+	#define dbg_StopBuilding(...) call-script lua_CobDebug(27, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StopBuilding(...) StopBuilding(__VA_ARGS__)
+	#define dbg_StopBuilding(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryNanoPiece(...) QueryNanoPiece(__VA_ARGS__) {call-script lua_CobDebug(28, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryNanoPiece(__VA_ARGS__);} \
+		wrap_QueryNanoPiece(__VA_ARGS__)
+	#define dbg_QueryNanoPiece(...) call-script lua_CobDebug(28, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryNanoPiece(...) QueryNanoPiece(__VA_ARGS__)
+	#define dbg_QueryNanoPiece(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryBuildInfo(...) QueryBuildInfo(__VA_ARGS__) {call-script lua_CobDebug(29, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryBuildInfo(__VA_ARGS__);} \
+		wrap_QueryBuildInfo(__VA_ARGS__)
+	#define dbg_QueryBuildInfo(...) call-script lua_CobDebug(29, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryBuildInfo(...) QueryBuildInfo(__VA_ARGS__)
+	#define dbg_QueryBuildInfo(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Falling(...) Falling(__VA_ARGS__) {call-script lua_CobDebug(30, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Falling(__VA_ARGS__);} \
+		wrap_Falling(__VA_ARGS__)
+	#define dbg_Falling(...) call-script lua_CobDebug(30, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Falling(...) Falling(__VA_ARGS__)
+	#define dbg_Falling(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Landed(...) Landed(__VA_ARGS__) {call-script lua_CobDebug(31, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Landed(__VA_ARGS__);} \
+		wrap_Landed(__VA_ARGS__)
+	#define dbg_Landed(...) call-script lua_CobDebug(31, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Landed(...) Landed(__VA_ARGS__)
+	#define dbg_Landed(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryTransport(...) QueryTransport(__VA_ARGS__) {call-script lua_CobDebug(32, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryTransport(__VA_ARGS__);} \
+		wrap_QueryTransport(__VA_ARGS__)
+	#define dbg_QueryTransport(...) call-script lua_CobDebug(32, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryTransport(...) QueryTransport(__VA_ARGS__)
+	#define dbg_QueryTransport(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BeginTransport(...) BeginTransport(__VA_ARGS__) {call-script lua_CobDebug(33, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BeginTransport(__VA_ARGS__);} \
+		wrap_BeginTransport(__VA_ARGS__)
+	#define dbg_BeginTransport(...) call-script lua_CobDebug(33, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BeginTransport(...) BeginTransport(__VA_ARGS__)
+	#define dbg_BeginTransport(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndTransport(...) EndTransport(__VA_ARGS__) {call-script lua_CobDebug(34, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndTransport(__VA_ARGS__);} \
+		wrap_EndTransport(__VA_ARGS__)
+	#define dbg_EndTransport(...) call-script lua_CobDebug(34, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndTransport(...) EndTransport(__VA_ARGS__)
+	#define dbg_EndTransport(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TransportPickup(...) TransportPickup(__VA_ARGS__) {call-script lua_CobDebug(35, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TransportPickup(__VA_ARGS__);} \
+		wrap_TransportPickup(__VA_ARGS__)
+	#define dbg_TransportPickup(...) call-script lua_CobDebug(35, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TransportPickup(...) TransportPickup(__VA_ARGS__)
+	#define dbg_TransportPickup(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TransportDrop(...) TransportDrop(__VA_ARGS__) {call-script lua_CobDebug(36, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TransportDrop(__VA_ARGS__);} \
+		wrap_TransportDrop(__VA_ARGS__)
+	#define dbg_TransportDrop(...) call-script lua_CobDebug(36, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TransportDrop(...) TransportDrop(__VA_ARGS__)
+	#define dbg_TransportDrop(...)
+#endif
+
+#ifdef DEBUG
+	#define print_StartUnload(...) StartUnload(__VA_ARGS__) {call-script lua_CobDebug(37, __LINE__, ## __VA_ARGS__ ); call-script  wrap_StartUnload(__VA_ARGS__);} \
+		wrap_StartUnload(__VA_ARGS__)
+	#define dbg_StartUnload(...) call-script lua_CobDebug(37, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_StartUnload(...) StartUnload(__VA_ARGS__)
+	#define dbg_StartUnload(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryLandingPadCount(...) QueryLandingPadCount(__VA_ARGS__) {call-script lua_CobDebug(38, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryLandingPadCount(__VA_ARGS__);} \
+		wrap_QueryLandingPadCount(__VA_ARGS__)
+	#define dbg_QueryLandingPadCount(...) call-script lua_CobDebug(38, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryLandingPadCount(...) QueryLandingPadCount(__VA_ARGS__)
+	#define dbg_QueryLandingPadCount(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryLandingPad(...) QueryLandingPad(__VA_ARGS__) {call-script lua_CobDebug(39, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryLandingPad(__VA_ARGS__);} \
+		wrap_QueryLandingPad(__VA_ARGS__)
+	#define dbg_QueryLandingPad(...) call-script lua_CobDebug(39, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryLandingPad(...) QueryLandingPad(__VA_ARGS__)
+	#define dbg_QueryLandingPad(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon1(...) AimWeapon1(__VA_ARGS__) {call-script lua_CobDebug(40, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon1(__VA_ARGS__);} \
+		wrap_AimWeapon1(__VA_ARGS__)
+	#define dbg_AimWeapon1(...) call-script lua_CobDebug(40, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon1(...) AimWeapon1(__VA_ARGS__)
+	#define dbg_AimWeapon1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon1(...) AimFromWeapon1(__VA_ARGS__) {call-script lua_CobDebug(41, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon1(__VA_ARGS__);} \
+		wrap_AimFromWeapon1(__VA_ARGS__)
+	#define dbg_AimFromWeapon1(...) call-script lua_CobDebug(41, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon1(...) AimFromWeapon1(__VA_ARGS__)
+	#define dbg_AimFromWeapon1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon1(...) FireWeapon1(__VA_ARGS__) {call-script lua_CobDebug(42, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon1(__VA_ARGS__);} \
+		wrap_FireWeapon1(__VA_ARGS__)
+	#define dbg_FireWeapon1(...) call-script lua_CobDebug(42, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon1(...) FireWeapon1(__VA_ARGS__)
+	#define dbg_FireWeapon1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot1(...) Shot1(__VA_ARGS__) {call-script lua_CobDebug(43, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot1(__VA_ARGS__);} \
+		wrap_Shot1(__VA_ARGS__)
+	#define dbg_Shot1(...) call-script lua_CobDebug(43, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot1(...) Shot1(__VA_ARGS__)
+	#define dbg_Shot1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon1(...) QueryWeapon1(__VA_ARGS__) {call-script lua_CobDebug(44, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon1(__VA_ARGS__);} \
+		wrap_QueryWeapon1(__VA_ARGS__)
+	#define dbg_QueryWeapon1(...) call-script lua_CobDebug(44, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon1(...) QueryWeapon1(__VA_ARGS__)
+	#define dbg_QueryWeapon1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst1(...) EndBurst1(__VA_ARGS__) {call-script lua_CobDebug(45, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst1(__VA_ARGS__);} \
+		wrap_EndBurst1(__VA_ARGS__)
+	#define dbg_EndBurst1(...) call-script lua_CobDebug(45, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst1(...) EndBurst1(__VA_ARGS__)
+	#define dbg_EndBurst1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot1(...) BlockShot1(__VA_ARGS__) {call-script lua_CobDebug(46, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot1(__VA_ARGS__);} \
+		wrap_BlockShot1(__VA_ARGS__)
+	#define dbg_BlockShot1(...) call-script lua_CobDebug(46, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot1(...) BlockShot1(__VA_ARGS__)
+	#define dbg_BlockShot1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight1(...) TargetWeight1(__VA_ARGS__) {call-script lua_CobDebug(47, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight1(__VA_ARGS__);} \
+		wrap_TargetWeight1(__VA_ARGS__)
+	#define dbg_TargetWeight1(...) call-script lua_CobDebug(47, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight1(...) TargetWeight1(__VA_ARGS__)
+	#define dbg_TargetWeight1(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon2(...) AimWeapon2(__VA_ARGS__) {call-script lua_CobDebug(48, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon2(__VA_ARGS__);} \
+		wrap_AimWeapon2(__VA_ARGS__)
+	#define dbg_AimWeapon2(...) call-script lua_CobDebug(48, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon2(...) AimWeapon2(__VA_ARGS__)
+	#define dbg_AimWeapon2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon2(...) AimFromWeapon2(__VA_ARGS__) {call-script lua_CobDebug(49, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon2(__VA_ARGS__);} \
+		wrap_AimFromWeapon2(__VA_ARGS__)
+	#define dbg_AimFromWeapon2(...) call-script lua_CobDebug(49, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon2(...) AimFromWeapon2(__VA_ARGS__)
+	#define dbg_AimFromWeapon2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon2(...) FireWeapon2(__VA_ARGS__) {call-script lua_CobDebug(50, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon2(__VA_ARGS__);} \
+		wrap_FireWeapon2(__VA_ARGS__)
+	#define dbg_FireWeapon2(...) call-script lua_CobDebug(50, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon2(...) FireWeapon2(__VA_ARGS__)
+	#define dbg_FireWeapon2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot2(...) Shot2(__VA_ARGS__) {call-script lua_CobDebug(51, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot2(__VA_ARGS__);} \
+		wrap_Shot2(__VA_ARGS__)
+	#define dbg_Shot2(...) call-script lua_CobDebug(51, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot2(...) Shot2(__VA_ARGS__)
+	#define dbg_Shot2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon2(...) QueryWeapon2(__VA_ARGS__) {call-script lua_CobDebug(52, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon2(__VA_ARGS__);} \
+		wrap_QueryWeapon2(__VA_ARGS__)
+	#define dbg_QueryWeapon2(...) call-script lua_CobDebug(52, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon2(...) QueryWeapon2(__VA_ARGS__)
+	#define dbg_QueryWeapon2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst2(...) EndBurst2(__VA_ARGS__) {call-script lua_CobDebug(53, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst2(__VA_ARGS__);} \
+		wrap_EndBurst2(__VA_ARGS__)
+	#define dbg_EndBurst2(...) call-script lua_CobDebug(53, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst2(...) EndBurst2(__VA_ARGS__)
+	#define dbg_EndBurst2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot2(...) BlockShot2(__VA_ARGS__) {call-script lua_CobDebug(54, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot2(__VA_ARGS__);} \
+		wrap_BlockShot2(__VA_ARGS__)
+	#define dbg_BlockShot2(...) call-script lua_CobDebug(54, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot2(...) BlockShot2(__VA_ARGS__)
+	#define dbg_BlockShot2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight2(...) TargetWeight2(__VA_ARGS__) {call-script lua_CobDebug(55, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight2(__VA_ARGS__);} \
+		wrap_TargetWeight2(__VA_ARGS__)
+	#define dbg_TargetWeight2(...) call-script lua_CobDebug(55, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight2(...) TargetWeight2(__VA_ARGS__)
+	#define dbg_TargetWeight2(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon3(...) AimWeapon3(__VA_ARGS__) {call-script lua_CobDebug(56, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon3(__VA_ARGS__);} \
+		wrap_AimWeapon3(__VA_ARGS__)
+	#define dbg_AimWeapon3(...) call-script lua_CobDebug(56, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon3(...) AimWeapon3(__VA_ARGS__)
+	#define dbg_AimWeapon3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon3(...) AimFromWeapon3(__VA_ARGS__) {call-script lua_CobDebug(57, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon3(__VA_ARGS__);} \
+		wrap_AimFromWeapon3(__VA_ARGS__)
+	#define dbg_AimFromWeapon3(...) call-script lua_CobDebug(57, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon3(...) AimFromWeapon3(__VA_ARGS__)
+	#define dbg_AimFromWeapon3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon3(...) FireWeapon3(__VA_ARGS__) {call-script lua_CobDebug(58, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon3(__VA_ARGS__);} \
+		wrap_FireWeapon3(__VA_ARGS__)
+	#define dbg_FireWeapon3(...) call-script lua_CobDebug(58, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon3(...) FireWeapon3(__VA_ARGS__)
+	#define dbg_FireWeapon3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot3(...) Shot3(__VA_ARGS__) {call-script lua_CobDebug(59, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot3(__VA_ARGS__);} \
+		wrap_Shot3(__VA_ARGS__)
+	#define dbg_Shot3(...) call-script lua_CobDebug(59, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot3(...) Shot3(__VA_ARGS__)
+	#define dbg_Shot3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon3(...) QueryWeapon3(__VA_ARGS__) {call-script lua_CobDebug(60, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon3(__VA_ARGS__);} \
+		wrap_QueryWeapon3(__VA_ARGS__)
+	#define dbg_QueryWeapon3(...) call-script lua_CobDebug(60, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon3(...) QueryWeapon3(__VA_ARGS__)
+	#define dbg_QueryWeapon3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst3(...) EndBurst3(__VA_ARGS__) {call-script lua_CobDebug(61, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst3(__VA_ARGS__);} \
+		wrap_EndBurst3(__VA_ARGS__)
+	#define dbg_EndBurst3(...) call-script lua_CobDebug(61, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst3(...) EndBurst3(__VA_ARGS__)
+	#define dbg_EndBurst3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot3(...) BlockShot3(__VA_ARGS__) {call-script lua_CobDebug(62, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot3(__VA_ARGS__);} \
+		wrap_BlockShot3(__VA_ARGS__)
+	#define dbg_BlockShot3(...) call-script lua_CobDebug(62, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot3(...) BlockShot3(__VA_ARGS__)
+	#define dbg_BlockShot3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight3(...) TargetWeight3(__VA_ARGS__) {call-script lua_CobDebug(63, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight3(__VA_ARGS__);} \
+		wrap_TargetWeight3(__VA_ARGS__)
+	#define dbg_TargetWeight3(...) call-script lua_CobDebug(63, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight3(...) TargetWeight3(__VA_ARGS__)
+	#define dbg_TargetWeight3(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon4(...) AimWeapon4(__VA_ARGS__) {call-script lua_CobDebug(64, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon4(__VA_ARGS__);} \
+		wrap_AimWeapon4(__VA_ARGS__)
+	#define dbg_AimWeapon4(...) call-script lua_CobDebug(64, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon4(...) AimWeapon4(__VA_ARGS__)
+	#define dbg_AimWeapon4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon4(...) AimFromWeapon4(__VA_ARGS__) {call-script lua_CobDebug(65, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon4(__VA_ARGS__);} \
+		wrap_AimFromWeapon4(__VA_ARGS__)
+	#define dbg_AimFromWeapon4(...) call-script lua_CobDebug(65, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon4(...) AimFromWeapon4(__VA_ARGS__)
+	#define dbg_AimFromWeapon4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon4(...) FireWeapon4(__VA_ARGS__) {call-script lua_CobDebug(66, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon4(__VA_ARGS__);} \
+		wrap_FireWeapon4(__VA_ARGS__)
+	#define dbg_FireWeapon4(...) call-script lua_CobDebug(66, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon4(...) FireWeapon4(__VA_ARGS__)
+	#define dbg_FireWeapon4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot4(...) Shot4(__VA_ARGS__) {call-script lua_CobDebug(67, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot4(__VA_ARGS__);} \
+		wrap_Shot4(__VA_ARGS__)
+	#define dbg_Shot4(...) call-script lua_CobDebug(67, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot4(...) Shot4(__VA_ARGS__)
+	#define dbg_Shot4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon4(...) QueryWeapon4(__VA_ARGS__) {call-script lua_CobDebug(68, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon4(__VA_ARGS__);} \
+		wrap_QueryWeapon4(__VA_ARGS__)
+	#define dbg_QueryWeapon4(...) call-script lua_CobDebug(68, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon4(...) QueryWeapon4(__VA_ARGS__)
+	#define dbg_QueryWeapon4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst4(...) EndBurst4(__VA_ARGS__) {call-script lua_CobDebug(69, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst4(__VA_ARGS__);} \
+		wrap_EndBurst4(__VA_ARGS__)
+	#define dbg_EndBurst4(...) call-script lua_CobDebug(69, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst4(...) EndBurst4(__VA_ARGS__)
+	#define dbg_EndBurst4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot4(...) BlockShot4(__VA_ARGS__) {call-script lua_CobDebug(70, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot4(__VA_ARGS__);} \
+		wrap_BlockShot4(__VA_ARGS__)
+	#define dbg_BlockShot4(...) call-script lua_CobDebug(70, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot4(...) BlockShot4(__VA_ARGS__)
+	#define dbg_BlockShot4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight4(...) TargetWeight4(__VA_ARGS__) {call-script lua_CobDebug(71, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight4(__VA_ARGS__);} \
+		wrap_TargetWeight4(__VA_ARGS__)
+	#define dbg_TargetWeight4(...) call-script lua_CobDebug(71, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight4(...) TargetWeight4(__VA_ARGS__)
+	#define dbg_TargetWeight4(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon5(...) AimWeapon5(__VA_ARGS__) {call-script lua_CobDebug(72, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon5(__VA_ARGS__);} \
+		wrap_AimWeapon5(__VA_ARGS__)
+	#define dbg_AimWeapon5(...) call-script lua_CobDebug(72, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon5(...) AimWeapon5(__VA_ARGS__)
+	#define dbg_AimWeapon5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon5(...) AimFromWeapon5(__VA_ARGS__) {call-script lua_CobDebug(73, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon5(__VA_ARGS__);} \
+		wrap_AimFromWeapon5(__VA_ARGS__)
+	#define dbg_AimFromWeapon5(...) call-script lua_CobDebug(73, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon5(...) AimFromWeapon5(__VA_ARGS__)
+	#define dbg_AimFromWeapon5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon5(...) FireWeapon5(__VA_ARGS__) {call-script lua_CobDebug(74, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon5(__VA_ARGS__);} \
+		wrap_FireWeapon5(__VA_ARGS__)
+	#define dbg_FireWeapon5(...) call-script lua_CobDebug(74, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon5(...) FireWeapon5(__VA_ARGS__)
+	#define dbg_FireWeapon5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot5(...) Shot5(__VA_ARGS__) {call-script lua_CobDebug(75, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot5(__VA_ARGS__);} \
+		wrap_Shot5(__VA_ARGS__)
+	#define dbg_Shot5(...) call-script lua_CobDebug(75, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot5(...) Shot5(__VA_ARGS__)
+	#define dbg_Shot5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon5(...) QueryWeapon5(__VA_ARGS__) {call-script lua_CobDebug(76, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon5(__VA_ARGS__);} \
+		wrap_QueryWeapon5(__VA_ARGS__)
+	#define dbg_QueryWeapon5(...) call-script lua_CobDebug(76, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon5(...) QueryWeapon5(__VA_ARGS__)
+	#define dbg_QueryWeapon5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst5(...) EndBurst5(__VA_ARGS__) {call-script lua_CobDebug(77, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst5(__VA_ARGS__);} \
+		wrap_EndBurst5(__VA_ARGS__)
+	#define dbg_EndBurst5(...) call-script lua_CobDebug(77, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst5(...) EndBurst5(__VA_ARGS__)
+	#define dbg_EndBurst5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot5(...) BlockShot5(__VA_ARGS__) {call-script lua_CobDebug(78, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot5(__VA_ARGS__);} \
+		wrap_BlockShot5(__VA_ARGS__)
+	#define dbg_BlockShot5(...) call-script lua_CobDebug(78, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot5(...) BlockShot5(__VA_ARGS__)
+	#define dbg_BlockShot5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight5(...) TargetWeight5(__VA_ARGS__) {call-script lua_CobDebug(79, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight5(__VA_ARGS__);} \
+		wrap_TargetWeight5(__VA_ARGS__)
+	#define dbg_TargetWeight5(...) call-script lua_CobDebug(79, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight5(...) TargetWeight5(__VA_ARGS__)
+	#define dbg_TargetWeight5(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimWeapon6(...) AimWeapon6(__VA_ARGS__) {call-script lua_CobDebug(80, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimWeapon6(__VA_ARGS__);} \
+		wrap_AimWeapon6(__VA_ARGS__)
+	#define dbg_AimWeapon6(...) call-script lua_CobDebug(80, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimWeapon6(...) AimWeapon6(__VA_ARGS__)
+	#define dbg_AimWeapon6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_AimFromWeapon6(...) AimFromWeapon6(__VA_ARGS__) {call-script lua_CobDebug(81, __LINE__, ## __VA_ARGS__ ); call-script  wrap_AimFromWeapon6(__VA_ARGS__);} \
+		wrap_AimFromWeapon6(__VA_ARGS__)
+	#define dbg_AimFromWeapon6(...) call-script lua_CobDebug(81, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_AimFromWeapon6(...) AimFromWeapon6(__VA_ARGS__)
+	#define dbg_AimFromWeapon6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_FireWeapon6(...) FireWeapon6(__VA_ARGS__) {call-script lua_CobDebug(82, __LINE__, ## __VA_ARGS__ ); call-script  wrap_FireWeapon6(__VA_ARGS__);} \
+		wrap_FireWeapon6(__VA_ARGS__)
+	#define dbg_FireWeapon6(...) call-script lua_CobDebug(82, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_FireWeapon6(...) FireWeapon6(__VA_ARGS__)
+	#define dbg_FireWeapon6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_Shot6(...) Shot6(__VA_ARGS__) {call-script lua_CobDebug(83, __LINE__, ## __VA_ARGS__ ); call-script  wrap_Shot6(__VA_ARGS__);} \
+		wrap_Shot6(__VA_ARGS__)
+	#define dbg_Shot6(...) call-script lua_CobDebug(83, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_Shot6(...) Shot6(__VA_ARGS__)
+	#define dbg_Shot6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_QueryWeapon6(...) QueryWeapon6(__VA_ARGS__) {call-script lua_CobDebug(84, __LINE__, ## __VA_ARGS__ ); call-script  wrap_QueryWeapon6(__VA_ARGS__);} \
+		wrap_QueryWeapon6(__VA_ARGS__)
+	#define dbg_QueryWeapon6(...) call-script lua_CobDebug(84, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_QueryWeapon6(...) QueryWeapon6(__VA_ARGS__)
+	#define dbg_QueryWeapon6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_EndBurst6(...) EndBurst6(__VA_ARGS__) {call-script lua_CobDebug(85, __LINE__, ## __VA_ARGS__ ); call-script  wrap_EndBurst6(__VA_ARGS__);} \
+		wrap_EndBurst6(__VA_ARGS__)
+	#define dbg_EndBurst6(...) call-script lua_CobDebug(85, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_EndBurst6(...) EndBurst6(__VA_ARGS__)
+	#define dbg_EndBurst6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_BlockShot6(...) BlockShot6(__VA_ARGS__) {call-script lua_CobDebug(86, __LINE__, ## __VA_ARGS__ ); call-script  wrap_BlockShot6(__VA_ARGS__);} \
+		wrap_BlockShot6(__VA_ARGS__)
+	#define dbg_BlockShot6(...) call-script lua_CobDebug(86, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_BlockShot6(...) BlockShot6(__VA_ARGS__)
+	#define dbg_BlockShot6(...)
+#endif
+
+#ifdef DEBUG
+	#define print_TargetWeight6(...) TargetWeight6(__VA_ARGS__) {call-script lua_CobDebug(87, __LINE__, ## __VA_ARGS__ ); call-script  wrap_TargetWeight6(__VA_ARGS__);} \
+		wrap_TargetWeight6(__VA_ARGS__)
+	#define dbg_TargetWeight6(...) call-script lua_CobDebug(87, __LINE__, ## __VA_ARGS__ );
+#else
+	#define print_TargetWeight6(...) TargetWeight6(__VA_ARGS__)
+	#define dbg_TargetWeight6(...)
+#endif
