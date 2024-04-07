@@ -74,8 +74,8 @@ function gadget:GameFrame(frame)
             Spring.SetUnitNeutral(unitID, true)
             Spring.SetUnitStealth(unitID, true)
             Spring.SetUnitNoMinimap(unitID, true)
-            Spring.SetUnitMaxHealth(unitID, 1000)
-            Spring.SetUnitHealth(unitID, 1000)
+            Spring.SetUnitMaxHealth(unitID, 10000)
+            Spring.SetUnitHealth(unitID, 10000)
             Spring.SetUnitSensorRadius(unitID, 'los', 0)
             Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
             Spring.SetUnitSensorRadius(unitID, 'radar', 0)
@@ -84,9 +84,6 @@ function gadget:GameFrame(frame)
         end
     end
     if frame%5 == 0 then
-        for unitID, _ in pairs(AliveBoomboxes) do
-            Spring.SetUnitHealth(unitID, 10000000)
-        end
         for unitID, time in pairs(SelfDQueue) do
             if Spring.GetGameFrame() > time then
                 Spring.DestroyUnit(unitID)
@@ -113,9 +110,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID)
-    if UnitDefs[unitDefID].name == "boombox" then
-        SelfDQueue[unitID] = nil
-        AliveBoomboxes[unitID] = nil
-    end
+    SelfDQueue[unitID] = nil
+    AliveBoomboxes[unitID] = nil
 end
 
