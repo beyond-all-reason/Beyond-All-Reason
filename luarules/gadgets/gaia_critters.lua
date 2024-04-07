@@ -32,9 +32,9 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 1000					-- starting removing critters at this total unit count
-local maxTotalunits			= 2300				-- finished removing critters at this total unit count
-local minimumCritters		= 0.08					-- dont remove further than (0.1 == 10%) of critters
+local minTotalUnits			= 1600					-- starting removing critters at this total unit count
+local maxTotalunits			= 3200				-- finished removing critters at this total unit count
+local minimumCritters		= 0.15					-- dont remove further than (0.1 == 10%) of critters
 local minCritters				= math.ceil((Game.mapSizeX*Game.mapSizeZ)/6000000)				-- dont remove below this amount
 local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
 local companionRadiusAfterStart = 13
