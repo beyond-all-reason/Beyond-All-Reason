@@ -34,6 +34,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
 		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
+		lastInstanceID		= 0,
 	}
 
 
@@ -179,6 +180,11 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	end
 
 	return instanceTable
+end
+
+local function nextInstanceID(iT)
+	iT.lastInstanceID = iT.lastInstanceID + 1
+	return iT.lastInstanceID
 end
 
 function clearInstanceTable(iT)
@@ -425,7 +431,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep
 	local endOffset = iTusedElements * iTStep
-	if instanceID == nil then instanceID = iTusedElements + 1 end
+	if instanceID == nil then instanceID = nextInstanceID(iT) end
 	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID]
 
 	if (iTusedElements + 1 ) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
@@ -487,7 +493,10 @@ function popElementInstance(iT, instanceID, noUpload)
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- returns nil on failure, the the index of the element on success
-	if instanceID == nil then instanceID = iT.usedElements  end
+	if instanceID == nil then
+		Spring.Echo("Tried to remove element with nil instanceID from instanceTable " .. iT.myName)
+		return nil
+	end
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
