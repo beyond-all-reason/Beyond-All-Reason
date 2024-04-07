@@ -4,80 +4,12 @@
 piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
        housing01, housing02, housing03, housing04, spindle, neck, back;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount, shooting, spin_speed, last_primary_heading, last_primary_pitch;
+static-var  gun_1, restore_delay, shotcount, spin_speed, last_primary_heading, last_primary_pitch;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
 
-activatescr()
-{
-	if( TRUE )
-	{
-		move back to z-axis [-6.000000] speed [12.000000];
-		sleep 1500;
-	}
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move back to z-axis [4.000000] speed [4.000000];
-		sleep 100;
-	}
-	return (0);
-}
-
-Go()
-{
-	call-script activatescr();
-	shooting = 1;
-	return (0);
-}
-
-Stop()
-{
-	shooting = 0;
-	sleep 4000;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -89,7 +21,6 @@ Create()
 	spin_speed = 230;
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	call-script InitState();
 	move back to z-axis [4.000000] speed [4.000000];
 	return (0);
 }
@@ -105,14 +36,14 @@ lua_UnitScriptLight(lightIndex, count)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	set-signal-mask SIGNAL_AIM1;
+	move back to z-axis [4.000000] speed [4.000000];
 	return (0);
 }
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	move back to z-axis [-6.000000] speed [12.000000];
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
@@ -137,8 +68,6 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	start-script RequestState(1);
-	shooting = 1;
 
 	//make spindle turn faster as unit gains XP and decreases reload time
 	//GET WEAPON_RELOADSTATE is in frames, we need seconds (factor of 30)

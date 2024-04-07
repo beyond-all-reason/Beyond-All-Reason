@@ -4,13 +4,14 @@
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  closed, gun_3, restore_delay, isOpen, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_3, restore_delay, isOpen;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
+#include "../opencloseanim.h"
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -26,7 +27,7 @@ static-var  closed, gun_3, restore_delay, isOpen, statechg_DesiredState, statech
 static-var timetozero, deceleratethreshold;
 static-var Stunned;
 
-static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
+static-var aimy1delta, aimy1velocity, aimy1position, gameFrame1;
 
 #define MAX_AIMY2_VELOCITY <6.00>
 #define AIMY2_ACCELERATION <0.4>
@@ -35,28 +36,25 @@ static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
 #define AIMY2_RESTORE_SPEED <1.0>
 static-var aimy2delta, aimy2velocity, aimy2target, aimy2position, gameFrame2;
 
-activatescr()
-{
-	if( TRUE )
-	{
-		move body1 to y-axis [0] speed [90];
-		move body2 to y-axis [0] speed [90];
-		wait-for-move body1 along y-axis;
-	}
-	if( TRUE )
-	{
-		move body2 to y-axis [0] speed [90];
-		wait-for-move body2 along y-axis;
-	}
-	if( TRUE )
-	{
-		move borer to z-axis [0] speed [30];
-		move barrelr to z-axis [0] speed [20];
 
-		turn turretg to x-axis <0> speed <180>;
-		
-		move boreg to z-axis [0] speed [24];
-		move barrelg to z-axis [0] speed [10];
+Open()
+{
+	set ARMORED to 0;
+
+	move body1 to y-axis [0] speed [90];
+	move body2 to y-axis [0] speed [90];
+	wait-for-move body1 along y-axis;
+
+	move body2 to y-axis [0] speed [90];
+	wait-for-move body2 along y-axis;
+
+	move borer to z-axis [0] speed [30];
+	move barrelr to z-axis [0] speed [20];
+
+	turn turretg to x-axis <0> speed <180>;
+	
+	move boreg to z-axis [0] speed [24];
+	move barrelg to z-axis [0] speed [10];
 
 		turn turretb to x-axis <0> speed <180>;
 
@@ -65,16 +63,15 @@ activatescr()
 		wait-for-turn turretb around x-axis;
 		wait-for-move borer along y-axis;
 		wait-for-turn turretg around x-axis;
-	}
+
 	sleep 22;
-	closed = FALSE;
+	isOpen = TRUE;
 }
 
-deactivatescr()
+Close()
 {
-	closed = TRUE;
-	if( TRUE )
-	{
+	isOpen = FALSE;
+	
 		turn turretb to x-axis <0> speed <180>;
 		turn turretg to x-axis <0> speed <180>;
 		turn turretr to y-axis <0> speed <180>;	
@@ -85,9 +82,7 @@ deactivatescr()
 		wait-for-turn turretb around x-axis;
 		wait-for-turn turretg around x-axis;
 		wait-for-turn turretr around x-axis;
-	}
-	if( TRUE )
-	{
+
 		turn turretb to x-axis <180> speed <180>;
 		
 		move boreb to z-axis [-9] speed [14];
@@ -103,75 +98,22 @@ deactivatescr()
 		wait-for-turn turretb around x-axis;
 		wait-for-move borer along y-axis;
 		wait-for-turn turretg around x-axis;
-	}
-	if( TRUE )
-	{
+
 		move body2 to y-axis [-7] speed [90];
 		wait-for-move body2 along y-axis;
-	}
-	if( TRUE )
-	{
+
 		move body1 to y-axis [-14] speed [90];
 		move body2 to y-axis [-24] speed [90];
 		wait-for-move body1 along y-axis;
-	}
-
+	
 	wait-for-turn body1 around x-axis;
 	wait-for-turn body2 around x-axis;
 	sleep 22;
-}
 
-
-Go()
-{
-
-	set ARMORED to 0;
-	if( !isOpen )
-	{
-		call-script activatescr();
-	}
-	isOpen = 1;
-}
-
-Stop()
-{
-	isOpen = 0;
-	call-script deactivatescr();
 	set ARMORED to 1;
 
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -185,15 +127,13 @@ Create()
     hide flareb;
     hide flareg;
 	gun_3 = 0;
-	closed = FALSE;
-	call-script InitState();
-	isOpen = 0;
+	isOpen = TRUE;
 	restore_delay = 2000;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 #define SMOKEPIECE base
@@ -201,7 +141,7 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
@@ -209,7 +149,8 @@ Deactivate()
 	signal SIGNAL_AIM1;
 	signal SIGNAL_AIM2;
 	signal SIGNAL_AIM3;
-	start-script RequestState(1);
+	
+	start-script OpenCloseAnim(0);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -219,7 +160,7 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
@@ -228,8 +169,7 @@ AimWeapon1(heading, pitch)
 	//We can do this any time
 	turn turretb to x-axis <0.000000> - pitch speed <85.000000>;
 	
-	aimy1target = heading;
-	aimy1delta = aimy1target - aimy1position;
+	aimy1delta = heading - aimy1position;
 
 	
 	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
@@ -269,7 +209,7 @@ AimWeapon1(heading, pitch)
 			
 			aimy1position = aimy1position + aimy1velocity; 
 			turn body2 to y-axis aimy1position now;
-			aimy1delta = aimy1target - aimy1position ; 	
+			aimy1delta = heading - aimy1position ; 	
 		}
 		sleep 30;		
 	}
@@ -280,7 +220,7 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
@@ -338,46 +278,14 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-
-/*
-AimWeapon1(heading, pitch)
-{
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	while( !isOpen )
-	{
-		sleep 250;
-	}
-	turn body2 to y-axis heading speed <50.000000>;
-	turn turretb to x-axis <0.0> - pitch speed <50.000000>;
-	wait-for-turn body2 around y-axis;
-	wait-for-turn turretb around x-axis;
-	return (1);
-}
-
-AimWeapon2(heading, pitch)
-{
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	while( !isOpen )
-	{
-		sleep 250;
-	}
-	turn body1 to y-axis heading speed <200.000000>;
-	turn turretg to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn body1 around y-axis;
-	wait-for-turn turretg around x-axis;
-	return (1);
-}*/
-
 AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	while( !isOpen )
+	if (!isOpen)
 	{
-		sleep 250;
-	}
+		return (0);
+	}	
 	turn turretr to y-axis heading speed <500.000000>;
 	wait-for-turn turretr around y-axis;
 
@@ -386,27 +294,15 @@ AimWeapon3(heading, pitch)
 
 FireWeapon1()
 {
-	sleep 150;
 }
 
 FireWeapon2()
 {
-	sleep 150;
 }
 
 FireWeapon3()
 {
-	if( gun_3 == 0 )
-	{
-		gun_3 = 1;
-		return (0);
-	}
-	else
-	{
-		
-	   	gun_3 = 0 ;
-		return (0);
-	}
+	gun_3 = !gun_3;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -436,15 +332,7 @@ QueryWeapon2(pieceIndex)
 
 QueryWeapon3(pieceIndex)
 {
-	if( gun_3 == 0 )
-	{
-		pieceIndex = flarer1;
-	}
-	else
-	{
-		pieceIndex = flarer2;
-	}
-	
+	pieceIndex = flarer1 + gun_3;
 }
 
 

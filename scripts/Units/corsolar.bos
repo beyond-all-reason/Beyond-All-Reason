@@ -42,7 +42,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	dbg();
 	start-script SmokeUnit();
 	recentlyHit = 0;
 	wantOpen = 1;

@@ -9,19 +9,7 @@
 
 piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
 
-static-var fire_count, statechg_DesiredState, statechg_StateChanging, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-
-Activatescr()
-{
-	sleep 1;
-	return (0);
-}
-
-Deactivatescr()
-{
-	sleep 1;
-	return (0);
-}
+static-var fire_count, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
@@ -520,60 +508,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-Go()
-{
-	call-script Activatescr();
-	turn turret to y-axis <0> speed <100.000000>;
-	wait-for-turn turret around y-axis;
-	set INBUILDSTANCE to 1;
-	return (0);
-}
 
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
-	call-script InitState();
 	hide flare;
 	hide emplight;
 	notBuilding = 1;
@@ -594,8 +532,6 @@ SetMaxReloadTime(t)
 {
 	restore_delay=5000;
 }
-
-
 
 QueryWeapon1(pieceIndex)
 {
@@ -619,9 +555,8 @@ FireWeapon1()
 StartBuilding(heading, pitch)
 {
 	show flare;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;	
+	set INBUILDSTANCE to 1;
 	turn turret to y-axis heading speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -633,13 +568,9 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
 	sleep 1000;
-	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
+	set INBUILDSTANCE to 0;
+	turn turret to y-axis <0> speed <100.000000>;
 }
-
-
-
-
 
 QueryNanoPiece(pieceIndex)
 {
@@ -676,13 +607,11 @@ RestoreAfterDelay()
 
 Activate()
 {
-	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 	return (0);
 }
 

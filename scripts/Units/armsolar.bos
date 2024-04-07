@@ -3,7 +3,7 @@
 
 piece  base, dish1, dish2, dish3, dish4, emit;
 
-static-var  recentlyHit;
+static-var  recentlyHit, wantOpen;
 
 #define SIGNAL_TURNON 4
 
@@ -45,18 +45,13 @@ Create()
 // close it up when hit
 // open it when time passed
 // dont open it while hit
-// dont reopen it if off after being hit
-// dont let any of the above conflict in time. 
+// dont reopen it if off after being hit !!!
+// dont let any of the above conflict in time.
+// dont change state while stunned
+// obey desired state changes while closed for hit
 
-
-Activate()
+Open()
 {
-	if( recentlyHit )
-	{
-		set ACTIVATION to 0; // dont open it while hit, feedback it
-		return (0);
-	}
-
 	turn dish1 to x-axis <-90.016484> speed <60.000000>;
 	turn dish3 to x-axis <90.016484> speed <60.000000>;
 	turn dish2 to z-axis <-90.016484> speed <60.000000>;
@@ -71,7 +66,7 @@ Activate()
 	set ACTIVATION to 100;
 }
 
-Deactivate()
+Close()
 {
 	set ACTIVATION to 0;
 	turn dish1 to x-axis <0.000000> speed <120.000000>;
@@ -87,18 +82,39 @@ Deactivate()
 	set YARD_OPEN to 1;
 }
 
+Activate()
+{
+	if( recentlyHit )
+	{
+		set ACTIVATION to 0; // dont open it while hit, feedback it
+		wantOpen = 1;
+		return (0);
+	}
+	call-script Open();
+}
+
+Deactivate()
+{
+	call-script Close();
+}
+
 HitByWeapon(anglex, anglez)
 {
 
+	if (!recentlyHit){
+		start-script Close(); 
+		recentlyHit = 1;
+		wantOpen = get ACTIVATION;
+	}
+	// Signal after Close() so as not to interrupt it
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	recentlyHit = 1;
-	start-script Deactivate();
 
 	sleep 8000;
 	recentlyHit = 0;
-	
-	start-script Activate();
+	if (wantOpen){
+		start-script Open();
+	}
 }
 
 

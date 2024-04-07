@@ -46,15 +46,6 @@ Create()
 	start-script WheelControl();
 }
 
-Activate()
-{
-	//get PRINT(111);
-}
-
-Deactivate()
-{
-	//get PRINT(222);
-}
 
 StartBuilding(heading, pitch)
 {	
