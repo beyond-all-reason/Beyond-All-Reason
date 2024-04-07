@@ -12,7 +12,7 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
+local TRANSPORTED_MASS_SPEED_PENALTY = 0.43 -- higher makes unit slower
 local FRAMES_PER_SECOND = Game.gameSpeed
 
 local airTransports = {}
