@@ -341,17 +341,33 @@ local critterConfig = {
 	},
 
 	["world in flames v"] = {
-		{ spawnBox = { x1 = 50, z1 = 400, x2 = 16200, z2 = 7300 }, unitNames = { ["critter_goldfish"] = rnd(120, 170) } },
-		{ spawnCircle = { x = 2200, z = 5000, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
-		{ spawnCircle = { x = 12300, z = 5500, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
-		{ spawnCircle = { x = 14300, z = 3100, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
-		{ spawnCircle = { x = 7000, z = 2400, r = 220 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
-		{ spawnBox = { x1 = 50, z1 = 7650, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_penguin"] = rnd(14, 20) } },
-		{ spawnCircle = { x = 5050, z = 7450, r = 220 }, unitNames = { ["critter_penguin"] = rnd(5, 7) } },
-		{ spawnCircle = { x = 15300, z = 7500, r = 220 }, unitNames = { ["critter_penguin"] = rnd(4, 6) } },
-		{ spawnCircle = { x = 14300, z = 5150, r = 500 }, unitNames = { ["critter_ant"] = rnd(4, 6) } },
-		{ spawnCircle = { x = 14600, z = 4350, r = 280 }, unitNames = { ["critter_ant"] = rnd(2, 3) } },
-		{ spawnCircle = { x = 8900, z = 2400, r = 160 }, unitNames = { ["critter_duck"] = rnd(1, 2) } },
+		{ spawnBox = { x1 = 50, z1 = 400, x2 = 16200, z2 = 7300 }, unitNames = { ["critter_goldfish"] = rnd(130, 170) } },
+		{ spawnCircle = { x = 3800, z = 5200, r = 600 }, unitNames = { ["critter_goldfish"] = rnd(9, 13) } },	-- silent sea
+		{ spawnCircle = { x = 12500, z = 5400, r = 600 }, unitNames = { ["critter_goldfish"] = rnd(9, 13) } },	-- indian ocean
+		{ spawnCircle = { x = 14300, z = 3100, r = 600 }, unitNames = { ["critter_goldfish"] = rnd(9, 13) } },	-- philippine sea
+		{ spawnCircle = { x = 7000, z = 2400, r = 600 }, unitNames = { ["critter_goldfish"] = rnd(9, 13) } },	-- atlantic ocean europe
+		{ spawnCircle = { x = 5300, z = 2800, r = 600 }, unitNames = { ["critter_goldfish"] = rnd(9, 13) } },	-- atlantic ocean americas
+
+		{ spawnBox = { x1 = 50, z1 = 7650, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_penguin"] = rnd(14, 20) } },	-- antarctica
+		{ spawnCircle = { x = 5050, z = 7450, r = 220 }, unitNames = { ["critter_penguin"] = rnd(5, 7) } },	-- antarctica colony 1
+		{ spawnCircle = { x = 15300, z = 7500, r = 220 }, unitNames = { ["critter_penguin"] = rnd(4, 6) } },	-- antarctica colony 2
+
+		{ spawnCircle = { x = 14300, z = 5150, r = 530 }, unitNames = { ["critter_ant"] = rnd(5, 7) } },	-- australia center
+		{ spawnCircle = { x = 14600, z = 4350, r = 280 }, unitNames = { ["critter_ant"] = rnd(2, 3) } },	-- australia top
+
+		{ spawnCircle = { x = 8900, z = 2400, r = 160 }, unitNames = { ["critter_duck"] = rnd(2, 3) } },	-- mediterranean sea
+		{ spawnCircle = { x = 13400, z = 3400, r = 160 }, unitNames = { ["critter_duck"] = rnd(2, 3) } },	-- south china sea
+
+		{ spawnCircle = { x = 4600, z = 3350, r = 1100 }, unitNames = { ["critter_gull"] = rnd(6, 10) } },	-- jamaica
+		{ spawnCircle = { x = 13400, z = 4000, r = 1100 }, unitNames = { ["critter_gull"] = rnd(6, 10) } },	-- indonesia
+		{ spawnCircle = { x = 7900, z = 1900, r = 700 }, unitNames = { ["critter_gull"] = rnd(3, 5) } },	-- the strait
+		{ spawnCircle = { x = 8900, z = 2400, r = 900 }, unitNames = { ["critter_gull"] = rnd(4, 6) } },	-- mediterranean sea
+		{ spawnCircle = { x = 6000, z = 4700, r = 1100 }, unitNames = { ["critter_gull"] = rnd(3, 5) } },	-- brasil
+		{ spawnCircle = { x = 9000, z = 4000, r = 1100 }, unitNames = { ["critter_gull"] = rnd(3, 5) } },	-- mid-west africa
+		{ spawnCircle = { x = 10500, z = 4700, r = 700 }, unitNames = { ["critter_gull"] = rnd(2, 3) } },	-- madagascar
+		{ spawnCircle = { x = 14000, z = 2400, r = 700 }, unitNames = { ["critter_gull"] = rnd(2, 3) } },	-- south korea
+		{ spawnCircle = { x = 14000, z = 2400, r = 700 }, unitNames = { ["critter_gull"] = rnd(2, 3) } },	-- south korea
+		{ spawnCircle = { x = 10400, z = 3500, r = 700 }, unitNames = { ["critter_gull"] = rnd(2, 3) } },	-- gulf
 	},
 
 }
