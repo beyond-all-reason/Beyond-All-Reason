@@ -5,6 +5,7 @@ piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, ne
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
 static-var  gun_3, restore_delay, isOpen;
+static-var Stunned;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -18,24 +19,30 @@ static-var  gun_3, restore_delay, isOpen;
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <3.00>
-#define AIMY1_ACCELERATION <0.16>
-#define AIMY1_JERK <0.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
+#define CATT1_PIECE_X turretb
+#define CATT1_PIECE_Y body2
 
-static-var timetozero, deceleratethreshold;
-static-var Stunned;
+#define CATT1_MAX_VELOCITY <3.00>
+#define CATT1_ACCELERATION <0.16>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <1.2>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_PITCH_SPEED <85>
 
-static-var aimy1delta, aimy1velocity, aimy1position, gameFrame1;
+#include "../constant_acceleration_turret_turning_1.h"
 
-#define MAX_AIMY2_VELOCITY <6.00>
-#define AIMY2_ACCELERATION <0.4>
-#define AIMY2_JERK <1.2>
-#define AIMY2_PRECISION <1.2>
-#define AIMY2_RESTORE_SPEED <1.0>
-static-var aimy2delta, aimy2velocity, aimy2target, aimy2position, gameFrame2;
 
+#define CATT2_PIECE_X turretg
+#define CATT2_PIECE_Y body1
+
+#define CATT2_MAX_VELOCITY <6.00>
+#define CATT2_ACCELERATION <0.4>
+#define CATT2_JERK <1.5>
+#define CATT2_PRECISION <1.2>
+#define CATT2_RESTORE_SPEED <1.0>
+#define CATT2_PITCH_SPEED <150>
+
+#include "../constant_acceleration_turret_turning_2.h"
 
 Open()
 {
@@ -76,9 +83,7 @@ Close()
 		turn turretg to x-axis <0> speed <180>;
 		turn turretr to y-axis <0> speed <180>;	
 		turn body1 to y-axis <0> speed <180>;	
-		aimy1position = 0;
 		turn body2 to y-axis <0> speed <180>;	
-		aimy2position = 0;
 		wait-for-turn turretb around x-axis;
 		wait-for-turn turretg around x-axis;
 		wait-for-turn turretr around x-axis;
@@ -111,7 +116,9 @@ Close()
 	sleep 22;
 
 	set ARMORED to 1;
-
+	
+	start-script CATT1_Init();
+	start-script CATT2_Init();
 }
 
 
@@ -134,6 +141,8 @@ Create()
 		sleep 250;
 	}
 	start-script OpenCloseAnim(1);
+	start-script CATT1_Init();
+	start-script CATT2_Init();
 }
 
 #define SMOKEPIECE base
@@ -166,54 +175,9 @@ AimWeapon1(heading, pitch)
 	}	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	//We can do this any time
-	turn turretb to x-axis <0.000000> - pitch speed <85.000000>;
 	
-	aimy1delta = heading - aimy1position;
+	call-script CATT1_Aim(heading,pitch);
 
-	
-	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
-		if (gameFrame1 != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame1 = get(GAME_FRAME);
-	
-			//Clamp aimy1position and aimy1delta between <-180>;<180>
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
-			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
-			}
-			
-			aimy1position = aimy1position + aimy1velocity; 
-			turn body2 to y-axis aimy1position now;
-			aimy1delta = heading - aimy1position ; 	
-		}
-		sleep 30;		
-	}
-	aimy1velocity = 0;
 	return (1);
 }
 
@@ -226,55 +190,8 @@ AimWeapon2(heading, pitch)
 	}	
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	//We can do this any time
-	turn turretg to x-axis <0.000000> - pitch speed <85.000000>;
 	
-	aimy2target = heading;
-	aimy2delta = aimy2target - aimy2position;
-
-	
-	while( ( get ABS(aimy2delta) > AIMY2_PRECISION ) OR (get ABS(aimy2velocity) > AIMY2_JERK)){
-		if (gameFrame2 != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame2 = get(GAME_FRAME);
-	
-			//Clamp aimy2position and aimy2delta between <-180>;<180>
-			while (aimy2position >  <180>) aimy2position = aimy2position - <360>;
-			while (aimy2position < <-180>) aimy2position = aimy2position + <360>;
-			while (aimy2delta >  <180>) aimy2delta = aimy2delta - <360>;
-			while (aimy2delta < <-180>) aimy2delta = aimy2delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy2velocity) / AIMY2_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy2velocity)) - (timetozero * (timetozero - 1) * AIMY2_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy2delta , deceleratethreshold, aimy2velocity, timetozero );
-			
-			if (get ABS(aimy2delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy2velocity > 0) aimy2velocity = aimy2velocity - AIMY2_ACCELERATION;
-				else 				   aimy2velocity = aimy2velocity + AIMY2_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy2delta > 0) aimy2velocity = get MIN(       MAX_AIMY2_VELOCITY, aimy2velocity + AIMY2_ACCELERATION); 
-				else                aimy2velocity = get MAX((-1) * MAX_AIMY2_VELOCITY, aimy2velocity - AIMY2_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy2velocity) < AIMY2_JERK){
-				if ((aimy2delta >        AIMY2_JERK)) aimy2velocity =        AIMY2_JERK;
-				if ((aimy2delta < (-1) * AIMY2_JERK)) aimy2velocity = (-1) * AIMY2_JERK;
-			}
-			
-			aimy2position = aimy2position + aimy2velocity; 
-			turn body1 to y-axis aimy2position now;
-			aimy2delta = aimy2target - aimy2position ; 	
-		}
-		sleep 30;		
-	}
-	aimy2velocity = 0;
+	call-script CATT2_Aim(heading,pitch);
 	return (1);
 }
 
@@ -290,14 +207,6 @@ AimWeapon3(heading, pitch)
 	wait-for-turn turretr around y-axis;
 
 	return (1);
-}
-
-FireWeapon1()
-{
-}
-
-FireWeapon2()
-{
 }
 
 FireWeapon3()
@@ -334,7 +243,6 @@ QueryWeapon3(pieceIndex)
 {
 	pieceIndex = flarer1 + gun_3;
 }
-
 
 
 Killed(severity, corpsetype)
