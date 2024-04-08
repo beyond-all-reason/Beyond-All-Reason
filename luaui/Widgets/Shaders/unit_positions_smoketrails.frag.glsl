@@ -16,10 +16,16 @@ in DataGS {
 
 uniform sampler3D noisetex3dcube;
 uniform sampler2D minimap;
+uniform sampler2D heightMap;
+
 out vec4 fragColor;
 
 void main(void)
 {
+
+	vec2 UVHM =  heightmapUVatWorldPos(g_centerpos.xz);
+	float worldHeight = textureLod(heightMap, UVHM, 0.0).x;
+	
 	vec4 texcolor = vec4(1.0);
 
 	fragColor.rgba = vec4(g_uv.rgb * texcolor.rgb , texcolor.a  );
@@ -33,14 +39,24 @@ void main(void)
 	vec4 noise;
 	vec3 noisePos;
 	float progress = 1.0 -  g_uv.w * g_uv.w;
+	
+	
+	vec2 minimapUV = g_centerpos.xz/ mapSize.xy;
+	vec4 minimapColor = texture(minimap, minimapUV);
+		
 	// BILLBOARDS:
 	#if 1
-		noisePos = (g_centerpos.xyz - vec3(0, 0.2 * timeInfo.x,0)) * 0.01 + g_uv.zzz;
+		noisePos = (g_centerpos.xyz - vec3(0, 0.1 * timeInfo.x,0)) * 0.015	 + g_uv.zzz;
 		noise = texture(noisetex3dcube, noisePos);
 		vec2 distcenter = (abs(g_uv.xy * 2.0 - 1.0));
 		float alphacircle = 1.0 - dot(distcenter, distcenter);
 		fragColor.rgba = vec4(vec3(noise.a), alphacircle * progress * noise.a);
-		fragColor.rgba = vec4(vec3(g_uv.rgb), 1 );
+		float soften = clamp((g_centerpos.y - worldHeight) * 0.125, 0, 1.5);
+		fragColor.a *= soften;
+		fragColor.rgb = mix(fragColor.rgb,  fragColor.rgb *(minimapColor.rgb *1.5), 0.25 + 	noise.b);
+	
+		
+		//fragColor.rgba = vec4(vec3(g_uv.rgb), 1 );
 		return;
 	#endif
 	
@@ -54,8 +70,6 @@ void main(void)
 	fragColor.a = noise.a * (1.0 - abs(g_centerpos.w)) ;
 	fragColor.a *= (1.0 -  g_uv.w);
 	
-	vec2 minimapUV = g_centerpos.xz/ mapSize.xy;
-	vec4 minimapColor = texture(minimap, minimapUV);
 	
 	fragColor.rgb= (minimapColor.rgb * (dot(noise.rgb, vec3(0.5))));
 	//fragColor.a *= 1.5;

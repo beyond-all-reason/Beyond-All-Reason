@@ -95,6 +95,7 @@ local shaderSourceCache = {
 			unitPosTexture = 0,
 			noisetex3dcube = 1,
 			minimap = 2,
+			heightMap = 3,
 			},
 		uniformFloat = {
 			iconDistance = 20000.0,
@@ -201,6 +202,7 @@ function widget:DrawWorld()
 		gl.Texture(0, unitPosTexture)
 		gl.Texture(1, noisetex3dcube)		
 		gl.Texture(2, "$minimap")
+		gl.Texture(3, "$heightmap")
 
 		unitPosSmokeShader:Activate()
 		unitPosSmokeShader:SetUniform("iconDistance", 99999) -- pass
@@ -210,6 +212,7 @@ function widget:DrawWorld()
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 		gl.Texture(2, false)
+		gl.Texture(3, false)
 	end
 end
 

@@ -7,7 +7,7 @@
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 //layout(invocations = 4​) in;
-layout(points, invocations = 4) in;
+layout(points, invocations = 1) in;
 layout(triangle_strip, max_vertices = MAXVERTICES) out; // at least 1024/ numfloats output, and builtins like gl_Position counts as 4 floats towards this
 // 128 max on my hw
 #line 20013
@@ -73,6 +73,9 @@ void EmitBillBoard(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, float progr
 	g_uv.rgb = col;
 	g_uv.w = progress;
 	
+	//vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
+	//worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
+	
 	vec3 p;
 	mat3 rotmat;
 	rotmat = rotation3dY(posrot1.w);
@@ -106,11 +109,11 @@ void EmitBillBoard(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, float progr
 }
 
 
-
-void EmitHorizontalSegment(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, float progress){
+// This returns XZ center of the segment and the XZ normal of it too
+vec4 EmitHorizontalSegment(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, float progress){
 	g_uv.rgb = col;
 	g_uv.w = progress;
-	
+	vec4 center_norm_xz;
 	vec3 p;
 	mat3 rotmat = rotation3dY(posrot1.w);
 	
@@ -120,9 +123,12 @@ void EmitHorizontalSegment(vec4 posrot1, vec3 emitoffset, vec2 lw, vec3 col, flo
 	EmitVertex();
 	
 	p = posrot1.xyz +  (rotmat * ( emitoffset + vec3(lw.x,0,lw.y)));
+	center_norm_xz.xy = (g_centerpos.xz + p.xz) /2 ; 
+	center_norm_xz.zw = (rotmat * vec3(1,0,1)).xz;
 	g_centerpos = vec4(p, -1.0);
 	gl_Position = cameraViewProj * vec4(  p , 1.0);
 	EmitVertex();
+	return center_norm_xz;
 }
 
 void GetVelPosXFramesAgo(ivec4 slot_start_step_segments, int timeback, out vec4 posrot, out vec4 velvalid){
@@ -224,7 +230,7 @@ void main(){
 	#endif
 	
 	#if 0
-	// ------------- Billboard ribbon: ----------------------
+	// ------------- Horizontal, non-overlapping ribbon: ----------------------
 	
 	vec4 currposrot = dataIn[0].v_drawpos;
 	//Start by drawing one segment from currpos to previous known pos:
@@ -243,6 +249,29 @@ void main(){
 		vec2 lw = vec2(width + ( progress) * growth , 0);
 		
 		nextposrot.y += (rise * progress) ;
+		
+		// We now need to draw a vector from oldpos to newpos:
+		
+		vec3 oldtonew = currposrot.xyz - nextposrot.xyz;
+		
+		// Convert the new direction to a rotation for emission
+		
+		float nextrotation = atan(oldtonew.x, oldtonew.z);
+		
+		// On the XZ plane, check if the new left or right positions would be behind or in front of previous segment
+		
+		vec2 oldtonewXZnorm = normalize(oldtonew.xz);
+		
+		//check left:
+		// posrot1.xyz +  (rotmat * ( emitoffset + vec3(-lw.x,0,-lw.y)));
+		
+		vec2 newleftxz = nextposrot.xz + emitoffset.xz + lw.x * oldtonewXZnorm;
+		
+		vec2 newrightxz = nextposrot.xz + emitoffset.xz - lw.x * oldtonewXZnorm;
+		
+		// If i take the dot product of the plane's normal and the vector pointing from prev segment center to new point, and its < 0 then its behind it. 
+		
+		
 
 		if (velvalidat.w > 0.5){
 			EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(0), progress);
