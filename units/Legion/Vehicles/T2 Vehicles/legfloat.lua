@@ -42,7 +42,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.8,
 		turnrate = 350,
-		waterline = 7.5, 
+		waterline = 7.5,
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/cor_normal.dds",
@@ -69,7 +69,6 @@ return {
 				object = "Units/legfloat_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -89,7 +88,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

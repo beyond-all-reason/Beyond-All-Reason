@@ -76,9 +76,8 @@ return {
 				object = "Units/scavboss/corgolt4_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
-			
+
 			heap = {
 				blocking = false,
 				category = "heaps",
@@ -96,7 +95,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -166,7 +164,7 @@ return {
 					subs = 500,
 				},
 			},
-			
+
 			corgol_sidelaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -205,7 +203,7 @@ return {
 					default = 750,
 					vtol = 125,
 				},
-			},			
+			},
 		},
 		weapons = {
 			[1] = {

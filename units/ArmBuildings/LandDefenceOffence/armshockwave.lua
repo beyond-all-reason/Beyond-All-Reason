@@ -28,7 +28,7 @@ return {
 		maxslope = 30,
 		maxwaterdepth = 20,
 		metalstorage = 600,
-		mincloakdistance = 50,		
+		mincloakdistance = 50,
 		nochasecategory = "MOBILE",
 		objectname = "Units/armshockwave.s3o",
 		onoffable = false,
@@ -75,7 +75,6 @@ return {
 				object = "Units/armshockwave_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -94,7 +93,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

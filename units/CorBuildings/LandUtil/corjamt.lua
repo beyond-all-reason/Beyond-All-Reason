@@ -63,7 +63,6 @@ return {
 				object = "Units/corjamt_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 		},
 		sfxtypes = {

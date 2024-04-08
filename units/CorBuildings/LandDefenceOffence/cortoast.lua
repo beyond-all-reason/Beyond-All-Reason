@@ -64,7 +64,6 @@ return {
 				object = "Units/cortoast_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -81,7 +80,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

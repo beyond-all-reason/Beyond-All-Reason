@@ -77,7 +77,6 @@ return {
 				object = "Units/armpincer_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 			heap = {
 				blocking = false,
@@ -96,7 +95,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

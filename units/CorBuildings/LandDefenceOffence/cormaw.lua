@@ -70,7 +70,6 @@ return {
 				object = "Units/cordrag.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			rockteeth = {
 				animating = 0,
@@ -88,7 +87,6 @@ return {
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

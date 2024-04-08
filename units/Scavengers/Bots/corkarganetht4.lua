@@ -58,7 +58,6 @@ return {
 				metal = 6000,
 				object = "Units/scavboss/corkarganetht4_dead.s3o",
 				reclaimable = true,
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

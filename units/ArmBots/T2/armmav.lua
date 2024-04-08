@@ -60,7 +60,6 @@ return {
 				object = "Units/armmav_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -78,7 +77,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

@@ -157,7 +157,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -236,8 +235,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponVelocity           = 1000,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = stats.minigunDamage,
 					vtol				 = stats.minigunDamage*3,

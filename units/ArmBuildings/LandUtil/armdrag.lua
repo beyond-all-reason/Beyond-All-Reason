@@ -66,7 +66,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

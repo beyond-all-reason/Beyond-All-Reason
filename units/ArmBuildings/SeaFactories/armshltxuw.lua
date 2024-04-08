@@ -68,7 +68,6 @@ return {
 				object = "Units/armshltx_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			armshlt_heap = {
 				blocking = false,
@@ -85,7 +84,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

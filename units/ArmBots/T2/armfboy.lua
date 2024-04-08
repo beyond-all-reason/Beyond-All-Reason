@@ -61,7 +61,6 @@ return {
 				object = "Units/armfboy_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 			heap = {
 				blocking = false,
@@ -79,7 +78,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 		},
 		sfxtypes = {

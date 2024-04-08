@@ -60,7 +60,6 @@ return {
 				metal = 3600,
 				object = "Units/cordemon_dead.s3o",
 				reclaimable = true,
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -79,9 +78,8 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
-			
+
 		},
 		sfxtypes = {
 			explosiongenerators = {

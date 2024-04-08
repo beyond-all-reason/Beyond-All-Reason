@@ -70,7 +70,6 @@ return {
 				object = "Units/armfort.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			rockteeth = {
 				animating = 0,
@@ -89,7 +88,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

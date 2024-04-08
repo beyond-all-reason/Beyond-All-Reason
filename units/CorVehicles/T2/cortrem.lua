@@ -68,7 +68,6 @@ return {
 				object = "Units/cortrem_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -87,7 +86,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -123,7 +121,7 @@ return {
 		},
 		weapondefs = {
 			tremor_focus_fire = {
-					
+
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -160,10 +158,10 @@ return {
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 			tremor_spread_fire = {
-				
+
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -190,7 +188,7 @@ return {
 				customparams = {
 					speceffect = "sector_fire",
 					when = "always",
-					max_range_reduction = "0.35", 
+					max_range_reduction = "0.35",
 					spread_angle = "24",
 				},
 				damage = {
@@ -198,7 +196,7 @@ return {
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 		},
 		weapons = {

@@ -63,7 +63,6 @@ return {
 				object = "Units/scavboss/armassimilator_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -82,7 +81,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -191,8 +189,8 @@ return {
 				weaponVelocity           = 1000,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = 33,
 					vtol				 = 100,

@@ -56,7 +56,6 @@ return {
 				object = "Units/scavbuildings/legministarfall_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -73,7 +72,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -115,17 +113,17 @@ return {
 				avoidground = false,
 				burst = 61,
 				burstrate = 0.01,
-				
+
 				sprayangle = 400,
 				highTrajectory = 1,
-				
+
 				cegtag = "ministarfire",
 				collidefriendly = false,
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.95,
 				energypershot = 20000,
-				
+
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulseboost = 0.5,
@@ -149,7 +147,7 @@ return {
 					subs = 50,
 				},
 			},
-		
+
 		},
 		weapons = {
 			[1] = {
