@@ -135,7 +135,6 @@ return {
 				range = 400,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -144,7 +143,6 @@ return {
 				thickness = 0.6,
 				tolerance = 6000,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 921,
 				damage = {

@@ -17,7 +17,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 4350, --3850,
+		health = 4350,
 		maxslope = 16,
 		speed = 45.3,
 		maxwaterdepth = 0,

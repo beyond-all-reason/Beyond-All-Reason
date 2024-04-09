@@ -96,7 +96,6 @@ return {
 				range = 350,
 				reloadtime = 1.65,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun3",
@@ -113,7 +112,6 @@ return {
 				},
 			},
 			railgun = {
-				--accuracy = 7,
 				areaofeffect = 8,
 				avoidfeature = false,
 				burnblow = false,
@@ -123,7 +121,6 @@ return {
 				cratermult = 0,
 				duration = 0.06,
 				edgeeffectiveness = 0.85,
-				--energypershot = 200,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,

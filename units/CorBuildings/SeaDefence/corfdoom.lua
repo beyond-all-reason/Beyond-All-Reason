@@ -114,7 +114,6 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				--model = "artshell-medium.s3o",
 				name = "Medium-range g2g plasma cannon",
 				noselfdamage = true,
 				predictboost = 0.2,

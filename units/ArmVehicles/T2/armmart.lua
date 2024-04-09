@@ -19,7 +19,6 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		health = 1070,
-		--maxreversevelocity = 0.948,
 		maxslope = 12,
 		speed = 60,
 		maxwaterdepth = 0,
@@ -113,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			arm_artillery = {
-				accuracy = 600,--900,
+				accuracy = 600,
 				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "arty-medium",
@@ -124,7 +123,6 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				--model = "artshell-medium.s3o",
 				name = "Long-range g2g plasma cannon",
 				noselfdamage = true,
 				range = 820,

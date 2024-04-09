@@ -66,15 +66,11 @@ return {
 			"armrectr",
 			-- builders
 			"armca",
-			--"armaca",
 			"armck",
-			--"armack",
 			"armch",
 			"armcsa",
 			"armcs",
-			--"armacsub",
 			"armcv",
-			--"armacv",
 		},
 		customparams = {
 			unitgroup = 'builder',

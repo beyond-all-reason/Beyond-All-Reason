@@ -123,8 +123,6 @@ return {
 				reloadtime = 1.4,
 				rgbcolor = "1 0.9 0.45",
 				size = 4,
-				--separation = 1.2,
-				--nogap = false,
 				sizeDecay = 0.044,
 				stages = 8,
 				alphaDecay = 0.66,

@@ -111,8 +111,6 @@ return {
 				areaofeffect = 32,
 				avoidfeature = false,
 				avoidfriendly = false,
-				--burst = 2,
-				--burstrate = 0.5,
 				burnblow = true,
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -166,7 +164,7 @@ return {
 				weaponvelocity = 550,
 				damage = {
 					default = 220,
-					subs = 220, --5,
+					subs = 220,
 					vtol = 40,
 				},
 			},

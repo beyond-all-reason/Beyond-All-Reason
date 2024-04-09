@@ -22,7 +22,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 1110, --445,
+		health = 1110,
 		speed = 72.0,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
@@ -36,7 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 405,
-		waterline = 80, --35,
+		waterline = 80,
 		workertime = 300,
 		buildoptions = {
 			[1] = "armuwfus",

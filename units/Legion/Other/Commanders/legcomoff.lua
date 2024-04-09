@@ -197,7 +197,6 @@ return {
 				range = 400,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -206,7 +205,6 @@ return {
 				thickness = 0.91,
 				tolerance = 6000,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
 				damage = {
@@ -248,8 +246,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					-- commanders = 375,
-					default = 250, --278.4375,
+					default = 250,
 					subs = 125,
 				},
 			},

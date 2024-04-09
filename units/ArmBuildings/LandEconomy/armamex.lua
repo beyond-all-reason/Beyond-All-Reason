@@ -23,7 +23,6 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		--initcloaked = true,
 		health = 1610,
 		maxslope = 30,
 		maxwaterdepth = 20,

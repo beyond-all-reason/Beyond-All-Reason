@@ -197,7 +197,6 @@ return {
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",
 				slaveto = 1,
-				--fastautoretargeting = true,
 			},
 		},
 	},

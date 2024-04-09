@@ -19,7 +19,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 970, --920,
+		health = 970,
 		speed = 104.7,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
@@ -31,7 +31,7 @@ return {
 		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 450, --631.5,
+		turnrate = 450,
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weapon',

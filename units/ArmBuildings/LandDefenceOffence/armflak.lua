@@ -131,8 +131,6 @@ return {
 				predictboost = 1,
 				range = 775,
 				reloadtime = 0.53333,
-				--size = 4.5,
-				--sizedecay = 0.08,
 				smoketrail = false,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
@@ -145,7 +143,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				damage = {
-					--default = 125,
 					vtol = 250,
 				},
 				rgbcolor = {

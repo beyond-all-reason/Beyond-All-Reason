@@ -26,7 +26,6 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 100,
 		objectname = "Units/CORVP.s3o",
-		--radardistance = 50,
 		script = "Units/CORVP.lua",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",

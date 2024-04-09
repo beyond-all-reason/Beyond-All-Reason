@@ -24,7 +24,6 @@ return {
 		idletime = 1800,
 		health = 189,
 		maxslope = 30,
-		--maxwaterdepth = 20,
 		metalstorage = 50,
 		objectname = "Units/ARMMEX.s3o",
 		onoffable = true,
@@ -33,7 +32,6 @@ return {
 		selfdestructas = "smallMex",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
-		--waterline = 0,
 		yardmap = "h cbbbbbbc bsossbsb bbsbbsob bsbbbbsb bsbbbbsb bosbbsbb bsbssosb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -101,9 +99,6 @@ return {
 				[5] = "count2",
 				[6] = "count1",
 			},
-			-- ok = {
-			-- 	[1] = "mexworking",
-			-- },
 			select = {
 				[1] = "mexselect",
 			},

@@ -20,7 +20,6 @@ return {
 		health = 2200,
 		minwaterdepth = 30,
 		objectname = "Units/CORPLAT.s3o",
-		--radardistance = 50,
 		script = "Units/CORPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

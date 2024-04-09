@@ -133,8 +133,6 @@ return {
 				predictboost = 1,
 				range = 850,
 				reloadtime = 0.166,
-				--size = 4.5,
-				--sizedecay = 0.08,
 				smoketrail = false,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",

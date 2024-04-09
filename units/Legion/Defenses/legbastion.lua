@@ -115,7 +115,6 @@ return {
 				avoidfriendly = true,
 				beamtime = 1,
 				camerashake = 0.1,
-				--collidefriendly = false,
 				corethickness = 0.4,
 				craterareaofeffect = 120,
 				craterboost = 0,
@@ -141,7 +140,6 @@ return {
 				soundstart = "heatray3",
 				soundstartvolume = 38,
 				soundtrigger = 1,
-				--sweepfire = true,
 				targetmoveerror = 0.001,
 				thickness = 5.5,
 				turret = true,
@@ -157,7 +155,6 @@ return {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "pineappleofdoom",
 				onlytargetcategory = "SURFACE",
-				--fastautoretargeting = true,
 			}
 		},
 	},

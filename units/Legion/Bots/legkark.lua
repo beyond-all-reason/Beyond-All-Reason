@@ -73,9 +73,6 @@ return {
 			},
 		},
 		sfxtypes = {
-			--explosiongenerators = {	-- disabled cause flare direction is off
-			--	[1] = "custom:barrelshot-medium",
-			--},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
 				[2] = "deathceg2",

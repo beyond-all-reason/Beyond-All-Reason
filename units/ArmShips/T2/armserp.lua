@@ -18,7 +18,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 15,
 		idletime = 900,
-		health = 3550, --2200,
+		health = 3550,
 		speed = 45.0,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
@@ -34,7 +34,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 400,
 		upright = true,
-		waterline = 80, --45,
+		waterline = 80,
 		customparams = {
 			unitgroup = 'sub',
 			model_author = "FireStorm",

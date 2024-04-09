@@ -71,7 +71,6 @@ return {
 			[13] = "cortide",
 			[14] = "coruwms",
 			[15] = "coruwes",
-			--[16] = "coruwmex",
 			[16] = "corfmkr",
 		},
 		customparams = {

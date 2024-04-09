@@ -149,9 +149,9 @@ return {
 				weaponvelocity = 400,
 				customparams = {
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
-					spark_forkdamage = "0.25", --old value = "0.5",
-					spark_maxunits = "5", --old value = "12",
-					spark_range = "125", --old value = "175",
+					spark_forkdamage = "0.25",
+					spark_maxunits = "5",
+					spark_range = "125",
 				},
 				damage = {
 					default = 300,

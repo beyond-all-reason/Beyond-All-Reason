@@ -65,15 +65,11 @@ return {
 			"cornecro",
 			-- builders
 			"corca",
-			--"coraca",
 			"corck",
-			--"corack",
 			"corch",
 			"corcsa",
 			"corcs",
-			--"coracsub",
 			"corcv",
-			--"coracv",
 		},
 		customparams = {
 			unitgroup = 'builder',

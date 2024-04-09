@@ -20,7 +20,7 @@ return {
 		leavetracks = false,
 		health = 75,
 		maxslope = 26,
-		speed = 153.0, --4.6,
+		speed = 153.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",

@@ -30,11 +30,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 380,
-		--trackoffset = 2,
-		--trackstrength = 8,
-		--trackstretch = 0.325,
-		--tracktype = "bottrack1.bmp",
-		--trackwidth = 26,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
@@ -109,7 +104,7 @@ return {
 		},
 		weapondefs = {
 			arm_ham = {
-				areaofeffect = 24,--36,
+				areaofeffect = 24,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -124,7 +119,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0.6,
 				range = 380,
-				reloadtime = 2.5,--3.4,
+				reloadtime = 2.5,
 				size = 1.8,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
@@ -133,7 +128,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 200,
 				damage = {
-					default = 75,--104,
+					default = 75,
 					vtol = 21,
 				},
 			},

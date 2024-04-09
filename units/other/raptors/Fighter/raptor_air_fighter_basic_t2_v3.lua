@@ -70,7 +70,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -96,7 +95,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

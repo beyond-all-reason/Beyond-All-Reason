@@ -24,7 +24,6 @@ return {
 		idletime = 1800,
 		health = 1110,
 		maxslope = 30,
-		--maxwaterdepth = 20,
 		metalstorage = 150,
 		objectname = "Units/LEGMEXT15.s3o",
 		onoffable = true,
@@ -104,9 +103,6 @@ return {
 				[5] = "count2",
 				[6] = "count1",
 			},
-			-- ok = {
-			-- 	[1] = "mexworking",
-			-- },
 			select = {
 				[1] = "mexselect",
 			},

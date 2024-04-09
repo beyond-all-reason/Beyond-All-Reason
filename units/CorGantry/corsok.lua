@@ -167,7 +167,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				range = 400,
-				reloadtime = 2, --2.5,
+				reloadtime = 2,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 120,

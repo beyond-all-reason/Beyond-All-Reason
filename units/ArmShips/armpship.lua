@@ -33,7 +33,7 @@ return {
 		sightdistance = 500,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 375, --427.5,
+		turnrate = 375,
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weapon',
@@ -128,7 +128,7 @@ return {
 				weaponvelocity = 290,
 				damage = {
 					default =  70,
-					subs = 70, --7
+					subs = 70,
 					vtol = 37,
 				},
 			},

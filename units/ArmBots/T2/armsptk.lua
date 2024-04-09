@@ -136,7 +136,6 @@ return {
 				targetmoveerror = 0.2,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
-				--fixedLauncher = true,
 				trajectoryheight = 0.5,
 				turnrate = 6000,
 				turret = true,

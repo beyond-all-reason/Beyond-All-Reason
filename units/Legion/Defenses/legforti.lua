@@ -47,7 +47,6 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "other/scavengers",
-			--techlevel = 2,
 		},
 		featuredefs = {
 			rockteethx = {

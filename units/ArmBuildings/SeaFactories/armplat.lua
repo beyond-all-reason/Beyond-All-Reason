@@ -1,7 +1,6 @@
 return {
 	armplat = {
 		maxacc = 0,
-		--activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 5000,
 		metalcost = 1450,

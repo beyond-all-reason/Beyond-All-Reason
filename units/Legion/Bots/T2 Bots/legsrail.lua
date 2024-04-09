@@ -105,7 +105,6 @@ return {
 		},
 		weapondefs = {
 			railgunt2 = {
-				--accuracy = 7,
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = false,

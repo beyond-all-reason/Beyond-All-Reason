@@ -33,7 +33,7 @@ return {
 		sightdistance = 500,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 350, --382.5,
+		turnrate = 350,
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weapon',

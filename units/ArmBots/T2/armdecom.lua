@@ -71,7 +71,6 @@ return {
 			[13] = "armtide",
 			[14] = "armuwms",
 			[15] = "armuwes",
-			--[16] = "armuwmex",
 			[16] = "armfmkr",
 		},
 		customparams = {

@@ -1,7 +1,7 @@
 return {
 	legpede = {
-		maxacc = 0.03, --0.1104,
-		maxdec = 0.1, --0.8211,
+		maxacc = 0.03,
+		maxdec = 0.1,
 		energycost = 80000,
 		metalcost = 5500,
 		buildpic = "LEGPEDE.DDS",
@@ -175,7 +175,6 @@ return {
 				range = 575,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -184,7 +183,6 @@ return {
 				thickness = 0.91,
 				tolerance = 6000,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
@@ -194,7 +192,6 @@ return {
 				},
 			},
 			railgunt2 = {
-				--accuracy = 7,
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = false,

@@ -45,7 +45,6 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			--subfolder = "other/Scavengers",
 		},
 		featuredefs = {
 			dead = {

@@ -21,7 +21,6 @@ return {
 		leavetracks = true,
 		mass = 5001,
 		health = 3650,
-		--maxreversevelocity = 0.762,
 		maxslope = 14,
 		speed = 37.5,
 		maxwaterdepth = 15,

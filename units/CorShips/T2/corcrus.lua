@@ -146,8 +146,6 @@ return {
 				areaofeffect = 32,
 				avoidfeature = false,
 				avoidfriendly = false,
-				--burst = 2,
-				--burstrate = 0.5,
 				burnblow = true,
 				collidefriendly = false,
 				craterareaofeffect = 0,

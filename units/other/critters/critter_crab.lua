@@ -18,7 +18,6 @@ return {
 		category = "MOBILE NOWEAPON NOTAIR NOTSUB",
 		defaultmissiontype = "Standby",
 		explodeas = "SMALLBUG_DEATH",
-		--floater = true,
 		footprintx = 1,
 		footprintz = 1,
 		idleautoheal = 0,
@@ -28,7 +27,6 @@ return {
 		health = 44,
 		maxslope = 65,
 		speed = 13.5,
-		--maxwaterdepth = 22,
 		movementclass = "ABOT2",
 		movestate = -1,
 		noautofire = false,
@@ -50,7 +48,6 @@ return {
 		turnrate = 500,
 		unitname = "critter_crab",
 		upright = false,
-		--waterline = 6,
 		workertime = 0,
 		customparams = {
 			paralyzemultiplier = 0,

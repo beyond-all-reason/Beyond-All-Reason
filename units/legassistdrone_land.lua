@@ -59,7 +59,6 @@ return {
 			"cortide",
 			"coruwms",
 			"coruwes",
-			-- "coruwmex",
 			"corfmkr",
 			"corsy",
 			"corfdrag",

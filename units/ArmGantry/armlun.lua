@@ -136,9 +136,6 @@ return {
 					cegtag = "missiletrailcorroyspecial",
 					def = "armlun_cannonuw",
 					model = "airbombt2",
-					--speceffect = "cannonwaterpen",
-					--waterpenceg = "genericshellexplosion-medium",
-					--when = "ypos<0",
 				},
 				damage = {
 					default = 370,
@@ -237,7 +234,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				range = 400,
-				reloadtime = 2, --2.5,
+				reloadtime = 2,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 120,
@@ -259,8 +256,6 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CANNON",
-				--maindir = "0 1 0",
-				--maxangledif = 270,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

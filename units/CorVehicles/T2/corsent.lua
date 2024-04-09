@@ -159,8 +159,6 @@ return {
 				noselfdamage = true,
 				range = 775,
 				reloadtime = 0.73333,
-				--size = 4.5,
-				--sizedecay = 0.08,
 				soundhit = "flakhit",
 				soundhitwet = "splsmed",
 				soundstart = "flakfire",

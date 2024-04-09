@@ -33,7 +33,6 @@ return {
 		sightdistance = 455,
 		turnrate = 1,
 		upright = true,
-		--yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
@@ -116,7 +115,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 0.123,
@@ -126,9 +125,9 @@ return {
 				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
@@ -137,13 +136,12 @@ return {
 				},
 				customparams = {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
-					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1000,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 4,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "release",

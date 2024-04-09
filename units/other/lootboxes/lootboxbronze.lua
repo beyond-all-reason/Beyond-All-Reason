@@ -51,7 +51,6 @@ return {
 		unitname = "lootboxbronze",
 		upright = true,
 		usebuildinggrounddecal = false,
-		--waterline = 0,
 		yardmap = "oo oo",
 		reclaimable = false,
 		customparams = {

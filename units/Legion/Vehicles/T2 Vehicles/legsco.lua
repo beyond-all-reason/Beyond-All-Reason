@@ -113,7 +113,6 @@ return {
 			maincannon = {
 				areaofeffect = 160,
 				avoidfeature = false,
-				--cegtag = "arty-medium",
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
@@ -128,8 +127,6 @@ return {
 				soundhit = "xplomed1",
 				soundhitwet = "splslrg",
 				soundstart = "largegun",
-				--soundhitvolume = 9.75,
-				--soundstartvolume = 8.75,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,

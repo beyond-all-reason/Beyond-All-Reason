@@ -21,7 +21,6 @@ return {
 		leavetracks = true,
 		mass = 5001,
 		health = 3000,
-		--maxreversevelocity = 0.762,
 		maxslope = 14,
 		speed = 40.5,
 		maxwaterdepth = 15,
@@ -123,7 +122,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,
@@ -141,8 +139,6 @@ return {
 					speceffect = "sector_fire",
 					when = "always",
 					max_range_reduction = "0.25",
-					--active_range = "1275",
-					--active_accuracy = "0",
 					spread_angle = "15",
 				},
 				damage = {
@@ -153,7 +149,6 @@ return {
 
 			},
 			tremor_spread_fire = {
-
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -163,7 +158,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,

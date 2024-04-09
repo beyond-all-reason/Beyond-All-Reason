@@ -100,7 +100,7 @@ return {
 		},
 		weapondefs = {
 			cortron_weapon = {
-				areaofeffect = 380, --512,
+				areaofeffect = 380,
 				avoidfeature = false,
 				avoidfriendly = false,
 				cegtag = "cruisemissiletrail-tacnuke",

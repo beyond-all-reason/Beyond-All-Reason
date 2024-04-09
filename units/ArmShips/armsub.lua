@@ -19,7 +19,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 8,
 		idletime = 900,
-		health = 840, --
+		health = 840,
 		speed = 66.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
@@ -139,9 +139,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					--commanders = 420,
-					default = 342, --455,
-					--subs = 126,
+					default = 342,
 				},
 			},
 		},

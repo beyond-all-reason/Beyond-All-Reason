@@ -94,7 +94,6 @@ return {
 				range = 350,
 				reloadtime = 1.47,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun3",

@@ -133,8 +133,6 @@ return {
 				soundhit = "sniperhit",
 				soundhitwet = "sizzle",
 				soundstart = "sniper3",
-				--soundstartvolume = 40,
-				--soundhitvolume = 35,
 				soundtrigger = true,
 				texture1 = "shot",
 				texture2 = "empty",

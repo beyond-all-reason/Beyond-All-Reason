@@ -133,7 +133,6 @@ return {
 				smokecolor = 0.9,
 				smokeTrailCastShadow = false,
 				soundhit = "emgpuls1",
-				--soundhitwet = "splslrg",
 				soundstart = "mismed1emp1",
 				stockpile = true,
 				stockpiletime = 65,
