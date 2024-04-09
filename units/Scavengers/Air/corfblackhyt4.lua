@@ -57,7 +57,6 @@ return {
 				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
 				collisionvolumetype = "Box",
 				damage = 30000,
-				energy = 0,
 				footprintx = 6,
 				footprintz = 18,
 				height = 4,

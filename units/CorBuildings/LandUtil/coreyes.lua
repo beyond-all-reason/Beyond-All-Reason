@@ -48,7 +48,6 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 120,
-				energy = 0,
 				footprintx = 1,
 				footprintz = 1,
 				height = 4,

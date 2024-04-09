@@ -58,7 +58,6 @@ return {
 				collisionvolumescales = "32 50 32",
 				collisionvolumetype = "CylY",
 				damage = 540,
-				energy = 0,
 				featuredead = "ROCKTEETH",
 				footprintx = 2,
 				footprintz = 2,
