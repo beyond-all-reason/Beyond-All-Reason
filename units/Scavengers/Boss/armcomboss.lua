@@ -64,7 +64,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert4',
-			area_mex_def = "armmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.01,

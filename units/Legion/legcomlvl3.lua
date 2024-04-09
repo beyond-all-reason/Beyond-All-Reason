@@ -96,7 +96,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "legmex",
 			combatradius = 600,
 			evolution_announcement = "Legion commanders have upgraded to level 4 (max)",
 			evolution_announcement_size = 18.5,

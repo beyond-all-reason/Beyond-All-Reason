@@ -57,7 +57,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert2',
-			area_mex_def = "armuwmme",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",

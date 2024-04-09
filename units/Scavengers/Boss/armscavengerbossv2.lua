@@ -111,7 +111,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		workertime = 1500,--400,
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "legmex",
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
