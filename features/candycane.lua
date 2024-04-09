@@ -10,7 +10,6 @@ local candyCane = {
 	hitdensity = 999999,
 	metal = 0,
 	reclaimable = 0,
-	world = "All Worlds",
 	customparams = {
 		i18nfrom = 'candycane'
 	}

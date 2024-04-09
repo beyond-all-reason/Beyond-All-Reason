@@ -27,6 +27,5 @@ return {
 				object = "Units/arm2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				world = "All Worlds",
 			},
 }

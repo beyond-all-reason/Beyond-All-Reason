@@ -12,7 +12,6 @@ local raptor_egg =  {
     mass = 100,
     reclaimable = 1,
     resurrectable = 0,
-    world = "All Worlds",
     smokeTime = 0,
 
     --collisions
