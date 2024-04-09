@@ -57,7 +57,6 @@ return {
 				footprintx = 6,
 				footprintz = 6,
 				height = 40,
-				hitdensity = 100,
 				metal = 222,
 				object = "Units/scavbuildings/armwint2_dead.s3o",
 				reclaimable = true,

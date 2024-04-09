@@ -64,7 +64,6 @@ return {
 				footprintx = 12,
 				footprintz = 12,
 				height = 4,
-				hitdensity = 100,
 				metal = 2174,
 				object = "Units/corasy_dead.s3o",
 				reclaimable = true,

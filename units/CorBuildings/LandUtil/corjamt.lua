@@ -58,7 +58,6 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 3,
-				hitdensity = 100,
 				metal = 71,
 				object = "Units/corjamt_dead.s3o",
 				reclaimable = true,

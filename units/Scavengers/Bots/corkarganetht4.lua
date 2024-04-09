@@ -54,7 +54,6 @@ return {
 				footprintx = 4,
 				footprintz = 4,
 				height = 40,
-				hitdensity = 100,
 				metal = 6000,
 				object = "Units/scavboss/corkarganetht4_dead.s3o",
 				reclaimable = true,

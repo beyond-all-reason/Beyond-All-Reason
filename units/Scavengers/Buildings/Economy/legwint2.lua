@@ -56,7 +56,6 @@ return {
 				footprintx = 6,
 				footprintz = 6,
 				height = 20,
-				hitdensity = 100,
 				metal = 270,
 				object = "Units/scavbuildings/LEGWINT2_dead.s3o",
 				reclaimable = true,

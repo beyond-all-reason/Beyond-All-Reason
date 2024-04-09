@@ -56,7 +56,6 @@ return {
 				footprintx = 8,
 				footprintz = 7,
 				height = 20,
-				hitdensity = 100,
 				metal = 670,
 				object = "Units/armfhp_dead.s3o",
 				reclaimable = true,

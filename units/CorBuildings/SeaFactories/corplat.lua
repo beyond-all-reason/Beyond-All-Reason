@@ -56,7 +56,6 @@ return {
 				footprintx = 7,
 				footprintz = 7,
 				height = 20,
-				hitdensity = 100,
 				metal = 930,
 				object = "Units/corplat_dead.s3o",
 				reclaimable = true,

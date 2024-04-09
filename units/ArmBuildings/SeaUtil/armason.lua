@@ -55,7 +55,6 @@ return {
 				footprintx = 4,
 				footprintz = 4,
 				height = 40,
-				hitdensity = 100,
 				metal = 106,
 				object = "Units/armason_dead.s3o",
 				reclaimable = true,

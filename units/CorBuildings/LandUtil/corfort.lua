@@ -62,7 +62,6 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 7,
 				object = "Units/cor1X1B.s3o",
 				reclaimable = true,

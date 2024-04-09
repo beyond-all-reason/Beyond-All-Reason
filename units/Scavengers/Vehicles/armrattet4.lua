@@ -71,7 +71,6 @@ return {
 				footprintx = 5,
 				footprintz = 5,
 				height = 60,
-				hitdensity = 100,
 				metal = 12500,
 				object = "Units/scavboss/armrattet4_dead.s3o",
 				reclaimable = true,

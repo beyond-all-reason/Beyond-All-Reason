@@ -51,7 +51,6 @@ return {
 				footprintx = 1,
 				footprintz = 1,
 				height = 20,
-				hitdensity = 100,
 				metal = 541,
 				object = "Units/corenaa_dead.s3o",
 				reclaimable = true,

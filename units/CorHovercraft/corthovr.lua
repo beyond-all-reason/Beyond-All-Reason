@@ -55,7 +55,6 @@ return {
 				footprintx = 4,
 				footprintz = 4,
 				height = 20,
-				hitdensity = 100,
 				metal = 423,
 				object = "Units/corthovr_dead.s3o",
 				reclaimable = true,
