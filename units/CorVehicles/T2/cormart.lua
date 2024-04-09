@@ -42,7 +42,6 @@ return {
 			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
-			cannon1name = "barrel",
 			driftratio = "0.4",
 			firingceg = "barrelshot-medium",
 			kickback = "-6",

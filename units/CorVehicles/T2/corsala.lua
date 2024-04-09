@@ -44,7 +44,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			paralyzemultiplier = 0.1,
-			cannon1name = "barrel1",
 			cannon2name = "barrel2",
 			driftratio = "0.2",
 			firingceg = "barrelshot-medium",

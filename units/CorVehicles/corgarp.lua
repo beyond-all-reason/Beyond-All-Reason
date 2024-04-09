@@ -42,7 +42,6 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-			cannon1name = "barrel",
 			driftratio = "0.5",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2.4",

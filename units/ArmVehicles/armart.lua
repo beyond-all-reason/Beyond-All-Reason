@@ -44,7 +44,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
-			cannon1name = "gun",
 			driftratio = "0.2",
 			kickback = "-6.25",
 			model_author = "Beherith",

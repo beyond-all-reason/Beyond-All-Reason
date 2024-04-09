@@ -44,7 +44,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
-			cannon1name = "barrel1",
 			cannon2name = "barrel2",
 			cobkickbackrestorespeed = "10",
 			driftratio = "1",
