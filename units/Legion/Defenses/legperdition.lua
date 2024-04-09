@@ -21,8 +21,8 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		--noautofire = true,
-		objectname = "Units/cortoast.s3o",
-		script = "Units/cortoast.cob",
+		objectname = "Units/legperdition.s3o",
+		script = "Units/legperdition.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 500,
@@ -82,6 +82,10 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:barrelshot-large",
+				[2] = "custom:dust_cloud_dirt",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -160,7 +164,7 @@ return {
 				--mygravity = 1.2,
 
 
-				startvelocity = 240,
+				--startvelocity = 240,
 				texture1 = "null",
 				texture2 = "railguntrail",
 				tolerance = 9000,
