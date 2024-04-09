@@ -26,42 +26,6 @@ NanoEmit()
 	}
 }
 
-Activatescr()
-{
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit4;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit4;
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit4;
-	sleep 250;
-	spin tower around y-axis speed <85.016484>;
-	spin collar around y-axis speed <-65.010989>;
-	sleep 250;
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit4;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit4;
-	emit-sfx 257 from emit1;
-	emit-sfx 257 from emit3;
-	emit-sfx 257 from emit2;
-	emit-sfx 257 from emit4;
-	sleep 250;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-
 Open()
 {
 	emit-sfx 257 from emit1;
@@ -126,8 +90,10 @@ Create()
 	start-script NanoEmit();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
@@ -156,15 +122,11 @@ ExecuteRestoreAfterDelay()
 	set-signal-mask 0;
 	start-script OpenCloseAnim(0);
 }
+
 SetStunned(State)
 {
     Stunned = State;
-	if (Stunned) {
-	    call-script Stop();
-	} else {
-	    call-script Go();
-	    start-script ExecuteRestoreAfterDelay();
-	}
+	start-script OpenCloseAnim(!Stunned);
 }
 
 RestoreAfterDelay()

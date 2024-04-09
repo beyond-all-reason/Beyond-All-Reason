@@ -240,7 +240,7 @@ UnitSpeed(){
 #define UNITSIZE 7
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
@@ -265,7 +265,6 @@ Create()
 	restore_delay = 3000;
 	animSpeed = 4;
 	start-script StopMoving();
-	start-script SmokeUnit();
 	return (0);
 }
 

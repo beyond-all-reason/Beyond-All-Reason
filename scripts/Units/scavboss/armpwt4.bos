@@ -1013,32 +1013,9 @@ StopAnimation() {
 }
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define BASEPIECE pelvis
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -1059,7 +1036,6 @@ Create()
 	burst1 = 1;
 	bAnimate = FALSE;
 	start-script InitialSetup1();
-	start-script SmokeUnit();
 }
 
 SetMaxReloadTime(reloadMS)

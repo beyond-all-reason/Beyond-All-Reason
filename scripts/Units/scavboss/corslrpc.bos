@@ -126,6 +126,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	return (0);
 }
 
+
 Create()
 {
 	hide flare;
@@ -134,7 +135,6 @@ Create()
 	hide flare;
 	hide flareb;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 	return (0);
 }
 

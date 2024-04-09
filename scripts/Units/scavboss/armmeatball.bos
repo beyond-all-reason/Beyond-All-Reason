@@ -228,32 +228,9 @@ walklegs()
 
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from body;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+
+#define BASEPIECE pelvis
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Movement(moving, aiming, justmoved)
 {
@@ -296,15 +273,6 @@ Movement(moving, aiming, justmoved)
 }
 
 
-HitByWeapon(anglex, anglez)
-{
-	turn pelvis to z-axis anglez speed <105.000000>;
-	turn pelvis to x-axis <0> - anglex speed <105.000000>;
-	wait-for-turn pelvis around z-axis;
-	wait-for-turn pelvis around x-axis;
-	turn pelvis to z-axis <0.000000> speed <30.000000>;
-	turn pelvis to x-axis <0.000000> speed <30.000000>;
-}
 
 Create()
 {
@@ -317,7 +285,6 @@ Create()
 
 	restore_delay = 3000;
 	start-script Movement();
-	start-script SmokeUnit();
 }
 
 SetMaxReloadTime(reloadMS)

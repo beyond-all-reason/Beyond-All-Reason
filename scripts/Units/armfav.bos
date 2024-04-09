@@ -51,7 +51,7 @@ Steering(heading, steer, currentSpeed)
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -59,13 +59,7 @@ Create()
 	oldheading = get HEADING;
 	hide flare;
 }
-//Create()
-//{
-//	restore_delay = 3000;
-//	moveSpeed = get MAX_SPEED;
-//	start-script SmokeUnit();
-//	return (0);
-//}
+
 
 StartMoving(reversing)
 {

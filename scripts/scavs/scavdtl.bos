@@ -9,12 +9,12 @@ static-var  isOpen, restore_delay;
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-#include "../../opencloseanim.h"
+#include "../opencloseanim.h"
 
 
 #define BASEPIECE base
 #define MAXTILT 0
-#include "../../unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Open()
 {

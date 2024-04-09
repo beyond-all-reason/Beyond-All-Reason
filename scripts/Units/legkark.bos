@@ -276,7 +276,7 @@ Open()
 	ReadyToAim = 1;
 }
 
-Stop()
+Close()
 {
 	ReadyToAim = 0;
 	sleep 15;
@@ -313,34 +313,7 @@ Stop()
 	isAiming = FALSE;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script UnitSpeed();
-	start-script DoTheWalking();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+
 
 Create()
 {
@@ -365,7 +338,6 @@ Create()
 	shieldup = 1;
 	set ARMORED to 1;
 	restore_delay = 10000;
-	start-script SmokeUnit();
 }
 
 

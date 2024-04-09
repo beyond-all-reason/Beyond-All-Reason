@@ -122,13 +122,13 @@ SetStunned(State)
 
 OffOnHit()
 {
-signal SIGNAL_OFF;
-set-signal-mask SIGNAL_OFF;
-recently_damaged = 1;
-set ACTIVATION to 0; // turn off unit
-sleep 8000; //hardcoded time to stay off after being hit
-recently_damaged = 0;
-set ACTIVATION to desired_activation;
+	signal SIGNAL_OFF;
+	set-signal-mask SIGNAL_OFF;
+	recently_damaged = 1;
+	set ACTIVATION to 0; // turn off unit
+	sleep 8000; //hardcoded time to stay off after being hit
+	recently_damaged = 0;
+	set ACTIVATION to desired_activation;
 }
 
 HitByWeapon(anglex, anglez)

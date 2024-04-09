@@ -305,33 +305,9 @@ Movement(moving, aiming, justmoved)
 	}
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script Movement();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+
+#define BASEPIECE torso
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -341,7 +317,6 @@ Create()
 	isAiming = FALSE;
 	restore_delay = 3000;
 	gun_1 = rflare;
-	start-script SmokeUnit();
 }
 
 SetMaxReloadTime(reloadMS)

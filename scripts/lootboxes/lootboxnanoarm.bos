@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../exptype.h"
 
 piece  base, aim, emitnano;
 
@@ -12,14 +12,12 @@ static-var  buildHeading;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
 {
 	hide emitnano;
-	start-script SmokeUnit();
 	buildHeading = 0;
 	return (0);
 }

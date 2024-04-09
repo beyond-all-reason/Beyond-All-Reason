@@ -58,6 +58,7 @@ AimWeapon1(heading, pitch)
 {
 	if (timeLeft == 0)
 	{
+		// We 
 		start-script TimeToRestore();
 	}
 	timeLeft = restore_delay;

@@ -17,7 +17,7 @@ static-var oldHead;
 #define UNITSIZE 3
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 RockOnWaves()
@@ -82,7 +82,6 @@ Create()
 	hide wake1;
 	hide nano;
 	hide ground;
-	start-script SmokeUnit();
 }
 
 

@@ -258,20 +258,6 @@ StopMoving(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-
-}
-
-Stop()
-
-{	
-	set-signal-mask SIGNAL_BUILD;
-	set INBUILDSTANCE to 0;
-	turn aimy1 to y-axis <0.000000> speed <160.000000>;
-}
-
-
 Create()
 {
 	hide nano;
@@ -311,9 +297,6 @@ StopBuilding()
 	hide armhexl_emit;
 	turn aimy1 to y-axis <0> speed <260.000000>;
 }
-	
-
-
 
 QueryNanoPiece(pieceIndex)
 {

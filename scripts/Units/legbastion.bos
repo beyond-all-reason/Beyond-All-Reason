@@ -129,8 +129,9 @@ SpinFiring() {
 	spin ring3 around z-axis speed <70> accelerate <200>;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 //this used to sweepfire, mothballed for now until engine update
 Enlighten() {

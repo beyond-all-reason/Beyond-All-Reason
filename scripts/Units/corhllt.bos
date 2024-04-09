@@ -41,8 +41,8 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 SetMaxReloadTime(reloadMS)
 {

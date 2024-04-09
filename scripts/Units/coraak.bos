@@ -251,11 +251,9 @@ Create()
 	isMoving = FALSE;
 }
 
-#define SMOKEPIECE pelvis
-#include "smokeunit_thread_nohit.h"
 
-
-
+#define BASEPIECE pelvis
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 RestoreAfterDelay()
 {

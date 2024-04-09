@@ -19,8 +19,10 @@ Create()
 	nextBarrel = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
@@ -31,7 +33,7 @@ Activate()
 Deactivate()
 {
 	signal SIGNAL_AIM2;
-	trajectoryMode = HIGH_TRLOW_TRAJECTORYAJECTORY;
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
 restoreAfterDelay()

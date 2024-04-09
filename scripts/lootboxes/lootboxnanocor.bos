@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../exptype.h"
 
 piece  base, aim, emitnano;
 
@@ -11,12 +11,11 @@ static-var  buildHeading;
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide emitnano;
-	start-script SmokeUnit();
 	buildHeading = 0;
 }
 

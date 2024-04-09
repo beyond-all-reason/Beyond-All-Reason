@@ -10,33 +10,6 @@ static-var  isMoving, isAiming, gun_1, oldHeading, bSteering, wpn1_lasthead;
 #define SIGNAL_AIM1 256
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from turret;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 Movement()
 {
 	while(TRUE)
@@ -351,15 +324,10 @@ Steering(heading)
 	}
 }
 
-HitByWeapon(anglex, anglez)
-{
-	turn body to z-axis anglez speed <55.000000>;
-	turn body to x-axis <0> - anglex speed <55.000000>;
-	wait-for-turn body around z-axis;
-	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <20.000000>;
-	turn body to x-axis <0.000000> speed <20.000000>;
-}
+
+#define BASEPIECE body
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 RockUnit(anglex, anglez)
 {
@@ -380,7 +348,6 @@ Create()
 	bSteering = FALSE;
 	oldHeading = get HEADING;
 	gun_1 = body;
-	start-script SmokeUnit();
 	start-script Steering();
 	start-script Movement();
 }

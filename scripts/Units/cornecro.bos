@@ -146,16 +146,6 @@ UnitSpeed(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-}
-
-
 
 Create()
 {

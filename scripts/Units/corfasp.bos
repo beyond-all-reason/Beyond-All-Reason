@@ -23,9 +23,12 @@ StopBuilding()
 	hide nano;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
+#define BASEPIECE base
+#define MAXTILT 100
+#define HITSPEED <10.0>
+#define UNITSIZE 10
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 QueryLandingPad(pieceIndex1, pieceIndex2, pieceIndex3, pieceIndex4)

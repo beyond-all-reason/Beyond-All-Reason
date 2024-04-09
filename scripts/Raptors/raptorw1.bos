@@ -55,39 +55,6 @@ StopMoving(){
 	isMoving=FALSE;
 	call-script StopWalking();
 }
-/*
-
-fly()
-{
-	if (isMoving)
-		{
-			turn lwing to z-axis <-40> speed<120>;
-			turn rwing to z-axis <40> speed<120>;
-			wait-for-turn lwing around z-axis;
-			turn lwing to z-axis <40> speed<240>;
-			turn rwing to z-axis <-40> speed<240>;
-			wait-for-turn lwing around z-axis;
-			start-script fly();
-		}
-}
-
-stopfly ()
-{	
-	turn lwing		to z-axis <0> 		speed <200>;
-	turn rwing		to z-axis <0> 		speed <200>;
-}*/
-
-
-Go()
-{
-	call-script Walk();
-}
-
-Stop()
-{
-	call-script StopWalking();
-}
-
 
 Create()
 {

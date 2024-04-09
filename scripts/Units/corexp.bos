@@ -10,19 +10,20 @@ static-var  restore_delay, resourceRate, gun_1, Stunned;
 
 Stop()
 {
-	stop-spin column around y-axis decelerate Static_Var_5;
+	stop-spin column around y-axis decelerate <0.5>;
 }
 
 Create()
 {
 	hide flare1;
 	hide flare2;
-	resourceRate = 500
+	resourceRate = 500;
 	gun_1 = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {

@@ -11,8 +11,10 @@ static-var reloading_barrel_1, reloading_barrel_2;
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)

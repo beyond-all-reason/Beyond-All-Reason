@@ -44,7 +44,6 @@ Create()
 
 	restore_delay = 2000;
 	isOpen = 0;
-	call-script InitState();
 	start-script Activate();
 	
 	move aimpoint to y-axis [5] speed [150.000000];
@@ -55,8 +54,10 @@ Create()
 	start-script RestoreAfterDelay();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {

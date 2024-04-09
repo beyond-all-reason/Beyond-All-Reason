@@ -3,25 +3,14 @@
 
 piece  base, solarbase;
 
-Go()
-{
-	set ARMORED to 0;
-	return (0);
-}
-
-Stop()
-{
-	set ARMORED to 1;
-	return (0);
-}
-
 Create()
 {
-	return (0);
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 

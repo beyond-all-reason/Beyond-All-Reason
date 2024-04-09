@@ -18,7 +18,7 @@ static-var  Stunned;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 RockOnWaves()
 {
@@ -51,7 +51,6 @@ Create()
 	gun_3 = flare1;
 	gun_2 = flare1;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 	turn turretgun2 to x-axis <-25> speed <25.000000>;
     spin turretgun1 around y-axis speed <25.0>;
 	turn missilebox1 to x-axis <-25.000000> speed <25.000000>;

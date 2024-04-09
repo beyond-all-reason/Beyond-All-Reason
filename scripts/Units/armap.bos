@@ -8,8 +8,10 @@ static-var  spray;
 static-var  Stunned;
 
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 // Signal definitions
 #define SIGNAL_TURNON 4

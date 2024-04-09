@@ -14,8 +14,9 @@ static-var  silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256

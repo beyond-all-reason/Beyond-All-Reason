@@ -24,7 +24,7 @@ static-var  restore_delay;
 #define UNITSIZE 7
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 RockUnit(anglex, anglez)
 {
@@ -43,7 +43,6 @@ Create()
 	hide smoke2;
 	hide smoke1;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 }
 
 
