@@ -43,7 +43,6 @@ return {
 			cannon1name = "turret",
 			driftratio = "0",
 			firingceg = "",
-			flare1name = "flare",
 			kickback = "0",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",

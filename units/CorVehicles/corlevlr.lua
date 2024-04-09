@@ -43,7 +43,6 @@ return {
 			cannon1name = "barrel",
 			driftratio = "0.4",
 			firingceg = "barrelshot-tiny",
-			flare1name = "flash",
 			kickback = "-4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

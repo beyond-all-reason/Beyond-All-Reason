@@ -45,7 +45,6 @@ return {
 			cannon2name = "missile2",
 			driftratio = "0.25",
 			firingceg = "barrelshot-medium",
-			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "-12",
 			model_author = "Mr Bob",

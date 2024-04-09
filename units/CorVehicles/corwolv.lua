@@ -49,7 +49,6 @@ return {
 			cobkickbackrestorespeed = "10",
 			driftratio = "1",
 			firingceg = "barrelshot-tiny",
-			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "-2",
 			model_author = "Mr Bob, Flaka",

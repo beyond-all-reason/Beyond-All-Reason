@@ -46,7 +46,6 @@ return {
 			canareaattack = 1,
 			cannon1name = "gun",
 			driftratio = "0.2",
-			flare1name = "flare",
 			kickback = "-6.25",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -46,7 +46,6 @@ return {
 			cannon1name = "barrel",
 			driftratio = "0.1",
 			firingceg = "barrelshot-small",
-			flare1name = "flare",
 			kickback = "-0.65",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

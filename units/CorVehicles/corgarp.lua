@@ -45,7 +45,6 @@ return {
 			cannon1name = "barrel",
 			driftratio = "0.5",
 			firingceg = "barrelshot-tiny",
-			flare1name = "emit",
 			kickback = "-2.4",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
