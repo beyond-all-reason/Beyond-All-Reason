@@ -49,7 +49,6 @@ return {
 			rockstrength = "5",
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
-			turretname = "turret",
 			wpn1turretx = "45",
 			wpn1turrety = "80",
 		},

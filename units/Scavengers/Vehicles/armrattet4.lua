@@ -51,7 +51,6 @@ return {
 			rockstrength = "1.2",
 			sleevename = "sleeve",
 			subfolder = "other/scavengers",
-			turretname = "turret",
 			techlevel = 3,
 			wpn1turretx = "45",
 			wpn1turrety = "80",

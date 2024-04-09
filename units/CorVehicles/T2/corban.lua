@@ -51,7 +51,6 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
-			turretname = "turret",
 			wpn1turretx = "125",
 			wpn1turrety = "125",
 		},

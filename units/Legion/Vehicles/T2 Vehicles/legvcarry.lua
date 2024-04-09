@@ -51,7 +51,6 @@ return {
 			rockstrength = "4",
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
-			turretname = "turret",
 			wpn1turretx = "45",
 			wpn1turrety = "80",
 		},
