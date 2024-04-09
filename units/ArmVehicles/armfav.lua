@@ -44,7 +44,6 @@ return {
 			cannon2name = "flare2",
 			driftratio = "0",
 			firingceg = "",
-			flare2name = "flare2",
 			kickback = "0",
 			lumamult = "1.3",
 			model_author = "Flaka",
