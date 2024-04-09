@@ -52,8 +52,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			sleevename = "sleeve",
 			subfolder = "corvehicles/t2",
-			wpn1turretx = "30",
-			wpn1turrety = "40",
 		},
 		featuredefs = {
 			dead = {

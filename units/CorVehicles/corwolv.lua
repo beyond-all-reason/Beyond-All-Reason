@@ -53,8 +53,6 @@ return {
 			rockspeed = "2",
 			sleevename = "sleeves",
 			subfolder = "corvehicles",
-			wpn1turretx = "200",
-			wpn1turrety = "200",
 		},
 		featuredefs = {
 			dead = {

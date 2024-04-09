@@ -49,8 +49,6 @@ return {
 			sleevename = "sleeve",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			wpn1turretx = "45",
-			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

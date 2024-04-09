@@ -49,8 +49,6 @@ return {
 			paralyzemultiplier = 0.125,
 			sleevename = "turret",
 			subfolder = "armvehicles",
-			wpn1turretx = "64",
-			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

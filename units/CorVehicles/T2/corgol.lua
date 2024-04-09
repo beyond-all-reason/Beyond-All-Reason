@@ -54,8 +54,6 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
-			wpn1turretx = "30",
-			wpn1turrety = "40",
 		},
 		featuredefs = {
 			dead = {

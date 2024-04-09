@@ -48,8 +48,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
-			wpn1turretx = "45",
-			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

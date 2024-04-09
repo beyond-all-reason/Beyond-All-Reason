@@ -49,8 +49,6 @@ return {
 			paralyzemultiplier = 0.125,
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
-			wpn1turretx = "90",
-			wpn1turrety = "90",
 		},
 		featuredefs = {
 			dead = {
