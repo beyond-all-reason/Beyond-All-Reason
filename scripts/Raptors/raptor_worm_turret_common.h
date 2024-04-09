@@ -7,13 +7,12 @@
 static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame, segacceleration;
 
 
-
 static-var aimy1velocity, aimy1target, aimy1position, aimy1delta, aimy1acceleration;
 
 
 Motion(){
 	var wigglefreq; // NOTE: DO NOT DECLARE VAR WITHIN A WHILE LOOP AS IT WILL OVERFLOW THE COB STACK!
-	wigglefreq =0;
+	wigglefreq = RAND(0, WIGGLEFREQUENCY);
 
  	var sin;
 	
@@ -48,6 +47,7 @@ Motion(){
 			
 			//Apply jerk at very low velocities
 			if (get ABS(segvelocity) < SEG_JERK){
+				// segvelocity = segdelta;// maybe this?
 				if ((segdelta >        SEG_JERK)) segvelocity =        SEG_JERK;
 				if ((segdelta < (-1) * SEG_JERK)) segvelocity = (-1) * SEG_JERK;
 			}
@@ -64,14 +64,9 @@ Motion(){
 			
 			
 			segdelta = segtarget - segposition ; 
-			if ((segdelta < <1>) AND (segdelta > <-1>)){
-				//return (1); // INPITCH
-			
-			}
 		}
 		
-		
-		//aaimy1delta = aimy1position - aimy1target;
+
 		aimy1delta = aimy1target - aimy1position;
 		if( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR ( get ABS(aimy1velocity) > AIMY1_JERK)){
 		
@@ -121,15 +116,6 @@ Motion(){
 		
 
 		if (AboveGround ==1 ){
-		
-		// this random motion sucks
-		/*	if ((isAiming == 0) OR ((isAiming == 1) AND (frameslefttoshot > 15) ) ){
-				if (RAND(0,3) == 1){
-					segtarget =  segtarget + RAND(-3,3);
-					aimy1target = aimy1target + RAND(-10,10);
-				}
-		 	}
-		 */
 		 
 		 // lets have the worm do a Z wave instead
 		 //	KSIN:	return int(1024*math::sinf(TAANG2RAD*(float)p1));
@@ -253,8 +239,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	
-	// Only calls RequestState(0) and the rest of the AimWeapon function 
+	// Only calls OpenCloseAnim(1) and the rest of the AimWeapon function 
 	// if the time left to shoot is less that 5 seconds. 
 	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
     if (frameslefttoshot > 150)
@@ -279,22 +264,23 @@ AimWeapon1(heading, pitch)
 	while (get ABS(aimy1delta) > <10>){
 		sleep 30;
 	}
-	
-	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
-	
-	if (frameslefttoshot < 15){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
-		// if we can fire in 10 frames, do the spit
+	#if (SPIT ==1)
+		frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
 		
-			segtarget = segtarget -500;
-			segacceleration = 10 * SEG_ACCELERATION;
-			sleep 150;
+		if (frameslefttoshot < 15){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
+			// if we can fire in 10 frames, do the spit
 			
-			segtarget = segtarget + 000;
-	
-			sleep 150;
-			segacceleration = SEG_ACCELERATION;
-	
-	}
+				segtarget = segtarget -500;
+				segacceleration = 10 * SEG_ACCELERATION;
+				sleep 150;
+				
+				segtarget = segtarget - SPIT;
+		
+				sleep 150;
+				segacceleration = SEG_ACCELERATION;
+		
+		}
+	#endif
 	
 	// once we are pretty near to the target heading, as above, we need to do a quick shooty anim:
 	
@@ -396,7 +382,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 FireWeapon1()
 {
 	//segtarget = segtarget + get RAND(0, 10000);
+	#if (RECOIL > 0)
+		segtarget = segtarget - RECOIL;
+		segacceleration = 10 * SEG_ACCELERATION;
+		sleep 150;
+		
+		segtarget = segtarget + 000;
 
+		sleep 150;
+		segacceleration = SEG_ACCELERATION;
+	#endif
 }
 
 QueryWeapon1(pieceIndex)

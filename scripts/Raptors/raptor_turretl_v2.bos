@@ -6,8 +6,11 @@ piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare;
 static-var  AboveGround, restore_delay, isAiming, frameslefttoshot;
 
 
-#define WORMSIZE 120 // This is for scaling move animations
 
+//------------------------------- Worm Options --------------------------------------------------
+#define WORMSIZE 120 // This is for scaling move animations
+#define SPIT 0 // if you want a spitting animation before shooting, set it >0
+#define RECOIL 0 // if you want a recoil anim after shooting, set it >0 (about 300)
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -33,4 +36,4 @@ static-var  AboveGround, restore_delay, isAiming, frameslefttoshot;
 #define WIGGLESPEED <10>
 
 
-#include "raptor_turret_common.h"
+#include "raptor_worm_turret_common.h"
