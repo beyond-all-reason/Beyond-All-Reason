@@ -78,8 +78,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			iscommander = true,
-			--energyconv_capacity = 70,
-			--energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
