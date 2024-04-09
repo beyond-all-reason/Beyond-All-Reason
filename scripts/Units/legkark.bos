@@ -6,13 +6,15 @@ piece  torso, rflare, lflare, pelvis,
 	   shield, shldbot, shldout, shldin, shldtop, rhand, rheatray,
 	   backpack, neck, head;
 
-static-var  isMoving, isAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
-			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
+static-var  isMoving, isAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, WALK_PERIOD, moveSpeed, tdamage, shieldup;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
+
+#include "../opencloseanim.h"
+
 
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
@@ -246,7 +248,7 @@ StopMoving()
 	
 }
 
-ready()
+Open()
 {
 	sleep 15;
 	turn neck to x-axis <110> speed <110>;
@@ -271,10 +273,12 @@ ready()
 	move shldtop to y-axis [4.4] speed [4.4];
 	move shldtop to z-axis [1.1] speed [1.1];
 	sleep 100;
+	ReadyToAim = 1;
 }
 
-holster()
+Stop()
 {
+	ReadyToAim = 0;
 	sleep 15;
 	turn neck to x-axis <0> speed <90>;
 	turn head to x-axis <0> speed <90>;
@@ -306,46 +310,7 @@ holster()
 	set ARMORED to 1;
 	shieldup = 1;
 	sleep 100;
-	return (0);
-}
-
-Go()
-{
-	call-script ready();
-	ReadyToAim = 1;
-}
-
-Stop()
-{
-	ReadyToAim = 0;
-	call-script holster();
 	isAiming = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -399,8 +364,6 @@ Create()
 	tdamage = 0;
 	shieldup = 1;
 	set ARMORED to 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	restore_delay = 10000;
 	start-script SmokeUnit();
 }
@@ -413,7 +376,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	turn aimx1 to x-axis <0.000000> speed <45.000000>;
 	wait-for-turn aimy1 around y-axis;
@@ -482,7 +445,7 @@ FireWeapon2()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	isAiming = TRUE;
 	while( !ReadyToAim )
 	{

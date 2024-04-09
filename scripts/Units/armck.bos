@@ -5,7 +5,7 @@
 
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, rfoot, lfoot, lcover, rcover, turret, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  readyToBuild, isMoving,statechg_DesiredState, statechg_StateChanging;
+static-var  readyToBuild, isMoving;
 
 
 #define BASEPIECE pelvis

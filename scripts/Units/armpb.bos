@@ -3,14 +3,16 @@
 
 piece  base, turret, dome, gun, barrel, flare, aimpoint;
 
-static-var  OpenClosed, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_IDLE 8
 
-Go()
-{
+#include "../opencloseanim.h"
+
+
+Open(){
 	set ARMORED to 0;
 	turn dome to x-axis <0> speed <550.000000>;
 	wait-for-turn dome around x-axis;
@@ -18,12 +20,11 @@ Go()
 	move barrel to z-axis [0] speed [15.000000];
 	wait-for-move turret along y-axis;
 	wait-for-move barrel along z-axis;
-	OpenClosed = 1;
+	isOpen = 1;
 }
 
-Stop()
-{
-	OpenClosed = 0;
+Close(){
+	isOpen = 0;
 	turn gun to x-axis <0.000000> speed <90.000000>;
 	move barrel to z-axis [-7] speed [15.000000];
 
@@ -36,40 +37,15 @@ Stop()
 	set ARMORED to 1;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 SetStunned(State)
 {
@@ -92,52 +68,39 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 3000;
-	OpenClosed = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	isOpen = 1;
+	OCA_intransition_wantOpen = 1;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
 	// close and armor once construction is done
 	// only if no target in range when done
+	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
-	if (statechg_DesiredState)
-	{
-		start-script RequestState(0);
-		start-script RequestState(1);
-	}
-
-//	turn dome to x-axis <-135.032967> now;
-//	move gun to x-axis [1.500000] now;
+	start-script OpenCloseAnim(0);
 }
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
-
-SetMaxReloadTime(Func_Var_1)
-{
-	//restore_delay = Func_Var_1 * 2;
-}
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( !OpenClosed )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -159,7 +122,7 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	if (OpenClosed == 1)
+	if (isOpen == 1)
 	{
 		pieceIndex = flare;
 	}

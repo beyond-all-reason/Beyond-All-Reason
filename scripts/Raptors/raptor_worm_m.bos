@@ -3,7 +3,7 @@
 
 piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare;
 
-static-var  AboveGround, restore_delay, statechg_DesiredState, statechg_StateChanging, isAiming, frameslefttoshot;
+static-var  AboveGround, restore_delay, isAiming, frameslefttoshot;
 // Signal definitions
 #define SIGNAL_AIM1 256
 //------------------------------- Worm Options --------------------------------------------------

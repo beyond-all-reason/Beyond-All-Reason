@@ -6,59 +6,30 @@
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare;  
 
-static-var shieldEnabled, statechg_DesiredState, statechg_StateChanging, isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
+static-var shieldEnabled, isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
 
+#include "../opencloseanim.h"
+
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var maxSpeed, animFramesPerKeyframe, isMoving;
 
-ShieldOn()
+Open()
 {
 	shieldEnabled = 1;
 }
 
-ShieldOff()
+Close()
 {
 	shieldEnabled = 0;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script ShieldOn();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script ShieldOff();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
@@ -522,7 +493,7 @@ Create(){
 	hide aimy1;
 	hide teleport;
 	shieldEnabled = 1;
-	call-script InitState();
+	OpenCloseAnim(1)
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
@@ -542,12 +513,12 @@ Create(){
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 QueryNanoPiece(pieceIndex)

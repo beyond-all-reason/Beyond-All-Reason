@@ -3,8 +3,7 @@
 
 piece  base, lfwheel, rfwheel, lbwheel, rbwheel, gun, flare;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading, wpn1_lasthead;
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_2, oldHeading, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -59,9 +58,6 @@ Create()
 {
 	hide flare;
 	oldheading = get HEADING;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	hide flare;
 }
 //Create()
 //{

@@ -4,8 +4,7 @@
 piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, statechg_DesiredState, 
-			statechg_StateChanging, oldHeading;
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, oldHeading;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -58,8 +57,6 @@ Create()
 	gun_1 = 0;
 	gun_2 = 0;
 	oldheading = get HEADING;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	restore_delay = 4000;
 }
 

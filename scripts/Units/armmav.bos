@@ -5,13 +5,14 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
        luparm, ruparm, lloarm, rloarm, lleg, lhipgun, rhipgun, lholster, rhandgun, lhandgun,
        rholster, rfoot, lfoot, aimy1, aimx1;
 
-static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, statechg_DesiredState,
-			statechg_StateChanging, wpn1_lasthead, animSpeed, maxSpeed, 
+static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, 
 			animFramesPerKeyframe;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
+
+#include "../opencloseanim.h"
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -734,43 +735,6 @@ Close()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Static-var TT_intransition_wanted;
-//2 bits
-// 0 0 not in transition and is closed
-// 0 1 not in transition and opened
-// 1 0 in transition to closed
-// 1 1 in transition to open
-TransitionTo(wanted)
-{
-
-    // If we are already transitioning, then just store what we want to be in the end
-    if( TT_intransition_wanted >=2)
-    {
-   	 TT_intransition_wanted = wanted | 0x02;
-   	 return (0);
-    }
-
-    // Store the wanted target
-    var current;
-    current = TT_intransition_wanted & 0x01;
-    TT_intransition_wanted = wanted | 0x02;
-
-    while((TT_intransition_wanted & 0x01) != current)
-    {
-   	 if( TT_intransition_wanted & 0x01)
-   	 {
-   		 call-script Open();
-            current = 1;
-   	 }
-   	 else
-   	 {
-   		 call-script Close();
-            current = 0;
-   	 }
-    }
-    TT_intransition = current;
-}
-
 
 Create()
 {
@@ -788,8 +752,6 @@ Create()
 	turn lflare to x-axis <90> now;
 	turn rflare to x-axis <90> now;
 	restore_delay = 2000;
-	TT_wanted = 0;
-	TT_intransition = FALSE;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -804,7 +766,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 	turn aimy1 to y-axis <0.000000> speed <200.038462>;
 	isAiming = FALSE;
 	wpn1_lasthead = 1000000;
@@ -826,7 +788,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <250.027473>;
 	turn aimx1 to x-axis -1*pitch speed <150>;

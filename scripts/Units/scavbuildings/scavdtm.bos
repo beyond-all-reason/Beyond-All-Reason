@@ -3,11 +3,12 @@
 
 piece  base, tube, door1, door2, flare1, flare2, flare3, aimpoint;
 
-static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging, firepoint;
+static-var  isOpen, restore_delay, firepoint;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
+#include "../opencloseanim.h"
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -37,7 +38,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-Go()
+Open()
 {
 	set ARMORED to 0;
 	
@@ -51,7 +52,7 @@ Go()
 	isOpen = 1;
 }
 
-Stop()
+Close()
 {
 	set ARMORED to 1;
 	isOpen = 0;
@@ -65,37 +66,6 @@ Stop()
 	wait-for-move tube along y-axis;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -105,8 +75,7 @@ Create()
 	hide flare1;
 	restore_delay = 2000;
 	isOpen = 0;
-	call-script InitState();
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
@@ -115,17 +84,17 @@ Create()
 	firepoint = 0;
 	
 	start-script SmokeUnit();
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -140,7 +109,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 SetStunned(State)
 {
@@ -157,7 +126,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )

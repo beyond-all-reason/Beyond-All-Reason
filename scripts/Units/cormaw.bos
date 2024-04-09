@@ -3,17 +3,19 @@
 
 piece  base, top, bore, barrel, flare, aimpoint, firepoint;
 
-static-var  isOpen, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+
+#include "../opencloseanim.h"
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
   return 0;
 }
 
-Go()
+Open()
 {
 	set ARMORED to 0;
 	move top to y-axis [8.000000] speed [19.989014];
@@ -23,7 +25,7 @@ Go()
 	isOpen = 1;
 }
 
-Stop()
+Close()
 {
 	set ARMORED to 1;
 	isOpen = 0;
@@ -36,37 +38,6 @@ Stop()
 	wait-for-move top along y-axis;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -76,24 +47,23 @@ Create()
 	hide flare;
 	restore_delay = 2000;
 	isOpen = 0;
-	call-script InitState();
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	move aimpoint to y-axis [8] now;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -108,7 +78,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 SetStunned(State)
 {
@@ -125,7 +95,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )

@@ -2,10 +2,12 @@
 #include "exptype.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
-static-var  isMoving, isAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
+static-var  isMoving, isAiming, restore_delay, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+
+#include "../opencloseanim.h"
 
 static-var maxSpeed, animFramesPerKeyframe;
 
@@ -399,7 +401,7 @@ StopMoving(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-drawgun()
+Open()
 {
 
 	//turn ruparm to x-axis <0.000000> speed <56.783183>;
@@ -462,7 +464,7 @@ drawgun()
 
 }
 
-holstgun()
+Close()
 {
 	
 	var drawspeed;
@@ -493,34 +495,6 @@ holstgun()
 	wait-for-turn ruparm around x-axis;
 	gunDrawn = 0;
 
-}
-
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script holstgun();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script drawgun();
-			currentstate = 0;
-		}
-		sleep 32;
-	}
-	statechg_StateChanging = FALSE;
 }
 
 
@@ -561,8 +535,6 @@ Create()
 	wpnheading = 0;
 	isMoving = FALSE;
 	restore_delay = 7000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	gunDrawn = 0;
 	moveSpeed = get MAX_SPEED;
 	isAiming = FALSE;
@@ -580,7 +552,7 @@ ExecuteRestoreAfterDelay()
 		hide static_emit;
         return (1);
     }
-	call-script RequestState(1);
+	call-script OpenCloseAnim(0);
 	hide gun_emit;
 	show static_emit;
     turn aimy1 to y-axis <0.000000> speed <90>;
@@ -614,7 +586,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	

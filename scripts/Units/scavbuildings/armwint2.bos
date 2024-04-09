@@ -101,11 +101,9 @@ SetStunned(State)
 		call-script Stop();
 		set ACTIVATION to 0;
 	}else{
-		//if (statechg_DesiredState == 0) {
 		call-script Go();
 		
 		set ACTIVATION to 100;
-		//}
 	}
 }
 

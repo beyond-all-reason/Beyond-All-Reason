@@ -3,43 +3,12 @@
 
 piece  base, pad, head, nano1, nano2, dish;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
-Standby()
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
-	sleep 50;
-	start-script Standby();
-}
-activatescr()
-{
-	if( TRUE )
-	{
-		turn head to y-axis <0> now;
-		turn head to y-axis <109> speed <100>;
-		wait-for-turn head around y-axis;
-		sleep 464;
-	}
-	sleep 56;
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn head to y-axis <0> speed <100>;
-		wait-for-turn head around y-axis;
-		sleep 424;
-	}
-	return (0);
-}
+#include "../opencloseanim.h"
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -66,7 +35,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		}
 		sleep sleeptime;
 	}
-	return (0);
 }
 
 OpenBuildArea()
@@ -79,7 +47,6 @@ OpenBuildArea()
 		set YARD_OPEN to 1;
 	}
 	set BUGGER_OFF to 0;
-	return (0);
 }
 
 CloseBuildArea()
@@ -92,58 +59,27 @@ CloseBuildArea()
 		set YARD_OPEN to 0;
 	}
 	set BUGGER_OFF to 0;
-	return (0);
 }
 
-Go()
+Open()
 {
-	call-script activatescr();
+	turn head to y-axis <0> now;
+	turn head to y-axis <109> speed <100>;
+	wait-for-turn head around y-axis;
+	sleep 464;
 	call-script OpenBuildArea();
 	set INBUILDSTANCE to 1;
-	return (0);
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
 	call-script CloseBuildArea();
-	call-script deactivatescr();
-	return (0);
+	turn head to y-axis <0> speed <100>;
+	wait-for-turn head around y-axis;
+	sleep 424;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -151,9 +87,7 @@ Create()
 	hide nano1;
 	hide nano2;
 	spray = base;
-	call-script InitState();
 	start-script SmokeUnit();
-	start-script Standby();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -164,23 +98,14 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		pieceIndex = nano1;
-	}
-	if( spray != 0 )
-	{
-		pieceIndex = nano2;
-	}
+	pieceIndex = nano1 + spray;
 	spray = !spray;
-	return (0);
 }
 
 Activate()
 {
 	signal SIGNAL_TURNON;
-	start-script RequestState(0);
-	return (0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
@@ -190,30 +115,25 @@ Deactivate()
 
 	sleep 5000;
 	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	start-script OpenCloseAnim(0);
 }
 
 StartBuilding()
 {
 	show nano1;
 	show nano2;
-	return (0);
 }
 
 StopBuilding()
 {
 	hide nano1;
 	hide nano2;
-	return (0);
 }
 
 QueryBuildInfo(pieceIndex)
 {
 	pieceIndex = pad;
-	return (0);
 }
-
 
 
 Killed(severity, corpsetype)

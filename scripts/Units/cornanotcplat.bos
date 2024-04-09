@@ -3,7 +3,7 @@
 
 piece  base, aim, emitnano;
 
-static-var  buildHeading, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>

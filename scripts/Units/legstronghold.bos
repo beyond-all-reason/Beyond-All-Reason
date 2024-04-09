@@ -5,20 +5,10 @@ piece  base, pole, turret, sleeve, barrel, flare, link, thrustrr, thrustrl, thru
 		thrustrra, thrustrla, thrustfra, thrustfla, 
 		thrustrr2, thrustrl2, thrustfr2, thrustfl2, thrustrra2, thrustrla2, thrustfra2, thrustfla2;
 
-static-var  moverate, statechg_DesiredState, statechg_StateChanging, restore_delay, wpn1_lasthead;
+static-var  moverate, restore_delay, wpn1_lasthead;
 
 #define SIGNAL_AIM1 256
 
-
-pickupscr()
-{
-	sleep 11;
-}
-
-dropoffscr()
-{
-	sleep 15;
-}
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -51,7 +41,6 @@ Create()
 	
 	hide link;
 	moverate = 0;
-	call-script InitState();
 	restore_delay = 300;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -60,37 +49,7 @@ Create()
 	start-script IdleHover();
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script pickupscr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script dropoffscr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -106,12 +65,10 @@ QueryTransport(pieceIndex)
 BeginTransport(targetHeight)
 {
 	move link to y-axis [0.000000] - targetHeight now;
-	start-script RequestState(0);
 }
 
 EndTransport()
 {
-	start-script RequestState(1);
 }
 
 Activate()
@@ -124,7 +81,6 @@ Activate()
 	show thrustfla2;
 	show thrustrla2;
 	show thrustrra2;
-	start-script RequestState(0);
 }
 
 Deactivate()
@@ -137,7 +93,6 @@ Deactivate()
 	hide thrustfla2;
 	hide thrustrla2;
 	hide thrustrra2;
-	start-script RequestState(1);
 }
 
 

@@ -3,11 +3,12 @@
 
 piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
 
+#include "../opencloseanim.h"
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -38,7 +39,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-Go()
+Open()
 {
 	//get PRINT(get (GAME_FRAME), 11);
 	
@@ -64,7 +65,7 @@ Go()
 	set INBUILDSTANCE to 1;
 }
 
-Stop()
+Close()
 {
 	//get PRINT(get (GAME_FRAME), 22);
 	set INBUILDSTANCE to 0;
@@ -91,37 +92,6 @@ Stop()
 	set BUGGER_OFF to 0;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging ) //we are still in the state changing process
-	{
-		statechg_DesiredState = requestedstate; //make the requested state the one to be in
-		return (0);
-	}
-	statechg_StateChanging = TRUE; // flad that we are gonna change states
-	currentstate = statechg_DesiredState; //
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -131,7 +101,6 @@ Create()
 	hide nano4;
 	hide pad;
 	spray = nano1;
-	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -143,7 +112,7 @@ Activate() // activate first
 {
 	//get PRINT(get (GAME_FRAME), 3333);
 	signal SIGNAL_TURNON;
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
@@ -151,7 +120,7 @@ Deactivate()
 	//get PRINT(get (GAME_FRAME), 4444);
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 StartBuilding() // Is only called once INBUILDSTANCE == 1 !

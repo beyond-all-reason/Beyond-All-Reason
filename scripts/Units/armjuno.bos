@@ -4,11 +4,13 @@
 piece  base, collar, tower, emit1, emit2, emit3, emit4,
        flare;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, restore_delay;
 static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+
+#include "../opencloseanim.h"
 
 NanoEmit()
 {
@@ -59,8 +61,43 @@ Activatescr()
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
-deactivatescr()
+
+Open()
 {
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	sleep 250;
+	spin tower around y-axis speed <85.016484>;
+	spin collar around y-axis speed <-65.010989>;
+	sleep 250;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	sleep 250;
+	gun_1 = flare;
+}
+Close(){
+	gun_1 = base;
+	sleep 4000;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit3;
@@ -73,52 +110,9 @@ deactivatescr()
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 40;
+
 }
 
-Go()
-{
-	call-script Activatescr();
-	gun_1 = flare;
-}
-
-Stop()
-{
-	gun_1 = base;
-	sleep 4000;
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -130,7 +124,6 @@ Create()
 	gun_1 = flare;
 	restore_delay = 3000;
 	start-script NanoEmit();
-	call-script InitState();
 }
 
 #define SMOKEPIECE base
@@ -140,14 +133,14 @@ Activate()
 {
 	spin tower around y-axis speed <25.005495>;
 	spin collar around y-axis speed <15.000000>;
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
 	stop-spin tower around y-axis decelerate <0.2>;
 	stop-spin collar around y-axis decelerate <0.2>;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -161,7 +154,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 SetStunned(State)
 {
@@ -182,7 +175,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !gun_1 )
@@ -196,7 +189,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	gun_1 = base;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 QueryWeapon1(pieceIndex)
