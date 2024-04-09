@@ -68,7 +68,6 @@ return {
 				metal = 4807,
 				object = "Units/armshltx_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			armshlt_heap = {
 				blocking = false,
@@ -83,7 +82,6 @@ return {
 				object = "Units/arm7X7D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

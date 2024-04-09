@@ -74,7 +74,6 @@ return {
 				metal = 12500,
 				object = "Units/scavboss/corgolt4_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 
 			heap = {
@@ -92,7 +91,6 @@ return {
 				object = "Units/arm2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

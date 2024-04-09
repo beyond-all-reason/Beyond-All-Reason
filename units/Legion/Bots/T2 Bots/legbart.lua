@@ -57,7 +57,6 @@ return {
 				metal = 350,
 				object = "Units/legbart_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,

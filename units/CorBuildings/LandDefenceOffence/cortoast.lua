@@ -62,7 +62,6 @@ return {
 				metal = 1507,
 				object = "Units/cortoast_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,

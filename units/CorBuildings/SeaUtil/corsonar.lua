@@ -54,7 +54,6 @@ return {
 				metal = 13,
 				object = "Units/corsonar_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

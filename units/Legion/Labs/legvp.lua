@@ -71,7 +71,6 @@ return {
 				metal = 470,
 				object = "Units/corvp_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -86,7 +85,6 @@ return {
 				object = "Units/cor7X7B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

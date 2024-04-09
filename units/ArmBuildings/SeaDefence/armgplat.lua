@@ -50,7 +50,6 @@ return {
 				metal = 80,
 				object = "Units/armgplat_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

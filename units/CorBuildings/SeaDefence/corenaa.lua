@@ -54,7 +54,6 @@ return {
 				metal = 541,
 				object = "Units/corenaa_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

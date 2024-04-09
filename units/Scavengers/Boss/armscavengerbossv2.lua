@@ -137,7 +137,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				metal = 3500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -154,7 +153,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				object = "Units/arm6X6A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

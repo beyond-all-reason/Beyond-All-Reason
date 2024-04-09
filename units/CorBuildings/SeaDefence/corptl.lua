@@ -48,7 +48,6 @@ return {
 				metal = 205,
 				object = "Units/cortl_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

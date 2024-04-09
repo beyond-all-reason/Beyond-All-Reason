@@ -61,7 +61,6 @@ return {
 				metal = 400,
 				object = "Units/corsy_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

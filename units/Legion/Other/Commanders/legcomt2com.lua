@@ -122,7 +122,6 @@ return {
 				metal = 2000,
 				object = "Units/armcom_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -139,7 +138,6 @@ return {
 				object = "Units/arm2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

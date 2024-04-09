@@ -67,7 +67,6 @@ return {
 				metal = 2232,
 				object = "Units/armasy_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

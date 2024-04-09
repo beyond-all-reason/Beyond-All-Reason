@@ -74,7 +74,6 @@ return {
 				metal = 12500,
 				object = "Units/scavboss/armrattet4_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

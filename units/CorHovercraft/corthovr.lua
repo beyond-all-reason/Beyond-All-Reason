@@ -58,7 +58,6 @@ return {
 				metal = 423,
 				object = "Units/corthovr_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

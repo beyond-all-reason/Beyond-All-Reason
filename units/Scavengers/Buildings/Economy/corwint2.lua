@@ -59,7 +59,6 @@ return {
 				metal = 270,
 				object = "Units/scavbuildings/CORWINT2_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

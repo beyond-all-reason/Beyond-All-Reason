@@ -68,7 +68,6 @@ return {
 				metal = 177,
 				object = "Units/cordrag.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			rockteeth = {
 				animating = 0,

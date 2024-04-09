@@ -68,7 +68,6 @@ return {
 				metal = 205,
 				object = "Units/armfort.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			rockteeth = {
 				animating = 0,

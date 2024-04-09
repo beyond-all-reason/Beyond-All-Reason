@@ -63,7 +63,6 @@ return {
 				metal = 72,
 				object = "Units/corsolar_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -78,7 +77,6 @@ return {
 				object = "Units/cor5X5C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

@@ -65,7 +65,6 @@ return {
 				metal = 177,
 				object = "scavs/scavdrag.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			rockteeth = {
 				animating = 0,

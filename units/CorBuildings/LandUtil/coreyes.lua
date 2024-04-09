@@ -57,7 +57,6 @@ return {
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

@@ -59,7 +59,6 @@ return {
 				metal = 4000,
 				object = "Units/scavboss/armpwt4_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

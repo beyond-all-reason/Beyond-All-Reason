@@ -52,7 +52,6 @@ return {
 				metal = 240,
 				object = "Units/corfrt_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {

@@ -55,7 +55,6 @@ return {
 				metal = 370,
 				object = "Units/corerad_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -72,7 +71,6 @@ return {
 				object = "Units/cor3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 		},
 		sfxtypes = {
