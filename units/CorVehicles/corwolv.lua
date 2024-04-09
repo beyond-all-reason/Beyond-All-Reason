@@ -45,7 +45,6 @@ return {
 			basename = "base",
 			canareaattack = 1,
 			cobkickbackrestorespeed = "10",
-			driftratio = "1",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",
 			model_author = "Mr Bob, Flaka",

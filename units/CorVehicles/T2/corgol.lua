@@ -47,7 +47,6 @@ return {
 			buildinggrounddecalalpha = 0.5,
 			unitgroup = 'weapon',
 			basename = "base",
-			driftratio = "0",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
 			model_author = "Mr Bob",

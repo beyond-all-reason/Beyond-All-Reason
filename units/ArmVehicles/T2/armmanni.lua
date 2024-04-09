@@ -42,7 +42,6 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-			driftratio = "0",
 			firingceg = "barrelshot-small",
 			kickback = "-2",
 			model_author = "FireStorm",

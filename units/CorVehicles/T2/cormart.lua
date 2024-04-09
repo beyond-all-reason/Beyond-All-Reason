@@ -42,7 +42,6 @@ return {
 			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
-			driftratio = "0.4",
 			firingceg = "barrelshot-medium",
 			kickback = "-6",
 			model_author = "Mr Bob",

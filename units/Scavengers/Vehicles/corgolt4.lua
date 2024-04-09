@@ -41,7 +41,6 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-			driftratio = "0.4",
 			firingceg = "barrelshot-tiny",
 			kickback = "-4",
 			model_author = "Mr Bob, Hornet",

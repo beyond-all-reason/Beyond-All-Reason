@@ -44,7 +44,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
-			driftratio = "0.2",
 			kickback = "-6.25",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

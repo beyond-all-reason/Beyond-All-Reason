@@ -44,7 +44,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			paralyzemultiplier = 0.1,
-			driftratio = "0.2",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
 			model_author = "Itanthias, Hornet",
