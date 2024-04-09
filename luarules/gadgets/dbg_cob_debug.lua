@@ -116,6 +116,7 @@ if gadgetHandler:IsSyncedCode() then
 		
 		local function_pattern = '^[%w_]+%('
 		
+		if boslines[line] == nil then return "included", -1 end
 		-- todo: walk up until you match a function declaration
 		for i = line, 1, -1 do
 			if string.find(boslines[i], function_pattern) then
