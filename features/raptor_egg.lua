@@ -4,7 +4,6 @@ local raptor_egg =  {
     category = "corpses",
     damage = 10000,
     energy = 1000,
-    featurereclamate = "SMUDGE01",
     footprintx = 1,
     footprintz = 1,
     height = 15,
