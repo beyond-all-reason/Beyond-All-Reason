@@ -29,7 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
-		yardmap = "h cyyyyyyyyc ygbggbbggy ygbgbggbby ybgggbgggy ybgbgggbgy ygbgggbgby ygggbgggby ybbggbgbgy yggbbggbgy cyyyyyyyyc",
+		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
