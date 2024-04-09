@@ -49,7 +49,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
 			restoretime = "3000",
-			rockstrength = "5",
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
 			wpn1turretx = "90",

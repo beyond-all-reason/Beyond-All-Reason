@@ -53,7 +53,6 @@ return {
 			restoretime = "3000",
 			rockrestorespeed = "1",
 			rockspeed = "2",
-			rockstrength = "0.02",
 			sleevename = "sleeves",
 			subfolder = "corvehicles",
 			wpn1turretx = "200",

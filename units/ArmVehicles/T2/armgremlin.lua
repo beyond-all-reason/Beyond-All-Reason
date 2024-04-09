@@ -50,7 +50,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
 			restoretime = "3000",
-			rockstrength = "3",
 			sleevename = "turret",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,

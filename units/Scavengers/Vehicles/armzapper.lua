@@ -47,7 +47,6 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
-			rockstrength = "0",
 			sleevename = "gun",
 			subfolder = "armvehicles",
 			wpn1turretx = "300",

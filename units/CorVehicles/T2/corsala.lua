@@ -50,7 +50,6 @@ return {
 			model_author = "Itanthias, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			restoretime = "3000",
-			rockstrength = "4.5",
 			sleevename = "sleeves",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,

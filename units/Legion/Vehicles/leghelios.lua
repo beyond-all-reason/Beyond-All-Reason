@@ -46,7 +46,6 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			restoretime = "3000",
-			rockstrength = "0",
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
 			wpn1turretx = "192.5",

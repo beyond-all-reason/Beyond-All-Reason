@@ -49,7 +49,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
 			restoretime = "3000",
-			rockstrength = "3",
 			sleevename = "turret",
 			subfolder = "armvehicles",
 			wpn1turretx = "64",

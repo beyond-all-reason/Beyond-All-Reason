@@ -48,7 +48,6 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
-			rockstrength = "1.2",
 			sleevename = "sleeve",
 			subfolder = "other/scavengers",
 			techlevel = 3,

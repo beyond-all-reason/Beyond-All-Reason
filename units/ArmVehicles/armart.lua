@@ -49,7 +49,6 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
-			rockstrength = "10",
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
 			wpn1turretx = "40",
