@@ -60,7 +60,7 @@ scavConverted = {}
 UnitSuffixLength = {}
 numOfSpawnBeacons = 0
 numOfSpawnBeaconsTeams = {}
-scavMaxUnits = Spring.GetTeamMaxUnits(ScavengerTeamID)
+scavMaxUnits = 2000
 scavengerSoundPath = "Sounds/voice/allison/scavengers/"
 killedscavengers = 0
 QueuedSpawns = {}
@@ -79,7 +79,11 @@ BaseCleanupQueue = {}
 
 --spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
 spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
+scavMaxUnits = Spring.GetModOptions().maxunits
 
+if ScavengerTeamID == Spring.GetGaiaTeamID() then
+	scavMaxUnits = 10000
+end
 TierSpawnChances = {
 	T0 = 100,
 	T1 = 0,

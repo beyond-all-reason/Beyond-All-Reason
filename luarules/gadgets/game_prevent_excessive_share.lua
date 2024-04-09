@@ -20,6 +20,8 @@ end
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
+local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
@@ -54,7 +56,7 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
 		return true
 	end
 	return false
