@@ -44,7 +44,6 @@ return {
 			kickback = "-2.4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			restoretime = "3000",
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
 			wpn1turretx = "192.5",

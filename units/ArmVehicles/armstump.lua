@@ -45,7 +45,6 @@ return {
 			lumamult = "1.2",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			restoretime = "3000",
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
 			wpn1turretx = "45",

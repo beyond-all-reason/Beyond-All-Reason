@@ -47,7 +47,6 @@ return {
 			kickback = "-6.25",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			restoretime = "3000",
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
 			wpn1turretx = "40",

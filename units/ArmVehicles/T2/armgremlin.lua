@@ -48,7 +48,6 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
-			restoretime = "3000",
 			sleevename = "turret",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,

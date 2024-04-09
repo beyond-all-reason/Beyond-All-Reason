@@ -47,7 +47,6 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
-			restoretime = "3000",
 			sleevename = "sleeve",
 			subfolder = "corvehicles",
 			wpn1turretx = "90",

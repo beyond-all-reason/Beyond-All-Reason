@@ -47,7 +47,6 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
-			restoretime = "3000",
 			sleevename = "turret",
 			subfolder = "armvehicles",
 			wpn1turretx = "64",

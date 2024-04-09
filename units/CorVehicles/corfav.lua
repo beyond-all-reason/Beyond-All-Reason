@@ -44,7 +44,6 @@ return {
 			kickback = "0",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			restoretime = "3000",
 			sleevename = "turret",
 			subfolder = "corvehicles",
 			wpn1turretx = "300",

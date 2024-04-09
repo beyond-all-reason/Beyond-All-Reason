@@ -48,7 +48,6 @@ return {
 			kickback = "-2.4",
 			model_author = "Itanthias, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			restoretime = "3000",
 			sleevename = "sleeves",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
