@@ -44,7 +44,6 @@ return {
 			kickback = "-2.4",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			sleevename = "sleeve",
 			subfolder = "corvehicles",
 		},
 		featuredefs = {

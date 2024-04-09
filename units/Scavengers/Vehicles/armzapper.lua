@@ -45,7 +45,6 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			sleevename = "gun",
 			subfolder = "armvehicles",
 		},
 		featuredefs = {

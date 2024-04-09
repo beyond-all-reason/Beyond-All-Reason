@@ -46,7 +46,6 @@ return {
 			kickback = "-6",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			sleevename = "sleeve",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 		},

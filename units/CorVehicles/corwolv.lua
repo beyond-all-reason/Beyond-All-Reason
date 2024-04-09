@@ -51,7 +51,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			rockrestorespeed = "1",
 			rockspeed = "2",
-			sleevename = "sleeves",
 			subfolder = "corvehicles",
 		},
 		featuredefs = {

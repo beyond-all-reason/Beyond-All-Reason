@@ -47,7 +47,6 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.25,
-			sleevename = "sleeves",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 		},

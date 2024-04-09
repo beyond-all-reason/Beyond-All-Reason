@@ -44,7 +44,6 @@ return {
 			kickback = "-2",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			sleevename = "sleeves",
 			subfolder = "armvehicles",
 		},
 		featuredefs = {

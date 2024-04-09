@@ -46,7 +46,6 @@ return {
 			lumamult = "1.2",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			sleevename = "sleeve",
 			subfolder = "other/scavengers",
 			techlevel = 3,
 		},
