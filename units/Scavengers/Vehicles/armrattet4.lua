@@ -67,7 +67,6 @@ return {
 				collisionvolumetype = "Box",
 				damage = 60000,
 				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
 				height = 60,

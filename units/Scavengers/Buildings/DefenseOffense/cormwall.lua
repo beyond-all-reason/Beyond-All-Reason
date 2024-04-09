@@ -60,7 +60,6 @@ return {
 				damage = 540,
 				energy = 0,
 				featuredead = "ROCKTEETH",
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,

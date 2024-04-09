@@ -59,7 +59,6 @@ return {
 				damage = 1243,
 				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
 				height = 150,

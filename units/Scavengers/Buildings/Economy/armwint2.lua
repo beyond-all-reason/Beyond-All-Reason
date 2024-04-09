@@ -53,7 +53,6 @@ return {
 				collisionvolumetype = "CylY",
 				damage = 1125,
 				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 40,
