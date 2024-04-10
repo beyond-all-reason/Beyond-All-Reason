@@ -47,8 +47,8 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
-			wpn1turretx = "45",
-			wpn1turrety = "80",
+			weapon1turretx = 45,
+			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -130,7 +130,7 @@ return {
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
-				soundhitwet = "",,
+				soundhitwet = "",
 				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",

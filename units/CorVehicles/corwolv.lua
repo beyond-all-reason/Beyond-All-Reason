@@ -51,8 +51,8 @@ return {
 			rockrestorespeed = "1",
 			rockspeed = "2",
 			subfolder = "corvehicles",
-			wpn1turretx = "200",
-			wpn1turrety = "200",
+			weapon1turretx = 200,
+			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {

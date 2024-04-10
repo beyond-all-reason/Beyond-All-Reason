@@ -39,8 +39,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 2,
-			wpn1turretx = 90,
-			wpn1turrety = 150,
+			weapon1turretx = 90,
+			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {

@@ -50,8 +50,8 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
-			wpn1turretx = "200",
-			wpn1turrety = "200",
+			weapon1turretx = 200,
+			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {

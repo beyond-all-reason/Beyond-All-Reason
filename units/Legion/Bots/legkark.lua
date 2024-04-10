@@ -40,8 +40,8 @@ return {
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
-			wpn1turretx = 200,
-			wpn1turrety = 200,
+			weapon1turretx = 200,
+			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {

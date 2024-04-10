@@ -47,8 +47,8 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
-			wpn1turretx = "40",
-			wpn1turrety = "110",
+			weapon1turretx = 40,
+			weapon1turrety = 110,
 		},
 		featuredefs = {
 			dead = {

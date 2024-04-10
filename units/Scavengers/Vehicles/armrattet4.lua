@@ -48,8 +48,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			wpn1turretx = "45",
-			wpn1turrety = "80",
+			weapon1turretx = 45,
+			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
