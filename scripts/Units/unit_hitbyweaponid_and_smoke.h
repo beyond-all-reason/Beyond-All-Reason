@@ -10,7 +10,8 @@
 //#define HITSPEED <20.0>
 //#define UNITSIZE 5
 //#define MAXTILT 200 // Set to 0 for not tilting
-//#include "unit_hitbyweaponid_and_smoke.h"
+//#define RECOIL_POWER 1000 // how strongly to rock backwards on recoil, usually about 10000
+// #include "unit_hitbyweaponid_and_smoke.h"
 
 // Where the smoke should be emitted from
 #ifndef BASEPIECE
@@ -18,6 +19,7 @@
 #endif
 
 // How much tilt is allowed, set to 0 for no movement
+#define MAXTILT 100
 #ifndef MAXTILT
 	#define MAXTILT 200
 #endif
@@ -27,9 +29,19 @@
 	#define HITSPEED <20.0>
 #endif
 
+// How fast the unit should tilt when hit
+#ifndef RESTORESPEED
+	#define RESTORESPEED (HITSPEED/4)
+#endif
+
 // How 'heavy' the unit is, on a scale of 1-10
 #ifndef UNITSIZE
 	#define UNITSIZE 5
+#endif
+
+// How strongly to rock backwards on recoil, usually about 10000
+#ifndef RECOIL_POWER
+	#define RECOIL_POWER 0
 #endif
 
 // The health percentage threshold below which the unit will emit smoke
@@ -37,42 +49,89 @@
 	#define HEALTH_SMOKE_THRESHOLD 65
 #endif
 
+#ifndef EXTRA_SLEEP
+	#define EXTRA_SLEEP 65
+#endif
+
+
 static-var isSmoking;
 
 #if MAXTILT > 0
-	HitByWeaponId(anglex, anglez, weaponid, damage) //weaponID is always 0,lasers and flamers give angles of 0
+	// angle[x|z] is always [-500;500; weaponID is always 0,lasers and flamers give angles of 0; damage is x100
+	// MUST IMMEDIATELY RETURN DAMAGE AMOUNT!
+	HitByWeaponId(anglex, anglez, weaponid, damage) 
 	{
-		#if (HEALTH_SMOKE_THRESHOLD > 1)
-			// Dont even start a thread if we arent low health
-			if ((get HEALTH) > HEALTH_SMOKE_THRESHOLD) return (100);
-			// Dont start a thread if we are being built
+		//dbg(anglex, anglez, weaponid, damage);
+		#if HEALTH_SMOKE_THRESHOLD > 1
+			// Dont do anything if we are being built
 			if (get BUILD_PERCENT_LEFT) return (100);
-			// Start a thread if werent previously smoking
-			if (isSmoking == 0)	{ 
-				isSmoking = 1;
-				start-script DamagedSmoke();
-			}	
+			// Dont start a damagedSmoke thread if we arent low health
+			if ((get HEALTH) > HEALTH_SMOKE_THRESHOLD){
+				// Start a thread if werent previously smoking
+				if (isSmoking == 0)	{ 
+					isSmoking = 1;
+					start-script DamagedSmoke();
+				}	
+			}
 		#endif
 		// this must be start-scripted, because we need to return the full damage taken immediately
 		start-script HitByWeapon(damage, anglez, anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 		return (100); //return damage percent
 	}
 
-	HitByWeapon(anglex, anglez, damageamount)	// angle[x|z] is always [-500;500], but engine does not give us damage, hence the need for HitByWeaponId
-	{
+	// angle[x|z] is always [-500;500], but engine does not give us damage, hence the need for HitByWeaponId	
+	HitByWeapon(anglex, anglez, damageamount){
+
+		//dbg(anglex, anglez, damageamount);
 		damageamount = damageamount / (100 * UNITSIZE);
 		if (damageamount < 3  ) return (0);
+
+		// While signals could be used here, it doesnt help the looks really.
+
+		//#define SIGNAL_RECOIL 65536
+		//signal SIGNAL_RECOIL;
+		//set-signal-mask SIGNAL_RECOIL;
+		
 		if (damageamount > MAXTILT) damageamount = MAXTILT;
 		turn BASEPIECE to z-axis (anglez * damageamount) / 100  speed HITSPEED;
 		turn BASEPIECE to x-axis <0> - (anglex * damageamount) /100 speed HITSPEED;
 		
 		// The astute will notice that since the speed on both axes is the same, these will wait more. 
 		// This looks subjectively better than an even speed along both axes
-		wait-for-turn BASEPIECE around z-axis;
-		wait-for-turn BASEPIECE around x-axis;
-		turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-		turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+		#ifndef CALC_SLEEP
+			//var dt;
+			//dt = get GAME_FRAME;
+			//dbg();
+			wait-for-turn BASEPIECE around z-axis;
+			wait-for-turn BASEPIECE around x-axis;
+			//dbg();
+			//dt = (get GAME_FRAME) - dt;
+
+			//var maxTime;
+			//maxTime = (get MAX( get ABS(anglez), get ABS(anglex))); 
+			//maxTime = EXTRA_SLEEP + (((maxTime * damageamount / 100 ))* 1000 )/ HITSPEED ;
+			//dbg(maxTime/33, dt);
+		#else
+			// alternative approach is to use calculate the needed sleep time, its about 50 cmds;
+
+			var maxTime;
+			maxTime = (get MAX( get ABS(anglez), get ABS(anglex))); 
+			maxTime = EXTRA_SLEEP + (((maxTime * damageamount / 100 ))* 1000 )/ HITSPEED ;
+			//dbg(maxTime);
+			// Add an extra frame to 'wait' at the desired target
+			sleep maxTime;
+		#endif
+
+		turn BASEPIECE to z-axis <0.000000> speed RESTORESPEED;
+		turn BASEPIECE to x-axis <0.000000> speed RESTORESPEED;
 	}
+
+	#if RECOIL_POWER > 0
+		RockUnit(anglex,anglez){	
+			start-script HitByWeapon(RECOIL_POWER,-1 *anglez, -1*anglex);
+		}
+	#endif
+
 #else
 	HitByWeapon(anglex, anglez)	// angle[x|z] is always [-500;500], but engine does not give us damage, hence the need for HitByWeaponId
 	{
