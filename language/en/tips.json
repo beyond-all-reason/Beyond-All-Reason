@@ -1,6 +1,7 @@
 {
 	"tips": {
 		"loadscreen": {
+			"donations": "Good news! BAR is accepting donations again!\nbeyondallreason.info/donate",
 			"alwaysExpand": "Expanding territory is essential for gaining economic advantage.\nTry to secure as many metal spots and geothermal vents as you can.",
 			"armyDiversity": "Think ahead and include anti-air and support units in your army.",
 			"assistFactories": "It is efficient to support a factory with constructors, increasing its build-power.\nSelect constructors and right-click on the factory to Guard it.",
