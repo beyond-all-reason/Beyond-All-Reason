@@ -18,7 +18,7 @@ StartMoving(reversing){
 */
 
 // default first ceg
-#ifndef VD_CEGID 
+#ifndef VD_DIRTCEG 
 	#define VD_DIRTCEG 1024
 #endif
 

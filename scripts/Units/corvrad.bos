@@ -6,6 +6,7 @@ piece  base, dish, blink;
 static-var  Stunned;
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_TURNON 4
 
 
@@ -15,7 +16,13 @@ static-var  Stunned;
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.18>
+#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Lights()
 {
@@ -32,7 +39,20 @@ Lights()
 
 Create()
 {
-	return (0);
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Activate()

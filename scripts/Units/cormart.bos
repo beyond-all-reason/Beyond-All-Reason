@@ -7,19 +7,8 @@ static-var  restore_delay;
 static-var  out_of_arc_count;
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-
-
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.005495>;
-	turn base to z-axis <0> - anglez speed <50.005495>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-	return (0);
-}
 
 
 #define BASEPIECE base
@@ -28,7 +17,16 @@ RockUnit(anglex, anglez)
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define RECOIL_POWER 100000
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 Create()
 {
@@ -36,8 +34,22 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
-	return (0);
+	call-script TB_Init();
 }
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
 
 SetMaxReloadTime(reloadMS)
 {

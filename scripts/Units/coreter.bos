@@ -5,8 +5,16 @@ piece  base, jam1, jam2, turret;
 
 static-var recently_damaged, desired_activation;
 
+#define SIGNAL_MOVE 1
 #define SIGNAL_TURNON 4
 #define SIGNAL_OFF 8
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.18>
+#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -43,7 +51,20 @@ Create()
 	start-script SmokeUnit();
 	recently_damaged = 0;
 	desired_activation = 1;
-	return (0);
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Activate()
