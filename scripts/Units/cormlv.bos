@@ -1,6 +1,7 @@
 
 #include "exptype.h"
 
+#define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
 piece  base, turret, tracks, beamhinge, beamcase, flare;
@@ -15,9 +16,13 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-
 #include "unit_hitbyweaponid_and_smoke.h"
 
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
@@ -25,6 +30,20 @@ Create()
 	isMoving = FALSE;
 	readyToBuild = FALSE;
 	animSpeed = 4;
+	call-script TB_Init();
+}
+	
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 

@@ -6,7 +6,15 @@
 
 piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
-static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed;
+static-var  readyToBuild,restore_delay, currentSpeed, moveSpeed, wheelSpeed;
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 WheelControl()
 {
@@ -28,11 +36,13 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script WheelControl();
+	START_TILTBANK;
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 #define BASEPIECE base
@@ -48,13 +58,14 @@ Create()
 	hide beam;
 	hide cagelight_emit;
 	restore_delay = 6000;
+	readyToBuild = FALSE;
 	moveSpeed = get MAX_SPEED;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
 	start-script WheelControl();
-	
+	call-script TB_Init();
 }
 
 StartBuilding(heading, pitch)

@@ -16,7 +16,7 @@ static-var  restore_delay;
 #define UNITSIZE 2
 #define MAXTILT 100
 #define RECOIL_POWER 50000
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define TB_BASE base 
 #define TB_TURNRATE <15.0> 
