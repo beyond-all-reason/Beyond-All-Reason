@@ -12,16 +12,14 @@ static-var  gun_2, oldHeading;
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
 		steer = (heading - oldheading)*3;  //3
 		turn rankle to y-axis steer speed <75>;	
 		turn lankle to y-axis steer speed <75>;
-		steer = (heading - oldheading)*1.5; 
-		turn turret to y-axis steer speed <30>;	
+		steer = (heading - oldheading)*1.0; 
+		turn turret to y-axis steer speed <75>;	
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rwheel around x-axis speed currentSpeed;
@@ -40,12 +38,23 @@ Steering(heading, steer, currentSpeed)
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
+
+
 Create()
 {
 	hide rflare;
 	hide lflare;
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
+	call-script TB_Init();
 }
 
 DetonateMines()
@@ -108,7 +117,11 @@ StopBuilding()
 
 StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script Steering();
+
+	START_TILTBANK;
 }
 
 StopMoving()
@@ -116,6 +129,8 @@ StopMoving()
 	signal SIGNAL_MOVE;
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
+	
+	STOP_TILTBANK;
 }
 
 QueryNanoPiece(pieceIndex)

@@ -9,58 +9,141 @@ static-var  restore_delay, isAiming;
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM3 1024
 #define SIGNAL_MOVE 1
-static-var oldheading, tilt, maxspeed;
 
-#define tiltspeed <0.75>
-#define maxtilt 20
+#define DEBUG
+#include "../debug.h"
 
-Steering(heading, steer, currentSpeed)
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+// ================== STEERING CONTROL ==================
+/*
+#ifndef WRAPDELTA
+	#define WRAPDELTA(angle) (((angle + 98280) % 65520) - 32760)
+#endif
+
+#define VS_BASE base
+#define VS_TURNRATE <30>
+#define VS_TILT_X <0.1>
+#define VS_TILT_Z <0.03>
+#define VS_CANREVERSE 0
+#define VS_ACCURACY 1000
+#define VS_FRAMES 3
+
+static-var VS_prevHeading, VS_prevSpeed, VS_maxSpeed;
+
+#ifdef VS_TILT_Z
+	
+	static-var VS_prevHeading, VS_prevSpeed, VS_maxSpeed;
+
+	VS_Init(){
+		VS_maxSpeed = get MAX_SPEED;
+		VS_prevHeading = get HEADING;
+		VS_prevSpeed = 0;
+	}
+
+	#define START_VEHICLESTEERING 	VS_prevHeading = get HEADING; \
+	VS_prevSpeed = 0; \
+	start-script VehicleSteering(reversing);
+
+	#define STOP_VEHICLESTEERING 		VS_prevHeading = get HEADING;  \
+		VS_prevSpeed = 0; \
+		turn VS_BASE to z-axis <0> speed VS_TURNRATE; \
+		turn VS_BASE to x-axis <0> speed VS_TURNRATE; 
+
+
+#else
+	static-var VS_prevSpeed, VS_maxSpeed;
+
+	VS_Init(){
+		VS_maxSpeed = get MAX_SPEED;
+		VS_prevSpeed = 0;
+	}
+
+	#define START_VEHICLESTEERING 	VS_prevSpeed = 0; \
+		start-script VehicleSteering(reversing);
+
+	#define STOP_VEHICLESTEERING	VS_prevSpeed = 0; \
+		turn VS_BASE to x-axis <0> speed VS_TURNRATE; 
+#endif
+
+
+//static-var VS_currSpeed, VS_currHeading, deltaSpeed, deltaHeading;
+
+VehicleSteering(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	// Could probably get away with half as many local vars...
+	var VS_currSpeed;
+	var deltaSpeed;
+
+	#ifdef VS_TILT_Z
+		var VS_currHeading;
+		var deltaHeading;
+	#endif
+	
 	while(1)
 	{
-		heading = get HEADING;
-		steer = (heading - oldheading);
-		//get PRINT(heading,steer,tilt,oldheading);
-		currentSpeed =((get CURRENT_SPEED) * 100 / get MAX_SPEED);
-		if ((currentSpeed > 75) AND ((get ABS(steer)) > 150)) { //going fast can increase tilt
-			
-		//get PRINT(1111,currentSpeed, maxspeed);
-			if (steer < 5) tilt = tilt + 1;// tilt left
-			else tilt = tilt - 1;
-			
-		}
-		else
-		{ // slow will always decrease tilt, as will going flat
-		//get PRINT(8888,currentSpeed, maxspeed);
-			if (tilt > 1) tilt = tilt - 2;
-			if (tilt < -1) tilt = tilt + 2;
-		}
-		if (tilt > 20) tilt = 20;
-		if (tilt < -20) tilt = -20;
+		// get current
+		VS_currSpeed   = (get CURRENT_SPEED) * VS_ACCURACY / (VS_maxSpeed);
 		
-		turn base to z-axis tilt * tiltspeed now;
-		move base to y-axis ((tilt* tilt) * [0.005]) now;
+		#ifdef VS_TILT_Z
+			VS_currHeading = get HEADING;
+		#endif
+
+		// calc deltas
+		deltaSpeed   = (VS_currSpeed - VS_prevSpeed) / VS_FRAMES;
+		
+		// Less braking effect:
+		if (deltaSpeed < 0) deltaSpeed = deltaSpeed/2;
+
+		#ifdef VS_TILT_Z
+			// adjust heading with speed
+			deltaHeading = (WRAPDELTA(VS_currHeading - VS_prevHeading) ) / VS_FRAMES;
+			deltaHeading = deltaHeading * VS_currSpeed / VS_ACCURACY;
+		#endif
+		
+		#if VS_CANREVERSE == 1 
+			// Reversing isnt very reliable, but can be used here to flip directions
+			if (reversing){
+				deltaHeading = -1 * deltaHeading;
+				deltaSpeed   = -1 * deltaSpeed;
+			}
+		#endif
+
+		//dbg(deltaSpeed, deltaHeading, reversing);
+
+		turn VS_BASE to x-axis deltaSpeed   * (-1 * VS_TILT_X) speed VS_TURNRATE;
+		VS_prevSpeed = VS_currSpeed;
+		
+		#ifdef VS_TILT_Z
+			turn VS_BASE to z-axis deltaHeading * (-1 * VS_TILT_Z) speed VS_TURNRATE;
+			VS_prevHeading = VS_currHeading;
+		#endif
+		//move VS_BASE to y-axis ((tilt* tilt) * [0.005]) now;
 		 
 		
-		sleep 30;
-		oldheading = heading;
+		sleep (32 * VS_FRAMES);
 	}
 }
 
-
+// ================== STEERING CONTROL ==================
+*/
+/*
 RockUnit(anglex, anglez)
 {
 	turn base to x-axis anglex speed <50.000000>;
 	turn base to z-axis <0> - anglez speed <50.000000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
+	// Alternatively, 
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
 	return (0);
 }
-
+*/
 
 
 #define BASEPIECE base
@@ -68,8 +151,10 @@ RockUnit(anglex, anglez)
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
 #define MAXTILT 100
+#define RECOIL_POWER 1000000
+#define CALC_SLEEP
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Sparks()
 {
@@ -88,28 +173,30 @@ Create()
 {
 	restore_delay = 3000;
 	isAiming = FALSE;
-	maxspeed = get MAX_SPEED;
-	oldheading = get HEADING;
-	tilt = 0;
-	
+
+	call-script TB_Init();
+
 	start-script Sparks();
 	return (0);
 }
 
 StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
 	spin wheels around x-axis speed <140.000000> accelerate <5.000000>;
-	
-	start-script Steering();
+
+	START_TILTBANK;
 }
 
 StopMoving()
 {
+	//dbg();
 	stop-spin wheels around x-axis decelerate <24.000000>;
 	signal SIGNAL_MOVE;
-	tilt = 0;
-	turn base to z-axis <0> speed <180>;
-	move base to z-axis [0] speed [2];
+
+	STOP_TILTBANK;
 }
 
 SetMaxReloadTime(reloadMS)

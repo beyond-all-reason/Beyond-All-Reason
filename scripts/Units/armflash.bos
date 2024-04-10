@@ -7,6 +7,7 @@ static-var  restore_delay, gun_1, fire_count;
 static-var  last_primary_heading, last_primary_pitch;
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
 
@@ -17,8 +18,14 @@ static-var  last_primary_heading, last_primary_pitch;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+//#define RECOIL_POWER 3000 // not worth it
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <25.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 Create()
@@ -31,7 +38,24 @@ Create()
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
 	restore_delay = 3000;
+	call-script TB_Init();
 }
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+
+	STOP_TILTBANK;
+}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -163,14 +187,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = lflare;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = rflare;
-	}
+	pieceIndex = lflare + gun_1;
 }
 
 

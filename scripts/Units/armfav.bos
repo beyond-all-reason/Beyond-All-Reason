@@ -9,10 +9,16 @@ static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, wpn1_lasthe
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <0.2>
+#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
+
 Steering(heading, steer, currentSpeed)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -58,12 +64,18 @@ Create()
 	hide flare;
 	oldheading = get HEADING;
 	hide flare;
+	call-script TB_Init();
 }
 
 
 StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
 	start-script Steering();
+
+	START_TILTBANK;
 }
 
 StopMoving()
@@ -72,6 +84,8 @@ StopMoving()
 	stop-spin rfwheel around x-axis;
 	stop-spin lfwheel around x-axis;
 	stop-spin bwheel around x-axis;
+	
+	STOP_TILTBANK;
 }
 
 

@@ -7,6 +7,8 @@ piece  base, door1, door2,  nano1, nano2, turret, ltrack, lwheels, lfwheel, lbwh
 
 static-var  readyToBuild, nanopiece,  currentSpeed, moveSpeed, wheelSpeed;
 
+#define SIGNAL_MOVE 1
+
 WheelControl()
 {
 	while(TRUE)
@@ -31,6 +33,15 @@ WheelControl()
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
+
 Create()
 {
 	hide nano2;
@@ -43,9 +54,27 @@ Create()
 	{
 		sleep 500;
 	}
-	start-script WheelControl();
+	call-script TB_Init();
 }
 
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	start-script WheelControl();
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	stop-spin lfwheel around x-axis;
+	stop-spin lbwheel around x-axis;
+	stop-spin rfwheel around x-axis;
+	stop-spin rbwheel around x-axis;
+	STOP_TILTBANK;
+}
 
 StartBuilding(heading, pitch)
 {	

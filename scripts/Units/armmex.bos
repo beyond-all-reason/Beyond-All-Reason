@@ -1,6 +1,8 @@
 
 #include "exptype.h"
 
+//#define DEBUG
+#include "../debug.h"
 piece  base, arms1, arms2;
 
 static-var  resourceRate, Stunned;
@@ -30,12 +32,14 @@ Activate()
 	if (Stunned){
 		return (0);
 	}
+	dbg(Stunned,resourceRate);
 	spin arms1 around y-axis speed resourceRate accelerate <0.5>;
 	spin arms2 around y-axis speed -1*resourceRate accelerate <0.5>;
 }
 
 Deactivate()
 {
+	dbg(resourceRate);
 	stop-spin arms1 around y-axis decelerate <1>;
 	stop-spin arms2 around y-axis decelerate <1>;
 }
@@ -44,7 +48,10 @@ Deactivate()
 
 SetSpeed(windOrMetal)
 {
+	dbg(windOrMetal);
 	resourceRate = windOrMetal * 20;
+	spin arms1 around y-axis speed resourceRate accelerate <0.5>;
+	spin arms2 around y-axis speed -1*resourceRate accelerate <0.5>;
 }
 
 Killed(severity, corpsetype)
