@@ -7,9 +7,8 @@ piece  flare1, flare2, flare3, flare4, turret, base, fwheel, brwheel,
 static-var  restore_delay, gun_3;
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_AIM3 1024
-
-
 
 
 #define BASEPIECE base
@@ -17,15 +16,23 @@ static-var  restore_delay, gun_3;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
+#define RECOIL_POWER 10000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 StartMoving(reversing)
 {
 	spin fwheel around x-axis speed <150.032967>;
 	spin blwheel around x-axis speed <150.032967>;
 	spin brwheel around x-axis speed <150.032967>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
@@ -33,6 +40,8 @@ StopMoving()
 	stop-spin fwheel around x-axis;
 	stop-spin blwheel around x-axis;
 	stop-spin brwheel around x-axis;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Create()
@@ -47,6 +56,7 @@ Create()
 	hide flare4;
 	gun_3 = 0;
 	restore_delay = 5000;
+	call-script TB_Init();
 }
 
 SetMaxReloadTime(Func_Var_1)

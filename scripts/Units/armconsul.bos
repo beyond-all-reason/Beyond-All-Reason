@@ -5,6 +5,7 @@ piece  base, rtracks, ltracks, larm1, larm2, larm3, rarm1,rarm2,rarm3,rturret,lt
 
 static-var  buildHeading, readyToBuild, nano;
 
+#define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
 #define BASEPIECE base
@@ -12,8 +13,15 @@ static-var  buildHeading, readyToBuild, nano;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 Create()
 {
@@ -22,6 +30,20 @@ Create()
 	buildHeading = 0;
 	nano=0;
 	readyToBuild = FALSE;
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 

@@ -7,8 +7,17 @@ static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
 static-var recently_damaged, desired_activation;
 
+#define SIGNAL_MOVE 1
 #define SIGNAL_TURNON 4
 #define SIGNAL_OFF 	8
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 TurnControl()
 {
@@ -82,12 +91,7 @@ WheelControl()
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script WheelControl();
-	start-script TurnControl();
+
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -116,7 +120,13 @@ Create()
 	recently_damaged = 0;
 	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;
-	return (0);
+	call-script TB_Init();	
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script WheelControl();
+	start-script TurnControl();
 }
 
 Activate()
@@ -181,19 +191,15 @@ Deactivate()
 
 StartMoving(reversing)
 {
-	//spin flwheel around x-axis speed <50> accelerate <10>;
-	//spin blwheel around x-axis speed <50> accelerate <10>;
-	//spin frwheel around x-axis speed <50> accelerate <10>;
-	//spin brwheel around x-axis speed <50> accelerate <10>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-//	stop-spin flwheel around x-axis;
-//	stop-spin blwheel around x-axis;
-//	stop-spin frwheel around x-axis;
-//	stop-spin brwheel around x-axis;
-sleep 1; //need for some odd reason (does not open/close otherwise)
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 static-var  Stunned;

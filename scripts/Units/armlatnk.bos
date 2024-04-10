@@ -10,13 +10,13 @@ static-var  restore_delay, isAiming;
 #define SIGNAL_AIM3 1024
 #define SIGNAL_MOVE 1
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 
 #define TB_BASE base 
 #define TB_TURNRATE <30.0> 
 #define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 // ================== STEERING CONTROL ==================
@@ -153,7 +153,6 @@ RockUnit(anglex, anglez)
 #define MAXTILT 100
 #define RECOIL_POWER 1000000
 #define CALC_SLEEP
-
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 Sparks()

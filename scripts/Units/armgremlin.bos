@@ -6,6 +6,7 @@ piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdo
 static-var  isOpen, restore_delay;
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 
 
@@ -69,7 +70,15 @@ FoldGun()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-#include "unit_hitbyweaponid_and_smoke.h"
+#define RECOIL_POWER 10000
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 Create()
@@ -77,13 +86,26 @@ Create()
 	hide flare;
 	isOpen = 0;
 	restore_delay = 2000;
+	call-script TB_Init();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
-	start-script Movement();
+	//start-script Movement();
 }
 
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+  	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = 6000;
