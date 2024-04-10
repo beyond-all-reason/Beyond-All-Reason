@@ -48,6 +48,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "armvehicles",
+			wpn1turretx = "64",
+			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

@@ -45,6 +45,8 @@ return {
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
+			wpn1turretx = "45",
+			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

@@ -45,6 +45,8 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
+			wpn1turretx = "125",
+			wpn1turrety = "125",
 		},
 		featuredefs = {
 			dead = {

@@ -49,6 +49,8 @@ return {
 			paralyzemultiplier = 0.25,
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
+			wpn1turretx = "45",
+			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

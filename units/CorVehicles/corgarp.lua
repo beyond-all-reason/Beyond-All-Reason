@@ -48,6 +48,8 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "corvehicles",
+			wpn1turretx = "90",
+			wpn1turrety = "90",
 		},
 		featuredefs = {
 			dead = {

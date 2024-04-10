@@ -46,6 +46,8 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
+			wpn1turretx = "45",
+			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

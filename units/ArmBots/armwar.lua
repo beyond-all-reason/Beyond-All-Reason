@@ -38,6 +38,8 @@ return {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
+			wpn1turretx = 200,
+			wpn1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
