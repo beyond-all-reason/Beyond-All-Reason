@@ -33,6 +33,9 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
+
+Perf Note:
+About 80% of turns and moves executed here are actually non-empty turns. So if-gating them might not even be worth it.
 */
 
 #ifndef WRAPDELTA
@@ -101,7 +104,6 @@ StopMoving()
 #endif
 
 
-//static-var TB_currSpeed, TB_currHeading, deltaSpeed, deltaHeading;
 
 TiltBank(reversing)
 {
@@ -113,7 +115,12 @@ TiltBank(reversing)
 		var TB_currHeading;
 		var deltaHeading;
 	#endif
-	
+	#ifdef PROFILE
+		var nt;
+		nt = 0;
+		var nn;
+		nn = 0;
+	#endif
 	while(1)
 	{
 		// get current
@@ -142,15 +149,32 @@ TiltBank(reversing)
 				deltaSpeed   = -1 * deltaSpeed;
 			}
 		#endif
-
 		//dbg(deltaSpeed, deltaHeading, reversing);
-
-		turn TB_BASE to x-axis deltaSpeed   * (-1 * TB_TILT_X) speed TB_TURNRATE;
-		TB_prevSpeed = TB_currSpeed;
+		if (TB_prevSpeed != TB_currSpeed){
+			turn TB_BASE to x-axis deltaSpeed   * (-1 * TB_TILT_X) speed TB_TURNRATE;
+			TB_prevSpeed = TB_currSpeed;
+			
+		#ifdef PROFILE
+			nt = nt + 1;
+		#endif
+		}
 		
 		#ifdef TB_BANK_Z
-			turn TB_BASE to z-axis deltaHeading * (-1 * TB_BANK_Z) speed TB_TURNRATE;
-			TB_prevHeading = TB_currHeading;
+			if (TB_prevHeading != TB_currHeading){
+				turn TB_BASE to z-axis deltaHeading * (-1 * TB_BANK_Z) speed TB_TURNRATE;
+				TB_prevHeading = TB_currHeading;
+			
+			#ifdef PROFILE
+				nt = nt + 1;
+			#endif
+			}
+		#endif
+		
+		#ifdef PROFILE
+		nn = nn + 2;
+		if (nn % 100 == 0){
+			get PRINT((nt*100)/nn);
+		}
 		#endif
 		//move TB_BASE to y-axis ((tilt* tilt) * [0.005]) now;
 		 

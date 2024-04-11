@@ -98,7 +98,7 @@ static-var isSmoking;
 		
 		// The astute will notice that since the speed on both axes is the same, these will wait more. 
 		// This looks subjectively better than an even speed along both axes
-		#ifndef CALC_SLEEP
+		#ifdef WAIT_SLEEP
 			//var dt;
 			//dt = get GAME_FRAME;
 			//dbg();
@@ -117,7 +117,7 @@ static-var isSmoking;
 			var maxTime;
 			maxTime = (get MAX( get ABS(anglez), get ABS(anglex))); 
 			maxTime = EXTRA_SLEEP + (((maxTime * damageamount / 100 ))* 1000 )/ HITSPEED ;
-			//dbg(maxTime);
+			//dbg(maxTime, anglex, anglez);
 			// Add an extra frame to 'wait' at the desired target
 			sleep maxTime;
 		#endif

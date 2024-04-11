@@ -1,13 +1,12 @@
 
 #include "exptype.h"
-//#define ARRAY_00_POW2_SIZE 6
-//#include "../array_00.h"
-#define ARRAY_01_POW2_SIZE 8
-#include "../array_01.h"
 
-piece  base, flare, turret, wake, sleeve, barrel;
+#define DEBUG
+#include "../debug.h"
+piece  ground, base, flare, turret, wake, sleeve, barrel;
 
 static-var  Wobble_status, restore_delay;
+static-var  Stunned;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -15,15 +14,19 @@ static-var  Wobble_status, restore_delay;
 #define SIGNAL_IDLE 8
 
 #define HOVER_BASE base
+#define HOVER_BANKSPEED <12>
+#define HOVER_ROCK
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_AMPLITUDE [0.0]
 #include "../bar_hovercraft_common.h"
 
-#define BASEPIECE base
-#define HITSPEED <35.0>
+#define BASEPIECE ground
+#define HITSPEED <15.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
-#define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
+#define MAXTILT 200
+//#define RECOIL_POWER 40000 // DO NOT USE THIS FOR HOVERS!
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 HoverIdle()
 {
@@ -73,7 +76,6 @@ Create()
 		sleep 400;
 	}
 	start-script BankControl();
-	start-script WobbleUnit();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -81,8 +83,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 	return (0);
 }
-
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -91,6 +91,7 @@ ExecuteRestoreAfterDelay()
 	turn turret to y-axis <0.000000> speed <90.000000>;
 	turn sleeve to x-axis <0.000000> speed <50.000000>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -98,6 +99,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
@@ -136,8 +138,6 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = flare;
 	return (0);
 }
-
-
 
 Killed(severity, corpsetype)
 {

@@ -3,7 +3,7 @@
 // TODO: 
 // [ ] use static-var and sum up everything on turn XZ?
 // [ ] proper rockunit/hitbyweapon seems to require piece separation
-// [ ] use get IN_WATER instead of shitty UNIT_XZ
+// [X] use get IN_WATER instead of shitty UNIT_XZ
 // [ ] fold in HoverIdle and StartMoving stuff
 // [ ] Fold in smokeunit, hitbyweaponID et al. 
 
@@ -12,11 +12,9 @@
     #define HOVER_BASE base 
 #endif
 
-
-WobbleUnit()
-{
-}
-
+#ifndef HOVER_ROCKBASE
+	#define HOVER_ROCKBASE HOVER_BASE
+#endif
 // should be gated on startmoving stopmoving
 // also note that this will interfere with hitbyweapon and recoil stuff
 
@@ -90,9 +88,11 @@ BankControl()
 		prevHeading = currHeading;
 // Update forward-backward banking:
 		currSpeed = get CURRENT_SPEED * <1.0> / HOVER_MAXBANKANGLE;
-		
-		HOVER_BANK_X = (currSpeed - prevSpeed);
-		turn HOVER_BASE to x-axis HOVER_BANK_X speed HOVER_BANKSPEED;
+		// oh noes dis fucks with RockUnit :(
+		if (HOVER_BANK_X != (currSpeed - prevSpeed)){
+			HOVER_BANK_X = (currSpeed - prevSpeed);
+			turn HOVER_BASE to x-axis HOVER_BANK_X speed HOVER_BANKSPEED;
+		}			
 		prevSpeed = currSpeed;
 		
 
@@ -112,43 +112,45 @@ BankControl()
 	}
 }
 
-// Also add recoil and rockunit here? or just fucking ignore the whole goddamned thing
-#define HOVER_ROCK
+// Also add recoil and rockunit here
+// NOTE THAT THIS IS MUTUALLY EXCLUSIVE WITH RECOIL_POWER
+
 #ifdef HOVER_ROCK
 	RockUnit(anglex,anglez)
 		{
 		//get PRINT(anglex, anglez);
 		//anglex = 0-anglex;
 		anglez = 0-anglez;
-		#define FIRST_SPEED 15
-		#define SECOND_SPEED 12
-		#define THIRD_SPEED 9
-		#define FOURTH_SPEED 6
-		#define FIFTH_SPEED 2
+		#define HOVER_ROCK_SPEED1 <15>
+		#define HOVER_ROCK_SPEED2 <12>
+		#define HOVER_ROCK_SPEED3 <9>
+		#define HOVER_ROCK_SPEED4 <6>
+		#define HOVER_ROCK_SPEED5 <2>
 		#define SPEEDMUL 10
 
-		turn HOVER_BASE to x-axis HOVER_BANK_X + anglex speed <FIRST_SPEED>  * anglex / 500;
-		turn HOVER_BASE to z-axis HOVER_BANK_Z + anglez speed <FIRST_SPEED>  * anglez / 500;
+		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X + anglex speed HOVER_ROCK_SPEED1  * anglex / 500;
+		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z + anglez speed HOVER_ROCK_SPEED1  * anglez / 500;
 
-		wait-for-turn HOVER_BASE around z-axis;
+		// Should wait for both, as the speed here isnt trivial
+		wait-for-turn HOVER_ROCKBASE around z-axis;
 
-		turn HOVER_BASE to x-axis HOVER_BANK_X + (0-anglex) speed <SECOND_SPEED> * anglex / 500;
-		turn HOVER_BASE to z-axis HOVER_BANK_Z + (0-anglez) speed <SECOND_SPEED> * anglez / 500;
+		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X - anglex speed HOVER_ROCK_SPEED2 * anglex / 500;
+		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z - anglez speed HOVER_ROCK_SPEED2 * anglez / 500;
 
-		wait-for-turn HOVER_BASE around z-axis;
+		wait-for-turn HOVER_ROCKBASE around x-axis;
 
-		turn HOVER_BASE to x-axis HOVER_BANK_X + (anglex/2) speed <THIRD_SPEED> * anglex / 500;
-		turn HOVER_BASE to z-axis HOVER_BANK_Z + (anglez/2) speed <THIRD_SPEED> * anglez / 500;
+		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X + (anglex/2) speed HOVER_ROCK_SPEED3 * anglex / 500;
+		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z + (anglez/2) speed HOVER_ROCK_SPEED3 * anglez / 500;
 
-		wait-for-turn HOVER_BASE around z-axis;
+		wait-for-turn HOVER_ROCKBASE around z-axis;
 
-		turn base to x-axis HOVER_BANK_X - anglex/2 speed <FOURTH_SPEED>;
-		turn base to z-axis HOVER_BANK_Z - anglez/2 speed <FOURTH_SPEED>;
+		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X - anglex/2 speed HOVER_ROCK_SPEED4;
+		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z - anglez/2 speed HOVER_ROCK_SPEED4;
 
-		wait-for-turn base around z-axis;
-		//wait-for-turn base around x-axis;
-
-		turn HOVER_BASE to x-axis HOVER_BANK_X speed <FIFTH_SPEED> * anglex / 500;
-		turn HOVER_BASE to z-axis HOVER_BANK_Z speed <FIFTH_SPEED> * anglez / 500;
+		wait-for-turn HOVER_ROCKBASE around x-axis;
+		
+		// Restore it:
+		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X speed HOVER_ROCK_SPEED5 * anglex / 500;
+		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z speed HOVER_ROCK_SPEED5 * anglez / 500;
 		}
 #endif
