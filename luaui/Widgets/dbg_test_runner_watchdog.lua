@@ -9,6 +9,10 @@ function widget:GetInfo()
 	}
 end
 
+if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
+
 local CHECK_PERIOD = 1
 local t = 0
 function widget:Update(dt)
