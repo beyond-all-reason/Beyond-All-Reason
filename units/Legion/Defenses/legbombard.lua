@@ -4,7 +4,7 @@ return {
 		maxdec = 0,
 		energycost = 15000,
 		metalcost = 750,
-		buildpic = "ARMPB.DDS",
+		buildpic = "legbombard.dds",
 		buildtime = 17500,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
