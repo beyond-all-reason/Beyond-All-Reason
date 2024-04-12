@@ -47,33 +47,32 @@ end
 
 function gadget:GameFrame(frame)
     if frame == 1 then
-        for i = 1,#Spring.GetTeamList() do
-            if math.random(1,1000) == 1 then
-                for j = 1,1000 do
-                    local posx = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
-                    local posz = math.random(math.floor(Game.mapSizeZ*0.02), math.ceil(Game.mapSizeZ*0.98))
-                    local posy = Spring.GetGroundHeight(posx, posz)
-                    local blockerDistance = getNearestBlocker(posx, posz)
-                    if posy > 0 and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true) and blockerDistance > 196 then
-                        local boomboxID = Spring.CreateUnit("boombox", posx, posy, posz, "west", Spring.GetGaiaTeamID())
-                        if boomboxID then
-                            Spring.SetUnitNeutral(boomboxID, true)
-                            Spring.SetUnitStealth(boomboxID, true)
-                            Spring.SetUnitNoMinimap(boomboxID, true)
-                            Spring.SetUnitMaxHealth(boomboxID, 10000)
-                            Spring.SetUnitHealth(boomboxID, 10000)
-                            Spring.SetUnitSensorRadius(boomboxID, 'los', 0)
-                            Spring.SetUnitSensorRadius(boomboxID, 'airLos', 0)
-                            Spring.SetUnitSensorRadius(boomboxID, 'radar', 0)
-                            Spring.SetUnitSensorRadius(boomboxID, 'sonar', 0)
-                            Spring.SetUnitAlwaysVisible(boomboxID, true)
-                            break
-                        end
+        if math.random(1,30) == 1 then
+            for j = 1,10000 do
+                local posx = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
+                local posz = math.random(math.floor(Game.mapSizeZ*0.02), math.ceil(Game.mapSizeZ*0.98))
+                local posy = Spring.GetGroundHeight(posx, posz)
+                local blockerDistance = getNearestBlocker(posx, posz)
+                if posy > 0 and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true) and blockerDistance > 196 then
+                    local boomboxID = Spring.CreateUnit("boombox", posx, posy, posz, "west", Spring.GetGaiaTeamID())
+                    if boomboxID then
+                        Spring.SetUnitNeutral(boomboxID, true)
+                        Spring.SetUnitStealth(boomboxID, true)
+                        Spring.SetUnitNoMinimap(boomboxID, true)
+                        Spring.SetUnitMaxHealth(boomboxID, 10000)
+                        Spring.SetUnitHealth(boomboxID, 10000)
+                        Spring.SetUnitSensorRadius(boomboxID, 'los', 0)
+                        Spring.SetUnitSensorRadius(boomboxID, 'airLos', 0)
+                        Spring.SetUnitSensorRadius(boomboxID, 'radar', 0)
+                        Spring.SetUnitSensorRadius(boomboxID, 'sonar', 0)
+                        Spring.SetUnitAlwaysVisible(boomboxID, true)
+                        break
                     end
                 end
             end
         end
     end
+    
     if frame%5 == 0 then
         for unitID, time in pairs(SelfDQueue) do
             if Spring.GetGameFrame() > time then
