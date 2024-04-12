@@ -957,6 +957,7 @@ function widget:Initialize()
 	initUnitList()
 
 	if initGL4() == false then
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 
