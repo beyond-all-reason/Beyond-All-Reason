@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, flare, door1, door2, exhaust, aimpoint, lock1, lock2;
+piece  base, turrbase, turret, barrels, flare, lida, lidb, aimfrom, aimpoint;
 
-static-var  restore_delay, is_open;
+static-var  restore_delay, is_open, shotcount;
 static-var  Stunned;
 
 // Signal definitions
@@ -24,26 +24,22 @@ Close()
 {
 	set-signal-mask SIG_AIM;
 	is_open = 0;
-	move turret to y-axis [-44.000000] speed [69.000000];
-	wait-for-move turret along y-axis;
-	move door1 to x-axis [8.54000000] speed [47.600000];
-	move door2 to x-axis [-8.54000000] speed [47.600000];
-	move lock1 to z-axis [0] speed [12.700000];
-	move lock2 to z-axis [0] speed [12.700000];
-	wait-for-move door1 along x-axis;
+	move turrbase to y-axis [-14] speed [69.000000];
+	wait-for-move turrbase along y-axis;
+	turn lida to z-axis <0> speed <50>;
+	turn lidb to z-axis <0> speed <50>;
+	wait-for-turn lida around z-axis;
 	set ARMORED to 1;
 }
 
 Open()
 {
 	set ARMORED to 0;
-	move door1 to x-axis [-5] speed [47.600000];
-	move door2 to x-axis [5] speed [47.600000];
-	move lock1 to z-axis [3.6000000] speed [12.700000];
-	move lock2 to z-axis [-3.6000000] speed [12.700000];
-	wait-for-move door1 along x-axis;
-	move turret to y-axis [0] speed [69.000000];
-	wait-for-move turret along y-axis;
+	turn lida to z-axis <-179> speed <150>;
+	turn lidb to z-axis <179> speed <150>;
+	wait-for-turn lidb around z-axis;
+	move turrbase to y-axis [12] speed [69.000000];
+	wait-for-move turrbase along y-axis;
 	is_open = 1;
 }
 
@@ -70,9 +66,13 @@ RestoreAfterDelay()
 
 Create()
 {
+	shotcount = 1;
 	hide flare;
 	restore_delay = 3000;
 	is_open = 0;
+	move turrbase to y-axis [-12] now;
+	move turret to y-axis [5] now;
+
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -107,9 +107,25 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from exhaust;
+	wait-for-turn barrels around y-axis;
+	sleep 50;
+	wait-for-turn barrels around y-axis;
+	sleep 50;
+	wait-for-turn barrels around y-axis;
 }
-
+Shot1() {
+	if (shotcount == 1) {
+		turn barrels to z-axis <120> speed <250>;
+		shotcount = 2;
+	} else if (shotcount == 2) {
+		turn barrels to z-axis <240> speed <250>;
+		shotcount = 3;
+	} else {
+		turn barrels to z-axis <0> speed <250>;
+		shotcount = 1;
+	}
+	emit-sfx 1024 + 0 from flare;
+}
 QueryPrimary(piecenum)
 {
 	if (is_open == 1)
@@ -118,18 +134,18 @@ QueryPrimary(piecenum)
 	}
 	else
 	{
-		piecenum = aimpoint;
+		piecenum = aimfrom;
 	}
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = turret;
+	piecenum = aimpoint;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = aimpoint;
+	piecenum = flare;
 }
 
 Killed(severity, corpsetype)
@@ -139,10 +155,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
-		explode lock1 type BITMAPONLY | NOHEATCLOUD;
-		explode lock2 type BITMAPONLY | NOHEATCLOUD;
+		explode lida type BITMAPONLY | NOHEATCLOUD;
+		explode lidb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -150,10 +164,10 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
-		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turrbase type FALL | NOHEATCLOUD;
+		explode barrels type FALL | NOHEATCLOUD;
+		explode lida type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lidb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -161,18 +175,16 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turrbase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode barrels type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lida type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lidb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lock2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lida type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lidb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

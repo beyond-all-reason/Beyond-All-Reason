@@ -8,6 +8,9 @@ return {
 		buildtime = 17500,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "32 18 32",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		explodeas = "smallBuildingExplosionGeneric",
@@ -19,21 +22,21 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/ARMPB.s3o",
-		script = "Units/ARMPB.cob",
+		objectname = "Units/legbombard.s3o",
+		script = "Units/legbombard.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 598,
 		yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armpb_aoplane.dds",
+			buildinggrounddecaltype = "decals/legbombard_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			model_author = "Beherith",
-			normaltex = "unittextures/Arm_normal.dds",
+			model_author = "Hornet",
+			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,
@@ -54,7 +57,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 350,
-				object = "Units/armpb_dead.s3o",
+				object = "Units/legbombard_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -111,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armpb_weapon = {
+			bombardier_weapon = {
 				avoidfeature = false,
 				burnblow = true,
 				craterareaofeffect = 0,
@@ -138,7 +141,7 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
-				model = "xmasball1_1.s3o",
+				model = "legnade.s3o",
 				
 				
 				weaponacceleration = -0.3,
@@ -161,14 +164,15 @@ return {
 				avoidground = true,
 				burnblow = false,
 				burst = 3,
-				sprayangle = 500,--maybe limit to 1 shot and emit 2 at tangents in script?
+				burstrate = 0.5,
+				sprayangle = 500,
 				accuracy = 1,
 				bounce = 1,
 				bounceslip = 0.60,
 				bouncerebound = 0.40,
 				numbounce = 5,
 				groundbounce = true,
- 				collideenemy = true,--might want this false for grenades
+ 				collideenemy = true,
 				collidefeature = false,
 				collideground = true,
  				collidefriendly = false,
@@ -177,17 +181,8 @@ return {
 				flighttime = 2.05,
 				proximityPriority = 3,
 				gravityaffected = true,
-				--mygravity = 0.1,
 				waterbounce = true,
-				
-				
-				
 				predictboost = 0.8,
-				
-				
-				
-				
-				
 				damage = {
 					default = 375,
 					subs = 300,
@@ -197,8 +192,10 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "ARMPB_WEAPON",
+				def = "bombardier_weapon",
 				onlytargetcategory = "SURFACE",
+				maindir = "0 0 1",
+				maxangledif = 270,
 			},
 		},
 	},

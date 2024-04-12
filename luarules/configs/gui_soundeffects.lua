@@ -2412,6 +2412,17 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
+	
+	legperdition = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "rocketalt-large",
+	},	
+	legbombard = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "plasma-large-alt",
+	},	
 
 	legbastion = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
