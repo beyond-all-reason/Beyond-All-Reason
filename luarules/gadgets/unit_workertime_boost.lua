@@ -1,0 +1,67 @@
+function gadget:GetInfo()
+	return {
+		name = "Workertime Multiplier Boost",
+		desc = "Allows units with added UnitDefs to build gadget-defined types of units faster.",
+		author = "SethDGamre",
+		date = "April 2024",
+		license = "Public domain",
+		layer = 1,
+		enabled = true
+	}
+end
+
+-- synced only
+if not gadgetHandler:IsSyncedCode() then return false end
+
+-- is unba com on
+if false and Spring.GetModOptions().unbacom ~= true then return false end -- this is supposed to integrate with toggle for unbacom modoptions, but it doesn't seem to do anything right now
+
+local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost
+local mobileunits = {} -- stores the names of units that can move
+local boostedworkertimes = {}-- stores the values of builders who have defined workertimeboost definitions.
+local originalworkertimes = {} 
+-- workertimeboost = number -- in the unitdefs of the builder. This is the mulitplier by which workertime is boosted.
+-- wtboostunittype = defined in unitdef of builder, it's a table of strings such as "MOBILE" which defines what units boost buildpower for the builder.
+	
+--step 1, FOR make a table containing the  names of the units that can boost
+for id, def in pairs(UnitDefs) do
+
+	if def.buildSpeed then
+		if def.customParams.workertimeboost then
+			originalworkertimes[id] = def.buildSpeed
+			boostedworkertimes[id] = def.buildSpeed * def.customParams.workertimeboost--adds the key "id" unitname to the list. Boostable builders represented the boosted workertime.
+		end
+	end
+
+	if def.speed and def.speed ~= 0 then
+		mobileunits[id] = true
+	end
+
+	if def.customParams.wtboostunittype and string.find(def.customParams.wtboostunittype, "MOBILE") then
+		boosttriggers[id] = def.customParams.wtboostunittype
+	end
+end
+
+local boostedtofinish = {}-- going to store the key of unitID equal to the builderID
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	
+	if mobileunits[unitDefID] and builderID == "number" then --addition 1
+	local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
+	local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
+	
+		if boost and trigger and builderID then
+			if trigger == "MOBILE" and mobileunits[unitDefID] then
+			Spring.SetUnitBuildSpeed(builderID, boost)
+			boostedtofinish[builderID] = builderID
+			end
+		end
+	end
+end
+
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if boostedtofinish[unitID] then
+		Spring.SetUnitBuildSpeed(unitID, originalworkertimes[Spring.GetUnitDefID(unitID)])
+		table.remove(boostedtofinish[unitID])
+	end
+end

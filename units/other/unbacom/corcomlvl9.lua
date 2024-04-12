@@ -54,6 +54,7 @@ return {
 		showplayername = true,
 		sightdistance = 600,
 		sonardistance = 600,
+		stealth = true,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
@@ -114,6 +115,12 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 3000,
 			shield_radius = 100,
+			evolution_announcement = "Cortex commanders have upgraded to level 10 (UnBaCom max)",
+			evolution_announcement_size = 18.5,
+			evolution_target = "corcomlvl10",
+			evolution_condition = "timer",
+			evolution_timer = 210,
+			combatradius = 500,
 		},
 		featuredefs = {
 			dead = {

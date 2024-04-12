@@ -81,7 +81,7 @@ function UnitDef_Post(name, uDef)
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
-
+	
 	if Spring.GetModOptions().april1 == true then
 		if name == "corak" then
 			uDef.objectname = "apf/CORAK.s3o"
@@ -199,7 +199,7 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			end
 		end
-
+		
 		if modOptions.unit_restrictions_noextractors then
 			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
 				uDef.maxthisunit = 0
@@ -278,7 +278,11 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
+	
+	if modOptions.unbacom then
+		Spring.Echo("i did the thing")
+	end		
+	
 	-- Release candidate units
 	if modOptions.releasecandidates then
 
@@ -1220,6 +1224,7 @@ function WeaponDef_Post(name, wDef)
 				end
 			end
 		end
+		
 		----------------------------------------
 
 		--Use targetborderoverride in weapondef customparams to override this global setting

@@ -54,6 +54,7 @@ return {
 		showplayername = true,
 		sightdistance = 700,
 		sonardistance = 700,
+		stealth = true,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,

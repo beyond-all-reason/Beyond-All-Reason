@@ -51,6 +51,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		selfdestructcountdown = 5,
+		stealth = true,
 		showplayername = true,
 		sightdistance = 550,
 		sonardistance = 550,
@@ -100,6 +101,12 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			evolution_announcement = "Cortex commanders have upgraded to level 4",
+			evolution_announcement_size = 18.5,
+			evolution_target = "corcomlvl4",
+			evolution_condition = "timer",
+			evolution_timer = 210,
+			combatradius = 500,
 		},
 		featuredefs = {
 			dead = {
