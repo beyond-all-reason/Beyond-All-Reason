@@ -7,7 +7,7 @@
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
        rfoot, lfoot, beamcase, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  notBuilding, isMoving;
+static-var  notBuilding, isMoving, readyToBuild;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
@@ -173,7 +173,7 @@ UnitSpeed(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Stop()
 {

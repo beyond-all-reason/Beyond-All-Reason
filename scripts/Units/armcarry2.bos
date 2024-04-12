@@ -20,7 +20,7 @@ static-var  Stunned, oldHead;
 #define UNITSIZE 8
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {

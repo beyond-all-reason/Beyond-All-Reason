@@ -661,7 +661,7 @@ FoldGun()
 		turn rloarm to x-axis <-23.203297> speed <92.626065>;
 		turn gun1 to x-axis <-90.021978> speed <389.849789>;
 		turn gun2 to x-axis <180.043956> speed <718.723857>;
-		wait-for-turn rloarm along x-axis;
+		wait-for-turn rloarm around x-axis;
 	}
 
 	
@@ -740,7 +740,7 @@ FoldGun()
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()

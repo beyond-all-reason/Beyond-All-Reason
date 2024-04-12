@@ -17,7 +17,7 @@ static-var  spray;
 #define UNITSIZE 10
 #define MAXTILT 100
 #define SMOKEPIECE base
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {

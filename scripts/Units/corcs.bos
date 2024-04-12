@@ -6,7 +6,7 @@ piece  base, turret, arm, beam, lpump, rpump, nano1, nano2, wake;
 #define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
-static-var  nano, pump;
+static-var  nano, pump, readyToBuild;
 
 RockOnWaves()
 {
@@ -35,7 +35,7 @@ RockOnWaves()
 #define UNITSIZE 3
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 StartMoving(reversing)
 {

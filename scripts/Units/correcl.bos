@@ -15,7 +15,7 @@ static-var  buildHeading, nano;
 #define MAXTILT 100
 
 #define SMOKETHRESHOLD 0
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 StartMoving(reversing)
 {

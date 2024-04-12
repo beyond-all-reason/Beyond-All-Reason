@@ -13,7 +13,7 @@ piece  lwing, rwing, base, thrustm, lthrust, rthrust;
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60

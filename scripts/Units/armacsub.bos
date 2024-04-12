@@ -26,7 +26,7 @@ Propcontrol()
 #define MAXTILT 100
 
 #define SMOKEPROBABILITY 0
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 StartMoving(reversing)
 {

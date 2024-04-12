@@ -493,7 +493,7 @@ Create(){
 	hide aimy1;
 	hide teleport;
 	shieldEnabled = 1;
-	OpenCloseAnim(1)
+	start-script OpenCloseAnim(1);
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))

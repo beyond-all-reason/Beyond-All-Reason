@@ -18,7 +18,7 @@ static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
 #define UNITSIZE 3
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 RockOnWaves()

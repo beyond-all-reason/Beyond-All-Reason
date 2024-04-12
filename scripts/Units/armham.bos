@@ -15,7 +15,7 @@ static-var  isMoving, canAim, gun_1, gun_2, restore_delay, moveSpeed, currentSpe
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {

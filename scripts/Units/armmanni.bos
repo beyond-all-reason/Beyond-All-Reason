@@ -17,7 +17,7 @@ static-var  out_of_arc_count;
 #define UNITSIZE 6
 #define MAXTILT 100
 #define RECOIL_POWER 100000
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define TB_BASE base 
 #define TB_TURNRATE <8.0> 

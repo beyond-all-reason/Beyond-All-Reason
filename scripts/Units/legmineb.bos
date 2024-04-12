@@ -10,7 +10,7 @@ piece  base, door1, door2, flare, thrusta, thrustb ;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {

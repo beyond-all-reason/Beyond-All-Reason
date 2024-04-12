@@ -17,7 +17,7 @@ static-var  gun_1, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 ProjXPW(Func_Var_1, Func_Var_2)
 {

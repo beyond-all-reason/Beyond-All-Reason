@@ -11,7 +11,7 @@ piece  base, dish, blink;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 SetStunned(State)

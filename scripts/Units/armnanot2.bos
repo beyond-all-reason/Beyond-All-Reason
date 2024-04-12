@@ -10,7 +10,7 @@ piece  base, stand, centerpoint, aim1, aim2, aim3, emitnano1;
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {

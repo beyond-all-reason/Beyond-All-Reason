@@ -49,7 +49,6 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 #include "raptor_killed_2legged.h"
 
-#include "raptor_hitbyweapon.h"
 
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
@@ -69,14 +68,6 @@ QueryWeapon1(pieceIndex)
 	return (0);
 }
 
-RestoreAfterDelay()
-{
-	sleep 1000;
-	
-	turn aimy1 to y-axis <0> speed <180>;
-	turn aimy1 to x-axis <0> speed <180>;
-	return (0);
-}
 
 AimWeapon1(heading, pitch)
 {

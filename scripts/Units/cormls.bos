@@ -3,10 +3,11 @@
 
 piece  base, door1, door2, neck, boom, nano, wake;
 
-static-var  buildHeading;
+static-var  buildHeading, readyToBuild;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -14,7 +15,7 @@ static-var  buildHeading;
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 RockOnWaves()
 {

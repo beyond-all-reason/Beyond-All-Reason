@@ -35,7 +35,7 @@ RockOnWaves()
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 

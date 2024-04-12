@@ -2,7 +2,7 @@
 #include "exptype.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
-static-var  isMoving, isAiming, restore_delay, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
+static-var  isMoving, isAiming, restore_delay, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading; 
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -399,7 +399,7 @@ StopMoving(){
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Open()
 {

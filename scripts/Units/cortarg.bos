@@ -5,9 +5,9 @@
 piece  base;
 
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+//#define BASEPIECE base
+//#define MAXTILT 0
+//#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {

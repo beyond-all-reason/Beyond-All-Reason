@@ -9,7 +9,7 @@ piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doo
 #include "../buildeffect_lua.h"
 
 #define SMOKEPIECE base
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60

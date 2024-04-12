@@ -20,7 +20,7 @@ static-var  isAiming;
 #define UNITSIZE 10
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 HoverIdle()
 {

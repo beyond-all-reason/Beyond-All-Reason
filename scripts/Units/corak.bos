@@ -8,6 +8,104 @@ piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
 
 static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
+
+#define DEBUG
+#include "../debug.h"
+// ================== STEERING CONTROL ==================
+
+#define WRAPDELTA(angle) (((angle + 98280) % 65520) - 32760)
+
+#define VS_BASE pelvis
+#define VS_TURNRATE <30>
+#define VS_TILT_Z <0.01>
+
+static-var VS_prevHeading;
+
+#define BOTLEAN VS_currHeading = get HEADING;\
+		VS_deltaHeading = ((((VS_currHeading - VS_deltaHeading  + 98280) % 65520) - 32760) ) / VS_FRAMES;\
+		VS_deltaHeading =  (VS_deltaHeading *(get CURRENT_SPEED) / (VS_maxSpeed)) ;\
+		turn VS_BASE to z-axis VS_deltaHeading * ( 1 * VS_TILT_Z) speed VS_TURNRATE;\
+		VS_prevHeading = VS_currHeading;
+
+#define STOPBOTLEAN VS_prevHeading = get HEADING;\
+	turn VS_BASE to z-axis <0> speed VS_TURNRATE; \
+	
+
+#define VS_TILT_X <60.01>
+#define VS_ACCURACY 1000
+#define VS_FRAMES 2
+#define VS_CANREVERSE 0
+
+static-var VS_prevSpeed, VS_maxSpeed, VS_pelvis_X;
+
+VS_Init(){
+	VS_maxSpeed = get MAX_SPEED;
+	VS_prevHeading = get HEADING;
+	VS_prevSpeed = 0;
+}
+
+#define START_VEHICLESTEERING 	VS_prevHeading = get HEADING; \
+	VS_prevSpeed = 0; \
+	start-script VehicleSteering(reversing);
+
+#define STOP_VEHICLESTEERING 		VS_prevHeading = get HEADING; \
+	VS_prevSpeed = 0; \
+	turn VS_BASE to z-axis <0> speed VS_TURNRATE; \
+	turn VS_BASE to x-axis <0> speed VS_TURNRATE; 
+
+//static-var VS_currSpeed, VS_currHeading, deltaSpeed, deltaHeading;
+
+#define BOTLEAN VS_currHeading = get HEADING;\
+		VS_deltaHeading = ((((VS_currHeading - VS_deltaHeading  + 98280) % 65520) - 32760) ) / VS_FRAMES;\
+		VS_deltaHeading =  (VS_deltaHeading *(get CURRENT_SPEED) / (VS_maxSpeed)) ;\
+		turn VS_BASE to z-axis VS_deltaHeading * ( 1 * VS_TILT_Z) speed VS_TURNRATE;\
+		VS_prevHeading = VS_currHeading;
+
+
+
+VehicleSteering(reversing)
+{
+	// Could probably get away with half as many local vars...
+	var VS_currHeading;
+	var VS_deltaHeading;
+	var VS_prevSpeed;
+	var VS_currSpeed;
+	
+	while(1)
+	{
+		// get current
+		VS_currHeading = get HEADING;
+
+		// calc deltas
+		VS_deltaHeading = ((((VS_currHeading - VS_deltaHeading  + 98280) % 65520) - 32760) ) / VS_FRAMES;
+
+		// adjust heading with speed
+		VS_deltaHeading =  (VS_deltaHeading *(get CURRENT_SPEED) / (VS_maxSpeed)) ;
+		
+		// perform the turn op
+		//turn VS_BASE to z-axis VS_deltaHeading * ( 1 * VS_TILT_Z) speed VS_TURNRATE;
+		 
+		// Store the old heading
+		VS_prevHeading = VS_currHeading;
+
+
+		VS_currSpeed = (get CURRENT_SPEED);
+
+
+		dbg((VS_currSpeed - VS_prevSpeed) * VS_TILT_X /  (VS_maxSpeed) / <1>);
+		
+		VS_pelvis_X = (VS_currSpeed - VS_prevSpeed) * VS_TILT_X /  (VS_maxSpeed);
+
+		VS_prevSpeed = VS_currSpeed;
+		// sleep as needed
+		sleep (32 * VS_FRAMES);
+	}
+}
+
+// ================== STEERING CONTROL ==================
+
+
+
 #include "weapon1control.h"
 
 // Signal definitions
@@ -33,7 +131,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to x-axis <-15.533187> speed <362.612128> / animSpeed; //delta=12.09 
 			turn luparm to z-axis <-4.025448> speed <134.371865> / animSpeed; //delta=-4.48 
 			turn luparm to y-axis <-1.012513> speed <204.477528> / animSpeed; //delta=-6.82 
-			turn pelvis to x-axis <-2.390000> speed <71.699998> / animSpeed; //delta=2.39 
+			turn pelvis to x-axis VS_pelvis_X + <-2.390000> speed <71.699998> / animSpeed; //delta=2.39 
 			turn pelvis to y-axis <3.000000> speed <90.000003> / animSpeed; //delta=3.00 
 			turn rfoot to x-axis <39.611634> speed <1130.819000> / animSpeed; //delta=-37.69 
 			turn rfoot to y-axis <-9.393908> speed <282.235463> / animSpeed; //delta=9.41 
@@ -71,7 +169,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <-9.569086> speed <166.309155> / animSpeed; //delta=5.54 
 			turn luparm to y-axis <-6.279474> speed <158.008808> / animSpeed; //delta=-5.27 
 			move pelvis to y-axis [-0.520000] speed [15.599999] / animSpeed; //delta=-0.52 
-			turn pelvis to x-axis <-0.000000> speed <71.699998> / animSpeed; //delta=-2.39 
+			turn pelvis to x-axis VS_pelvis_X + <-0.000000> speed <71.699998> / animSpeed; //delta=-2.39 
 			turn pelvis to y-axis <5.000000> speed <59.999993> / animSpeed; //delta=2.00 
 			turn rfoot to x-axis <24.484406> speed <453.816842> / animSpeed; //delta=15.13 
 			turn rfoot to y-axis <-0.003345> speed <281.716910> / animSpeed; //delta=9.39 
@@ -109,7 +207,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <-4.950884> speed <138.546089> / animSpeed; //delta=-4.62 
 			turn luparm to y-axis <-1.486378> speed <143.792862> / animSpeed; //delta=4.79 
 			move pelvis to y-axis [-0.990000] speed [14.100001] / animSpeed; //delta=-0.47 
-			turn pelvis to x-axis <6.740000> speed <202.199998> / animSpeed; //delta=-6.74 
+			turn pelvis to x-axis VS_pelvis_X + <6.740000> speed <202.199998> / animSpeed; //delta=-6.74 
 			turn pelvis to y-axis <2.970000> speed <60.900003> / animSpeed; //delta=-2.03 
 			turn rfoot to x-axis <37.153043> speed <380.059097> / animSpeed; //delta=-12.67 
 			turn rfoot to z-axis <8.934135> speed <268.003689> / animSpeed; //delta=-8.93 
@@ -145,7 +243,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <-0.551755> speed <131.973857> / animSpeed; //delta=-4.40 
 			turn luparm to y-axis <-0.128355> speed <40.740708> / animSpeed; //delta=1.36 
 			move pelvis to y-axis [-0.028000] speed [28.860000] / animSpeed; //delta=0.96 
-			turn pelvis to x-axis <3.070000> speed <110.099994> / animSpeed; //delta=3.67 
+			turn pelvis to x-axis VS_pelvis_X + <3.070000> speed <110.099994> / animSpeed; //delta=3.67 
 			turn pelvis to y-axis <-0.010000> speed <89.400000> / animSpeed; //delta=-2.98 
 			turn rfoot to x-axis <0.579182> speed <1097.215835> / animSpeed; //delta=36.57 
 			turn rfoot to z-axis <9.697182> speed <22.891422> / animSpeed; //delta=-0.76 
@@ -182,7 +280,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <0.020005> speed <17.152801> / animSpeed; //delta=-0.57 
 			turn luparm to y-axis <-2.829427> speed <81.032159> / animSpeed; //delta=-2.70 
 			move pelvis to y-axis [-0.295000] speed [8.010001] / animSpeed; //delta=-0.27 
-			turn pelvis to x-axis <-2.090000> speed <154.800001> / animSpeed; //delta=5.16 
+			turn pelvis to x-axis VS_pelvis_X + <-2.090000> speed <154.800001> / animSpeed; //delta=5.16 
 			turn pelvis to y-axis <-3.020000> speed <90.299997> / animSpeed; //delta=-3.01 
 			turn rfoot to x-axis <-42.315286> speed <1286.834032> / animSpeed; //delta=42.89 
 			turn rfoot to z-axis <7.682254> speed <60.447840> / animSpeed; //delta=2.01 
@@ -219,7 +317,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <2.670525> speed <79.515585> / animSpeed; //delta=-2.65 
 			turn luparm to y-axis <0.899942> speed <111.881066> / animSpeed; //delta=3.73 
 			move pelvis to y-axis [-0.510000] speed [6.449999] / animSpeed; //delta=-0.21 
-			turn pelvis to x-axis <-0.020000> speed <62.100001> / animSpeed; //delta=-2.07 
+			turn pelvis to x-axis VS_pelvis_X + <-0.020000> speed <62.100001> / animSpeed; //delta=-2.07 
 			turn pelvis to y-axis <-5.360000> speed <70.200006> / animSpeed; //delta=-2.34 
 			turn rfoot to x-axis <-30.524095> speed <353.735736> / animSpeed; //delta=-11.79 
 			turn rfoot to z-axis <1.575841> speed <183.192403> / animSpeed; //delta=6.11 
@@ -257,7 +355,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <2.304844> speed <10.970419> / animSpeed; //delta=0.37 
 			turn luparm to y-axis <1.097682> speed <5.932195> / animSpeed; //delta=0.20 
 			move pelvis to y-axis [-1.027000] speed [15.509999] / animSpeed; //delta=-0.52 
-			turn pelvis to x-axis <6.120000> speed <184.199989> / animSpeed; //delta=-6.14 
+			turn pelvis to x-axis VS_pelvis_X + <6.120000> speed <184.199989> / animSpeed; //delta=-6.14 
 			turn pelvis to y-axis <-3.020000> speed <70.199999> / animSpeed; //delta=2.34 
 			turn rfoot to x-axis <-37.669118> speed <214.350700> / animSpeed; //delta=7.15 
 			turn rfoot to z-axis <0.002079> speed <47.212867> / animSpeed; //delta=1.57 
@@ -295,7 +393,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to z-axis <-0.287076> speed <77.757598> / animSpeed; //delta=2.59 
 			turn luparm to y-axis <0.713883> speed <11.513976> / animSpeed; //delta=-0.38 
 			move pelvis to y-axis [-0.065000] speed [28.860001] / animSpeed; //delta=0.96 
-			turn pelvis to x-axis <3.050000> speed <92.099998> / animSpeed; //delta=3.07 
+			turn pelvis to x-axis VS_pelvis_X + <3.050000> speed <92.099998> / animSpeed; //delta=3.07 
 			turn pelvis to y-axis <-0.060000> speed <88.799998> / animSpeed; //delta=2.96 
 			turn rfoot to x-axis <4.648639> speed <1269.532721> / animSpeed; //delta=-42.32 
 			turn rknee to x-axis <22.810462> speed <13.041427> / animSpeed; //delta=-0.43 
@@ -331,7 +429,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to x-axis <-15.533187> speed <527.656427> / animSpeed; //delta=17.59 
 			turn luparm to z-axis <-4.025448> speed <112.151159> / animSpeed; //delta=3.74 
 			turn luparm to y-axis <-1.012513> speed <51.791888> / animSpeed; //delta=-1.73 
-			turn pelvis to x-axis <-2.390000> speed <163.199994> / animSpeed; //delta=5.44 
+			turn pelvis to x-axis VS_pelvis_X + <-2.390000> speed <163.199994> / animSpeed; //delta=5.44 
 			turn pelvis to y-axis <3.000000> speed <91.800016> / animSpeed; //delta=3.06 
 			turn rfoot to x-axis <39.693501> speed <1051.345854> / animSpeed; //delta=-35.04 
 			turn rknee to x-axis <5.049624> speed <532.825140> / animSpeed; //delta=17.76 
@@ -371,7 +469,7 @@ StopWalking() {
 	turn luparm to x-axis <-3.446116> speed <398.985133>;
 	turn luparm to y-axis <5.803404> speed <102.238764>;
 	turn luparm to z-axis <-8.504510> speed <83.154578>;
-	turn pelvis to x-axis <0.000000> speed <101.099999>;
+	turn pelvis to x-axis VS_pelvis_X + <0.000000> speed <101.099999>;
 	turn pelvis to y-axis <0.000000> speed <45.900008>;
 	turn rfoot to x-axis <1.917668> speed <643.417016>;
 	turn rfoot to y-axis <-18.801757> speed <192.146661>;
@@ -407,13 +505,16 @@ UnitSpeed(){
 	}
 }
 
+
+
+
 #define BASEPIECE pelvis
 #define HITSPEED <75.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var bAnimate;
 Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corak_anim_lookaround.blend
@@ -951,7 +1052,6 @@ StopAnimation() {
 
 
 
-
 Create()
 {
 	hide rfire;
@@ -969,6 +1069,7 @@ Create()
 	animSpeed = 2;
 	wpnheading = 0;
 	start-script InitialSetup1();
+	start-script VS_Init();
 }
 
 StartMoving(reversing){
@@ -978,12 +1079,14 @@ StartMoving(reversing){
 	start-script UnitSpeed();
 	call-script StopAnimation();
 	start-script Walk();
+	START_VEHICLESTEERING;
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 	start-script Animate();
+	STOP_VEHICLESTEERING;
 }
 
 
@@ -1220,7 +1323,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn luparm to x-axis <-16.064523> speed <80.552801> ; 
 			turn luparm to z-axis <-6.253933> speed <9.221613> ; 
 			turn luparm to y-axis <2.833532> speed <3.438400> ; 
-			turn pelvis to x-axis <-2.979866> speed <89.395992> ; 
+			turn pelvis to x-axis VS_pelvis_X + <-2.979866> speed <89.395992> ; 
 			turn pelvis to z-axis <-0.210493> speed <6.314778> ; 
 			move rfoot to z-axis [-0.657374] speed [19.721233] ; 
 			move rfoot to y-axis [-0.300262] speed [9.007870] ; 
@@ -1270,8 +1373,8 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn luparm to z-axis <-5.971469> speed <8.473925> ; 
 			turn luparm to y-axis <2.728211> speed <3.159613> ; 
 			move pelvis to y-axis [-2.411854] speed [24.795613] ; 
-			turn pelvis to x-axis <-0.104017> speed <3.120509> ; 
-			turn pelvis to x-axis <-5.959733> speed <89.395992> ; 
+			turn pelvis to x-axis VS_pelvis_X + <-0.104017> speed <3.120509> ; 
+			turn pelvis to x-axis VS_pelvis_X + <-5.959733> speed <89.395992> ; 
 			turn pelvis to z-axis <-0.420985> speed <6.314778> ; 
 			turn rfoot to x-axis <-43.654054> speed <56.056865> ; 
 			turn rfoot to z-axis <-11.148990> speed <11.695555> ; 
@@ -1305,7 +1408,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn luparm to x-axis <-22.088029> speed <36.413446> ; 
 			turn luparm to z-axis <-5.522850> speed <4.486188> ; 
 			turn luparm to y-axis <2.560938> speed <1.672733> ; 
-			turn pelvis to x-axis <7.385569> speed <133.453017> ; 
+			turn pelvis to x-axis VS_pelvis_X + <7.385569> speed <133.453017> ; 
 			turn pelvis to z-axis <0.816853> speed <12.378385> ; 
 			turn pelvis to y-axis <-2.655524> speed <28.445589> ; 
 			turn rfoot to x-axis <-46.738834> speed <30.847798> ; 
@@ -1349,8 +1452,8 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			move pelvis to x-axis [0.138076] speed [4.811352] ; 
 			move pelvis to z-axis [2.047218] speed [61.772053] ; 
 			move pelvis to y-axis [-4.230496] speed [54.559264] ; 
-			turn pelvis to x-axis <0.261897> speed <10.977408> ; 
-			turn pelvis to x-axis <15.005572> speed <228.600097> ; 
+			turn pelvis to x-axis VS_pelvis_X + <0.261897> speed <10.977408> ; 
+			turn pelvis to x-axis VS_pelvis_X + <15.005572> speed <228.600097> ; 
 			turn pelvis to z-axis <1.670572> speed <25.611557> ; 
 			turn pelvis to y-axis <-3.192780> speed <16.117695> ; 
 			turn rfoot to x-axis <-47.147925> speed <12.272723> ; 
@@ -1384,7 +1487,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn luparm to x-axis <12.407401> speed <326.997074> ; 
 			turn luparm to z-axis <-14.094482> speed <72.323148> ; 
 			turn luparm to y-axis <2.997686> speed <3.685058> ; 
-			turn pelvis to x-axis <35.018933> speed <200.133610> ; 
+			turn pelvis to x-axis VS_pelvis_X + <35.018933> speed <200.133610> ; 
 			turn pelvis to z-axis <4.571785> speed <29.012127> ; 
 			turn rfoot to x-axis <-47.446452> speed <2.985271> ; 
 			turn rknee to x-axis <-0.934605> speed <8.496563> ; 
@@ -1427,7 +1530,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn luparm to x-axis <32.056724> speed <589.479690> ; 
 			turn luparm to z-axis <-12.899313> speed <35.855087> ; 
 			turn luparm to y-axis <-1.860694> speed <145.751379> ; 
-			turn pelvis to x-axis <38.788275> speed <113.080270> ; 
+			turn pelvis to x-axis VS_pelvis_X + <38.788275> speed <113.080270> ; 
 			turn pelvis to z-axis <5.226835> speed <19.651504> ; 
 			turn rknee to x-axis <-52.718252> speed <24.920423> ; 
 			turn rknee to z-axis <-16.268705> speed <3.818212> ; 
@@ -1461,7 +1564,6 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			move pelvis to z-axis [6.312909] speed [127.970731] ; 
 			move pelvis to y-axis [-7.935246] speed [111.142473] ; 
 			turn pelvis to x-axis <0.701093> speed <13.175884> ; 
-			turn pelvis to x-axis <40.169657> speed <41.441456> ; 
 			turn pelvis to z-axis <5.505581> speed <8.362393> ; 
 			turn rknee to x-axis <-51.175554> speed <46.280918> ; 
 			turn rknee to z-axis <-16.032339> speed <7.090966> ; 

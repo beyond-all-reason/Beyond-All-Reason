@@ -9,7 +9,7 @@ piece  base, duct1, fan1, duct2, fan2, nano, thrust1, thrust2;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60

@@ -69,7 +69,7 @@ BankControl()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 HoverIdle()
 {

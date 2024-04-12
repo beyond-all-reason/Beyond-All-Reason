@@ -14,7 +14,10 @@ static-var  Static_Var_1, restore_delay, Static_Var_7, Static_Var_8, aimDir;
 #define UNITSIZE 7
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define DEBUG
+#include "../debug.h"
 
 RockOnWaves()
 {
@@ -39,6 +42,7 @@ RockOnWaves()
 
 ProjXPW(Func_Var_1, Func_Var_2)
 {
+	dbg(Func_Var_1,Func_Var_2);
 	if( Func_Var_2 < -21840 )
 	{
 		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
@@ -59,6 +63,7 @@ ProjXPW(Func_Var_1, Func_Var_2)
 	{
 		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
 	}
+	dbg(Static_Var_7);
 }
 
 RockZ(Func_Var_1, Func_Var_2)

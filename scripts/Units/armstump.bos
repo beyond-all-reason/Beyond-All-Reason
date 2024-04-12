@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-piece  base, flare, turret, barrel, sleeve, smoke2, smoke1, smoke2;
+piece  base, flare, turret, barrel, sleeve, smoke2, smoke1;
 
 static-var  restore_delay;
 

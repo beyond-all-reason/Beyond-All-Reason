@@ -18,7 +18,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, restore_delay,
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 15
 #define MAXTILT 200
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 RockOnWaves()
 {

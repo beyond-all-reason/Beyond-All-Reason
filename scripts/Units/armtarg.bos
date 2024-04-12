@@ -4,9 +4,6 @@
 piece  base;
 
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -35,8 +32,6 @@ HitByWeapon(anglex, anglez)
 	sleep 8000;
 	set ACTIVATION to 1;
 }
-
-
 
 Killed(severity, corpsetype)
 {
