@@ -24,10 +24,12 @@ Close()
 {
 	set-signal-mask SIG_AIM;
 	is_open = 0;
-	move turrbase to y-axis [-14] speed [69.000000];
+	turn turret to y-axis 0 speed <100.000000>;
+	wait-for-turn turret around y-axis;
+	move turrbase to y-axis [-16] speed [69];
 	wait-for-move turrbase along y-axis;
-	turn lida to z-axis <0> speed <50>;
-	turn lidb to z-axis <0> speed <50>;
+	turn lida to z-axis <0> speed <120>;
+	turn lidb to z-axis <0> speed <120>;
 	wait-for-turn lida around z-axis;
 	set ARMORED to 1;
 }
@@ -35,8 +37,8 @@ Close()
 Open()
 {
 	set ARMORED to 0;
-	turn lida to z-axis <-179> speed <150>;
-	turn lidb to z-axis <179> speed <150>;
+	turn lida to z-axis <-179> speed <250>;
+	turn lidb to z-axis <179> speed <250>;
 	wait-for-turn lidb around z-axis;
 	move turrbase to y-axis [12] speed [69.000000];
 	wait-for-move turrbase along y-axis;
@@ -97,7 +99,7 @@ AimPrimary(heading, pitch)
 	}
 	while( is_open == 0 )
 	{
-		sleep 250;
+		sleep 150;
 	}
 	turn turret to y-axis heading speed <200.000000>;
 	wait-for-turn turret around y-axis;

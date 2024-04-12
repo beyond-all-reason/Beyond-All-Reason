@@ -195,7 +195,7 @@ return {
 				def = "bombardier_weapon",
 				onlytargetcategory = "SURFACE",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 300,
 			},
 		},
 	},
