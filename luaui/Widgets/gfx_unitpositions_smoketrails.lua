@@ -156,8 +156,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	pushElementInstance(
 		unitPosSmokeVBO, -- push into this Instance VBO Table
 		{
-			8, 16, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
-			slot, gf, 8,80,  -- slot_start_step_segments
+			8, 32, 100, maxVelocityUnitDef[unitDefID],  -- widthgrowthrisemaxvel
+			slot, gf, 8,10,  -- slot_start_step_segments
 			0, 0, 0, 1, -- xyz emit position offsets, w unused
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
@@ -195,6 +195,10 @@ function widget:DrawWorld()
 	end
 	
 	if unitPosSmokeVBO.usedElements > 0 then
+		-- See McGuire2013Transparency.pdf for order independent transparency
+		-- glBlendFunc(GL_ONE, GL_ONE);
+		-- needs sampling of backtex
+		
 		gl.Culling(GL.BACK)
 		--gl.Culling(false)
 		gl.DepthTest(true)

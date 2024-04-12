@@ -305,7 +305,13 @@ void main(){
 		vec2 lw = vec2(width)  + (progress) * growth;
 		
 		nextposrot.y += (rise * progress) * 0.1 ;
-
+		
+		float currvel = length(velvalidat.xyz);
+		//currvel = currvel /  10;
+		// modulate with maxspeed
+		//progress *= currvel;
+		//progress = max(0, progress - (1.0 - currvel));
+		progress = max( clamp(1.0 - currvel, 0, 1),progress);
 		//if (velvalidat.w > 0.5){
 			//EmitHorizontalSegment(nextposrot, emitoffsets.xyz, lw, vec3(0), progress);
 			EmitBillBoard(currposrot, vec3(0), lw, vec3(rnd), progress);

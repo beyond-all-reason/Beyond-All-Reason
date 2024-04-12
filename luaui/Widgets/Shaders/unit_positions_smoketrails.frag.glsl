@@ -236,9 +236,11 @@ vec4 CurlNoiseX(vec3 worldPos, vec3 uvproj){
 	vec3 uvdelta;
 	
 	for (int s = 0; s < 1; s++){
-		noise_deriv = SimplexPerlin3D_Deriv(derivUV + vec3( 0, -0.5 * seconds, 0));
+		noise_deriv = SimplexPerlin3D_Deriv(derivUV * 5 + vec3( 0, -1.09 * seconds, 0));
 		uvdelta = noise_deriv.wyz * vec3(1,-1,-1);
-		derivUV += uvdelta * 0.001;
+		
+		// Modulate the step size taken by centeredness of fragment
+		derivUV += uvdelta * 0.1 *(1.0 - uvproj.x);
 	}
 	//return fract(derivUV.rgbb);
 	//return (noise_deriv.yzwx * 0.2 + 0.5);
@@ -341,9 +343,9 @@ void main(void)
 		noise = texture(noisetex3dcube, noisePos - simplexd.yzw * 0.02);
 		vec2 distcenter = (abs(g_uv.xy * 2.0 - 1.0));
 		float alphacircle = clamp(1.0 - dot(distcenter, distcenter), 0.0, 1.0);
-		alphacircle = pow(alphacircle, 0.66);
+		alphacircle = pow(alphacircle, 1);
 		fragColor.rgba = vec4(vec3(noise.a), alphacircle * progress);
-		float soften = clamp((g_centerpos.y - worldHeight) * 0.125, 0.0, 1.5);
+		float soften = clamp((g_centerpos.y - max(0,worldHeight)) * 0.125, 0.0, 1.5);
 		fragColor.a *= soften;
 		fragColor.rgb = mix(fragColor.rgb,  fragColor.rgb *(minimapColor.rgb *1.5), 0.25 + 	noise.b);
 	
@@ -352,9 +354,11 @@ void main(void)
 		fragColor.rgb = vec3(fragColor.a); 
 		fragColor.a = 1.0;
 		
-		vec4 curl = CurlNoiseX(g_centerpos.xyz, g_uv.xyw);
-		fragColor.rgb = curl.rgb;
-		fragColor.a *= alphacircle * noise.a * soften* progress;
+		vec4 curl = CurlNoiseX(g_centerpos.xyz, vec3(alphacircle));
+		// colorize:
+		fragColor.rgb = mix(minimapColor.rgb * (2 * curl.r), curl.rgb, 0.35);
+		// mod intensity:
+		fragColor.a *= alphacircle * noise.a * soften* (progress * progress) * 1.0;
 		return;
 	#endif
 	
