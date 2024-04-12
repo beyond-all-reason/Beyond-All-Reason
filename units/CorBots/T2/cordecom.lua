@@ -71,13 +71,11 @@ return {
 			[13] = "cortide",
 			[14] = "coruwms",
 			[15] = "coruwes",
-			--[16] = "coruwmex",
 			[16] = "corfmkr",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
 			decoyfor = "corcom",
-			area_mex_def = "cormex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,

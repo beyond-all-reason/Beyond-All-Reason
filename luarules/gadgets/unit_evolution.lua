@@ -114,7 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 		if newUnitID then
 			local announcement = nil
 			local announcementSize = nil
-			if evolutionMetaList[unitID].evolution_announcement then
+			if evolutionMetaList[unitID] and evolutionMetaList[unitID].evolution_announcement then
 				spEcho(evolutionMetaList[unitID].evolution_announcement)
 				announcement = evolutionMetaList[unitID].evolution_announcement
 				announcementSize = evolutionMetaList[unitID].evolution_announcement_size
