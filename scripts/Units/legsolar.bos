@@ -158,6 +158,12 @@ Create()
 	//unhack
 	hide skirt;
 	
+	turn A to z-axis <-39.000000> now;
+	turn B to z-axis <-39.000000> now;
+	turn C to z-axis <-39.000000> now;
+	turn D to z-axis <-39.000000> now;
+	turn E to z-axis <-39.000000> now;
+	turn F to z-axis <-39.000000> now;
 	
 	
 	move corecont to y-axis [26] now;
