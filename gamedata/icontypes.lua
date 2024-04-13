@@ -711,6 +711,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	armsam2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	armsb = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
@@ -976,6 +980,14 @@ local icontypes = {
 		size = 1.04999995
 	},
 	cor_hat_viking = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
+	cor_hat_hornet = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
+	cor_hat_ptaq = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
@@ -1535,6 +1547,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
+	cormist2 = {
+		bitmap = "icons/vehicle_t1_missile.png",
+		size = 1.04999995
+	},
 	cormls = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
@@ -2003,6 +2019,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
+	legadvsol = {
+		bitmap = "icons/energy2_1.18.png",
+		size = 1.23899984
+	},
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
@@ -2302,6 +2322,10 @@ local icontypes = {
 	legwin = {
 		bitmap = "icons/wind.png",
 		size = 1.04999995
+	},
+	legwint2 = {
+		bitmap = "icons/wind.png",
+		size = 1.67999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",

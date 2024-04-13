@@ -36,7 +36,6 @@ return {
 		noautofire = false,
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turrets_antinuke_v2.s3o",
-		--reclaimspeed = 200,
 		repairable = true,
 		script = "Raptors/raptor_turrets_v2.cob",
 		seismicsignature = 0,

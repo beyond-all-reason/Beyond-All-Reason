@@ -37,13 +37,13 @@ local labGrids = {
 	armvp = {
 		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armbeaver", "armpincer", "armsam", "armsam2",        -- amphib con, amphib tank, missile truck
 	},
 
 	corvp = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"cormuskrat", "corgarp", "cormist", "cormist2",       -- amphib con, amphib tank, missile truck
 	},
 	legvp = {
 		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
@@ -503,7 +503,7 @@ local unitGrids = {
 	},
    legck = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -572,7 +572,7 @@ local unitGrids = {
 	},
     legcv = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -640,7 +640,7 @@ local unitGrids = {
 	},
     legca = {
 		{
-			{ "legmex", "legsolar", "legwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},

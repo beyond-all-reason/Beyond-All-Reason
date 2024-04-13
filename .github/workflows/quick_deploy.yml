@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
     permissions:
       id-token: write
     steps:

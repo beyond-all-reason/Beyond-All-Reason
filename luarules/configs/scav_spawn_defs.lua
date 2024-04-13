@@ -1160,6 +1160,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 	-- T2 Energy
 	["armwint2"] = true,
 	["corwint2"] = true,
+	["legwint2"] = true,
 	["armfus"] = true,
 	["armckfus"] = true,
 	["corfus"] = true,

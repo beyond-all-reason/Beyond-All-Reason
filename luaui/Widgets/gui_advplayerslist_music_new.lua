@@ -28,10 +28,10 @@ local showGUI = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 30000
-local warMeterResetTime = 60 -- seconds
+local warHighLevel = 40000
+local warMeterResetTime = 30 -- seconds
 local interruptionMinimumTime = 20 -- seconds
-local interruptionMaximumTime = 40 -- seconds
+local interruptionMaximumTime = 60 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -1094,11 +1094,14 @@ function widget:UnitFinished()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitTeam == Spring.GetMyTeamID() and UnitDefs[unitDefID].name == "boombox" then
+	if unitTeam == Spring.GetMyTeamID() and UnitDefs[unitDefID].name == "boombox" and (not appliedSpectatorThresholds) then
 		currentTrack = boomboxTracks[boomboxTracksPlayCounter]
 		boomboxTracksPlayCounter = boomboxTracksPlayCounter + 1
 		if not boomboxTracks[boomboxTracksPlayCounter] then
 			boomboxTracksPlayCounter = 1
+		end
+		if Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) < 10 then
+			Spring.SetConfigInt("snd_volmusic", defaultMusicVolume)
 		end
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
@@ -1106,11 +1109,10 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		Spring.SetConfigInt('music', (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
-		if fadeDirection then
-			setMusicVolume(fadeLevel)
-		else
-			setMusicVolume(100)
-		end
+		fadeDirection = 1
+		fadeOutSkipTrack = false
+		setMusicVolume(100)
 		createList()
+		Spring.SetConfigInt("boomboxcaptured", 1)
 	end
 end

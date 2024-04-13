@@ -183,7 +183,9 @@ local unitOrderTable = {
 	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
+	['armsam2']        = 005801, --LAND + AA
 	['cormist']        = 005810,
+	['cormist2']       = 005811,
 	['legrail']		   = 005811,
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS
@@ -434,11 +436,13 @@ local unitOrderTable = {
    ['legwin']         = 101060,
    ['armwint2']       = 101040, --scavengers
    ['corwint2']       = 101050, --scavengers
+   ['legwint2']       = 101060, --scavengers
    ['armsolar']       = 101070,
    ['corsolar']       = 101080,
    ['legsolar']       = 101090,
    ['armadvsol']      = 101100,
    ['coradvsol']      = 101150,
+   ['legadvsol']      = 101170,
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,

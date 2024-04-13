@@ -18,4 +18,8 @@ https://www.youtube.com/@matteodellacquamusic
 Leon Devereux
 https://soundcloud.com/leon-d-3
 
+Iza Laine / DOLLVOiD:
+https://www.youtube.com/@dollvoid13
+https://www.twitch.tv/dollvoid13
+
 Check license_music.txt in the root of this project for more information.

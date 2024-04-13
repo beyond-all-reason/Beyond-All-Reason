@@ -1877,7 +1877,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 
-			if useLabBuildMode and not labBuildModeActive then
+			if useLabBuildMode and builderIsFactory and not labBuildModeActive then
 				if labBuildModeRect and labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
