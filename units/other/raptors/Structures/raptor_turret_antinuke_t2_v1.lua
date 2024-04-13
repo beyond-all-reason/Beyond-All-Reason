@@ -58,6 +58,7 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
+			interceptorgadget = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -92,7 +93,6 @@ return {
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,
 				interceptor = 1,
-				interceptsolo = 0,
 				metalpershot = 0,
 				model = "SimpleFlareXL.s3o",
 				name = "ICBM intercepting missile launcher",

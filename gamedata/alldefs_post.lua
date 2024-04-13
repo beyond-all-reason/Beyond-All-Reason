@@ -75,6 +75,17 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+local function interceptorsRemakeUnit(weaponDef)
+	weaponDef.customparams.interceptorgadget = 1;
+
+	weaponDef.interceptsolo 		= 0;
+	weaponDef.reloadtime 			= 2.4;
+	weaponDef.turnrate				= 40000;
+	weaponDef.weaponacceleration	= 450;
+	weaponDef.weapontimer			= 2.0;
+	weaponDef.weaponvelocity		= 2000;
+end
+
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
@@ -272,7 +283,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Release candidate units
-	if modOptions.releasecandidates then
+	--if modOptions.releasecandidates then
+	if true then
 
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then
@@ -300,6 +312,59 @@ function UnitDef_Post(name, uDef)
 		if name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "cordronecarry"
+		end
+
+		--Laser Citadel + gadget integration for all interceptors
+		if name == "armamd" then --Original citadel starbustlauncher antinuke
+			uDef.maxthisunit = 0
+		end
+
+		if name == "armsilo" then --Silos
+			uDef.weapondefs.nuclear_missile.weaponacceleration = 120
+			uDef.weapondefs.nuclear_missile.weaponvelocity = 1200
+		end
+		if name == "corsilo" then
+			uDef.weapondefs.crblmssl.weaponacceleration = 120
+			uDef.weapondefs.crblmssl.weaponvelocity = 1200
+		end
+
+		if name == "armscab" then --Other antinukes - Armada
+			interceptorsRemakeUnit(uDef.weapondefs.armscab_weapon)
+		end
+		if name == "armantiship" then
+			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+		end
+		if name == "armcarry" then
+			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+		end
+		if name == "armcarry2" then
+			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+		end
+
+		if name == "corfmd" then --Cortex
+			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+		end
+		if name == "corantiship" then
+			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+		end
+		if name == "corcarry" then
+			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+		end
+		if name == "corcarry2" then
+			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+		end
+		if name == "cormabm" then
+			interceptorsRemakeUnit(uDef.weapondefs.cormabm_weapon)
+		end
+
+		if name == "raptor_antinuke" then --Raptor
+			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+		end
+		if name == "raptor_turret_antinuke_t2_v1" then
+			uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
+		end
+		if name == "raptor_turret_antinuke_t3_v1" then
+			uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
 		end
 	end
 

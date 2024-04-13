@@ -125,6 +125,10 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
 end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
+	if UnitDefs[unitDefID].interceptorgadget == 0 then
+		return false;
+	end
+
 	if an_targetId[interceptorUnitID] ~= nil then
 		return false;
 	end
