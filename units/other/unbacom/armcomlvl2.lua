@@ -106,7 +106,7 @@ return {
 			evolution_announcement_size = 18.5,
 			evolution_target = "armcomlvl3",
 			evolution_condition = "timer",
-			evolution_timer = 210,
+			evolution_timer = 240,
 		},
 		featuredefs = {
 			dead = {

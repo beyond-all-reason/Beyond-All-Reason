@@ -744,30 +744,30 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.evolution_announcement_size = 18.5
 			uDef.customparams.evolution_target = "armcomlvl2"
 			uDef.customparams.evolution_condition = "timer"
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 		if name == "corcom" then
 			uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 			uDef.customparams.evolution_announcement_size = 18.5
 			uDef.customparams.evolution_target = "corcomlvl2"
 			uDef.customparams.evolution_condition = "timer"
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 		if name == "legcom" then
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 		if name == "legcomlvl2" then
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 		if name == "legcomlvl3" then
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 		if name == "legcomlvl4" then
 			uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
 			uDef.customparams.evolution_announcement_size = 18.5
 			uDef.customparams.evolution_target = "legcomlvl5"
 			uDef.customparams.evolution_condition = "timer"
-			uDef.customparams.evolution_timer = 210
+			uDef.customparams.evolution_timer = 240
 		end
 
 	end

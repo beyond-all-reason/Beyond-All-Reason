@@ -119,7 +119,7 @@ return {
 			evolution_announcement_size = 18.5,
 			evolution_target = "corcomlvl10",
 			evolution_condition = "timer",
-			evolution_timer = 210,
+			evolution_timer = 240,
 			combatradius = 500,
 		},
 		featuredefs = {
