@@ -2059,6 +2059,10 @@ local icontypes = {
 		bitmap = "icons/cordoom.png",
 		size = 2.0474999
 	},
+	legbombard = {
+		bitmap = "icons/def_t2_impulse.png",
+		size = 1.46999991
+	},
 	legca = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
@@ -2258,6 +2262,10 @@ local icontypes = {
 	legpede = {
 		bitmap = "icons/corkarg_2.05.png",
 		size = 3
+	},
+	legperdition = {
+		bitmap = "icons/tacnuke.png",
+		size = 1.88999987
 	},
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",
