@@ -231,6 +231,7 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
+				armamdn = true,
 				armsilo = true,
 				armscab = true,
 				corfmd = true,
@@ -329,6 +330,15 @@ function UnitDef_Post(name, uDef)
 		--Laser Citadel + gadget integration for all interceptors
 		if name == "armamd" then --Original citadel starbustlauncher antinuke
 			uDef.maxthisunit = 0
+		end
+		if name == "armacv" then --Replace original citadel with new one
+			uDef.buildoptions[23] = "armamdn"
+		end
+		if name == "armack" then
+			uDef.buildoptions[24] = "armamdn"
+		end
+		if name == "armaca" then
+			uDef.buildoptions[25] = "armamdn"
 		end
 
 		if name == "armsilo" then --Silos

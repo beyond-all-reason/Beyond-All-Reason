@@ -211,6 +211,7 @@ local function initUnitList()
 		['armmercury'] = { weapons = { 2 } },
 		['armemp'] = { weapons = { 1 } },
 		['armamd'] = { weapons = { 3 } }, --antinuke
+		['armamdn'] = { weapons = { 3 } }, --antinuke
 
 		['armbrtha'] = { weapons = { 4 } },
 		['armvulc'] = { weapons = { 4 } },

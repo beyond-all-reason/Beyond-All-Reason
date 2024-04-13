@@ -213,6 +213,9 @@ unitConfigs = {
 	[UnitDefNames.armamd.id] = {
 		unfold = false,
 	},
+	[UnitDefNames.armamdn.id] = {
+		unfold = false,
+	},
 	[UnitDefNames.armclaw.id] = {
 		unfold = false,
 	},

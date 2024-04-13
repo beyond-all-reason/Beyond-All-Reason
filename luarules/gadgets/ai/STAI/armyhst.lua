@@ -577,6 +577,7 @@ function ArmyHST:Init()
 
 	self._antinuke_ = {
 		armamd = true ,
+		armamdn = true ,
 		corfmd = true ,
 		}
 

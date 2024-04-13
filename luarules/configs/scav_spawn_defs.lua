@@ -1183,6 +1183,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 	["armsilo"] = true,
 	-- Antinukes
 	["armamd"] = true,
+	["armamdn"] = true,
 	["corfmd"] = true,
 }
 -- convert unitname -> unitDefID

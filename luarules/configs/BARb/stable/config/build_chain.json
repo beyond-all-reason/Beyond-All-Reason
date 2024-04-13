@@ -115,6 +115,7 @@
 //					{"unit": "armmmkr", "category": "convert", "offset": [200, 200], "condition": {"energy": true}},
 //					{"unit": "armmmkr", "category": "convert", "offset": [200, -200], "condition": {"energy": true}},
 					{"unit": "armamd", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
+					{"unit": "armamdn", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
 					{"unit": "armpb", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
 					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
 				]
@@ -129,6 +130,7 @@
 //					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
 //					{"unit": "armmmkr", "category": "convert", "offset": [120, -120]},
 					{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "armamdn", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
 					{"unit": "armanni", "category": "defence", "offset": [-180, -180]},
 					{"unit": "armpb", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
 					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}

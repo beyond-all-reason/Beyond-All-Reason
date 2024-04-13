@@ -292,6 +292,7 @@ local armorDefs = {
 		"armaap",
 		"armalab",
 		"armamd",
+		"armamdn",
 		"armasy",
 		"armavp",
 		"armbull",
