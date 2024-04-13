@@ -95,9 +95,9 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	--gadget:UnitGiven(unitID, unitDefID, newTeam, unitTeam)
-end
+--function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+--	gadget:UnitGiven(unitID, unitDefID, newTeam, unitTeam)
+--end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
