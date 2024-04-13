@@ -249,7 +249,7 @@
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"siegeMode": "Spread Fire",
 				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
+				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire"
 			}
 		},
 		"idleBuilders": {

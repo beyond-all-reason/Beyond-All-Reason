@@ -58,7 +58,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -98,7 +97,6 @@ return {
 				sizedecay = 0.04,
 				alphaDecay = 0.18,
 				stages = 8,
-				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 1500,
 				reloadtime = 20,

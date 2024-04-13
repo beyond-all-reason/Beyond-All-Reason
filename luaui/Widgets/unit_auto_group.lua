@@ -102,6 +102,16 @@ function widget:PlayerChanged(playerID)
 	myTeam = Spring.GetMyTeamID()
 end
 
+local function addAllUnits()
+	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+		local unitDefID = GetUnitDefID(unitID)
+		local gr = unit2group[unitDefID]
+		if gr ~= nil and GetUnitGroup(unitID) == nil then
+			SetUnitGroup(unitID, gr)
+		end
+	end
+end
+
 local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args[1]
 	local removeAll = data and data['removeAll']
@@ -213,6 +223,9 @@ function widget:Initialize()
 	end
 	WG['autogroup'].getGroups = function()
 		return unit2group
+	end
+	if GetGameFrame() > 0 then
+		addAllUnits()
 	end
 end
 

@@ -103,7 +103,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,--450,
+				weaponvelocity = 800,
 				damage = {
 					default = 16,
 					vtol = 2,

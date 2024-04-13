@@ -21,7 +21,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 3,
 		idletime = 300,
-		health = 420, --1170 --465,
+		health = 420,
 		speed = 66.9,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
@@ -36,7 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 525,
-		waterline = 80, --22,
+		waterline = 80,
 		workertime = 150,
 		customparams = {
 			unitgroup = 'builder',

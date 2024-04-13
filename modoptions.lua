@@ -584,7 +584,7 @@ local options = {
         type    = "string",
         def     = "",
     },
-    
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Raptors
@@ -823,35 +823,22 @@ local options = {
     --	section	= "options_extra",
     --},
 
-	{
-		key		= "april1",
-		name	= "Hats (April Fools)",
-		desc	= "Hats (April Fools)",
-		type	= "bool",
-		def		= false,
-		hidden	= true,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "april1extra",
-		name	= "Aggressive Critters (April Fools)",
-		desc	= "Aggressive Critters (April Fools)",
-		type	= "bool",
-		def		= false,
-		hidden	= true,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "easter_egg_hunt",
-		name	= "Easter Eggs Hunt",
-		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-		type	= "bool",
-		def		= false,
-        hidden	= true,
-		section	= "options_extra",
-	},
+	--{
+	--	key		= "april1",
+	--	name	= "Hats (April Fools)",
+	--	desc	= "Hats (April Fools)",
+	--	type	= "bool",
+	--	def		= false,
+	--	section	= "options_extra",
+	--},
+	--{
+	--	key		= "easter_egg_hunt",
+	--	name	= "Easter Eggs Hunt",
+	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+	--	type	= "bool",
+	--	def		= false,
+	--	section	= "options_extra",
+	--},
 
     {
         key 	= "map_waterlevel",

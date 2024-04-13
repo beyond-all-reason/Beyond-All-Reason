@@ -1100,6 +1100,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if not boomboxTracks[boomboxTracksPlayCounter] then
 			boomboxTracksPlayCounter = 1
 		end
+		if Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) < 10 then
+			Spring.SetConfigInt("snd_volmusic", defaultMusicVolume)
+		end
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
@@ -1110,5 +1113,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		fadeOutSkipTrack = false
 		setMusicVolume(100)
 		createList()
+		Spring.SetConfigInt("boomboxcaptured", 1)
 	end
 end
