@@ -125,7 +125,8 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
 end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
-	if UnitDefs[unitDefID].interceptorgadget == 0 then
+	local unitDefID = Spring.GetUnitDefID(interceptorUnitID);
+	if UnitDefs[unitDefID].interceptorgadget ~= 1 then
 		return false;
 	end
 
@@ -146,7 +147,6 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 			return false;
 		end
 
-		local unitDefID = Spring.GetUnitDefID(interceptorUnitID);
 		local unitType = WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].type;
 		local weaponTypeId = 0;
 

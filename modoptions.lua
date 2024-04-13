@@ -630,61 +630,6 @@ local options = {
     },
 
     {
-        key   	= "releasecandidates",
-        name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), Drone Carriers for armada and cortex, Laser antinuke for armada + experimental script integration for all intercepetors",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentallegionfaction",
-        name   	= "Legion Faction",
-        desc   	= "3rd experimental faction",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key 	= "emprework",
-        name 	= "EMP Rework",
-        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "air_rework",
-        name 	= "Air Rework",
-        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "lategame_rebalance",
-        name 	= "Lategame Rebalance",
-        desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-        hidden 	= true,
-    },
-
-    {
         key		= "raptor_endless",
         name	= "Endless Mode",
         desc	= "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
@@ -1180,8 +1125,8 @@ local options = {
     {
         key   	= "releasecandidates",
         name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
-        type   	= "bool",
+		desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), Drone Carriers for armada and cortex, Laser antinuke for armada + experimental script integration for all intercepetors",
+		type   	= "bool",
         section = "options_experimental",
         def  	= false,
     },
