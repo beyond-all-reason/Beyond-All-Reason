@@ -56,13 +56,11 @@ function gadget:GameFrame(n)
 
 					if params.metal then
 						local _, totalStorage = spGetTeamResources(params.teamID, "metal")
-						local newStorageTotal = totalStorage - params.metal
-						spSetTeamResource(params.teamID, "ms", newStorageTotal)
+						spSetTeamResource(params.teamID, "ms", totalStorage - params.metal)
 					end
 					if params.energy then
 						local _, totalStorage = spGetTeamResources(params.teamID, "energy")
-						local newStorageTotal = totalStorage - params.energy
-						spSetTeamResource(params.teamID, "es", newStorageTotal)
+						spSetTeamResource(params.teamID, "es", totalStorage - params.energy)
 					end
 
 					-- when EMP ran out: restore total storage

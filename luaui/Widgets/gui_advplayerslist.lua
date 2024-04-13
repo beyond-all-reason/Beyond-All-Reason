@@ -566,23 +566,23 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) then
+			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) or (module.name == 'income' and playerScale < 0.7) then
 
 			else
 				if mySpecStatus then
 					if module.spec then
-                        if module.name == 'cpuping' or module.name == 'indent' or module.name == 'rank' or module.name == 'country' or module.name == 'side' or module.name == 'alliance' or module.name == 'id' or module.name == 'name' then
-                            pos = pos + (module.width*sizeMult)
+                        if module.name == 'resources' then
+                            pos = pos + module.width*(1-((1-sizeMult)*0.5))
                         else
-                            pos = pos + module.width
+                            pos = pos + (module.width*sizeMult)
                         end
 					end
 				else
 					if module.play then
-                        if module.name == 'cpuping' or module.name == 'indent' or module.name == 'rank' or module.name == 'country' or module.name == 'side' or module.name == 'alliance' or module.name == 'id' or module.name == 'name' then
-                            pos = pos + (module.width*sizeMult)
+                        if module.name == 'resources' then
+                            pos = pos + module.width*(1-((1-sizeMult)*0.5))
                         else
-                            pos = pos + module.width
+                            pos = pos + (module.width*sizeMult)
                         end
 					end
 				end
@@ -2150,7 +2150,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                         end
                     end
-                    if onlyMainList2 and m_income.active and ei then
+                    if onlyMainList2 and m_income.active and ei and playerScale >= 0.7 then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
                             IncomeTip(mouseX, ei, mi)
@@ -2253,12 +2253,12 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     energy = math.min(energy, energyStorage)
     metal = math.min(metal, metalStorage)
     local bordersize = 0.75
-    local paddingLeft = 2
-    local paddingRight = 2
-    local barWidth = m_resources.width - paddingLeft - paddingRight
+    local paddingLeft = 2 * playerScale
+    local paddingRight = 2 * playerScale
+    local barWidth = (m_resources.width - paddingLeft - paddingRight) * (1-((1-playerScale)*0.5))
     local y1Offset
     local y2Offset
-    local sizeMult = playerScale + ((1-playerScale)*0.5)
+    local sizeMult = playerScale
     if not dead then
         y1Offset = 11 * sizeMult
         y2Offset = 9 * sizeMult
@@ -2277,7 +2277,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     gl_Texture(pics["resbarPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset)
 
-    if (barWidth / maxStorage) * metal > 0.8 then
+    if playerScale >= 0.9 and (barWidth / maxStorage) * metal > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 1.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
@@ -2321,7 +2321,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     gl_Texture(pics["resbarPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset)
 
-    if (barWidth / maxStorage) * energy > 0.8 then
+    if playerScale >= 0.9 and (barWidth / maxStorage) * energy > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 0.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
@@ -2365,26 +2365,26 @@ end
 
 function DrawIncome(energy, metal, posY, dead)
     local fontsize = dead and 4.5 or 8.5
-    local sizeMult = playerScale + ((1-playerScale)*0.33)
+    local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
     font:Begin()
     if energy > 0 then
         font:Print(
-			'\255\255\255\050' .. string.formatSI(math.floor(energy)),
-			m_income.posX + widgetPosX + m_income.width - 2,
-			posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
-			fontsize,
-			"or"
-		)
+                '\255\255\255\050' .. string.formatSI(math.floor(energy)),
+                m_income.posX + widgetPosX + m_income.width - 2,
+                posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
+                fontsize,
+                "or"
+        )
     end
     if metal > 0 then
         font:Print(
-			'\255\235\235\235' .. string.formatSI(math.floor(metal)),
-			m_income.posX + widgetPosX + m_income.width - 2,
-			posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
-			fontsize,
-			"or"
-		)
+                '\255\235\235\235' .. string.formatSI(math.floor(metal)),
+                m_income.posX + widgetPosX + m_income.width - 2,
+                posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
+                fontsize,
+                "or"
+        )
     end
     font:End()
 end
@@ -2429,7 +2429,7 @@ end
 function DrawRankImage(rankImage, posY)
     gl_Color(1, 1, 1, 1)
     gl_Texture(rankImage)
-    DrawRect(m_rank.posX + widgetPosX + (3*playerScale), posY + 8 - (7.5*playerScale), m_rank.posX + widgetPosX + (17*playerScale), posY + 8 + (7.5*playerScale))
+    DrawRect(m_rank.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - (7.5*playerScale), m_rank.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + (7.5*playerScale))
 end
 
 local function RectQuad(px, py, sx, sy)
@@ -2462,14 +2462,14 @@ function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
         gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + 8 - ((flagHeight/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + 8 + ((flagHeight/2)*playerScale))
+        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((flagHeight/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((flagHeight/2)*playerScale))
     end
 end
 
 function DrawDot(posY)
     gl_Color(1, 1, 1, 0.70)
     gl_Texture(pics["currentPic"])
-    DrawRect(m_indent.posX + widgetPosX - 1, posY + 3, m_indent.posX + widgetPosX + (7*playerScale), posY + 11)
+    DrawRect(m_indent.posX + widgetPosX - 1, posY + (3*playerScale), m_indent.posX + widgetPosX + (7*playerScale), posY + (11*playerScale))
 end
 
 function DrawCamera(posY, active)
@@ -2576,14 +2576,14 @@ function DrawName(name, team, posY, dark, playerID, desynced)
 
     font2:Begin()
     local fontsize = isAbsent and 9 or 14
-    fontsize = fontsize * (playerScale + ((1-playerScale)*0.4))
+    fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
     else
         font2:SetTextColor(0, 0, 0, 0.4)
         font2:SetOutlineColor(0, 0, 0, 0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, fontsize, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, fontsize, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
     end
     if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -2595,23 +2595,23 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
-    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, fontsize, dark and "o" or "n")
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, dark and "o" or "n")
 
     --desynced = playerID == 1
 	if desynced then
 		font2:SetTextColor(1,0.45,0.45,1)
-		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + (5.7*playerScale) , 8, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
         font2:SetTextColor(0.5,1,0.5,1)
-        font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+        font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + (5.7*playerScale) , 8, "o")
     end
     font2:End()
 
     if ignored or desynced then
         local x = m_name.posX + widgetPosX + 2 + xPadding
-        local y = posY + 7
-        local w = font2:GetTextWidth(nameText) * 14 + 2
-        local h = 2
+        local y = posY + (7*playerScale)
+        local w = (font2:GetTextWidth(nameText) * fontsize) + 2
+        local h = (2*playerScale)
 		if desynced then
 			gl_Color(1, 0.2, 0.2, 0.9)
 		else
@@ -2663,24 +2663,21 @@ function DrawID(playerID, posY, dark, dead)
     if playerID < 10 then
         spacer = " "
     end
-    local fontsize = 10
-    fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
-    local deadspace = 0
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     if dead then
         font:SetTextColor(1, 1, 1, 0.4)
     else
         font:SetTextColor(1, 1, 1, 0.66)
     end
-    font:Print(spacer .. playerID, m_ID.posX + deadspace + widgetPosX + 4.5, posY + 5, fontsize, "on")
+    font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
 function DrawSkill(skill, posY, dark)
-    local fontsize = 9.5
-    fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-    font:Print(skill, m_skill.posX + widgetPosX + m_skill.width - 2, posY + 5.3, fontsize, "or")
+    font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
@@ -2711,7 +2708,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         end
         if spec then
             font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*specScale), 9*specScale, "ro")
+            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale, "ro")
         else
             font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
             font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale, "ro")
