@@ -75,15 +75,15 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
-local function interceptorsRemakeUnit(weaponDef)
-	weaponDef.customparams.interceptorgadget = 1;
+local function interceptorsRemakeUnit(uDef, weaponDef)
+	uDef.customparams.interceptorgadget = 1
 
-	weaponDef.interceptsolo 		= 0;
-	weaponDef.reloadtime 			= 2.4;
-	weaponDef.turnrate				= 40000;
-	weaponDef.weaponacceleration	= 450;
-	weaponDef.weapontimer			= 2.0;
-	weaponDef.weaponvelocity		= 2000;
+	weaponDef.interceptsolo 		= 0
+	weaponDef.reloadtime 			= 2.4
+	weaponDef.turnrate				= 40000
+	weaponDef.weaponacceleration	= 450
+	weaponDef.weapontimer			= 2.0
+	weaponDef.weaponvelocity		= 2000
 end
 
 function UnitDef_Post(name, uDef)
@@ -342,36 +342,36 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if name == "armscab" then --Other antinukes - Armada
-			interceptorsRemakeUnit(uDef.weapondefs.armscab_weapon)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.armscab_weapon)
 		end
 		if name == "armantiship" then
-			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
 		end
 		if name == "armcarry" then
-			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
 		end
 		if name == "armcarry2" then
-			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
 		end
 
 		if name == "corfmd" then --Cortex
-			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
 		end
 		if name == "corantiship" then
-			interceptorsRemakeUnit(uDef.weapondefs.amd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
 		end
 		if name == "corcarry" then
-			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
 		end
 		if name == "corcarry2" then
-			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
 		end
 		if name == "cormabm" then
-			interceptorsRemakeUnit(uDef.weapondefs.cormabm_weapon)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.cormabm_weapon)
 		end
 
 		if name == "raptor_antinuke" then --Raptor
-			interceptorsRemakeUnit(uDef.weapondefs.fmd_rocket)
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
 		end
 		if name == "raptor_turret_antinuke_t2_v1" then
 			uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
