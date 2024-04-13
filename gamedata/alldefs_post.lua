@@ -279,8 +279,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 	
-	if modOptions.unbacom then
-		Spring.Echo("i did the thing")
+
 	end		
 	
 	-- Release candidate units
@@ -742,6 +741,25 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if modOptions.unbacom == true then
+		if name == "corcom" then
+			Spring.Echo("unbacom 1")
+
+			uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2",
+			Spring.Echo("unbacom 2")
+
+			uDef.customparams.evolution_announcement_size = 18.5,
+			Spring.Echo("unbacom 3")
+
+			uDef.customparams.evolution_target = "corcomlvl2",
+			Spring.Echo("unbacom 4")
+
+			uDef.customparams.evolution_condition = "timer",
+			Spring.Echo("unbacom 5")
+
+			uDef.customparams.evolution_timer = 210,
+			Spring.Echo("unbacom 6")
+		end
 	--Lategame Rebalance
 	if modOptions.lategame_rebalance == true then
 		if name == "armamb" then
