@@ -86,8 +86,6 @@ local silverMedals = {
 local bronzeMedals = {
 }
 local uniques = {--playername, hat ident, CaSe MaTtErS
-	['PtaQ'] = 'ptaq',
-	['Hornet'] = 'hornet',
 }
 
 function gadget:GameFrame(gf)

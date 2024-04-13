@@ -80,7 +80,7 @@ return {
 		weapondefs = {
 			semiauto = {
 				accuracy = 7,
-				areaofeffect = 0,--16,
+				areaofeffect = 0,
 				avoidfeature = true,
 				avoidfriendly = false,
 				burst = 2,
@@ -106,7 +106,6 @@ return {
 				range = 600,
 				reloadtime = 0.6,
 				rgbcolor = "1 0.4 0.95",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -115,7 +114,6 @@ return {
 				thickness = 0.6,
 				tolerance = 2400,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1500,
 				damage = {

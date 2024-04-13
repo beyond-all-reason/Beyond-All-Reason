@@ -186,3 +186,8 @@ Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
+
+-- These config ints control some multithreading functionality, and are now set to their disabled state while we debug if they could be the cause of some sync errors:
+Spring.SetConfigInt("AnimationMT", 0)
+Spring.SetConfigInt("UpdateBoundingVolumeMT", 0)
+Spring.SetConfigInt("UpdateWeaponVectorsMT", 0)

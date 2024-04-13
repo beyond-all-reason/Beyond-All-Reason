@@ -151,7 +151,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 450,
-				reloadtime = 0.4,--3 0.09999,--burst 12 0.39996,
+				reloadtime = 0.4,
 				sizegrowth = 2.5,
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
