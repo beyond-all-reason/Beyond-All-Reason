@@ -296,8 +296,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Release candidate units
-	--if modOptions.releasecandidates then
-	if true then
+	if modOptions.releasecandidates then
 
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then

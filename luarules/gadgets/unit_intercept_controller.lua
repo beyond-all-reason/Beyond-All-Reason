@@ -126,7 +126,7 @@ end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
 	local unitDefID = Spring.GetUnitDefID(interceptorUnitID);
-	if UnitDefs[unitDefID].interceptorgadget ~= 1 then
+	if UnitDefs[unitDefID].customParams.interceptorgadget ~= 1 then
 		return false;
 	end
 
