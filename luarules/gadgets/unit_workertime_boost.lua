@@ -25,7 +25,6 @@ local originalworkertimes = {}
 	
 --step 1, FOR make a table containing the  names of the units that can boost
 for id, def in pairs(UnitDefs) do
-
 	if def.buildSpeed then
 		if def.customParams.workertimeboost then
 			originalworkertimes[id] = def.buildSpeed
@@ -45,15 +44,15 @@ end
 local boostedtofinish = {}-- going to store the key of unitID equal to the builderID
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	
-	if mobileunits[unitDefID] and builderID == "number" then --addition 1
-	local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
-	local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
+	local test1 = type(builderID)
+	if  builderID ~= nil then
+		local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
+		local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
 	
 		if boost and trigger and builderID then
 			if trigger == "MOBILE" and mobileunits[unitDefID] then
-			Spring.SetUnitBuildSpeed(builderID, boost)
-			boostedtofinish[builderID] = builderID
+				Spring.SetUnitBuildSpeed(builderID, boost)
+				boostedtofinish[builderID] = builderID
 			end
 		end
 	end
