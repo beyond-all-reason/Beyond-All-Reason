@@ -10683,26 +10683,15 @@ local unitLights = {
 		},
 	},
 	['armamd'] = {
-		redlaseraim = {
-			lightType = 'cone',
-			pieceName = 'laser',
-			alliedOnly = true,
-			alwaysVisible = true,
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 7500,
-							dirx = 0, diry = 1, dirz = 0.0001, theta = 0.006,
-							r = 2, g = 0, b = 0, a = 0.85,
-							modelfactor = 0.1, specular = 0.1, scattering = 8, lensflare = 0.1,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
 		orangelightamd = {
 			lightType = 'point',
 			pieceName = 'orangelight',
 			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 22,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 15,
-				r = 2, g = 0.8, b = 0, a = 1,
-				modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
-				lifetime = 0, sustain = 0, animtype = 0},
+							color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+							r = 2, g = 0.8, b = 0, a = 1,
+							modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
 
 		},
 		greenlightamd = {
@@ -10710,19 +10699,8 @@ local unitLights = {
 			pieceName = 'greenlight',
 			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 32,
-				color2r = 0, color2g = 2.5, color2b = 0, colortime = 60,
-				r = 0, g = 1, b = 0, a = 1,
-				modelfactor = -0.1, specular = 0.3, scattering = 0.3, lensflare = 3,
-				lifetime = 0, sustain = 0, animtype = 0},
-
-		},
-		redlightamd = {
-			lightType = 'point',
-			pieceName = 'redlight',
-			alliedOnly = true,
-			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 32,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 10,
-							r = 1, g = 0, b = 0, a = 1,
+							color2r = 2.5, color2g = 1.15, color2b = 0, colortime = 60,
+							r = 2, g = 0.8, b = 0, a = 1,
 							modelfactor = -0.1, specular = 0.3, scattering = 0.3, lensflare = 3,
 							lifetime = 0, sustain = 0, animtype = 0},
 
