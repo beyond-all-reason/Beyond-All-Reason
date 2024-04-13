@@ -1,4 +1,11 @@
 ﻿# March 2024
+• [Proposed Units Rework Modoption] Rework to Whistler and Lasher added to modoption, which has the units switch between longer range tracking aa missiles and non-tracking ground missiles.  Mauser, Quaker, Stiletto changes removed from modoption.  
+• [Mauser + Quaker] Rework from proposed_unit_reworks modoption moved to main game with a few additional changes.  This rework aims to give these units a more mobile and aggressive role, which reduces the role overlap with the heavier T2 veh artillery options.  Their ranges are reduced by 120, speed increased by 20%, acceleration increased 50%, health increased 20%, and accuracy is improved.  
+• [Stiletto] Rework from proposed_unit_reworks modoption moved to main game.  This rework aims to give the stiletto a more specialized role for disabling specific targets while being less efficient as a defensive option against groups.  The unit's metal and energy costs are doubled, buildpower cost increased 50%, health increased by 30%, paralyze time increased from 10s->20s, bomb count reduced from 5->3, aoe reduced from 240->200, emp damage per bomb increased 4000->6000
+• [Banshee] Reloadtime reduced by 10% (DPS 34->38)
+• [Dragon Claw] DPS reduced by 14% (185->159)
+• [Razorback] Laser damage vs air reduced from 75% to 50%
+• [Demon] Health reduced from 20000->18000
 • [Crocodile and Cayman (T1 hovertanks)] Crocodile cost reduced 290m2600E->270m2400E, Cayman cost reduced 320m3300E->300m3100E
 • [Salamander] EMP resist reduced from 95%->90%
 • [Epoch and Black Hydra] Projectiles for main cannons increased in size, damage, and aoe, with a reduced fire rate  

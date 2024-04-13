@@ -3,10 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  barrel, turret, loturret, flare, sleeve, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
-       eyes, shoulder, ltooth, rtooth, aimy1, aimx1;
+piece barrel, turret, loturret, flare, sleeve, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
+      eyes, shoulder, ltooth, rtooth, aimy1, aimx1;
 
-static-var  restore_delay, Static_Var_2, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var restore_delay, weaponToggleState, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
 static-var last_primary_heading,last_primary_pitch;
 
@@ -286,7 +286,7 @@ UnitSpeed(){
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
-	\if (animSpeed<1) animSpeed=1;
+	if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
@@ -302,7 +302,7 @@ Activate()
 	// signal kills any current aim animations
 	signal SIG_AIM;
 	// variable setting weapon state
-	Static_Var_2 = 1;
+	weaponToggleState = 1;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -313,7 +313,7 @@ Deactivate()
 	// signal kills any current aim animations
 	signal SIG_AIM;
 	// variable setting weapon state
-	Static_Var_2 = 0;
+	weaponToggleState = 0;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -1433,11 +1433,16 @@ Create()
 	move pelvis to y-axis 4000 speed <500>; 
 	restore_delay = 30;
 	animspeed = 4;
-	Static_Var_2 = 1;
+	weaponToggleState = 1;
 	moveSpeed = get MAX_SPEED;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
+}
+
+SetWeaponType(State)
+{
+    weaponToggleState = State;
 }
 
 SetStunned(State)
@@ -1469,7 +1474,7 @@ SweetSpot(piecenum)
 AimPrimary(heading, pitch)
 {
 	// if current weapon is the secondary plasma, return 0, False
-	if( Static_Var_2 == 1 )
+	if( weaponToggleState == 1 )
 	{
 		return(0);
 	}
@@ -1502,7 +1507,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	// if current weapon is the primary gauss, return 0, False
-	if( Static_Var_2 == 0 )
+	if( weaponToggleState == 0 )
 	{
 		return(0);
 	}
