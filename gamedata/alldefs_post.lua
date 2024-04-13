@@ -279,9 +279,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 	
-
-	end		
-	
 	-- Release candidate units
 	if modOptions.releasecandidates then
 
@@ -742,24 +739,38 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.unbacom == true then
-		if name == "corcom" then
-			Spring.Echo("unbacom 1")
-
-			uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2",
-			Spring.Echo("unbacom 2")
-
-			uDef.customparams.evolution_announcement_size = 18.5,
-			Spring.Echo("unbacom 3")
-
-			uDef.customparams.evolution_target = "corcomlvl2",
-			Spring.Echo("unbacom 4")
-
-			uDef.customparams.evolution_condition = "timer",
-			Spring.Echo("unbacom 5")
-
-			uDef.customparams.evolution_timer = 210,
-			Spring.Echo("unbacom 6")
+		if name == "armcom" then
+			uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
+			uDef.customparams.evolution_announcement_size = 18.5
+			uDef.customparams.evolution_target = "armcomlvl2"
+			uDef.customparams.evolution_condition = "timer"
+			uDef.customparams.evolution_timer = 210
 		end
+		if name == "corcom" then
+			uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
+			uDef.customparams.evolution_announcement_size = 18.5
+			uDef.customparams.evolution_target = "corcomlvl2"
+			uDef.customparams.evolution_condition = "timer"
+			uDef.customparams.evolution_timer = 210
+		end
+		if name == "legcom" then
+			uDef.customparams.evolution_timer = 210
+		end
+		if name == "legcomlvl2" then
+			uDef.customparams.evolution_timer = 210
+		end
+		if name == "legcomlvl3" then
+			uDef.customparams.evolution_timer = 210
+		end
+		if name == "legcomlvl4" then
+			uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
+			uDef.customparams.evolution_announcement_size = 18.5
+			uDef.customparams.evolution_target = "legcomlvl5"
+			uDef.customparams.evolution_condition = "timer"
+			uDef.customparams.evolution_timer = 210
+		end
+
+	end
 	--Lategame Rebalance
 	if modOptions.lategame_rebalance == true then
 		if name == "armamb" then
@@ -1094,6 +1105,7 @@ function UnitDef_Post(name, uDef)
 	uDef.customparams.healthlookmod = 0
 end
 
+
 local function ProcessSoundDefaults(wd)
 	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
 	if not forceSetVolume then
@@ -1394,23 +1406,24 @@ end
 -------------------------
 
 -- process modoptions (last, because they should not get baked)
-function ModOptions_Post (UnitDefs, WeaponDefs)
+	function ModOptions_Post (UnitDefs, WeaponDefs)
 
-	-- transporting enemy coms
-	if Spring.GetModOptions().transportenemy == "notcoms" then
-		for name, ud in pairs(UnitDefs) do
-			if ud.customparams.iscommander then
+		-- transporting enemy coms
+		if Spring.GetModOptions().transportenemy == "notcoms" then
+			for name, ud in pairs(UnitDefs) do
+				if ud.customparams.iscommander then
+					ud.transportbyenemy = false
+				end
+			end
+		elseif Spring.GetModOptions().transportenemy == "none" then
+			for name, ud in pairs(UnitDefs) do
 				ud.transportbyenemy = false
 			end
 		end
-	elseif Spring.GetModOptions().transportenemy == "none" then
-		for name, ud in pairs(UnitDefs) do
-			ud.transportbyenemy = false
-		end
-	end
 
-	-- For Decals GL4, disables default groundscars for explosions
-	for _, wDef in pairs(WeaponDefs) do
-		wDef.explosionScar = false
-	end
+		-- For Decals GL4, disables default groundscars for explosions
+		for _, wDef in pairs(WeaponDefs) do
+			wDef.explosionScar = false
+		end
 end
+
