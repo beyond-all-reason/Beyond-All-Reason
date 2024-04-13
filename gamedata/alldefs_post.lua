@@ -84,9 +84,8 @@ function UnitDef_Post(name, uDef)
 
 	-- inidivual unit hat processing
 	do
-		local hatMode = Spring.GetModOptions().unithats
-		if hatMode then
-			if hatMode == "april" then
+		if modOptions.unithats then
+			if modOptions.unithats == "april" then
 				if name == "corak" then
 					uDef.objectname = "apf/CORAK.s3o"
 				elseif name == "corllt" then
