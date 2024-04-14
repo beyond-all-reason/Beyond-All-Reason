@@ -9,27 +9,16 @@
     </head>
 
     <body style="top: 10%; left: 20%; height: 10%; min-height: 10%;">
-        <div class="element">
+        <div class="element" data-model="idle_unit_data">
             <div class="container">
                 <div class="zcontainer">
                     <div class="zsmall">z</div>
                     <div class="zmed">z</div>
                     <div class="zlarge">z</div>
                 </div>
-                <div id="list" data-model="idle_unit_data">
-                    <div class="buildpic" data-for="unit, index : idleUnitTypes">
-                        <texture class="buildpic-img" data-attr-src="unit.unitDefID"/>
-                    </div>
+                <div class="buildpic"  data-for="unit, index : idleUnitTypes">
+                    <texture class="buildpic-img" data-attr-src="'#' + unit.unitDefID"/>
                 </div>
-<!--                <div class="buildpic">-->
-<!--                    <texture class="buildpic-img" src="#101"/>-->
-<!--                </div>-->
-<!--                <div class="buildpic2">-->
-<!--                    <texture class="buildpic-img" src="#102"/>-->
-<!--                </div>-->
-<!--                <div class="buildpic2">-->
-<!--                    <texture class="buildpic-img" src="#102"/>-->
-<!--                </div>-->
             </div>
         </div>
     </body>

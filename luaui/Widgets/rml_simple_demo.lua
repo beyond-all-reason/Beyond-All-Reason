@@ -4,7 +4,7 @@ end
 
 function widget:GetInfo()
 	return {
-		name      = "Demo RML Gui",
+		name      = "Simple RMLUI Demo",
 		desc      = "A sandbox for the Rml powered GUI.",
 		author    = "ChrisFloofyKitsune",
 		date      = "2024-03-17",

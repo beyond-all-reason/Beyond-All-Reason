@@ -55,9 +55,12 @@ body {
     /* background-color: #0000ff */
 }
 
-.buildpic-img {
+texture {
+    overflow: hidden;
     width: 5vh;
     height: 5vh;
+    border-radius: 20px;
+    border: 5px solid #cc8800;
 }
 
 .buildpic {

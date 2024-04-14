@@ -37,21 +37,12 @@ local numGroups = 0
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
 local idleList = {}
 
+-- When updating the data model, update the handler instead of the original table
 local dataModelHandle
 -- Data model format
 local dataModel = {
-	idleUnitTypes = {
-		{
-			unitDefID = "#101",
-			count = 3
-		},
-		{
-			unitDefID = "#102",
-			count = 1
-		}
-	}
+	idleUnitTypes = {}
 }
-
 
 local isBuilder = {}
 local isFactory = {}
@@ -128,6 +119,16 @@ local function updateList()
 			end
 		end
 	end
+
+	local uiList = {}
+	for unitDefID, units in pairs(idleList) do
+		local type = {}
+		type.unitDefID = unitDefID
+		type.count = #units
+		uiList[#uiList + 1] = type
+	end
+
+	dataModelHandle.idleUnitTypes = uiList
 end
 
 

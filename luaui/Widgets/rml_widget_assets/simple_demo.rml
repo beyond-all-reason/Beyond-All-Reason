@@ -35,7 +35,7 @@
             <div>&lt;texture src="^101"&gt;</div>
             <texture src="^101"/>
             <div>&lt;texture src="#101"&gt;</div>
-            <texture src="#101"/>
+            <texture src="#101" style="border-radius: 50%;"/>
             <div>&lt;texture src="luaui/images/backgroundtile.png"&gt;</div>
             <texture style="width: 64px; height: 64px" src="luaui/images/backgroundtile.png"/>
             <div>&lt;texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"&gt;</div>
