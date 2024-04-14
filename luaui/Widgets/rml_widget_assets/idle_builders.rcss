@@ -15,13 +15,6 @@ body {
     background-color: #FF5D5D;
 }
 
-.container {
-    height: 5vh;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-}
-
 .zcontainer {
     position: relative;
     height: 100%;
@@ -36,7 +29,6 @@ body {
     top: -15%;
     left: 5%;
     font-size: 100%;
-    /* background-color: #ff0000 */
 }
 
 .zmed {
@@ -44,7 +36,6 @@ body {
     top: 0%;
     left: 25%;
     font-size: 150%;
-    /* background-color: #00ff00 */
 }
 
 .zlarge {
@@ -52,15 +43,14 @@ body {
     top: 20%;
     left: 55%;
     font-size: 180%;
-    /* background-color: #0000ff */
 }
 
-texture {
-    overflow: hidden;
-    width: 5vh;
+.container {
     height: 5vh;
-    border-radius: 20px;
-    border: 5px solid #cc8800;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 10px;
 }
 
 .buildpic {
@@ -68,15 +58,10 @@ texture {
     width: 5vh;
     max-width: 5vh;
     max-height: 5vh;
-    background-color: #ffffff55;
-    margin: auto;
+    margin-left: 5px;
 }
 
-.buildpic2 {
-    height: 5vh;
+texture {
     width: 5vh;
-    max-width: 5vh;
-    max-height: 5vh;
-    background-color: #aaff5555;
-    margin: auto;
+    height: 5vh;
 }

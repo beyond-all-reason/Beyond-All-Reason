@@ -26,14 +26,10 @@ local document
 local context
 
 --- Config variables
-local alwaysShow = true		-- always show AT LEAST the label
-local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
-local showStack = false
 local soundVolume = 0.5
 local maxGroups = 9
 local showRez = true
-local numGroups = 0
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
 local idleList = {}
 
@@ -41,9 +37,12 @@ local idleList = {}
 local dataModelHandle
 -- Data model format
 local dataModel = {
-	idleUnitTypes = {}
+	idleUnitTypes = {},
+	count = 0
 }
 
+
+-- Cache unit types that show up in this widget
 local isBuilder = {}
 local isFactory = {}
 local isResurrector = {}
@@ -53,25 +52,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 		isBuilder[unitDefID] = true
 	end
-
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
 	end
-
 	if unitDef.canResurrect then
 		isResurrector[unitDefID] = true
 	end
-
 	if unitDef.translatedHumanName then
 		unitHumanName[unitDefID] = unitDef.translatedHumanName
 	end
 end
 
+
+
+---Returns true if the unit is a builder and is currently idle
+---@param unitID number
 local function isIdleBuilder(unitID)
 	local udef = spGetUnitDefID(unitID)
-
 	if isBuilder[udef] or (showRez and isResurrector[udef]) then
-
 		--- can build
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
@@ -81,20 +79,12 @@ local function isIdleBuilder(unitID)
 				--- isnt under construction
 				if isFactory[udef] then
 					return true
-				else
-					if (spGetCommandQueue(unitID, 0) == 0) and not(spGetUnitMoveTypeData(unitID).aircraftState == "crashing") then
-						return true
-					end
+				elseif (spGetCommandQueue(unitID, 0) == 0) and not(spGetUnitMoveTypeData(unitID).aircraftState == "crashing") then
+					return true
 				end
 			end
 		elseif isFactory[udef] then
-			local qCount = 0
-			for _, thing in ipairs(buildQueue) do
-				for _, count in pairs(thing) do
-					qCount = qCount + count
-				end
-			end
-			if qCount <= nearIdle then
+			if #buildQueue == 0 then
 				return true
 			end
 		end
@@ -129,6 +119,7 @@ local function updateList()
 	end
 
 	dataModelHandle.idleUnitTypes = uiList
+	dataModelHandle.count = #uiList
 end
 
 
@@ -151,7 +142,6 @@ function Update()
 
 	doUpdate = false
 	sec = sec + dt
-
 
 	if sec > 0.05 then
 		sec = 0

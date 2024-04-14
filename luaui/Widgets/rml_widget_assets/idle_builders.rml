@@ -9,8 +9,8 @@
     </head>
 
     <body style="top: 10%; left: 20%; height: 10%; min-height: 10%;">
-        <div class="element" data-model="idle_unit_data">
-            <div class="container">
+        <div class="element" data-model="idle_unit_data" data-if="count > 0">
+            <div class="container" >
                 <div class="zcontainer">
                     <div class="zsmall">z</div>
                     <div class="zmed">z</div>
