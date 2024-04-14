@@ -9,12 +9,6 @@ body {
     font-size: 1.5em;
 }
 
-.test {
-    width: 0;
-    height: 50%;
-    background-color: #FF5D5D;
-}
-
 .zcontainer {
     position: relative;
     height: 100%;
@@ -54,14 +48,33 @@ body {
 }
 
 .buildpic {
+    overflow: hidden;
+    position: relative;
     height: 5vh;
     width: 5vh;
     max-width: 5vh;
     max-height: 5vh;
+    margin: 0 auto;
     margin-left: 5px;
 }
 
 texture {
     width: 5vh;
     height: 5vh;
+    transform: scale(1.0);
+    transition: transform 0.1s cubic-in-out;
+}
+
+texture:hover {
+    transform-origin: 50% 50%;
+    transform: scale(1.07)
+}
+
+.count {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 10%;
+    font-size: 150%;
+    font-effect: glow(1px 2px 2px 2px black)
 }

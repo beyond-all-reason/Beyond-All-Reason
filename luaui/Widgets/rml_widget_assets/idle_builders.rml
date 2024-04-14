@@ -18,6 +18,7 @@
                 </div>
                 <div class="buildpic"  data-for="unit, index : idleUnitTypes">
                     <texture class="buildpic-img" data-attr-src="'#' + unit.unitDefID"/>
+                    <p data-if="unit.count > 1" class="count">{{unit.count}}</p>
                 </div>
             </div>
         </div>
