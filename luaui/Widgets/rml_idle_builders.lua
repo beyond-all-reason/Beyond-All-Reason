@@ -37,6 +37,21 @@ local numGroups = 0
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
 local idleList = {}
 
+local dataModelHandle
+-- Data model format
+local dataModel = {
+	idleUnitTypes = {
+		{
+			unitDefID = "#101",
+			count = 3
+		},
+		{
+			unitDefID = "#102",
+			count = 1
+		}
+	}
+}
+
 
 local isBuilder = {}
 local isFactory = {}
@@ -154,7 +169,10 @@ end
 function widget:Initialize()
 	context = RmlUi.GetContext("shared")
 
+	dataModelHandle = context:OpenDataModel("idle_unit_data", dataModel)
+
 	document = context:LoadDocument("LuaUi/Widgets/rml_widget_assets/idle_builders.rml", widget)
+	document:ReloadStyleSheet()
 	document:Show()
 end
 
@@ -162,6 +180,9 @@ end
 function widget:Shutdown()
 	if document then
 		document:Close()
+	end
+	if context then
+		context:RemoveDataModel("idle_unit_data")
 	end
 end
 

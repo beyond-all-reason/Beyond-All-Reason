@@ -5,78 +5,7 @@
         <link type="text/rcss" href="/LuaUI/rml_common/styles.rcss"/>
         <!-- Style based on the flow_ui api -->
         <link type="text/rcss" href="/LuaUI/rml_common/flow_ui.rcss"/>
-        <style>
-            body {
-                position: absolute;
-                bottom: 20%;
-                left: 20%;
-                height: 10%;
-                font-family: Exo 2;
-                font-weight: normal;
-                font-style: normal;
-                font-size: 1.5em;
-            }
-
-            .test {
-                width: 0;
-                height: 50%;
-                background-color: #FF5D5D;
-            }
-
-            .container {
-                height: 5vh;
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-            }
-
-            .zcontainer {
-                position: relative;
-                height: 100%;
-                width: 5vh;
-                font-size: 30px;
-                color: #ffffff55;
-                margin: auto;
-            }
-
-            .zsmall {
-                position: absolute;
-                top: -15%;
-                left: 5%;
-                font-size: 100%;
-                /* background-color: #ff0000 */
-            }
-
-            .zmed {
-                position: absolute;
-                top: 0%;
-                left: 25%;
-                font-size: 150%;
-                /* background-color: #00ff00 */
-            }
-
-            .zlarge {
-                position: absolute;
-                top: 20%;
-                left: 55%;
-                font-size: 180%;
-                /* background-color: #0000ff */
-            }
-
-            .buildpic {
-                height: 5vh;
-                width: 5vh;
-                background-color: #ffffff55;
-                margin: auto;
-            }
-
-            .buildpic2 {
-                height: 5vh;
-                width: 5vh;
-                background-color: #aaff5555;
-                margin: auto;
-            }
-        </style>
+        <link type="text/rcss" href="/LuaUI/Widgets/rml_widget_assets/idle_builders.rcss"/>
     </head>
 
     <body style="top: 10%; left: 20%; height: 10%; min-height: 10%;">
@@ -87,8 +16,20 @@
                     <div class="zmed">z</div>
                     <div class="zlarge">z</div>
                 </div>
-                <div class="buildpic"></div>
-                <div class="buildpic2"></div>
+                <div id="list" data-model="idle_unit_data">
+                    <div class="buildpic" data-for="unit, index : idleUnitTypes">
+                        <texture class="buildpic-img" data-attr-src="unit.unitDefID"/>
+                    </div>
+                </div>
+<!--                <div class="buildpic">-->
+<!--                    <texture class="buildpic-img" src="#101"/>-->
+<!--                </div>-->
+<!--                <div class="buildpic2">-->
+<!--                    <texture class="buildpic-img" src="#102"/>-->
+<!--                </div>-->
+<!--                <div class="buildpic2">-->
+<!--                    <texture class="buildpic-img" src="#102"/>-->
+<!--                </div>-->
             </div>
         </div>
     </body>
