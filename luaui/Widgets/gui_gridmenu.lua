@@ -2361,7 +2361,7 @@ function widget:GetConfigData()
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
 		stickToBottom = stickToBottom,
-		gameID = Game.gameID,
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 	}
 end

@@ -109,7 +109,7 @@ local function SaveGame(filename, description, requireOverwrite)
 			saveData.gameVersion = Game.gameVersion
 			saveData.engineVersion = Engine.version
 			saveData.map = Game.mapName
-			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or Game.gameID)
+			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
 			saveData.gameframe = Spring.GetGameFrame()
 			saveData.totalGameframe = Spring.GetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
 			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)

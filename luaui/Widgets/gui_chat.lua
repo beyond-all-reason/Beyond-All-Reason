@@ -1179,10 +1179,10 @@ local function processLine(i)
 end
 
 local initialized = false
-local function processLines()
+local function processLines(clearConsole)
 	clearDisplayLists()
 	chatLines = {}
-	if force then
+	if clearConsole then
 		consoleLines = {}
 	else
 		for i, params in ipairs(consoleLines) do
@@ -2114,7 +2114,7 @@ function widget:ViewResize()
 	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
-	processLines(forceProcessLines)
+	processLines()
 end
 
 function widget:PlayerChanged(playerID)
@@ -2222,10 +2222,6 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
-end
-
-function widget:GameStart()
-	processLines()	-- refresh so playername have their associated colors applied in the history lines too
 end
 
 function widget:GameOver()
