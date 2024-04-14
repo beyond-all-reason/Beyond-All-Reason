@@ -32,12 +32,9 @@ if gadgetHandler:IsSyncedCode() then
     end
     
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
-        if IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
-            return true
-        end
         for bID, _ in pairs(builders) do
             local cmd, target = GetUnitWorkerTask(bID)
-            if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) then
+            if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) and not IsUnitInRadar(unitID, GetUnitAllyTeam(bID)) then
                 local _, _, cmdTag = GetUnitCurrentCommand(bID, 1)
                 GiveOrderToUnit(bID, CMD.REMOVE, {cmdTag}, {})
             end
