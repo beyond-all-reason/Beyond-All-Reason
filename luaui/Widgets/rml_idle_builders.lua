@@ -21,6 +21,7 @@ local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local myTeamID = Spring.GetMyTeamID()
 local spec = Spring.GetSpectatingState()
+local vsx, vsy = Spring.GetViewGeometry()
 
 local document
 local context
@@ -32,15 +33,6 @@ local maxGroups = 9
 local showRez = true
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
 local idleList = {}
-
--- When updating the data model, update the handler instead of the original table
-local dataModelHandle
--- Data model format
-local dataModel = {
-	idleUnitTypes = {},
-	count = 0
-}
-
 
 -- Cache unit types that show up in this widget
 local isBuilder = {}
@@ -63,6 +55,36 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+
+local function selectBuilderType(event, unitDefID)
+	local mx,my = Spring.GetMouseState()
+	local t, center = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
+	if idleList[unitDefID] then
+		local udef = idleList[unitDefID]
+		local nearest = math.huge
+		local nearestIndex = 0
+		for i = 1, #udef do
+			local x,y,z = Spring.GetUnitPosition(udef[i])
+			local dist = math.distance2dSquared(center[1], center[3], x, z)
+			if dist < nearest then
+				nearest = dist
+				nearestIndex = i
+			end
+		end
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		Spring.SelectUnitArray({udef[nearestIndex]}, shift)
+	end
+end
+
+
+-- When updating the data model, update the handler instead of the original table
+local dataModelHandle
+-- Data model format
+local dataModel = {
+	selectBuilderType = selectBuilderType,
+	idleUnitTypes = {},
+	count = 0
+}
 
 
 ---Returns true if the unit is a builder and is currently idle
@@ -116,6 +138,9 @@ local function updateList()
 		type.unitDefID = unitDefID
 		type.count = #units
 		uiList[#uiList + 1] = type
+		if #uiList >= maxGroups then
+			break
+		end
 	end
 
 	dataModelHandle.idleUnitTypes = uiList
@@ -123,11 +148,10 @@ local function updateList()
 end
 
 
-
 local sec = 0
 local doUpdate = true
 local timerStart = Spring.GetTimer()
-function Update()
+function widget:Update()
 	if Spring.GetGameFrame() <= 0 then return end
 	if not (not spec or showWhenSpec) then
 		return

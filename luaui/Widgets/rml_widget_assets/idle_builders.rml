@@ -16,7 +16,7 @@
                     <div class="zmed">z</div>
                     <div class="zlarge">z</div>
                 </div>
-                <div class="buildpic"  data-for="unit, index : idleUnitTypes">
+                <div class="buildpic" data-for="unit, index : idleUnitTypes" data-event-click="selectBuilderType(unit.unitDefID)">
                     <texture class="buildpic-img" data-attr-src="'#' + unit.unitDefID"/>
                     <p data-if="unit.count > 1" class="count">{{unit.count}}</p>
                 </div>
