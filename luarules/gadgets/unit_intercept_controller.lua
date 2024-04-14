@@ -126,9 +126,11 @@ end
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
 	local unitDefID = Spring.GetUnitDefID(interceptorUnitID);
-	if UnitDefs[unitDefID].customParams.interceptorgadget ~= 1 then
-		return false;
-	end
+	if UnitDefs[unitDefID].customParams.interceptorgadget == "0" then --Release candidates units OFF
+		DebugEcho(interceptorUnitID, "False - No script");
+		return true;
+	end --Otherwise: Release candidates units ON
+	DebugEcho(interceptorUnitID, "True - script");
 
 	if an_targetId[interceptorUnitID] ~= nil then
 		return false;

@@ -5,7 +5,7 @@ return {
 		buildangle = 4096,
 		energycost = 38000,
 		metalcost = 1500,
-		buildpic = "ARMAMD.DDS",
+		buildpic = "ARMAMDN.DDS",
 		buildtime = 60000,
 		canattack = false,
 		canrepeat = false,
