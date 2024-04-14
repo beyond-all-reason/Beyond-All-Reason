@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
     local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
     local GetAllUnits = Spring.GetAllUnits
     local GetUnitDefID = Spring.GetUnitDefID
-    local IsunitInRadar = Spring.IsUnitInRadar
+    local IsUnitInRadar = Spring.IsUnitInRadar
 
 
     function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
