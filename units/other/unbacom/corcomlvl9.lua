@@ -248,7 +248,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 109,
+					default = 119,
 				},
 			},
 			corcomsealaser = {
@@ -290,7 +290,7 @@ return {
 				weaponvelocity = 1500,
 				waterweapon = true,
 				damage = {
-					default = 109,
+					default = 119,
 				},
 			},
 			disintegrator = {

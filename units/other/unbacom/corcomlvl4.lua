@@ -234,7 +234,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				damage = {
-					default = 380,
+					default = 420,
 					subs = 25,
 				},
 			},

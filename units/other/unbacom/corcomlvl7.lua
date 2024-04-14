@@ -241,7 +241,7 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				damage = {
-					default = 123,
+					default = 133,
 				},
 			},
 			corcomsealaser = {
@@ -276,7 +276,7 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				damage = {
-					default = 123,
+					default = 133,
 				},
 			},
 			disintegrator = {
