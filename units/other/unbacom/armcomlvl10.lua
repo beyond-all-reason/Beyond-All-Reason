@@ -226,7 +226,7 @@ return {
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 5,
+				reloadtime = 7,
 				rgbcolor = "1 0 1",
 				soundhit = "lasrfir2",
 				soundhitwet = "sizzle",

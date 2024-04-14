@@ -216,7 +216,7 @@ return {
 				name = "Close-quarters g2g lightning turret",
 				noselfdamage = true,
 				range = 400,
-				reloadtime = 4,
+				reloadtime = 5,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",

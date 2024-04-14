@@ -29,7 +29,7 @@ return {
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 10,
+		idleautoheal = 52,
 		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
@@ -194,10 +194,14 @@ return {
 		},
 		weapondefs = {
 			corcomlaser = {
+				allowNonBlockingAim = true,
 				areaofeffect = 12,
 				avoidfeature = false,
+				avoidground = false,
 				beamtime = 0.16,
 				beamttl = 2.4,
+				collidefeature = false,
+				collidefriendly = false,
 				corethickness = 0.21,
 				craterareaofeffect = 0,
 				craterboost = 0,
