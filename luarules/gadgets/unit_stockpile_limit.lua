@@ -50,6 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		['armemp'] = 10,
 		['cortron'] = 10,
+		['legperdition'] = 10,
 
 		['armbotrail'] = 50,
 

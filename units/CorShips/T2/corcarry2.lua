@@ -6,11 +6,8 @@ return {
 		buildangle = 16384,
 		energycost = 17000,
 		metalcost = 1400,
-		--builder = true,
 		buildpic = "CORCARRY2.DDS",
 		buildtime = 20000,
-		--canassist = false,
-		--canattack = true,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -66,17 +63,13 @@ return {
 				collisionvolumescales = "76.2124633789 40.5466918945 153.329818726",
 				collisionvolumetype = "Box",
 				damage = 9540,
-				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
-				hitdensity = 100,
 				metal = 700,
 				object = "Units/corcarry_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -84,17 +77,13 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
-				hitdensity = 100,
 				metal = 350,
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -188,7 +177,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 0.123,
@@ -198,9 +187,9 @@ return {
 				range = 1200,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
@@ -208,15 +197,14 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "cordroneold",     --Name of the unit spawned by this carrier unit. 
-					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 1200, 	
-					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
-					spawnrate = 3, 				--Spawnrate roughly in seconds. 
-					maxunits = 24,				--Will spawn units until this amount has been reached. 
-					energycost = 500,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					metalcost = 20,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
+					carried_unit = "cordroneold",     --Name of the unit spawned by this carrier unit.
+					engagementrange = 1200,
+					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 3, 				--Spawnrate roughly in seconds.
+					maxunits = 24,				--Will spawn units until this amount has been reached.
+					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 20,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1300,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
@@ -225,17 +213,13 @@ return {
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 17,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit. 
-					dockingpieceend = 40,		--Last model piece used for docking. Will loop back to first when exceeded. 
+					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
+					dockingpieceend = 40,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 240,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},
 		weapons = {
-			--[2] = {
-			--	badtargetcategory = "ALL",
-			--	def = "FMD_ROCKET",
-			--},
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",

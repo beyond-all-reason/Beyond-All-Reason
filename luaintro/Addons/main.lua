@@ -130,6 +130,9 @@ if showTips then
 	local index = math.random(#tipKeys)
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
 end
+if string.find(backgroundTexture, "donations") then
+	randomTip = Spring.I18N('tips.loadscreen.donations')
+end
 
 -- for guishader
 local function CheckHardware()

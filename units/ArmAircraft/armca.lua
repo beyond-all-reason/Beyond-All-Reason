@@ -72,7 +72,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "armmex",
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

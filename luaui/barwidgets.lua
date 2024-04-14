@@ -1805,7 +1805,9 @@ end
 function widgetHandler:GameStart()
 	tracy.ZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
+		tracy.ZoneBeginN("W:GameStart:" .. w.whInfo.name)
 		w:GameStart()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

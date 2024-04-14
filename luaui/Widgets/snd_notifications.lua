@@ -37,7 +37,7 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
-local myTeamID = Spring.GetMyTeamID()
+local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 local totalUnits = 0
 
 local lockPlayerID
@@ -70,8 +70,8 @@ if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
 
-local soundFolder = "Sounds/voice/"..voiceSet.."/"
-local defaultSoundFolder = "Sounds/voice/"..defaultVoiceSet.."/"
+local soundFolder = "sounds/voice/"..voiceSet.."/"
+local defaultSoundFolder = "sounds/voice/"..defaultVoiceSet.."/"
 
 -- load and parse sound files/notifications
 local soundsTable = VFS.Include(soundFolder .. 'config.lua')
@@ -571,7 +571,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -582,7 +582,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -593,7 +593,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 

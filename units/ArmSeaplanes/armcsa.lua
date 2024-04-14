@@ -86,7 +86,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "armuwmex",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",

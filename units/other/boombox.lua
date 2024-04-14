@@ -1,6 +1,6 @@
 return {
 	boombox = {
-		blocking = true,
+		blocking = false,
 		energycost = 1,
 		metalcost = 1,
 		buildpic = "other/boombox.dds",
