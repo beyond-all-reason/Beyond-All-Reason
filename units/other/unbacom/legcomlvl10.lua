@@ -120,7 +120,7 @@ return {
 			subfolder = "",
 			workertimeboost = 8,
 			wtboostunittype = "MOBILE",
-			stockpileLimit = 5
+			stockpileLimit = 3
 		},
 		featuredefs = {
 			dead = {
@@ -345,12 +345,12 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 40,
+				projectiles = 20,
 				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2250,
 				stockpile = true,
-				stockpiletime = 12,
+				stockpiletime = 10,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -364,14 +364,13 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				customparams = {
-					spawns_name = "leglob",
+					spawns_name = "babyleglob",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
 					default = 0,
 					shields = 0,
 				},
-				
 			},
 		},
 		weapons = {

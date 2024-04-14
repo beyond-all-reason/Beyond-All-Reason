@@ -117,7 +117,7 @@ return {
 			subfolder = "",
 			workertimeboost = 5,
 			wtboostunittype = "MOBILE",
-			stockpileLimit = 5,
+			stockpileLimit = 6,
 			evolution_announcement = "Legion commanders have upgraded to level 6",
 			evolution_announcement_size = 18.5,
 			evolution_target = "legcomlvl6",
@@ -347,7 +347,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 4000,
+				energypershot = 8000,
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
@@ -380,7 +380,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				customparams = {
-					spawns_name = "leglob",
+					spawns_name = "babyleglob",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {

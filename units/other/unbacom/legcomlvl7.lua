@@ -118,7 +118,7 @@ return {
 			subfolder = "",
 			workertimeboost = 5,
 			wtboostunittype = "MOBILE",
-			stockpileLimit = 5,
+			stockpileLimit = 4,
 			evolution_announcement = "Legion commanders have upgraded to level 8",
 			evolution_announcement_size = 18.5,
 			evolution_target = "legcomlvl8",
@@ -332,7 +332,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 7600,
+				energypershot = 12000,
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
@@ -346,7 +346,7 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 19,
+				projectiles = 15,
 				range = 600,
 				reloadtime = 0.9,
 				sprayangle = 2250,
@@ -365,7 +365,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				customparams = {
-					spawns_name = "leglob",
+					spawns_name = "babyleglob",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
