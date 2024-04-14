@@ -329,7 +329,7 @@ function UnitDef_Post(name, uDef)
 
 		--Laser Citadel + gadget integration for all interceptors
 		if name == "armamd" then --Original citadel starbustlauncher antinuke
-			uDef.maxthisunit = 0
+			--uDef.maxthisunit = 0 -- Do not disable for now, raptors/AIs/Scavengers can have issue with it...
 		end
 		if name == "armacv" then --Replace original citadel with new one
 			uDef.buildoptions[23] = "armamdn"
