@@ -11,9 +11,6 @@ function gadget:GetInfo()
 end
 
 local builders = {}
-local toDo = {
-}
-local frame = -1
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -30,17 +27,6 @@ if gadgetHandler:IsSyncedCode() then
             return false
         end
         return true
-    end
-
-    function gadget:GameFrame(n)
-        frame = n
-        if not toDo[frame] then
-            return
-        end
-        for k, doThis in ipairs(toDo[frame]) do
-            doThis[1](doThis[2])
-            toDo[frame][k] = nil
-        end
     end
     
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
