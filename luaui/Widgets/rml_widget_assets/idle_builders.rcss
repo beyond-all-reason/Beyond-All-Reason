@@ -63,6 +63,7 @@ texture {
     height: 5vh;
     transform: scale(1.0);
     transition: transform 0.1s cubic-in-out;
+    border-radius: 5px;
 }
 
 texture:hover {

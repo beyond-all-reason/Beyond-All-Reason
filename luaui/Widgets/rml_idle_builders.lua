@@ -83,7 +83,7 @@ local dataModelHandle
 local dataModel = {
 	selectBuilderType = selectBuilderType,
 	idleUnitTypes = {},
-	count = 0
+	count = 0,
 }
 
 
