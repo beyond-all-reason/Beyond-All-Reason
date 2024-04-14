@@ -16,7 +16,7 @@ local toDo = {
 local frame = -1
 
 
---[[if gadgetHandler:IsSyncedCode() then
+if gadgetHandler:IsSyncedCode() then
     local GetUnitAllyTeam = Spring.GetUnitAllyTeam
     local GetUnitIsCloaked = Spring.GetUnitIsCloaked
     local GetUnitWorkerTask = Spring.GetUnitWorkerTask
@@ -77,4 +77,4 @@ local frame = -1
             initBuilder(unitID, unitDefID)
         end
     end
-end]]
+end
