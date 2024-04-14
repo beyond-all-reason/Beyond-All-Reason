@@ -30,6 +30,7 @@ local options = {
         name	= "Restrictions",
         desc   	= "",
         type   	= "section",
+        weight  = 7,
     },
 
     {
@@ -201,216 +202,13 @@ local options = {
         def    	= false,
     },
 
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Scavengers
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     {
-        key		= "scav_defense_options",
-        name	= "Scavengers",
-        desc	= "Gameplay options for Scavengers gamemode",
-        type	= "section",
-    },
-
-    {
-        key		= "scav_difficulty",
-        name	= "Base Difficulty",
-        desc	= "Scavs difficulty",
-        type	= "list",
-        def		= "normal",
-        section	= "scav_defense_options",
-        items	= {
-            { key = "veryeasy", name = "Very Easy", desc = "Very Easy" },
-            { key = "easy", 	name = "Easy", 		desc = "Easy" },
-            { key = "normal", 	name = "Normal", 	desc = "Normal" },
-            { key = "hard", 	name = "Hard", 		desc = "Hard" },
-            { key = "veryhard", name = "Very Hard", desc = "Very Hard" },
-            { key = "epic", 	name = "Epic", 		desc = "Epic" },
-        }
-    },
-
-    {
-        key		= "scav_scavstart",
-        name	= "Spawner Placement",
-        desc	= "Control where spawners appear",
-        type	= "list",
-        def		= "initialbox",
-        section	= "scav_defense_options",
-        items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc="Burrows avoid player units" },
-            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following burrows avoid players" },
-            { key = "alwaysbox", 	name =  "Always Start Box", desc="Burrows always spawn in scav start box" },
-        }
-    },
-
-    {
-        key		= "scav_endless",
-        name	= "Endless Mode",
-        desc	= "When you kill the boss, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
-        type	= "bool",
-        def		= false,
-        section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_bosstimemult",
-        name	= "Boss Preparation Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Boss Anger goes from 0 to 100%.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_spawncountmult",
-        name	= "Unit Spawn Per Wave Multiplier",
-        desc	= "(Range: 1 - 5). How many times more scavs will spawn per wave.",
-        type	= "number",
-        def		= 1,
-        min		= 1,
-        max		= 5,
-        step	= 1,
-        section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_graceperiodmult",
-        name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 3). Time before Scavs become active.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "scav_defense_options",
-    },
-
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Raptors
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    {
-        key 	= "raptor_defense_options",
-        name 	= "Raptors",
-        desc 	= "Various gameplay options that will change how the Raptor Defense is played.",
-        type 	= "section",
-    },
-
-    {
-        key		= "raptor_difficulty",
-        name	= "Base Difficulty",
-        desc	= "Raptors difficulty",
-        type	= "list",
-        def		= "normal",
-        section	= "raptor_defense_options",
-        items	= {
-            { key = "veryeasy", name = "Very Easy", desc="Very Easy" },
-            { key = "easy", 	name = "Easy", 		desc="Easy" },
-            { key = "normal", 	name = "Normal", 	desc="Normal" },
-            { key = "hard", 	name = "Hard", 		desc="Hard" },
-            { key = "veryhard", name = "Very Hard", desc="Very Hard" },
-            { key = "epic", 	name = "Epic", 		desc="Epic" },
-        }
-    },
-
-    {
-        key		= "raptor_raptorstart",
-        name	= "Burrow Placement",
-        desc	= "Control where burrows spawn",
-        type	= "list",
-        def		= "initialbox",
-        section	= "raptor_defense_options",
-        items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc = "Burrows avoid player units" },
-            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following burrows avoid players" },
-            { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Burrows always spawn in raptor start box" },
-        }
-    },
-
-    {
-        key		= "raptor_endless",
-        name	= "Endless Mode",
-        desc	= "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
-        type	= "bool",
-        def		= false,
-        section = "raptor_defense_options",
-    },
-
-    {
-        key		= "raptor_queentimemult",
-        name	= "Queen Hatching Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Queen Hatch goes from 0 to 100%",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section = "raptor_defense_options",
-    },
-
-    {
-        key		= "raptor_spawncountmult",
-        name	= "Unit Spawn Per Wave Multiplier",
-        desc	= "(Range: 1 - 5). How many times more raptors will spawn per wave.",
-        type	= "number",
-        def		= 1,
-        min		= 1,
-        max		= 5,
-        step	= 1,
-        section	= "raptor_defense_options",
-    },
-
-    {
-        key		= "raptor_firstwavesboost",
-        name	= "First Waves Size Boost",
-        desc	= "(Range: 1 - 10). Intended to use with heavily modified settings. Makes first waves larger, the bigger the number the larger they are. Cools down within first few waves.",
-        type	= "number",
-        def		= 1,
-        min		= 1,
-        max		= 10,
-        step	= 0.1,
-        section	= "raptor_defense_options",
-    },
-
-    {
-        key		= "raptor_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "raptor_defense_options",
-    },
-
-    {
-        key		= "raptor_graceperiodmult",
-        name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 5). Time before Raptors become active. ",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 5,
-        step	= 0.1,
-        section	= "raptor_defense_options",
+        key    	= "unit_restrictions_noendgamelrpc",
+        name   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        desc   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        type   	= "bool",
+        section	= "restrictions",
+        def    	= false,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -496,6 +294,7 @@ local options = {
         name	= "Resources",
         desc	= "Resource options",
         type	= "section",
+        weight  = 6,
     },
 
     {
@@ -605,6 +404,7 @@ local options = {
         name	= "Unit Modifiers",
         desc	= "Multipliers options",
         type	= "section",
+        weight  = 5,
     },
 
     {
@@ -787,181 +587,217 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Experimental Options
+    -- Raptors
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     {
-        key		= "options_experimental",
-        name	= "Experimental",
-        desc	= "Experimental options",
-        type	= "section",
+        key 	= "raptor_defense_options",
+        name 	= "Raptors",
+        desc 	= "Various gameplay options that will change how the Raptor Defense is played.",
+        type 	= "section",
+        weight  = 4,
     },
 
     {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentalshields",
-        name   	= "Shield Type Override",
-        desc   	= "Shield Type Override",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "unchanged",
+        key		= "raptor_difficulty",
+        name	= "Base Difficulty",
+        desc	= "Raptors difficulty",
+        type	= "list",
+        def		= "normal",
+        section	= "raptor_defense_options",
         items	= {
-            { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
-            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
-            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
-            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+            { key = "veryeasy", name = "Very Easy", desc="Very Easy" },
+            { key = "easy", 	name = "Easy", 		desc="Easy" },
+            { key = "normal", 	name = "Normal", 	desc="Normal" },
+            { key = "hard", 	name = "Hard", 		desc="Hard" },
+            { key = "veryhard", name = "Very Hard", desc="Very Hard" },
+            { key = "epic", 	name = "Epic", 		desc="Epic" },
         }
     },
 
     {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
-        key    	= "experimentalstandardgravity",
-        name   	= "Gravity Override",
-        desc   	= "Override map gravity for weapons",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "mapgravity",
-        items 	= {
-            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
-            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
-            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
-            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
+        key		= "raptor_raptorstart",
+        name	= "Burrow Placement",
+        desc	= "Control where burrows spawn",
+        type	= "list",
+        def		= "initialbox",
+        section	= "raptor_defense_options",
+        items	= {
+            { key = "avoid", 		name = "Avoid Players", 	desc = "Burrows avoid player units" },
+            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following burrows avoid players" },
+            { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Burrows always spawn in raptor start box" },
         }
     },
 
     {
-        key   	= "releasecandidates",
-        name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentallegionfaction",
-        name   	= "Legion Faction",
-        desc   	= "3rd experimental faction",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key 	= "emprework",
-        name 	= "EMP Rework",
-        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "air_rework",
-        name 	= "Air Rework",
-        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "lategame_rebalance",
-        name 	= "Lategame Rebalance",
-        desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-        hidden 	= true,
-    },
-
-    {
-        key		= "unified_maxslope",
-        name	= "Standardized land unit maxslope",
-        desc	= "All land units have minimum maxslope of 36",
+        key		= "raptor_endless",
+        name	= "Endless Mode",
+        desc	= "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
         type	= "bool",
         def		= false,
-        section	= "options_experimental",
+        section = "raptor_defense_options",
     },
 
     {
-        key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "(Range: 0 - 30). Minutes",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 0,
-        min    	= 0,
-        max    	= 30,
-        step   	= 1,
+        key		= "raptor_queentimemult",
+        name	= "Queen Hatching Time Multiplier",
+        desc	= "(Range: 0.1 - 3). How quickly Queen Hatch goes from 0 to 100%",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section = "raptor_defense_options",
     },
 
     {
-        key    	= "teamcolors_icon_dev_mode",
-        name   	= "Icon Dev Mode ",
-        desc   	= "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "disabled",
-        items 	= {
-            { key = "disabled", 	name = "Disabled", 			desc = "description" },
-            { key = "armblue", 		name = "Armada Blue", 		desc = "description" },
-            { key = "corred", 		name = "Cortex Red", 		desc = "description" },
-            { key = "scavpurp", 	name = "Scavenger Purple", 	desc = "description" },
-            { key = "raptororange", name = "Raptor Orange", 	desc = "description" },
-			{ key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
-			{ key = "leggren",		name = "Legion Green", 		desc = "description" },
+        key		= "raptor_spawncountmult",
+        name	= "Unit Spawn Per Wave Multiplier",
+        desc	= "(Range: 1 - 5). How many times more raptors will spawn per wave.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 5,
+        step	= 1,
+        section	= "raptor_defense_options",
+    },
+
+    {
+        key		= "raptor_firstwavesboost",
+        name	= "First Waves Size Boost",
+        desc	= "(Range: 1 - 10). Intended to use with heavily modified settings. Makes first waves larger, the bigger the number the larger they are. Cools down within first few waves.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 10,
+        step	= 0.1,
+        section	= "raptor_defense_options",
+    },
+
+    {
+        key		= "raptor_spawntimemult",
+        name	= "Time Between Waves Multiplier",
+        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section	= "raptor_defense_options",
+    },
+
+    {
+        key		= "raptor_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 5). Time before Raptors become active. ",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 5,
+        step	= 0.1,
+        section	= "raptor_defense_options",
+    },
+
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- Scavengers
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    {
+        key		= "scav_defense_options",
+        name	= "Scavengers",
+        desc	= "Gameplay options for Scavengers gamemode",
+        type	= "section",
+        weight  = 3,
+    },
+
+    {
+        key		= "scav_difficulty",
+        name	= "Base Difficulty",
+        desc	= "Scavs difficulty",
+        type	= "list",
+        def		= "normal",
+        section	= "scav_defense_options",
+        items	= {
+            { key = "veryeasy", name = "Very Easy", desc = "Very Easy" },
+            { key = "easy", 	name = "Easy", 		desc = "Easy" },
+            { key = "normal", 	name = "Normal", 	desc = "Normal" },
+            { key = "hard", 	name = "Hard", 		desc = "Hard" },
+            { key = "veryhard", name = "Very Hard", desc = "Very Hard" },
+            { key = "epic", 	name = "Epic", 		desc = "Epic" },
         }
     },
 
     {
-        key    	= "faction_limiter",
-        name   	= "Limit which factions a team can play.",
-        desc   	= "Input the factions a team should play, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
+        key		= "scav_scavstart",
+        name	= "Spawner Placement",
+        desc	= "Control where spawners appear",
+        type	= "list",
+        def		= "initialbox",
+        section	= "scav_defense_options",
+        items	= {
+            { key = "avoid", 		name = "Avoid Players", 	desc="Burrows avoid player units" },
+            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following burrows avoid players" },
+            { key = "alwaysbox", 	name =  "Always Start Box", desc="Burrows always spawn in scav start box" },
+        }
     },
 
     {
-        key 	= "skyshift",
-        name 	= "Skyshift: Air Rework",
-        desc 	= "A complete overhaul of air units and mechanics",
-        type 	= "bool",
-        def 	= false,
-        section = "options_experimental",
-        hidden 	= true,
+        key		= "scav_endless",
+        name	= "Endless Mode",
+        desc	= "When you kill the boss, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
+        type	= "bool",
+        def		= false,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_bosstimemult",
+        name	= "Boss Preparation Time Multiplier",
+        desc	= "(Range: 0.1 - 3). How quickly Boss Anger goes from 0 to 100%.",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_spawncountmult",
+        name	= "Unit Spawn Per Wave Multiplier",
+        desc	= "(Range: 1 - 5). How many times more scavs will spawn per wave.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 5,
+        step	= 1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_spawntimemult",
+        name	= "Time Between Waves Multiplier",
+        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 3). Time before Scavs become active.",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section	= "scav_defense_options",
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -975,6 +811,7 @@ local options = {
         name	= "Extras",
         desc	= "Extra options",
         type	= "section",
+        weight  = 2,
     },
 
     --{
@@ -985,6 +822,27 @@ local options = {
     --	def    	= true,
     --	section	= "options_extra",
     --},
+
+	-- {
+	-- 	key		= "unithats",
+	-- 	name	= "Unit Hats",
+	-- 	desc	= "Unit Hats, for the current season",
+	-- 	type	= "list",
+	-- 	def		= "disabled",
+	-- 	items	= {
+	-- 		{ key = "disabled",	name = "Disabled" },
+	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
+	-- 	},
+	-- 	section	= "options_extra",
+	-- },
+	--{
+	--	key		= "easter_egg_hunt",
+	--	name	= "Easter Eggs Hunt",
+	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+	--	type	= "bool",
+	--	def		= false,
+	--	section	= "options_extra",
+	--},
 
     {
         key 	= "map_waterlevel",
@@ -1199,6 +1057,169 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- Experimental Options
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    {
+        key		= "options_experimental",
+        name	= "Experimental",
+        desc	= "Experimental options",
+        type	= "section",
+        weight  = 1,
+    },
+
+    {
+        key    	= "experimentalnoaircollisions",
+        name   	= "Aircraft Collisions Override",
+        desc   	= "Aircraft Collisions Override",
+        hidden 	= true,
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key    	= "experimentalshields",
+        name   	= "Shield Type Override",
+        desc   	= "Shield Type Override",
+        type   	= "list",
+        section = "options_experimental",
+        def  	= "unchanged",
+        items	= {
+            { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
+            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
+            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
+            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+        }
+    },
+
+    {
+        key    	= "experimentalxpgain",
+        name   	= "XP Gain Multiplier",
+        desc   	= "XP Gain Multiplier",
+        hidden 	= true,
+        type   	= "number",
+        section = "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
+
+    {
+        key    	= "experimentalstandardgravity",
+        name   	= "Gravity Override",
+        desc   	= "Override map gravity for weapons",
+        type   	= "list",
+        section = "options_experimental",
+        def  	= "mapgravity",
+        items 	= {
+            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
+            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
+            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
+            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
+        }
+    },
+
+    {
+        key   	= "releasecandidates",
+        name   	= "Release Candidate Units",
+        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key    	= "experimentallegionfaction",
+        name   	= "Legion Faction",
+        desc   	= "3rd experimental faction",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key 	= "emprework",
+        name 	= "EMP Rework",
+        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "air_rework",
+        name 	= "Air Rework",
+        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "lategame_rebalance",
+        name 	= "Lategame Rebalance",
+        desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+        hidden 	= true,
+    },
+
+    {
+        key		= "unified_maxslope",
+        name	= "Standardized land unit maxslope",
+        desc	= "All land units have minimum maxslope of 36",
+        type	= "bool",
+        def		= false,
+        section	= "options_experimental",
+    },
+
+    {
+        key    	= "norushtimer",
+        name   	= "No Rush Time",
+        desc   	= "(Range: 0 - 30). Minutes",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 0,
+        min    	= 0,
+        max    	= 30,
+        step   	= 1,
+    },
+
+    {
+        key    	= "faction_limiter",
+        name   	= "Team Faction Limiter",
+        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
+        type   	= "string",
+        section	= "options_experimental",
+        def		= "",
+		hidden	= true,
+    },
+
+    {
+        key 	= "skyshift",
+        name 	= "Skyshift: Air Rework",
+        desc 	= "A complete overhaul of air units and mechanics",
+        type 	= "bool",
+        def 	= false,
+        section = "options_experimental",
+        hidden 	= true,
+    },
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1236,23 +1257,54 @@ local options = {
         step   	= 0.1,
     },
 
-    {
-        key     = "debugcommands",
-        name    = "Debug Commands",
-        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
-        section = "options_experimental",
-        type    = "string",
-        def     = "",
-    },
 
     {
         key     = "defaultdecals",
         name    = "Default Decals",
-        desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "Use the default explosion decals instead of Decals GL4",
         section = "options_experimental",
         type    = "bool",
         def     =  true,
         hidden 	= true,
+    },
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- DEV mode only mod option otherwise hidden by chobby
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    {
+        key		= "dev",
+        name	= "_DEV",
+        desc	= "tab that should be hidden by chobby",
+        hidden 	= true,
+        type	= "section",
+    },
+    {
+        key    	= "teamcolors_icon_dev_mode",
+        name   	= "Icon Dev Mode ",
+        desc   	= "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
+        type   	= "list",
+        section = "dev",
+        def  	= "disabled",
+        items 	= {
+            { key = "disabled", 	name = "Disabled", 			desc = "description" },
+            { key = "armblue", 		name = "Armada Blue", 		desc = "description" },
+            { key = "corred", 		name = "Cortex Red", 		desc = "description" },
+            { key = "scavpurp", 	name = "Scavenger Purple", 	desc = "description" },
+            { key = "raptororange", name = "Raptor Orange", 	desc = "description" },
+			{ key = "gaiagray", 	name = "Gaia Gray", 		desc = "description" },
+			{ key = "leggren",		name = "Legion Green", 		desc = "description" },
+        }
+    },
+    {
+        key     = "debugcommands",
+        name    = "Debug Commands",
+        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "string",
+        def     = "",
     },
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

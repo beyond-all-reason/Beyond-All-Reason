@@ -356,9 +356,13 @@ local armorDefs = {
 		"armapt3",
 		"corapt3",
 		"legbastion",
+		"legbombard",
+		"legperdition",
 		"legstarfall",
 		"legflak",
 		"legsolar",
+		"legsolar",
+		"legadvsol",
 
 		"coruwgeo",
 		"coruwageo",
@@ -484,6 +488,7 @@ local armorDefs = {
 		"legphoenix",
 		"legstronghold",
 		"legwhisper",
+		"critter_gull",
 	},
 	shields = {
 		"armgate",

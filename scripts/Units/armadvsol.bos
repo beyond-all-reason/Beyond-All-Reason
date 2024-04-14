@@ -8,15 +8,7 @@ piece  base, solarbase, container;
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, sunheading, unitheading;
 
 
-#define LUA0 110
-#define LUA1 111
-#define LUA2 112
-#define LUA3 113
-
-
 lua_solarpoint() {
-	//get PRINT(1234);
-	//get PRINT(LUA0, LUA1, LUA2, LUA3);//nani
 	return(0);
 }
 

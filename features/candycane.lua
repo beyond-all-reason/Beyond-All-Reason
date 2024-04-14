@@ -4,15 +4,12 @@ local candyCane = {
 	category = "corpses",
 	damage = 30,
 	energy = 5,
-	featurereclamate = "SMUDGE01",
 	footprintx = 1,
 	footprintz = 1,
 	height = 30,
 	hitdensity = 999999,
 	metal = 0,
 	reclaimable = 0,
-	seqnamereclamate = "TREE1RECLAMATE",
-	world = "All Worlds",
 	customparams = {
 		i18nfrom = 'candycane'
 	}

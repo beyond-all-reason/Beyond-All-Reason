@@ -13,8 +13,14 @@ vertex = [[
 		layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
 		#define pieceIndex (bonesInfo.x & 0x000000FFu)
 	#endif
-
-	layout (location = 6) in uvec4 instData;
+	#ifndef STATICMODEL
+		layout (location = 6) in uvec4 instData;
+	#else
+		layout (location = 6) in vec4 offsetpos_targetpiece;
+		layout (location = 7) in vec4 offsetrot;
+		layout (location = 8) in uvec4 instData;
+	#endif
+		
 	// u32 matOffset
 	// u32 uniOffset
 	// u32 {teamIdx, drawFlag, unused, unused}
@@ -279,7 +285,11 @@ vertex = [[
 		// The only difference is that displacedPos is passed in, and we always assume staticModel = false
 		void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
 		{
-			bool staticModel = false;// (matrixMode > 0);
+			#ifndef STATICMODEL
+				bool staticModel = false;// (matrixMode > 0);
+			#else
+				bool staticModel = true;// (matrixMode > 0);
+			#endif
 
 			vec4 piecePos = vec4(displacedPos, 1.0);
 
@@ -336,6 +346,35 @@ vertex = [[
 		}
 	#endif
 
+	mat4 rotationMatrix(vec3 rot) {
+		float c1 = cos(rot.x);
+		float s1 = sin(rot.x);
+		float c2 = cos(rot.y);
+		float s2 = sin(rot.y);
+		float c3 = cos(rot.z);
+		float s3 = sin(rot.z);
+
+		// Rotation matrices for each axis
+		mat4 rx = mat4(1.0, 0.0, 0.0, 0.0,
+					   0.0, c1, -s1, 0.0,
+					   0.0, s1, c1, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+					   
+		mat4 ry = mat4(c2, 0.0, s2, 0.0,
+					   0.0, 1.0, 0.0, 0.0,
+					   -s2, 0.0, c2, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+					   
+		mat4 rz = mat4(c3, -s3, 0.0, 0.0,
+					   s3, c3, 0.0, 0.0,
+					   0.0, 0.0, 1.0, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+
+		// Combined rotation matrix, order is important
+		return rz * ry * rx;
+	}
+	
+
 	/***********************************************************************/
 	// Vertex shader main()
 
@@ -345,8 +384,24 @@ vertex = [[
 	{
 		unitID = int(UNITID);
 		userDefined2 = UNITUNIFORMS.userDefined[2];
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
-		mat4 worldMatrix = mat[instData.x];
+		#ifndef STATICMODEL
+			// pieceMatrix looks up the model-space transform matrix for unit being drawn
+			mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+			
+			// Then it places it in the world
+			mat4 worldMatrix = mat[instData.x];
+		#else
+			// First lets orient the
+		
+			// pieceMatrix looks up the model-space transform matrix for the unit we are drawing onto!
+			uint targetPieceIndex = uint(offsetpos_targetpiece.w);
+			mat4 pieceMatrix = mat[instData.x + targetPieceIndex + 1u];
+			
+			// Then it places it in the world
+			mat4 worldMatrix = mat[instData.x];
+	
+		#endif
+			
 
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
@@ -1887,18 +1942,19 @@ local defaultMaterialTemplate = {
 		[10] = "modelmaterials_gl4/envlut_0.png",
 	},
 
-	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
-	postdl = nil, -- `postdl` is replaced with `postlist` later in api_cus
+	--predl = nil, -- predl is replaced with prelist later in api_cus
+	--postdl = nil, -- postdl is replaced with postlist later in api_cus
 
-	uuid = nil, -- currently unused (not sent to engine)
-	order = nil, -- currently unused (not sent to engine)
+	--uuid = nil, -- uuid currently unused (not sent to engine)
+	--order = nil, -- currently unused (not sent to engine)
 
-	culling = GL.BACK, -- usually GL.BACK is default, except for 3do
-	shadowCulling = GL.BACK,
-	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
+	--culling = GL.BACK, -- usually GL.BACK is default, except for 3do
+	-- shadowCulling = GL.BACK,
+	-- usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }
 
 local shaderPlugins = {
+	-- Inserted between %%TARGET%% blocks via InsertPlugin
 }
 
 

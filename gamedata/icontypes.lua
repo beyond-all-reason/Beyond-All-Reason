@@ -983,6 +983,14 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
+	cor_hat_hornet = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
+	cor_hat_ptaq = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995
+	},
 	coraak = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
@@ -2011,6 +2019,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
 	},
+	legadvsol = {
+		bitmap = "icons/energy2_1.18.png",
+		size = 1.23899984
+	},
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
@@ -2046,6 +2058,10 @@ local icontypes = {
 	legbastion = {
 		bitmap = "icons/cordoom.png",
 		size = 2.0474999
+	},
+	legbombard = {
+		bitmap = "icons/def_t2_impulse.png",
+		size = 1.46999991
 	},
 	legca = {
 		bitmap = "icons/air_worker.png",
@@ -2246,6 +2262,10 @@ local icontypes = {
 	legpede = {
 		bitmap = "icons/corkarg_2.05.png",
 		size = 3
+	},
+	legperdition = {
+		bitmap = "icons/tacnuke.png",
+		size = 1.88999987
 	},
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",

@@ -974,10 +974,9 @@ end
 local function SetOriginalColourNames()
     -- Saves the original team colours associated to team teamID
     for playerID, _ in pairs(player) do
-        if player[playerID].name then
-            if not player[playerID].spec then
-                originalColourNames[playerID] = colourNames(player[playerID].team)
-            end
+        if player[playerID].name and not player[playerID].spec and playerID < specOffset then
+            local colorstring, r, g, b = colourNames(player[playerID].team, true)
+            originalColourNames[playerID] = { r, g, b }
         end
     end
 end
@@ -1992,7 +1991,7 @@ function DrawLabelTip(text, vOffset, xOffset)
 end
 
 function DrawSeparator(vOffset)
-    vOffset = vOffset - (2.15/playerScale)
+    vOffset = vOffset - (3*playerScale)
     RectRound(
 		widgetPosX + 2,
 		widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale),
@@ -2482,7 +2481,7 @@ function DrawCamera(posY, active)
     DrawRect(m_indent.posX + widgetPosX - (1.5*playerScale), posY + (2*playerScale), m_indent.posX + widgetPosX + (9*playerScale), posY + (12.4*playerScale))
 end
 
-function colourNames(teamID)
+function colourNames(teamID, returnRgbToo)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
@@ -2499,7 +2498,11 @@ function colourNames(teamID)
     if B255 % 10 == 0 then
         B255 = B255 + 1
     end
-    return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+    if returnRgbToo then
+        return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255), R255, G255, B255 --works thanks to zwzsg
+    else
+        return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+    end
 end
 
 function DrawState(playerID, posX, posY)
@@ -2636,7 +2639,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     end
 
     if originalColourNames[playerID] then
-        name = originalColourNames[playerID] .. name
+        name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
     end
 
     font2:Begin()
@@ -3284,6 +3287,7 @@ function widget:GetConfigData()
             m_active_Table[module.name] = module.active
         end
 
+
         local settings = {
             --view
             customScale = customScale,
@@ -3607,7 +3611,7 @@ function widget:Update(delta)
         local curMapDrawMode = Spring.GetMapDrawMode()
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
         if lockPlayerID then
-            LockCamera(player[clickedPlayerID].ai and nil or i)
+            LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         else
             if not fullView then
                 desiredLosmode = 'los'

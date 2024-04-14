@@ -10,17 +10,17 @@ function gadget:GetInfo()
     }
 end
 
-if true then
-    return -- kill it for now
+if Spring.GetModOptions().easter_egg_hunt ~= true then
+	return false
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return
+    return false
 end
 
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
 
-function spawnRandomEggField(x,y,z)
+function spawnRandomEggField(x,y,z, spread)
 
     local featureValueMetal = 5
     local featureValueEnergy = 50
@@ -38,12 +38,15 @@ function spawnRandomEggField(x,y,z)
             size = "s"
             color = colors[math.random(#colors)]
         end
-
-        local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x+math.random(-600,600), y + 20, z+math.random(-600,600), math.random(-999999,999999), Spring.GetGaiaTeamID())
-        if egg then
-            Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-            --Spring.SetFeatureVelocity(egg, math.random(-600,600)*0.01, math.random(200,400)*0.01, math.random(-600,600)*0.01)
-            Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
+        x = x+math.random(-spread,spread)
+        y = y + 20
+        z = z+math.random(-spread,spread)
+        if x > 0 and x < Game.mapSizeX and z > 0 and z < Game.mapSizeZ then
+            local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y, z, math.random(-999999,999999), Spring.GetGaiaTeamID())
+            if egg then
+                Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+                Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
+            end
         end
 
     end
@@ -57,8 +60,15 @@ function gadget:GameFrame(frame)
             for i = 1, #metalSpots do
                 local spot = metalSpots[i]
                 if spot then
-                    spawnRandomEggField(spot.x, Spring.GetGroundHeight(spot.x, spot.z), spot.z)
+                    spawnRandomEggField(spot.x, Spring.GetGroundHeight(spot.x, spot.z), spot.z, 600)
                 end
+            end
+        else
+            for i = 1,100 do
+                local x = math.random(0, Game.mapSizeX)
+                local z = math.random(0, Game.mapSizeZ)
+                local y = Spring.GetGroundHeight(x, z)
+                spawnRandomEggField(x, y, z, 1000)
             end
         end
     end
