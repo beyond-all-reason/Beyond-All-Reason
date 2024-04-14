@@ -21,15 +21,20 @@ if gadgetHandler:IsSyncedCode() then
     local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
     local GetAllUnits = Spring.GetAllUnits
     local GetUnitDefID = Spring.GetUnitDefID
+    local IsunitInRadar = Spring.IsUnitInRadar
+
 
     function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
-        if (cmdID == CMD.RECLAIM) and (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) then
+        if (cmdID == CMD.RECLAIM) and (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) and not IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
             return false
         end
         return true
     end
     
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
+        if IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
+            return true
+        end
         for bID, _ in pairs(builders) do
             local cmd, target = GetUnitWorkerTask(bID)
             if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) then
