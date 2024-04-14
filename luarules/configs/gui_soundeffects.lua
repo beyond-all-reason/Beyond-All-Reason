@@ -2412,6 +2412,17 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
+	
+	legperdition = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "rocketalt-large",
+	},	
+	legbombard = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "plasma-large-alt",
+	},	
 
 	legbastion = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
@@ -2469,7 +2480,11 @@ GUIUnitSoundEffects = {
 		BaseSoundActivate   = "arm-bld-solar-activate",
 		BaseSoundDeactivate = "arm-bld-solar-deactivate",
 	},
-
+	legadvsol = {
+		BaseSoundSelectType = "arm-bld-nrghum",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-solar-alt-adv",
+	},
 
 	-- LEGION T1 BOTS
 	legck = {

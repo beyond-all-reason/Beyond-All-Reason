@@ -442,6 +442,7 @@ local unitOrderTable = {
    ['legsolar']       = 101090,
    ['armadvsol']      = 101100,
    ['coradvsol']      = 101150,
+   ['legadvsol']      = 101170,
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
@@ -571,6 +572,7 @@ local unitOrderTable = {
    ['legmg']          = 107000, --land/AA machinegun
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
+   ['legbombard']     = 107250,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
    ['armanni']        = 107500,
@@ -611,6 +613,7 @@ local unitOrderTable = {
    --DEFENSES MISSILE LAUNCHERS
    ['armemp']         = 165000,
    ['cortron']        = 165500,
+   ['legperdition']   = 165600,
    ['armamd']         = 166000,
    ['corfmd']         = 166500,
    ['armsilo']        = 180000,

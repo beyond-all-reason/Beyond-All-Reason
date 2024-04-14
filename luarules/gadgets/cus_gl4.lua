@@ -209,7 +209,7 @@ end
 -- KNOWN BUGS:
 	-- Unitdestroyed doesnt trigger removal?
 
---inputs
+-- Export important things
 
 ---------------------------- SHADERUNITUNIFORMS / BITSHADEROPTIONS ---------------------------------------------
 
@@ -1912,6 +1912,20 @@ function gadget:Initialize()
 	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 		initGL4()
 	end
+	
+	GG.CUSGL4 = {}
+	GG.CUSGL4.unitsInViewport = unitsInViewport
+	GG.CUSGL4.featuresInViewport = featuresInViewport
+	GG.CUSGL4.objectDefToBitShaderOptions = objectDefToBitShaderOptions
+	GG.CUSGL4.objectDefToUniformBin = objectDefToUniformBin
+	GG.CUSGL4.GetUniformBinID = GetUniformBinID
+	GG.CUSGL4.uniformBins = uniformBins
+	GG.CUSGL4.uniformBins = uniformBins
+	GG.CUSGL4.shaders = shaders
+	GG.CUSGL4.GetShader = GetShader
+	GG.CUSGL4.GetShaderName = GetShaderName
+	GG.CUSGL4.SetShaderUniforms = SetShaderUniforms
+	
 end
 
 function gadget:Shutdown()
@@ -1939,6 +1953,11 @@ function gadget:Shutdown()
 	--gadgetHandler:RemoveChatAction("disablecusgl4")
 	--gadgetHandler:RemoveChatAction("reloadcusgl4")
 	--gadgetHandler:RemoveChatAction("cusgl4updaterate")
+	for k,v in pairs(GG.CUSGL4) do
+		GG.CUSGL4[k] = nil
+	end
+	
+	GG.CUSGL4 = nil
 end
 
 

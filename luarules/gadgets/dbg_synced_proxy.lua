@@ -13,8 +13,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
+	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
 	return
 end
+
+Spring.SetGameRulesParam('isSyncedProxyEnabled', true)
 
 local LOG_LEVEL = LOG.INFO
 
@@ -72,4 +75,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return
 		end
 	end
+end
+
+function gadget:Shutdown()
+	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
 end

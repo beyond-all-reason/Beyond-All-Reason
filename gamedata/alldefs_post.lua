@@ -82,41 +82,46 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	if Spring.GetModOptions().april1 == true then
-		if name == "corak" then
-			uDef.objectname = "apf/CORAK.s3o"
-		elseif name == "corllt" then
-			uDef.objectname = "apf/CORllt.s3o"
-		elseif name == "corhllt" then
-			uDef.objectname = "apf/CORhllt.s3o"
-		elseif name == "corack" then
-			uDef.objectname = "apf/CORACK.s3o"
-		elseif name == "corck" then
-			uDef.objectname = "apf/CORCK.s3o"
-		elseif name == "armpw" then
-			uDef.objectname = "apf/ARMPW.s3o"
-		elseif name == "cordemon" then
-			uDef.objectname = "apf/cordemon.s3o"
-		elseif name == "correap" then
-			uDef.objectname = "apf/correap.s3o"
-		elseif name == "corstorm" then
-			uDef.objectname = "apf/corstorm.s3o"
-		elseif name == "armcv" then
-			uDef.objectname = "apf/armcv.s3o"
-		elseif name == "armrock" then
-			uDef.objectname = "apf/armrock.s3o"
-		elseif name == "armbull" then
-			uDef.objectname = "apf/armbull.s3o"
-		elseif name == "armllt" then
-			uDef.objectname = "apf/armllt.s3o"
-		elseif name == "armwin" then
-			uDef.objectname = "apf/armwin.s3o"
-		elseif name == "armham" then
-			uDef.objectname = "apf/armham.s3o"
-		elseif name == "corwin" then
-			uDef.objectname = "apf/corwin.s3o"
-		elseif name == "corthud" then
-			uDef.objectname = "apf/corthud.s3o"
+	-- inidivual unit hat processing
+	do
+		if modOptions.unithats then
+			if modOptions.unithats == "april" then
+				if name == "corak" then
+					uDef.objectname = "apf/CORAK.s3o"
+				elseif name == "corllt" then
+					uDef.objectname = "apf/CORllt.s3o"
+				elseif name == "corhllt" then
+					uDef.objectname = "apf/CORhllt.s3o"
+				elseif name == "corack" then
+					uDef.objectname = "apf/CORACK.s3o"
+				elseif name == "corck" then
+					uDef.objectname = "apf/CORCK.s3o"
+				elseif name == "armpw" then
+					uDef.objectname = "apf/ARMPW.s3o"
+				elseif name == "cordemon" then
+					uDef.objectname = "apf/cordemon.s3o"
+				elseif name == "correap" then
+					uDef.objectname = "apf/correap.s3o"
+				elseif name == "corstorm" then
+					uDef.objectname = "apf/corstorm.s3o"
+				elseif name == "armcv" then
+					uDef.objectname = "apf/armcv.s3o"
+				elseif name == "armrock" then
+					uDef.objectname = "apf/armrock.s3o"
+				elseif name == "armbull" then
+					uDef.objectname = "apf/armbull.s3o"
+				elseif name == "armllt" then
+					uDef.objectname = "apf/armllt.s3o"
+				elseif name == "armwin" then
+					uDef.objectname = "apf/armwin.s3o"
+				elseif name == "armham" then
+					uDef.objectname = "apf/armham.s3o"
+				elseif name == "corwin" then
+					uDef.objectname = "apf/corwin.s3o"
+				elseif name == "corthud" then
+					uDef.objectname = "apf/corthud.s3o"
+				end
+			end
 		end
 	end
 

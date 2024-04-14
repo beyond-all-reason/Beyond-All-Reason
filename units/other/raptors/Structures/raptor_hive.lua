@@ -48,7 +48,6 @@ return {
 			model_author = "FireStorm, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-			--treeshader = "yes",
 		},
 		featuredefs = {},
 		sfxtypes = {
@@ -78,7 +77,6 @@ return {
 				craterboost = 0.2,
 				cratermult = 0.2,
 				edgeeffectiveness = 0.63,
-				--explosiongenerator = "custom:ELECTRIC_EXPLOSION",
 				explosiongenerator = "custom:genericshellexplosion-huge",
 				impulseboost = 0,
 				impulsefactor = 0.4,
@@ -109,7 +107,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

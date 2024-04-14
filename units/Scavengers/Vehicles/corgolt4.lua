@@ -41,21 +41,14 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-			cannon1name = "barrel",
-			driftratio = "0.4",
 			firingceg = "barrelshot-tiny",
-			flare1name = "flash",
 			kickback = "-4",
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			restoretime = "3000",
-			rockstrength = "10",
-			sleevename = "sleeve",
 			subfolder = "corvehicles",
-			turretname = "turret",
 			techlevel = 3,
-			wpn1turretx = "20",
-			wpn1turrety = "170",
+			weapon1turretx = 20,
+			weapon1turrety = 170,
 		},
 		featuredefs = {
 			dead = {
@@ -65,38 +58,28 @@ return {
 				collisionvolumescales = "70 63 70",
 				collisionvolumetype = "Box",
 				damage = 100000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
 				height = 20,
-				hitdensity = 100,
 				metal = 12500,
 				object = "Units/scavboss/corgolt4_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
-			
+
 			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 10000,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
 				height = 4,
-				hitdensity = 100,
 				metal = 2750,
 				object = "Units/arm2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -166,7 +149,7 @@ return {
 					subs = 500,
 				},
 			},
-			
+
 			corgol_sidelaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -205,7 +188,7 @@ return {
 					default = 750,
 					vtol = 125,
 				},
-			},			
+			},
 		},
 		weapons = {
 			[1] = {
