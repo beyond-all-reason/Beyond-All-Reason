@@ -378,16 +378,16 @@ function UnitDef_Post(name, uDef)
 		if name == "cormabm" then
 			interceptorsRemakeUnit(uDef, uDef.weapondefs.cormabm_weapon)
 		end
-
-		if name == "raptor_antinuke" then --Raptor
-			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
-		end
-		if name == "raptor_turret_antinuke_t2_v1" then
-			uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
-		end
-		if name == "raptor_turret_antinuke_t3_v1" then
-			uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
-		end
+		
+		--if name == "raptor_antinuke" then --Raptor
+		--	interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
+		--end
+		--if name == "raptor_turret_antinuke_t2_v1" then
+		--	uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
+		--end
+		--if name == "raptor_turret_antinuke_t3_v1" then
+		--	uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
+		--end
 	end
 
 	-- Add scav units to normal factories and builders
