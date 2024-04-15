@@ -24,7 +24,7 @@ local takeCommand = "take2"
 local minTimeToTake = 12 -- in seconds
 local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
-minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
+minTimeToTake = (Spring.GetModOptions().startpostype == 2 or Spring.GetModOptions().startpostype == 4 or Spring.GetModOptions().startpostype == 5) and 1 or minTimeToTake
 
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage

@@ -20,6 +20,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local isFFA = Spring.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
@@ -165,7 +166,7 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 then
+	if Game.startPosType ~= 2 and Game.startPosType ~= 4 and Game.startPosType ~= 5 then
 		-- additionally automatically set readyState to true if this is a FFA game
 		if isFFA and (not readied or not ready) then
 			readied = true
@@ -431,6 +432,46 @@ function widget:DrawWorld()
 			end
 		end
 	end
+end
+
+-- TODO -- maybe not draw "choose start pos" if draft mode is on and its not your turn? other than that for the first version should be fine as is.
+local frames=0
+local myTurn=false
+local myTurn_timeout=5*100 -- 5 seconds worth of frames at 100 fps, TODO without touching gameframes this is kind of hard to do, maybe use os time instead to check whether 5 seconds have passed since widget was init?
+function widget:DrawScreen()
+	if myTurn then
+    	frames = frames + 1
+		if (frames >= myTurn_timeout) then
+			Spring.SendLuaRulesMsg("skip_my_turn")
+			Spring.Echo("You didn't place! Next player can place now as well.")
+			myTurn = false
+			-- widgetHandler:RemoveWidgetCallIn("DrawScreen", self) -- can only do that if handler is true, should I?
+		end
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+    local words = {}
+    for word in msg:gmatch("%S+") do
+        table.insert(words, word)
+    end
+
+    if words[1] == "DraftOrderPlayerTurn" then
+		if tonumber(words[2]) == myPlayerID then
+        	Spring.Echo("It's your turn to place! You have 5 seconds or you automatically allow the next player to place.")
+			myTurn = true
+		else -- we can tell if that playerID is someone else...
+			local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(tonumber(words[2]), false)
+			if tname and (tallyteam == myAllyTeamID) then
+				Spring.Echo("It's "..tname.."'s turn to place.")
+			end -- otherwise who's turn it is? uhh?
+		end
+	elseif words[1] == "DraftOrder_Random" then
+		Spring.Echo("Random draft order startpos mode enabled. Wait your turn to place.")
+	elseif words[1] == "DraftOrder_Skill" then
+		Spring.Echo("Skill based draft order startpos mode enabled. Wait your turn to place.")
+	end
+	-- it'd be great to just paint this on screen in the middle /!\ Commander, it's your turn, place your start pos now, you have 5 seconds! /!\ or something like that...
 end
 
 function widget:Shutdown()

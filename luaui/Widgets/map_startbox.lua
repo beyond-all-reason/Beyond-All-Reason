@@ -12,7 +12,7 @@ end
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
-if Game.startPosType ~= 2 then
+if Game.startPosType ~= 2 and Game.startPosType ~= 4 and Game.startPosType ~= 5 then
 	return false
 end
 
