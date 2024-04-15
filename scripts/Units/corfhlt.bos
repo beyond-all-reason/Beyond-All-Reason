@@ -40,11 +40,9 @@ RockOnWaves()
 
 Create()
 {
-	hide flare2;
-	hide flare1;
 	hide flare1;
 	hide flare2;
-	gun_1 = flare1;
+	gun_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -125,33 +123,12 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 230;
-		hide flare1;
-		gun_1 = flare2;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 230;
-		hide flare2;
-		gun_1 = flare1;
-	}
+	gun_1 = !gun_1;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare2;
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
 AimFromWeapon1(pieceIndex)

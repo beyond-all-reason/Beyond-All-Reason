@@ -353,7 +353,6 @@ FireWeapon1()
 		move barrel1d to z-axis [-2.000000] speed [500.000000];
 		sleep 100;
 		move barrel1d to z-axis [0.000000] speed [3.000000];
-		hide flare1d;
 	}
 	++Static_Var_1;
 	if( Static_Var_1 >= 4 )
@@ -388,11 +387,9 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	show flare2;
-	sleep 150;
-	turn gun2 to z-axis <120.000000> speed <400.000000>;
-	hide flare2;
-	wait-for-turn gun2 around z-axis;
+	sleep 180;
+	turn gun2 to z-axis <120> speed <400>;
+	sleep 1000 * <120> / <400>;
 	turn gun2 to z-axis <0.000000> now;
 }
 
@@ -449,11 +446,9 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
-	show flare5;
-	sleep 150;
-	turn gun5 to z-axis <120.000000> speed <400.000000>;
-	hide flare5;
-	wait-for-turn gun5 around z-axis;
+	sleep 180;
+	turn gun5 to z-axis <120> speed <400>;
+	sleep 1000 * <120> / <400>;
 	turn gun5 to z-axis <0.000000> now;
 }
 
@@ -483,11 +478,9 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-	show flare6;
-	sleep 150;
-	turn gun6 to z-axis <120.000000> speed <400.000000>;
-	hide flare6;
-	wait-for-turn gun6 around z-axis;
+	sleep 180;
+	turn gun6 to z-axis <120> speed <400>;
+	sleep 1000 * <120> / <400>;
 	turn gun6 to z-axis <0.000000> now;
 }
 

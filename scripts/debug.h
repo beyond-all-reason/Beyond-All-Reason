@@ -833,3 +833,69 @@ lua_CobDebug(callerID, line, p1, p2, p3, p4, p5, p6, p7, p8)
 	#define print_TargetWeight6(...) TargetWeight6(__VA_ARGS__)
 	#define dbg_TargetWeight6(...)
 #endif
+
+
+#ifdef BENCHMARK
+
+static-var benchstatic1, benchstatic2, benchstatic3;
+
+#define ABSOLUTE(value) \
+	(value * ( value > 0) - value * ( value <0 ))
+
+
+#define ABSOLUTE2(value) if (value < 0 ) value = -1*value;
+
+BenchMarkCall1(callvar){
+	//callvar = callvar + 1 ;
+	//benchstatic1 = callvar;
+	//callvar = get MIN(callvar, benchstatic2);
+	return (callvar);
+}
+
+BenchMarkCall2(callvar){
+	//callvar = callvar + 1 ;
+	//benchstatic1 = callvar;
+	//callvar = get MAX(callvar, benchstatic2);
+	return (callvar);
+}
+
+BenchMark1(count){
+	var bench1;
+	var bench2;
+	var bench3;
+	benchstatic3 = benchstatic3 + 1;
+	bench1 = 0;
+
+	while ((bench1 < count) && (bench1 < 1000)){
+		bench1 = bench1 +1 ;
+		bench2 = get MAX_SPEED;
+		bench2 = bench2 + 1;
+		bench3 = get CURRENT_SPEED;
+		if ((bench1 & 0x1) == 1 ){
+			//bench2 = get ABS(bench1);
+			//ABSOLUTE2(bench2);
+			bench2 = bench2 *2;
+			call-script BenchMarkCall1();
+		}else{
+			//bench2 = get ABS(bench2);
+			//ABSOLUTE2(bench2);
+			bench2 = bench2 *2;
+			call-script BenchMarkCall2();
+		}
+		//turn base to y-axis <0.3> * bench1 speed <3000>;
+		benchstatic1 = bench1;
+		benchstatic2 = benchstatic1 / (bench1 + 1);
+		bench1 = benchstatic1;
+	}
+	return (0);
+
+}
+
+StartBench(cnt){
+	benchstatic3 = 0;
+	while(1){
+		call-script BenchMark1(cnt);
+		sleep 1;
+	}
+}
+#endif

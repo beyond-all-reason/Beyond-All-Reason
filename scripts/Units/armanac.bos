@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 piece  ground, base, flare, turret, wake, sleeve, barrel;
 
@@ -17,7 +17,7 @@ static-var  Stunned;
 #define HOVER_BANKSPEED <12>
 #define HOVER_ROCK
 #define HOVER_ROCKBASE ground
-#define HOVER_WOBBLE_AMPLITUDE [0.0]
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
 #include "../bar_hovercraft_common.h"
 
 #define BASEPIECE ground

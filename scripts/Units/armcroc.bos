@@ -44,15 +44,15 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <60.000000>;
-	turn sleeve to x-axis <0.000000> speed <30.000000>;
-	move barrel to z-axis [-4.000000] speed [12.000000];
+	turn turret to y-axis <0> speed <60>;
+	turn sleeve to x-axis <0> speed <30>;
+	move barrel to z-axis [-4] speed [12];
 	move turret to y-axis [0] speed [8];
-	turn lid to x-axis <0.000000> speed <80>;	
+	turn lid to x-axis <0> speed <80>;	
 	turn turretmis to y-axis <0> speed <180>;
 	turn misbox to x-axis <0> speed <180>;
 	sleep 1500;
-	move turretmis to y-axis [0.000000] speed [5.000000];
+	move turretmis to y-axis [0] speed [5];
 	wait-for-turn lid around x-axis;
 	wait-for-move turretmis along y-axis;
 	wait-for-turn misbox around x-axis;
@@ -90,9 +90,9 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	move turret to y-axis [6] speed [20];
 	wait-for-move turret along y-axis;
-	turn turret to y-axis heading speed <90.000000>;
-	move barrel to z-axis [0.000000] speed [8.000000];
-	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <90>;
+	move barrel to z-axis [0] speed [8];
+	turn sleeve to x-axis <0> - pitch speed <45>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
@@ -102,9 +102,9 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.000000];
+	move barrel to z-axis [-2.400000] speed [500];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	move barrel to z-axis [0] speed [3];
 }
 
 QueryWeapon1(pieceIndex)
@@ -121,7 +121,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn lid to x-axis <-179.000000> speed <200.000000>;
+	turn lid to x-axis <-179> speed <200>;
 	
 		
 	corrected = heading;
@@ -131,7 +131,7 @@ AimWeapon2(heading, pitch)
 	if (heading > <-45> AND heading < 0) {
 		corrected = <-45>;
 	}
-	turn turretmis to y-axis corrected speed <180.000000>;
+	turn turretmis to y-axis corrected speed <180>;
 
 	
 	turn misbox to x-axis -1*pitch speed <180>;
@@ -146,21 +146,16 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	++gun_2;
-	if (gun_2 == 4) gun_2 = 1;
-	return (0);
 }
 
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = turretmis;
-	return (0);
 }
 
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = misflare;
-	return (0);
 }
 
 

@@ -25,6 +25,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret2 to x-axis <0> speed <16.00000>;
+	turn turret1 to x-axis <0> speed <16.00000>;
 }
 
 SetStunned(State)
@@ -49,9 +50,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-
-
-
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare1;
@@ -69,14 +67,10 @@ AimWeapon2(heading, pitch)
 	turn turret1 to y-axis heading speed <400.000000>;
 	turn turret1 to x-axis <0.000000> - pitch speed <400.000000>;
 	wait-for-turn turret1 around y-axis;
-	return (1);
 }
 
 FireWeapon2()
 {
-	show flare1;
-	sleep 140;
-	hide flare1;
 }
 
 QueryWeapon1(pieceIndex)
@@ -97,14 +91,10 @@ AimWeapon1(heading, pitch)
 	turn turret2 to x-axis <0.000000> - pitch speed <300.000000>;
 	wait-for-turn turret2 around y-axis;
 	start-script RestoreAfterDelay();
-	return (1);
 }
 
 FireWeapon1()
 {
-	show flare2;
-	sleep 150;
-	hide flare2;
 }
 
 Killed(severity, corpsetype)

@@ -29,7 +29,7 @@ Create()
 	hide flare2;
 	hide exhaust;
 	hide flare1;
-	gun_1 = flare1;
+	gun_1 = 0;
 	call-script TB_Init();
 }
 
@@ -96,20 +96,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		emit-sfx 1024 + 0 from exhaust;
-		show flare1;
-		sleep 150;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		emit-sfx 1024 + 0 from exhaust;
-		show flare2;
-		sleep 150;
-		hide flare2;
-	}
+	emit-sfx 1024 + 0 from exhaust;
 	gun_1 = !gun_1;
 }
 

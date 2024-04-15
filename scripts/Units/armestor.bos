@@ -3,9 +3,12 @@
 
 piece  base;
 
+//#define BENCHMARK
+//#include "../debug.h"
 
 Create()
 {
+	//start-script StartBench(1000);
 }
 
 

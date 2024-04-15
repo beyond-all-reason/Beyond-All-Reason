@@ -332,12 +332,8 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	move barrel to z-axis [-2] speed [62.500000];
-	show flare;
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.000000] speed [4.000000];
-	sleep 15;
-	hide flare;
-	return (0);
 }
 
 Killed(severity, corpsetype)

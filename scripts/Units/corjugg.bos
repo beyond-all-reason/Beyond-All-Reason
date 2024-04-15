@@ -703,9 +703,6 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	set CHANGE_TARGET to 2;
-	/*show flare1;
-	sleep 150;
-	hide flare1;*/
 }
 
 AimFromWeapon2(pieceIndex)
@@ -730,9 +727,6 @@ AimWeapon3(heading, pitch)
 FireWeapon3()
 {
 	set CHANGE_TARGET to 3;
-	/*show flare2;
-	sleep 150;
-	hide flare2;*/
 }
 
 AimFromWeapon3(pieceIndex)
@@ -759,9 +753,6 @@ AimWeapon4(heading, pitch)
 FireWeapon4()
 {
 	set CHANGE_TARGET to 4;
-	/*show flare3;
-	sleep 150;
-	hide flare3;*/
 }
 
 AimFromWeapon4(pieceIndex)

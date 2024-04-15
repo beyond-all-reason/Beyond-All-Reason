@@ -373,9 +373,7 @@ FireWeapon1()
 
 FireWeapon2()
 {
-	show misflare;
-	sleep 150;
-	hide misflare;
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -391,14 +389,7 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lflare;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = rflare;
-	}
+	pieceIndex = lflare + gun_1;
 }
 
 
