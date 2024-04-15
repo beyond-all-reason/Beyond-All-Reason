@@ -166,7 +166,7 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 and Game.startPosType ~= 4 and Game.startPosType ~= 5 then
+	if Game.startPosType ~= 2 then
 		-- additionally automatically set readyState to true if this is a FFA game
 		if isFFA and (not readied or not ready) then
 			readied = true
@@ -435,13 +435,12 @@ function widget:DrawWorld()
 end
 
 -- TODO -- maybe not draw "choose start pos" if draft mode is on and its not your turn? other than that for the first version should be fine as is.
-local frames=0
+local widgetStartTime = os.clock()
 local myTurn=false
-local myTurn_timeout=5*100 -- 5 seconds worth of frames at 100 fps, TODO without touching gameframes this is kind of hard to do, maybe use os time instead to check whether 5 seconds have passed since widget was init?
+local myTurn_timeout=widgetStartTime + 5 -- 5 seconds, os.clock perfect, though may raise to 10 seconds? or make "timeout" a modoption as well in the future?
 function widget:DrawScreen()
 	if myTurn then
-    	frames = frames + 1
-		if (frames >= myTurn_timeout) then
+		if (os.clock() >= myTurn_timeout) then
 			Spring.SendLuaRulesMsg("skip_my_turn")
 			Spring.Echo("You didn't place! Next player can place now as well.")
 			myTurn = false
