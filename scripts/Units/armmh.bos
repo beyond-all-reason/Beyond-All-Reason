@@ -1,67 +1,26 @@
 
 #include "exptype.h"
 
-piece  flare, base, box, wake;
+piece  ground, base, flare, box, wake;
 
-static-var  isOpen, restore_delay, Wobble_status, pivotAngle;
-
+static-var  isOpen, restore_delay, pivotAngle;
+ 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_IDLE 8
-#define SIGNAL_IDLE 8
 
-WobbleUnit()
-{
-	while( TRUE )
-	{
-		if( Wobble_status)
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [0.250000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [1.000000] speed [0.50000];
-			}
-		}
-		else
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [-0.750000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [0.000000] speed [0.50000];
-			}
-		}
-		Wobble_status = !Wobble_status;
-		sleep 260;
-	}
-}
 
-BankControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
-
-		//Remove Extreme values
-		if ( diffHeading > 1500 ) diffHeading = 1500;
-		if ( diffHeading < -1500 ) diffHeading = -1500;
-		//get PRINT(diffHeading);
-		turn base to z-axis 1.0 * diffHeading speed <23>;
-		
-		lastHeading = currHeading;
-		sleep 67;
-	}
-}
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <10>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 55
+#define HOVER_WOBBLE_AMPLITUDE [0.8]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 2
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#include "../bar_hovercraft_common.h"
 
 
 
@@ -74,46 +33,6 @@ BankControl()
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 
-
-HoverIdle()
-{
-	signal SIGNAL_IDLE;
-	set-signal-mask SIGNAL_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 2 from wake;
-	    sleep 1750;
-	}
-	//return (1);
-}
-
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
-
 Create()
 {
 	hide wake;
@@ -122,17 +41,15 @@ Create()
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
-	start-script BankControl();
-	start-script WobbleUnit();
+	start-script HoverCraftMotion();
 
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
 static-var  Stunned;

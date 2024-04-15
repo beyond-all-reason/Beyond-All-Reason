@@ -2,9 +2,9 @@
 
 // TODO: 
 // [ ] use static-var and sum up everything on turn XZ?
-// [ ] proper rockunit/hitbyweapon seems to require piece separation
+// [X] proper rockunit/hitbyweapon seems to require piece separation
 // [X] use get IN_WATER instead of shitty UNIT_XZ
-// [ ] fold in HoverIdle and StartMoving stuff
+// [X] fold in HoverIdle and StartMoving stuff
 // [ ] Fold in smokeunit, hitbyweaponID et al. 
 
 
@@ -12,9 +12,9 @@
     #define HOVER_BASE base 
 #endif
 
-#ifndef HOVER_ROCKBASE
-	#define HOVER_ROCKBASE HOVER_BASE
-#endif
+//#ifndef HOVER_ROCKBASE
+//	#define HOVER_ROCKBASE HOVER_BASE
+//#endif
 // should be gated on startmoving stopmoving
 // also note that this will interfere with hitbyweapon and recoil stuff
 
@@ -38,11 +38,6 @@
 	#define HOVER_WOBBLE_PERIOD 46
 #endif
 
-// Up-down wobble Phase offset in degrees, default <0>
-#ifndef HOVER_WOBBLE_PHASE
-	#define HOVER_WOBBLE_PHASE <0>
-#endif
-
 // Up-down wobble amplitude, in elmos, default [0.7] 
 #ifndef HOVER_WOBBLE_AMPLITUDE
 	#define HOVER_WOBBLE_AMPLITUDE [0.7]
@@ -53,9 +48,24 @@
 	#define HOVER_WOBBLE_WATEROFFSET [-1.0]
 #endif
 
+// Optionally define
+// #define HOVER_WAKEPIECE
+
+#ifndef HOVER_IDLE_SFX
+	#define HOVER_IDLE_SFX 1024 + 2
+#endif
+
+#ifndef HOVER_WAKE_SFX_1
+	#define HOVER_WAKE_SFX_1 1024 + 0
+#endif
+
+#ifndef HOVER_WAKE_SFX_2
+	#define HOVER_WAKE_SFX_2 1024 + 1
+#endif
+
 static-var HOVER_BANK_X, HOVER_BANK_Z;
 
-BankControl()
+HoverCraftMotion()
 {
 	HOVER_BANK_X = 0;
 	HOVER_BANK_Z = 0;
@@ -68,7 +78,15 @@ BankControl()
 	var wobbleFrame, prevWobble, currWobble;
 	wobbleFrame = RAND(1, HOVER_WOBBLE_PERIOD);
 	prevWobble = 0;
-	
+
+	var inWater;
+	inWater = get IN_WATER;
+
+	#ifdef HOVER_WAKEPIECE
+	var movementWake;
+	movementWake = 0;
+	#endif 
+
 	while (TRUE)
 	{
 // Update left-right banking:
@@ -99,15 +117,35 @@ BankControl()
 // Update up-down wobble
 		wobbleFrame = wobbleFrame + HOVER_FRAMES;
 
-		currWobble = (get KSIN( HOVER_WOBBLE_PHASE + wobbleFrame * ([1] / HOVER_WOBBLE_PERIOD)));
+		currWobble = (get KSIN( wobbleFrame * ([1] / HOVER_WOBBLE_PERIOD)));
 		currWobble = currWobble * (HOVER_WOBBLE_AMPLITUDE / 1024) + HOVER_WOBBLE_AMPLITUDE;
 		
 		//get PRINT(currWobble, wobbleFrame);
 		
-		move HOVER_BASE to y-axis ((get IN_WATER * HOVER_WOBBLE_WATEROFFSET)) + currWobble speed ((currWobble - prevWobble) * 30) /  HOVER_FRAMES;
+		inWater = get IN_WATER;
+		move HOVER_BASE to y-axis ((inWater * HOVER_WOBBLE_WATEROFFSET)) + currWobble speed ((currWobble - prevWobble) * 30) /  HOVER_FRAMES;
 		
 		prevWobble = currWobble;
 
+
+// Emit idle wakes:
+		#ifdef HOVER_WAKEPIECE
+			if (inWater){
+				movementWake = movementWake + 1;
+				if (currSpeed > 0){
+					if ((movementWake % 2) == 0){
+						//dbg(movementWake);
+						emit-sfx HOVER_WAKE_SFX_1 from HOVER_WAKEPIECE;
+						if (movementWake & 0x02) emit-sfx HOVER_WAKE_SFX_2 from HOVER_WAKEPIECE;
+					}
+				}else{
+					if ((movementWake % 18 ) ==0){
+						//dbg(movementWake);
+						emit-sfx HOVER_IDLE_SFX from HOVER_WAKEPIECE;
+					}
+				}
+			}
+		#endif
 		sleep 33 * HOVER_FRAMES -1; // 3 frames
 	}
 }
@@ -115,18 +153,22 @@ BankControl()
 // Also add recoil and rockunit here
 // NOTE THAT THIS IS MUTUALLY EXCLUSIVE WITH RECOIL_POWER
 
-#ifdef HOVER_ROCK
+#ifdef HOVER_ROCKBASE
 	RockUnit(anglex,anglez)
 		{
 		//get PRINT(anglex, anglez);
 		//anglex = 0-anglex;
 		anglez = 0-anglez;
-		#define HOVER_ROCK_SPEED1 <15>
-		#define HOVER_ROCK_SPEED2 <12>
-		#define HOVER_ROCK_SPEED3 <9>
-		#define HOVER_ROCK_SPEED4 <6>
-		#define HOVER_ROCK_SPEED5 <2>
+		#define HOVER_ROCK_SPEED1 <16>
+		#define HOVER_ROCK_SPEED2 <13>
+		#define HOVER_ROCK_SPEED3 <9.2>
+		#define HOVER_ROCK_SPEED4 <5>
+		#define HOVER_ROCK_SPEED5 <3.3>
 		#define SPEEDMUL 10
+
+		//var x_gt_z;
+		//x_gt_z = 0;
+		//if((get ABS(anglex)) > (get ABS(anglez))) x_gt_z = 1;
 
 		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X + anglex speed HOVER_ROCK_SPEED1  * anglex / 500;
 		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z + anglez speed HOVER_ROCK_SPEED1  * anglez / 500;

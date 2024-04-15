@@ -1,66 +1,24 @@
 
 #include "exptype.h"
 
-piece  flare, base, sleeve, turret,wake, doorr, doorl;
+piece   ground, base, flare, sleeve, turret,wake, doorr, doorl;
 
-static-var  Wobble_status;
 
-// Signal definitions
+// Signal definitions 
 #define SIGNAL_MOVE 1
 #define SIGNAL_IDLE 8
 
-WobbleUnit()
-{
-	while( TRUE )
-	{
-		if( Wobble_status)
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [0.750000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [1.000000] speed [0.50000];
-			}
-		}
-		else
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [-0.750000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [0.000000] speed [0.50000];
-			}
-		}
-		Wobble_status = !Wobble_status;
-		sleep 260;
-	}
-}
 
-BankControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
-
-		//Remove Extreme values
-		if ( diffHeading > 1500 ) diffHeading = 1500;
-		if ( diffHeading < -1500 ) diffHeading = -1500;
-		//get PRINT(diffHeading);
-		turn base to z-axis 1.0 * diffHeading speed <23>;
-		
-		lastHeading = currHeading;
-		sleep 67;
-	}
-}
-
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <10>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 42
+#define HOVER_WOBBLE_AMPLITUDE [0.6]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 2
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#include "../bar_hovercraft_common.h"
 
 
 #define BASEPIECE base
@@ -71,56 +29,16 @@ BankControl()
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-HoverIdle()
-{
-	signal SIGNAL_IDLE;
-	set-signal-mask SIGNAL_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 2 from wake;
-	    sleep 1750;
-	}
-	//return (1);
-}
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
-
 Create()
 {
 	hide wake;
 	hide flare;
 	turn sleeve to x-axis <-20.000000> speed <25.000000>;
-	return (0);	
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
-	start-script BankControl();
-	start-script WobbleUnit();
+	start-script HoverCraftMotion();
 }
 
 
@@ -174,13 +92,11 @@ AimWeapon2(heading, pitch)
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = sleeve;
-	return (0);
 }
 
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 

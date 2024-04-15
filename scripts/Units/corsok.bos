@@ -1,10 +1,10 @@
 
 #include "exptype.h"
 
-piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
+piece  ground, rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
        body, base;
 
-static-var  isAiming;
+static-var  isAiming; 
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -12,6 +12,17 @@ static-var  isAiming;
 #define SIGNAL_MOVE 1
 #define SIGNAL_IDLE 8
 
+
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <7>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 80
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#define HOVER_IDLE_SFX 1024 + 2
+#include "../bar_hovercraft_common.h"
 
 
 #define BASEPIECE base
@@ -22,42 +33,6 @@ static-var  isAiming;
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-HoverIdle()
-{
-	signal SIGNAL_IDLE;
-	set-signal-mask SIGNAL_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 2 from wake;
-	    sleep 1800;
-	}
-}
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
 
 Create()
 {
@@ -66,7 +41,7 @@ Create()
 	hide rmis;
 	hide lmis;
 	isAiming = FALSE;
-	return (0);
+	start-script HoverCraftMotion();
 }
 
 static-var  Stunned;
@@ -96,13 +71,11 @@ RestoreAfterDelay()
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-	return (0);
 }
 
 FireWeapon1()
@@ -111,7 +84,6 @@ FireWeapon1()
 	move cannon to z-axis [-10.00000] speed [1250.00000];
 	sleep 150;
 	move cannon to z-axis [0.00000] speed [7.50000];
-	return (0);
 }
 
 AimWeapon1(heading, pitch)
@@ -130,18 +102,15 @@ AimWeapon1(heading, pitch)
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = base;
-	return (0);
 }
 
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = base;
-	return (0);
 }
 
 FireWeapon2()
 {	
-	return (0);
 }
 
 AimWeapon2(heading, pitch)

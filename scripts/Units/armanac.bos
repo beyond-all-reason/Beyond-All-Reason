@@ -2,10 +2,10 @@
 #include "exptype.h"
 
 //#define DEBUG
-#include "../debug.h"
+//#include "../debug.h"
 piece  ground, base, flare, turret, wake, sleeve, barrel;
 
-static-var  Wobble_status, restore_delay;
+static-var  restore_delay;
 static-var  Stunned;
 
 // Signal definitions
@@ -15,9 +15,13 @@ static-var  Stunned;
 
 #define HOVER_BASE base
 #define HOVER_BANKSPEED <12>
-#define HOVER_ROCK
 #define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 46
 #define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 3
+#define HOVER_WAKE_SFX_1 1024 + 1
+#define HOVER_WAKE_SFX_2 1024 + 2
 #include "../bar_hovercraft_common.h"
 
 #define BASEPIECE ground
@@ -27,43 +31,6 @@ static-var  Stunned;
 #define MAXTILT 200
 //#define RECOIL_POWER 40000 // DO NOT USE THIS FOR HOVERS!
 #include "../unit_hitbyweaponid_and_smoke.h"
-
-HoverIdle()
-{
-	signal SIGNAL_IDLE;
-	set-signal-mask SIGNAL_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 3 from wake;
-	    sleep 1750;
-	}
-}
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	signal SIGNAL_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
 
 Create()
 {
@@ -75,13 +42,12 @@ Create()
 	{
 		sleep 400;
 	}
-	start-script BankControl();
+	start-script HoverCraftMotion();
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 ExecuteRestoreAfterDelay()
 {
@@ -124,19 +90,16 @@ FireWeapon1()
 	move barrel to z-axis [-6.000000] speed [1250.000000];
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.000000] speed [7.500000];
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 Killed(severity, corpsetype)
