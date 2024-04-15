@@ -300,8 +300,6 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			initState = 0 -- players will be allowed to place startpoints
 			
-			-- DEBUG -- for local testing - force specific mode - uncomment a line below and make it either 4 (skill) or 5 (random) draft order
-			-- 0 fixed, 1 random, 2 choose in game, 3 choose before game (see StartPosX), 4 skill draft, 5 random draft (4 & 5 are almost identical to 2 "choose in game", just with a delay, eliminating 'fast pc' power gaming)
 			if draftMode == "random" then -- Random draft
 				Spring.SendLuaUIMsg("DraftOrder_Random") -- https://discord.com/channels/549281623154229250/1163844303735500860
 				--Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
