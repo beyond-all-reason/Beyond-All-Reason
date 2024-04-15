@@ -158,6 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function GetSkill(playerID)
+		if playerID == nil then return 0 end -- uhh
 		local customtable = select(11, Spring.GetPlayerInfo(playerID))
 		if type(customtable) == 'table' then
 			local tsMu = customtable.skill
@@ -170,8 +171,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function compareSkills(teamA, teamB)
 		-- Implement a custom comparison function based on team skill
-		local skillA = GetSkill(teamA)
-		local skillB = GetSkill(teamB)
+		local skillA = GetSkill(FindPlayerIDFromTeamID(teamA))
+		local skillB = GetSkill(FindPlayerIDFromTeamID(teamB))
 		return skillA > skillB  -- Sort in descending order of skill
 	end
 
