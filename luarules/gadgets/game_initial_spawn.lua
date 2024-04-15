@@ -130,6 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 	local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - only used by draft/skill spawn options
 	local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - track whos order to place it is
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false)) -- remember so we don't calculate gaia ally team
+	local draftMode = Spring.GetModOptions().draft_mode
 
 	local function FindPlayerIDFromTeamID(teamID) -- need revisit if we allow multiple players on same team btw
 		local playerList = Spring.GetPlayerList()
@@ -294,15 +295,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- mark all players as 'not yet placed' and 'not yet readied'
 		local initState
-		if Game.startPosType ~= 2 and Game.startPosType ~= 4 and Game.startPosType ~= 5 then
+		if Game.startPosType ~= 2 then
 			initState = -1 -- if players won't be allowed to place startpoints
 		else
 			initState = 0 -- players will be allowed to place startpoints
 			
 			-- DEBUG -- for local testing - force specific mode - uncomment a line below and make it either 4 (skill) or 5 (random) draft order
-			--Game.startPosType = 5
 			-- 0 fixed, 1 random, 2 choose in game, 3 choose before game (see StartPosX), 4 skill draft, 5 random draft (4 & 5 are almost identical to 2 "choose in game", just with a delay, eliminating 'fast pc' power gaming)
-			if Game.startPosType == 5 then -- Random draft
+			if draftMode == "random" then -- Random draft
 				Spring.SendLuaUIMsg("DraftOrder_Random") -- https://discord.com/channels/549281623154229250/1163844303735500860
 				--Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
 				local teams = Spring.GetTeamList()  -- Get a list of all teams in the game
@@ -319,7 +319,7 @@ if gadgetHandler:IsSyncedCode() then
 				for _, teamOrder in pairs(allyTeamSpawnOrder) do
 					shuffleArray(teamOrder)
 				end
-			elseif Game.startPosType == 4 then -- Skill-based placement order -- maybe if ALL player skills are zero, FORCE a random draft order?
+			elseif draftMode == "skill" then -- Skill-based placement order -- maybe if ALL player skills are zero, FORCE a random draft order?
 				Spring.SendLuaUIMsg("DraftOrder_Skill") -- https://discord.com/channels/549281623154229250/1134886429361713252
 				--Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
 				local teams = Spring.GetTeamList()
@@ -344,7 +344,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			if Game.startPosType == 4 or Game.startPosType == 5 then
+			if draftMode == "skill" or draftMode == "random" then
 				-- Send first teams who should place
 				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
 					allyTeamSpawnOrderPlaced[allyTeamID] = 1 -- first team in the order queue must place now
@@ -425,7 +425,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 0)
 		end
 
-		if msg == "skip_my_turn" and (Game.startPosType == 4 or Game.startPosType == 5) then
+		if msg == "skip_my_turn" and (draftMode == "skill" or draftMode == "random") then
 			local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 			if teamID and allyTeamID then
 				local turnCheck = isTurnToPlace(allyTeamID, teamID)
@@ -459,7 +459,7 @@ if gadgetHandler:IsSyncedCode() then
 		--]]
 
 		-- if startPosType is not set to choose-in-game, we will handle start positions manually
-		if Game.startPosType ~= 2 and Game.startPosType ~= 4 and Game.startPosType ~= 5 then
+		if Game.startPosType ~= 2 then
 			return true
 		end
 
@@ -473,7 +473,7 @@ if gadgetHandler:IsSyncedCode() then
 		end --fail
 
 		local myTurn = false
-		if Game.startPosType == 4 or Game.startPosType == 5 then
+		if draftMode == "skill" or draftMode == "random" then
 			local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
 			if not isAI then -- is it your turn yet?
 				-- is it YOUR turn yet?
@@ -651,7 +651,7 @@ if gadgetHandler:IsSyncedCode() then
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 
 		-- if its choose-in-game mode, see if we need to autoplace anyone
-		if Game.startPosType == 2 or Game.startPosType == 4 or Game.startPosType == 5 then
+		if Game.startPosType == 2 then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
@@ -680,12 +680,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		else
 			-- otherwise default to spawning regularly
-			if Game.startPosType == 4 then -- https://discord.com/channels/549281623154229250/1134886429361713252
-				Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
-			elseif Game.startPosType == 5 then -- https://discord.com/channels/549281623154229250/1163844303735500860
-				Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
-			elseif Game.startPosType == 2 then
-				Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
+			if Game.startPosType == 2 then
+				if draftMode == "skill" then -- https://discord.com/channels/549281623154229250/1134886429361713252
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
+				elseif draftMode == "random" then -- https://discord.com/channels/549281623154229250/1163844303735500860
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
+				else
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
+				end
 			elseif Game.startPosType == 1 then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in random order")

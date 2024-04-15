@@ -845,6 +845,20 @@ local options = {
 	--},
 
     {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Optional Draft/Skill based startPosType mods. Default: Disabled.",
+        type    = "list",
+        section = "options_extra",
+        def     = "disabled",
+        items 	= {
+            { key = "disabled", name = "Disabled" },
+            { key = "random", 	name = "Random", 		desc = "Before the game starts, you get to pick a start pos with a delay in a random order. You only get a few seconds so pick fast!" },
+            { key = "skill", 	name = "Skill", 		desc = "Same as above, but in skill based order, instead of random. You only get a few seconds so pick fast!" },
+        },
+    },
+
+    {
         key 	= "map_waterlevel",
         name 	= "Water Level",
         desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
