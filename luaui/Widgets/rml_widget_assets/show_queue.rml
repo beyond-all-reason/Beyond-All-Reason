@@ -1,0 +1,29 @@
+<rml>
+    <head>
+        <title>Show Queue</title>
+        <!-- The default styling for html elements, must be imported to be used -->
+        <link type="text/rcss" href="/LuaUI/rml_common/styles.rcss"/>
+        <!-- Style based on the flow_ui api -->
+        <link type="text/rcss" href="/LuaUI/rml_common/flow_ui.rcss"/>
+        <link type="text/rcss" href="/LuaUI/Widgets/rml_widget_assets/show_queue.rcss"/>
+    </head>
+
+    <body>
+        <div data-model="unit_queue_data">
+            <div
+                class="container"
+                data-for="unit : unitQueues"
+                data-style-top="unit.sy + 'px'"
+                data-style-left="unit.sx + 'px'"
+            >
+                <div class="unit-card"
+                    data-for="queue : unit.queue"
+                >
+                    <texture data-attr-src="'#' + queue.id"/>
+                    <p class="count">{{queue.count}}</p>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</rml>

@@ -1,0 +1,42 @@
+
+body {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    font-family: Exo 2;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1.5em;
+}
+
+.container {
+    position: absolute;
+    background-color: #444444;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 13vh;
+    padding: 2px;
+}
+
+.unit-card {
+    position: relative;
+    width: 3vh;
+    height: 3vh;
+    margin: 1px;
+}
+
+texture {
+    width: 3vh;
+    height: 3vh;
+    border-radius: 3px;
+}
+
+.count {
+    position: absolute;
+    top: 0;
+    left: 10%;
+    font-size: 120%;
+    font-effect: glow(1px 2px 2px 2px black)
+}
