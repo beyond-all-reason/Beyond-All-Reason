@@ -248,7 +248,6 @@ Create()
 	hide aimy1;
 	rand = 0;
 	moving = FALSE;
-	firing = FALSE;
 	isreset = TRUE;
 	rollingchill = FALSE;
 	chillshots = 0;

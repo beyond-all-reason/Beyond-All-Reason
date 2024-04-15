@@ -14,7 +14,7 @@ static-var  restore_delay, gun_1;
 #define VD_PIECE2 smoke2
 #define VD_AMPHIBIOUS
 #define VD_DIRTCEG 1024 + 1
-#include "../vehicle_dirt_cegs.h"
+#include "../../vehicle_dirt_cegs.h"
 
 #define BASEPIECE base
 #define HITSPEED <45.0>
@@ -42,9 +42,7 @@ Create()
 	hide smoke2;
 	hide flare1;
 	hide flare2;
-
-	hide flare1;
-	hide flare2;
+	
 	gun_1 = flare1;
 
 	turn exhaust1 to x-axis <-90> now;
@@ -61,7 +59,6 @@ Create()
 	turn exhaust6 to z-axis <45> now;
 
 	restore_delay = 3000;
-	start-script UnitSpeed();
 }
 
 

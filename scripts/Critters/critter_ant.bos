@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../exptype.h"
 
 piece  base, L6, L5, L4, L3, L2, L1, J2,
        spot1, spot2, J1;
@@ -243,15 +243,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = spot2;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = spot1;
-	}
-	return (0);
+	pieceIndex = spot2 + gun_1;
 }
 
 

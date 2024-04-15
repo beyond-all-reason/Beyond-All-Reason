@@ -49,7 +49,7 @@ Open()
 	set INBUILDSTANCE to 1;
 }
 
-Stop()
+Close()
 {
 	set INBUILDSTANCE to 0;
 	call-script CloseBuildArea();

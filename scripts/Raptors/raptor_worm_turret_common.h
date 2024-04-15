@@ -184,8 +184,6 @@ Create()
 	
 	
 	move seg1 to y-axis [-2.0] * WORMSIZE now;
-
-	hide flare;
 	
 	restore_delay = 2000;
 	AboveGround = 0;

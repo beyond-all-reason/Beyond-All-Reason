@@ -9,7 +9,7 @@ static-var  restore_delay, last_lball_heading, last_rball_heading, willlaughing,
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
-#define SIGNAL_AIM4	1024
+#define SIGNAL_AIM3	1024
 #define SIGNAL_TICKLE 32
 
 
@@ -17,94 +17,15 @@ static-var  restore_delay, last_lball_heading, last_rball_heading, willlaughing,
 #define VD_PIECE2 smoke2
 #define VD_AMPHIBIOUS
 #define VD_DIRTCEG 1024 + 1
-#include "../vehicle_dirt_cegs.h"
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-RockUnit(anglex, anglez)
-{
-	if (lastfired==1) {
-		turn base to x-axis anglex speed <50.005495>;
-		turn base to z-axis <0> - anglez speed <50.005495>;
-		wait-for-turn base around z-axis;
-		wait-for-turn base around x-axis;
-		turn base to z-axis <0.000000> speed <20.000000>;
-		turn base to x-axis <0.000000> speed <20.000000>;
-	}
-}
+#include "../../vehicle_dirt_cegs.h"
 
 #define BASEPIECE base
-#define HITSPEED <45.0>
+#define HITSPEED <25.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-
-	
-	
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	
-		
-	//get PRINT(dmg, waslaughing, islaughing, willlaughing);
-	if ((dmg<5000) AND (waslaughing==0) AND (islaughing==0) AND (willlaughing==0)) {
-		//get PRINT(123);
-		start-script startLaughing();
-	}
-	
-	if ((dmg>90000) AND (willlaughing==0) AND (islaughing==1)) {
-		start-script stopLaughing();
-	}
-	
-	healthperc = get HEALTH;
-	if ((islaughing==1) AND (healthperc < 5)) {
-		start-script stopLaughing();
-	}
-	
-	
-	
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#define RECOIL_POWER 50000
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 
 startLaughing (){
@@ -158,13 +79,9 @@ Create()
 	hide flare;
 	hide smoke1;
 	hide smoke2;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
 	lastfired = 0;
-	hide flare;
 	hide flag;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 	last_lball_heading = -1000000;
 	last_rball_heading = -1000000;
 	willlaughing=0;

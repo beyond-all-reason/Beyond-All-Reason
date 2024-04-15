@@ -22,7 +22,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
   return 0;
 }
 
-PilotLight())
+PilotLight()
 {
 	while( TRUE )
 	{

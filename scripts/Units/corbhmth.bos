@@ -117,6 +117,7 @@ AimControl()
 }
 
 
+static-var  Stunned;
 SetStunned(State)
 {
     Stunned = State;
@@ -263,6 +264,11 @@ FireWeapon3()
 	sleep 100;
 	move barrel3 to z-axis [0.000000] speed [1.000549];
 
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = sleeve;
 }
 
 AimFromWeapon1(pieceIndex)
