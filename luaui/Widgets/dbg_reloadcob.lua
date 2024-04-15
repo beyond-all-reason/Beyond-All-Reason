@@ -42,6 +42,7 @@ function widget:Update()
 			if not reloadedCobDefs[unitDefID] then 
 				local unitDefName = UnitDefs[unitDefID].name
 				Spring.SendCommands('reloadcob ' .. unitDefName)
+				Spring.Echo("Reloaded COB: ".. unitDefName .. " from " .. UnitDefs[unitDefID].scriptName)
 				reloadedCobDefs[unitDefID] = true
 			end
 		end
