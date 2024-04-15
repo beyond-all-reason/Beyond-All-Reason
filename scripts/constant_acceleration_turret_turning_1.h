@@ -163,7 +163,9 @@ CATT1_Aim(heading, pitch){
 		sleep 32;
 	}
 	CATT1velocity = 0;
-	start-script CATT1_Restore();
+	#ifndef CATT_DONTRESTORE
+		start-script CATT1_Restore();
+	#endif
 }
 
 #undef CATT_INDEX
