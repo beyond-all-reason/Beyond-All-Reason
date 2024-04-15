@@ -5,14 +5,16 @@
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
 			"armada":  ["armllt",		"armtl",   		"armrl",  		"armbeamer", 	"armhlt",  		"armclaw",		"armferret",	"armcir", 		"armpb",   		"armatl",
 						"armflak",   	"armamb",  		"armanni", 		"armguard", 	"armamd", 		"armrad",		"armjamt",		"armestor", 	"armmstor", 	"armadvsol",
-						"armnanotc",	"armarad",		"armtarg",		"armuwadves",  	"armemp",		"armveil",		"armckfus",     "armsolar",     "armgate",      "armfhlt"],
+						"armnanotc",	"armarad",		"armtarg",		"armuwadves",  	"armemp",		"armveil",		"armckfus",     "armsolar",     "armgate",      "armfhlt",
+						"armamdn"],
 		//	
 		//              0          		1          		2          		3            	4           	5          		6				7				8				9
 			"cortex":  ["corllt",		"cortl",   		"corrl",  		"corhllt",   	"corhlt",   	"cormaw",  		"cormadsam",  	"corerad",		"corvipe", 		"coratl", 
 						"corflak",   	"cortoast", 	"cordoom", 		"corpun",    	"corfmd",		"corrad",		"corjamt",		"corestor",		"cormstor",		"coradvsol", 
-						"cornanotc",	"corarad",		"cortarg",		"coruwadves",	"cortron", 		"corshroud",	"corfus",       "corsolar",     "corgate",      "corfhlt"]
+						"cornanotc",	"corarad",		"cortarg",		"coruwadves",	"cortron", 		"corshroud",	"corfus",       "corsolar",     "corgate",      "corfhlt",
+						""]
 		},
-		
+
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
 	"land":  [0, 3, 5, 6, 4, 8, 10, 12],
 	"water": [1, 1, 4, 9, 10, 9, 10],
@@ -27,7 +29,7 @@
 
 	// Base defence and time to build it, in seconds
 	"base": [
-		[3, 420], [2, 520], [4, 760], [10, 1200], [14, 1250], [12, 1600], [22, 1800]
+		[3, 420], [2, 520], [4, 760], [10, 1200], [14, 1250], [30, 1250], [12, 1600], [22, 1800]
 	],
 
 	//superweapons get only build when there is nothing else to do
@@ -347,6 +349,7 @@
 
 				[
 					{"unit": "armamd", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
+					{"unit": "armamdn", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
 					{"unit": "armjamt", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
 				]
 			]
