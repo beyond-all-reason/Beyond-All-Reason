@@ -1,3 +1,4 @@
+// Author: Beherith mysterme@gmail.com
 // These are the general stubs for WobbleUnit and BankControl
 
 // TODO: 
