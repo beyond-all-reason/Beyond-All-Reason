@@ -338,7 +338,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				-- If the entire ally team has zero skill players, random shuffle then
-				for allyTeamID, _ in pairs(order) do
+				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
 					if isAllyTeamSkillZero(allyTeamID) then
 						shuffleArray(allyTeamSpawnOrder[allyTeamID]) -- oof
 					end
