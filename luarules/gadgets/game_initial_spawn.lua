@@ -19,12 +19,12 @@ end
 -- FFA start points config format is handled by `game_ffa_start_setup`.
 
 -- 2024-04-15: Since we have multiple discord suggestions asking for more spawn position possibilities, here we go. Note this is the most fastest-to-code version, not the most elegant one.
--- Game.startPosType: 0 fixed, 1 random, 2 choose in game, 3 choose before game (see StartPosX), 4 skill draft, 5 random draft (4 & 5 are almost identical to 2 "choose in game", just with a delay, eliminating 'fast pc' power gaming)
+-- draftMode modoption: skill draft, random draft (are almost identical to 2 "choose in game", just with a delay, eliminating 'fast pc' power gaming)
 -- how does it work right now:
 -- draft: before the game starts we create a random order of teams that should place: players must place start positions in the order that was determined.
 -- skill: instead of random order it's skill based order, with the highest skill placing first.
 -- caveats: gameframe is always zero before the gamestarts, this means there is no delay or timeouts on gadget side. so this makes our work harder...
--- we send clients teamID of the teams that must place. on the clientside we will reply after 5 seconds "oh yeah we did" regardless if they placed or not. this will allow the gadget to call for the next team to place.
+-- we send clients playerID of the players that must place. on the clientside we will reply after 5 seconds "oh yeah we did" regardless if they placed or not. this will allow the gadget to call for the next team to place.
 -- this only modifies the possibility of placing before your turn has come up or passed, nothing else has been changed.
 
 ----------------------------------------------------------------
