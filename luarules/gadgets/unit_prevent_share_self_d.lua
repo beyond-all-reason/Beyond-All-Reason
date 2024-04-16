@@ -72,8 +72,10 @@ else
 			if spec then
 				removeSelfdOrders(teamID)
 				monitorPlayers[playerID] = nil
-			elseif not active and prevActive then
-				removeSelfdOrders(teamID)
+			elseif active ~= prevActive then
+				if not active then
+					removeSelfdOrders(teamID)
+				end
 				monitorPlayers[playerID] = active	-- dont nil cause player could reconnect
 			end
 		end
