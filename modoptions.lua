@@ -845,6 +845,15 @@ local options = {
 	--},
 
     {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to set units for sale. (Select unit, say /sell_unit in chat to mark for sale. Double-click to buy from allies.)",
+        type   	= "bool",
+        def    	= true,
+        section = "options_extra",
+    },
+
+    {
         key 	= "map_waterlevel",
         name 	= "Water Level",
         desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
