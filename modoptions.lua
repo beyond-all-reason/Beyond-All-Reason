@@ -847,14 +847,15 @@ local options = {
     {
         key     = "draft_mode",
         name    = "Draft Spawn Order mod",
-        desc    = "Optional Draft/Skill based startPosType mods. Default: Disabled.",
+        desc    = "Optional Draft/Skill/Fair based startPosType mods. Default: Disabled.",
         type    = "list",
         section = "options_extra",
         def     = "disabled",
         items 	= {
-            { key = "disabled", name = "Disabled" },
+            { key = "disabled", name = "Disabled", 		desc = "No changes." },
             { key = "random", 	name = "Random", 		desc = "Before the game starts, you get to pick a start pos with a delay in a random order. You only get a few seconds so pick fast!" },
             { key = "skill", 	name = "Skill", 		desc = "Same as above, but in skill based order, instead of random. You only get a few seconds so pick fast!" },
+            { key = "fair", 	name = "Fair", 		    desc = "The entire ally team must join the game (and wait 2 seconds for the last ally) - after that you and everyone else on your team are allowed to place." },
         },
     },
 

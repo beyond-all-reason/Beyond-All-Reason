@@ -19,11 +19,14 @@ end
 -- FFA start points config format is handled by `game_ffa_start_setup`.
 
 -- 2024-04-15: Since we have multiple discord suggestions asking for more spawn position possibilities, here we go. Note this is the most fastest-to-code version, not the most elegant one.
--- draftMode modoption: skill draft, random draft (are almost identical to 2 "choose in game", just with a delay, eliminating 'fast pc' power gaming)
--- how does it work right now:
--- draft: before the game starts we create a random order of teams that should place: players must place start positions in the order that was determined.
+-- draftMode modoption: skill draft, random draft (are almost identical to 2 "choose in game", just with a delay), and fair - just wait until the entire ally team joins the game first.
+-- all of these are optional and are to help eliminate 'fast pc' power gaming.
+-- how does it work:
+-- random: before the game starts we create a random order of teams that should place: players must place start positions in the order that was determined.
 -- skill: instead of random order it's skill based order, with the highest skill placing first.
--- caveats: gameframe is always zero before the gamestarts, this means there is no delay or timeouts on gadget side. so this makes our work harder...
+-- fair: we simply wait until everyone on the ally team joins the game.
+--
+-- caveats: gameframe is always zero before the gamestarts, this means there is no delay or timeouts on gadget side. so this makes our work a bit harder...
 -- we send clients playerID of the players that must place. on the clientside we will reply after 5 seconds "oh yeah we did" regardless if they placed or not. this will allow the gadget to call for the next team to place.
 -- this only modifies the possibility of placing before your turn has come up or passed, nothing else has been changed.
 
@@ -129,6 +132,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - only used by draft/skill spawn options
 	local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - track whos order to place it is
+	local allyTeamIsInGame = {} -- [allyTeam] = true/false - used by "Fair" mode, we mark the ally team that has fully joined the game as true
+	local TeamIsInGame = {} -- [teamID] = true/false - used by "Fair" mode, once we get the reply frmo the client that they are in game, we test if all allies are also in game, if yes we flip the above to true and allow placing.
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false)) -- remember so we don't calculate gaia ally team
 	local draftMode = Spring.GetModOptions().draft_mode
 
@@ -181,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 		local teams = Spring.GetTeamList(allyTeamID)
 		for _, teamID in ipairs(teams) do
 			local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
-			if not isAiTeam then  -- Check if the team is human player, if not - don't care
+			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
 				local players = Spring.GetPlayerList(teamID)
 				for _, playerID in ipairs(players) do
 					local skill = GetSkill(playerID)
@@ -306,7 +311,7 @@ if gadgetHandler:IsSyncedCode() then
 				local teams = Spring.GetTeamList()  -- Get a list of all teams in the game
 				for _, teamID in ipairs(teams) do
 					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then  -- Check if the team is human player, if not - don't care
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
 						if not allyTeamSpawnOrder[allyTeamID] then
 							allyTeamSpawnOrder[allyTeamID] = {}  -- Initialize order table for the ally team if it doesn't exist
 						end
@@ -327,7 +332,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- Assign sorted teams to allyTeamSpawnOrder
 				for _, teamID in ipairs(teams) do
 					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then  -- Check if the team is human player, if not - don't care
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
 						if not allyTeamSpawnOrder[allyTeamID] then
 							allyTeamSpawnOrder[allyTeamID] = {}  -- Initialize order table for the ally team if it doesn't exist
 						end
@@ -339,6 +344,20 @@ if gadgetHandler:IsSyncedCode() then
 				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
 					if isAllyTeamSkillZero(allyTeamID) then
 						shuffleArray(allyTeamSpawnOrder[allyTeamID]) -- oof
+					end
+				end
+			elseif draftMode == "fair" then -- Fair mod -- wait until everyone joins the game first.
+				Spring.SendLuaUIMsg("DraftOrder_Fair") -- https://discord.com/channels/549281623154229250/1123310748236529715
+
+				-- init fair waiting mod
+				local teams = Spring.GetTeamList()
+				for _, teamID in ipairs(teams) do
+					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
+						if allyTeamIsInGame[allyTeamID] == nil then
+							allyTeamIsInGame[allyTeamID] = false  -- Initialize table for the ally team if it doesn't exist
+						end
+						TeamIsInGame[teamID] = false -- Same for the team
 					end
 				end
 			end
@@ -423,13 +442,34 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 0)
 		end
 
-		if msg == "skip_my_turn" and (draftMode == "skill" or draftMode == "random") then
+		if (draftMode == "skill" or draftMode == "random") and msg == "skip_my_turn" then
 			local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 			if teamID and allyTeamID then
 				local turnCheck = isTurnToPlace(allyTeamID, teamID)
 				if turnCheck == 1 then -- your turn and you skip? sure thing then!
 					allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
 					SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+				end
+			end
+		end
+		if draftMode == "fair" and msg == "i_have_joined_fair" then
+			local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+			TeamIsInGame[teamID] = true
+			-- Check if all allies have joined
+			if allyTeamIsInGame[allyTeamID] ~= true then
+				local allAlliesJoined = true
+				local allyTeamList = Spring.GetAllyTeamList(allyTeamID)
+				for _, allyTeam in ipairs(allyTeamList) do
+					local teamList = Spring.GetTeamList(allyTeam)
+					for _, team in ipairs(teamList) do
+						if TeamIsInGame[team] ~= nil and TeamIsInGame[team] ~= true then
+							allAlliesJoined = false
+							break
+						end
+					end
+				end
+				if allAlliesJoined then -- so they are in game? you can place then!
+					allyTeamIsInGame[allyTeamID] = true
 				end
 			end
 		end
@@ -471,18 +511,20 @@ if gadgetHandler:IsSyncedCode() then
 		end --fail
 
 		local myTurn = false
+		local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+		if not isAI then
 		if draftMode == "skill" or draftMode == "random" then
-			local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
-			if not isAI then -- is it your turn yet?
-				-- is it YOUR turn yet?
-				local turnCheck = isTurnToPlace(allyTeamID, teamID)
-				if turnCheck == 0 then -- NOT your turn, you must wait before other teams place before you!
-					return false
-				elseif turnCheck == 1 then -- if its 2, your turn has passed or we could not calculate, either way you are good to go to place
-					myTurn = true
-				end
+			-- is it YOUR turn yet?
+			local turnCheck = isTurnToPlace(allyTeamID, teamID)
+			if turnCheck == 0 then -- NOT your turn, you must wait before other teams place before you!
+				return false
+			elseif turnCheck == 1 then -- if its 2, your turn has passed or we could not calculate, either way you are good to go to place
+				myTurn = true
 			end
+		elseif draftMode == "fair" then
+			if allyTeamIsInGame[allyTeamID] == false then return false end
 		end -- the rest of the code untouched, very simple implementation, we only care about delaying a player selecting a start pos out of turn, nothing else
+		end
 
 		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
 		if allyTeamID == nil then
@@ -683,6 +725,8 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
 				elseif draftMode == "random" then -- https://discord.com/channels/549281623154229250/1163844303735500860
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
+				elseif draftMode == "fair" then -- https://discord.com/channels/549281623154229250/1123310748236529715
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, fair mode")
 				else
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
 				end

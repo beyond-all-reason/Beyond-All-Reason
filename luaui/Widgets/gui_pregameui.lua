@@ -299,6 +299,21 @@ function widget:Initialize()
 	checkStartPointChosen()
 end
 
+-- TODO -- maybe not draw "choose start pos" if draft mode is on and its not your turn? other than that for the first version should be fine as is.
+local draftMode = Spring.GetModOptions().draft_mode
+local draftMode_loaded = false -- I want to be extra sure the client has seen the message and is really in game before they reply anything.
+local widgetStartTime = os.clock()
+local myTurn=false
+local ihavejoined_fair=false
+local myTurn_timeout=widgetStartTime + 5 -- 5 seconds, os.clock perfect, though may raise to 10 seconds? or make "timeout" a modoption as well in the future?
+local fair_timeout=widgetStartTime + 2 -- 2 seconds to make sure last player is fully loaded in the game.
+local function initDMclocks()
+	draftMode_loaded = true
+	widgetStartTime = os.clock()
+	myTurn_timeout=widgetStartTime + 5
+	fair_timeout=widgetStartTime + 2
+end
+
 function widget:DrawScreen()
 	if not startPointChosen then
 		checkStartPointChosen()
@@ -332,6 +347,25 @@ function widget:DrawScreen()
 			end
 		end
 	end
+
+	--draft mod begin
+	if draftMode_loaded then
+	if myTurn then
+		if (os.clock() >= myTurn_timeout) and not startPointChosen then
+			Spring.SendLuaRulesMsg("skip_my_turn")
+			Spring.Echo("You didn't place! Next player can place now as well.")
+			myTurn = false
+			-- widgetHandler:RemoveWidgetCallIn("DrawScreen", self) -- can only do that if handler is true, should I?
+		end
+	end
+	if draftMode == "fair" and not ihavejoined_fair then
+		if (os.clock() >= fair_timeout) then
+			Spring.SendLuaRulesMsg("i_have_joined_fair")
+			Spring.Echo("Fair mode on, we were waiting for you. ;)") -- debug
+			ihavejoined_fair = true
+		end
+	end end
+	--draft mod end
 
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
@@ -434,21 +468,6 @@ function widget:DrawWorld()
 	end
 end
 
--- TODO -- maybe not draw "choose start pos" if draft mode is on and its not your turn? other than that for the first version should be fine as is.
-local widgetStartTime = os.clock()
-local myTurn=false
-local myTurn_timeout=widgetStartTime + 5 -- 5 seconds, os.clock perfect, though may raise to 10 seconds? or make "timeout" a modoption as well in the future?
-function widget:DrawScreen()
-	if myTurn then
-		if (os.clock() >= myTurn_timeout) then
-			Spring.SendLuaRulesMsg("skip_my_turn")
-			Spring.Echo("You didn't place! Next player can place now as well.")
-			myTurn = false
-			-- widgetHandler:RemoveWidgetCallIn("DrawScreen", self) -- can only do that if handler is true, should I?
-		end
-	end
-end
-
 function widget:RecvLuaMsg(msg, playerID)
     local words = {}
     for word in msg:gmatch("%S+") do
@@ -467,8 +486,13 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 	elseif words[1] == "DraftOrder_Random" then
 		Spring.Echo("Random draft order startpos mode enabled. Wait your turn to place.")
+		initDMclocks()
 	elseif words[1] == "DraftOrder_Skill" then
 		Spring.Echo("Skill based draft order startpos mode enabled. Wait your turn to place.")
+		initDMclocks()
+	elseif words[1] == "DraftOrder_Fair" then
+		Spring.Echo("Fair startpos mode enabled. Wait until your entire ally team joins the game first.")
+		initDMclocks()
 	end
 	-- it'd be great to just paint this on screen in the middle /!\ Commander, it's your turn, place your start pos now, you have 5 seconds! /!\ or something like that...
 end
