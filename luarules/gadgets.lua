@@ -1235,7 +1235,6 @@ function gadgetHandler:PlayerAdded(playerID)
 end
 
 function gadgetHandler:PlayerRemoved(playerID, reason)
-	Spring.Echo('PlayerRemoved', playerID, reason)
 	for _, g in ipairs(self.PlayerRemovedList) do
 		g:PlayerRemoved(playerID, reason)
 	end
