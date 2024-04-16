@@ -1,11 +1,11 @@
 return {
 	leghelios = {
-		maxacc = 0.035,
-		maxdec = 0.07,
-		energycost = 1300,
+		maxacc = 0.05,
+		maxdec = 0.1,
+		energycost = 2400,
 		metalcost = 160,
 		buildpic = "LEGHELIOS.DDS",
-		buildtime = 2400,
+		buildtime = 2600,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
@@ -20,7 +20,7 @@ return {
 		leavetracks = true,
 		health = 890,
 		maxslope = 10,
-		speed = 60.0,
+		speed = 66.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
@@ -36,7 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.96,
-		turnrate = 300,
+		turnrate = 450,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
