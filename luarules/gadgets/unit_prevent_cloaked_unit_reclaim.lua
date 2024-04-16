@@ -10,7 +10,9 @@ function gadget:GetInfo()
     }
 end
 
-local builders = {}
+local canReclaim = {}
+
+local maxBuildDist = 0
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -20,9 +22,11 @@ if gadgetHandler:IsSyncedCode() then
     local GiveOrderToUnit = Spring.GiveOrderToUnit
     local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
     local GetAllUnits = Spring.GetAllUnits
-    local GetUnitDefID = Spring.GetUnitDefID
     local IsUnitInRadar = Spring.IsUnitInRadar
-
+    local GetUnitPosition = Spring.GetUnitPosition
+    local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+    local GetUnitDefID = Spring.GetUnitDefID
+    
 
     function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
         if (cmdID == CMD.RECLAIM) and (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) and not IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
@@ -32,20 +36,26 @@ if gadgetHandler:IsSyncedCode() then
     end
     
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
-        for bID, _ in pairs(builders) do
-            local cmd, target = GetUnitWorkerTask(bID)
-            if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) and not IsUnitInRadar(unitID, GetUnitAllyTeam(bID)) then
-                local _, _, cmdTag = GetUnitCurrentCommand(bID, 1)
-                GiveOrderToUnit(bID, CMD.REMOVE, {cmdTag}, {})
+        local x, y, z = GetUnitPosition(unitID)
+        local units = GetUnitsInCylinder(x, z, maxBuildDist)
+        for _, bID in pairs(units) do
+            local unitDefID = GetUnitDefID(bID)
+            if canReclaim[unitDefID] then
+                local cmd, target = GetUnitWorkerTask(bID)
+                if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) and not IsUnitInRadar(unitID, GetUnitAllyTeam(bID)) then
+                    local _, _, cmdTag = GetUnitCurrentCommand(bID, 1)
+                    GiveOrderToUnit(bID, CMD.REMOVE, {cmdTag}, {})
+                end
             end
         end
         return true
     end
 
     local function initBuilder(unitID, unitDefID)
-        local def = UnitDefs[unitDefID]
-        if def.isBuilder then
-            builders[unitID] = true
+        if canReclaim[unitDefID] then
+            if canReclaim[unitDefID] > maxBuildDist then
+                maxBuildDist = canReclaim[unitDefID]
+            end
         end
     end
 
@@ -53,11 +63,12 @@ if gadgetHandler:IsSyncedCode() then
         initBuilder(unitID, unitDefID)
     end
 
-    function gadget:UnitDestroyed(unitID)
-        builders[unitID] = nil
-    end
-
     function gadget:Initialize()
+        for unitDefID, unitDef in pairs(UnitDefs) do
+            if unitDef.canReclaim then
+                canReclaim[unitDefID] = unitDef.buildDistance or 0
+            end
+        end
         -- handle luarules reload
         local units = GetAllUnits()
         for _,unitID in ipairs(units) do
