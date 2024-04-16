@@ -1187,10 +1187,6 @@ local function processLines(clearConsole)
 	chatLines = {}
 	if clearConsole then
 		consoleLines = {}
-	else
-		--for i, params in ipairs(consoleLines) do
-		--	processConsoleLine(i)
-		--end
 	end
 	for _, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], false, not initialized)

@@ -1080,7 +1080,7 @@ end
 
 function gadgetHandler:RecvFromSynced(...)
 	local arg1, arg2 = ...
-  if (type(arg1) == 'string') then 
+  if (type(arg1) == 'string') then
 		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
 	else
 		tracy.ZoneBeginN("G:RecvFromSynced")
@@ -1235,6 +1235,7 @@ function gadgetHandler:PlayerAdded(playerID)
 end
 
 function gadgetHandler:PlayerRemoved(playerID, reason)
+	Spring.Echo('PlayerRemoved', playerID, reason)
 	for _, g in ipairs(self.PlayerRemovedList) do
 		g:PlayerRemoved(playerID, reason)
 	end
@@ -1319,7 +1320,7 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-								
+
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(self.AllowCommandList) do
 		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
@@ -1388,8 +1389,8 @@ end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
-									
-	tracy.ZoneBeginN("G:AllowUnitBuildStep")  
+
+	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
@@ -1550,7 +1551,7 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	tracy.ZoneBeginN("G:UnitCreated")  
+	tracy.ZoneBeginN("G:UnitCreated")
 	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitCreatedList) do
@@ -1561,7 +1562,7 @@ function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitFinished")  
+	tracy.ZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
 		g:UnitFinished(unitID, unitDefID, unitTeam)
 	end
@@ -1585,7 +1586,7 @@ function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitDestroyed")  
+	tracy.ZoneBeginN("G:UnitDestroyed")
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitDestroyedList) do
@@ -1611,7 +1612,7 @@ function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitIdle")  
+	tracy.ZoneBeginN("G:UnitIdle")
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
@@ -1627,7 +1628,7 @@ function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, c
 end
 
 function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitPreDamaged")  
+	tracy.ZoneBeginN("G:UnitPreDamaged")
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -1657,7 +1658,7 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 end
 
 function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	tracy.ZoneBeginN("G:UnitDamaged") 
+	tracy.ZoneBeginN("G:UnitDamaged")
 	for _, g in ipairs(self.UnitDamagedList) do
 		g:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	end
@@ -1683,7 +1684,7 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	tracy.ZoneBeginN("G:UnitCommand") 
+	tracy.ZoneBeginN("G:UnitCommand")
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
@@ -1727,7 +1728,7 @@ function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitEnteredLos") 
+	tracy.ZoneBeginN("G:UnitEnteredLos")
 	for _, g in ipairs(self.UnitEnteredLosList) do
 		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
@@ -1743,7 +1744,7 @@ function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitLeftLos") 
+	tracy.ZoneBeginN("G:UnitLeftLos")
 	for _, g in ipairs(self.UnitLeftLosList) do
 		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
@@ -1815,7 +1816,7 @@ end
 --
 
 function gadgetHandler:FeatureCreated(featureID, allyTeam)
-	tracy.ZoneBeginN("G:FeatureCreated") 
+	tracy.ZoneBeginN("G:FeatureCreated")
 	for _, g in ipairs(self.FeatureCreatedList) do
 		g:FeatureCreated(featureID, allyTeam)
 	end
@@ -1824,7 +1825,7 @@ function gadgetHandler:FeatureCreated(featureID, allyTeam)
 end
 
 function gadgetHandler:FeatureDestroyed(featureID, allyTeam)
-	tracy.ZoneBeginN("G:FeatureDestroyed") 
+	tracy.ZoneBeginN("G:FeatureDestroyed")
 	for _, g in ipairs(self.FeatureDestroyedList) do
 		g:FeatureDestroyed(featureID, allyTeam)
 	end
@@ -1889,7 +1890,7 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
-	tracy.ZoneBeginN("G:ProjectileCreated") 
+	tracy.ZoneBeginN("G:ProjectileCreated")
 	for _, g in ipairs(self.ProjectileCreatedList) do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
@@ -1898,7 +1899,7 @@ function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 end
 
 function gadgetHandler:ProjectileDestroyed(proID)
-	tracy.ZoneBeginN("G:ProjectileDestroyed") 
+	tracy.ZoneBeginN("G:ProjectileDestroyed")
 	for _, g in ipairs(self.ProjectileDestroyedList) do
 		g:ProjectileDestroyed(proID)
 	end
@@ -1954,7 +1955,7 @@ function gadgetHandler:SunChanged()
 end
 
 function gadgetHandler:Update(deltaTime)
-	tracy.ZoneBeginN("G:Update") 
+	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
 		g:Update(deltaTime)
 	end
@@ -1982,7 +1983,7 @@ function gadgetHandler:CommandNotify(id, params, options)
 end
 
 function gadgetHandler:DrawGenesis()
-	tracy.ZoneBeginN("G:DrawGenesis") 
+	tracy.ZoneBeginN("G:DrawGenesis")
 	for _, g in ipairs(self.DrawGenesisList) do
 		g:DrawGenesis()
 	end
@@ -1991,7 +1992,7 @@ function gadgetHandler:DrawGenesis()
 end
 
 function gadgetHandler:DrawWorld()
-	tracy.ZoneBeginN("G:DrawWorld") 
+	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
 		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
 		g:DrawWorld()
@@ -2002,7 +2003,7 @@ function gadgetHandler:DrawWorld()
 end
 
 function gadgetHandler:DrawWorldPreUnit()
-	tracy.ZoneBeginN("G:DrawWorldPreUnit") 
+	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
 		g:DrawWorldPreUnit()
 	end
@@ -2075,7 +2076,7 @@ function gadgetHandler:DrawWorldRefraction()
 end
 
 function gadgetHandler:DrawScreenEffects(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreenEffects") 
+	tracy.ZoneBeginN("G:DrawScreenEffects")
 	for _, g in ipairs(self.DrawScreenEffectsList) do
 		g:DrawScreenEffects(vsx, vsy)
 	end
@@ -2084,7 +2085,7 @@ function gadgetHandler:DrawScreenEffects(vsx, vsy)
 end
 
 function gadgetHandler:DrawScreenPost()
-	tracy.ZoneBeginN("G:DrawScreenPost") 
+	tracy.ZoneBeginN("G:DrawScreenPost")
 	for _, g in ipairs(self.DrawScreenPostList) do
 		g:DrawScreenPost(vsx, vsy)
 	end
@@ -2093,7 +2094,7 @@ function gadgetHandler:DrawScreenPost()
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreen") 
+	tracy.ZoneBeginN("G:DrawScreen")
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end
@@ -2102,7 +2103,7 @@ function gadgetHandler:DrawScreen(vsx, vsy)
 end
 
 function gadgetHandler:DrawInMiniMap(mmsx, mmsy)
-	tracy.ZoneBeginN("G:DrawInMiniMap") 
+	tracy.ZoneBeginN("G:DrawInMiniMap")
 	for _, g in ipairs(self.DrawInMiniMapList) do
 		g:DrawInMiniMap(mmsx, mmsy)
 	end
