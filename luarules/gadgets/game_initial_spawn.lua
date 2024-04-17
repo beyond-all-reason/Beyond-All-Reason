@@ -246,7 +246,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- if we can't find playerID of that team, then something has gone very bad... if player never connects we are going to wait for them forever... :(
 		if target_num+1 <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			local playerID_next_in_queue_draft = nil -- if there is a next player in queue we can announce them both
+			local playerID_next_in_queue_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num+1]) -- if there is a next player in queue we can announce them both
 			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. playerID_next_in_queue_draft)
 		elseif target_num <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
