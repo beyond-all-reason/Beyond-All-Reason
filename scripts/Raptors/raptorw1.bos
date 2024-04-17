@@ -6,7 +6,6 @@ piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liw
 #define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
-#include "sfxtype.h"
 #include "../recoil_common_includes.h"
 
 

@@ -1,5 +1,4 @@
 
-#include "sfxtype.h"
 #include "../recoil_common_includes.h"
 #include "unitDefsTurretSpeeds.h"
 
@@ -9,7 +8,7 @@ piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
 static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 // ================== STEERING CONTROL ==================
 
