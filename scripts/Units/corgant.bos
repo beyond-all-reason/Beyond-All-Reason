@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
 piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;

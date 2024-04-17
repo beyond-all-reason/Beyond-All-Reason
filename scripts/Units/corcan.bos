@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
 

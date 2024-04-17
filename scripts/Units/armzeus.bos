@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
 static-var  isMoving, isAiming, restore_delay, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading; 

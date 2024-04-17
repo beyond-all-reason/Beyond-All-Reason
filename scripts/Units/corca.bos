@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, duct1, fan1, duct2, fan2, door1, door2, support, beam, nano, thrust;
 

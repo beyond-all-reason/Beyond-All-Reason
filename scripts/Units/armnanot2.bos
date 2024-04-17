@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, stand, centerpoint, aim1, aim2, aim3, emitnano1;
 

@@ -6,7 +6,7 @@ static-var aMoving, isMoving, gun_1, shot5pitch, shot5heading;
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 

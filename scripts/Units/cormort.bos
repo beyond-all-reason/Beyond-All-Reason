@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  support, flare, lthigh, rthigh, Torso, Shoulder, Barrel, rfoot,
        lfoot, Forearm, lleg, rleg, pelvis, aimx1, aimy1, head;

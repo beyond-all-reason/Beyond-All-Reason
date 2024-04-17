@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  leg1, leg2, leg3, leg4, base, body;
 

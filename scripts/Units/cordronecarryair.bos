@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;
 

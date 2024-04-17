@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1, bomb2;
 static-var  inAileronRoll, gun_1;

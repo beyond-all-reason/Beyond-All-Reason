@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, turret1, turret2, abarrela, abarrelb, bbarrela, bbarrelb, flare11,
        flare12, flare21, flare22, wake1, flare3;

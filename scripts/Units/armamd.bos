@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, door1, door2, antenna, greenlight, orangelight;
 

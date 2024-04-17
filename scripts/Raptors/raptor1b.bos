@@ -1,6 +1,6 @@
 piece base,body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1;
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 #define SIGNAL_AIM1 256
 

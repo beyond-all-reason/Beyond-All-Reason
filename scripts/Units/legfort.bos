@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, link, thrustrr, thrustrl, thrustfr, thrustfl, thrustrra, thrustrla, thrustfra, thrustfla, radar,
 	   turret, sleeve, barrel1, flare1, barrel2, flare2, barrel3, flare3, turretr, sleevesr, barrel1r, flare1r, barrel2r, flare2r,

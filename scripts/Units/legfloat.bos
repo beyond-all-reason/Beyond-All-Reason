@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  hull, lankle, lwheel, rankle, rwheel, turret, gun, barrel,
        flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater;

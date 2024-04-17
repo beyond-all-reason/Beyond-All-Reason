@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
 

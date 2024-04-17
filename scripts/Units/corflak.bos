@@ -1,6 +1,6 @@
 
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, gun, barrel, base;
 

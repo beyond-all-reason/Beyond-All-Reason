@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, armbase, arm1, arm2, arm3, arm4, arm5, flare1, flare2, flare3, flare4, flare5, topflare;
 

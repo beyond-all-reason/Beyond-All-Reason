@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  pelvis, lflare, rflare, lvent,rvent, lthigh, rthigh,
        torso, rleg, rfoot, lleg, lfoot,rarm, larm, rbarrel, lbarrel, aimy1, aimx1;

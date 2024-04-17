@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, thrustfl, thrustfr, thrustbl, thrustbr,  flarefl, flarefr, flarebl, flarebr, 
 	bomb3l, bomb3r, bomb2l, bomb2r, bomb1l, bomb1r, bay3l, bay3r, bay2l, bay2r, bay1l, bay1r;

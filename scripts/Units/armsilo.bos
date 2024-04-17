@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, door1, door2, flare, light1, light2, light3, light4;
 

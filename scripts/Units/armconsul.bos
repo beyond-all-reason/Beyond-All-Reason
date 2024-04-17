@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, rtracks, ltracks, larm1, larm2, larm3, rarm1,rarm2,rarm3,rturret,lturret,lnano,rnano;
 

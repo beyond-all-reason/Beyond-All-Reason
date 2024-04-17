@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lid, sleeve, flare1, flare2, flare3, flare4, flare5, flare6, flare7;
 

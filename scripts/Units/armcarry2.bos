@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow,
 		drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14;

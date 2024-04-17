@@ -10,7 +10,7 @@ piece base, body, head,tail,rsack,lsack, flare, aimy1,
 #define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, gun_1, isDying;
 

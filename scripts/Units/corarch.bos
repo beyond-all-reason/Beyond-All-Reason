@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  rflare, lflare, flarea, flareb, base, boxb, boxa, turret,
        turreta, turretb, wake, rbarrel, lbarrel, sleeve ;

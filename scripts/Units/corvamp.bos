@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  missilea, missileb, base, thrustb1, thrustb2,
        thrusta;

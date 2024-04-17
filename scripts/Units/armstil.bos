@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr;
 

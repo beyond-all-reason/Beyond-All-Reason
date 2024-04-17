@@ -1,6 +1,6 @@
 
 #include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, post, turret, flare, aimpoint;
 

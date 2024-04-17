@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, turret, barrel, flare, wake, fan1, fan2,sleeve;
 static-var  restore_delay;

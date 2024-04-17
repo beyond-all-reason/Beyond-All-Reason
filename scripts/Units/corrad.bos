@@ -1,6 +1,6 @@
 static-var  Stunned;
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dish, blink;
 

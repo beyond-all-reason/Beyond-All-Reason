@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, turret1, wake, weight, turret2, doorr, doorl, boom2, boom3,
        boom1, boom4, link, boom5, boom6, boom7, boom8, boom9;

@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
 piece  base, head1, head2, nano1, nano2, pad;

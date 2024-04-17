@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
 piece  base, pad, head, wheel1, wheel2, nano, cagelight, cagelight_emit;

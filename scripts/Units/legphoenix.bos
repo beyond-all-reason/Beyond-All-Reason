@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;

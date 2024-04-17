@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  lturret, rturret, base, lprop, rprop, bprop;
 

@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull, AA_turret_gun_1, 
 			AA_turret_gun_2, AA_turret_radar, Left_turret_main, Left_turret_gun, Right_turret_main, Right_turret_gun, 

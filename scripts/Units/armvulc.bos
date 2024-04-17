@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
        housing01, housing02, housing03, housing04, spindle, neck, back;

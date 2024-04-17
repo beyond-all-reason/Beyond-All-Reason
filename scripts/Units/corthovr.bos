@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3, boom4, magnet, link, boom5, boom6, fan1, fan2;
 

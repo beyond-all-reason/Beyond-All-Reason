@@ -182,6 +182,26 @@
 
 // NOTE: shared variables use codes [1024 - 5119]
 
+// Signals:
+#ifndef CUSTOMSIGNALS
+    #define SIGNAL_MOVE 1
+    #define SIGNAL_BUILD 2
+    #define SIGNAL_TURNON 4
+    #define SIGNAL_IDLE 8 
+    #define SIGNAL_SHOOT1 16
+    #define SIGNAL_SHOOT2 32
+    #define SIGNAL_CUSTOM 64
+    #define SIGNAL_RETURN 128
+    #define SIGNAL_AIM1 256
+    #define SIGNAL_AIM2 512
+    #define SIGNAL_AIM3 1024
+    #define SIGNAL_AIM4 2048
+    #define SIGNAL_AIM5 4096
+    #define SIGNAL_AIM6 8192
+    #define SIGNAL_ALL 0xFFFF
+    #define SIGNAL_RECOIL 65536
+#endif
+
 // Utilities
 
 #define SLEEP_UNTIL_UNITFINISHED while(get BUILD_PERCENT_LEFT) {sleep 333;}

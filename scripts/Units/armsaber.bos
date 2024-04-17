@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, wingl, wingr, finl, finr, flare1, flare2, fan;
 

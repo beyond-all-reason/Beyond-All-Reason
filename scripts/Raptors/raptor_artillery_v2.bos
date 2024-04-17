@@ -1,6 +1,6 @@
 piece base,torso, thigh1l, thigh1r, thigh2l, thigh2r, thigh3l, thigh3r, leg1l, leg1r, leg2l, leg2r, leg3l, leg3r, foot1l, foot1r, foot2l, foot2r, foot3l, foot3r, thor1, thor2, thor3, thor4, thor5, thor6, wingl, wingr, flare;
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 #define SIGNAL_AIM1 256
 

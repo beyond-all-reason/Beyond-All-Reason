@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  lftrack, rftrack, lbtrack, rbtrack, turret, guns, base, barrel1, flare1, barrel2, flare2;
 

@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16

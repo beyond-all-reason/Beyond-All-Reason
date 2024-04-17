@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2;
 

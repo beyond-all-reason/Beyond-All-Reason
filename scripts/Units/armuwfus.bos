@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 piece   door1, door3, door5, door2, door6, door4, base, fan1, fan2;

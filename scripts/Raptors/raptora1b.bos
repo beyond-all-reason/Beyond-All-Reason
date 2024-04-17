@@ -5,7 +5,7 @@ piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lf
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,aaheading, aapitch,isDying;

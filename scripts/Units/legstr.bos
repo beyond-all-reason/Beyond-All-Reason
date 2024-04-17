@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve, lbarrel, luparm, ruparm, 
 	 rbarrel, lflare, rflare, aimx1, aimy1;
@@ -87,7 +87,6 @@ walk()
 	
 	sleep 100*animspeed;
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 walklegs()

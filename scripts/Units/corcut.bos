@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare1, flare2, thrusta, thrustb, fan1, fan2, duct1, duct2;
 

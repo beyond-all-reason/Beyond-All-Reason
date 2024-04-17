@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, lflare,
 		ljet, lthrust, lwing, lmislink, lmissile,  lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;

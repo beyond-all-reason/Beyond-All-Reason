@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, rflare, lflare, pelvis,
        rarm, larm, aimy1, aimx1, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b,

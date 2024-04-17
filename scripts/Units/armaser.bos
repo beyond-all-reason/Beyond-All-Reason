@@ -1,6 +1,6 @@
 
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1;
 

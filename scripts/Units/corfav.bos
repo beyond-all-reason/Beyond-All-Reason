@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 

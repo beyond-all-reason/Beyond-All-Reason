@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece flare1, flare2, base, thrust, wing1, wing2;
 

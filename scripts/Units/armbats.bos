@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1a, flare1b, flare2a, flare2b,  base, turret1,
        turret2, sleeve1, sleeve2, barrel1a, barrel1b, barrel2a, barrel2b,

@@ -1,7 +1,7 @@
 
 
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dbl, dbr, dtr, dtl, dummy;
 

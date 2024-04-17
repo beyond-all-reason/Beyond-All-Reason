@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, wake, bow, chrgflare, turret, sleeve, barrel1, barrel2,
        foreturret, foreflare, aftturret, aftflare, flare1,

@@ -1,7 +1,7 @@
 
 
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, door1, door2, flare, cagelight1, cagelight2, cagelight3, cagelight4, cagelight_emit1, cagelight_emit2, cagelight_emit3, cagelight_emit4;
 

@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  flare1, flare2, turret, base, sleeve, barrel1, barrel2,
        wake1, wake2, exhaust1, exhaust2, exhaust3, aimpoint;

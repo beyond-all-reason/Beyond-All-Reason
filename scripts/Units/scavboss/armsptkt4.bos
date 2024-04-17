@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 
 // One sixth of the full cycle duration, in millisecond

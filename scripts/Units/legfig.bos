@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flarer, flarel, base, thrust, wingl, wingr, wingl2, wingr2, gunl, gunr;
 

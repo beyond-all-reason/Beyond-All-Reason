@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;

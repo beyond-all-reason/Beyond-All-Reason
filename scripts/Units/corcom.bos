@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
     rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, hatpoint, crown, medalsilver, medalbronze, medalgold;

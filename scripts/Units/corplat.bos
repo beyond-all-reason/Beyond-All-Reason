@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
 piece  base, pad, beam1, beam2, beam3, beam4, nano1,nano2,nano3,nano4;

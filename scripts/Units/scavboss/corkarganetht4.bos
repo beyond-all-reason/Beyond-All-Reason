@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  pelvis, rfhip, rfleg, rffoot, lmhip, lmleg, lmfoot, lbhip, lbleg, 
 		lbfoot, lfhip, lfleg, lffoot, rbhip, rbleg, rbfoot, rmhip, rmleg, rmfoot, 

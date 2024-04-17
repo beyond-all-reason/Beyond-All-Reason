@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 piece  tube1, tube2, base, wake;
 
 static-var  gun_1;

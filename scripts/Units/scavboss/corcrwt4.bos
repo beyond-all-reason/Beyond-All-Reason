@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 //piece  base, turretl, sleevel, barrell, flarel, turretr, sleever, barrelr, flarer, 
   //     turretf, sleevef, barrelf, flaref, thrustrr, thrustrl, thrustfr, thrustfl, 

@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake,
        bow, engine, tur1, tur2, tur3,

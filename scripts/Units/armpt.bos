@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flarel, flarer, flareaa, turretaa, ground, base, turretl, turretr, radar, blink;
 

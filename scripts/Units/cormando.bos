@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  turret, sleeve, barrel, torso, rnano,
        lnano, pelvis, lthigh, rthigh, rleg, lleg, lfoot, rfoot, luparm, ruparm,

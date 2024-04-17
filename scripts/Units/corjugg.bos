@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe, lftoe, rbtoe, rftoe, aimy1,
 	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail;

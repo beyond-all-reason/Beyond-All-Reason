@@ -1,4 +1,4 @@
-#include "exptype.h"
+#include "recoil_common_includes.h"
 
 piece  base, column1,column2,column3,column4,fusionsphere, emit;
 

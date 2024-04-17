@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare;
 

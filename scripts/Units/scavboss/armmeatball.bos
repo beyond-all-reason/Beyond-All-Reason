@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  pelvis, body, rthigh, lthigh , lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel, rbarrel, lflare, rflare;
 
@@ -117,7 +117,6 @@ walk()
 	
 	sleep 96;
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 walklegs()

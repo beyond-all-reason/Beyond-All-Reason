@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
        rknee, rshin, rfoot, lforearm, lupperarm, lblade, rforearm, rupperarm, head_emit,

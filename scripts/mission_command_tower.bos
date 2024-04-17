@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "recoil_common_includes.h"
 
 piece  base, column1,column2,column3,column4,fusionsphere, emit, coolera1, coolera2, coolera3, coolera4, coolerb1, coolerb2, coolerb3, coolerb4;
 

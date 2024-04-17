@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1, unstocked, stocked;
 

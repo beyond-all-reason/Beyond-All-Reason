@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, body, jetl, thrustl, jetr, thrustr, centerwing, centerpadd, w_glass, thrustm, sleeve, flare, barrel1, barrel2, barrel3, barrel4;
 

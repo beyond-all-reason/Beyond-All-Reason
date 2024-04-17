@@ -7,7 +7,7 @@ piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liw
 #define SIGNAL_MOVE 1
 
 #include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 // For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3))

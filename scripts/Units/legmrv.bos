@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;

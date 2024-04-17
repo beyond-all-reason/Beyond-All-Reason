@@ -1,5 +1,5 @@
 
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
 piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
