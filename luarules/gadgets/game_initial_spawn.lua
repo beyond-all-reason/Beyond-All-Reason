@@ -244,12 +244,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SendDraftMessageToPlayer(allyTeamID, target_num)
 		-- if we can't find playerID of that team, then something has gone very bad... if player never connects we are going to wait for them forever... :(
-		if target_num <= #allyTeamSpawnOrder[allyTeamID] then -- if we overflow then all players have placed
+		if target_num+1 <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			if (playerID_draft) then
-				Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft)
-			end
-		end
+			local playerID_next_in_queue_draft = nil -- if there is a next player in queue we can announce them both
+			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. playerID_next_in_queue_draft)
+		elseif target_num <= #allyTeamSpawnOrder[allyTeamID] then
+			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
+			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. "-1")
+		end -- if no players found in draft queue, that ally team is already done, no overflow
 	end
 	----------------------------------------------------------------
 	-- Initialize
@@ -706,7 +708,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		spawnStartUnit(teamID, x, z)
 	end
-	
+
 	----------------------------------------------------------------
 	-- Spawning
 	----------------------------------------------------------------
