@@ -112,10 +112,10 @@ Killed(severity, corpsetype)
 {
 	// drop all undropped ones
 	if (currbomb <=0) explode bomb3l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	//if (currbomb <=1) explode bomb3r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	//if (currbomb <=2) explode bomb2l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	
+	
 	if (currbomb <=3) explode bomb2r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	//if (currbomb <=4) explode bomb1l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	
 	if (currbomb <=5) explode bomb1r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 
 	if( severity <= 25 )
