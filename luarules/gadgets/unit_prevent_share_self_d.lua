@@ -29,6 +29,9 @@ if not gadgetHandler:IsSyncedCode() then
 
 else
 
+	local monitorPlayers = {}
+	local spGetPlayerInfo = Spring.GetPlayerInfo
+
 	local function removeSelfdOrders(teamID)
 		-- check team is empty
 		--local team = Spring.GetPlayerList(teamID)
@@ -51,14 +54,13 @@ else
 		end
 	end
 
-	local monitorPlayers = {}
 	function gadget:Initialize()
 		local players = Spring.GetPlayerList()
 		for _, playerID in pairs(players) do
-			local _,active,spec,teamID = Spring.GetPlayerInfo(playerID,false)
+			local _,active,spec,teamID = spGetPlayerInfo(playerID,false)
 			local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
 			if isDead == 0 and not isAiTeam then
-				_, active, spec = Spring.GetPlayerInfo(leaderPlayerID, false)
+				--_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
 				if active and not spec then
 					monitorPlayers[playerID] = true
 				end
@@ -67,8 +69,9 @@ else
 	end
 
 	function gadget:GameFrame(gameFrame)
+		local active,spec,teamID
 		for playerID, prevActive in pairs(monitorPlayers) do
-			local _,active,spec,teamID = Spring.GetPlayerInfo(playerID,false)
+			_,active,spec,teamID = spGetPlayerInfo(playerID,false)
 			if spec then
 				removeSelfdOrders(teamID)
 				monitorPlayers[playerID] = nil
