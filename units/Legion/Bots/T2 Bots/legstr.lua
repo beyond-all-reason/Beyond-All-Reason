@@ -34,6 +34,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			atlas = "armada",
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/Arm_normal.dds",

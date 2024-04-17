@@ -83,6 +83,8 @@ vertex = [[
 
 	#define OPTION_TREEWIND 11
 
+	#define OPTION_TREADS_LEG 13
+
 	%%GLOBAL_OPTIONS%%
 
 	/***********************************************************************/
@@ -529,6 +531,24 @@ vertex = [[
 				#undef IN_PIXEL_RECT
 				#undef PIXELS_TO_UV
 			}
+
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
+				const float atlasSize = 4096.0;
+				const float gfMod = 6.9;
+				const float texSpeed = -6.0;
+				float unitSpeed = uni[instData.y].speed.w;
+				float baseOffset =  unitSpeed * mod(float(simFrame), gfMod) / atlasSize;
+				float texOffset = baseOffset * texSpeed;
+
+				// note, invert we invert Y axis
+				//const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
+				const vec4 treadBoundaries = vec4(2559.0, 3332.0, atlasSize - 1174.0, atlasSize - 768.0) / atlasSize;
+				if (all(bvec4(
+						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
+						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
+					uvCoords.x += texOffset;
+				}
+			}
 			#endif
 
 			worldVertexPos = worldPos;
@@ -647,6 +667,7 @@ fragment = [[
 	#define OPTION_TREEWIND 11
 	#define OPTION_PBROVERRIDE 12
 
+	#define OPTION_TREADS_LEG 13
 
 	%%GLOBAL_OPTIONS%%
 

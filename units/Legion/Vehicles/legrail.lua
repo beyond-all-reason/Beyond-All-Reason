@@ -40,6 +40,7 @@ return {
 		turnrate = 300,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			atlas = "armada",
 			unitgroup = 'weaponaa',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

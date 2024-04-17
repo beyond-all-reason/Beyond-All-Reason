@@ -67,6 +67,7 @@ local mySetMaterialUniform = {
 
 local armTanks = {}
 local corTanks = {}
+local legTanks = {}
 local raptorUnits = {}
 local otherUnits = {}
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -263,6 +264,25 @@ local materials = {
 
 		UnitDamaged = UnitDamaged,
 	}),
+	unitsNormalMapLegTanks = table.merge(unitsNormalMapTemplate, {
+		texUnits  = {
+			[3] = "%TEXW1",
+			[4] = "%TEXW2",
+			[5] = "%NORMALTEX2",
+		},
+		shaderOptions = {
+			treads_leg = true,
+		},
+		deferredOptions = {
+			treads_leg = true,
+		},
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(corTanks, unitID, unitDefID) end,
+
+		GameFrame = function (gf, mat) GameFrame(true, corTanks, gf, mat) end,
+
+		UnitDamaged = UnitDamaged,
+	}),
 	unitsNormalMapOthersArmCor = table.merge(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
@@ -369,6 +389,11 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
+	["leg"] = { -- @TODO: swap for a legion one
+		"unittextures/cor_color_wreck.dds",
+		"unittextures/cor_other_wreck.dds",
+		"unittextures/cor_color_wreck_normal.dds",
+},
 }
 
 local blankNormal = "unittextures/blank_normal.dds"
@@ -382,7 +407,7 @@ for id = 1, #UnitDefs do
 		local lm = tonumber(udefCM.lumamult) or 1
 		local scvd = tonumber(udefCM.scavvertdisp) or 0
 
-		local udefName = udef.name or ""
+		local udefName = udef.customParams.atlas or udef.customParams.faction or udef.name or ""
 		local facName = string.sub(udefName, 1, 3)
 
 		local normalTex = udefCM.normaltex or blankNormal --assume all units have normal maps
@@ -394,6 +419,8 @@ for id = 1, #UnitDefs do
 				unitMaterials[id] = {"unitsNormalMapArmTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			elseif facName == "cor" then
 				unitMaterials[id] = {"unitsNormalMapCorTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+			elseif facName == "leg" then -- temporary prefix for legion during transition from cor/arm to legion atlas
+				unitMaterials[id] = {"unitsNormalMapLegTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			end
 		else
 			if wreckAtlas then

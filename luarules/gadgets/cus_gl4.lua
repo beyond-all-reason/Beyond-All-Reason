@@ -261,6 +261,7 @@ do --save a ton of locals
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
+	local OPTION_TREADS_LEG       = 8192
 
 	local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
@@ -272,6 +273,11 @@ do --save a ton of locals
 		},
 		corunit = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
+		},
+		legunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE + OPTION_TREADS_LEG,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
@@ -804,6 +810,11 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
+	["leg"] = { -- @TODO: swap for a legion one
+		"unittextures/cor_color_wreck.dds",
+		"unittextures/cor_other_wreck.dds",
+		"unittextures/cor_color_wreck_normal.dds",
+},
 	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
@@ -940,20 +951,37 @@ local function initBinsAndTextures()
 	Spring.Echo("[CUS GL4] Init Unit bins")
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then
-			objectDefToUniformBin[unitDefID] = "otherunit"
-			if unitDef.name:sub(1,3) == 'arm' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'cor' then
-				objectDefToUniformBin[unitDefID] = 'corunit'
-			elseif 	unitDef.name:sub(1,6) == 'leggat' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,7) == 'legrail' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,6) == 'legstr' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'leg' then
-				objectDefToUniformBin[unitDefID] = 'corunit'
+
+			-- assaign a unit to the right faction bucket
+			do
+				local unitAtlas = nil
+				if unitDef.customParams and (unitDef.customParams.atlas or unitDef.customParams.faction) then
+					local atlases = {
+						arm="armunit",
+						armada="armunit",
+						cor="corunit",
+						cortex="corunit",
+						leg="legunit",
+						legion="legunit",
+						raptor="raptor",
+						armscavenger="armscavenger",
+						armscav="armscavenger",
+						corscavenger="corscavenger",
+						corscav="corscavenger",
+					}
+					unitAtlas = atlases[unitDef.customParams.atlas] or atlases[unitDef.customParams.faction] or atlases[unitDef.name:sub(1,3)] or "otherunit"
+				-- else the unit was likely made pre-legion atalas using the cortex one
+				else
+					local atlases = {
+						arm="armunit",
+						cor="corunit",
+						leg="corunit",
+					}
+					unitAtlas = atlases[unitDef.name:sub(1,3)] or "otherunit"
+				end
+				objectDefToUniformBin[unitDefID] = unitAtlas
 			end
+
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1
@@ -1040,6 +1068,7 @@ local function PreloadTextures()
 	--gl.Texture(0, "unittextures/cor_other_wreck.dds")
 	--gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
+	gl.Texture(0, "unittextures/leg_normal.dds")
 	gl.Texture(0, false)
 	preloadedTextures = true
 end

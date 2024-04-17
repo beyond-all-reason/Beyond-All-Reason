@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.952,
 		turnrate = 300,
 		customparams = {
+			atlas = "armada",
 			unitgroup = 'weapon',
 			basename = "base",
 			firingceg = "barrelshot-small",
