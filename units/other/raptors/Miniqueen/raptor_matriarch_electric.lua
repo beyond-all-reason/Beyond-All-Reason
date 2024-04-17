@@ -147,8 +147,6 @@ return {
 				range = 400,
 				reloadtime = 15,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
 				soundstartvolume = 65,
 				soundtrigger = true,

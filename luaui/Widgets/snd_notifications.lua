@@ -70,8 +70,8 @@ if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
 
-local soundFolder = "Sounds/voice/"..voiceSet.."/"
-local defaultSoundFolder = "Sounds/voice/"..defaultVoiceSet.."/"
+local soundFolder = "sounds/voice/"..voiceSet.."/"
+local defaultSoundFolder = "sounds/voice/"..defaultVoiceSet.."/"
 
 -- load and parse sound files/notifications
 local soundsTable = VFS.Include(soundFolder .. 'config.lua')

@@ -260,7 +260,15 @@ local prevPlayedTime = playedTime
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+if maxMusicVolume > 99 then
+	Spring.SetConfigInt("snd_volmusic", 99)
+	maxMusicVolume = 99
+end
 local volume = Spring.GetConfigInt("snd_volmaster", 80)
+if volume > 80 then
+	Spring.SetConfigInt("snd_volmaster", 80)
+	volume = 80
+end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
@@ -1100,17 +1108,19 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if not boomboxTracks[boomboxTracksPlayCounter] then
 			boomboxTracksPlayCounter = 1
 		end
+		if Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) < 10 then
+			Spring.SetConfigInt("snd_volmusic", defaultMusicVolume)
+		end
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
 		Spring.SetConfigInt('music', (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
-		if fadeDirection then
-			setMusicVolume(fadeLevel)
-		else
-			setMusicVolume(100)
-		end
+		fadeDirection = 1
+		fadeOutSkipTrack = false
+		setMusicVolume(100)
 		createList()
+		Spring.SetConfigInt("boomboxcaptured", 1)
 	end
 end

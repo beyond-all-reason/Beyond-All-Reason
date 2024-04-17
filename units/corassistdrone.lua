@@ -57,7 +57,6 @@ return {
 			"cortide",
 			"coruwms",
 			"coruwes",
-			-- "coruwmex",
 			"corfmkr",
 			"corsy",
 			"corfdrag",
@@ -70,7 +69,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "cormex",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

@@ -60,18 +60,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local nukesNames = {
-		["armsilo_nuclear_missile"] = true,
-		["corsilo_crblmssl"] = true,
-		["armsilo_scav_nuclear_missile"] = true,
-		["corsilo_scav_crblmssl"] = true,
-		["raptor_turret_meteor_t4_v1_weapon"] = true,
-		--["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"] = true,
+		armsilo_nuclear_missile = true,
+		corsilo_crblmssl = true,
+		armsilo_scav_nuclear_missile = true,
+		corsilo_scav_crblmssl = true,
+		raptor_turret_meteor_t4_v1_weapon = true,
+		--raptor_allterrain_arty_basic_t4_v1_meteorlauncher = true,
 	}
 	-- convert weaponname -> weaponDefID
 	local nukes = {}
 	for name, params in pairs(nukesNames) do
 		if WeaponDefNames[name] then
-			nukesNames[WeaponDefNames[name].id] = params
+			nukes[WeaponDefNames[name].id] = params
 		end
 	end
 	nukesNames = nil
@@ -87,30 +87,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadgetHandler:TeamDied(teamID)
+	function gadget:TeamDied(teamID)
 
 	end
 
-	function gadgetHandler:TeamChanged(teamID)
-
-	end
-
-	function gadgetHandler:PlayerChanged(playerID)
-
-	end
-
-	function gadgetHandler:PlayerAdded(playerID)
-		if gamestarted and not gameover then
-			local players = AllPlayers()
-			for ct, player in pairs (players) do
-				if tostring(player) then
-					SendToUnsynced("EventBroadcast", "PlayerAdded", tostring(player))
-				end
-			end
-		end
-	end
-
-	function gadgetHandler:PlayerRemoved(playerID, reason)
+	function gadget:TeamChanged(teamID)
 
 	end
 
@@ -160,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadgetHandler:GameOver(winningAllyTeams)
+	function gadget:GameOver(winningAllyTeams)
 		gameover = true
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
@@ -194,6 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
 else
 
 	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com')
@@ -253,6 +235,12 @@ else
 	function BroadcastEvent(_,event, player)
 		if Script.LuaUI("EventBroadcast") and tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or isSpec) then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
+		end
+	end
+
+	function gadget:PlayerAdded(playerID)
+		if Spring.GetGameFrame() > 0 then
+			BroadcastEvent("EventBroadcast", 'PlayerAdded', tostring(myPlayerID))
 		end
 	end
 

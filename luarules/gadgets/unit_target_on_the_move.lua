@@ -603,21 +603,23 @@ if gadgetHandler:IsSyncedCode() then
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
 
-		for unitID, unitData in pairs(unitTargets) do
-			local targetIndex
-			for index, targetData in ipairs(unitData.targets) do
-				if not checkTarget(unitID, targetData.target) then
-					removeTarget(unitID, index)
-				else
-					if setTarget(unitID, targetData) then
-						targetIndex = index
-						break
+		if n % 5 == 4 then
+			for unitID, unitData in pairs(unitTargets) do
+				local targetIndex
+				for index, targetData in ipairs(unitData.targets) do
+					if not checkTarget(unitID, targetData.target) then
+						removeTarget(unitID, index)
+					else
+						if setTarget(unitID, targetData) then
+							targetIndex = index
+							break
+						end
 					end
 				end
-			end
-			if unitData.currentIndex ~= targetIndex then
-				unitData.currentIndex = targetIndex
-				SendToUnsynced("targetIndex", unitID, targetIndex)
+				if unitData.currentIndex ~= targetIndex then
+					unitData.currentIndex = targetIndex
+					SendToUnsynced("targetIndex", unitID, targetIndex)
+				end
 			end
 		end
 
@@ -630,7 +632,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
 	end
 
 

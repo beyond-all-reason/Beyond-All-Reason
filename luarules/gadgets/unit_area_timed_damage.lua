@@ -251,7 +251,14 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-
+	['legperdition_napalmmissile'] = {
+        ceg = "fire-area-150",
+        damageCeg = "burnflamexl",
+        time = 15,
+        damage = 175,
+        range = 150,
+        resistance = "test",
+    },
 }
 -- convert weaponname -> weaponDefID
 local TimedDamageWeapons = {}

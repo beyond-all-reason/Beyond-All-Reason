@@ -2093,6 +2093,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legack'] = {
+		buildlight1 = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight = {
+			lightType = 'point',
+			pieceName = 'nano',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 17,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		}
+	},
 	['armack'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
@@ -16116,6 +16136,38 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	
+	['legadvsol'] = {
+		glow1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 22, posz = 26, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.4, a = 0.14,
+							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		glow2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -22, posy = 22, posz = -13, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.4, a = 0.14,
+							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		glow3 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 22, posy = 22, posz = -13, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.4, a = 0.14,
+							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},	
+	
+	
 	['cormakr'] = {
 		enabled1 = {
 			lightType = 'point',

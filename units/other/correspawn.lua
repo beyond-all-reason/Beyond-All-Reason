@@ -42,10 +42,6 @@ return {
 		turnrate = 1,
 		upright = true,
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
-		-- buildoptions = {
-		-- 	"corcom",
-		-- 	"corassistdrone",
-		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
@@ -56,7 +52,6 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seautil",
-			--iscommander = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
