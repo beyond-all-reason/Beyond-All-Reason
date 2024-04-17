@@ -53,13 +53,13 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	 	while( 255 > heading )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (0 - 1500 + get HEADING);
 			heading = heading + 1500;
 			sleep 1;
 		}
 		while( heading > 255 )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (1500 + get HEADING);
 			heading = heading - 1500;
 			sleep 1;
 		}	

@@ -437,7 +437,6 @@ Create()
 	buildHeading = 0;
 	buildPitch = 0;
 	counter = 0;
-	//maxSpeed = get UNKNOWN_UNIT_VALUE(75);
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
 	currentSpeed = 100;

@@ -96,7 +96,7 @@ TransportPickup(unitid)
 	{
 		return (1);
 	}
-	if( get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
+	if( get UNIT_ALLIED(unitid) == get UNIT_ALLIED(get MY_ID) )
 	{
 		set BUSY to 1;
 		call-script BoomExtend();

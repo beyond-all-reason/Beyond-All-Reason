@@ -151,7 +151,7 @@ BoomToPad()
 TransportPickup(unitid)
 {
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
-	if( Static_Var_5 AND get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
+	if( Static_Var_5 AND get UNIT_ALLIED(unitid) == get UNIT_ALLIED(get MY_ID) )
 	{
 		set BUSY to 1;
 		call-script BoomExtend();

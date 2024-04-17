@@ -812,7 +812,6 @@ Create()
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	//maxSpeed = get UNKNOWN_UNIT_VALUE(75);
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
 	currentSpeed = 100;

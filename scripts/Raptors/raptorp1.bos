@@ -77,20 +77,7 @@ AimWeapon1(heading,pitch)
 {
     signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	//nasty stuff here
-	/* 	while( 255 > heading )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading + 1000;
-			sleep 1;
-		}
-		while( heading > 255 )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading - 1000;
-			sleep 1;
-		}	
-		*/
+
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
 	turn aimy1 to y-axis heading speed <175>;
