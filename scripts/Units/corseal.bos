@@ -108,7 +108,6 @@ FireWeapon1()
 	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		show flare1;
 		move barrel1 to z-axis [-2.400000] speed [500.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [3.000000];

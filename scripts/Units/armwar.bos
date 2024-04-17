@@ -371,18 +371,6 @@ QueryWeapon1(pieceIndex)
 
 FireWeapon1()
 {
-	if( gun_1 )
-	{
-		show lflare;
-		sleep 100;
-		hide lflare;
-	}
-	else
-	{
-		show rflare;
-		sleep 100;
-		hide rflare;
-	}
 	gun_1 = !gun_1;
 }
 

@@ -517,9 +517,7 @@ FireWeapon1()
 	{
 		move lbarrel to z-axis [-1.5] speed [1000];
 		//call-script lua_UnitScriptLight(1, shotcount);
-		show lflare;
 		sleep 100;
-		hide lflare;
 		move lbarrel to z-axis [0] speed [6];
 		gun_1 = 0;
 		return (1);

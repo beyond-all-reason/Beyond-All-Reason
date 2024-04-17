@@ -435,19 +435,6 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	//call-script RecoilRockBoat()
-	if( gun_2 )
-	{
-		show aftflare;
-		sleep 150;
-		hide aftflare;
-	}
-	else
-	{
-		show foreflare;
-		sleep 150;
-		hide foreflare;
-	}
 	gun_2 = !gun_2;
 }
 

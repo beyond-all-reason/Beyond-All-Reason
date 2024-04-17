@@ -716,20 +716,6 @@ FireWeapon1()
 	gun_1 = !gun_1;
 }
 
-FireWeapon2()
-{
-	show laserflare;
-	sleep 150;
-	hide laserflare;
-}
-
-FireWeapon3()
-{
-	//show missleflare;
-	//sleep 100;
-	//hide missleflare;
-}
-
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = torso;

@@ -104,13 +104,6 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
-{
-	show flarel;
-	sleep 100;
-	hide flarel;
-}
-
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = barrell;
@@ -133,13 +126,6 @@ AimWeapon3(heading, pitch)
 	wait-for-turn barrelr around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
-}
-
-FireWeapon3()
-{
-	show flarer;
-	sleep 100;
-	hide flarer;
 }
 
 AimFromWeapon3(pieceIndex)

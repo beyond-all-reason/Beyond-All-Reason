@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger, lturbine, rturbine;
+piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, rturbfx, lflareaa, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger, lturbine, rturbine;
 
 static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
@@ -574,8 +574,8 @@ Create()
 	last_primary_pitch = -1000000;
 	last_secondary_heading = -1000000;
 	last_secondary_pitch = -1000000;
-	gun_primary = 1;
-	gun_2 = 1;
+	gun_primary = 0;
+	gun_2 = 0;
 	animSpeed = 4;
 	restore_delay = 3000;
 	walkCount = 0;
@@ -652,53 +652,27 @@ AimWeapon2(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_primary == 1 )
+	if( gun_primary == 0 )
 	{
-	  emit-sfx 1024 + 0 from lflare;
+		emit-sfx 1024 + 0 from lflare;
 		move lcannon to z-axis [-3.000000] speed [30.000000];
 		sleep 150;
 		move lcannon to z-axis [0.000000] speed [3.000000];
-
 	}
-	if( gun_primary == 2 )
+	else
 	{
-	  emit-sfx 1024 + 0 from rflare;
+		emit-sfx 1024 + 0 from rflare;
 		move rcannon to z-axis [-3.000000] speed [30.000000];
 		sleep 150;
 		move rcannon to z-axis [0.000000] speed [3.000000];
 	}
-	if (gun_primary == 1)
-	{
-	gun_primary = 2;
-	}
-	else
-	{
-	gun_primary = 1;
-	}
+	gun_primary = !gun_primary;
+
 }
 
 FireWeapon2()
 {
-	if( gun_2 == 1 )
-	{
-	  show lflareaa;
-		sleep 150;
-		hide lflareaa;
-	}
-	if( gun_2 == 2 )
-	{
-	  show rflareaa;
-		sleep 150;
-		hide rflareaa;
-	}
-	if (gun_2 == 1)
-	{
-	gun_2 = 2;
-	}
-	else
-	{
-	gun_2 = 1;
-	}
+	gun_2 = !gun_2;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -713,26 +687,12 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_primary == 1 )
-	{
-		pieceIndex = lflare;
-	}
-	if( gun_primary == 2 )
-	{
-		pieceIndex = rflare;
-	}
+	pieceIndex = lflare + gun_primary;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	if( gun_2 == 1 )
-	{
-		pieceIndex = laaturret;
-	}
-	if( gun_2 == 2 )
-	{
-		pieceIndex = raaturret;
-	}
+	pieceIndex = laaturret + gun_2;
 }
 
 

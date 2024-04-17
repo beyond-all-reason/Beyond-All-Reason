@@ -263,9 +263,7 @@ FireWeapon1()
 	if( gun_1 == 0 )
 	{
 		move rbarrel to y-axis [1.5] speed [1000];
-		show rflare1;
 		sleep 100;
-		hide rflare1;
 		move rbarrel to y-axis [0] speed [6];
 		gun_1 = 1;
 		return (1);
@@ -273,9 +271,7 @@ FireWeapon1()
 	if ( gun_1 == 1 )
 	{
 		move lbarrel to y-axis [1.5] speed [1000];
-		show lflare1;
 		sleep 100;
-		hide lflare1;
 		move lbarrel to y-axis [0] speed [6];
 		gun_1 = 2;
 		return (1);
@@ -283,9 +279,7 @@ FireWeapon1()
 		if( gun_1 == 2 )
 	{
 		move rbarrel to y-axis [1.5] speed [1000];
-		show rflare2;
 		sleep 100;
-		hide rflare2;
 		move rbarrel to y-axis [0] speed [6];
 		gun_1 = 3;
 		return (1);
@@ -293,9 +287,7 @@ FireWeapon1()
 	if ( gun_1 == 3 )
 	{
 		move lbarrel to y-axis [1.5] speed [1000];
-		show lflare2;
 		sleep 100;
-		hide lflare2;
 		move lbarrel to y-axis [0] speed [6];
 		gun_1 = 0;
 		return (1);

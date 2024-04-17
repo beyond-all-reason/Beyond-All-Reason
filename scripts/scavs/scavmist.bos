@@ -38,9 +38,7 @@ Create()
 {
 	hide flare;
 	set ARMORED to 0;
-	//emit-sfx 1024 + 0 from flare;
 	sleep 500;
-	//show flare;
 	start-script Emitsmoke();
 }
 

@@ -87,27 +87,9 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-PostFire()
-{
-    if (gun_1==0)
-	{
-		show lflare;
-		sleep 200;
-		hide lflare;
-	}
-	else 
-	{
-		show rflare;
-		sleep 200;
-		hide rflare;
-	}
-
-}
-
 FireWeapon1()
 {
-	start-script PostFire();
-	return (1);
+	gun_1 = !gun_1;
 }
 
 Killed(severity, corpsetype)

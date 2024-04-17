@@ -231,9 +231,7 @@ Shot1()
 	if( gun_1 == 2 )
 	{
 		move barrel11 to z-axis [-1.5] speed [1000];
-		show flare11;
 		sleep 100;
-		hide flare11;
 		move barrel11 to z-axis [0] speed [6];
 		gun_1 = 3;
 		return (1);
@@ -241,9 +239,7 @@ Shot1()
 	if ( gun_1 == 3 )
 	{
 		move barrel12 to z-axis [-1.5] speed [1000];
-		show flare12;
 		sleep 100;
-		hide flare12;
 		move barrel12 to z-axis [0] speed [6];
 		gun_1 = 0;
 		return (1);
@@ -288,9 +284,7 @@ Shot2()
 		if( gun_2 == 2 )
 	{
 		move barrel21 to z-axis [-1.5] speed [1000];
-		show flare21;
 		sleep 100;
-		hide flare21;
 		move barrel21 to z-axis [0] speed [6];
 		gun_2 = 3;
 		return (1);
@@ -298,9 +292,7 @@ Shot2()
 	if ( gun_2 == 3 )
 	{
 		move barrel22 to z-axis [-1.5] speed [1000];
-		show flare22;
 		sleep 100;
-		hide flare22;
 		move barrel22 to z-axis [0] speed [6];
 		gun_2 = 0;
 		return (1);

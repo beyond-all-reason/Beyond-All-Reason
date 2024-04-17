@@ -165,18 +165,6 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	if( gun_2 )
-	{
-		show aftflare;
-		sleep 150;
-		hide aftflare;
-	}
-	else
-	{
-		show foreflare;
-		sleep 150;
-		hide foreflare;
-	}
 	gun_2 = !gun_2;
 }
 
@@ -211,7 +199,6 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	sleep 150;
 }
 
 AimFromWeapon3(pieceIndex)
@@ -238,18 +225,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 )
-	{
-		show flare2;
-		sleep 150;
-		hide flare2;
-	}
-	else
-	{
-		show flare1;
-		sleep 150;
-		hide flare1;
-	}
 	gun_1 = !gun_1;
 }
 

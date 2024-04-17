@@ -4,6 +4,8 @@
 piece  base, arm, tower, wake, bow, rdoor, ldoor, boom1, boom2, boom3,
        boom4, magnet, link, boom5, boom6;
 
+#define DEBUG
+#include "../debug.h"
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -25,7 +27,9 @@ RockOnWaves()
 	{
 		while( get ABS(rockAng) < <1.31> )
 		{
+			
 			rockSpeed = <1.45> - get ABS(rockAng);
+			dbg(rockAng, rockSpeed);
 			turn base to x-axis rockAng speed rockSpeed*3;
 			wait-for-turn base around x-axis;
 			rockAng = rockAng + rockDir;

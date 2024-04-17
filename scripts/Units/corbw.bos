@@ -74,18 +74,6 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-PostFire()
-{
-    show flare;
-	sleep 200;
-	hide flare;
-}
-
-FireWeapon1()
-{
-	start-script PostFire();
-	return (1);
-}
 
 Killed(severity, corpsetype)
 {

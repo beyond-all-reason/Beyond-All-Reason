@@ -1,7 +1,7 @@
 
 #include "exptype.h"
 
-piece  rflare, lflare, torso, turret, Rbarrel, Lbarrel, rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot, aimy1;
+piece  lflare, rflare, torso, turret, Rbarrel, Lbarrel, rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot, aimy1;
 
 static-var  isMoving, isAiming,  restore_delay, gun_1;
 
@@ -271,20 +271,14 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 6;
-	gun_1 = rflare;
-	hide rflare;
-	hide lflare;
+	gun_1 = 0;
 	restore_delay = 3000;
-	return (0);
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
-
-
 
 
 RestoreAfterDelay()
@@ -292,26 +286,16 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.000000> speed 1.5 * <90.000000>;
 	isAiming = FALSE;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = rflare;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lflare;
-	}
-	return (0);
+	pieceIndex = lflare + gun_1;
 }
 
 AimWeapon1(heading, pitch)
@@ -329,25 +313,15 @@ FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
-		move lbarrel to z-axis [-3] now;
-		move lbarrel to z-axis [0] speed [6];
-		//show rflare;
-		//sleep 150;
-		//hide rflare;
-		gun_1 = lflare;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-	
 		move rbarrel to z-axis [-3] now;
 		move rbarrel to z-axis [0] speed [6];
-		//show lflare;
-		//sleep 150;
-		//hide lflare;
-		gun_1 = rflare;
 	}
-	return (0);
+	else
+	{
+		move lbarrel to z-axis [-3] now;
+		move lbarrel to z-axis [0] speed [6];
+	}
+	gun_1 = !gun_1;
 }
 
 //use call-script DeathAnim(); from Killed()

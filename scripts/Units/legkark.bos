@@ -394,13 +394,10 @@ QueryWeapon2(pieceIndex)
 
 FireWeapon1()
 {
-	show rflare;
-	sleep 100;
-	hide rflare;
 }
+
 FireWeapon2()
 {
-	show lflare;
 	emit-sfx 1024 + 0 from lflare;
 	move shield to z-axis [-0.5500000] speed [1375.000000];
 	move shield to x-axis [-1.210000] speed [1375.000000];
@@ -411,7 +408,6 @@ FireWeapon2()
 	move shield to x-axis [-1.7600000] speed [1.375000];
 	move shield to y-axis [0.000000] speed [1.375000];
 	turn torso to y-axis <0> speed <10>;
-	hide lflare;
 }
 
 AimWeapon1(heading, pitch)

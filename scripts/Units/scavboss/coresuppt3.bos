@@ -121,30 +121,20 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		move abarrela to z-axis [-1.] speed [500.];
-		wait-for-move abarrela along z-axis;
-		move abarrela to z-axis [0.] speed [5.];
-		show flare11;
-		sleep 150;
-		hide flare11;
-	}
-	if( gun_1 == 1 )
+	if( gun_1)
 	{
 		move abarrelb to z-axis [-1.] speed [500.];
 		wait-for-move abarrelb along z-axis;
 		move abarrelb to z-axis [0.] speed [5.];
-		show flare12;
-		sleep 150;
-		hide flare12;
 	}
-	++gun_1;
-	if( gun_1 == 2 )
+	else
 	{
-		gun_1 = base;
+		move abarrela to z-axis [-1.] speed [500.];
+		wait-for-move abarrela along z-axis;
+		move abarrela to z-axis [0.] speed [5.];
+
 	}
-	return (0);
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -167,30 +157,19 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	if( gun_2 == 0 )
-	{
-		move bbarrela to z-axis [-1.] speed [500.];
-		wait-for-move bbarrela along z-axis;
-		move bbarrela to z-axis [0.] speed [5.];
-		show flare21;
-		sleep 150;
-		hide flare21;
-	}
-	if( gun_2 == 1 )
+	if( gun_2 )
 	{
 		move bbarrelb to z-axis [-1.] speed [500.];
 		wait-for-move bbarrelb along z-axis;
 		move bbarrelb to z-axis [0.] speed [5.];
-		show flare22;
-		sleep 150;
-		hide flare22;
 	}
-	++gun_2;
-	if( gun_2 == 2 )
+	else
 	{
-		gun_2 = base;
+		move bbarrela to z-axis [-1.] speed [500.];
+		wait-for-move bbarrela along z-axis;
+		move bbarrela to z-axis [0.] speed [5.];
 	}
-	return (0);
+	gun_2 = !gun_2;
 }
 
 AimFromWeapon2(pieceIndex)
@@ -201,28 +180,12 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flare11;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare12;
-	}
-	return (0);
+	pieceIndex = flare11 + gun_1;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	if( gun_2 == 0 )
-	{
-		pieceIndex = flare21;
-	}
-	if( gun_2 == 1 )
-	{
-		pieceIndex = flare22;
-	}
-	return (0);
+	pieceIndex = flare21 + gun_2;
 }
 
 

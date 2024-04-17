@@ -133,7 +133,6 @@ StopMoving()
 {
 	signal SIGNAL_MOVE;
 	return (0);
-	
 }
 
 AimWeapon1(heading, pitch)
@@ -150,30 +149,19 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		move flbarrel to z-axis [-1.] speed [500.];
-		wait-for-move flbarrel along z-axis;
-		move flbarrel to z-axis [0.] speed [5.];
-		show flflare;
-		sleep 150;
-		hide flflare;
-	}
-	if( gun_1 == 1 )
+	if( gun_1)
 	{
 		move frbarrel to z-axis [-1.] speed [500.];
 		wait-for-move frbarrel along z-axis;
 		move frbarrel to z-axis [0.] speed [5.];
-		show frflare;
-		sleep 150;
-		hide frflare;
 	}
-	++gun_1;
-	if( gun_1 == 2 )
+	else
 	{
-		gun_1 = 0;
+		move flbarrel to z-axis [-1.] speed [500.];
+		wait-for-move flbarrel along z-axis;
+		move flbarrel to z-axis [0.] speed [5.];
 	}
-	return (0);
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -196,30 +184,19 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	if( gun_2 == 0 )
-	{
-		move blbarrel to z-axis [-1.] speed [500.];
-		wait-for-move blbarrel along z-axis;
-		move blbarrel to z-axis [0.] speed [5.];
-		show blflare;
-		sleep 150;
-		hide blflare;
-	}
-	if( gun_2 == 1 )
+	if( gun_2)
 	{
 		move brbarrel to z-axis [-1.] speed [500.];
 		wait-for-move brbarrel along z-axis;
 		move brbarrel to z-axis [0.] speed [5.];
-		show brflare;
-		sleep 150;
-		hide brflare;
 	}
-	++gun_2;
-	if( gun_2 == 2 )
+	else
 	{
-		gun_2 = 0;
+		move blbarrel to z-axis [-1.] speed [500.];
+		wait-for-move blbarrel along z-axis;
+		move blbarrel to z-axis [0.] speed [5.];
 	}
-	return (0);
+	gun_2 = !gun_2;
 }
 
 AimFromWeapon2(pieceIndex)
@@ -230,30 +207,13 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flflare;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = frflare;
-	}
-	return (0);
+	pieceIndex = flflare + gun_1;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	if( gun_2 == 0 )
-	{
-		pieceIndex = blflare;
-	}
-	if( gun_2 == 1 )
-	{
-		pieceIndex = brflare;
-	}
-	return (0);
+	pieceIndex = blflare + gun_2;
 }
-
 
 
 Killed(severity, corpsetype)

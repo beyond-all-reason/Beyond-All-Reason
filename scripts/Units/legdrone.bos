@@ -68,11 +68,9 @@ AimWeapon1(heading, pitch)
 
 PostFire()
 {
-    show flare;
 	move lgun to z-axis [-1.00000] speed [50.000000];
 	sleep 200;
 	move lgun to z-axis [0] speed [10.000000];
-	hide flare;
 }
 
 FireWeapon1()

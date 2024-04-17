@@ -73,52 +73,10 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 50;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 50;
-		hide flare2;
-	}
-	if( gun_1 == 2 )
-	{
-		show flare3;
-		sleep 50;
-		hide flare3;
-	}
-	if( gun_1 == 3 )
-	{
-		show flare4;
-		sleep 50;
-		hide flare4;
-	}
-	if( gun_1 == 4 )
-	{
-		show flare5;
-		sleep 50;
-		hide flare5;
-	}
-	if( gun_1 == 5 )
-	{
-		show flare6;
-		sleep 50;
-		hide flare6;
-	}
-	if( gun_1 == 6 )
-	{
-		show flare7;
-		sleep 50;
-		hide flare7;
-	}
 	++gun_1;
 	if( gun_1 == 7 )
 	{
-		gun_1 = flare1;
+		gun_1 = 0;
 	}
 }
 

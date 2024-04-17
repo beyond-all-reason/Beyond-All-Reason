@@ -335,7 +335,6 @@ FireWeapon1()
 		move barrel1d to z-axis [-2.000000] speed [500.000000];
 		sleep 100;
 		move barrel1d to z-axis [0.000000] speed [3.000000];
-		hide flare1d;
 	}
 	++Static_Var_1;
 	if( Static_Var_1 >= 4 )
