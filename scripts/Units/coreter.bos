@@ -17,41 +17,16 @@ static-var recently_damaged, desired_activation;
 #include "../tilt_bank_mobileunit.h"
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
+#include "../damagedmoke.h"
 Create()
 {
-	start-script SmokeUnit();
 	recently_damaged = 0;
 	desired_activation = 1;
 	call-script TB_Init();
+	while(get BUILD_PERCENT_LEFT) {
+		sleep 500;
+	}
+	start-script DamagedSmoke();
 }
 
 StartMoving(reversing)

@@ -71,32 +71,6 @@ Wake()
     }
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from smoke;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
 HitByWeapon(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
 {
@@ -142,15 +116,19 @@ StopMoving()
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
 }
-
+#define SMOKE_PIECE hull
+#include "../damagedmoke.h"
 Create()
 {
 	hide flare;
 	hide fwater;
 	moving= 0;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 	start-script Wake();
+	while(get BUILD_PERCENT_LEFT) {
+		sleep 500;
+	}
+	start-script DamagedSmoke();
 }
 
 SetMaxReloadTime(reloadMS)

@@ -132,35 +132,8 @@ stopwalk()
 	}
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 30;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-
-
+#define SMOKE_PIECE pelvis
+#include "../../damagedmoke.h"
 
 Create()
 {
@@ -172,7 +145,10 @@ Create()
 	gun_1 = 0;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	start-script SmokeUnit();
+	while(get BUILD_PERCENT_LEFT) {
+		sleep 500;
+	}
+	start-script DamagedSmoke();
 }
 
 StartMoving(reversing)

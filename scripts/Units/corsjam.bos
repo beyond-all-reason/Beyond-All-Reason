@@ -33,40 +33,19 @@ RockOnWaves()
 	}
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
+
+#include "../damagedmoke.h"
 Create()
 {
 	hide wake;
-	start-script SmokeUnit();
 	recently_damaged = 0;
 	desired_activation = 1;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script DamagedSmoke();
 }
 
 Activate()

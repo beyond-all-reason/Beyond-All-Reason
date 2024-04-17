@@ -339,13 +339,15 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 }
 
 static-var isSmoking;
-SmokeUnit(healthpercent, randpiece) // ah yes, clever use of stack variables 
+DamagedSmoke(healthpercent, randpiece) // ah yes, clever use of stack variables 
 {
+	var healthpercent;
+	var randpiece;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		
-		if( healthpercent < 66 )
+		if( healthpercent < 65 )
 		{
 			randpiece = RAND(1, 3);
 			if (randpiece == 1) emit-sfx 1024 from base;
@@ -369,7 +371,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	if( get BUILD_PERCENT_LEFT) return (100);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
-		start-script SmokeUnit();
+		start-script DamagedSmoke();
 	}
 	//get PRINT(anglex, anglez, weaponid, dmg);
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(

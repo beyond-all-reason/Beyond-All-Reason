@@ -6,9 +6,15 @@ piece  base, spinner;
 static-var  extractionRate, Stunned;
 
 
+
+#include "../damagedmoke.h"
 Create()
 {
 	extractionRate = 0;
+	while(get BUILD_PERCENT_LEFT) {
+		sleep 500;
+	}
+	start-script DamagedSmoke();
 }
 
 Activate()
@@ -44,34 +50,10 @@ SetSpeed(windOrMetal)
 
 #define SMOKEPIECE base
 
-static-var isSmoking;
-
-SmokeUnit(healthpercent) // ah yes, clever use of stack variables 
-{
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if (healthpercent > 66) {
-			sleep 97;
-			isSmoking = 0;
-			return;
-		}
-		if (healthpercent < 4 ) healthpercent = 4;
-		sleep healthpercent * 50;
-
-		if( Rand( 1, 66 ) < healthpercent ) emit-sfx 257 from SMOKEPIECE;
-		else emit-sfx 258 from SMOKEPIECE;
-	}
-}
-
 // this is what a pure hitbyweapon can look like, without any of the motion garbage
 HitByWeapon() //weaponID is always 0,lasers and flamers give angles of 0
 {
 	if( get BUILD_PERCENT_LEFT) return (0);
-	if (isSmoking == 0)	{ 
-		isSmoking = 1;
-		start-script SmokeUnit();
-	}
 	signal 2;
 	set-signal-mask 2;
 	set ACTIVATION to 0;
