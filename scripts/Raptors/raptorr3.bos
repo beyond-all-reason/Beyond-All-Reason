@@ -71,8 +71,8 @@ AimWeapon1(heading, pitch)
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
-	turn aimy1 to y-axis heading speed <250.000000>;
-	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed <250.0>;
+	turn aimy1 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -80,15 +80,15 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	turn lsack to y-axis <30.000000> speed <200.000000>;
-	turn rsack to y-axis <-30.000000> speed <200.000000>;
-	move rsack to x-axis [-1.000000] speed [9.000000];
-	move lsack to x-axis [1.000000] speed [9.000000];
+	turn lsack to y-axis <30.0> speed <200.0>;
+	turn rsack to y-axis <-30.0> speed <200.0>;
+	move rsack to x-axis [-1.0] speed [9.0];
+	move lsack to x-axis [1.0] speed [9.0];
 	wait-for-turn lsack around y-axis;
 	set CHANGE_TARGET to 1;
-	turn lsack to y-axis <0.000000> speed <20.000000>;
-	turn rsack to y-axis <0.000000> speed <20.000000>;
-	move rsack to x-axis [0.000000] speed [0.300000];
-	move lsack to x-axis [0.000000] speed [0.300000];
+	turn lsack to y-axis <0.0> speed <20.0>;
+	turn rsack to y-axis <0.0> speed <20.0>;
+	move rsack to x-axis [0.0] speed [0.300000];
+	move lsack to x-axis [0.0] speed [0.300000];
 }
 

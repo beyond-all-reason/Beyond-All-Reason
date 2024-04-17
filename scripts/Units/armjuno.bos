@@ -67,8 +67,8 @@ Close(){
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	spin tower around y-axis speed <0.000000>;
-	spin collar around y-axis speed <0.000000>;
+	spin tower around y-axis speed <0.0>;
+	spin collar around y-axis speed <0.0>;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit3;
@@ -98,7 +98,7 @@ Create()
 Activate()
 {
 	spin tower around y-axis speed <25.005495>;
-	spin collar around y-axis speed <15.000000>;
+	spin collar around y-axis speed <15.0>;
 	start-script OpenCloseAnim(1);
 }
 

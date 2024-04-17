@@ -80,7 +80,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 Create()
@@ -114,8 +114,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.000000>;
-	turn sleeves to x-axis <0.000000> speed <20.000000>;
+	turn turret to y-axis <0.0> speed <35.0>;
+	turn sleeves to x-axis <0.0> speed <20.0>;
 }
 SetStunned(State)
 {
@@ -158,8 +158,8 @@ AimWeapon1(Func_Var_1, Func_Var_2)
 {
 	signal 2;
 	set-signal-mask 2;
-	turn turret to y-axis Func_Var_1 speed <60.000000>;
-	turn sleeves to x-axis <0.000000> - Func_Var_2 speed <40.000000>;
+	turn turret to y-axis Func_Var_1 speed <60.0>;
+	turn sleeves to x-axis <0.0> - Func_Var_2 speed <40.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
 	aimDir = Func_Var_1;
@@ -180,16 +180,16 @@ FireWeapon1()
 	start-script RockZ(-9,aimDir);
 	if( Static_Var_1 == 0 )
 	{
-		move barrel1 to z-axis [-7.500000] speed [100.000000];
+		move barrel1 to z-axis [-7.500000] speed [100.0];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [7.500000];
+		move barrel1 to z-axis [0.0] speed [7.500000];
 	    emit-sfx 1024 + 0 from flarea1;
 	}
 	if( Static_Var_1 == 1 )
 	{
-		move barrel2 to z-axis [-7.500000] speed [100.000000];
+		move barrel2 to z-axis [-7.500000] speed [100.0];
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [7.500000];
+		move barrel2 to z-axis [0.0] speed [7.500000];
 	    emit-sfx 1024 + 0 from flarea2;
 	}
 	Static_Var_1 = !Static_Var_1;

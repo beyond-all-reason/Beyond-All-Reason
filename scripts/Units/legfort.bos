@@ -41,7 +41,7 @@ Create()
 	turn thrustfra to x-axis <-90> now; 
 	turn thrustrla to x-axis <-90> now; 
 	turn thrustfla to x-axis <-90> now; 
-	spin radar around y-axis speed <60.000000>;
+	spin radar around y-axis speed <60.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -126,8 +126,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn base to y-axis <0.000000> speed <250.000000>;
-	turn base to x-axis <0.000000> speed <250.000000>;
+	turn base to y-axis <0.0> speed <250.0>;
+	turn base to x-axis <0.0> speed <250.0>;
 	turn turret to z-axis <0> speed <250>;
 	turn sleeve to x-axis <0> speed <250>;
 
@@ -161,34 +161,34 @@ StopMoving()
 
 MoveRate0()
 {
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
 }
 
 MoveRate1()
 {
-	turn thrustrr to x-axis <8.000000> speed <60.000000>;
-	turn thrustrl to x-axis <8.000000> speed <60.000000>;
-	turn thrustfr to x-axis <8.000000> speed <60.000000>;
-	turn thrustfl to x-axis <8.000000> speed <60.000000>;
+	turn thrustrr to x-axis <8.0> speed <60.0>;
+	turn thrustrl to x-axis <8.0> speed <60.0>;
+	turn thrustfr to x-axis <8.0> speed <60.0>;
+	turn thrustfl to x-axis <8.0> speed <60.0>;
 }
 
 MoveRate2()
 {
-	turn thrustrr to x-axis <18.000000> speed <45.000000>;
-	turn thrustrl to x-axis <18.000000> speed <45.000000>;
-	turn thrustfr to x-axis <18.000000> speed <45.000000>;
-	turn thrustfl to x-axis <18.000000> speed <45.000000>;
+	turn thrustrr to x-axis <18.0> speed <45.0>;
+	turn thrustrl to x-axis <18.0> speed <45.0>;
+	turn thrustfr to x-axis <18.0> speed <45.0>;
+	turn thrustfl to x-axis <18.0> speed <45.0>;
 }
 
 MoveRate3()
 {
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
+	turn thrustrr to x-axis <0.0> speed <70.0>;
+	turn thrustrl to x-axis <0.0> speed <70.0>;
+	turn thrustfr to x-axis <0.0> speed <70.0>;
+	turn thrustfl to x-axis <0.0> speed <70.0>;
 }
 
 AimWeapon1(heading, pitch)
@@ -196,7 +196,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <70>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	return (1);
@@ -219,8 +219,8 @@ AimWeapon2(heading, pitch)
 	if (aimto < <0>){
 		aimsl = -2 * aimto / 3;
 	}
-	turn sleevesr to z-axis pitch - aimsl speed <300.000000>;
-	turn turretr to x-axis -1*aimto speed <300.000000>;
+	turn sleevesr to z-axis pitch - aimsl speed <300.0>;
+	turn turretr to x-axis -1*aimto speed <300.0>;
 	wait-for-turn sleevesr around z-axis;
 	wait-for-turn turretr around x-axis;
 	return (1);
@@ -243,8 +243,8 @@ AimWeapon3(heading, pitch)
 	if (aimto < <0>){
 		aimsl = -2 * aimto / 3;
 	}
-	turn sleevesl to z-axis -1*pitch + aimsl speed <300.000000>;
-	turn turretl to x-axis aimto speed <300.000000>;
+	turn sleevesl to z-axis -1*pitch + aimsl speed <300.0>;
+	turn turretl to x-axis aimto speed <300.0>;
 	wait-for-turn sleevesl around z-axis;
 	wait-for-turn turretl around x-axis;
 	return (1);
@@ -257,14 +257,14 @@ FireWeapon1()
 	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-3.001648] now;
 		sleep 100;
-		move barrel1 to z-axis [0.000000] speed [1.000549];
+		move barrel1 to z-axis [0.0] speed [1.000549];
 	}
 	if( gun_1 == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-3.001648] now;
 		sleep 100;
-		move barrel2 to z-axis [0.000000] speed [1.000549];
+		move barrel2 to z-axis [0.0] speed [1.000549];
 	}
 	if( gun_1 == 3 )
 	{
@@ -272,7 +272,7 @@ FireWeapon1()
 		emit-sfx 1024 + 0 from flare3;
 		move barrel3 to z-axis [-3.001648] now;
 		sleep 100;
-		move barrel3 to z-axis [0.000000] speed [1.000549];
+		move barrel3 to z-axis [0.0] speed [1.000549];
 	}
 	++gun_1;
 }
@@ -284,7 +284,7 @@ FireWeapon2()
 	    emit-sfx 1024 + 0 from flare1r;
 		move barrel1r to x-axis [-2] now;
 		sleep 100;
-		move barrel1r to x-axis [0.000000] speed [5];
+		move barrel1r to x-axis [0.0] speed [5];
 	}
 	if( gun_2 == 2 )
 	{
@@ -292,7 +292,7 @@ FireWeapon2()
 		emit-sfx 1024 + 0 from flare2r;
 		move barrel2r to x-axis [-2] now;
 		sleep 100;
-		move barrel2r to x-axis [0.000000] speed [5];
+		move barrel2r to x-axis [0.0] speed [5];
 	}
 	++gun_2;
 }
@@ -304,7 +304,7 @@ FireWeapon3()
 	    emit-sfx 1024 + 0 from flare1l;
 		move barrel1l to x-axis [2] now;
 		sleep 100;
-		move barrel1l to x-axis [0.000000] speed [5];
+		move barrel1l to x-axis [0.0] speed [5];
 	}
 	if( gun_3 == 2 )
 	{
@@ -312,7 +312,7 @@ FireWeapon3()
 		emit-sfx 1024 + 0 from flare2l;
 		move barrel2l to x-axis [2] now;
 		sleep 100;
-		move barrel2l to x-axis [0.000000] speed [5];
+		move barrel2l to x-axis [0.0] speed [5];
 	}
 	++gun_3;
 }

@@ -63,8 +63,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.016484>;
-	turn sleeves to x-axis <0.000000> speed <50.005495>;
+	turn turret to y-axis <0.0> speed <90.016484>;
+	turn sleeves to x-axis <0.0> speed <50.005495>;
 }
 SetStunned(State)
 {
@@ -83,8 +83,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.000000>;
-	turn sleeves to x-axis <0.000000> - pitch speed <200.000000>;
+	turn turret to y-axis heading speed <200.0>;
+	turn sleeves to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
 	start-script RestoreAfterDelay();
@@ -96,16 +96,16 @@ FireWeapon1()
 	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-2.200000] speed [300.000000];
+		move barrel1 to z-axis [-2.200000] speed [300.0];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [0.0] speed [3.0];
 	}
 	if( gun_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-2.200000] speed [300.000000];
+		move barrel2 to z-axis [-2.200000] speed [300.0];
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
+		move barrel2 to z-axis [0.0] speed [3.0];
 	}
 	gun_1 = !gun_1;
 }

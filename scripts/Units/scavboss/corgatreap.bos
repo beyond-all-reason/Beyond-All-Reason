@@ -66,9 +66,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn turret to x-axis <0.000000> speed <35.005495>;
-	//turn sleeves to x-axis <0.000000> speed <15.000000>;
+	turn turret to y-axis <0.0> speed <35.005495>;
+	turn turret to x-axis <0.0> speed <35.005495>;
+	//turn sleeves to x-axis <0.0> speed <15.0>;
 }
 SetStunned(State)
 {
@@ -92,7 +92,7 @@ RestoreAfterDelay()
 #define CATT1_PIECE_X turret
 #define CATT1_PIECE_Y turret
 
-#define CATT1_MAX_VELOCITY <9.00>
+#define CATT1_MAX_VELOCITY <9.0>
 #define CATT1_ACCELERATION <0.2>
 #define CATT1_JERK <1.0>
 #define CATT1_PRECISION <1.2>

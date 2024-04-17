@@ -21,7 +21,7 @@ MoveRate2()
 		wait-for-turn base around z-axis;
 		turn base to z-axis <120.027473> speed <180.038462>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <0.000000> speed <120.027473>;
+		turn base to z-axis <0.0> speed <120.027473>;
 		inAileronRoll = 0;
 	}
 }
@@ -55,12 +55,12 @@ Deactivate()
 	hide thrustc;
 	hide thrusta;
 	hide thrustb;
-	move wing1 to x-axis [0.000000] speed [2.4];
-	move wing1 to z-axis [0.000000] speed [0.5];
-	move wing2 to x-axis [0.000000] speed [2.4];
-	move wing2 to z-axis [0.000000] speed [0.5];
-	turn wing1 to z-axis <0.000000> speed <0.89>;
-	turn wing2 to z-axis <0.000000> speed <2.69>;
+	move wing1 to x-axis [0.0] speed [2.4];
+	move wing1 to z-axis [0.0] speed [0.5];
+	move wing2 to x-axis [0.0] speed [2.4];
+	move wing2 to z-axis [0.0] speed [0.5];
+	turn wing1 to z-axis <0.0> speed <0.89>;
+	turn wing2 to z-axis <0.0> speed <2.69>;
 }
 
 FireWeapon1()

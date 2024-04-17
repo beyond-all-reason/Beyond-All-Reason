@@ -20,8 +20,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn yturret1 to x-axis <-30> speed <25.00000>;
-    turn yturret2 to x-axis <-30> speed <25.00000>;
+    turn yturret1 to x-axis <-30> speed <25.0>;
+    turn yturret2 to x-axis <-30> speed <25.0>;
     spin xturret around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -55,9 +55,9 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn xturret to y-axis heading speed <1200.000000>;
-	turn yturret1 to x-axis <0.000000> - pitch speed <950.000000>;
-	turn yturret2 to x-axis <0.000000> - pitch speed <950.000000>;
+	turn xturret to y-axis heading speed <1200.0>;
+	turn yturret1 to x-axis <0.0> - pitch speed <950.0>;
+	turn yturret2 to x-axis <0.0> - pitch speed <950.0>;
 	wait-for-turn xturret around y-axis;
 	wait-for-turn yturret1 around x-axis;
 	start-script RestoreAfterDelay();
@@ -69,36 +69,36 @@ FireWeapon1()
 	if( gun_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-10.000000] now;
+		move barrel1 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel1 to z-axis [0.000000] speed [37.500000];
+		move barrel1 to z-axis [0.0] speed [37.500000];
 		gun_1 = 2;
 		return (0);
 	}
 	if( gun_1 == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-10.000000] now;
+		move barrel2 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel2 to z-axis [0.000000] speed [37.500000];
+		move barrel2 to z-axis [0.0] speed [37.500000];
 		gun_1 = 3;
 		return (0);
 	}
 	if( gun_1 == 3 )
 	{
 	    emit-sfx 1024 + 0 from flare3;
-		move barrel3 to z-axis [-10.000000] now;
+		move barrel3 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel3 to z-axis [0.000000] speed [37.500000];
+		move barrel3 to z-axis [0.0] speed [37.500000];
 		gun_1 = 4;
 		return (0);
 	}
 	if( gun_1 == 4 )
 	{
 	    emit-sfx 1024 + 0 from flare4;
-		move barrel4 to z-axis [-10.000000] now;
+		move barrel4 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel4 to z-axis [0.000000] speed [37.500000];
+		move barrel4 to z-axis [0.0] speed [37.500000];
 		gun_1 = 1;
 		return (0);
 	}

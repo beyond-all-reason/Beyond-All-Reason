@@ -54,8 +54,8 @@ Activate()
 Deactivate()
 {
 	signal SIGNAL_TURNON;
-	spin dish around z-axis speed <0.000000>;
-	spin turret around y-axis speed <0.000000>;
+	spin dish around z-axis speed <0.0>;
+	spin turret around y-axis speed <0.0>;
 }
 
 

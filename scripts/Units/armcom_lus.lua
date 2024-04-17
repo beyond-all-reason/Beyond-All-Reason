@@ -153,9 +153,9 @@ function walk()
 				turn(lthigh, 2, 14.540810, 93.704134/animSpeed) --delta=-3.12
 				if (leftArm) then turn(luparm, 1, 20.474264, 98.952127/animSpeed) end--delta=-3.30
 				if (leftArm) then turn(luparm, 2, 5.388938, 71.821661/animSpeed) end--delta=2.39
-				move (pelvis, 2,  -2.000000 , 18.888888 /animSpeed) --delta=-0.63
-				turn(pelvis, 3,  -5.000000, 27.777769/animSpeed) --delta=0.93
-				turn(pelvis, 2, -6.000000, 24.444453/animSpeed) --delta=-0.81
+				move (pelvis, 2,  -2.0 , 18.888888 /animSpeed) --delta=-0.63
+				turn(pelvis, 3,  -5.0, 27.777769/animSpeed) --delta=0.93
+				turn(pelvis, 2, -6.0, 24.444453/animSpeed) --delta=-0.81
 				turn(rfoot, 1, -34.556331, 305.131751/animSpeed) --delta=10.17
 				turn(rleg, 1, 32.187523, 882.363941/animSpeed) --delta=-29.41
 				if (rightArm) then turn(rloarm, 1, -64.499997, 87.888552/animSpeed) end--delta=2.93
@@ -212,7 +212,7 @@ function walk()
 				turn(lthigh, 2, 8.321622, 266.996423/animSpeed) --delta=-8.90
 				if (leftArm) then turn(luparm, 1, 15.615877, 102.946916/animSpeed) end--delta=3.43
 				if (leftArm) then turn(luparm, 2, 5.076670, 9.368019/animSpeed) end--delta=-0.31
-				turn(pelvis, 3,  -2.000000, 58.888879/animSpeed) --delta=-1.96
+				turn(pelvis, 3,  -2.0, 58.888879/animSpeed) --delta=-1.96
 				turn(pelvis, 2, -2.772487, 67.619039/animSpeed) --delta=2.25
 				turn(rfoot, 1, -39.119034, 357.682424/animSpeed) --delta=11.92
 				turn(rleg, 1, 104.636879, 789.433742/animSpeed) --delta=-26.31
@@ -232,7 +232,7 @@ function walk()
 			if (isMoving) then --Frame:24
 				if (leftArm) then turn(biggun, 1, -52.006372, 80.119348/animSpeed) end--delta=2.67
 				turn(head, 1, -3.149363, 31.723676/animSpeed) --delta=1.06
-				turn(head, 2, 0.000000, 114.895376/animSpeed) --delta=3.83
+				turn(head, 2, 0.0, 114.895376/animSpeed) --delta=3.83
 				turn(lfoot, 1, -23.280778, 357.540911/animSpeed) --delta=11.92
 				turn(lleg, 1, 46.510843, 277.878733/animSpeed) --delta=9.26
 				turn(lthigh, 1, -23.415420, 612.523459/animSpeed) --delta=-20.42
@@ -240,9 +240,9 @@ function walk()
 				turn(lthigh, 2, 1.272165, 211.483711/animSpeed) --delta=-7.05
 				if (leftArm) then turn(luparm, 1, 11.452920, 124.888703/animSpeed) end--delta=4.16
 				if (leftArm) then turn(luparm, 2, 3.308728, 53.038265/animSpeed) end--delta=-1.77
-				move (pelvis, 2,  -2.000000 , 25.555551 /animSpeed) --delta=0.85
-				turn(pelvis, 3,  -0.000000, 60.000006/animSpeed) --delta=-2.00
-				turn(pelvis, 2, 0.000000, 83.174607/animSpeed) --delta=2.77
+				move (pelvis, 2,  -2.0 , 25.555551 /animSpeed) --delta=0.85
+				turn(pelvis, 3,  -0.0, 60.000006/animSpeed) --delta=-2.00
+				turn(pelvis, 2, 0.0, 83.174607/animSpeed) --delta=2.77
 				turn(rfoot, 1, -45.278120, 184.772566/animSpeed) --delta=6.16
 				turn(rleg, 1, 90.786697, 415.505474/animSpeed) --delta=13.85
 				turn(rleg, 3,  0.843235, 24.355743/animSpeed) --delta=-0.81
@@ -254,8 +254,8 @@ function walk()
 				if (rightArm) then turn(ruparm, 1, 16.947865, 91.311783/animSpeed) end--delta=-3.04
 				if (rightArm) then turn(ruparm, 2, 0.900000, 45.888888/animSpeed) end--delta=-1.53
 				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
-				turn(torso, 3,  -0.000000, 61.681404/animSpeed) --delta=2.06
-				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
+				turn(torso, 3,  -0.0, 61.681404/animSpeed) --delta=2.06
+				turn(torso, 2, 0.0, 236.383029/animSpeed) --delta=-7.88
 			Sleep( (33*animSpeed) -1)
 			end
 			if (isMoving) then --Frame:28
@@ -325,12 +325,12 @@ function walk()
 				turn(lthigh, 2, 5.332458, 15.498655/animSpeed) --delta=-0.52
 				if (leftArm) then turn(luparm, 1, -3.274263, 167.758466/animSpeed) end--delta=5.59
 				if (leftArm) then turn(luparm, 2, -6.556594, 45.333998/animSpeed) end--delta=-1.51
-				move (pelvis, 2,  -2.000000 , 25.555555 /animSpeed) --delta=-0.85
-				turn(pelvis, 3,  5.000000, 31.089813/animSpeed) --delta=-1.04
-				turn(pelvis, 2, 6.000000, 29.200275/animSpeed) --delta=0.97
+				move (pelvis, 2,  -2.0 , 25.555555 /animSpeed) --delta=-0.85
+				turn(pelvis, 3,  5.0, 31.089813/animSpeed) --delta=-1.04
+				turn(pelvis, 2, 6.0, 29.200275/animSpeed) --delta=0.97
 				turn(rfoot, 1, 4.673420, 156.586261/animSpeed) --delta=-5.22
 				turn(rleg, 1, 17.968366, 112.905793/animSpeed) --delta=3.76
-				if (rightArm) then turn(rloarm, 1, -38.000000, 43.722158/animSpeed) end--delta=-1.46
+				if (rightArm) then turn(rloarm, 1, -38.0, 43.722158/animSpeed) end--delta=-1.46
 				turn(rthigh, 1, -40.972853, 227.481055/animSpeed) --delta=-7.58
 				turn(rthigh, 3,  -12.483621, 13.132763/animSpeed) --delta=-0.44
 				turn(rthigh, 2, -18.495587, 4.624260/animSpeed) --delta=-0.15
@@ -405,7 +405,7 @@ function walk()
 			if (isMoving) then --Frame:48
 				if (leftArm) then turn(biggun, 1, -50.493628, 80.119348/animSpeed) end--delta=-2.67
 				turn(head, 1, -3.149363, 31.723676/animSpeed) --delta=1.06
-				turn(head, 2, 0.000000, 114.895376/animSpeed) --delta=-3.83
+				turn(head, 2, 0.0, 114.895376/animSpeed) --delta=-3.83
 				turn(lfoot, 1, -44.880435, 188.924672/animSpeed) --delta=6.30
 				turn(lleg, 1, 90.690391, 407.363547/animSpeed) --delta=13.58
 				turn(lleg, 3,  -1.028354, 29.811568/animSpeed) --delta=0.99
@@ -415,9 +415,9 @@ function walk()
 				turn(lthigh, 2, 9.180887, 243.372656/animSpeed) --delta=8.11
 				if (leftArm) then turn(luparm, 1, 2.662867, 125.339441/animSpeed) end--delta=-4.18
 				if (leftArm) then turn(luparm, 2, -1.793232, 71.050921/animSpeed) end--delta=2.37
-				move (pelvis, 2,  -2.000000 , 25.555551 /animSpeed) --delta=0.85
-				turn(pelvis, 3,  -0.000000, 62.666668/animSpeed) --delta=2.09
-				turn(pelvis, 2, 0.000000, 86.222221/animSpeed) --delta=-2.87
+				move (pelvis, 2,  -2.0 , 25.555551 /animSpeed) --delta=0.85
+				turn(pelvis, 3,  -0.0, 62.666668/animSpeed) --delta=2.09
+				turn(pelvis, 2, 0.0, 86.222221/animSpeed) --delta=-2.87
 				turn(rfoot, 1, -23.519080, 364.135724/animSpeed) --delta=12.14
 				turn(rleg, 1, 46.484300, 278.590678/animSpeed) --delta=9.29
 				if (rightArm) then turn(rloarm, 1, -53.199999, 206.555576/animSpeed) end--delta=6.89
@@ -427,8 +427,8 @@ function walk()
 				if (rightArm) then turn(ruparm, 1, 23.351554, 90.983396/animSpeed) end--delta=3.03
 				if (rightArm) then turn(ruparm, 2, 0.479402, 36.051284/animSpeed) end--delta=1.20
 				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
-				turn(torso, 3,  -0.000000, 64.422792/animSpeed) --delta=-2.15
-				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
+				turn(torso, 3,  -0.0, 64.422792/animSpeed) --delta=-2.15
+				turn(torso, 2, 0.0, 236.383029/animSpeed) --delta=7.88
 			Sleep( (33*animSpeed) -1)
 			end
 			if (isMoving) then --Frame:52
@@ -697,8 +697,8 @@ local function Dance1()
 		Sleep(sleepTime)
 		-- Frame:36
 		Turn(biggun, x_axis, -0.907682, 2.389804 * speedMult) -- delta=-4.56
-		Turn(biggun, z_axis, 0.000000, 5.843321 * speedMult) -- delta=-11.16
-		Turn(biggun, y_axis, 0.000000, 8.906903 * speedMult) -- delta=17.01
+		Turn(biggun, z_axis, 0.0, 5.843321 * speedMult) -- delta=-11.16
+		Turn(biggun, y_axis, 0.0, 8.906903 * speedMult) -- delta=17.01
 		Turn(head, x_axis, -0.022669, 2.848377 * speedMult) -- delta=-5.44
 		Turn(head, y_axis, 0.104720, 1.853928 * speedMult) -- delta=3.54
 		Turn(lfoot, x_axis, -0.034375, 1.095543 * speedMult) -- delta=-2.09
@@ -743,20 +743,20 @@ local function StopDance1()
 
 	local speedMult = 4
 
-	Move(pelvis, x_axis, 0.000000, 182.799768 * speedMult)
-	Move(pelvis, y_axis, -1.000000, 94.009519 * speedMult)
-	Move(pelvis, z_axis, 0.000000, 7.395249 * speedMult)
+	Move(pelvis, x_axis, 0.0, 182.799768 * speedMult)
+	Move(pelvis, y_axis, -1.0, 94.009519 * speedMult)
+	Move(pelvis, z_axis, 0.0, 7.395249 * speedMult)
 	Turn(biggun, x_axis, -0.907682, 13.485335 * speedMult)
-	Turn(biggun, y_axis, 0.000000, 50.260359 * speedMult)
-	Turn(biggun, z_axis, 0.000000, 32.973012 * speedMult)
+	Turn(biggun, y_axis, 0.0, 50.260359 * speedMult)
+	Turn(biggun, z_axis, 0.0, 32.973012 * speedMult)
 	Turn(dish, y_axis, 0.130900, -1.090831 * speedMult)
 	Turn(head, x_axis, -0.022669, 5.864306 * speedMult)
-	Turn(head, y_axis, 0.000000, 6.434447 * speedMult)
+	Turn(head, y_axis, 0.0, 6.434447 * speedMult)
 	Turn(lfoot, x_axis, 0.051737, 15.527122 * speedMult)
-	Turn(lfoot, y_axis, 0.000000, 0.596157 * speedMult)
+	Turn(lfoot, y_axis, 0.0, 0.596157 * speedMult)
 	Turn(lfoot, z_axis, 0.003196, 5.817875 * speedMult)
 	Turn(lleg, x_axis, 0.307814, 22.080013 * speedMult)
-	Turn(lleg, y_axis, 0.000000, 3.518799 * speedMult)
+	Turn(lleg, y_axis, 0.0, 3.518799 * speedMult)
 	Turn(lleg, z_axis, 0.001989, 4.896306 * speedMult)
 	Turn(lthigh, x_axis, -0.331832, 10.807897 * speedMult)
 	Turn(lthigh, y_axis, 0.227002, 13.113438 * speedMult)
@@ -764,8 +764,8 @@ local function StopDance1()
 	Turn(luparm, x_axis, 0.335655, 16.243426 * speedMult)
 	Turn(luparm, y_axis, 0.125858, 20.036650 * speedMult)
 	Turn(luparm, z_axis, 0.282743, 4.329781 * speedMult)
-	Turn(pelvis, y_axis, 0.000000, 10.039089 * speedMult)
-	Turn(pelvis, z_axis, 0.000000, 0.420372 * speedMult)
+	Turn(pelvis, y_axis, 0.0, 10.039089 * speedMult)
+	Turn(pelvis, z_axis, 0.0, 0.420372 * speedMult)
 	Turn(rfoot, x_axis, -0.002780, 18.530126 * speedMult)
 	Turn(rfoot, y_axis, -0.012972, 0.539800 * speedMult)
 	Turn(rfoot, z_axis, -0.050249, 6.107579 * speedMult)
@@ -773,17 +773,17 @@ local function StopDance1()
 	Turn(rleg, y_axis, -0.010984, 4.257849 * speedMult)
 	Turn(rleg, z_axis, -0.030601, 5.404025 * speedMult)
 	Turn(rloarm, x_axis, -0.928515, 42.799873 * speedMult)
-	Turn(rloarm, y_axis, 0.000000, 9.045273 * speedMult)
-	Turn(rloarm, z_axis, 0.000000, 8.148036 * speedMult)
+	Turn(rloarm, y_axis, 0.0, 9.045273 * speedMult)
+	Turn(rloarm, z_axis, 0.0, 8.148036 * speedMult)
 	Turn(rthigh, x_axis, -0.357098, 12.094440 * speedMult)
 	Turn(rthigh, y_axis, -0.233321, 15.766531 * speedMult)
 	Turn(rthigh, z_axis, -0.136268, 13.515805 * speedMult)
 	Turn(ruparm, x_axis, 0.430977, 32.522415 * speedMult)
-	Turn(ruparm, y_axis, 0.000000, 18.018824 * speedMult)
+	Turn(ruparm, y_axis, 0.0, 18.018824 * speedMult)
 	Turn(ruparm, z_axis, -0.216421, 5.292757 * speedMult)
 	Turn(torso, x_axis, -0.039513, -0.329272 * speedMult)
-	Turn(torso, y_axis, 0.000000, 4.386516 * speedMult)
-	Turn(torso, z_axis, 0.000000, 0.183485 * speedMult)
+	Turn(torso, y_axis, 0.0, 4.386516 * speedMult)
+	Turn(torso, z_axis, 0.0, 0.183485 * speedMult)
 end
 
 function SprayNano(heading, pitch)
@@ -798,36 +798,36 @@ function SprayNano(heading, pitch)
 end
 
 function StopWalking()
-	move(pelvis,2, -1.000000, 6.944444)
+	move(pelvis,2, -1.0, 6.944444)
 	if (leftArm) then turn(biggun,1, -52.006372, 28.433941) end
 	turn(head,1, -1.298815, 11.896390)
-	turn(head,2, 0.000000, 28.723844)
+	turn(head,2, 0.0, 28.723844)
 	turn(lfoot,1, 2.870126, 274.263975)
 	turn(lleg,1, 22.425678, 349.693872)
-	turn(lleg,2, 0.000000, 7.922289)
-	turn(lleg,3, 0.000000, 7.923996)
+	turn(lleg,2, 0.0, 7.922289)
+	turn(lleg,3, 0.0, 7.923996)
 	turn(lthigh,1, -21.115098, 255.919901)
 	turn(lthigh,2, 11.110453, 66.749106)
 	turn(lthigh,3, -10.103126, 151.418301)
 	if (leftArm) then turn(luparm,1, 19.231610, 69.841862) end
 	if (leftArm) then turn(luparm,2, 7.211138, 46.845002) end
 	if (leftArm) then turn(luparm,3, -16.200000, 28.500010) end
-	turn(pelvis,2, 0.000000, 21.666665)
-	turn(pelvis,3, 0.000000, 18.055557)
+	turn(pelvis,2, 0.0, 21.666665)
+	turn(pelvis,3, 0.0, 18.055557)
 	turn(rfoot,1, 0.415283, 248.713120)
 	turn(rleg,1, 25.768060, 346.011740)
-	turn(rleg,2, 0.000000, 6.521982)
-	turn(rleg,3, 0.000000, 6.524652)
+	turn(rleg,2, 0.0, 6.521982)
+	turn(rleg,3, 0.0, 6.524652)
 	if (rightArm) then turn(rloarm,1, -53.199995, 51.638894) end
 	turn(rthigh,1, -21.950628, 255.149679)
 	turn(rthigh,2, -11.905752, 66.515336)
 	turn(rthigh,3, 9.396449, 151.125663)
 	if (rightArm) then turn(ruparm,1, 24.693159, 39.648544) end
-	if (rightArm) then turn(ruparm,2, 0.000000, 31.089853) end
+	if (rightArm) then turn(ruparm,2, 0.0, 31.089853) end
 	if (rightArm) then turn(ruparm,3, 12.399998, -7.153845) end
 	turn(torso,1, -2.263907, 15.181924)
-	turn(torso,2, 0.000000, 59.095757)
-	turn(torso,3, 0.000000, 18.561539)
+	turn(torso,2, 0.0, 59.095757)
+	turn(torso,3, 0.0, 18.561539)
 end
 
 local boredTime = 0
@@ -878,8 +878,8 @@ function ResumeBuilding()
 	Show(nano)
 	Sleep(800)
 	if isBuilding and not isAiming then
-		Turn(aimy1, 2, buildHeading, rad(150.000000))
-		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
+		Turn(aimy1, 2, buildHeading, rad(150.0))
+		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.0))
 	end
 	return (0)
 end

@@ -24,8 +24,8 @@ Create()
 	hide thrustr;
 	hide thrustm;
 	hide link;
-	turn jetl to x-axis <-90.000000> now;
-	turn jetr to x-axis <-90.000000> now;
+	turn jetl to x-axis <-90.0> now;
+	turn jetr to x-axis <-90.0> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -43,7 +43,7 @@ QueryTransport(pieceIndex)
 
 BeginTransport(targetHeight)
 {
-	move link to y-axis [0.000000] - targetHeight now;
+	move link to y-axis [0.0] - targetHeight now;
 
 }
 
@@ -67,28 +67,28 @@ EndTransport()
 
 MoveRate0()
 {
-	turn jetl to x-axis <-90.000000> speed <150.000000>;
-	turn jetr to x-axis <-90.000000> speed <150.000000>;
+	turn jetl to x-axis <-90.0> speed <150.0>;
+	turn jetr to x-axis <-90.0> speed <150.0>;
 
 }
 
 MoveRate1()
 {
-	turn jetl to x-axis <-70.000000> speed <75.000000>;
-	turn jetr to x-axis <-70.000000> speed <75.000000>;
+	turn jetl to x-axis <-70.0> speed <75.0>;
+	turn jetr to x-axis <-70.0> speed <75.0>;
 }
 
 MoveRate2()
 {
-	turn jetl to x-axis <-50.000000> speed <55.000000>;
-	turn jetr to x-axis <-50.000000> speed <55.000000>;
+	turn jetl to x-axis <-50.0> speed <55.0>;
+	turn jetr to x-axis <-50.0> speed <55.0>;
 
 }
 
 MoveRate3()
 {
-	turn jetl to x-axis <0.000000> speed <85.000000>;
-	turn jetr to x-axis <0.000000> speed <85.000000>;
+	turn jetl to x-axis <0.0> speed <85.0>;
+	turn jetr to x-axis <0.0> speed <85.0>;
 }
 
 

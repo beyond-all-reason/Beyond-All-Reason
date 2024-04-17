@@ -58,7 +58,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn box to x-axis <90> speed <90.0000>;
+	turn box to x-axis <90> speed <90.0>;
 }
 SetStunned(State)
 {
@@ -80,7 +80,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	turn box to x-axis <-90> speed <90.0000>;
+	turn box to x-axis <-90> speed <90.0>;
 	wait-for-turn box around x-axis;
 
 	start-script RestoreAfterDelay();

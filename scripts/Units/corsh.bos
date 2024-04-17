@@ -57,8 +57,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <200.000000>;
-	turn barrel to x-axis <0.000000> speed <100.000000>;
+	turn turret to y-axis <0.0> speed <200.0>;
+	turn barrel to x-axis <0.0> speed <100.0>;
 }
 SetStunned(State)
 {
@@ -77,8 +77,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <100.000000>;
+	turn turret to y-axis heading speed <200.0>;
+	turn barrel to x-axis <0.0> - pitch speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrel around x-axis;
 	start-script RestoreAfterDelay();

@@ -33,8 +33,8 @@ Activate()
 	show thrust;		
 	spin fanl around y-axis speed <200> accelerate <8>;
 	spin fanr around y-axis speed <-200> accelerate <8>;
-	turn wingl to z-axis <90> speed <90.000000>;
-	turn wingr to z-axis <-90> speed <90.000000>;
+	turn wingl to z-axis <90> speed <90.0>;
+	turn wingr to z-axis <-90> speed <90.0>;
 	
 }
 
@@ -43,8 +43,8 @@ Deactivate()
 	hide thrust;
 	stop-spin fanl around y-axis decelerate <8>;
 	stop-spin fanr around y-axis decelerate <8>;
-	turn wingl to z-axis <0> speed <90.000000>;
-	turn wingr to z-axis <0> speed <90.000000>;
+	turn wingl to z-axis <0> speed <90.0>;
+	turn wingr to z-axis <0> speed <90.0>;
 }
 
 StartMoving(reversing)

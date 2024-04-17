@@ -26,8 +26,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -94,7 +94,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -150,8 +150,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <7.000000>;
-	turn gun to x-axis <0.000000> speed <10.000000>;
+	turn turret to y-axis <0.0> speed <7.0>;
+	turn gun to x-axis <0.0> speed <10.0>;
 }
 SetStunned(State)
 {
@@ -188,8 +188,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <10.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <7.000000>;
+	turn turret to y-axis heading speed <10.0>;
+	turn gun to x-axis <0.0> - pitch speed <7.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	aimDir = heading;
@@ -199,13 +199,13 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	start-script RockZ(-3,aimDir);
-	move barrel to z-axis [-7.500000] speed [500.000000];
-	move gun to z-axis [-4.000000] speed [500.000000];
+	move barrel to z-axis [-7.500000] speed [500.0];
+	move gun to z-axis [-4.0] speed [500.0];
 	wait-for-move barrel along z-axis;
 	emit-sfx 1024 + 0 from flare;
 	sleep 200;
-	move barrel to z-axis [0.000000] speed [7.000000];
-	move gun to z-axis [0.000000] speed [7.000000];
+	move barrel to z-axis [0.0] speed [7.0];
+	move gun to z-axis [0.0] speed [7.0];
 }
 
 AimFromWeapon1(pieceIndex)

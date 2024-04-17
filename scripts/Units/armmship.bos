@@ -77,8 +77,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
-	turn turret2 to y-axis <0.000000> speed <70.016484>;
-	turn launcher2 to x-axis <0.000000> speed <30.005495>;
+	turn turret2 to y-axis <0.0> speed <70.016484>;
+	turn launcher2 to x-axis <0.0> speed <30.005495>;
 	turn door1 to z-axis <0> speed <160>;
 	turn door2 to z-axis <0> speed <160>;
 }
@@ -151,7 +151,7 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
 	turn turret2 to y-axis heading speed <170.038462>;
-	turn launcher2 to x-axis <0.000000> - pitch speed <130.027473>;
+	turn launcher2 to x-axis <0.0> - pitch speed <130.027473>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn launcher2 around x-axis;
 	start-script abaim();

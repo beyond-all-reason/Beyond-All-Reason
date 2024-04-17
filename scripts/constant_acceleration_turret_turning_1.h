@@ -29,7 +29,7 @@
 #endif
 
 #ifndef CATT1_MAX_VELOCITY
-	#define CATT1_MAX_VELOCITY <3.00>
+	#define CATT1_MAX_VELOCITY <3.0>
 #endif
 
 #ifndef CATT1_ACCELERATION

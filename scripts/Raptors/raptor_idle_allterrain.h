@@ -371,7 +371,7 @@ Idle() {// For N:\animations\raptor_allterrain_idle_V1.blend Created by https://
 			turn lbshin to z-axis ((<0.772515> *IDLEAMPLITUDE)/100) speed ((<29.086734> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.97
 			turn lbthigh to x-axis ((<0.329769> *IDLEAMPLITUDE)/100) speed ((<26.213092> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.87
 			turn lbthigh to z-axis ((<0.239025> *IDLEAMPLITUDE)/100) speed ((<27.327222> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.91
-			turn lffoot to x-axis ((<0.441086> *IDLEAMPLITUDE)/100) speed ((<5.000934> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.17
+			turn lffoot to x-axis ((<0.441086> *IDLEAMPLITUDE)/100) speed ((<5.0> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.17
 			turn lffoot to z-axis ((<-0.106414> *IDLEAMPLITUDE)/100) speed ((<4.725204> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-0.16
 			turn lfknee to x-axis ((<1.656483> *IDLEAMPLITUDE)/100) speed ((<88.947242> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=-2.96
 			turn lfknee to z-axis ((<-0.047297> *IDLEAMPLITUDE)/100) speed ((<6.856678> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=0.23
@@ -465,64 +465,64 @@ Idle() {// For N:\animations\raptor_allterrain_idle_V1.blend Created by https://
 // Call this from StopMoving()!
 StopIdle() {
 	//IDLESPEED = 10; // tune restore speed here, higher values are slower restore speeds
-	move head to x-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move head to y-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move head to z-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move tail to x-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move tail to y-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move tail to z-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
-	turn body to x-axis <0.000000> speed <75.002894> / IDLESPEED;
-	turn body to y-axis <0.000000> speed <204.206319> / IDLESPEED;
-	turn body to z-axis <0.000000> speed <72.429483> / IDLESPEED;
-	turn head to x-axis <0.000000> speed <149.841245> / IDLESPEED;
-	turn head to y-axis <0.000000> speed <393.712961> / IDLESPEED;
-	turn head to z-axis <0.000000> speed <139.645177> / IDLESPEED;
-	turn lbfoot to x-axis <0.000000> speed <107.108919> / IDLESPEED;
-	turn lbfoot to z-axis <0.000000> speed <150.330925> / IDLESPEED;
-	turn lbknee to x-axis <0.000000> speed <176.570191> / IDLESPEED;
-	turn lbknee to y-axis <0.000000> speed <131.688658> / IDLESPEED;
-	turn lbknee to z-axis <0.000000> speed <47.022395> / IDLESPEED;
-	turn lbshin to x-axis <0.000000> speed <58.289069> / IDLESPEED;
-	turn lbshin to y-axis <0.000000> speed <33.027839> / IDLESPEED;
-	turn lbshin to z-axis <0.000000> speed <30.671897> / IDLESPEED;
-	turn lbthigh to x-axis <0.000000> speed <107.980557> / IDLESPEED;
-	turn lbthigh to y-axis <0.000000> speed <32.854133> / IDLESPEED;
-	turn lbthigh to z-axis <0.000000> speed <143.184092> / IDLESPEED;
-	turn lffoot to x-axis <0.000000> speed <91.484282> / IDLESPEED;
-	turn lffoot to z-axis <0.000000> speed <55.231328> / IDLESPEED;
-	turn lfknee to x-axis <0.000000> speed <98.679455> / IDLESPEED;
-	turn lfknee to y-axis <0.000000> speed <33.743979> / IDLESPEED;
-	turn lfknee to z-axis <0.000000> speed <29.047898> / IDLESPEED;
-	turn lfshin to x-axis <0.000000> speed <58.876012> / IDLESPEED;
-	turn lfshin to y-axis <0.000000> speed <84.306958> / IDLESPEED;
-	turn lfshin to z-axis <0.000000> speed <15.708207> / IDLESPEED;
-	turn lfthigh to x-axis <0.000000> speed <107.267495> / IDLESPEED;
-	turn lfthigh to y-axis <0.000000> speed <81.599204> / IDLESPEED;
-	turn lfthigh to z-axis <0.000000> speed <65.707108> / IDLESPEED;
-	turn rbfoot to x-axis <0.000000> speed <113.849166> / IDLESPEED;
-	turn rbfoot to z-axis <0.000000> speed <145.697105> / IDLESPEED;
-	turn rbknee to x-axis <0.000000> speed <207.935007> / IDLESPEED;
-	turn rbknee to y-axis <0.000000> speed <131.341688> / IDLESPEED;
-	turn rbknee to z-axis <0.000000> speed <43.532883> / IDLESPEED;
-	turn rbshin to x-axis <0.000000> speed <64.493270> / IDLESPEED;
-	turn rbshin to y-axis <0.000000> speed <37.767169> / IDLESPEED;
-	turn rbshin to z-axis <0.000000> speed <40.323110> / IDLESPEED;
-	turn rbthigh to x-axis <0.000000> speed <116.861457> / IDLESPEED;
-	turn rbthigh to y-axis <0.000000> speed <47.501381> / IDLESPEED;
-	turn rbthigh to z-axis <0.000000> speed <144.645575> / IDLESPEED;
-	turn rffoot to x-axis <0.000000> speed <93.714491> / IDLESPEED;
-	turn rffoot to z-axis <0.000000> speed <62.094626> / IDLESPEED;
-	turn rfknee to x-axis <0.000000> speed <79.134111> / IDLESPEED;
-	turn rfknee to y-axis <0.000000> speed <33.104526> / IDLESPEED;
-	turn rfknee to z-axis <0.000000> speed <28.992314> / IDLESPEED;
-	turn rfshin to x-axis <0.000000> speed <46.773185> / IDLESPEED;
-	turn rfshin to y-axis <0.000000> speed <88.311690> / IDLESPEED;
-	turn rfshin to z-axis <0.000000> speed <15.815001> / IDLESPEED;
-	turn rfthigh to x-axis <0.000000> speed <105.215581> / IDLESPEED;
-	turn rfthigh to y-axis <0.000000> speed <87.622804> / IDLESPEED;
-	turn rfthigh to z-axis <0.000000> speed <66.723918> / IDLESPEED;
-	turn tail to x-axis <0.000000> speed <184.067933> / IDLESPEED;
-	turn tail to y-axis <0.000000> speed <501.151871> / IDLESPEED;
-	turn tail to z-axis <0.000000> speed <177.752427> / IDLESPEED;
+	move head to x-axis ([0.0]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move head to y-axis ([0.0]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move head to z-axis ([0.0]*IDLEMOVESCALE)/100 speed (([55.355726]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move tail to x-axis ([0.0]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move tail to y-axis ([0.0]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move tail to z-axis ([0.0]*IDLEMOVESCALE)/100 speed (([27.491391]*IDLEMOVESCALE)/100) / IDLESPEED;
+	turn body to x-axis <0.0> speed <75.002894> / IDLESPEED;
+	turn body to y-axis <0.0> speed <204.206319> / IDLESPEED;
+	turn body to z-axis <0.0> speed <72.429483> / IDLESPEED;
+	turn head to x-axis <0.0> speed <149.841245> / IDLESPEED;
+	turn head to y-axis <0.0> speed <393.712961> / IDLESPEED;
+	turn head to z-axis <0.0> speed <139.645177> / IDLESPEED;
+	turn lbfoot to x-axis <0.0> speed <107.108919> / IDLESPEED;
+	turn lbfoot to z-axis <0.0> speed <150.330925> / IDLESPEED;
+	turn lbknee to x-axis <0.0> speed <176.570191> / IDLESPEED;
+	turn lbknee to y-axis <0.0> speed <131.688658> / IDLESPEED;
+	turn lbknee to z-axis <0.0> speed <47.022395> / IDLESPEED;
+	turn lbshin to x-axis <0.0> speed <58.289069> / IDLESPEED;
+	turn lbshin to y-axis <0.0> speed <33.027839> / IDLESPEED;
+	turn lbshin to z-axis <0.0> speed <30.671897> / IDLESPEED;
+	turn lbthigh to x-axis <0.0> speed <107.980557> / IDLESPEED;
+	turn lbthigh to y-axis <0.0> speed <32.854133> / IDLESPEED;
+	turn lbthigh to z-axis <0.0> speed <143.184092> / IDLESPEED;
+	turn lffoot to x-axis <0.0> speed <91.484282> / IDLESPEED;
+	turn lffoot to z-axis <0.0> speed <55.231328> / IDLESPEED;
+	turn lfknee to x-axis <0.0> speed <98.679455> / IDLESPEED;
+	turn lfknee to y-axis <0.0> speed <33.743979> / IDLESPEED;
+	turn lfknee to z-axis <0.0> speed <29.047898> / IDLESPEED;
+	turn lfshin to x-axis <0.0> speed <58.876012> / IDLESPEED;
+	turn lfshin to y-axis <0.0> speed <84.306958> / IDLESPEED;
+	turn lfshin to z-axis <0.0> speed <15.708207> / IDLESPEED;
+	turn lfthigh to x-axis <0.0> speed <107.267495> / IDLESPEED;
+	turn lfthigh to y-axis <0.0> speed <81.599204> / IDLESPEED;
+	turn lfthigh to z-axis <0.0> speed <65.707108> / IDLESPEED;
+	turn rbfoot to x-axis <0.0> speed <113.849166> / IDLESPEED;
+	turn rbfoot to z-axis <0.0> speed <145.697105> / IDLESPEED;
+	turn rbknee to x-axis <0.0> speed <207.935007> / IDLESPEED;
+	turn rbknee to y-axis <0.0> speed <131.341688> / IDLESPEED;
+	turn rbknee to z-axis <0.0> speed <43.532883> / IDLESPEED;
+	turn rbshin to x-axis <0.0> speed <64.493270> / IDLESPEED;
+	turn rbshin to y-axis <0.0> speed <37.767169> / IDLESPEED;
+	turn rbshin to z-axis <0.0> speed <40.323110> / IDLESPEED;
+	turn rbthigh to x-axis <0.0> speed <116.861457> / IDLESPEED;
+	turn rbthigh to y-axis <0.0> speed <47.501381> / IDLESPEED;
+	turn rbthigh to z-axis <0.0> speed <144.645575> / IDLESPEED;
+	turn rffoot to x-axis <0.0> speed <93.714491> / IDLESPEED;
+	turn rffoot to z-axis <0.0> speed <62.094626> / IDLESPEED;
+	turn rfknee to x-axis <0.0> speed <79.134111> / IDLESPEED;
+	turn rfknee to y-axis <0.0> speed <33.104526> / IDLESPEED;
+	turn rfknee to z-axis <0.0> speed <28.992314> / IDLESPEED;
+	turn rfshin to x-axis <0.0> speed <46.773185> / IDLESPEED;
+	turn rfshin to y-axis <0.0> speed <88.311690> / IDLESPEED;
+	turn rfshin to z-axis <0.0> speed <15.815001> / IDLESPEED;
+	turn rfthigh to x-axis <0.0> speed <105.215581> / IDLESPEED;
+	turn rfthigh to y-axis <0.0> speed <87.622804> / IDLESPEED;
+	turn rfthigh to z-axis <0.0> speed <66.723918> / IDLESPEED;
+	turn tail to x-axis <0.0> speed <184.067933> / IDLESPEED;
+	turn tail to y-axis <0.0> speed <501.151871> / IDLESPEED;
+	turn tail to z-axis <0.0> speed <177.752427> / IDLESPEED;
 }
 

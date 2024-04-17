@@ -88,7 +88,7 @@ Walk() {// For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by
 		}
 		if (isMoving) { //Frame:30
 			move body to y-axis (((([2.800000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([3.609374] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<51.152339> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to x-axis ((<-0.0> *animAmplitude)/100) speed ((<51.152339> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn liwing to z-axis ((<34.899999> *animAmplitude)/100) speed ((<162.227614> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lowing to z-axis ((<-4.099997> *animAmplitude)/100) speed ((<960.674901> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn riwing to z-axis ((<-34.899999> *animAmplitude)/100) speed ((<162.227614> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -165,12 +165,12 @@ Walk() {// For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:54
-			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([3.609373] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<23.437495> *animAmplitude)/100) / animspeed; //delta=%.2f
+			move body to y-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([3.609373] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to x-axis ((<-0.0> *animAmplitude)/100) speed ((<23.437495> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn liwing to z-axis ((<-27.699998> *animAmplitude)/100) speed ((<27.119727> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn lowing to z-axis ((<0.000000> *animAmplitude)/100) speed ((<205.500017> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn lowing to z-axis ((<0.0> *animAmplitude)/100) speed ((<205.500017> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn riwing to z-axis ((<27.699998> *animAmplitude)/100) speed ((<27.119727> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn rowing to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<205.500017> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn rowing to z-axis ((<-0.0> *animAmplitude)/100) speed ((<205.500017> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
 	}
@@ -178,11 +178,11 @@ Walk() {// For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move body to y-axis ([0.000000]*MOVESCALE)/100 speed (([51.406264]*MOVESCALE)/100) / animSpeed;
-	move body to z-axis ([0.000000]*MOVESCALE)/100 speed (([38.003904]*MOVESCALE)/100) / animSpeed;
-	turn body to x-axis <0.000000> speed <178.320306> / animSpeed;
-	turn liwing to z-axis <0.000000> speed <1449.098505> / animSpeed;
-	turn lowing to z-axis <0.000000> speed <3202.249669> / animSpeed;
-	turn riwing to z-axis <0.000000> speed <1449.098505> / animSpeed;
-	turn rowing to z-axis <0.000000> speed <3202.249669> / animSpeed;
+	move body to y-axis ([0.0]*MOVESCALE)/100 speed (([51.406264]*MOVESCALE)/100) / animSpeed;
+	move body to z-axis ([0.0]*MOVESCALE)/100 speed (([38.003904]*MOVESCALE)/100) / animSpeed;
+	turn body to x-axis <0.0> speed <178.320306> / animSpeed;
+	turn liwing to z-axis <0.0> speed <1449.098505> / animSpeed;
+	turn lowing to z-axis <0.0> speed <3202.249669> / animSpeed;
+	turn riwing to z-axis <0.0> speed <1449.098505> / animSpeed;
+	turn rowing to z-axis <0.0> speed <3202.249669> / animSpeed;
 }

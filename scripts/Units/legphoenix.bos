@@ -23,7 +23,7 @@ DoBarrelRoll() {
 	wait-for-turn base around z-axis;
 	turn base to z-axis <120.027473> speed <180.043956>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <0.000000> speed <120.027473>;
+	turn base to z-axis <0.0> speed <120.027473>;
 }
 
 lua_UnitScriptLight(lightIndex, count)

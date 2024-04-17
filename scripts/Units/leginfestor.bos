@@ -300,8 +300,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <55.000000>;
-	turn sleeve to x-axis <0.000000> speed <55.000000>;
+	turn turret to y-axis <0.0> speed <55.0>;
+	turn sleeve to x-axis <0.0> speed <55.0>;
 	wait-for-turn sleeve around y-axis;
 	wpn1_lasthead = 1000000;
 	//wpn2_lasthead = 1000000;
@@ -323,8 +323,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed <180.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <110.000000>;
+	turn turret to y-axis heading speed <180.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <110.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -341,15 +341,15 @@ FireWeapon1() {
 	//gun_1 = !gun_1;
 	//if( gun_1 == 0 )
 	//{
-		move barrel1 to z-axis [-2.000000] speed [400.000000];
+		move barrel1 to z-axis [-2.0] speed [400.0];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [0.0] speed [3.0];
 	//}
 	//if( gun_1 == 1 )
 	//{
-		//move barrel2 to z-axis [-3.000000] speed [400.000000];
+		//move barrel2 to z-axis [-3.0] speed [400.0];
 		//wait-for-move barrel2 along z-axis;
-		//move barrel2 to z-axis [0.000000] speed [3.000000];
+		//move barrel2 to z-axis [0.0] speed [3.0];
 	//}
 	return (0);
 }

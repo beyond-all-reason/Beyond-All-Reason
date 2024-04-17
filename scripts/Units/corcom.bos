@@ -26,9 +26,9 @@ static-var animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
-			turn biggun to x-axis <7.000000> speed <474.333919> / animSpeed; 
-			turn biggun to z-axis <-0.000000> speed <59.118463> / animSpeed; 
-			turn biggun to y-axis <0.000000> speed <4.555160> / animSpeed; 
+			turn biggun to x-axis <7.0> speed <474.333919> / animSpeed; 
+			turn biggun to z-axis <-0.0> speed <59.118463> / animSpeed; 
+			turn biggun to y-axis <0.0> speed <4.555160> / animSpeed; 
 			turn head to x-axis <-0.927302> speed <27.819048> / animSpeed; 
 			turn head to y-axis <9.458549> speed <283.756478> / animSpeed; 
 			turn l_foot to x-axis <-10.561878> speed <244.413750> / animSpeed; 
@@ -42,12 +42,12 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to y-axis <-9.494972> speed <729.974777> / animSpeed; 
 			turn luparm to x-axis <-8.891101> speed <475.860825> / animSpeed; 
 			turn luparm to y-axis <-9.391724> speed <738.230529> / animSpeed; 
-			turn nanolathe to x-axis <-7.000000> speed <413.857033> / animSpeed; 
-			turn nanolathe to z-axis <-0.000000> speed <55.718905> / animSpeed; 
-			turn nanolathe to y-axis <0.000000> speed <3.308265> / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [9.036713] / animSpeed; 
-			turn pelvis to x-axis <0.500000> speed <15.000000> / animSpeed; 
-			turn pelvis to y-axis <10.000000> speed <299.999991> / animSpeed; 
+			turn nanolathe to x-axis <-7.0> speed <413.857033> / animSpeed; 
+			turn nanolathe to z-axis <-0.0> speed <55.718905> / animSpeed; 
+			turn nanolathe to y-axis <0.0> speed <3.308265> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [9.036713] / animSpeed; 
+			turn pelvis to x-axis <0.500000> speed <15.0> / animSpeed; 
+			turn pelvis to y-axis <10.0> speed <299.999991> / animSpeed; 
 			turn r_foot to x-axis <-13.659087> speed <362.223883> / animSpeed; 
 			turn r_foot to z-axis <-1.655717> speed <49.672541> / animSpeed; 
 			turn r_foot to y-axis <-10.105174> speed <303.223681> / animSpeed; 
@@ -65,7 +65,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(isMoving) {
 		if (isMoving) { //Frame:12
-			turn biggun to x-axis <-0.000000> speed <210.000014> / animSpeed; 
+			turn biggun to x-axis <-0.0> speed <210.0> / animSpeed; 
 			turn head to x-axis <-2.018726> speed <32.742739> / animSpeed; 
 			turn head to y-axis <6.502752> speed <88.673904> / animSpeed; 
 			turn l_foot to z-axis <0.690912> speed <89.511375> / animSpeed; 
@@ -76,15 +76,15 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to x-axis <15.193594> speed <529.234425> / animSpeed; 
 			turn lthigh to z-axis <-3.177570> speed <164.312977> / animSpeed; 
 			turn lthigh to y-axis <-6.287450> speed <96.225652> / animSpeed; 
-			turn luparm to x-axis <-15.000002> speed <183.267021> / animSpeed; 
+			turn luparm to x-axis <-15.0> speed <183.267021> / animSpeed; 
 			turn luparm to y-axis <-7.060122> speed <69.948061> / animSpeed; 
 			turn nanolathe to x-axis <-4.812500> speed <65.625000> / animSpeed; 
 			move pelvis to x-axis [1.424151] speed [42.600518] / animSpeed; 
 			move pelvis to y-axis [-1.300000] speed [38.999999] / animSpeed; 
-			turn pelvis to x-axis <3.000000> speed <75.000003> / animSpeed; 
+			turn pelvis to x-axis <3.0> speed <75.0> / animSpeed; 
 			turn pelvis to y-axis <6.875000> speed <93.749994> / animSpeed; 
 			turn r_foot to x-axis <2.905055> speed <496.924251> / animSpeed; 
-			turn r_foot to z-axis <0.000162> speed <49.676377> / animSpeed; 
+			turn r_foot to z-axis <0.0> speed <49.676377> / animSpeed; 
 			turn r_foot to y-axis <0.004918> speed <303.302750> / animSpeed; 
 			turn rleg to x-axis <-19.644176> speed <2180.201147> / animSpeed; 
 			turn rleg to z-axis <6.272890> speed <682.729471> / animSpeed; 
@@ -101,7 +101,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		if (isMoving) { //Frame:18
 			turn biggun to x-axis <14.962093> speed <448.862786> / animSpeed; 
 			turn head to x-axis <6.002970> speed <240.650875> / animSpeed; 
-			turn head to y-axis <-0.000000> speed <195.082586> / animSpeed; 
+			turn head to y-axis <-0.0> speed <195.082586> / animSpeed; 
 			turn l_foot to x-axis <-13.296228> speed <81.595514> / animSpeed; 
 			turn l_foot to z-axis <-0.003109> speed <20.820630> / animSpeed; 
 			turn lleg to x-axis <76.570164> speed <1231.612198> / animSpeed; 
@@ -112,12 +112,12 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to y-axis <-3.398772> speed <86.660360> / animSpeed; 
 			turn luparm to x-axis <-5.933402> speed <271.998004> / animSpeed; 
 			turn luparm to y-axis <-5.390060> speed <50.101832> / animSpeed; 
-			turn nanolathe to x-axis <0.000000> speed <144.375003> / animSpeed; 
+			turn nanolathe to x-axis <0.0> speed <144.375003> / animSpeed; 
 			move pelvis to x-axis [0.676773] speed [22.421322] / animSpeed; 
 			move pelvis to z-axis [0.677474] speed [20.324208] / animSpeed; 
-			move pelvis to y-axis [-2.000000] speed [21.000001] / animSpeed; 
-			turn pelvis to x-axis <1.500000> speed <45.000001> / animSpeed; 
-			turn pelvis to y-axis <0.000000> speed <206.249997> / animSpeed; 
+			move pelvis to y-axis [-2.0] speed [21.000001] / animSpeed; 
+			turn pelvis to x-axis <1.500000> speed <45.0> / animSpeed; 
+			turn pelvis to y-axis <0.0> speed <206.249997> / animSpeed; 
 			turn r_foot to x-axis <17.020208> speed <423.454591> / animSpeed; 
 			turn r_foot to z-axis <-0.952274> speed <28.573097> / animSpeed; 
 			turn r_foot to y-axis <1.028123> speed <30.696158> / animSpeed; 
@@ -131,7 +131,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to y-axis <-5.247890> speed <72.333343> / animSpeed; 
 			turn torso to x-axis <7.182205> speed <215.121631> / animSpeed; 
 			turn torso to z-axis <-1.177850> speed <42.790427> / animSpeed; 
-			turn torso to y-axis <0.000001> speed <350.625002> / animSpeed; 
+			turn torso to y-axis <0.0> speed <350.625002> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:24
@@ -151,9 +151,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to y-axis <2.367461> speed <232.725648> / animSpeed; 
 			turn nanolathe to x-axis <4.812500> speed <144.375000> / animSpeed; 
 			move pelvis to x-axis [0.378759] speed [8.940423] / animSpeed; 
-			move pelvis to z-axis [0.000000] speed [20.324208] / animSpeed; 
-			move pelvis to y-axis [-0.700000] speed [39.000000] / animSpeed; 
-			turn pelvis to x-axis <-1.000000> speed <75.000001> / animSpeed; 
+			move pelvis to z-axis [0.0] speed [20.324208] / animSpeed; 
+			move pelvis to y-axis [-0.700000] speed [39.0] / animSpeed; 
+			turn pelvis to x-axis <-1.0> speed <75.0> / animSpeed; 
 			turn pelvis to y-axis <-6.874999> speed <206.249972> / animSpeed; 
 			turn r_foot to x-axis <-4.390164> speed <642.311173> / animSpeed; 
 			turn r_foot to z-axis <-0.230726> speed <21.646450> / animSpeed; 
@@ -172,7 +172,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:30
-			turn biggun to x-axis <-7.000000> speed <165.000000> / animSpeed; 
+			turn biggun to x-axis <-7.0> speed <165.0> / animSpeed; 
 			turn head to x-axis <-1.322678> speed <97.888103> / animSpeed; 
 			turn head to y-axis <-9.458549> speed <88.673879> / animSpeed; 
 			turn l_foot to x-axis <-1.066570> speed <70.537812> / animSpeed; 
@@ -187,8 +187,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to y-axis <4.673861> speed <69.191991> / animSpeed; 
 			turn nanolathe to x-axis <9.511417> speed <140.967523> / animSpeed; 
 			move pelvis to x-axis [0.004134] speed [11.238773] / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [21.000000] / animSpeed; 
-			turn pelvis to x-axis <0.500000> speed <45.000000> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [21.0] / animSpeed; 
+			turn pelvis to x-axis <0.500000> speed <45.0> / animSpeed; 
 			turn pelvis to y-axis <-9.999998> speed <93.749968> / animSpeed; 
 			turn r_foot to x-axis <-9.321513> speed <147.940450> / animSpeed; 
 			turn r_foot to z-axis <-3.660134> speed <102.882224> / animSpeed; 
@@ -202,7 +202,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to x-axis <-13.287716> speed <482.791638> / animSpeed; 
 			turn ruparm to y-axis <9.299999> speed <72.333317> / animSpeed; 
 			turn torso to x-axis <0.614511> speed <61.414985> / animSpeed; 
-			turn torso to z-axis <-0.000000> speed <10.342095> / animSpeed; 
+			turn torso to z-axis <-0.0> speed <10.342095> / animSpeed; 
 			turn torso to y-axis <16.999999> speed <159.374968> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
@@ -211,8 +211,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn head to x-axis <-2.018726> speed <20.881451> / animSpeed; 
 			turn head to y-axis <-6.502752> speed <88.673904> / animSpeed; 
 			turn l_foot to x-axis <2.869804> speed <118.091213> / animSpeed; 
-			turn l_foot to z-axis <-0.000076> speed <20.252671> / animSpeed; 
-			turn l_foot to y-axis <-0.000060> speed <299.783359> / animSpeed; 
+			turn l_foot to z-axis <-0.0> speed <20.252671> / animSpeed; 
+			turn l_foot to y-axis <-0.0> speed <299.783359> / animSpeed; 
 			turn lleg to x-axis <-21.464800> speed <2470.140833> / animSpeed; 
 			turn lleg to z-axis <-5.991945> speed <214.073744> / animSpeed; 
 			turn lleg to y-axis <-2.714477> speed <186.880277> / animSpeed; 
@@ -224,7 +224,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn nanolathe to x-axis <7.246843> speed <67.937245> / animSpeed; 
 			move pelvis to x-axis [-1.440796] speed [43.347901] / animSpeed; 
 			move pelvis to y-axis [-1.300000] speed [38.999999] / animSpeed; 
-			turn pelvis to x-axis <3.000000> speed <75.000003> / animSpeed; 
+			turn pelvis to x-axis <3.0> speed <75.0> / animSpeed; 
 			turn pelvis to y-axis <-6.874998> speed <93.750007> / animSpeed; 
 			turn r_foot to x-axis <-11.212004> speed <56.714740> / animSpeed; 
 			turn r_foot to z-axis <-0.692164> speed <89.039097> / animSpeed; 
@@ -235,17 +235,17 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to x-axis <15.440428> speed <491.500071> / animSpeed; 
 			turn rthigh to z-axis <5.573259> speed <259.656606> / animSpeed; 
 			turn rthigh to y-axis <5.974292> speed <100.056158> / animSpeed; 
-			turn ruparm to x-axis <-15.000002> speed <51.368598> / animSpeed; 
+			turn ruparm to x-axis <-15.0> speed <51.368598> / animSpeed; 
 			turn ruparm to y-axis <8.332799> speed <29.016001> / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <18.435316> / animSpeed; 
+			turn torso to x-axis <-0.0> speed <18.435316> / animSpeed; 
 			turn torso to z-axis <2.154603> speed <64.638097> / animSpeed; 
 			turn torso to y-axis <11.687500> speed <159.374994> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:42
-			turn biggun to x-axis <0.000000> speed <144.375003> / animSpeed; 
+			turn biggun to x-axis <0.0> speed <144.375003> / animSpeed; 
 			turn head to x-axis <5.974242> speed <239.789054> / animSpeed; 
-			turn head to y-axis <0.000000> speed <195.082586> / animSpeed; 
+			turn head to y-axis <0.0> speed <195.082586> / animSpeed; 
 			turn l_foot to x-axis <18.425190> speed <466.661591> / animSpeed; 
 			turn l_foot to z-axis <0.957857> speed <28.737983> / animSpeed; 
 			turn l_foot to y-axis <-1.046884> speed <31.404727> / animSpeed; 
@@ -260,9 +260,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn nanolathe to x-axis <15.006779> speed <232.798102> / animSpeed; 
 			move pelvis to x-axis [-0.668506] speed [23.168705] / animSpeed; 
 			move pelvis to z-axis [0.587918] speed [17.637532] / animSpeed; 
-			move pelvis to y-axis [-2.000000] speed [21.000001] / animSpeed; 
-			turn pelvis to x-axis <1.500000> speed <45.000001> / animSpeed; 
-			turn pelvis to y-axis <0.000002> speed <206.250000> / animSpeed; 
+			move pelvis to y-axis [-2.0] speed [21.000001] / animSpeed; 
+			turn pelvis to x-axis <1.500000> speed <45.0> / animSpeed; 
+			turn pelvis to y-axis <0.0> speed <206.250000> / animSpeed; 
 			turn r_foot to x-axis <-14.533147> speed <99.634283> / animSpeed; 
 			turn r_foot to z-axis <0.003766> speed <20.877902> / animSpeed; 
 			turn rleg to x-axis <76.774892> speed <1244.570125> / animSpeed; 
@@ -275,7 +275,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to y-axis <6.026399> speed <69.191998> / animSpeed; 
 			turn torso to x-axis <7.296131> speed <218.883930> / animSpeed; 
 			turn torso to z-axis <0.804385> speed <40.506543> / animSpeed; 
-			turn torso to y-axis <-0.000001> speed <350.625002> / animSpeed; 
+			turn torso to y-axis <-0.0> speed <350.625002> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:48
@@ -295,9 +295,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn luparm to y-axis <-6.888889> speed <303.565158> / animSpeed; 
 			turn nanolathe to x-axis <-1.500000> speed <495.203383> / animSpeed; 
 			move pelvis to x-axis [-0.247683] speed [12.624712] / animSpeed; 
-			move pelvis to z-axis [0.000000] speed [17.637532] / animSpeed; 
-			move pelvis to y-axis [-0.700000] speed [39.000000] / animSpeed; 
-			turn pelvis to x-axis <-1.000000> speed <75.000001> / animSpeed; 
+			move pelvis to z-axis [0.0] speed [17.637532] / animSpeed; 
+			move pelvis to y-axis [-0.700000] speed [39.0] / animSpeed; 
+			turn pelvis to x-axis <-1.0> speed <75.0> / animSpeed; 
 			turn pelvis to y-axis <6.875002> speed <206.249994> / animSpeed; 
 			turn r_foot to x-axis <-5.256663> speed <278.294500> / animSpeed; 
 			turn r_foot to z-axis <-0.935032> speed <28.163964> / animSpeed; 
@@ -316,7 +316,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:54
-			turn biggun to x-axis <7.000000> speed <65.625012> / animSpeed; 
+			turn biggun to x-axis <7.0> speed <65.625012> / animSpeed; 
 			turn head to x-axis <-0.920485> speed <83.236809> / animSpeed; 
 			turn head to y-axis <9.458549> speed <88.673879> / animSpeed; 
 			turn l_foot to x-axis <-10.560809> speed <195.068730> / animSpeed; 
@@ -330,11 +330,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to y-axis <-9.099435> speed <41.255581> / animSpeed; 
 			turn luparm to x-axis <-8.891101> speed <586.612163> / animSpeed; 
 			turn luparm to y-axis <-9.299999> speed <72.333317> / animSpeed; 
-			turn nanolathe to x-axis <-7.000000> speed <165.000000> / animSpeed; 
+			turn nanolathe to x-axis <-7.0> speed <165.0> / animSpeed; 
 			move pelvis to x-axis [0.004134] speed [7.554485] / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [21.000000] / animSpeed; 
-			turn pelvis to x-axis <0.500000> speed <45.000000> / animSpeed; 
-			turn pelvis to y-axis <10.000000> speed <93.749930> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [21.0] / animSpeed; 
+			turn pelvis to x-axis <0.500000> speed <45.0> / animSpeed; 
+			turn pelvis to y-axis <10.0> speed <93.749930> / animSpeed; 
 			turn r_foot to x-axis <-13.659087> speed <252.072695> / animSpeed; 
 			turn r_foot to z-axis <-1.655717> speed <21.620542> / animSpeed; 
 			turn r_foot to y-axis <-10.105174> speed <120.868044> / animSpeed; 
@@ -347,7 +347,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn ruparm to x-axis <27.254234> speed <658.466782> / animSpeed; 
 			turn ruparm to y-axis <-7.659001> speed <327.978017> / animSpeed; 
 			turn torso to x-axis <0.527975> speed <66.830393> / animSpeed; 
-			turn torso to z-axis <-0.000000> speed <7.756572> / animSpeed; 
+			turn torso to z-axis <-0.0> speed <7.756572> / animSpeed; 
 			turn torso to y-axis <-16.999999> speed <159.374968> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
@@ -355,44 +355,44 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 }
 // Call this from StopMoving()!
 StopWalking() {
-	move pelvis to x-axis [0.000000] speed [7.224650];
+	move pelvis to x-axis [0.0] speed [7.224650];
 	move pelvis to y-axis [-0.301224] speed [6.500000];
-	move pelvis to z-axis [0.000000] speed [3.387368];
+	move pelvis to z-axis [0.0] speed [3.387368];
 	turn biggun to x-axis <-8.811130> speed <82.310465>;
 	turn biggun to y-axis <0.151839> speed <0.759193>;
 	turn biggun to z-axis <-1.970615> speed <9.853077>;
-	turn head to x-axis <0.000000> speed <40.108479>;
-	turn head to y-axis <0.000000> speed <47.292746>;
+	turn head to x-axis <0.0> speed <40.108479>;
+	turn head to y-axis <0.0> speed <47.292746>;
 	turn l_foot to x-axis <-2.414753> speed <112.418542>;
 	turn l_foot to y-axis <-0.240266> speed <49.963893>;
 	turn l_foot to z-axis <-0.525861> speed <21.002426>;
-	turn lleg to x-axis <0.000000> speed <411.690139>;
-	turn lleg to y-axis <0.000000> speed <49.997525>;
-	turn lleg to z-axis <0.000000> speed <71.520276>;
-	turn lthigh to x-axis <0.000000> speed <241.307004>;
+	turn lleg to x-axis <0.0> speed <411.690139>;
+	turn lleg to y-axis <0.0> speed <49.997525>;
+	turn lleg to z-axis <0.0> speed <71.520276>;
+	turn lthigh to x-axis <0.0> speed <241.307004>;
 	turn lthigh to y-axis <14.837520> speed <121.662463>;
-	turn lthigh to z-axis <0.000000> speed <109.161052>;
+	turn lthigh to z-axis <0.0> speed <109.161052>;
 	turn luparm to x-axis <6.970926> speed <116.358546>;
 	turn luparm to y-axis <15.215961> speed <123.038422>;
 	turn nanolathe to x-axis <6.795234> speed <82.533897>;
 	turn nanolathe to y-axis <-0.110275> speed <0.551377>;
 	turn nanolathe to z-axis <-1.857297> speed <9.286484>;
-	turn pelvis to x-axis <0.000000> speed <12.500000>;
-	turn pelvis to y-axis <0.000000> speed <49.999999>;
+	turn pelvis to x-axis <0.0> speed <12.500000>;
+	turn pelvis to y-axis <0.0> speed <49.999999>;
 	turn r_foot to x-axis <-1.584957> speed <107.051862>;
-	turn r_foot to y-axis <0.000000> speed <50.550458>;
-	turn r_foot to z-axis <0.000000> speed <17.147037>;
-	turn rleg to x-axis <0.000000> speed <363.366858>;
-	turn rleg to y-axis <0.000000> speed <95.731755>;
-	turn rleg to z-axis <0.000000> speed <123.722036>;
-	turn rthigh to x-axis <0.000000> speed <306.324559>;
+	turn r_foot to y-axis <0.0> speed <50.550458>;
+	turn r_foot to z-axis <0.0> speed <17.147037>;
+	turn rleg to x-axis <0.0> speed <363.366858>;
+	turn rleg to y-axis <0.0> speed <95.731755>;
+	turn rleg to z-axis <0.0> speed <123.722036>;
+	turn rthigh to x-axis <0.0> speed <306.324559>;
 	turn rthigh to y-axis <-25.608481> speed <144.663917>;
-	turn rthigh to z-axis <0.000000> speed <113.472665>;
+	turn rthigh to z-axis <0.0> speed <113.472665>;
 	turn ruparm to x-axis <8.674858> speed <110.217349>;
 	turn ruparm to y-axis <-12.507997> speed <60.683891>;
-	turn torso to x-axis <0.000000> speed <36.480655>;
-	turn torso to y-axis <0.000000> speed <84.999997>;
-	turn torso to z-axis <0.000000> speed <13.020986>;
+	turn torso to x-axis <0.0> speed <36.480655>;
+	turn torso to y-axis <0.0> speed <84.999997>;
+	turn torso to z-axis <0.0> speed <13.020986>;
 }
 
 // For N:\animations\corcom_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
@@ -449,7 +449,7 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn lthigh to z-axis <-6.910861> speed <6.709355> / danceSpeed; //delta=-0.22
 			turn lthigh to y-axis <12.510087> speed <67.706342> / danceSpeed; //delta=2.26
 			turn luparm to x-axis <7.822892> speed <1087.140532> / danceSpeed; //delta=-36.24
-			turn luparm to z-axis <-0.000000> speed <42.757923> / danceSpeed; //delta=1.43
+			turn luparm to z-axis <-0.0> speed <42.757923> / danceSpeed; //delta=1.43
 			turn luparm to y-axis <13.861978> speed <259.214208> / danceSpeed; //delta=8.64
 			turn nanolathe to x-axis <-1.007948> speed <425.890824> / danceSpeed; //delta=-14.20
 			turn nanolathe to z-axis <-1.913956> speed <165.827179> / danceSpeed; //delta=5.53
@@ -468,7 +468,7 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn rthigh to z-axis <-9.362821> speed <195.637407> / danceSpeed; //delta=6.52
 			turn rthigh to y-axis <-27.579010> speed <31.360301> / danceSpeed; //delta=-1.05
 			turn ruparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
-			turn ruparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=3.36
+			turn ruparm to z-axis <0.0> speed <100.679584> / danceSpeed; //delta=3.36
 			turn ruparm to y-axis <-12.507997> speed <811.949418> / danceSpeed; //delta=-27.06
 		sleep ((33*danceSpeed) -1);
 		}
@@ -519,17 +519,17 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn lthigh to z-axis <-1.190563> speed <140.811263> / danceSpeed; //delta=-4.69
 			turn lthigh to y-axis <12.140076> speed <73.077714> / danceSpeed; //delta=2.44
 			turn luparm to x-axis <8.674858> speed <1112.699518> / danceSpeed; //delta=-37.09
-			turn luparm to z-axis <-0.000000> speed <42.757923> / danceSpeed; //delta=1.43
+			turn luparm to z-axis <-0.0> speed <42.757923> / danceSpeed; //delta=1.43
 			turn luparm to y-axis <12.507997> speed <218.594757> / danceSpeed; //delta=7.29
 			turn nanolathe to x-axis <-8.811130> speed <191.795349> / danceSpeed; //delta=-6.39
 			turn nanolathe to z-axis <-1.970615> speed <167.526961> / danceSpeed; //delta=5.58
 			turn nanolathe to y-axis <0.151839> speed <38.984052> / danceSpeed; //delta=1.30
-			move pelvis to x-axis [0.000000] speed [74.545691] / danceSpeed; //delta=-2.48
-			move pelvis to z-axis [0.000000] speed [43.751855] / danceSpeed; //delta=1.46
+			move pelvis to x-axis [0.0] speed [74.545691] / danceSpeed; //delta=-2.48
+			move pelvis to z-axis [0.0] speed [43.751855] / danceSpeed; //delta=1.46
 			move pelvis to y-axis [-0.301224] speed [59.099994] / danceSpeed; //delta=1.97
-			turn pelvis to x-axis <-0.000000> speed <3.993891> / danceSpeed; //delta=0.13
-			turn pelvis to z-axis <-0.000000> speed <12.327651> / danceSpeed; //delta=-0.41
-			turn pelvis to y-axis <0.000000> speed <142.525920> / danceSpeed; //delta=-4.75
+			turn pelvis to x-axis <-0.0> speed <3.993891> / danceSpeed; //delta=0.13
+			turn pelvis to z-axis <-0.0> speed <12.327651> / danceSpeed; //delta=-0.41
+			turn pelvis to y-axis <0.0> speed <142.525920> / danceSpeed; //delta=-4.75
 			turn r_foot to x-axis <1.059220> speed <236.135122> / danceSpeed; //delta=-7.87
 			turn rleg to x-axis <15.878112> speed <561.410660> / danceSpeed; //delta=18.71
 			turn rleg to z-axis <-0.755453> speed <236.539015> / danceSpeed; //delta=7.88
@@ -538,7 +538,7 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn rthigh to z-axis <1.485299> speed <129.919326> / danceSpeed; //delta=-4.33
 			turn rthigh to y-axis <-25.724859> speed <30.798399> / danceSpeed; //delta=1.03
 			turn ruparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
-			turn ruparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=3.36
+			turn ruparm to z-axis <0.0> speed <100.679584> / danceSpeed; //delta=3.36
 			turn ruparm to y-axis <-12.507997> speed <811.949418> / danceSpeed; //delta=-27.06
 		sleep ((33*danceSpeed) -1);
 		}
@@ -591,7 +591,7 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn lthigh to z-axis <9.335824> speed <101.333643> / danceSpeed; //delta=-3.38
 			turn lthigh to y-axis <11.342474> speed <35.589401> / danceSpeed; //delta=-1.19
 			turn luparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
-			turn luparm to z-axis <-0.000000> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn luparm to z-axis <-0.0> speed <100.679584> / danceSpeed; //delta=-3.36
 			turn luparm to y-axis <12.507997> speed <811.949418> / danceSpeed; //delta=27.06
 			turn nanolathe to x-axis <-8.811130> speed <396.710898> / danceSpeed; //delta=13.22
 			turn nanolathe to z-axis <-1.970615> speed <415.575039> / danceSpeed; //delta=13.85
@@ -663,17 +663,17 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn lthigh to z-axis <-1.190563> speed <462.417136> / danceSpeed; //delta=15.41
 			turn lthigh to y-axis <12.140076> speed <36.222406> / danceSpeed; //delta=1.21
 			turn luparm to x-axis <6.970926> speed <275.646209> / danceSpeed; //delta=-9.19
-			turn luparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn luparm to z-axis <0.0> speed <100.679584> / danceSpeed; //delta=-3.36
 			turn luparm to y-axis <15.215961> speed <893.188346> / danceSpeed; //delta=29.77
 			turn nanolathe to x-axis <6.795234> speed <71.480038> / danceSpeed; //delta=-2.38
 			turn nanolathe to z-axis <-1.857297> speed <412.175481> / danceSpeed; //delta=13.74
 			turn nanolathe to y-axis <-0.110275> speed <520.990107> / danceSpeed; //delta=-17.37
-			move pelvis to x-axis [0.000000] speed [102.502427] / danceSpeed; //delta=3.42
-			move pelvis to z-axis [0.000000] speed [22.531573] / danceSpeed; //delta=0.75
+			move pelvis to x-axis [0.0] speed [102.502427] / danceSpeed; //delta=3.42
+			move pelvis to z-axis [0.0] speed [22.531573] / danceSpeed; //delta=0.75
 			move pelvis to y-axis [-0.301224] speed [50.887953] / danceSpeed; //delta=1.70
-			turn pelvis to x-axis <-0.000000> speed <5.743188> / danceSpeed; //delta=-0.19
-			turn pelvis to z-axis <-0.000000> speed <66.857706> / danceSpeed; //delta=2.23
-			turn pelvis to y-axis <0.000000> speed <126.447740> / danceSpeed; //delta=4.21
+			turn pelvis to x-axis <-0.0> speed <5.743188> / danceSpeed; //delta=-0.19
+			turn pelvis to z-axis <-0.0> speed <66.857706> / danceSpeed; //delta=2.23
+			turn pelvis to y-axis <0.0> speed <126.447740> / danceSpeed; //delta=4.21
 			turn r_foot to x-axis <1.059220> speed <146.133602> / danceSpeed; //delta=4.87
 			turn r_foot to z-axis <0.006041> speed <5.040858> / danceSpeed; //delta=-0.17
 			turn rleg to x-axis <15.878112> speed <238.421277> / danceSpeed; //delta=7.95
@@ -683,7 +683,7 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 			turn rthigh to z-axis <1.485299> speed <371.277797> / danceSpeed; //delta=12.38
 			turn rthigh to y-axis <-25.724859> speed <25.844702> / danceSpeed; //delta=-0.86
 			turn ruparm to x-axis <8.674858> speed <2884.033623> / danceSpeed; //delta=-96.13
-			turn ruparm to z-axis <0.000000> speed <2261.232479> / danceSpeed; //delta=-75.37//WARNING: possible gimbal lock issue detected in frame 54 bone ruparm
+			turn ruparm to z-axis <0.0> speed <2261.232479> / danceSpeed; //delta=-75.37//WARNING: possible gimbal lock issue detected in frame 54 bone ruparm
 
 			//turn ruparm to y-axis <-12.507997> speed <2571.773408> / danceSpeed; //delta=-85.73//WARNING: possible gimbal lock issue detected in frame 54 bone ruparm
 
@@ -694,9 +694,9 @@ Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github
 
 StopDancing() {
 	danceSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move pelvis to x-axis [0.000000] speed [170.837379] / danceSpeed;
+	move pelvis to x-axis [0.0] speed [170.837379] / danceSpeed;
 	move pelvis to y-axis [-0.301224] speed [107.543124] / danceSpeed;
-	move pelvis to z-axis [0.000000] speed [72.919758] / danceSpeed;
+	move pelvis to z-axis [0.0] speed [72.919758] / danceSpeed;
 	turn biggun to x-axis <-8.811130> speed <1205.094159> / danceSpeed;
 	turn biggun to y-axis <0.151839> speed <855.211138> / danceSpeed;
 	turn biggun to z-axis <-1.970615> speed <692.625066> / danceSpeed;
@@ -711,15 +711,15 @@ StopDancing() {
 	turn lthigh to z-axis <-1.190563> speed <770.695227> / danceSpeed;
 	turn luparm to x-axis <6.970926> speed <1854.499197> / danceSpeed;
 	turn luparm to y-axis <15.215961> speed <1488.647243> / danceSpeed;
-	turn luparm to z-axis <0.000000> speed <167.799306> / danceSpeed;
+	turn luparm to z-axis <0.0> speed <167.799306> / danceSpeed;
 	turn nanolathe to x-axis <6.795234> speed <1099.977142> / danceSpeed;
 	turn nanolathe to y-axis <-0.110275> speed <868.316846> / danceSpeed;
 	turn nanolathe to z-axis <-1.857297> speed <692.625066> / danceSpeed;
-	turn pelvis to x-axis <0.000000> speed <11.406491> / danceSpeed;
-	turn pelvis to y-axis <0.000000> speed <267.525170> / danceSpeed;
-	turn pelvis to z-axis <0.000000> speed <124.022788> / danceSpeed;
+	turn pelvis to x-axis <0.0> speed <11.406491> / danceSpeed;
+	turn pelvis to y-axis <0.0> speed <267.525170> / danceSpeed;
+	turn pelvis to z-axis <0.0> speed <124.022788> / danceSpeed;
 	turn r_foot to x-axis <1.059220> speed <398.210023> / danceSpeed;
-	turn r_foot to z-axis <0.000000> speed <8.401430> / danceSpeed;
+	turn r_foot to z-axis <0.0> speed <8.401430> / danceSpeed;
 	turn rleg to x-axis <15.878112> speed <1085.116081> / danceSpeed;
 	turn rleg to y-axis <-2.589186> speed <469.563115> / danceSpeed;
 	turn rleg to z-axis <-0.755453> speed <809.489258> / danceSpeed;
@@ -728,7 +728,7 @@ StopDancing() {
 	turn rthigh to z-axis <1.485299> speed <618.796329> / danceSpeed;
 	turn ruparm to x-axis <8.674858> speed <4806.722705> / danceSpeed;
 	turn ruparm to y-axis <-12.507997> speed <4286.289013> / danceSpeed;
-	turn ruparm to z-axis <0.000000> speed <4104.254418> / danceSpeed;
+	turn ruparm to z-axis <0.0> speed <4104.254418> / danceSpeed;
 }
 
 static-var idleTime;
@@ -882,7 +882,7 @@ RestorePosition()
 	gun_3 = torso;
 	set-signal-mask SIGNAL_AIM1;
 	sleep 2000;
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	turn aimy1 to y-axis <0.0> speed <90.0>;
 	turn aimx1 to x-axis <0> speed <90>;
 	//wait-for-turn aimy1 around y-axis;
 	isAiming = FALSE;
@@ -898,8 +898,8 @@ ResumeBuilding()
 	sleep 400;
 	if( bIsBuilding AND ( !gun_2 ) )
 	{
-	turn aimy1 to y-axis buildheading - <20> speed <300.000000>;
-	turn aimx1 to x-axis <-20.000000> - buildpitch speed <90.000000>;
+	turn aimy1 to y-axis buildheading - <20> speed <300.0>;
+	turn aimx1 to x-axis <-20.0> - buildpitch speed <90.0>;
 	}
 	return (0);
 }
@@ -928,9 +928,9 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn aimy1 to y-axis heading speed <300.000000>;
-	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
-	//turn nanolathe to x-axis <000000> speed <250.000000>;
+	turn aimy1 to y-axis heading speed <300.0>;
+	turn aimx1 to x-axis <-5.0> - pitch speed <250.0>;
+	//turn nanolathe to x-axis <000000> speed <250.0>;
 	// if the turret cannot turn to its new heading in one frame, wait for turn
 	if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
 	{
@@ -974,8 +974,8 @@ AimWeapon3(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	gun_3 = lfirept;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <360.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
+	turn aimy1 to y-axis heading speed <360.0>;
+	turn aimx1 to x-axis <0.0> - pitch speed <360.0>;
 	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
 	//wait-for-turn biggun around x-axis;
@@ -1021,9 +1021,9 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <300.000000>;
-	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
-	//turn nanolathe to x-axis <000000> speed <250.000000>;
+	turn aimy1 to y-axis heading speed <300.0>;
+	turn aimx1 to x-axis <-5.0> - pitch speed <250.0>;
+	//turn nanolathe to x-axis <000000> speed <250.0>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
@@ -1068,8 +1068,8 @@ StartBuilding(heading, pitch)
 	//}
 	buildHeading = heading;
 	buildPitch = pitch;
-	turn aimy1 to y-axis heading - <20> speed <300.000000>;
-	turn aimx1 to x-axis <-20.000000> - pitch speed <90.000000>;
+	turn aimy1 to y-axis heading - <20> speed <300.0>;
+	turn aimx1 to x-axis <-20.0> - pitch speed <90.0>;
 	//wait-for-turn torso around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	set INBUILDSTANCE to 1;

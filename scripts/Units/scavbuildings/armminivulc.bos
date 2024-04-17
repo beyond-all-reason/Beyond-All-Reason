@@ -27,8 +27,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <15.000000>;
-	turn neck to x-axis <0.000000> - pitch speed <6.000000>;
+	turn turret to y-axis heading speed <15.0>;
+	turn neck to x-axis <0.0> - pitch speed <6.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn neck around x-axis;
 	return (1);
@@ -40,27 +40,27 @@ FireWeapon1()
 	
 	if( gun_1 == 1 )
 	{
-		move barrel01 to z-axis [-10.000000] now;
-		move barrel01 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <90.000000> speed <230.000000>;
+		move barrel01 to z-axis [-10.0] now;
+		move barrel01 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <90.0> speed <230.0>;
 	}
 	if( gun_1 == 2 )
 	{
-		move barrel02 to z-axis [-10.000000] now;
-		move barrel02 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <180.000000> speed <230.000000>;
+		move barrel02 to z-axis [-10.0] now;
+		move barrel02 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <180.0> speed <230.0>;
 	}
 	if( gun_1 == 3 )
 	{
-		move barrel03 to z-axis [-10.000000] now;
-		move barrel03 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <270.000000> speed <230.000000>;
+		move barrel03 to z-axis [-10.0] now;
+		move barrel03 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <270.0> speed <230.0>;
 	}
 	if( gun_1 == 4 )
 	{
-		move barrel04 to z-axis [-10.000000] now;
-		move barrel04 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <0.000000> speed <230.000000>;
+		move barrel04 to z-axis [-10.0] now;
+		move barrel04 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <0.0> speed <230.0>;
 	}
 	++gun_1;
 	if( gun_1 == 5 )

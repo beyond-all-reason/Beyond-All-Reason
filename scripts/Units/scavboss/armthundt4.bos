@@ -50,10 +50,10 @@ Activate()
 	show thrust1;
 	show thrustc;
 
-	turn enginec to x-axis <90.021978> speed <62.000000>;
-	turn engines to x-axis <90> speed <30.000000>;
-	turn wingl to z-axis <-135> speed <90.000000>;
-	turn wingr to z-axis <135> speed <90.000000>;
+	turn enginec to x-axis <90.021978> speed <62.0>;
+	turn engines to x-axis <90> speed <30.0>;
+	turn wingl to z-axis <-135> speed <90.0>;
+	turn wingr to z-axis <135> speed <90.0>;
 }
 
 Deactivate()
@@ -64,10 +64,10 @@ Deactivate()
 	hide thrust1;
 	hide thrustc;
 
-	turn enginec to x-axis <0> speed <62.000000>;
-	turn engines to x-axis <0> speed <30.000000>;
-	turn wingl to z-axis <0> speed <90.000000>;
-	turn wingr to z-axis <0> speed <90.000000>;
+	turn enginec to x-axis <0> speed <62.0>;
+	turn engines to x-axis <0> speed <30.0>;
+	turn wingl to z-axis <0> speed <90.0>;
+	turn wingr to z-axis <0> speed <90.0>;
 }
 
 QueryWeapon1(pieceIndex)

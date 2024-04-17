@@ -18,8 +18,8 @@ static-var  isOpen, restore_delay;
 
 Open()
 {
-	move post to y-axis [4] speed [150.000000];
-	// move barrel to z-axis [0.000000] speed [90.000000];
+	move post to y-axis [4] speed [150.0];
+	// move barrel to z-axis [0.0] speed [90.0];
 	wait-for-move post along y-axis;
 	// wait-for-move barrel along z-axis;
 	isOpen = 1;
@@ -28,12 +28,12 @@ Open()
 Close(){
 	set ARMORED to 1;
 	isOpen = 0;
-	turn turret to x-axis <0.000000> speed <300.000000>;
-	turn post to y-axis <0.000000> speed <300.000000>;
-	// move barrel to z-axis [-8.000000] speed [20.000000];
+	turn turret to x-axis <0.0> speed <300.0>;
+	turn post to y-axis <0.0> speed <300.0>;
+	// move barrel to z-axis [-8.0] speed [20.0];
 	// wait-for-turn barrel around x-axis;
 	wait-for-turn post around y-axis;
-	move post to y-axis [-26.000000] speed [90.000000];
+	move post to y-axis [-26.0] speed [90.0];
 	wait-for-move post along y-axis;
 
 }
@@ -69,7 +69,7 @@ Create()
 	isOpen = 0;
 	start-script OpenCloseAnim(1);
 
-	move aimpoint to y-axis [5] speed [150.000000];
+	move aimpoint to y-axis [5] speed [150.0];
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
@@ -101,9 +101,9 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn post to y-axis heading speed <300.000000>;
+	turn post to y-axis heading speed <300.0>;
 	if (pitch < 0) pitch = 0;
-	turn turret to x-axis <0.000000> - pitch speed <300.000000>;
+	turn turret to x-axis <0.0> - pitch speed <300.0>;
 	wait-for-turn post around y-axis;
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();

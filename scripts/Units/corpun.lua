@@ -55,14 +55,14 @@ function script.FireWeapon1()
 		EmitSfx(flare1, 1024+0)
 		Move (barrel1, z_axis, -1.500000)
 		Sleep (150)
-		Move (barrel1, z_axis, 0.000000, 1.000000)
+		Move (barrel1, z_axis, 0.0, 1.0)
 	end
 	
 	if currBarrel == 2 then
 		EmitSfx(flare2, 1024+0)
 		Move (barrel2, z_axis, -1.500000)
 		Sleep (150)
-		Move (barrel2, z_axis, 0.000000, 1.000000)
+		Move (barrel2, z_axis, 0.0, 1.0)
 	end
 
 	currBarrel = currBarrel + 1

@@ -94,7 +94,7 @@ Create()
 		sleep 500;
 	}
 	start-script RockOnWaves();
-	turn misbox2 to x-axis <-25> speed <25.00000>;
+	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;
 }
 
@@ -111,13 +111,13 @@ SetMaxReloadTime(reloadMS)
 RestoreAfterDelay2()
 {
 	sleep restore_delay;
-	turn tur2 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve2 to x-axis <0.000000> speed <30.000000>;
-	turn tur4 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve4 to x-axis <0.000000> speed <30.000000>;
-	turn tur5 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve5 to x-axis <0.000000> speed <30.000000>;
-	turn misbox2 to x-axis <-25> speed <25.00000>;
+	turn tur2 to y-axis <0.0> speed <50.0>;
+	turn sleeve2 to x-axis <0.0> speed <30.0>;
+	turn tur4 to y-axis <0.0> speed <50.0>;
+	turn sleeve4 to x-axis <0.0> speed <30.0>;
+	turn tur5 to y-axis <0.0> speed <50.0>;
+	turn sleeve5 to x-axis <0.0> speed <30.0>;
+	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;
 }
 
@@ -127,11 +127,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn tur1 to y-axis <0.000000> speed <10.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <10.000000>;
-	turn tur3 to y-axis <0.000000> speed <10.000000>;
-	turn sleeve3 to x-axis <0.000000> speed <10.000000>;
-	turn misbox2 to x-axis <-25> speed <25.00000>;
+	turn tur1 to y-axis <0.0> speed <10.0>;
+	turn sleeve1 to x-axis <0.0> speed <10.0>;
+	turn tur3 to y-axis <0.0> speed <10.0>;
+	turn sleeve3 to x-axis <0.0> speed <10.0>;
+	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -152,10 +152,10 @@ RestoreAfterDelay()
 RestoreAfterDelay3()
 {
 	sleep restore_delay;
-	turn turretmis1 to y-axis <0.000000> speed <80.000000>;
-	turn misbox1 to x-axis <0.000000> speed <50.000000>;
-	turn turretmis2 to y-axis <0.000000> speed <80.000000>;
-	turn misbox2 to x-axis <-25> speed <25.00000>;
+	turn turretmis1 to y-axis <0.0> speed <80.0>;
+	turn misbox1 to x-axis <0.0> speed <50.0>;
+	turn turretmis2 to y-axis <0.0> speed <80.0>;
+	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;
 }
 
@@ -203,8 +203,8 @@ AimWeapon1(heading, pitch)
 {
 	signal 2;
 	set-signal-mask 2;
-	turn tur1 to y-axis heading speed <50.000000>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn tur1 to y-axis heading speed <50.0>;
+	turn sleeve1 to x-axis <0.0> - pitch speed <25.0>;
 	wait-for-turn tur1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	start-script RestoreAfterDelay();
@@ -216,16 +216,16 @@ FireWeapon1()
 	if( gun_1 )
 	{
 	    emit-sfx 1024 + 1 from flare1b;
-		move barrel1b to z-axis [-3.000000] speed [500.000000];
+		move barrel1b to z-axis [-3.0] speed [500.0];
 		sleep 100;
-		move barrel1b to z-axis [0.000000] speed [3.000000];
+		move barrel1b to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 1 from flare1a;
-		move barrel1a to z-axis [-3.000000] speed [500.000000];
+		move barrel1a to z-axis [-3.0] speed [500.0];
 		sleep 100;
-		move barrel1a to z-axis [0.000000] speed [3.000000];
+		move barrel1a to z-axis [0.0] speed [3.0];
 	}
 	gun_1 = !gun_1;
 }
@@ -244,8 +244,8 @@ AimWeapon2(heading, pitch)
 {
 	signal 4;
 	set-signal-mask 4;
-	turn tur2 to y-axis heading speed <90.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn tur2 to y-axis heading speed <90.0>;
+	turn sleeve2 to x-axis <0.0> - pitch speed <25.0>;
 	wait-for-turn tur2 around y-axis;
 	wait-for-turn sleeve2 around x-axis;
 	start-script RestoreAfterDelay2();
@@ -257,23 +257,23 @@ FireWeapon2()
 	if( gun_2 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare2a;
-		move barrel2a to z-axis [-1.000000] speed [500.000000];
+		move barrel2a to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel2a to z-axis [0.000000] speed [3.000000];
+		move barrel2a to z-axis [0.0] speed [3.0];
 	}
 	else if( gun_2 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2b;
-		move barrel2b to z-axis [-1.000000] speed [500.000000];
+		move barrel2b to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel2b to z-axis [0.000000] speed [3.000000];
+		move barrel2b to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 0 from flare2c;
-		move barrel2c to z-axis [-1.000000] speed [500.000000];
+		move barrel2c to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel2c to z-axis [0.000000] speed [3.000000];
+		move barrel2c to z-axis [0.0] speed [3.0];
 	}
 	++gun_2;
 	if( gun_2 >= 3 )
@@ -296,8 +296,8 @@ AimWeapon3(heading, pitch)
 {
 	signal 8;
 	set-signal-mask 8;
-	turn tur3 to y-axis heading speed <50.000000>;
-	turn sleeve3 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn tur3 to y-axis heading speed <50.0>;
+	turn sleeve3 to x-axis <0.0> - pitch speed <25.0>;
 	wait-for-turn tur3 around y-axis;
 	wait-for-turn sleeve3 around x-axis;
 	start-script RestoreAfterDelay();
@@ -309,16 +309,16 @@ FireWeapon3()
 	if( gun_3 )
 	{
 	    emit-sfx 1024 + 1 from flare3b;
-		move barrel3b to z-axis [-3.000000] speed [500.000000];
+		move barrel3b to z-axis [-3.0] speed [500.0];
 		sleep 100;
-		move barrel3b to z-axis [0.000000] speed [3.000000];
+		move barrel3b to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 1 from flare3a;
-		move barrel3a to z-axis [-3.000000] speed [500.000000];
+		move barrel3a to z-axis [-3.0] speed [500.0];
 		sleep 100;
-		move barrel3a to z-axis [0.000000] speed [3.000000];
+		move barrel3a to z-axis [0.0] speed [3.0];
 	}
 	gun_3 = !gun_3;
 }
@@ -337,8 +337,8 @@ AimWeapon4(heading, pitch)
 {
 	signal 16;
 	set-signal-mask 16;
-	turn tur4 to y-axis heading speed <90.000000>;
-	turn sleeve4 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn tur4 to y-axis heading speed <90.0>;
+	turn sleeve4 to x-axis <0.0> - pitch speed <25.0>;
 	wait-for-turn tur4 around y-axis;
 	wait-for-turn sleeve4 around x-axis;
 	start-script RestoreAfterDelay2();
@@ -350,23 +350,23 @@ FireWeapon4()
 	if( gun_4 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare4a;
-		move barrel4a to z-axis [-1.000000] speed [500.000000];
+		move barrel4a to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel4a to z-axis [0.000000] speed [3.000000];
+		move barrel4a to z-axis [0.0] speed [3.0];
 	}
 	else if( gun_4 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare4b;
-		move barrel4b to z-axis [-1.000000] speed [500.000000];
+		move barrel4b to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel4b to z-axis [0.000000] speed [3.000000];
+		move barrel4b to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 0 from flare4c;
-		move barrel4c to z-axis [-1.000000] speed [500.000000];
+		move barrel4c to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel4c to z-axis [0.000000] speed [3.000000];
+		move barrel4c to z-axis [0.0] speed [3.0];
 	}
 	++gun_4;
 	if( gun_4 >= 3 )
@@ -389,8 +389,8 @@ AimWeapon5(heading, pitch)
 {
 	signal 32;
 	set-signal-mask 32;
-	turn tur5 to y-axis heading speed <90.000000>;
-	turn sleeve5 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn tur5 to y-axis heading speed <90.0>;
+	turn sleeve5 to x-axis <0.0> - pitch speed <25.0>;
 	wait-for-turn tur5 around y-axis;
 	wait-for-turn sleeve5 around x-axis;
 	start-script RestoreAfterDelay2();
@@ -402,23 +402,23 @@ FireWeapon5()
 	if( gun_5 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare5a;
-		move barrel5a to z-axis [-1.000000] speed [500.000000];
+		move barrel5a to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel5a to z-axis [0.000000] speed [3.000000];
+		move barrel5a to z-axis [0.0] speed [3.0];
 	}
 	else if( gun_5 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare5b;
-		move barrel5b to z-axis [-1.000000] speed [500.000000];
+		move barrel5b to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel5b to z-axis [0.000000] speed [3.000000];
+		move barrel5b to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 0 from flare5c;
-		move barrel5c to z-axis [-1.000000] speed [500.000000];
+		move barrel5c to z-axis [-1.0] speed [500.0];
 		sleep 100;
-		move barrel5c to z-axis [0.000000] speed [3.000000];
+		move barrel5c to z-axis [0.0] speed [3.0];
 	}
 	++gun_5;
 	if( gun_5 >= 3 )
@@ -441,8 +441,8 @@ AimWeapon6(heading, pitch)
 {
 	signal 64;
 	set-signal-mask 64;
-	turn turretmis1 to y-axis heading speed <250.000000>;
-	turn misbox1 to x-axis <0> - pitch speed <200.000000>;
+	turn turretmis1 to y-axis heading speed <250.0>;
+	turn misbox1 to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn turretmis1 around y-axis;
 	wait-for-turn misbox1 around x-axis;
 	start-script RestoreAfterDelay3();
@@ -468,8 +468,8 @@ AimWeapon7(heading, pitch)
 {
 	signal 128;
 	set-signal-mask 128;
-	turn turretmis2 to y-axis heading speed <250.000000>;
-	turn misbox2 to x-axis <0> - pitch speed <200.000000>;
+	turn turretmis2 to y-axis heading speed <250.0>;
+	turn misbox2 to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn turretmis2 around y-axis;
 	wait-for-turn misbox2 around x-axis;
 	start-script RestoreAfterDelay3();

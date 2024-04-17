@@ -14,7 +14,7 @@ Open()
 		return(0);
 	}
 	set ARMORED to 0;
-	move fan to y-axis [3.000000] speed [10.000000];
+	move fan to y-axis [3.0] speed [10.0];
 	wait-for-move fan along y-axis;
 	spin fan around y-axis speed resourceRate accelerate 90;
 }
@@ -23,7 +23,7 @@ Close()
 {
 	stop-spin fan around y-axis decelerate 180;
 	wait-for-turn fan around y-axis;
-	move fan to y-axis [0.000000] speed [10.000000];
+	move fan to y-axis [0.0] speed [10.0];
 	set ARMORED to 1;
 }
 

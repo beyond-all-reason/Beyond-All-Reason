@@ -19,9 +19,9 @@ static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, ma
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armsptk_anim_walk.blend 
 	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
-			move base to y-axis [-0.333333] speed [10.000000] / animSpeed; //delta=-0.33 
+			move base to y-axis [-0.333333] speed [10.0] / animSpeed; //delta=-0.33 
 			turn base to z-axis <-0.666667> speed <19.999999> / animSpeed; //delta=0.67 
-			turn base to y-axis <-1.000000> speed <30.000000> / animSpeed; //delta=-1.00 
+			turn base to y-axis <-1.0> speed <30.0> / animSpeed; //delta=-1.00 
 			turn leg1a to x-axis <-0.497652> speed <14.929556> / animSpeed; //delta=0.50 
 			turn leg1a to z-axis <-0.423916> speed <12.717471> / animSpeed; //delta=0.42 
 			turn leg1a to y-axis <-70.310159> speed <609.304749> / animSpeed; //delta=-20.31 
@@ -52,11 +52,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 	while(isMoving) {
 		if (isMoving) { //Frame:9
 			move base to y-axis [-0.666667] speed [9.999999] / animSpeed; //delta=-0.33 
-			turn base to x-axis <1.500000> speed <45.000001> / animSpeed; //delta=-1.50 
+			turn base to x-axis <1.500000> speed <45.0> / animSpeed; //delta=-1.50 
 			turn base to z-axis <-2.333333> speed <49.999999> / animSpeed; //delta=1.67 
-			turn base to y-axis <-2.000000> speed <30.000006> / animSpeed; //delta=-1.00 
-			turn leg1a to x-axis <0.000000> speed <14.929565> / animSpeed; //delta=-0.50 
-			turn leg1a to z-axis <-0.000000> speed <12.717468> / animSpeed; //delta=-0.42 
+			turn base to y-axis <-2.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn leg1a to x-axis <0.0> speed <14.929565> / animSpeed; //delta=-0.50 
+			turn leg1a to z-axis <-0.0> speed <12.717468> / animSpeed; //delta=-0.42 
 			turn leg1a to y-axis <-68.248083> speed <61.862253> / animSpeed; //delta=2.06 
 			turn leg1b to x-axis <-0.056438> speed <15.722873> / animSpeed; //delta=0.52 
 			turn leg1b to z-axis <45.940214> speed <1808.670890> / animSpeed; //delta=-60.29 
@@ -82,10 +82,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:13
-			move base to y-axis [-1.000000] speed [10.000001] / animSpeed; //delta=-0.33 
-			turn base to x-axis <3.000000> speed <45.000001> / animSpeed; //delta=-1.50 
-			turn base to z-axis <-4.000000> speed <50.000001> / animSpeed; //delta=1.67 
-			turn base to y-axis <-3.000000> speed <29.999997> / animSpeed; //delta=-1.00 
+			move base to y-axis [-1.0] speed [10.000001] / animSpeed; //delta=-0.33 
+			turn base to x-axis <3.0> speed <45.0> / animSpeed; //delta=-1.50 
+			turn base to z-axis <-4.0> speed <50.0> / animSpeed; //delta=1.67 
+			turn base to y-axis <-3.0> speed <29.999997> / animSpeed; //delta=-1.00 
 			turn leg1a to y-axis <-62.638879> speed <168.276122> / animSpeed; //delta=5.61 
 			turn leg1b to x-axis <1.330461> speed <41.606987> / animSpeed; //delta=-1.39 
 			turn leg1b to z-axis <16.050149> speed <896.701966> / animSpeed; //delta=29.89 
@@ -111,10 +111,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:17
-			move base to y-axis [-0.500000] speed [15.000000] / animSpeed; //delta=0.50 
-			turn base to x-axis <1.500000> speed <45.000001> / animSpeed; //delta=1.50 
-			turn base to z-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn base to y-axis <-1.500000> speed <45.000001> / animSpeed; //delta=1.50 
+			move base to y-axis [-0.500000] speed [15.0] / animSpeed; //delta=0.50 
+			turn base to x-axis <1.500000> speed <45.0> / animSpeed; //delta=1.50 
+			turn base to z-axis <-2.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn base to y-axis <-1.500000> speed <45.0> / animSpeed; //delta=1.50 
 			turn leg1a to y-axis <-58.180405> speed <133.754228> / animSpeed; //delta=4.46 
 			turn leg1b to x-axis <0.568837> speed <22.848737> / animSpeed; //delta=0.76 
 			turn leg1b to z-axis <-7.481733> speed <705.956451> / animSpeed; //delta=23.53 
@@ -141,12 +141,12 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:21
-			move base to y-axis [0.000000] speed [15.000000] / animSpeed; //delta=0.50 
-			turn base to x-axis <-0.000000> speed <45.000001> / animSpeed; //delta=1.50 
-			turn base to z-axis <-0.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn base to y-axis <0.000000> speed <45.000001> / animSpeed; //delta=1.50 
+			move base to y-axis [0.0] speed [15.0] / animSpeed; //delta=0.50 
+			turn base to x-axis <-0.0> speed <45.0> / animSpeed; //delta=1.50 
+			turn base to z-axis <-0.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn base to y-axis <0.0> speed <45.0> / animSpeed; //delta=1.50 
 			turn leg1a to y-axis <-60.316397> speed <64.079742> / animSpeed; //delta=-2.14 
-			turn leg1b to x-axis <-0.000000> speed <17.065099> / animSpeed; //delta=0.57 
+			turn leg1b to x-axis <-0.0> speed <17.065099> / animSpeed; //delta=0.57 
 			turn leg1b to z-axis <-14.458944> speed <209.316321> / animSpeed; //delta=6.98 
 			turn leg1b to y-axis <1.407502> speed <133.642824> / animSpeed; //delta=4.45 
 			turn leg1c to z-axis <22.361993> speed <377.473521> / animSpeed; //delta=-12.58 
@@ -168,14 +168,14 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg6b to z-axis <14.348814> speed <586.945340> / animSpeed; //delta=19.56 
 			turn leg6b to y-axis <-1.060665> speed <3.133379> / animSpeed; //delta=0.10 
 			turn leg6c to z-axis <9.201177> speed <945.773673> / animSpeed; //delta=-31.53 
-			turn turret to x-axis <-0.000000> speed <149.999983> / animSpeed; //delta=5.00 
+			turn turret to x-axis <-0.0> speed <149.999983> / animSpeed; //delta=5.00 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:25
-			move base to y-axis [-0.500000] speed [15.000000] / animSpeed; //delta=-0.50 
-			turn base to x-axis <1.500000> speed <45.000001> / animSpeed; //delta=-1.50 
-			turn base to z-axis <2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn base to y-axis <1.500000> speed <45.000001> / animSpeed; //delta=1.50 
+			move base to y-axis [-0.500000] speed [15.0] / animSpeed; //delta=-0.50 
+			turn base to x-axis <1.500000> speed <45.0> / animSpeed; //delta=-1.50 
+			turn base to z-axis <2.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn base to y-axis <1.500000> speed <45.0> / animSpeed; //delta=1.50 
 			turn leg1a to y-axis <-52.637748> speed <230.359468> / animSpeed; //delta=7.68 
 			turn leg1b to x-axis <5.243050> speed <157.291487> / animSpeed; //delta=-5.24 
 			turn leg1b to z-axis <-24.969587> speed <315.319303> / animSpeed; //delta=10.51 
@@ -193,8 +193,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg5a to y-axis <-1.833574> speed <446.686662> / animSpeed; //delta=-14.89 
 			turn leg5b to z-axis <-16.725815> speed <11.167001> / animSpeed; //delta=-0.37 
 			turn leg5c to z-axis <24.327416> speed <9.042897> / animSpeed; //delta=-0.30 
-			turn leg6a to x-axis <-0.000000> speed <14.929552> / animSpeed; //delta=-0.50 
-			turn leg6a to z-axis <0.000000> speed <12.717464> / animSpeed; //delta=0.42 
+			turn leg6a to x-axis <-0.0> speed <14.929552> / animSpeed; //delta=-0.50 
+			turn leg6a to z-axis <0.0> speed <12.717464> / animSpeed; //delta=0.42 
 			turn leg6a to y-axis <68.248083> speed <61.862253> / animSpeed; //delta=-2.06 
 			turn leg6b to x-axis <-0.056438> speed <15.722870> / animSpeed; //delta=0.52 
 			turn leg6b to z-axis <-45.940211> speed <1808.670736> / animSpeed; //delta=60.29 
@@ -203,10 +203,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:29
-			move base to y-axis [-1.000000] speed [15.000000] / animSpeed; //delta=-0.50 
-			turn base to x-axis <3.000000> speed <45.000001> / animSpeed; //delta=-1.50 
-			turn base to z-axis <4.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn base to y-axis <3.000000> speed <45.000001> / animSpeed; //delta=1.50 
+			move base to y-axis [-1.0] speed [15.0] / animSpeed; //delta=-0.50 
+			turn base to x-axis <3.0> speed <45.0> / animSpeed; //delta=-1.50 
+			turn base to z-axis <4.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn base to y-axis <3.0> speed <45.0> / animSpeed; //delta=1.50 
 			turn leg1a to y-axis <-28.377959> speed <727.793659> / animSpeed; //delta=24.26 
 			turn leg1b to x-axis <0.206362> speed <151.100630> / animSpeed; //delta=5.04 
 			turn leg1b to z-axis <-39.588640> speed <438.571603> / animSpeed; //delta=14.62 
@@ -233,9 +233,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 		if (isMoving) { //Frame:33
 			move base to y-axis [-0.666667] speed [9.999999] / animSpeed; //delta=0.33 
-			turn base to x-axis <1.500000> speed <45.000001> / animSpeed; //delta=1.50 
+			turn base to x-axis <1.500000> speed <45.0> / animSpeed; //delta=1.50 
 			turn base to z-axis <1.666667> speed <69.999998> / animSpeed; //delta=2.33 
-			turn base to y-axis <1.000000> speed <60.000000> / animSpeed; //delta=-2.00 
+			turn base to y-axis <1.0> speed <60.0> / animSpeed; //delta=-2.00 
 			turn leg1a to x-axis <-0.248826> speed <7.464766> / animSpeed; //delta=0.25 
 			turn leg1a to z-axis <-0.211958> speed <6.358730> / animSpeed; //delta=0.21 
 			turn leg1a to y-axis <-49.344063> speed <628.983122> / animSpeed; //delta=-20.97 
@@ -262,10 +262,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:37
-			move base to y-axis [-0.333333] speed [10.000000] / animSpeed; //delta=0.33 
-			turn base to x-axis <-0.000000> speed <45.000001> / animSpeed; //delta=1.50 
-			turn base to z-axis <-0.666667> speed <70.000000> / animSpeed; //delta=2.33 
-			turn base to y-axis <-1.000000> speed <60.000003> / animSpeed; //delta=-2.00 
+			move base to y-axis [-0.333333] speed [10.0] / animSpeed; //delta=0.33 
+			turn base to x-axis <-0.0> speed <45.0> / animSpeed; //delta=1.50 
+			turn base to z-axis <-0.666667> speed <70.0> / animSpeed; //delta=2.33 
+			turn base to y-axis <-1.0> speed <60.0> / animSpeed; //delta=-2.00 
 			turn leg1a to x-axis <-0.497652> speed <7.464782> / animSpeed; //delta=0.25 
 			turn leg1a to z-axis <-0.423916> speed <6.358741> / animSpeed; //delta=0.21 
 			turn leg1a to y-axis <-70.310159> speed <628.982866> / animSpeed; //delta=-20.97 
@@ -285,52 +285,52 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg5b to z-axis <15.328698> speed <1175.054338> / animSpeed; //delta=-39.17 
 			turn leg5c to z-axis <3.021825> speed <916.146720> / animSpeed; //delta=30.54 
 			turn leg6a to y-axis <60.316397> speed <64.079742> / animSpeed; //delta=2.14 
-			turn leg6b to x-axis <0.000000> speed <17.065095> / animSpeed; //delta=0.57 
+			turn leg6b to x-axis <0.0> speed <17.065095> / animSpeed; //delta=0.57 
 			turn leg6b to z-axis <14.458945> speed <209.316372> / animSpeed; //delta=-6.98 
 			turn leg6b to y-axis <-1.407501> speed <133.642875> / animSpeed; //delta=-4.45 
 			turn leg6c to z-axis <-22.361993> speed <377.473572> / animSpeed; //delta=12.58 
-			turn turret to x-axis <0.000000> speed <149.999970> / animSpeed; //delta=5.00 
+			turn turret to x-axis <0.0> speed <149.999970> / animSpeed; //delta=5.00 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
 // Call this from StopMoving()!
 StopWalking() {
-	move base to y-axis [0.000000] speed [3.750000];
-	turn base to x-axis <0.000000> speed <11.250000>;
-	turn base to y-axis <0.000000> speed <15.000001>;
-	turn base to z-axis <0.000000> speed <17.500000>;
-	turn leg1a to x-axis <0.000000> speed <3.732391>;
-	turn leg1a to y-axis <-50.000000> speed <181.948415>;
-	turn leg1a to z-axis <0.000000> speed <3.179368>;
-	turn leg1b to x-axis <0.000000> speed <39.322872>;
+	move base to y-axis [0.0] speed [3.750000];
+	turn base to x-axis <0.0> speed <11.250000>;
+	turn base to y-axis <0.0> speed <15.0>;
+	turn base to z-axis <0.0> speed <17.500000>;
+	turn leg1a to x-axis <0.0> speed <3.732391>;
+	turn leg1a to y-axis <-50.0> speed <181.948415>;
+	turn leg1a to z-axis <0.0> speed <3.179368>;
+	turn leg1b to x-axis <0.0> speed <39.322872>;
 	turn leg1b to y-axis <0.874715> speed <33.410706>;
-	turn leg1b to z-axis <0.000000> speed <452.167722>;
-	turn leg1c to z-axis <0.000000> speed <471.766989>;
-	turn leg2a to y-axis <0.000000> speed <188.882083>;
+	turn leg1b to z-axis <0.0> speed <452.167722>;
+	turn leg1c to z-axis <0.0> speed <471.766989>;
+	turn leg2a to y-axis <0.0> speed <188.882083>;
 	turn leg2b to x-axis <1.613454> speed <-1.344545>;
 	turn leg2b to y-axis <3.032982> speed <-2.527485>;
-	turn leg2b to z-axis <0.000000> speed <293.763597>;
-	turn leg2c to z-axis <0.000000> speed <229.036694>;
-	turn leg3a to y-axis <50.000000> speed <101.531966>;
-	turn leg3b to z-axis <0.000000> speed <419.641265>;
-	turn leg3c to z-axis <0.000000> speed <625.382161>;
-	turn leg4a to y-axis <-50.000000> speed <161.281218>;
-	turn leg4b to z-axis <0.000000> speed <364.780402>;
-	turn leg4c to z-axis <0.000000> speed <422.385336>;
-	turn leg5a to y-axis <0.000000> speed <188.882096>;
-	turn leg5b to x-axis <0.000000> speed <12.100902>;
-	turn leg5b to y-axis <0.000000> speed <22.747365>;
-	turn leg5b to z-axis <0.000000> speed <293.763585>;
-	turn leg5c to z-axis <0.000000> speed <229.036680>;
-	turn leg6a to x-axis <0.000000> speed <3.732388>;
-	turn leg6a to y-axis <50.000000> speed <181.948440>;
-	turn leg6a to z-axis <0.000000> speed <3.179366>;
-	turn leg6b to x-axis <0.000000> speed <39.322868>;
-	turn leg6b to y-axis <0.000000> speed <33.410719>;
-	turn leg6b to z-axis <0.000000> speed <452.167684>;
-	turn leg6c to z-axis <0.000000> speed <471.767008>;
-	turn turret to x-axis <0.000000> speed <37.499996>;
+	turn leg2b to z-axis <0.0> speed <293.763597>;
+	turn leg2c to z-axis <0.0> speed <229.036694>;
+	turn leg3a to y-axis <50.0> speed <101.531966>;
+	turn leg3b to z-axis <0.0> speed <419.641265>;
+	turn leg3c to z-axis <0.0> speed <625.382161>;
+	turn leg4a to y-axis <-50.0> speed <161.281218>;
+	turn leg4b to z-axis <0.0> speed <364.780402>;
+	turn leg4c to z-axis <0.0> speed <422.385336>;
+	turn leg5a to y-axis <0.0> speed <188.882096>;
+	turn leg5b to x-axis <0.0> speed <12.100902>;
+	turn leg5b to y-axis <0.0> speed <22.747365>;
+	turn leg5b to z-axis <0.0> speed <293.763585>;
+	turn leg5c to z-axis <0.0> speed <229.036680>;
+	turn leg6a to x-axis <0.0> speed <3.732388>;
+	turn leg6a to y-axis <50.0> speed <181.948440>;
+	turn leg6a to z-axis <0.0> speed <3.179366>;
+	turn leg6b to x-axis <0.0> speed <39.322868>;
+	turn leg6b to y-axis <0.0> speed <33.410719>;
+	turn leg6b to z-axis <0.0> speed <452.167684>;
+	turn leg6c to z-axis <0.0> speed <471.767008>;
+	turn turret to x-axis <0.0> speed <37.499996>;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -480,8 +480,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <150.000000>;
-	turn turret to x-axis <0.000000> speed <150.000000>;
+	turn turret to y-axis <0.0> speed <150.0>;
+	turn turret to x-axis <0.0> speed <150.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	open=FALSE;
@@ -504,8 +504,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <150.000000>;
-	turn turret to x-axis 0 - pitch speed <150.000000>;
+	turn turret to y-axis heading speed <150.0>;
+	turn turret to x-axis 0 - pitch speed <150.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();

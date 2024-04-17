@@ -34,8 +34,8 @@ SetStunned(State)
 
 Activate()
 {
-	spin collar1 around y-axis speed <30.000000> accelerate <1>;
-	spin collar2 around y-axis speed <64.000000> accelerate <1>;
+	spin collar1 around y-axis speed <30.0> accelerate <1>;
+	spin collar2 around y-axis speed <64.0> accelerate <1>;
 	set ARMORED to 1;
 }
 

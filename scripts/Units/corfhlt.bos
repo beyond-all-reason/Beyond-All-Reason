@@ -60,7 +60,7 @@ Create()
 #define CATT1_PIECE_X turret2
 #define CATT1_PIECE_Y turret1
 
-#define CATT1_MAX_VELOCITY <9.00>
+#define CATT1_MAX_VELOCITY <9.0>
 #define CATT1_ACCELERATION <0.2>
 #define CATT1_JERK <1.0>
 #define CATT1_PRECISION <1.2>

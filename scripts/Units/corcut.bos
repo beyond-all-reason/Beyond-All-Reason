@@ -42,7 +42,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn base to x-axis <0.000000> speed <50.000000>;
+	turn base to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -75,7 +75,7 @@ Deactivate()
 
 FireWeapon1()
 {
-	turn base to x-axis <10.000000> speed <50.000000>;
+	turn base to x-axis <10.0> speed <50.0>;
 
 	start-script RestoreAfterDelay();
 

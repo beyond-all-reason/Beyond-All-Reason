@@ -107,7 +107,7 @@ Deactivate()
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	spin turret around y-axis speed <0.000000>;
+	spin turret around y-axis speed <0.0>;
 	spin jam2 around x-axis speed <0>;
 	spin jam1 around x-axis speed <0>;
 	
@@ -139,12 +139,12 @@ set ACTIVATION to desired_activation;
 HitByWeapon(anglex, anglez)
 {
 	start-script OffOnHit();
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <30.000000>;
-	turn base to x-axis <0.000000> speed <30.000000>;
+	turn base to z-axis <0.0> speed <30.0>;
+	turn base to x-axis <0.0> speed <30.0>;
 	return (0);
 }
 

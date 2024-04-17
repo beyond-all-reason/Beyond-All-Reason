@@ -54,14 +54,14 @@ Activate()
 	wait-for-turn arm1 around x-axis;
 	
 
-	move arm2 to z-axis [14] speed [14.000000];
-	move arm3 to z-axis [14] speed [14.000000];
+	move arm2 to z-axis [14] speed [14.0];
+	move arm3 to z-axis [14] speed [14.0];
 	wait-for-move arm2 along z-axis;
 
-	turn nano1 to y-axis <-60> speed <60.000000>;
-	turn nano2 to y-axis <60> speed <60.000000>;
-	turn nano3 to y-axis <-60> speed <60.000000>;
-	turn nano4 to y-axis <60> speed <60.000000>;
+	turn nano1 to y-axis <-60> speed <60.0>;
+	turn nano2 to y-axis <60> speed <60.0>;
+	turn nano3 to y-axis <-60> speed <60.0>;
+	turn nano4 to y-axis <60> speed <60.0>;
 	wait-for-turn nano1 around y-axis;
 	
 	FACTORY_OPEN_BUILD;	
@@ -76,14 +76,14 @@ Deactivate()
 	turn arm1 to x-axis <0> speed <90>;
 	wait-for-turn arm1 around x-axis;
 
-	move arm2 to z-axis [0] speed [14.000000];
-	move arm3 to z-axis [0] speed [14.000000];
+	move arm2 to z-axis [0] speed [14.0];
+	move arm3 to z-axis [0] speed [14.0];
 	wait-for-move arm2 along z-axis;
 
-	turn nano1 to y-axis <0> speed <60.000000>;
-	turn nano2 to y-axis <0> speed <60.000000>;
-	turn nano3 to y-axis <0> speed <60.000000>;
-	turn nano4 to y-axis <0> speed <60.000000>;
+	turn nano1 to y-axis <0> speed <60.0>;
+	turn nano2 to y-axis <0> speed <60.0>;
+	turn nano3 to y-axis <0> speed <60.0>;
+	turn nano4 to y-axis <0> speed <60.0>;
 	wait-for-turn nano1 around y-axis;
 
 	move door1 to x-axis [0] speed [33];

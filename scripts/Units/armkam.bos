@@ -48,8 +48,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn lturret to x-axis <0.000000> speed <50.000000>;
-	turn rturret to x-axis <0.000000> speed <50.000000>;
+	turn lturret to x-axis <0.0> speed <50.0>;
+	turn rturret to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -76,7 +76,7 @@ MoveRate1()
 	start-script RestoreAfterDelay();
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	//start-script ProcessFlames();
 }
 
@@ -88,11 +88,11 @@ MoveRate2()
 	turn engines to x-axis <90> speed <90>;
 	//start-script ProcessFlames();
 	sleep 1000;
-	turn base to z-axis <240.000000> speed <120.000000>;
+	turn base to z-axis <240.0> speed <120.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <120.000000> speed <180.000000>;
+	turn base to z-axis <120.0> speed <180.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	
 }
 
@@ -102,7 +102,7 @@ MoveRate3()
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	//start-script ProcessFlames();
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	
 	turn engines to x-axis <90> speed <90>;
 }

@@ -69,19 +69,19 @@ WheelControl()
 		{
 		//	get PRINT((<6.8> * wheelSpeed ) * turnClock)
 			//left wheels
-			spin flwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnClock accelerate <5.000000> * currentSpeed;
-			spin blwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnClock accelerate <5.000000> * currentSpeed;
+			spin flwheel around x-axis speed (<1.0> * wheelSpeed ) * turnClock accelerate <5.0> * currentSpeed;
+			spin blwheel around x-axis speed (<1.0> * wheelSpeed ) * turnClock accelerate <5.0> * currentSpeed;
 		
 			//right wheels
-			spin frwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnCounter accelerate <5.000000> * currentSpeed;
-			spin brwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnCounter accelerate <5.000000> * currentSpeed;
+			spin frwheel around x-axis speed (<1.0> * wheelSpeed ) * turnCounter accelerate <5.0> * currentSpeed;
+			spin brwheel around x-axis speed (<1.0> * wheelSpeed ) * turnCounter accelerate <5.0> * currentSpeed;
 		}
 		if ( !get ACTIVATION )
 		{
-			spin flwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin blwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin frwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin brwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+			spin flwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin blwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin frwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin brwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
 		}
 		sleep 67;
 	}
@@ -228,12 +228,12 @@ HitByWeapon(anglex, anglez)
 {
 
 	start-script OffOnHit();
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <30.000000>;
-	turn base to x-axis <0.000000> speed <30.000000>;
+	turn base to z-axis <0.0> speed <30.0>;
+	turn base to x-axis <0.0> speed <30.0>;
 	return (0);
 }
 

@@ -52,10 +52,10 @@ Create()
 
 Open()
 {
-	turn dish1 to x-axis <-90.016484> speed <60.000000>;
-	turn dish3 to x-axis <90.016484> speed <60.000000>;
-	turn dish2 to z-axis <-90.016484> speed <60.000000>;
-	turn dish4 to z-axis <90.016484> speed <60.000000>;
+	turn dish1 to x-axis <-90.016484> speed <60.0>;
+	turn dish3 to x-axis <90.016484> speed <60.0>;
+	turn dish2 to z-axis <-90.016484> speed <60.0>;
+	turn dish4 to z-axis <90.016484> speed <60.0>;
 	wait-for-turn dish1 around x-axis;
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;
@@ -69,10 +69,10 @@ Open()
 Close()
 {
 	set ACTIVATION to 0;
-	turn dish1 to x-axis <0.000000> speed <120.000000>;
-	turn dish3 to x-axis <0.000000> speed <120.000000>;
-	turn dish2 to z-axis <0.000000> speed <120.000000>;
-	turn dish4 to z-axis <0.000000> speed <120.000000>;
+	turn dish1 to x-axis <0.0> speed <120.0>;
+	turn dish3 to x-axis <0.0> speed <120.0>;
+	turn dish2 to z-axis <0.0> speed <120.0>;
+	turn dish4 to z-axis <0.0> speed <120.0>;
 	wait-for-turn dish1 around x-axis;
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;

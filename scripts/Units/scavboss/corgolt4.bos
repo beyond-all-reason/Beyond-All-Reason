@@ -34,7 +34,7 @@ startLaughing (){
 		
 		//animate flag in
 		show flag;
-		move flag to y-axis [44] speed [200.000000];//start is 14 abs, 0 rel...
+		move flag to y-axis [44] speed [200.0];//start is 14 abs, 0 rel...
 		sleep 1000;
 		willlaughing=0;
 		islaughing=1;
@@ -47,7 +47,7 @@ stopLaughing (){
 		waslaughing = 1;
 		
 		//animate flag out
-		move flag to y-axis [0] speed [200.000000];//start is 14 abs, 0 rel...
+		move flag to y-axis [0] speed [200.0];//start is 14 abs, 0 rel...
 		sleep 1000;		
 		hide flag;
 		
@@ -113,8 +113,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn sleeve to x-axis <0.000000> speed <15.000000>;	
+	turn turret to y-axis <0.0> speed <35.005495>;
+	turn sleeve to x-axis <0.0> speed <15.0>;	
 	
 }
 
@@ -139,7 +139,7 @@ RestoreAfterDelay_lspon()
 	//large negative values to let wait-for-turn happen on first target
 	last_lball_heading = -1000000;
 	turn lball to y-axis <0> speed <90>;
-	turn lbarrel to x-axis <0.000000> speed <15>;
+	turn lbarrel to x-axis <0.0> speed <15>;
 }
 
 RestoreAfterDelay_rspon()
@@ -149,7 +149,7 @@ RestoreAfterDelay_rspon()
 	//large negative values to let wait-for-turn happen on first target
 	last_rball_heading = -1000000;
 	turn rball to y-axis <0> speed <90>;
-	turn rbarrel to x-axis <0.000000> speed <15>;
+	turn rbarrel to x-axis <0.0> speed <15>;
 }
 
 
@@ -159,8 +159,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <40.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <40.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <45.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
@@ -174,10 +174,10 @@ FireWeapon1()
 
 
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.000000];
+	move barrel to z-axis [-2.400000] speed [500.0];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [3.000000];//*/
+	move barrel to z-axis [0.0] speed [3.0];//*/
 
 }
 
@@ -224,7 +224,7 @@ AimWeapon2(heading, pitch)
 	//return (1);	
 	//get PRINT(get GAME_FRAME, heading, pitch);
 
-	turn lbarrel to x-axis <0.000000> - pitch speed <80.000000>;
+	turn lbarrel to x-axis <0.0> - pitch speed <80.0>;
 	wait-for-turn lbarrel around x-axis;
 	//get PRINT(321);
 	start-script RestoreAfterDelay_lspon();
@@ -236,7 +236,7 @@ FireWeapon2()
 	lastfired = 2;
 	move lbarrel to z-axis [-1] speed [62.500000];
 	wait-for-move lbarrel along z-axis;
-	move lbarrel to z-axis [0.000000] speed [4.000000];
+	move lbarrel to z-axis [0.0] speed [4.0];
 }
 
 AimFromWeapon2(pieceIndex)
@@ -281,7 +281,7 @@ AimWeapon3(heading, pitch)
 
 
 	//get PRINT(get GAME_FRAME, heading, pitch);
-	turn rbarrel to x-axis <0.000000> - pitch speed <80.000000>;
+	turn rbarrel to x-axis <0.0> - pitch speed <80.0>;
 	wait-for-turn rbarrel around x-axis;
 
 	
@@ -297,7 +297,7 @@ FireWeapon3()
 	lastfired=3;
 	move rbarrel to z-axis [-1] speed [62.500000];
 	wait-for-move rbarrel along z-axis;
-	move rbarrel to z-axis [0.000000] speed [4.000000];
+	move rbarrel to z-axis [0.0] speed [4.0];
 }
 
 AimFromWeapon3(pieceIndex)

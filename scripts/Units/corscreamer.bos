@@ -16,7 +16,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn barrel to x-axis <-13> speed <25.00000>;
+    turn barrel to x-axis <-13> speed <25.0>;
     spin turret around y-axis speed <20.0>;
 }
 SetStunned(State)
@@ -50,7 +50,7 @@ Create()
 #define CATT1_PIECE_X barrel
 #define CATT1_PIECE_Y turret
 
-#define CATT1_MAX_VELOCITY <6.00>
+#define CATT1_MAX_VELOCITY <6.0>
 #define CATT1_ACCELERATION <0.5>
 #define CATT1_JERK <1.5>
 #define CATT1_PRECISION <1.2>

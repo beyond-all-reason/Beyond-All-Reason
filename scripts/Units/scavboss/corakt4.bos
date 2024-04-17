@@ -38,7 +38,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn luparm to z-axis ((<-4.025448> *animAmplitude)/100) speed ((<134.371865> *animAmplitude)/100) / animSpeed; //delta=-4.48
 			turn luparm to y-axis ((<-1.012513> *animAmplitude)/100) speed ((<204.477528> *animAmplitude)/100) / animSpeed; //delta=-6.82
 			turn pelvis to x-axis ((<-2.390000> *animAmplitude)/100) speed ((<71.699998> *animAmplitude)/100) / animSpeed; //delta=2.39
-			turn pelvis to y-axis ((<3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animSpeed; //delta=3.00
+			turn pelvis to y-axis ((<3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animSpeed; //delta=3.00
 			turn rfoot to x-axis ((<39.611634> *animAmplitude)/100) speed ((<1130.819000> *animAmplitude)/100) / animSpeed; //delta=-37.69
 			turn rfoot to y-axis ((<-9.393908> *animAmplitude)/100) speed ((<282.235463> *animAmplitude)/100) / animSpeed; //delta=9.41
 			turn rknee to x-axis ((<5.383341> *animAmplitude)/100) speed ((<241.075747> *animAmplitude)/100) / animSpeed; //delta=-8.04
@@ -75,8 +75,8 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn luparm to z-axis ((<-9.569086> *animAmplitude)/100) speed ((<166.309155> *animAmplitude)/100) / animSpeed; //delta=5.54
 			turn luparm to y-axis ((<-6.279474> *animAmplitude)/100) speed ((<158.008808> *animAmplitude)/100) / animSpeed; //delta=-5.27
 			move pelvis to y-axis (((([-0.520000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([15.599999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.52
-			turn pelvis to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<71.699998> *animAmplitude)/100) / animSpeed; //delta=-2.39
-			turn pelvis to y-axis ((<5.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=2.00
+			turn pelvis to x-axis ((<-0.0> *animAmplitude)/100) speed ((<71.699998> *animAmplitude)/100) / animSpeed; //delta=-2.39
+			turn pelvis to y-axis ((<5.0> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animSpeed; //delta=2.00
 			turn rfoot to x-axis ((<24.484406> *animAmplitude)/100) speed ((<453.816842> *animAmplitude)/100) / animSpeed; //delta=15.13
 			turn rfoot to y-axis ((<-0.003345> *animAmplitude)/100) speed ((<281.716910> *animAmplitude)/100) / animSpeed; //delta=9.39
 			turn rknee to x-axis ((<-25.170605> *animAmplitude)/100) speed ((<916.618362> *animAmplitude)/100) / animSpeed; //delta=30.55
@@ -285,7 +285,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn lfoot to x-axis ((<0.464192> *animAmplitude)/100) speed ((<1107.714192> *animAmplitude)/100) / animSpeed; //delta=36.92
 			turn lfoot to z-axis ((<-9.697005> *animAmplitude)/100) speed ((<22.041012> *animAmplitude)/100) / animSpeed; //delta=0.73
 			turn lfoot to y-axis ((<5.833231> *animAmplitude)/100) speed ((<210.790579> *animAmplitude)/100) / animSpeed; //delta=-7.03
-			turn lknee to x-axis ((<-2.000329> *animAmplitude)/100) speed ((<223.240686> *animAmplitude)/100) / animSpeed; //delta=-7.44
+			turn lknee to x-axis ((<-2.0> *animAmplitude)/100) speed ((<223.240686> *animAmplitude)/100) / animSpeed; //delta=-7.44
 			turn lknee to z-axis ((<2.411943> *animAmplitude)/100) speed ((<34.224105> *animAmplitude)/100) / animSpeed; //delta=-1.14
 			turn lknee to y-axis ((<-0.749186> *animAmplitude)/100) speed ((<19.753780> *animAmplitude)/100) / animSpeed; //delta=0.66
 			turn lleg to x-axis ((<1.204694> *animAmplitude)/100) speed ((<345.865479> *animAmplitude)/100) / animSpeed; //delta=-11.53
@@ -336,7 +336,7 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 			turn luparm to z-axis ((<-4.025448> *animAmplitude)/100) speed ((<112.151159> *animAmplitude)/100) / animSpeed; //delta=3.74
 			turn luparm to y-axis ((<-1.012513> *animAmplitude)/100) speed ((<51.791888> *animAmplitude)/100) / animSpeed; //delta=-1.73
 			turn pelvis to x-axis ((<-2.390000> *animAmplitude)/100) speed ((<163.199994> *animAmplitude)/100) / animSpeed; //delta=5.44
-			turn pelvis to y-axis ((<3.000000> *animAmplitude)/100) speed ((<91.800016> *animAmplitude)/100) / animSpeed; //delta=3.06
+			turn pelvis to y-axis ((<3.0> *animAmplitude)/100) speed ((<91.800016> *animAmplitude)/100) / animSpeed; //delta=3.06
 			turn rfoot to x-axis ((<39.693501> *animAmplitude)/100) speed ((<1051.345854> *animAmplitude)/100) / animSpeed; //delta=-35.04
 			turn rknee to x-axis ((<5.049624> *animAmplitude)/100) speed ((<532.825140> *animAmplitude)/100) / animSpeed; //delta=17.76
 			turn rknee to z-axis ((<0.401872> *animAmplitude)/100) speed ((<47.647319> *animAmplitude)/100) / animSpeed; //delta=-1.59
@@ -359,10 +359,10 @@ Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move pelvis to y-axis ([0.000000]*MOVESCALE)/100 speed (([144.300006]*MOVESCALE)/100) / animSpeed;
+	move pelvis to y-axis ([0.0]*MOVESCALE)/100 speed (([144.300006]*MOVESCALE)/100) / animSpeed;
 	turn lfoot to x-axis <2.221282> speed <6369.719139> / animSpeed;
 	turn lfoot to y-axis <18.400562> speed <3639.977197> / animSpeed;
-	turn lfoot to z-axis <0.000000> speed <1344.232796> / animSpeed;
+	turn lfoot to z-axis <0.0> speed <1344.232796> / animSpeed;
 	turn lknee to x-axis <-1.068538> speed <4708.420061> / animSpeed;
 	turn lknee to y-axis <-0.337143> speed <637.335568> / animSpeed;
 	turn lknee to z-axis <-0.621646> speed <383.098406> / animSpeed;
@@ -376,11 +376,11 @@ StopWalking() {
 	turn luparm to x-axis <-3.446116> speed <3989.851332> / animSpeed;
 	turn luparm to y-axis <5.803404> speed <1022.387639> / animSpeed;
 	turn luparm to z-axis <-8.504510> speed <831.545777> / animSpeed;
-	turn pelvis to x-axis <0.000000> speed <1010.999991> / animSpeed;
-	turn pelvis to y-axis <0.000000> speed <459.000078> / animSpeed;
+	turn pelvis to x-axis <0.0> speed <1010.999991> / animSpeed;
+	turn pelvis to y-axis <0.0> speed <459.0> / animSpeed;
 	turn rfoot to x-axis <1.917668> speed <6434.170162> / animSpeed;
 	turn rfoot to y-axis <-18.801757> speed <1921.457948> / animSpeed;
-	turn rfoot to z-axis <0.000000> speed <1340.018443> / animSpeed;
+	turn rfoot to z-axis <0.0> speed <1340.018443> / animSpeed;
 	turn rknee to x-axis <-2.652517> speed <4583.091810> / animSpeed;
 	turn rknee to y-axis <0.906795> speed <534.573237> / animSpeed;
 	turn rknee to z-axis <1.368760> speed <450.136387> / animSpeed;
@@ -394,7 +394,7 @@ StopWalking() {
 	turn ruparm to x-axis <-3.551286> speed <3315.692195> / animSpeed;
 	turn ruparm to y-axis <-5.989326> speed <957.773436> / animSpeed;
 	turn ruparm to z-axis <9.824261> speed <1866.475549> / animSpeed;
-	turn torso to y-axis <0.000000> speed <926.125218> / animSpeed;
+	turn torso to y-axis <0.0> speed <926.125218> / animSpeed;
 }// REMEMBER TO animspeed = 2 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -645,7 +645,7 @@ Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animati
 			turn rloarm to x-axis <-3.143605> speed <6.559193> ; //delta=0.66 
 			turn rthigh to x-axis <11.260678> speed <3.942505> ; //delta=0.39 
 			turn rthigh to z-axis <3.936033> speed <6.435447> ; //delta=0.64 
-			turn rthigh to y-axis <-5.000074> speed <4.596167> ; //delta=0.46 
+			turn rthigh to y-axis <-5.0> speed <4.596167> ; //delta=0.46 
 			turn ruparm to x-axis <1.606455> speed <22.719155> ; //delta=-2.27 
 			turn ruparm to z-axis <4.974051> speed <50.126788> ; //delta=5.01 
 			turn ruparm to y-axis <-4.252391> speed <33.535119> ; //delta=3.35 
@@ -930,7 +930,7 @@ StopAnimation() {
 	turn luparm to y-axis <7.744538> speed <36.527856>;
 	turn luparm to z-axis <-9.312935> speed <48.352203>;
 	turn pelvis to x-axis <6.462691> speed <48.437348>;
-	turn pelvis to y-axis <0.000000> speed <81.596118>;
+	turn pelvis to y-axis <0.0> speed <81.596118>;
 	turn pelvis to z-axis <-0.315834> speed <21.122110>;
 	turn rfoot to x-axis <2.580618> speed <35.199973>;
 	turn rfoot to y-axis <-18.801545> speed <-6.635840>;
@@ -942,7 +942,7 @@ StopAnimation() {
 	turn rleg to z-axis <0.666237> speed <15.154581>;
 	turn rloarm to x-axis <4.599683> speed <24.849675>;
 	turn rthigh to x-axis <-6.288376> speed <50.103724>;
-	turn rthigh to y-axis <0.000000> speed <24.089266>;
+	turn rthigh to y-axis <0.0> speed <24.089266>;
 	turn rthigh to z-axis <4.331624> speed <22.766876>;
 	turn ruparm to x-axis <0.228506> speed <48.910319>;
 	turn ruparm to y-axis <-7.589995> speed <33.535119>;

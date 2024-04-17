@@ -89,8 +89,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn base to y-axis <0.000000> speed <250.000000>;
-	turn base to x-axis <0.000000> speed <250.000000>;
+	turn base to y-axis <0.0> speed <250.0>;
+	turn base to x-axis <0.0> speed <250.0>;
 	turn turretf to z-axis <0> speed <250>;
 	turn sleevef to x-axis <0> speed <250>;
 
@@ -124,34 +124,34 @@ StopMoving()
 
 MoveRate0()
 {
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
 }
 
 MoveRate1()
 {
-	turn thrustrr to x-axis <8.000000> speed <60.000000>;
-	turn thrustrl to x-axis <8.000000> speed <60.000000>;
-	turn thrustfr to x-axis <8.000000> speed <60.000000>;
-	turn thrustfl to x-axis <8.000000> speed <60.000000>;
+	turn thrustrr to x-axis <8.0> speed <60.0>;
+	turn thrustrl to x-axis <8.0> speed <60.0>;
+	turn thrustfr to x-axis <8.0> speed <60.0>;
+	turn thrustfl to x-axis <8.0> speed <60.0>;
 }
 
 MoveRate2()
 {
-	turn thrustrr to x-axis <18.000000> speed <45.000000>;
-	turn thrustrl to x-axis <18.000000> speed <45.000000>;
-	turn thrustfr to x-axis <18.000000> speed <45.000000>;
-	turn thrustfl to x-axis <18.000000> speed <45.000000>;
+	turn thrustrr to x-axis <18.0> speed <45.0>;
+	turn thrustrl to x-axis <18.0> speed <45.0>;
+	turn thrustfr to x-axis <18.0> speed <45.0>;
+	turn thrustfl to x-axis <18.0> speed <45.0>;
 }
 
 MoveRate3()
 {
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
+	turn thrustrr to x-axis <0.0> speed <70.0>;
+	turn thrustrl to x-axis <0.0> speed <70.0>;
+	turn thrustfr to x-axis <0.0> speed <70.0>;
+	turn thrustfl to x-axis <0.0> speed <70.0>;
 }
 
 AimWeapon1(heading, pitch)
@@ -166,11 +166,11 @@ AimWeapon1(heading, pitch)
 	p = get KTAN(pitch);
 	h = get KTAN(heading);
 	a = get ATAN(h, p);
-	turn turretf to z-axis a speed <200.000000>;
+	turn turretf to z-axis a speed <200.0>;
 
 	a = get HYPOT(h, p);
 	a = get ATAN(a, 1000);
-	turn sleevef to x-axis <0> - a speed <200.000000>;
+	turn sleevef to x-axis <0> - a speed <200.0>;
 	wait-for-turn turretf around z-axis;
 	wait-for-turn sleevef around x-axis;
 	start-script RestoreAfterDelay();
@@ -189,8 +189,8 @@ AimWeapon2(heading, pitch)
 	if (aimto < <-90>) {
 		aimto = <-90>;
 	}
-	//turn turretl to x-axis  speed <200.000000>;
-	turn sleevel to y-axis aimto speed <200.000000>;
+	//turn turretl to x-axis  speed <200.0>;
+	turn sleevel to y-axis aimto speed <200.0>;
 	wait-for-turn sleevel around y-axis;
 	return (1);
 }
@@ -207,8 +207,8 @@ AimWeapon3(heading, pitch)
 	if (aimto < <-90>) {
 		aimto = <-90>;
 	}
-	//turn turretr to x-axis heading speed <200.000000>;
-	turn sleever to y-axis aimto speed <200.000000>;
+	//turn turretr to x-axis heading speed <200.0>;
+	turn sleever to y-axis aimto speed <200.0>;
 	wait-for-turn sleever around y-axis;
 	return (1);
 }

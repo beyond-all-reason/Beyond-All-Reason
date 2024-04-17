@@ -57,13 +57,13 @@ QueryTransport(pieceIndex)
 
 BeginTransport(targetHeight)
 {
-	move link to y-axis [0.000000] - targetHeight now;
+	move link to y-axis [0.0] - targetHeight now;
 	start-script Activate();
 }
 
 EndTransport()
 {
-	move link to y-axis [0.000000] now;
+	move link to y-axis [0.0] now;
 	start-script Deactivate();
 }
 

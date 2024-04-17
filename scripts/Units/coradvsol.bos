@@ -12,7 +12,7 @@ piece  base, fan, emit;
 Activate()
 {
     show emit;
-	spin fan around y-axis speed <-70.0000> accelerate <15.0>;
+	spin fan around y-axis speed <-70.0> accelerate <15.0>;
 }
 
 Deactivate()

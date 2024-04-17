@@ -33,7 +33,7 @@ BarrelRoll(maxSpeed, currentSpeed)
             turn BARRELROLL_PIECE to z-axis <120> speed BARRELROLL_SPEEED * 3 / 2;
             sleep (<120> * 990) / (BARRELROLL_SPEEED * 3 / 2) - 32 ;
             //wait-for-turn BARRELROLL_PIECE around z-axis;
-            turn BARRELROLL_PIECE to z-axis <0.000000> speed BARRELROLL_SPEEED;
+            turn BARRELROLL_PIECE to z-axis <0.0> speed BARRELROLL_SPEEED;
             sleep (<120> * 990) /BARRELROLL_SPEEED  - 32;
         }
     }

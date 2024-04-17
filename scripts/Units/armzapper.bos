@@ -37,9 +37,9 @@ Steering(heading, steer, currentSpeed)
 //		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
 //		wheelSpeed = currentSpeed * 40; //original speed 7
 //		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
-//		spin lfwheel around x-axis speed  (<1> * wheelSpeed);         //(<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-//		spin rfwheel around x-axis speed  (<1> * wheelSpeed);				//(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-//		spin bwheels around x-axis speed  (<0.7> * wheelSpeed);		 //(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+//		spin lfwheel around x-axis speed  (<1> * wheelSpeed);         //(<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+//		spin rfwheel around x-axis speed  (<1> * wheelSpeed);				//(<0.5.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+//		spin bwheels around x-axis speed  (<0.7> * wheelSpeed);		 //(<0.5.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
 //		sleep 50; //200
 //	}
 // }
@@ -91,8 +91,8 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	turn gun to y-axis <0.000000> speed <90.000000>;
-	turn gun to x-axis <0.000000> speed <50.000000>;
+	turn gun to y-axis <0.0> speed <90.0>;
+	turn gun to x-axis <0.0> speed <50.0>;
 	wait-for-turn gun around y-axis;
 	wpn1_lasthead = 1000000;
  }
@@ -117,8 +117,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn gun to y-axis heading speed <300.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
+	turn gun to y-axis heading speed <300.0>;
+	turn gun to x-axis <0.0> - pitch speed <300.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

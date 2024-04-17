@@ -12,7 +12,7 @@ walkscr()
 	{
 		if( isMoving )
 		{
-			turn leg1 to z-axis <0.000000> now;
+			turn leg1 to z-axis <0.0> now;
 			sleep 33;
 		}
 

@@ -33,7 +33,7 @@ Close()
 {
 	set ARMORED to 1;
 	isOpen = 0;
-	turn tube to y-axis <0.000000> speed <300.000000>;
+	turn tube to y-axis <0.0> speed <300.0>;
 	wait-for-turn tube around y-axis;
 	
 	turn door1 to x-axis <-90> speed <300>;
@@ -110,7 +110,7 @@ AimWeapon1(heading, pitch)
 		sleep 100;
 	}
 	// dont need turn
-	//turn post to y-axis heading speed <300.000000>;
+	//turn post to y-axis heading speed <300.0>;
 	//wait-for-turn post around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);

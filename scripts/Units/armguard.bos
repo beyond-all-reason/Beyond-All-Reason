@@ -40,33 +40,33 @@ restoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM2;
 	sleep 3500;
-	if(lastHeading > <-180.000000>)
+	if(lastHeading > <-180.0>)
 	{
-		turn turret to y-axis <180.000000> speed <30.000000>;
+		turn turret to y-axis <180.0> speed <30.0>;
 	}
-	if(lastHeading > <-135.000000>)
+	if(lastHeading > <-135.0>)
 	{
-		turn turret to y-axis <270.000000> speed <30.000000>;
+		turn turret to y-axis <270.0> speed <30.0>;
 	}
-	if(lastHeading > <-45.000000>)
+	if(lastHeading > <-45.0>)
 	{
-		turn turret to y-axis <0.000000> speed <30.000000>;
+		turn turret to y-axis <0.0> speed <30.0>;
 	}
-	if(lastHeading > <45.000000>)
+	if(lastHeading > <45.0>)
 	{
-		turn turret to y-axis <90.000000> speed <30.000000>;
+		turn turret to y-axis <90.0> speed <30.0>;
 	}
-	if(lastHeading > <135.000000>)
+	if(lastHeading > <135.0>)
 	{
-		turn turret to y-axis <180.000000> speed <30.000000>;
+		turn turret to y-axis <180.0> speed <30.0>;
 	}
-	turn sleeves to x-axis <0.000000> speed <45.000000>;
+	turn sleeves to x-axis <0.0> speed <45.0>;
 }
 
 aimCommon(heading, pitch)
 {
-	turn turret to y-axis heading speed <30.000000>;
-	turn sleeves to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <30.0>;
+	turn sleeves to x-axis <0.0> - pitch speed <45.0>;
 	lastHeading = heading;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
@@ -125,14 +125,14 @@ fireCommon()
 	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-6.250000] now;
 		sleep 100;
-		move barrel1 to z-axis [0.000000] speed [2.500000];
+		move barrel1 to z-axis [0.0] speed [2.500000];
 	}
 	if( nextBarrel == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-6.250000] now;
 		sleep 100;
-		move barrel2 to z-axis [0.000000] speed [2.500000];
+		move barrel2 to z-axis [0.0] speed [2.500000];
 	}
 	nextBarrel = !nextBarrel;
 }

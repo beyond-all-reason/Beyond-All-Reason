@@ -51,10 +51,10 @@ Create()
 	gun_3 = flare1;
 	gun_2 = flare1;
 	restore_delay = 3000;
-	turn turretgun2 to x-axis <-25> speed <25.000000>;
+	turn turretgun2 to x-axis <-25> speed <25.0>;
     spin turretgun1 around y-axis speed <25.0>;
-	turn missilebox1 to x-axis <-25.000000> speed <25.000000>;
-	turn missilebox2 to x-axis <-25.000000> speed <25.000000>;	
+	turn missilebox1 to x-axis <-25.0> speed <25.0>;
+	turn missilebox2 to x-axis <-25.0> speed <25.0>;	
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -73,12 +73,12 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turretgun2 to x-axis <-25.000000> speed <25.000000>;
+	turn turretgun2 to x-axis <-25.0> speed <25.0>;
     spin turretgun1 around y-axis speed <25.0>;
-	turn missilebox1 to y-axis <0.000000> speed <25.000000>;
-	turn missilebox1 to x-axis <-25.000000> speed <25.000000>;
-	turn missilebox2 to y-axis <0.000000> speed <25.000000>;
-	turn missilebox2 to x-axis <-25.000000> speed <25.000000>;
+	turn missilebox1 to y-axis <0.0> speed <25.0>;
+	turn missilebox1 to x-axis <-25.0> speed <25.0>;
+	turn missilebox2 to y-axis <0.0> speed <25.0>;
+	turn missilebox2 to x-axis <-25.0> speed <25.0>;
 }
 Stop()
 {
@@ -140,15 +140,15 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIGNAL_AIM2;
 	if( gun_2 )
 	{
-		turn missilebox2 to y-axis heading speed <455.000000>;
-		turn missilebox2 to x-axis <0.000000> - pitch speed <430.000000>;
+		turn missilebox2 to y-axis heading speed <455.0>;
+		turn missilebox2 to x-axis <0.0> - pitch speed <430.0>;
 		wait-for-turn missilebox2 around y-axis;
 		wait-for-turn missilebox2 around x-axis;
 	}
 	else
 	{
-		turn missilebox1 to y-axis heading speed <455.000000>;
-		turn missilebox1 to x-axis <0.000000> - pitch speed <430.000000>;
+		turn missilebox1 to y-axis heading speed <455.0>;
+		turn missilebox1 to x-axis <0.0> - pitch speed <430.0>;
 		wait-for-turn missilebox1 around y-axis;
 		wait-for-turn missilebox1 around x-axis;
 	}
@@ -160,8 +160,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn turretgun1 to y-axis heading speed <755.000000>;
-	turn turretgun2 to x-axis <0.000000> - pitch speed <730.000000>;
+	turn turretgun1 to y-axis heading speed <755.0>;
+	turn turretgun2 to x-axis <0.0> - pitch speed <730.0>;
 	wait-for-turn turretgun1 around y-axis;
 	wait-for-turn turretgun2 around x-axis;
 	start-script RestoreAfterDelay();
@@ -178,18 +178,18 @@ FireWeapon3()
 	if( gun_3 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
-		move gunbarrel2 to z-axis [-2.400000] speed [500.000000];
+		move gunbarrel2 to z-axis [-2.400000] speed [500.0];
 		sleep 100;
 		wait-for-move gunbarrel2 along z-axis;
-		move gunbarrel2 to z-axis [0.000000] speed [3.000000];
+		move gunbarrel2 to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		move gunbarrel1 to z-axis [-2.400000] speed [500.000000];
+		move gunbarrel1 to z-axis [-2.400000] speed [500.0];
 		sleep 100;
 		wait-for-move gunbarrel1 along z-axis;
-		move gunbarrel1 to z-axis [0.000000] speed [3.000000];
+		move gunbarrel1 to z-axis [0.0] speed [3.0];
 	}
 	gun_3 = !gun_3;
 }

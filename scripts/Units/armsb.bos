@@ -40,14 +40,14 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1()
 {
-	turn doorl to z-axis <-90.000000> speed <25.000000>;
-	turn doorr to z-axis <90.000000> speed <25.000000>;
+	turn doorl to z-axis <-90.0> speed <25.0>;
+	turn doorr to z-axis <90.0> speed <25.0>;
 }
 
 FireWeapon1(){
 	sleep 500;
-	turn doorl to z-axis <0.000000> speed <25.000000>;
-	turn doorr to z-axis <0.000000> speed <25.000000>;
+	turn doorl to z-axis <0.0> speed <25.0>;
+	turn doorr to z-axis <0.0> speed <25.0>;
 }
 
 

@@ -20,46 +20,46 @@ Movement()
 		if (isMoving | bSteering) 
 		{
 		
-		turn rfthigh to y-axis <0> speed <72.000000>;
-		turn rfthigh to z-axis <0> speed <42.000000>;
+		turn rfthigh to y-axis <0> speed <72.0>;
+		turn rfthigh to z-axis <0> speed <42.0>;
 		
-		turn rfleg to x-axis <0> speed <48.000000>;
-		turn rfleg to z-axis <0> speed <126.000000>;
+		turn rfleg to x-axis <0> speed <48.0>;
+		turn rfleg to z-axis <0> speed <126.0>;
 		
-		turn rffoot to x-axis <0> speed <60.000000>;
-		turn rffoot to y-axis <0> speed <54.000000>;
-		turn rffoot to z-axis <0> speed <66.000000>;
+		turn rffoot to x-axis <0> speed <60.0>;
+		turn rffoot to y-axis <0> speed <54.0>;
+		turn rffoot to z-axis <0> speed <66.0>;
 		
 		
-		turn rbthigh to y-axis <-9> speed <54.000000>;
-		turn rbthigh to z-axis <10> speed <60.000000>;
+		turn rbthigh to y-axis <-9> speed <54.0>;
+		turn rbthigh to z-axis <10> speed <60.0>;
 		
 		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <-11> speed <66.000000>;
+		turn rbleg to z-axis <-11> speed <66.0>;
 		
 		turn rbfoot to x-axis <9.3> speed <55.800000>;
-		turn rbfoot to y-axis <9> speed <54.000000>;
-		turn rbfoot to z-axis <-1> speed <6.000000>;
+		turn rbfoot to y-axis <9> speed <54.0>;
+		turn rbfoot to z-axis <-1> speed <6.0>;
 		
-		turn lbthigh to y-axis <0> speed <72.000000>;
-		turn lbthigh to z-axis <0> speed <42.000000>;
+		turn lbthigh to y-axis <0> speed <72.0>;
+		turn lbthigh to z-axis <0> speed <42.0>;
 		
-		turn lbleg to x-axis <0> speed <48.000000>;
-		turn lbleg to z-axis <0> speed <126.000000>;
+		turn lbleg to x-axis <0> speed <48.0>;
+		turn lbleg to z-axis <0> speed <126.0>;
 		
-		turn lbfoot to x-axis <0> speed <60.000000>;
-		turn lbfoot to y-axis <0> speed <54.000000>;
-		turn lbfoot to z-axis <0> speed <66.000000>;
+		turn lbfoot to x-axis <0> speed <60.0>;
+		turn lbfoot to y-axis <0> speed <54.0>;
+		turn lbfoot to z-axis <0> speed <66.0>;
 		
-		turn lfthigh to y-axis <9> speed <54.000000>;
-		turn lfthigh to z-axis <-10> speed <60.000000>;
+		turn lfthigh to y-axis <9> speed <54.0>;
+		turn lfthigh to z-axis <-10> speed <60.0>;
 		
 		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <11> speed <66.000000>;
+		turn lfleg to z-axis <11> speed <66.0>;
 		
 		turn lffoot to x-axis <9.3> speed <55.800000>;
-		turn lffoot to y-axis <-9> speed <54.000000>;
-		turn lffoot to z-axis <1> speed <6.000000>;
+		turn lffoot to y-axis <-9> speed <54.0>;
+		turn lffoot to z-axis <1> speed <6.0>;
 		
 		sleep 140;
 		}
@@ -68,45 +68,45 @@ Movement()
 		
 		// step 1 foot back
 		
-		turn rfthigh to y-axis <-15> speed <90.000000>;
-		turn rfthigh to z-axis <-4> speed <24.000000>;
+		turn rfthigh to y-axis <-15> speed <90.0>;
+		turn rfthigh to z-axis <-4> speed <24.0>;
 		
 		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <14> speed <84.000000>;
+		turn rfleg to z-axis <14> speed <84.0>;
 		
-		turn rffoot to x-axis <-2> speed <12.000000>;
-		turn rffoot to y-axis <15> speed <90.000000>;
-		turn rffoot to z-axis <-9> speed <54.000000>;
+		turn rffoot to x-axis <-2> speed <12.0>;
+		turn rffoot to y-axis <15> speed <90.0>;
+		turn rffoot to z-axis <-9> speed <54.0>;
 		
-		turn rbthigh to y-axis <12> speed <126.000000>;
-		turn rbthigh to z-axis <20> speed <60.000000>;
+		turn rbthigh to y-axis <12> speed <126.0>;
+		turn rbthigh to z-axis <20> speed <60.0>;
 		
-		turn rbleg to x-axis <-8> speed <48.000000>;
-		turn rbleg to z-axis <-28> speed <102.000000>;
+		turn rbleg to x-axis <-8> speed <48.0>;
+		turn rbleg to z-axis <-28> speed <102.0>;
 		
 		turn rbfoot to x-axis <-12> speed <127.800000>;
-		turn rbfoot to y-axis <-13> speed <132.000000>;
-		turn rbfoot to z-axis <9> speed <60.000000>;
+		turn rbfoot to y-axis <-13> speed <132.0>;
+		turn rbfoot to z-axis <9> speed <60.0>;
 		
-		turn lbthigh to y-axis <15> speed <90.000000>;
-		turn lbthigh to z-axis <4> speed <24.000000>;
+		turn lbthigh to y-axis <15> speed <90.0>;
+		turn lbthigh to z-axis <4> speed <24.0>;
 		
 		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <-14> speed <84.000000>;
+		turn lbleg to z-axis <-14> speed <84.0>;
 		
-		turn lbfoot to x-axis <-2> speed <12.000000>;
-		turn lbfoot to y-axis <-15> speed <90.000000>;
-		turn lbfoot to z-axis <9> speed <54.000000>;
+		turn lbfoot to x-axis <-2> speed <12.0>;
+		turn lbfoot to y-axis <-15> speed <90.0>;
+		turn lbfoot to z-axis <9> speed <54.0>;
 		
-		turn lfthigh to y-axis <-12> speed <126.000000>;
-		turn lfthigh to z-axis <-20> speed <60.000000>;
+		turn lfthigh to y-axis <-12> speed <126.0>;
+		turn lfthigh to z-axis <-20> speed <60.0>;
 		
-		turn lfleg to x-axis <-8> speed <48.000000>;
-		turn lfleg to z-axis <28> speed <102.000000>;
+		turn lfleg to x-axis <-8> speed <48.0>;
+		turn lfleg to z-axis <28> speed <102.0>;
 		
 		turn lffoot to x-axis <-12> speed <127.800000>;
-		turn lffoot to y-axis <13> speed <132.000000>;
-		turn lffoot to z-axis <-9> speed <60.000000>;
+		turn lffoot to y-axis <13> speed <132.0>;
+		turn lffoot to z-axis <-9> speed <60.0>;
 		
 		
 		sleep 140;
@@ -116,45 +116,45 @@ Movement()
 		
 		// step 2 foot lift heel
 		
-		turn rfthigh to y-axis <-23> speed <48.000000>;
-		turn rfthigh to z-axis <0> speed <24.000000>;
+		turn rfthigh to y-axis <-23> speed <48.0>;
+		turn rfthigh to z-axis <0> speed <24.0>;
 		
 		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <10> speed <24.000000>;
+		turn rfleg to z-axis <10> speed <24.0>;
 		
 		turn rffoot to x-axis <9.3> speed <67.800000>;
-		turn rffoot to y-axis <25> speed <60.000000>;
-		turn rffoot to z-axis <-10> speed <6.000000>;
+		turn rffoot to y-axis <25> speed <60.0>;
+		turn rffoot to z-axis <-10> speed <6.0>;
 		
 		turn rbthigh to y-axis <12> now;
-		turn rbthigh to z-axis <-7> speed <162.000000>;
+		turn rbthigh to z-axis <-7> speed <162.0>;
 		
 		turn rbleg to x-axis <-8> now;
-		turn rbleg to z-axis <21> speed <294.000000>;
+		turn rbleg to z-axis <21> speed <294.0>;
 		
-		turn rbfoot to x-axis <10> speed <132.000000>;
-		turn rbfoot to y-axis <-9> speed <24.000000>;
-		turn rbfoot to z-axis <-11> speed <120.000000>;
+		turn rbfoot to x-axis <10> speed <132.0>;
+		turn rbfoot to y-axis <-9> speed <24.0>;
+		turn rbfoot to z-axis <-11> speed <120.0>;
 		
-		turn lbthigh to y-axis <23> speed <48.000000>;
-		turn lbthigh to z-axis <0> speed <24.000000>;
+		turn lbthigh to y-axis <23> speed <48.0>;
+		turn lbthigh to z-axis <0> speed <24.0>;
 		
 		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <-10> speed <24.000000>;
+		turn lbleg to z-axis <-10> speed <24.0>;
 		
 		turn lbfoot to x-axis <9.3> speed <67.800000>;
-		turn lbfoot to y-axis <-25> speed <60.000000>;
-		turn lbfoot to z-axis <10> speed <6.000000>;
+		turn lbfoot to y-axis <-25> speed <60.0>;
+		turn lbfoot to z-axis <10> speed <6.0>;
 		
 		turn lfthigh to y-axis <-12> now;
-		turn lfthigh to z-axis <7> speed <162.000000>;
+		turn lfthigh to z-axis <7> speed <162.0>;
 		
 		turn lfleg to x-axis <-8> now;
-		turn lfleg to z-axis <-21> speed <294.000000>;
+		turn lfleg to z-axis <-21> speed <294.0>;
 		
-		turn lffoot to x-axis <10> speed <132.000000>;
-		turn lffoot to y-axis <9> speed <24.000000>;
-		turn lffoot to z-axis <11> speed <120.000000>;
+		turn lffoot to x-axis <10> speed <132.0>;
+		turn lffoot to y-axis <9> speed <24.0>;
+		turn lffoot to z-axis <11> speed <120.0>;
 		
 		sleep 140;
 		}
@@ -163,45 +163,45 @@ Movement()
 		
 		// step 3 foot lifted up
 		
-		turn rfthigh to y-axis <-9> speed <84.000000>;
-		turn rfthigh to z-axis <10> speed <60.000000>;
+		turn rfthigh to y-axis <-9> speed <84.0>;
+		turn rfthigh to z-axis <10> speed <60.0>;
 		
 		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <-11> speed <126.000000>;
+		turn rfleg to z-axis <-11> speed <126.0>;
 		
 		turn rffoot to x-axis <9.3> now;
-		turn rffoot to y-axis <9> speed <96.000000>;
-		turn rffoot to z-axis <-1> speed <54.000000>;
+		turn rffoot to y-axis <9> speed <96.0>;
+		turn rffoot to z-axis <-1> speed <54.0>;
 		
-		turn rbthigh to y-axis <0> speed <72.000000>;
-		turn rbthigh to z-axis <0> speed <42.000000>;
+		turn rbthigh to y-axis <0> speed <72.0>;
+		turn rbthigh to z-axis <0> speed <42.0>;
 		
-		turn rbleg to x-axis <0> speed <48.000000>;
-		turn rbleg to z-axis <0> speed <126.000000>;
+		turn rbleg to x-axis <0> speed <48.0>;
+		turn rbleg to z-axis <0> speed <126.0>;
 		
-		turn rbfoot to x-axis <0> speed <60.000000>;
-		turn rbfoot to y-axis <0> speed <54.000000>;
-		turn rbfoot to z-axis <0> speed <66.000000>;
+		turn rbfoot to x-axis <0> speed <60.0>;
+		turn rbfoot to y-axis <0> speed <54.0>;
+		turn rbfoot to z-axis <0> speed <66.0>;
 		
-		turn lbthigh to y-axis <9> speed <84.000000>;
-		turn lbthigh to z-axis <-10> speed <60.000000>;
+		turn lbthigh to y-axis <9> speed <84.0>;
+		turn lbthigh to z-axis <-10> speed <60.0>;
 		
 		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <11> speed <126.000000>;
+		turn lbleg to z-axis <11> speed <126.0>;
 		
 		turn lbfoot to x-axis <9.3> now;
-		turn lbfoot to y-axis <-9> speed <96.000000>;
-		turn lbfoot to z-axis <1> speed <54.000000>;
+		turn lbfoot to y-axis <-9> speed <96.0>;
+		turn lbfoot to z-axis <1> speed <54.0>;
 		
-		turn lfthigh to y-axis <0> speed <72.000000>;
-		turn lfthigh to z-axis <0> speed <42.000000>;
+		turn lfthigh to y-axis <0> speed <72.0>;
+		turn lfthigh to z-axis <0> speed <42.0>;
 		
-		turn lfleg to x-axis <0> speed <48.000000>;
-		turn lfleg to z-axis <0> speed <126.000000>;
+		turn lfleg to x-axis <0> speed <48.0>;
+		turn lfleg to z-axis <0> speed <126.0>;
 		
-		turn lffoot to x-axis <0> speed <60.000000>;
-		turn lffoot to y-axis <0> speed <54.000000>;
-		turn lffoot to z-axis <0> speed <66.000000>;
+		turn lffoot to x-axis <0> speed <60.0>;
+		turn lffoot to y-axis <0> speed <54.0>;
+		turn lffoot to z-axis <0> speed <66.0>;
 		
 		sleep 140;
 		}
@@ -210,45 +210,45 @@ Movement()
 		
 		// step 4 foot forward
 		
-		turn rfthigh to y-axis <12> speed <126.000000>;
-		turn rfthigh to z-axis <20> speed <60.000000>;
+		turn rfthigh to y-axis <12> speed <126.0>;
+		turn rfthigh to z-axis <20> speed <60.0>;
 		
-		turn rfleg to x-axis <-8> speed <48.000000>;
-		turn rfleg to z-axis <-28> speed <102.000000>;
+		turn rfleg to x-axis <-8> speed <48.0>;
+		turn rfleg to z-axis <-28> speed <102.0>;
 		
 		turn rffoot to x-axis <-12> speed <127.800000>;
-		turn rffoot to y-axis <-13> speed <132.000000>;
-		turn rffoot to z-axis <9> speed <60.000000>;
+		turn rffoot to y-axis <-13> speed <132.0>;
+		turn rffoot to z-axis <9> speed <60.0>;
 		
-		turn rbthigh to y-axis <-15> speed <90.000000>;
-		turn rbthigh to z-axis <-4> speed <24.000000>;
+		turn rbthigh to y-axis <-15> speed <90.0>;
+		turn rbthigh to z-axis <-4> speed <24.0>;
 		
 		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <14> speed <84.000000>;
+		turn rbleg to z-axis <14> speed <84.0>;
 		
-		turn rbfoot to x-axis <-2> speed <12.000000>;
-		turn rbfoot to y-axis <15> speed <90.000000>;
-		turn rbfoot to z-axis <-9> speed <54.000000>;
+		turn rbfoot to x-axis <-2> speed <12.0>;
+		turn rbfoot to y-axis <15> speed <90.0>;
+		turn rbfoot to z-axis <-9> speed <54.0>;
 		
-		turn lbthigh to y-axis <-12> speed <126.000000>;
-		turn lbthigh to z-axis <-20> speed <60.000000>;
+		turn lbthigh to y-axis <-12> speed <126.0>;
+		turn lbthigh to z-axis <-20> speed <60.0>;
 		
-		turn lbleg to x-axis <-8> speed <48.000000>;
-		turn lbleg to z-axis <28> speed <102.000000>;
+		turn lbleg to x-axis <-8> speed <48.0>;
+		turn lbleg to z-axis <28> speed <102.0>;
 		
 		turn lbfoot to x-axis <-12> speed <127.800000>;
-		turn lbfoot to y-axis <13> speed <132.000000>;
-		turn lbfoot to z-axis <-9> speed <60.000000>;
+		turn lbfoot to y-axis <13> speed <132.0>;
+		turn lbfoot to z-axis <-9> speed <60.0>;
 		
-		turn lfthigh to y-axis <15> speed <90.000000>;
-		turn lfthigh to z-axis <4> speed <24.000000>;
+		turn lfthigh to y-axis <15> speed <90.0>;
+		turn lfthigh to z-axis <4> speed <24.0>;
 		
 		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <-14> speed <84.000000>;
+		turn lfleg to z-axis <-14> speed <84.0>;
 		
-		turn lffoot to x-axis <-2> speed <12.000000>;
-		turn lffoot to y-axis <-15> speed <90.000000>;
-		turn lffoot to z-axis <9> speed <54.000000>;
+		turn lffoot to x-axis <-2> speed <12.0>;
+		turn lffoot to y-axis <-15> speed <90.0>;
+		turn lffoot to z-axis <9> speed <54.0>;
 		
 		sleep 140;
 		}
@@ -258,47 +258,47 @@ Movement()
 		// step 5 put down foot up front
 		
 		turn rfthigh to y-axis <12> now;
-		turn rfthigh to z-axis <-7> speed <162.000000>;
+		turn rfthigh to z-axis <-7> speed <162.0>;
 		
 		turn rfleg to x-axis <-8> now;
-		turn rfleg to z-axis <21> speed <294.000000>;
+		turn rfleg to z-axis <21> speed <294.0>;
 		
-		turn rffoot to x-axis <10> speed <132.000000>;
-		turn rffoot to y-axis <-9> speed <24.000000>;
-		turn rffoot to z-axis <-11> speed <120.000000>;
+		turn rffoot to x-axis <10> speed <132.0>;
+		turn rffoot to y-axis <-9> speed <24.0>;
+		turn rffoot to z-axis <-11> speed <120.0>;
 		
 		
-		turn rbthigh to y-axis <-23> speed <48.000000>;
-		turn rbthigh to z-axis <0> speed <24.000000>;
+		turn rbthigh to y-axis <-23> speed <48.0>;
+		turn rbthigh to z-axis <0> speed <24.0>;
 		
 		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <10> speed <24.000000>;
+		turn rbleg to z-axis <10> speed <24.0>;
 		
 		turn rbfoot to x-axis <9.3> speed <67.800000>;
-		turn rbfoot to y-axis <25> speed <60.000000>;
-		turn rbfoot to z-axis <-10> speed <6.000000>;
+		turn rbfoot to y-axis <25> speed <60.0>;
+		turn rbfoot to z-axis <-10> speed <6.0>;
 		
 		
 		turn lbthigh to y-axis <-12> now;
-		turn lbthigh to z-axis <7> speed <162.000000>;
+		turn lbthigh to z-axis <7> speed <162.0>;
 		
 		turn lbleg to x-axis <-8> now;
-		turn lbleg to z-axis <-21> speed <294.000000>;
+		turn lbleg to z-axis <-21> speed <294.0>;
 		
-		turn lbfoot to x-axis <10> speed <132.000000>;
-		turn lbfoot to y-axis <9> speed <24.000000>;
-		turn lbfoot to z-axis <11> speed <120.000000>;
+		turn lbfoot to x-axis <10> speed <132.0>;
+		turn lbfoot to y-axis <9> speed <24.0>;
+		turn lbfoot to z-axis <11> speed <120.0>;
 		
 		
-		turn lfthigh to y-axis <23> speed <48.000000>;
-		turn lfthigh to z-axis <0> speed <24.000000>;
+		turn lfthigh to y-axis <23> speed <48.0>;
+		turn lfthigh to z-axis <0> speed <24.0>;
 		
 		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <-10> speed <24.000000>;
+		turn lfleg to z-axis <-10> speed <24.0>;
 		
 		turn lffoot to x-axis <9.3> speed <67.800000>;
-		turn lffoot to y-axis <-25> speed <60.000000>;
-		turn lffoot to z-axis <10> speed <6.000000>;
+		turn lffoot to y-axis <-25> speed <60.0>;
+		turn lffoot to z-axis <10> speed <6.0>;
 		}
 		sleep 140;
 
@@ -331,12 +331,12 @@ Steering(heading)
 
 RockUnit(anglex, anglez)
 {
-	turn body to x-axis anglex speed <50.000000>;
-	turn body to z-axis <0> - anglez speed <50.000000>;
+	turn body to x-axis anglex speed <50.0>;
+	turn body to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn body around z-axis;
 	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <20.000000>;
-	turn body to x-axis <0.000000> speed <20.000000>;
+	turn body to z-axis <0.0> speed <20.0>;
+	turn body to x-axis <0.0> speed <20.0>;
 }
 
 Create()
@@ -370,8 +370,8 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
 	sleep 8000;
-	turn turret to y-axis <0.000000> speed <36.000000>;
-	turn sleeve to x-axis <0.000000> speed <30.000000>;
+	turn turret to y-axis <0.0> speed <36.0>;
+	turn sleeve to x-axis <0.0> speed <30.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	wpn1_lasthead = 1000000;
@@ -392,8 +392,8 @@ AimWeapon1(heading, pitch)
 {
 	isAiming = TRUE;
 	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed <30.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <30.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <45.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
@@ -411,7 +411,7 @@ FireWeapon1()
 	move barrel to z-axis [-2.750000] speed [20.625000];
 	emit-sfx 1024 + 0 from flare;
 	sleep 50;
-	move barrel to z-axis [0.000000] speed [1.000000];
+	move barrel to z-axis [0.0] speed [1.0];
 	sleep 100;
 	gun_1 = body;
 }

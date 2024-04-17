@@ -22,7 +22,7 @@ Propcontrol()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 100;
 	}
 }

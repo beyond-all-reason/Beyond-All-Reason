@@ -17,7 +17,7 @@ Activate()
 
 Deactivate()
 {
-	spin dish around y-axis speed <0.000000>;
+	spin dish around y-axis speed <0.0>;
 }
 
 

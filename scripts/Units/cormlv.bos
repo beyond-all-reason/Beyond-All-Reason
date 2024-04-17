@@ -61,7 +61,7 @@ StartBuilding(heading, pitch)
 	}
 
 	show flare;
-	turn turret to y-axis heading speed <600.000000>;
+	turn turret to y-axis heading speed <600.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -84,7 +84,7 @@ StopBuilding()
 	turn beamcase to z-axis <0> speed <180>;
 	wait-for-turn beamcase around z-axis;
 	
-	turn turret to y-axis <0.000000> speed <160.000000>;
+	turn turret to y-axis <0.0> speed <160.0>;
 	wait-for-turn turret around y-axis;
 }
 

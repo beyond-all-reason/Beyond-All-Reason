@@ -85,18 +85,18 @@ ExecuteRestoreAfterDelay()
 	set-signal-mask 0;
 	stop-spin barrel1 around z-axis;
 	stop-spin barrel6 around z-axis;
-	turn sleeve1 to y-axis <0.000000> speed <150.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <150.000000>;
-	turn sleeve6 to y-axis <180.000000> speed <150.000000>;
-	turn sleeve6 to x-axis <0.000000> speed <150.000000>;
-	turn turret3 to y-axis <0.000000> speed <150.000000>;
-	turn turret3 to x-axis <0.000000> speed <150.000000>;
-	turn turret4 to y-axis <0.000000> speed <150.000000>;
-	turn turret4 to x-axis <0.000000> speed <150.000000>;
-	turn aimy12 to y-axis <0> speed <45.000000>;
-	turn sleeve2 to x-axis <0.000000> speed <70.000000>;
-	turn aimy15 to y-axis <0> speed <45.000000>;
-	turn sleeve5 to x-axis <0.000000> speed <70.000000>;
+	turn sleeve1 to y-axis <0.0> speed <150.0>;
+	turn sleeve1 to x-axis <0.0> speed <150.0>;
+	turn sleeve6 to y-axis <180.0> speed <150.0>;
+	turn sleeve6 to x-axis <0.0> speed <150.0>;
+	turn turret3 to y-axis <0.0> speed <150.0>;
+	turn turret3 to x-axis <0.0> speed <150.0>;
+	turn turret4 to y-axis <0.0> speed <150.0>;
+	turn turret4 to x-axis <0.0> speed <150.0>;
+	turn aimy12 to y-axis <0> speed <45.0>;
+	turn sleeve2 to x-axis <0.0> speed <70.0>;
+	turn aimy15 to y-axis <0> speed <45.0>;
+	turn sleeve5 to x-axis <0.0> speed <70.0>;
 	wait-for-turn turret4 around y-axis;
 	wpn2_lasthead = 1000000;
 	wpn5_lasthead = 1000000;
@@ -838,83 +838,83 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 }
 // Call this from StopMoving()!
 StopWalking() {
-	turn legl1 to x-axis <0.000000> speed <78.794420>;
-	turn legl1 to y-axis <0.000000> speed <187.467365>;
-	turn legl1 to z-axis <0.000000> speed <172.221480>;
-	turn leglb1 to x-axis <0.000000> speed <66.892444>;
-	turn leglb1 to y-axis <0.000000> speed <44.553781>;
-	turn leglb1 to z-axis <0.000000> speed <222.231423>;
-	turn legr1 to x-axis <0.000000> speed <74.112964>;
-	turn legr1 to y-axis <0.000000> speed <187.467374>;
-	turn legr1 to z-axis <0.000000> speed <172.221479>;
-	turn legrb1 to x-axis <0.000000> speed <85.298980>;
-	turn legrb1 to y-axis <0.000000> speed <55.189055>;
-	turn legrb1 to z-axis <0.000000> speed <329.698798>;
+	turn legl1 to x-axis <0.0> speed <78.794420>;
+	turn legl1 to y-axis <0.0> speed <187.467365>;
+	turn legl1 to z-axis <0.0> speed <172.221480>;
+	turn leglb1 to x-axis <0.0> speed <66.892444>;
+	turn leglb1 to y-axis <0.0> speed <44.553781>;
+	turn leglb1 to z-axis <0.0> speed <222.231423>;
+	turn legr1 to x-axis <0.0> speed <74.112964>;
+	turn legr1 to y-axis <0.0> speed <187.467374>;
+	turn legr1 to z-axis <0.0> speed <172.221479>;
+	turn legrb1 to x-axis <0.0> speed <85.298980>;
+	turn legrb1 to y-axis <0.0> speed <55.189055>;
+	turn legrb1 to z-axis <0.0> speed <329.698798>;
 	
-	turn legl2 to x-axis <0.000000> speed <78.794420>;
-	turn legl2 to y-axis <0.000000> speed <187.467365>;
-	turn legl2 to z-axis <0.000000> speed <172.221480>;
-	turn leglb2 to x-axis <0.000000> speed <66.892444>;
-	turn leglb2 to y-axis <0.000000> speed <44.553781>;
-	turn leglb2 to z-axis <0.000000> speed <222.231423>;
-	turn legr2 to x-axis <0.000000> speed <74.112964>;
-	turn legr2 to y-axis <0.000000> speed <187.467374>;
-	turn legr2 to z-axis <0.000000> speed <172.221479>;
-	turn legrb2 to x-axis <0.000000> speed <85.298980>;
-	turn legrb2 to y-axis <0.000000> speed <55.189055>;
-	turn legrb2 to z-axis <0.000000> speed <329.698798>;
+	turn legl2 to x-axis <0.0> speed <78.794420>;
+	turn legl2 to y-axis <0.0> speed <187.467365>;
+	turn legl2 to z-axis <0.0> speed <172.221480>;
+	turn leglb2 to x-axis <0.0> speed <66.892444>;
+	turn leglb2 to y-axis <0.0> speed <44.553781>;
+	turn leglb2 to z-axis <0.0> speed <222.231423>;
+	turn legr2 to x-axis <0.0> speed <74.112964>;
+	turn legr2 to y-axis <0.0> speed <187.467374>;
+	turn legr2 to z-axis <0.0> speed <172.221479>;
+	turn legrb2 to x-axis <0.0> speed <85.298980>;
+	turn legrb2 to y-axis <0.0> speed <55.189055>;
+	turn legrb2 to z-axis <0.0> speed <329.698798>;
 	
-	turn legl3 to x-axis <0.000000> speed <78.794420>;
-	turn legl3 to y-axis <0.000000> speed <187.467365>;
-	turn legl3 to z-axis <0.000000> speed <172.221480>;
-	turn leglb3 to x-axis <0.000000> speed <66.892444>;
-	turn leglb3 to y-axis <0.000000> speed <44.553781>;
-	turn leglb3 to z-axis <0.000000> speed <222.231423>;
-	turn legr3 to x-axis <0.000000> speed <74.112964>;
-	turn legr3 to y-axis <0.000000> speed <187.467374>;
-	turn legr3 to z-axis <0.000000> speed <172.221479>;
-	turn legrb3 to x-axis <0.000000> speed <85.298980>;
-	turn legrb3 to y-axis <0.000000> speed <55.189055>;
-	turn legrb3 to z-axis <0.000000> speed <329.698798>;
+	turn legl3 to x-axis <0.0> speed <78.794420>;
+	turn legl3 to y-axis <0.0> speed <187.467365>;
+	turn legl3 to z-axis <0.0> speed <172.221480>;
+	turn leglb3 to x-axis <0.0> speed <66.892444>;
+	turn leglb3 to y-axis <0.0> speed <44.553781>;
+	turn leglb3 to z-axis <0.0> speed <222.231423>;
+	turn legr3 to x-axis <0.0> speed <74.112964>;
+	turn legr3 to y-axis <0.0> speed <187.467374>;
+	turn legr3 to z-axis <0.0> speed <172.221479>;
+	turn legrb3 to x-axis <0.0> speed <85.298980>;
+	turn legrb3 to y-axis <0.0> speed <55.189055>;
+	turn legrb3 to z-axis <0.0> speed <329.698798>;
 	
-	turn legl4 to x-axis <0.000000> speed <78.794420>;
-	turn legl4 to y-axis <0.000000> speed <187.467365>;
-	turn legl4 to z-axis <0.000000> speed <172.221480>;
-	turn leglb4 to x-axis <0.000000> speed <66.892444>;
-	turn leglb4 to y-axis <0.000000> speed <44.553781>;
-	turn leglb4 to z-axis <0.000000> speed <222.231423>;
-	turn legr4 to x-axis <0.000000> speed <74.112964>;
-	turn legr4 to y-axis <0.000000> speed <187.467374>;
-	turn legr4 to z-axis <0.000000> speed <172.221479>;
-	turn legrb4 to x-axis <0.000000> speed <85.298980>;
-	turn legrb4 to y-axis <0.000000> speed <55.189055>;
-	turn legrb4 to z-axis <0.000000> speed <329.698798>;
+	turn legl4 to x-axis <0.0> speed <78.794420>;
+	turn legl4 to y-axis <0.0> speed <187.467365>;
+	turn legl4 to z-axis <0.0> speed <172.221480>;
+	turn leglb4 to x-axis <0.0> speed <66.892444>;
+	turn leglb4 to y-axis <0.0> speed <44.553781>;
+	turn leglb4 to z-axis <0.0> speed <222.231423>;
+	turn legr4 to x-axis <0.0> speed <74.112964>;
+	turn legr4 to y-axis <0.0> speed <187.467374>;
+	turn legr4 to z-axis <0.0> speed <172.221479>;
+	turn legrb4 to x-axis <0.0> speed <85.298980>;
+	turn legrb4 to y-axis <0.0> speed <55.189055>;
+	turn legrb4 to z-axis <0.0> speed <329.698798>;
 	
-	turn legl5 to x-axis <0.000000> speed <78.794420>;
-	turn legl5 to y-axis <0.000000> speed <187.467365>;
-	turn legl5 to z-axis <0.000000> speed <172.221480>;
-	turn leglb5 to x-axis <0.000000> speed <66.892444>;
-	turn leglb5 to y-axis <0.000000> speed <44.553781>;
-	turn leglb5 to z-axis <0.000000> speed <222.231423>;
-	turn legr5 to x-axis <0.000000> speed <74.112964>;
-	turn legr5 to y-axis <0.000000> speed <187.467374>;
-	turn legr5 to z-axis <0.000000> speed <172.221479>;
-	turn legrb5 to x-axis <0.000000> speed <85.298980>;
-	turn legrb5 to y-axis <0.000000> speed <55.189055>;
-	turn legrb5 to z-axis <0.000000> speed <329.698798>;
+	turn legl5 to x-axis <0.0> speed <78.794420>;
+	turn legl5 to y-axis <0.0> speed <187.467365>;
+	turn legl5 to z-axis <0.0> speed <172.221480>;
+	turn leglb5 to x-axis <0.0> speed <66.892444>;
+	turn leglb5 to y-axis <0.0> speed <44.553781>;
+	turn leglb5 to z-axis <0.0> speed <222.231423>;
+	turn legr5 to x-axis <0.0> speed <74.112964>;
+	turn legr5 to y-axis <0.0> speed <187.467374>;
+	turn legr5 to z-axis <0.0> speed <172.221479>;
+	turn legrb5 to x-axis <0.0> speed <85.298980>;
+	turn legrb5 to y-axis <0.0> speed <55.189055>;
+	turn legrb5 to z-axis <0.0> speed <329.698798>;
 	
-	turn legl6 to x-axis <0.000000> speed <78.794420>;
-	turn legl6 to y-axis <0.000000> speed <187.467365>;
-	turn legl6 to z-axis <0.000000> speed <172.221480>;
-	turn leglb6 to x-axis <0.000000> speed <66.892444>;
-	turn leglb6 to y-axis <0.000000> speed <44.553781>;
-	turn leglb6 to z-axis <0.000000> speed <222.231423>;
-	turn legr6 to x-axis <0.000000> speed <74.112964>;
-	turn legr6 to y-axis <0.000000> speed <187.467374>;
-	turn legr6 to z-axis <0.000000> speed <172.221479>;
-	turn legrb6 to x-axis <0.000000> speed <85.298980>;
-	turn legrb6 to y-axis <0.000000> speed <55.189055>;
-	turn legrb6 to z-axis <0.000000> speed <329.698798>;
+	turn legl6 to x-axis <0.0> speed <78.794420>;
+	turn legl6 to y-axis <0.0> speed <187.467365>;
+	turn legl6 to z-axis <0.0> speed <172.221480>;
+	turn leglb6 to x-axis <0.0> speed <66.892444>;
+	turn leglb6 to y-axis <0.0> speed <44.553781>;
+	turn leglb6 to z-axis <0.0> speed <222.231423>;
+	turn legr6 to x-axis <0.0> speed <74.112964>;
+	turn legr6 to y-axis <0.0> speed <187.467374>;
+	turn legr6 to z-axis <0.0> speed <172.221479>;
+	turn legrb6 to x-axis <0.0> speed <85.298980>;
+	turn legrb6 to y-axis <0.0> speed <55.189055>;
+	turn legrb6 to z-axis <0.0> speed <329.698798>;
 	start-script RestoreAfterDelay();
 }
 // REMEMBER TO animspeed = 3 in Create() !!
@@ -998,15 +998,15 @@ SetMaxReloadTime(t)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare1;
-	spin barrel1 around z-axis speed <900.000000>;
+	spin barrel1 around z-axis speed <900.0>;
 }
 
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn sleeve1 to y-axis heading speed <120.000000>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <65.000000>;
+	turn sleeve1 to y-axis heading speed <120.0>;
+	turn sleeve1 to x-axis <0.0> - pitch speed <65.0>;
 	wait-for-turn sleeve1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	return (1);
@@ -1025,15 +1025,15 @@ AimFromWeapon1(pieceIndex)
 FireWeapon6()
 {
 	emit-sfx 1024 + 0 from flare6;
-	spin barrel6 around z-axis speed <900.000000>;
+	spin barrel6 around z-axis speed <900.0>;
 }
 
 AimWeapon6(heading, pitch)
 {
 	signal SIGNAL_AIM6;
 	set-signal-mask SIGNAL_AIM6;
-	turn sleeve6 to y-axis heading - 3 * steerstore speed <120.000000>;
-	turn sleeve6 to x-axis <0.000000> - pitch speed <65.000000>;
+	turn sleeve6 to y-axis heading - 3 * steerstore speed <120.0>;
+	turn sleeve6 to x-axis <0.0> - pitch speed <65.0>;
 	wait-for-turn sleeve6 around y-axis;
 	wait-for-turn sleeve6 around x-axis;
 	return (1);
@@ -1058,17 +1058,17 @@ FireWeapon2()
 	move barrel32 to z-axis [-7.5] speed [50];
 	move barrel42 to z-axis [-7.5] speed [50];
 	sleep 751;
-	move barrel12 to z-axis [0.000000] speed [2.500000];
-	move barrel22 to z-axis [0.000000] speed [2.500000];
-	move barrel32 to z-axis [0.000000] speed [2.500000];
-	move barrel42 to z-axis [0.000000] speed [2.500000];
+	move barrel12 to z-axis [0.0] speed [2.500000];
+	move barrel22 to z-axis [0.0] speed [2.500000];
+	move barrel32 to z-axis [0.0] speed [2.500000];
+	move barrel42 to z-axis [0.0] speed [2.500000];
 }
 
 AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
-	turn aimy12 to y-axis heading speed <45.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <70.000000>;
+	turn aimy12 to y-axis heading speed <45.0>;
+	turn sleeve2 to x-axis <0.0> - pitch speed <70.0>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <2>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn2_lasthead = 1000000;
@@ -1099,17 +1099,17 @@ FireWeapon5()
 	move barrel35 to z-axis [-7.5] speed [50];
 	move barrel45 to z-axis [-7.5] speed [50];
 	sleep 751;
-	move barrel15 to z-axis [0.000000] speed [2.500000];
-	move barrel25 to z-axis [0.000000] speed [2.500000];
-	move barrel35 to z-axis [0.000000] speed [2.500000];
-	move barrel45 to z-axis [0.000000] speed [2.500000];
+	move barrel15 to z-axis [0.0] speed [2.500000];
+	move barrel25 to z-axis [0.0] speed [2.500000];
+	move barrel35 to z-axis [0.0] speed [2.500000];
+	move barrel45 to z-axis [0.0] speed [2.500000];
 }
 
 AimWeapon5(heading, pitch)
 {
 	signal SIGNAL_AIM5;
-	turn aimy15 to y-axis heading - 3 * steerstore speed <45.000000>;
-	turn sleeve5 to x-axis <0.000000> - pitch speed <70.000000>;
+	turn aimy15 to y-axis heading - 3 * steerstore speed <45.0>;
+	turn sleeve5 to x-axis <0.0> - pitch speed <70.0>;
 	if (((get ABS(wpn5_lasthead - heading + 3 * steerstore)) > 65536) OR(((get ABS(wpn5_lasthead - heading + 3 * steerstore)) > <2>) AND ((get ABS(wpn5_lasthead - heading + 3 * steerstore)) < 65536 - <2>)))
 	{
 		wpn5_lasthead = 1000000;
@@ -1164,8 +1164,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn turret3 to y-axis heading - steerstore speed <150.000000>;
-	turn turret3 to x-axis 0 - pitch speed <150.000000>;
+	turn turret3 to y-axis heading - steerstore speed <150.0>;
+	turn turret3 to x-axis 0 - pitch speed <150.0>;
 	wait-for-turn turret3 around y-axis;
 	wait-for-turn turret3 around x-axis;
 	return (1);
@@ -1226,8 +1226,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
-	turn turret4 to y-axis heading - 2 * steerstore speed <150.000000>;
-	turn turret4 to x-axis 0 - pitch speed <150.000000>;
+	turn turret4 to y-axis heading - 2 * steerstore speed <150.0>;
+	turn turret4 to x-axis 0 - pitch speed <150.0>;
 	wait-for-turn turret4 around y-axis;
 	wait-for-turn turret4 around x-axis;
 	return (1);

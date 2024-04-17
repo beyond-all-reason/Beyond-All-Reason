@@ -41,8 +41,8 @@ Activate()
 	move standl to y-axis [10] speed [20];
 	wait-for-move standr along y-axis;
 
-	turn nanor to y-axis <90.016484> speed <173.000000>;
-	turn nanol to y-axis <-90.016484> speed <173.000000>;
+	turn nanor to y-axis <90.016484> speed <173.0>;
+	turn nanol to y-axis <-90.016484> speed <173.0>;
 	wait-for-turn nanor around y-axis;
 	
 	FACTORY_OPEN_BUILD;
@@ -55,8 +55,8 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	turn nanor to y-axis <0> speed <173.000000>;
-	turn nanol to y-axis <0> speed <173.000000>;
+	turn nanor to y-axis <0> speed <173.0>;
+	turn nanol to y-axis <0> speed <173.0>;
 	wait-for-turn nanor around y-axis;
 	
 	move standr to y-axis [0] speed [20];

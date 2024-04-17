@@ -16,8 +16,8 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0> - anglez speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 	return (0);
 }
 
@@ -49,8 +49,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50.005495>;
-	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	turn turret to y-axis <0.0> speed <50.005495>;
+	turn sleeve to x-axis <0.0> speed <50.005495>;
 	wpn1_lasthead = 1000000;
 	isAiming = 0;
 }
@@ -73,7 +73,7 @@ AimWeapon1(heading, pitch)
 	isAiming = TRUE;
 	signal SIGNAL_AIM1;
 	turn turret to y-axis heading speed <90>;
-	turn sleeve to x-axis <0.000000> - pitch speed <90>;
+	turn sleeve to x-axis <0.0> - pitch speed <90>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
@@ -88,15 +88,15 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
  	emit-sfx 1024 + 0 from flare;
- 	move barrel1 to z-axis [-3.000000] speed [500.000000];
-	move barrel2 to z-axis [-3.000000] speed [500.000000];
-	move barrel3 to z-axis [-3.000000] speed [500.000000];
-	move barrel4 to z-axis [-3.000000] speed [500.000000];
+ 	move barrel1 to z-axis [-3.0] speed [500.0];
+	move barrel2 to z-axis [-3.0] speed [500.0];
+	move barrel3 to z-axis [-3.0] speed [500.0];
+	move barrel4 to z-axis [-3.0] speed [500.0];
  	wait-for-move barrel1 along z-axis;
- 	move barrel1 to z-axis [0.000000] speed [3.000000];	
- 	move barrel2 to z-axis [0.000000] speed [3.000000];	
-	move barrel3 to z-axis [0.000000] speed [3.000000];	
- 	move barrel4 to z-axis [0.000000] speed [3.000000];	
+ 	move barrel1 to z-axis [0.0] speed [3.0];	
+ 	move barrel2 to z-axis [0.0] speed [3.0];	
+	move barrel3 to z-axis [0.0] speed [3.0];	
+ 	move barrel4 to z-axis [0.0] speed [3.0];	
 }
 
 AimFromWeapon1(pieceIndex)

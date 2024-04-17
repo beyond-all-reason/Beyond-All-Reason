@@ -52,12 +52,12 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn gun to x-axis <0.000000> speed <50.000000>;
-	turn lgun to x-axis <0.000000> speed <50.000000>;
-	turn rgun to x-axis <0.000000> speed <50.000000>;
-	stop-spin lgatling around z-axis decelerate <10.000000>;
-	stop-spin rgatling around z-axis decelerate <10.000000>;
+	turn turret to y-axis <0.0> speed <90.0>;
+	turn gun to x-axis <0.0> speed <50.0>;
+	turn lgun to x-axis <0.0> speed <50.0>;
+	turn rgun to x-axis <0.0> speed <50.0>;
+	stop-spin lgatling around z-axis decelerate <10.0>;
+	stop-spin rgatling around z-axis decelerate <10.0>;
 }
 SetStunned(State)
 {
@@ -76,8 +76,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <90.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <50.000000>;
+	turn turret to y-axis heading speed <90.0>;
+	turn gun to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
@@ -91,17 +91,17 @@ Rock_Main_Cannon()
 	turn base to x-axis <0> - (GET KCOS(last_gun_heading)) speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	start-script Rock_Main_Cannon();
-	move sleeve to z-axis [-2.400000] speed [500.000000];
+	move sleeve to z-axis [-2.400000] speed [500.0];
 	wait-for-move sleeve along z-axis;
-	move sleeve to z-axis [0.000000] speed [3.000000];
+	move sleeve to z-axis [0.0] speed [3.0];
 }
 
 AimFromWeapon1(pieceIndex)
@@ -118,7 +118,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn lgun to x-axis <0.000000> - pitch speed <50.000000>;
+	turn lgun to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn lgun around x-axis;
 	start-script RestoreAfterDelay();
@@ -127,7 +127,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	spin lgatling around z-axis speed <900.000000>;
+	spin lgatling around z-axis speed <900.0>;
 	return (1);
 }
 
@@ -153,7 +153,7 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn rgun to x-axis <0.000000> - pitch speed <50.000000>;
+	turn rgun to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rgun around x-axis;
 	start-script RestoreAfterDelay();
@@ -162,7 +162,7 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	spin rgatling around z-axis speed <-900.000000>;
+	spin rgatling around z-axis speed <-900.0>;
 	return (1);
 }
 

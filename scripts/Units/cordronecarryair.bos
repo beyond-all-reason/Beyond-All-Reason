@@ -41,7 +41,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -78,10 +78,10 @@ Create()
 	hide thrustr1;
 	hide thrustl2;
 	hide thrustl1;
-	turn jetl1 to x-axis <-90.000000> now;
-	turn jetr1 to x-axis <-90.000000> now;
-	turn jetl2 to x-axis <-90.000000> now;
-	turn jetr2 to x-axis <-90.000000> now;
+	turn jetl1 to x-axis <-90.0> now;
+	turn jetr1 to x-axis <-90.0> now;
+	turn jetl2 to x-axis <-90.0> now;
+	turn jetr2 to x-axis <-90.0> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -90,34 +90,34 @@ Create()
 
 MoveRate0()
 {
-	turn jetl1 to x-axis <-92.000000> speed <25.000000>;
-	turn jetr1 to x-axis <-92.000000> speed <25.000000>;
-	turn jetl2 to x-axis <-90.000000> speed <25.000000>;
-	turn jetr2 to x-axis <-90.000000> speed <25.000000>;
+	turn jetl1 to x-axis <-92.0> speed <25.0>;
+	turn jetr1 to x-axis <-92.0> speed <25.0>;
+	turn jetl2 to x-axis <-90.0> speed <25.0>;
+	turn jetr2 to x-axis <-90.0> speed <25.0>;
 }
 
 MoveRate1()
 {
-	turn jetl1 to x-axis <-92.000000> speed <15.000000>;
-	turn jetr1 to x-axis <-92.000000> speed <15.000000>;
-	turn jetl2 to x-axis <-83.000000> speed <15.000000>;
-	turn jetr2 to x-axis <-83.000000> speed <15.000000>;
+	turn jetl1 to x-axis <-92.0> speed <15.0>;
+	turn jetr1 to x-axis <-92.0> speed <15.0>;
+	turn jetl2 to x-axis <-83.0> speed <15.0>;
+	turn jetr2 to x-axis <-83.0> speed <15.0>;
 }
 
 MoveRate2()
 {
-	turn jetl1 to x-axis <-92.000000> speed <10.000000>;
-	turn jetr1 to x-axis <-92.000000> speed <10.000000>;
-	turn jetl2 to x-axis <-76.000000> speed <10.000000>;
-	turn jetr2 to x-axis <-76.000000> speed <10.000000>;
+	turn jetl1 to x-axis <-92.0> speed <10.0>;
+	turn jetr1 to x-axis <-92.0> speed <10.0>;
+	turn jetl2 to x-axis <-76.0> speed <10.0>;
+	turn jetr2 to x-axis <-76.0> speed <10.0>;
 }
 
 MoveRate3()
 {
-	turn jetl1 to x-axis <0.000000> speed <20.000000>;
-	turn jetr1 to x-axis <0.000000> speed <20.000000>;
-	turn jetl2 to x-axis <0.000000> speed <20.000000>;
-	turn jetr2 to x-axis <0.000000> speed <20.000000>;
+	turn jetl1 to x-axis <0.0> speed <20.0>;
+	turn jetr1 to x-axis <0.0> speed <20.0>;
+	turn jetl2 to x-axis <0.0> speed <20.0>;
+	turn jetr2 to x-axis <0.0> speed <20.0>;
 }
 
 Activate()

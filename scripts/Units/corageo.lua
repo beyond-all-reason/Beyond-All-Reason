@@ -22,9 +22,9 @@ function script.Create()
 	StartThread(animSmoke, unitID, smokespot)
 	StartThread(animBurn, unitID, smokespot)
 	StartThread(dmgsmoke, dmgPieces)
-	StartThread(animSpin, unitID, fan1, z_axis, math.rad(90.000000))
-	StartThread(animSpin, unitID, fan2, z_axis, math.rad(90.000000))
-	StartThread(animSpin, unitID, fan3, z_axis, math.rad(90.000000))
+	StartThread(animSpin, unitID, fan1, z_axis, math.rad(90.0))
+	StartThread(animSpin, unitID, fan2, z_axis, math.rad(90.0))
+	StartThread(animSpin, unitID, fan3, z_axis, math.rad(90.0))
 end
 
         

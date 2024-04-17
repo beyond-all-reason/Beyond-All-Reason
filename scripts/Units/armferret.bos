@@ -92,7 +92,7 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn sleeve to y-axis heading speed <900.000000>;
+	turn sleeve to y-axis heading speed <900.0>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);

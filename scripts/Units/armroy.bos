@@ -57,7 +57,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_5 = Static_Var_5 * -1 / 2;
 		Static_Var_4 = get ABS(Static_Var_5);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 
@@ -112,11 +112,11 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <35.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <15.000000>;
-	turn sleeve2 to x-axis <0.000000> speed <15.000000>;
+	turn turret to y-axis <0.0> speed <35.0>;
+	turn sleeve1 to x-axis <0.0> speed <15.0>;
+	turn sleeve2 to x-axis <0.0> speed <15.0>;
 
-	turn depthturret to y-axis <0.000000> speed <35.000000>;
+	turn depthturret to y-axis <0.0> speed <35.0>;
 }
 SetStunned(State)
 {
@@ -174,7 +174,7 @@ AimWeapon2(heading, pitch)
 {
 
 
-	turn depthturret to y-axis heading speed <180.000000>;
+	turn depthturret to y-axis heading speed <180.0>;
 	wait-for-turn depthturret around y-axis;
 	return (1);
 }
@@ -193,9 +193,9 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <100.000000>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <40.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret to y-axis heading speed <100.0>;
+	turn sleeve1 to x-axis <0.0> - pitch speed <40.0>;
+	turn sleeve2 to x-axis <0.0> - pitch speed <40.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	wait-for-turn sleeve2 around x-axis;
@@ -210,16 +210,16 @@ FireWeapon1()
 	if( gun_1 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-3.000000] speed [500.000000];
+		move barrel2 to z-axis [-3.0] speed [500.0];
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
+		move barrel2 to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-3.000000] speed [500.000000];
+		move barrel1 to z-axis [-3.0] speed [500.0];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [0.0] speed [3.0];
 	}
 	gun_1 = !gun_1;
 }

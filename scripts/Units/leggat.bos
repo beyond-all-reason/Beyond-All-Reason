@@ -26,12 +26,12 @@ static-var  restore_delay, wpn1_lasthead;
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
+	turn base to x-axis anglex speed <50.0>;
+	turn base to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 
 Create()
@@ -71,13 +71,13 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50.000000>;
-	turn sleeve to x-axis <0.000000> speed <25.000000>;
-	spin barrel around z-axis speed <600.000000>;
+	turn turret to y-axis <0.0> speed <50.0>;
+	turn sleeve to x-axis <0.0> speed <25.0>;
+	spin barrel around z-axis speed <600.0>;
 	sleep restore_delay;
-	spin barrel around z-axis speed <300.000000>;
+	spin barrel around z-axis speed <300.0>;
 	sleep (restore_delay / 2);
-	spin barrel around z-axis speed <150.000000>;
+	spin barrel around z-axis speed <150.0>;
 	sleep (restore_delay / 4);
 	stop-spin barrel around z-axis;
 	wpn1_lasthead = 1000000;
@@ -100,8 +100,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <120.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	turn turret to y-axis heading speed <120.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <65.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -115,7 +115,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	spin barrel around z-axis speed <900.000000>;
+	spin barrel around z-axis speed <900.0>;
 	return (1);
 }
 

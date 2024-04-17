@@ -46,8 +46,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.016484>;
-	turn sleeves to x-axis <0.000000> speed <50.005495>;
+	turn turret to y-axis <0.0> speed <90.016484>;
+	turn sleeves to x-axis <0.0> speed <50.005495>;
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -72,8 +72,8 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <250.000000>;
-	turn sleeves to x-axis <0.000000> - pitch speed <240.000000>;
+	turn turret to y-axis heading speed <250.0>;
+	turn sleeves to x-axis <0.0> - pitch speed <240.0>;
 	// if the turret cannot turn to its new heading in one frame, wait for turn
 	if ( (get ABS(last_primary_heading-heading)>1500) OR (get ABS(last_primary_pitch-pitch)>1440) )
 	{
@@ -91,14 +91,14 @@ RestoreBarrel1()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move barrel1 to z-axis [0.000000] speed [5.000000];
+	move barrel1 to z-axis [0.0] speed [5.0];
 }
 
 RestoreBarrel2()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move barrel2 to z-axis [0.000000] speed [5.000000];
+	move barrel2 to z-axis [0.0] speed [5.0];
 }
 
 Shot1(zero)
@@ -110,12 +110,12 @@ Shot1(zero)
 	{
 		if( gun_1 == 0 )
 		{
-			move barrel1 to z-axis [-0.4666] speed [300.000000];
+			move barrel1 to z-axis [-0.4666] speed [300.0];
 			emit-sfx 1024+0 from flare1;
 		}
 		if( gun_1 == 1 )
 		{
-			move barrel2 to z-axis [-0.4666] speed [300.000000];
+			move barrel2 to z-axis [-0.4666] speed [300.0];
 			emit-sfx 1024 + 0 from flare2;
 		}
 	}
@@ -123,12 +123,12 @@ Shot1(zero)
 	{
 		if( gun_1 == 0 )
 		{
-			move barrel1 to z-axis [-0.9333] speed [300.000000];
+			move barrel1 to z-axis [-0.9333] speed [300.0];
 			emit-sfx 1024+0 from flare1;
 		}
 		if( gun_1 == 1 )
 		{
-			move barrel2 to z-axis [-0.9333] speed [300.000000];
+			move barrel2 to z-axis [-0.9333] speed [300.0];
 			emit-sfx 1024 + 0 from flare2;
 		}
 	}
@@ -136,19 +136,19 @@ Shot1(zero)
 	{
 		if( gun_1 == 0 )
 		{
-			move barrel1 to z-axis [-1.399994] speed [300.000000];
+			move barrel1 to z-axis [-1.399994] speed [300.0];
 			emit-sfx 1024+0 from flare1;
 			start-script RestoreBarrel1();
 			//wait-for-move barrel1 along z-axis;
-			//move barrel1 to z-axis [0.000000] speed [5.000000];
+			//move barrel1 to z-axis [0.0] speed [5.0];
 		}
 		if( gun_1 == 1 )
 		{
-			move barrel2 to z-axis [-1.399994] speed [300.000000];
+			move barrel2 to z-axis [-1.399994] speed [300.0];
 			emit-sfx 1024 + 0 from flare2;
 			start-script RestoreBarrel2();
 			//wait-for-move barrel2 along z-axis;
-			//move barrel2 to z-axis [0.000000] speed [5.000000];
+			//move barrel2 to z-axis [0.0] speed [5.0];
 		}
 	}
 	sleep 32;
@@ -160,8 +160,8 @@ Shot1(zero)
 		// wait, then move barrels back to neutral
 		//wait-for-move barrel1 along z-axis;
 		//wait-for-move barrel2 along z-axis;
-		//move barrel1 to z-axis [0.000000] speed [5.000000];
-		//move barrel2 to z-axis [0.000000] speed [5.000000];
+		//move barrel1 to z-axis [0.0] speed [5.0];
+		//move barrel2 to z-axis [0.0] speed [5.0];
 	}
 	return(1);
 }

@@ -76,8 +76,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <45.000000>;
-	turn sleeve to x-axis <0.000000> speed <50.000000>;
+	turn turret to y-axis <0.0> speed <45.0>;
+	turn sleeve to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -96,10 +96,10 @@ RestoreDeckLaser()
 {
 	sleep 3000;
 	set-signal-mask 0;
-	turn foreturret to y-axis <0.000000> speed <150.000000>;
-	turn foreturret to x-axis <0.000000> speed <100.000000>;
-	turn aftturret to y-axis <0.000000> speed <150.000000>;
-	turn aftturret to x-axis <0.000000> speed <100.000000>;
+	turn foreturret to y-axis <0.0> speed <150.0>;
+	turn foreturret to x-axis <0.0> speed <100.0>;
+	turn aftturret to y-axis <0.0> speed <150.0>;
+	turn aftturret to x-axis <0.0> speed <100.0>;
 }
 
 waveSplash()
@@ -147,15 +147,15 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIGNAL_AIM2;
 	if( gun_2 )
 	{
-		turn aftturret to y-axis heading speed <300.000000>;
-		turn aftturret to x-axis <0.000000> - pitch speed <200.000000>;
+		turn aftturret to y-axis heading speed <300.0>;
+		turn aftturret to x-axis <0.0> - pitch speed <200.0>;
 		wait-for-turn aftturret around y-axis;
 		wait-for-turn aftturret around x-axis;
 	}
 	else
 	{
-		turn foreturret to y-axis heading speed <300.000000>;
-		turn foreturret to x-axis <0.000000> - pitch speed <200.000000>;
+		turn foreturret to y-axis heading speed <300.0>;
+		turn foreturret to x-axis <0.0> - pitch speed <200.0>;
 		wait-for-turn foreturret around y-axis;
 		wait-for-turn foreturret around x-axis;
 	}
@@ -215,8 +215,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <90.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <100.000000>;
+	turn turret to y-axis heading speed <90.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

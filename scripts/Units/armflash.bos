@@ -63,8 +63,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.016484>;
-	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	turn turret to y-axis <0.0> speed <90.016484>;
+	turn sleeve to x-axis <0.0> speed <50.005495>;
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -91,8 +91,8 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <250.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <240.000000>;
+	turn turret to y-axis heading speed <250.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <240.0>;
 	// if the turret cannot turn to its new heading in three frames, wait for turn
 	if ( (get ABS(last_primary_heading - heading) > 4500) OR (get ABS(last_primary_pitch - pitch) > 4320) )
 	{
@@ -110,14 +110,14 @@ Restorelbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move lbarrel to z-axis [0.000000] speed [7.000000];
+	move lbarrel to z-axis [0.0] speed [7.0];
 }
 
 Restorerbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move rbarrel to z-axis [0.000000] speed [7.000000];
+	move rbarrel to z-axis [0.0] speed [7.0];
 }
 
 Shot1(zero)

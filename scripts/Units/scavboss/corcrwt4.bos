@@ -44,18 +44,18 @@ Create()
 	hide flarer1;
 	hide flarer2;
 	
-	turn turretf to x-axis <45> speed <200.000000>;
-	turn turretf to y-axis <0> speed <200.000000>;
+	turn turretf to x-axis <45> speed <200.0>;
+	turn turretf to y-axis <0> speed <200.0>;
 	
 	
-	turn turretr1 to x-axis <45> speed <200.000000>;
-	turn turretr1 to y-axis <-90> speed <200.000000>;
-	turn turretr2 to x-axis <45> speed <200.000000>;
-	turn turretr2 to y-axis <-90> speed <200.000000>;
-	turn turretl1 to x-axis <45> speed <200.000000>;
-	turn turretl1 to y-axis <90> speed <200.000000>;
-	turn turretl2 to x-axis <45> speed <200.000000>;
-	turn turretl2 to y-axis <90> speed <200.000000>;
+	turn turretr1 to x-axis <45> speed <200.0>;
+	turn turretr1 to y-axis <-90> speed <200.0>;
+	turn turretr2 to x-axis <45> speed <200.0>;
+	turn turretr2 to y-axis <-90> speed <200.0>;
+	turn turretl1 to x-axis <45> speed <200.0>;
+	turn turretl1 to y-axis <90> speed <200.0>;
+	turn turretl2 to x-axis <45> speed <200.0>;
+	turn turretl2 to y-axis <90> speed <200.0>;
 
 
 	
@@ -154,8 +154,8 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	
-	turn turretf to x-axis 0-pitch speed <200.000000>;
-	turn turretf to y-axis heading speed <200.000000>;
+	turn turretf to x-axis 0-pitch speed <200.0>;
+	turn turretf to y-axis heading speed <200.0>;
 
 
 	wait-for-turn turretf around x-axis;
@@ -181,8 +181,8 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 
-	turn turretaa to y-axis heading speed <450.00000>;
-	turn sleeveaa to x-axis <0.00000> - pitch speed <450.00000>;
+	turn turretaa to y-axis heading speed <450.0>;
+	turn sleeveaa to x-axis <0.0> - pitch speed <450.0>;
 	wait-for-turn sleeveaa around z-axis;
 	wait-for-turn turretaa around y-axis;
 	start-script RestoreAfterDelay();//todo, split these
@@ -210,8 +210,8 @@ AimWeapon3(heading, pitch)
 	set-signal-mask SIGNAL_AIM3;
 
 
-	turn turretr1 to x-axis 0-pitch speed <200.000000>;
-	turn turretr1 to y-axis heading speed <200.000000>;
+	turn turretr1 to x-axis 0-pitch speed <200.0>;
+	turn turretr1 to y-axis heading speed <200.0>;
 	wait-for-turn turretr1 around x-axis;
 	wait-for-turn turretr1 around y-axis;
 	return (1);
@@ -228,8 +228,8 @@ AimWeapon4(heading, pitch)
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
 
-	turn turretr2 to x-axis 0-pitch speed <200.000000>;
-	turn turretr2 to y-axis heading speed <200.000000>;
+	turn turretr2 to x-axis 0-pitch speed <200.0>;
+	turn turretr2 to y-axis heading speed <200.0>;
 	wait-for-turn turretr2 around x-axis;
 	wait-for-turn turretr2 around y-axis;
 	return (1);
@@ -245,8 +245,8 @@ AimWeapon5(heading, pitch)
 	signal SIGNAL_AIM5;
 	set-signal-mask SIGNAL_AIM5;
 
-	turn turretl1 to x-axis 0-pitch speed <200.000000>;
-	turn turretl1 to y-axis heading speed <200.000000>;
+	turn turretl1 to x-axis 0-pitch speed <200.0>;
+	turn turretl1 to y-axis heading speed <200.0>;
 	wait-for-turn turretl1 around x-axis;
 	wait-for-turn turretl1 around y-axis;
 	return (1);
@@ -263,8 +263,8 @@ AimWeapon6(heading, pitch)
 	signal SIGNAL_AIM6;
 	set-signal-mask SIGNAL_AIM6;
 
-	turn turretl2 to x-axis 0-pitch speed <200.000000>;
-	turn turretl2 to y-axis heading speed <200.000000>;
+	turn turretl2 to x-axis 0-pitch speed <200.0>;
+	turn turretl2 to y-axis heading speed <200.0>;
 	wait-for-turn turretl2 around x-axis;
 	wait-for-turn turretl2 around y-axis;
 	return (1);
@@ -290,26 +290,26 @@ ExecuteRestoreAfterDelay()
     }
 	
 	
-	turn turretaa to y-axis <0> speed <200.00000>;
-	turn sleeveaa to x-axis <0.00000> speed <200.00000>;
+	turn turretaa to y-axis <0> speed <200.0>;
+	turn sleeveaa to x-axis <0.0> speed <200.0>;
 	
 	
-	turn turretf to x-axis <45> speed <200.000000>;
-	turn turretf to y-axis <0> speed <200.000000>;
+	turn turretf to x-axis <45> speed <200.0>;
+	turn turretf to y-axis <0> speed <200.0>;
 	
 	
-	turn turretr1 to x-axis <45> speed <200.000000>;
-	turn turretr1 to y-axis <-90> speed <200.000000>;
-	turn turretr2 to x-axis <45> speed <200.000000>;
-	turn turretr2 to y-axis <-90> speed <200.000000>;
-	turn turretl1 to x-axis <45> speed <200.000000>;
-	turn turretl1 to y-axis <90> speed <200.000000>;
-	turn turretl2 to x-axis <45> speed <200.000000>;
-	turn turretl2 to y-axis <90> speed <200.000000>;
+	turn turretr1 to x-axis <45> speed <200.0>;
+	turn turretr1 to y-axis <-90> speed <200.0>;
+	turn turretr2 to x-axis <45> speed <200.0>;
+	turn turretr2 to y-axis <-90> speed <200.0>;
+	turn turretl1 to x-axis <45> speed <200.0>;
+	turn turretl1 to y-axis <90> speed <200.0>;
+	turn turretl2 to x-axis <45> speed <200.0>;
+	turn turretl2 to y-axis <90> speed <200.0>;
 
 	
-	turn base to y-axis <0.000000> speed <250.000000>;
-	turn base to x-axis <0.000000> speed <250.000000>;
+	turn base to y-axis <0.0> speed <250.0>;
+	turn base to x-axis <0.0> speed <250.0>;
 
 }
 SetStunned(State)
@@ -336,34 +336,34 @@ StopMoving()
 
 MoveRate0()
 {
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
 }
 
 MoveRate1()
 {
-	turn thrustrr to x-axis <8.000000> speed <60.000000>;
-	turn thrustrl to x-axis <8.000000> speed <60.000000>;
-	turn thrustfr to x-axis <8.000000> speed <60.000000>;
-	turn thrustfl to x-axis <8.000000> speed <60.000000>;
+	turn thrustrr to x-axis <8.0> speed <60.0>;
+	turn thrustrl to x-axis <8.0> speed <60.0>;
+	turn thrustfr to x-axis <8.0> speed <60.0>;
+	turn thrustfl to x-axis <8.0> speed <60.0>;
 }
 
 MoveRate2()
 {
-	turn thrustrr to x-axis <18.000000> speed <45.000000>;
-	turn thrustrl to x-axis <18.000000> speed <45.000000>;
-	turn thrustfr to x-axis <18.000000> speed <45.000000>;
-	turn thrustfl to x-axis <18.000000> speed <45.000000>;
+	turn thrustrr to x-axis <18.0> speed <45.0>;
+	turn thrustrl to x-axis <18.0> speed <45.0>;
+	turn thrustfr to x-axis <18.0> speed <45.0>;
+	turn thrustfl to x-axis <18.0> speed <45.0>;
 }
 
 MoveRate3()
 {
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
+	turn thrustrr to x-axis <0.0> speed <70.0>;
+	turn thrustrl to x-axis <0.0> speed <70.0>;
+	turn thrustfr to x-axis <0.0> speed <70.0>;
+	turn thrustfl to x-axis <0.0> speed <70.0>;
 }
 
 

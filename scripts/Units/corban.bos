@@ -69,8 +69,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <100.000000>;
-	turn sleeve to x-axis <0.000000> speed <100.000000>;
+	turn turret to y-axis <0.0> speed <100.0>;
+	turn sleeve to x-axis <0.0> speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 }
@@ -100,8 +100,8 @@ AimWeapon1(heading, pitch)
 	if (heading > 24576) ourheading = 24576;
 
 
-	turn turret to y-axis ourheading speed <125.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <125.000000>;
+	turn turret to y-axis ourheading speed <125.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <125.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

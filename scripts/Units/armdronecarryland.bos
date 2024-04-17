@@ -39,7 +39,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 

@@ -13,25 +13,25 @@ IdleHover()
 	while(TRUE){
 		if(isMoving == 1)
 		{
-			turn lwingd to z-axis <20.000000> speed <800>;
-			turn lwingu to z-axis <0.000000> speed <800>;
-			turn rwingd to z-axis <-20.000000> speed <800>;
-			turn rwingu to z-axis <0.000000> speed <800>;
+			turn lwingd to z-axis <20.0> speed <800>;
+			turn lwingu to z-axis <0.0> speed <800>;
+			turn rwingd to z-axis <-20.0> speed <800>;
+			turn rwingu to z-axis <0.0> speed <800>;
 			sleep 25;
-			turn lwingd to z-axis <0.000000> speed <800>;
-			turn lwingu to z-axis <40.000000> speed <1600>;
-			turn rwingd to z-axis <0.000000> speed <800>;
-			turn rwingu to z-axis <-40.000000> speed <1600>;
+			turn lwingd to z-axis <0.0> speed <800>;
+			turn lwingu to z-axis <40.0> speed <1600>;
+			turn rwingd to z-axis <0.0> speed <800>;
+			turn rwingu to z-axis <-40.0> speed <1600>;
 			sleep 25;
-			turn lwingd to z-axis <-25.000000> speed <1000>;
-			turn lwingu to z-axis <0.000000> speed <1600>;
-			turn rwingd to z-axis <25.000000> speed <1000>;
-			turn rwingu to z-axis <0.000000> speed <1600>;
+			turn lwingd to z-axis <-25.0> speed <1000>;
+			turn lwingu to z-axis <0.0> speed <1600>;
+			turn rwingd to z-axis <25.0> speed <1000>;
+			turn rwingu to z-axis <0.0> speed <1600>;
 			sleep 25;
-			turn lwingd to z-axis <0.000000> speed <1000>;
-			turn lwingu to z-axis <-20.000000> speed <800>;
-			turn rwingd to z-axis <0.000000> speed <1000>;
-			turn rwingu to z-axis <20.000000> speed <800>;
+			turn lwingd to z-axis <0.0> speed <1000>;
+			turn lwingu to z-axis <-20.0> speed <800>;
+			turn rwingd to z-axis <0.0> speed <1000>;
+			turn rwingu to z-axis <20.0> speed <800>;
 			sleep 25;
 		}
 		else sleep 200;
@@ -126,10 +126,10 @@ StartMoving(reversing)
 StopMoving()
 {
 	isMoving = 0;
-	turn lwingd to z-axis <0.000000> speed <50.000000>;
-	turn lwingu to z-axis <0.000000> speed <50.000000>;
-	turn rwingd to z-axis <0.000000> speed <50.000000>;
-	turn rwingu to z-axis <0.000000> speed <50.000000>;
+	turn lwingd to z-axis <0.0> speed <50.0>;
+	turn lwingu to z-axis <0.0> speed <50.0>;
+	turn rwingd to z-axis <0.0> speed <50.0>;
+	turn rwingu to z-axis <0.0> speed <50.0>;
 	start-script RestoreAfterDelay();
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
@@ -138,10 +138,10 @@ StopMoving()
 MoveRate0()
 {
 	isMoving = 0;
-	turn lwingd to z-axis <0.000000> speed <50.000000>;
-	turn lwingu to z-axis <0.000000> speed <50.000000>;
-	turn rwingd to z-axis <0.000000> speed <50.000000>;
-	turn rwingu to z-axis <0.000000> speed <50.000000>;
+	turn lwingd to z-axis <0.0> speed <50.0>;
+	turn lwingu to z-axis <0.0> speed <50.0>;
+	turn rwingd to z-axis <0.0> speed <50.0>;
+	turn rwingu to z-axis <0.0> speed <50.0>;
 }
 
 MoveRate1()

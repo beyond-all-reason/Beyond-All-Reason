@@ -32,8 +32,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -70,9 +70,9 @@ Propcontrol()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin lprop around z-axis speed (<-1.000000> * currentSpeed ) * turnCounter accelerate <10.000000>;
-		spin rprop around z-axis speed (<1.000000> * currentSpeed ) * turnClock accelerate <10.000000>;
-		spin bprop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		spin lprop around z-axis speed (<-1.0> * currentSpeed ) * turnCounter accelerate <10.0>;
+		spin rprop around z-axis speed (<1.0> * currentSpeed ) * turnClock accelerate <10.0>;
+		spin bprop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 33;
 	}
 }

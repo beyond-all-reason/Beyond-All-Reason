@@ -22,7 +22,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn gun to y-axis heading speed <140.000000>;
+	turn gun to y-axis heading speed <140.0>;
 	wait-for-turn gun around y-axis;
 	return (1);
 }

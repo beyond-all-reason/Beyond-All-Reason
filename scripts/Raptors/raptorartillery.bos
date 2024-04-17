@@ -50,7 +50,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Leg_Front1_R to y-axis ((<-8.605745> *animAmplitude)/100) speed ((<124.166692> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_L to x-axis ((<2.307427> *animAmplitude)/100) speed ((<82.803877> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_L to z-axis ((<-3.385443> *animAmplitude)/100) speed ((<89.818612> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Leg_Front2_L to y-axis ((<-3.183454> *animAmplitude)/100) speed ((<89.000146> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Leg_Front2_L to y-axis ((<-3.183454> *animAmplitude)/100) speed ((<89.0> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_R to x-axis ((<-5.295722> *animAmplitude)/100) speed ((<262.828258> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_R to z-axis ((<0.286927> *animAmplitude)/100) speed ((<124.287194> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_R to y-axis ((<-1.328029> *animAmplitude)/100) speed ((<503.406656> *animAmplitude)/100) / animSpeed; 
@@ -199,7 +199,7 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Leg_Front2_L to y-axis ((<-4.362970> *animAmplitude)/100) speed ((<129.037355> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_R to x-axis ((<-23.191588> *animAmplitude)/100) speed ((<387.565586> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front2_R to z-axis ((<-5.494255> *animAmplitude)/100) speed ((<3.559621> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Leg_Front2_R to y-axis ((<11.000698> *animAmplitude)/100) speed ((<420.158715> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Leg_Front2_R to y-axis ((<11.0> *animAmplitude)/100) speed ((<420.158715> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front3_L to x-axis ((<-5.473561> *animAmplitude)/100) speed ((<98.351650> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front3_L to z-axis ((<4.673288> *animAmplitude)/100) speed ((<83.944079> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Front3_L to y-axis ((<1.621614> *animAmplitude)/100) speed ((<6.364293> *animAmplitude)/100) / animSpeed; 
@@ -225,8 +225,8 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Leg_Middle3_R to z-axis ((<12.772168> *animAmplitude)/100) speed ((<3.766602> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Middle3_R to y-axis ((<5.089777> *animAmplitude)/100) speed ((<20.738760> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail1 to x-axis ((<23.314120> *animAmplitude)/100) speed ((<20.022665> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail1 to z-axis ((<0.000000> *animAmplitude)/100) speed ((<8.315338> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail1 to y-axis ((<0.000000> *animAmplitude)/100) speed ((<46.070960> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail1 to z-axis ((<0.0> *animAmplitude)/100) speed ((<8.315338> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail1 to y-axis ((<0.0> *animAmplitude)/100) speed ((<46.070960> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to x-axis ((<23.306783> *animAmplitude)/100) speed ((<23.152600> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to z-axis ((<0.128290> *animAmplitude)/100) speed ((<13.413667> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to y-axis ((<0.371457> *animAmplitude)/100) speed ((<37.923180> *animAmplitude)/100) / animSpeed; 
@@ -315,8 +315,8 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Tail4 to z-axis ((<-0.030028> *animAmplitude)/100) speed ((<3.138793> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail4 to y-axis ((<-0.535807> *animAmplitude)/100) speed ((<55.007660> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail5 to x-axis ((<23.460339> *animAmplitude)/100) speed ((<11.397366> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail5 to z-axis ((<0.000002> *animAmplitude)/100) speed ((<4.163541> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail5 to y-axis ((<0.000002> *animAmplitude)/100) speed ((<55.993176> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail5 to z-axis ((<0.0> *animAmplitude)/100) speed ((<4.163541> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail5 to y-axis ((<0.0> *animAmplitude)/100) speed ((<55.993176> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to x-axis ((<1.825714> *animAmplitude)/100) speed ((<12.912061> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to z-axis ((<1.548569> *animAmplitude)/100) speed ((<47.364723> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to y-axis ((<1.898481> *animAmplitude)/100) speed ((<10.862527> *animAmplitude)/100) / animSpeed; 
@@ -608,8 +608,8 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Leg_Middle3_R to z-axis ((<3.522500> *animAmplitude)/100) speed ((<38.733217> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Leg_Middle3_R to y-axis ((<0.523318> *animAmplitude)/100) speed ((<16.033570> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail1 to x-axis ((<23.314116> *animAmplitude)/100) speed ((<20.018670> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail1 to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<8.313535> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail1 to y-axis ((<-0.000000> *animAmplitude)/100) speed ((<46.061230> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail1 to z-axis ((<-0.0> *animAmplitude)/100) speed ((<8.313535> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail1 to y-axis ((<-0.0> *animAmplitude)/100) speed ((<46.061230> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to x-axis ((<23.306791> *animAmplitude)/100) speed ((<23.148399> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to z-axis ((<-0.128249> *animAmplitude)/100) speed ((<13.411629> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail2 to y-axis ((<-0.371339> *animAmplitude)/100) speed ((<37.917638> *animAmplitude)/100) / animSpeed; 
@@ -700,8 +700,8 @@ Walk() {// For C:\Users\Peti\Downloads\Raptor_Artillery_BAKED(2).blend Created b
 			turn rig_Raptor_Artillery_Tail4 to z-axis ((<0.030019> *animAmplitude)/100) speed ((<3.137853> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail4 to y-axis ((<0.535643> *animAmplitude)/100) speed ((<54.991767> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Tail5 to x-axis ((<23.460344> *animAmplitude)/100) speed ((<11.394292> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail5 to z-axis ((<-0.000002> *animAmplitude)/100) speed ((<4.162510> *animAmplitude)/100) / animSpeed; 
-			turn rig_Raptor_Artillery_Tail5 to y-axis ((<-0.000002> *animAmplitude)/100) speed ((<55.978604> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail5 to z-axis ((<-0.0> *animAmplitude)/100) speed ((<4.162510> *animAmplitude)/100) / animSpeed; 
+			turn rig_Raptor_Artillery_Tail5 to y-axis ((<-0.0> *animAmplitude)/100) speed ((<55.978604> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to x-axis ((<2.075525> *animAmplitude)/100) speed ((<6.507580> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to z-axis ((<-1.561359> *animAmplitude)/100) speed ((<47.952362> *animAmplitude)/100) / animSpeed; 
 			turn rig_Raptor_Artillery_Thorax to y-axis ((<-0.964060> *animAmplitude)/100) speed ((<26.631149> *animAmplitude)/100) / animSpeed; 
@@ -952,8 +952,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 6;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 6;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 6;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 6;
 }
 
 static-var isSmoking;

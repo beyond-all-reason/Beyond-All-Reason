@@ -47,12 +47,12 @@ QueryTransport(pieceIndex)
 
 BeginTransport(targetHeight)
 {
-	move link to y-axis [0.000000] - targetHeight now;
+	move link to y-axis [0.0] - targetHeight now;
 }
 
 EndTransport()
 {
-	move link to y-axis [0.000000] now;
+	move link to y-axis [0.0] now;
 }
 
 Activate()
@@ -77,10 +77,10 @@ StopMoving()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
 }
 
 
@@ -88,40 +88,40 @@ MoveRate0()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
 }
 
 MoveRate1()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn thrustrr to x-axis <10.000000> speed <60.000000>;
-	turn thrustrl to x-axis <10.000000> speed <60.000000>;
-	turn thrustfr to x-axis <10.000000> speed <60.000000>;
-	turn thrustfl to x-axis <10.000000> speed <60.000000>;
+	turn thrustrr to x-axis <10.0> speed <60.0>;
+	turn thrustrl to x-axis <10.0> speed <60.0>;
+	turn thrustfr to x-axis <10.0> speed <60.0>;
+	turn thrustfl to x-axis <10.0> speed <60.0>;
 }
 
 MoveRate2()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn thrustrr to x-axis <20.000000> speed <45.000000>;
-	turn thrustrl to x-axis <20.000000> speed <45.000000>;
-	turn thrustfr to x-axis <20.000000> speed <45.000000>;
-	turn thrustfl to x-axis <20.000000> speed <45.000000>;
+	turn thrustrr to x-axis <20.0> speed <45.0>;
+	turn thrustrl to x-axis <20.0> speed <45.0>;
+	turn thrustfr to x-axis <20.0> speed <45.0>;
+	turn thrustfl to x-axis <20.0> speed <45.0>;
 }
 
 MoveRate3()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
+	turn thrustrr to x-axis <0.0> speed <70.0>;
+	turn thrustrl to x-axis <0.0> speed <70.0>;
+	turn thrustfr to x-axis <0.0> speed <70.0>;
+	turn thrustfl to x-axis <0.0> speed <70.0>;
 }
 
 Killed(severity, corpsetype)

@@ -46,7 +46,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	turn cog to y-axis heading speed <15.000000>;
+	turn cog to y-axis heading speed <15.0>;
 
 	//turn other cogs
 	//thanks to Zecrus for wrangling the maths for the spinny blighters
@@ -63,10 +63,10 @@ AimWeapon1(heading, pitch)
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		//wait-for-turn cog around y-axis;
-		spin cog1 around y-axis speed <80.000000>;
-		spin cog2 around y-axis speed <80.000000>;
-		spin cog3 around y-axis speed <80.000000>;
-		spin cog4 around y-axis speed <80.000000>;
+		spin cog1 around y-axis speed <80.0>;
+		spin cog2 around y-axis speed <80.0>;
+		spin cog3 around y-axis speed <80.0>;
+		spin cog4 around y-axis speed <80.0>;
 		wait-for-turn cog around y-axis;
 		stop-spin cog1 around y-axis;
 		stop-spin cog2 around y-axis;
@@ -77,10 +77,10 @@ AimWeapon1(heading, pitch)
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		//wait-for-turn cog around y-axis;
-		spin cog1 around y-axis speed <-80.000000>;
-		spin cog2 around y-axis speed <-80.000000>;
-		spin cog3 around y-axis speed <-80.000000>;
-		spin cog4 around y-axis speed <-80.000000>;
+		spin cog1 around y-axis speed <-80.0>;
+		spin cog2 around y-axis speed <-80.0>;
+		spin cog3 around y-axis speed <-80.0>;
+		spin cog4 around y-axis speed <-80.0>;
 		wait-for-turn cog around y-axis;
 		stop-spin cog1 around y-axis;
 		stop-spin cog2 around y-axis;

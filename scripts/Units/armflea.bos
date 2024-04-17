@@ -47,11 +47,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move base to y-axis [2.930000] speed [43.949997] / animSpeed; //delta=1.46 
 			turn base to x-axis <-0.200000> speed <416.999979> / animSpeed; //delta=-13.90 
 			turn lfleg to y-axis <5.266663> speed <919.999946> / animSpeed; //delta=-30.67 
-			turn lrleg to x-axis <6.000000> speed <69.000001> / animSpeed; //delta=2.30 
+			turn lrleg to x-axis <6.0> speed <69.0> / animSpeed; //delta=2.30 
 			turn lrleg to z-axis <6.733333> speed <94.999906> / animSpeed; //delta=3.17 
 			turn lrleg to y-axis <27.866663> speed <1056.999880> / animSpeed; //delta=-35.23 
 			turn rfleg to y-axis <-5.266663> speed <919.999946> / animSpeed; //delta=30.67 
-			turn rrleg to x-axis <6.000000> speed <69.000001> / animSpeed; //delta=2.30 
+			turn rrleg to x-axis <6.0> speed <69.0> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-6.733333> speed <94.999906> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <-27.866663> speed <1056.999880> / animSpeed; //delta=35.23 
 			turn turret to x-axis <12.900000> speed <281.999924> / animSpeed; //delta=9.40 
@@ -68,38 +68,38 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rrleg to x-axis <3.700001> speed <68.999963> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-3.566667> speed <94.999989> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <7.366666> speed <1056.999880> / animSpeed; //delta=35.23 
-			turn turret to x-axis <5.599998> speed <219.000061> / animSpeed; //delta=7.30 
+			turn turret to x-axis <5.599998> speed <219.0> / animSpeed; //delta=7.30 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:20
-			move base to y-axis [0.000000] speed [40.500001] / animSpeed; //delta=-1.35 
-			turn base to x-axis <-0.000000> speed <398.999963> / animSpeed; //delta=13.30 
+			move base to y-axis [0.0] speed [40.500001] / animSpeed; //delta=-1.35 
+			turn base to x-axis <-0.0> speed <398.999963> / animSpeed; //delta=13.30 
 			turn lfleg to y-axis <66.599993> speed <2759.999684> / animSpeed; //delta=92.00 
-			turn lrleg to x-axis <1.400000> speed <69.000033> / animSpeed; //delta=2.30 
+			turn lrleg to x-axis <1.400000> speed <69.0> / animSpeed; //delta=2.30 
 			turn lrleg to z-axis <0.400000> speed <94.999996> / animSpeed; //delta=3.17 
 			turn lrleg to y-axis <-42.599996> speed <1056.999880> / animSpeed; //delta=-35.23 
 			turn rfleg to y-axis <-66.599993> speed <2759.999684> / animSpeed; //delta=-92.00 
-			turn rrleg to x-axis <1.400000> speed <69.000033> / animSpeed; //delta=2.30 
+			turn rrleg to x-axis <1.400000> speed <69.0> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-0.400000> speed <94.999996> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <42.599996> speed <1056.999880> / animSpeed; //delta=35.23 
-			turn turret to x-axis <-0.000000> speed <167.999935> / animSpeed; //delta=5.60 
+			turn turret to x-axis <-0.0> speed <167.999935> / animSpeed; //delta=5.60 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
 // Call this from StopMoving()!
 StopWalking() {
-	move base to y-axis [0.000000] speed [11.849999];
-	turn base to x-axis <0.000000> speed <105.749994>;
-	turn lfleg to y-axis <0.000000> speed <689.999921>;
-	turn lrleg to x-axis <0.000000> speed <51.749999>;
-	turn lrleg to y-axis <0.000000> speed <792.749910>;
-	turn lrleg to z-axis <0.000000> speed <71.249973>;
-	turn rfleg to y-axis <0.000000> speed <689.999921>;
-	turn rrleg to x-axis <0.000000> speed <51.749999>;
-	turn rrleg to y-axis <0.000000> speed <792.749910>;
-	turn rrleg to z-axis <0.000000> speed <71.249973>;
-	turn turret to x-axis <0.000000> speed <167.249980>;
+	move base to y-axis [0.0] speed [11.849999];
+	turn base to x-axis <0.0> speed <105.749994>;
+	turn lfleg to y-axis <0.0> speed <689.999921>;
+	turn lrleg to x-axis <0.0> speed <51.749999>;
+	turn lrleg to y-axis <0.0> speed <792.749910>;
+	turn lrleg to z-axis <0.0> speed <71.249973>;
+	turn rfleg to y-axis <0.0> speed <689.999921>;
+	turn rrleg to x-axis <0.0> speed <51.749999>;
+	turn rrleg to y-axis <0.0> speed <792.749910>;
+	turn rrleg to z-axis <0.0> speed <71.249973>;
+	turn turret to x-axis <0.0> speed <167.249980>;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -163,7 +163,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.000000> speed <300.000000>;
+	turn aimy1 to y-axis <0.0> speed <300.0>;
 	wait-for-turn aimy1 around y-axis;
 	wpn1_lasthead = 1000000;
 	isAiming = FALSE;
@@ -196,7 +196,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <450.000000>;
+	turn aimy1 to y-axis heading speed <450.0>;
 
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{

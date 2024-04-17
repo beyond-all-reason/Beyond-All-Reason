@@ -19,12 +19,12 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 	//CC BY NC ND (c) Beherith
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
-			turn lfoot to x-axis <26.466910> speed <49.000477> / animSpeed; //delta=-1.63 
+			turn lfoot to x-axis <26.466910> speed <49.0> / animSpeed; //delta=-1.63 
 			turn lleg to x-axis <-9.730538> speed <130.748442> / animSpeed; //delta=4.36 
 			turn lthigh to x-axis <-39.987742> speed <70.213388> / animSpeed; //delta=2.34 
 			turn lthigh to z-axis <-3.971332> speed <122.904832> / animSpeed; //delta=4.10 
 			turn lthigh to y-axis <-0.268346> speed <6.294698> / animSpeed; //delta=-0.21 
-			turn pelvis to z-axis <-2.000000> speed <60.000000> / animSpeed; //delta=2.00 
+			turn pelvis to z-axis <-2.0> speed <60.0> / animSpeed; //delta=2.00 
 			turn pelvis to y-axis <-4.999999> speed <149.999983> / animSpeed; //delta=-5.00 
 			turn rfoot to x-axis <-14.434193> speed <433.025866> / animSpeed; //delta=14.43 
 			turn rfoot to z-axis <-1.616138> speed <48.484150> / animSpeed; //delta=1.62 
@@ -44,9 +44,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <-18.848920> speed <634.164674> / animSpeed; //delta=-21.14 
 			turn lthigh to z-axis <-6.312246> speed <70.227424> / animSpeed; //delta=2.34 
 			turn lthigh to y-axis <2.831168> speed <92.985423> / animSpeed; //delta=3.10 
-			turn pelvis to x-axis <6.000000> speed <180.000005> / animSpeed; //delta=-6.00 
-			turn pelvis to z-axis <-0.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn pelvis to y-axis <-7.000000> speed <60.000019> / animSpeed; //delta=-2.00 
+			turn pelvis to x-axis <6.0> speed <180.0> / animSpeed; //delta=-6.00 
+			turn pelvis to z-axis <-0.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn pelvis to y-axis <-7.0> speed <60.0> / animSpeed; //delta=-2.00 
 			turn rfoot to x-axis <-27.878513> speed <403.329620> / animSpeed; //delta=13.44 
 			turn rfoot to z-axis <-1.255349> speed <10.823688> / animSpeed; //delta=-0.36 
 			turn rfoot to y-axis <0.700846> speed <13.205318> / animSpeed; //delta=0.44 
@@ -64,9 +64,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <-26.629176> speed <233.407696> / animSpeed; //delta=7.78 
 			turn lthigh to z-axis <-5.205854> speed <33.191774> / animSpeed; //delta=-1.11 
 			turn lthigh to y-axis <0.463729> speed <71.023150> / animSpeed; //delta=-2.37 
-			turn pelvis to x-axis <3.000000> speed <90.000003> / animSpeed; //delta=3.00 
-			turn pelvis to z-axis <2.000000> speed <60.000000> / animSpeed; //delta=-2.00 
-			turn pelvis to y-axis <-5.000000> speed <60.000006> / animSpeed; //delta=2.00 
+			turn pelvis to x-axis <3.0> speed <90.0> / animSpeed; //delta=3.00 
+			turn pelvis to z-axis <2.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn pelvis to y-axis <-5.0> speed <60.0> / animSpeed; //delta=2.00 
 			turn rfoot to x-axis <-24.655513> speed <96.690019> / animSpeed; //delta=-3.22 
 			turn rfoot to z-axis <-1.850861> speed <17.865364> / animSpeed; //delta=0.60 
 			turn rfoot to y-axis <-0.528248> speed <36.872802> / animSpeed; //delta=-1.23 
@@ -83,9 +83,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lleg to x-axis <-0.309187> speed <688.982231> / animSpeed; //delta=-22.97 
 			turn lthigh to x-axis <-13.714644> speed <387.435958> / animSpeed; //delta=-12.91 
 			turn lthigh to z-axis <-2.233255> speed <89.177959> / animSpeed; //delta=-2.97 
-			turn pelvis to x-axis <1.000000> speed <60.000003> / animSpeed; //delta=2.00 
-			turn pelvis to z-axis <3.000000> speed <30.000003> / animSpeed; //delta=-1.00 
-			turn pelvis to y-axis <0.000000> speed <149.999996> / animSpeed; //delta=5.00 
+			turn pelvis to x-axis <1.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to z-axis <3.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn pelvis to y-axis <0.0> speed <149.999996> / animSpeed; //delta=5.00 
 			turn rfoot to x-axis <-0.452667> speed <726.085379> / animSpeed; //delta=-24.20 
 			turn rfoot to z-axis <-1.544635> speed <9.186789> / animSpeed; //delta=-0.31 
 			turn rfoot to y-axis <-0.721502> speed <5.797635> / animSpeed; //delta=-0.19 
@@ -102,9 +102,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <17.063926> speed <923.357120> / animSpeed; //delta=-30.78 
 			turn lthigh to z-axis <-1.680530> speed <16.581764> / animSpeed; //delta=-0.55 
 			turn lthigh to y-axis <0.991576> speed <13.256465> / animSpeed; //delta=0.44 
-			turn pelvis to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <2.000000> speed <30.000003> / animSpeed; //delta=1.00 
-			turn pelvis to y-axis <5.000000> speed <149.999996> / animSpeed; //delta=5.00 
+			turn pelvis to x-axis <-0.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <2.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to y-axis <5.0> speed <149.999996> / animSpeed; //delta=5.00 
 			turn rfoot to x-axis <25.803908> speed <787.697250> / animSpeed; //delta=-26.26 
 			turn rfoot to z-axis <-1.411584> speed <3.991531> / animSpeed; //delta=-0.13 
 			turn rfoot to y-axis <-0.515103> speed <6.191977> / animSpeed; //delta=0.21 
@@ -122,9 +122,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <51.840559> speed <1043.298965> / animSpeed; //delta=-34.78 
 			turn lthigh to z-axis <-5.526871> speed <115.390252> / animSpeed; //delta=3.85 
 			turn lthigh to y-axis <4.437991> speed <103.392442> / animSpeed; //delta=3.45 
-			turn pelvis to x-axis <6.000000> speed <180.000005> / animSpeed; //delta=-6.00 
-			turn pelvis to z-axis <-0.000000> speed <60.000000> / animSpeed; //delta=2.00 
-			turn pelvis to y-axis <7.000000> speed <60.000006> / animSpeed; //delta=2.00 
+			turn pelvis to x-axis <6.0> speed <180.0> / animSpeed; //delta=-6.00 
+			turn pelvis to z-axis <-0.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to y-axis <7.0> speed <60.0> / animSpeed; //delta=2.00 
 			turn rfoot to x-axis <68.089186> speed <1268.558330> / animSpeed; //delta=-42.29 
 			turn rfoot to z-axis <-2.157722> speed <22.384155> / animSpeed; //delta=0.75 
 			turn rfoot to y-axis <3.499864> speed <120.449000> / animSpeed; //delta=4.01 
@@ -142,9 +142,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <6.570095> speed <1358.113905> / animSpeed; //delta=45.27 
 			turn lthigh to z-axis <2.723643> speed <247.515432> / animSpeed; //delta=-8.25 
 			turn lthigh to y-axis <-1.313192> speed <172.535480> / animSpeed; //delta=-5.75 
-			turn pelvis to x-axis <3.000000> speed <90.000003> / animSpeed; //delta=3.00 
-			turn pelvis to z-axis <-2.000000> speed <60.000000> / animSpeed; //delta=2.00 
-			turn pelvis to y-axis <5.000000> speed <60.000006> / animSpeed; //delta=-2.00 
+			turn pelvis to x-axis <3.0> speed <90.0> / animSpeed; //delta=3.00 
+			turn pelvis to z-axis <-2.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to y-axis <5.0> speed <60.0> / animSpeed; //delta=-2.00 
 			turn rfoot to x-axis <45.741719> speed <670.424014> / animSpeed; //delta=22.35 
 			turn rfoot to z-axis <0.001567> speed <64.778665> / animSpeed; //delta=-2.16 
 			turn rfoot to y-axis <-0.002470> speed <105.069999> / animSpeed; //delta=-3.50 
@@ -162,9 +162,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lthigh to x-axis <-28.319983> speed <1046.702333> / animSpeed; //delta=34.89 
 			turn lthigh to z-axis <2.277032> speed <13.398340> / animSpeed; //delta=0.45 
 			turn lthigh to y-axis <-0.293105> speed <30.602611> / animSpeed; //delta=1.02 
-			turn pelvis to x-axis <1.000000> speed <60.000003> / animSpeed; //delta=2.00 
-			turn pelvis to z-axis <-3.000000> speed <30.000003> / animSpeed; //delta=1.00 
-			turn pelvis to y-axis <0.000000> speed <149.999996> / animSpeed; //delta=-5.00 
+			turn pelvis to x-axis <1.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to z-axis <-3.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to y-axis <0.0> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn rfoot to x-axis <12.831917> speed <987.294069> / animSpeed; //delta=32.91 
 			turn rfoot to z-axis <-1.627522> speed <48.872677> / animSpeed; //delta=1.63 
 			turn rfoot to y-axis <-0.248528> speed <7.381765> / animSpeed; //delta=-0.25 
@@ -180,9 +180,9 @@ Walk() {// For N:\animations\corspec_anim_walk.blend Created by https://github.c
 			turn lleg to x-axis <-9.730538> speed <687.876778> / animSpeed; //delta=22.93 
 			turn lthigh to x-axis <-39.987742> speed <350.032783> / animSpeed; //delta=11.67 
 			turn lthigh to z-axis <-3.971332> speed <187.450913> / animSpeed; //delta=6.25 
-			turn pelvis to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <-2.000000> speed <30.000003> / animSpeed; //delta=-1.00 
-			turn pelvis to y-axis <-5.000000> speed <149.999996> / animSpeed; //delta=-5.00 
+			turn pelvis to x-axis <-0.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <-2.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn pelvis to y-axis <-5.0> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn rfoot to x-axis <-10.748712> speed <707.418863> / animSpeed; //delta=23.58 
 			turn rfoot to y-axis <0.164666> speed <12.395835> / animSpeed; //delta=0.41 
 			turn rleg to x-axis <1.958833> speed <59.865166> / animSpeed; //delta=-2.00 
@@ -199,18 +199,18 @@ StopWalking() {
 	turn lfoot to z-axis <1.401140> speed <14.261299>;
 	turn lleg to x-axis <-5.372256> speed <373.028543>;
 	turn lthigh to x-axis <-37.647296> speed <271.622781>;
-	turn lthigh to y-axis <0.000000> speed <34.507096>;
+	turn lthigh to y-axis <0.0> speed <34.507096>;
 	turn lthigh to z-axis <0.125496> speed <49.503086>;
-	turn pelvis to x-axis <0.000000> speed <36.000001>;
-	turn pelvis to y-axis <0.000000> speed <29.999999>;
-	turn pelvis to z-axis <0.000000> speed <12.000000>;
-	turn rfoot to x-axis <0.000000> speed <253.711666>;
-	turn rfoot to y-axis <0.000000> speed <24.089800>;
-	turn rfoot to z-axis <0.000000> speed <12.955733>;
-	turn rleg to x-axis <0.000000> speed <372.346212>;
-	turn rthigh to x-axis <0.000000> speed <273.467334>;
-	turn rthigh to y-axis <0.000000> speed <25.081572>;
-	turn rthigh to z-axis <0.000000> speed <45.450180>;
+	turn pelvis to x-axis <0.0> speed <36.0>;
+	turn pelvis to y-axis <0.0> speed <29.999999>;
+	turn pelvis to z-axis <0.0> speed <12.0>;
+	turn rfoot to x-axis <0.0> speed <253.711666>;
+	turn rfoot to y-axis <0.0> speed <24.089800>;
+	turn rfoot to z-axis <0.0> speed <12.955733>;
+	turn rleg to x-axis <0.0> speed <372.346212>;
+	turn rthigh to x-axis <0.0> speed <273.467334>;
+	turn rthigh to y-axis <0.0> speed <25.081572>;
+	turn rthigh to z-axis <0.0> speed <45.450180>;
 }
 // REMEMBER TO animspeed = 5 in Create() !!
 UnitSpeed(){
@@ -332,7 +332,7 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	turn dish to x-axis <0.000000> speed <-100.000000>;
+	turn dish to x-axis <0.0> speed <-100.0>;
 	wait-for-turn dish around x-axis;
 	call-script close();
 	return (0);

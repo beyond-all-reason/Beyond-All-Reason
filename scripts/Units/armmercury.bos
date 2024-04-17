@@ -22,8 +22,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn gunl to x-axis <-11> speed <25.00000>;
-    turn gunr to x-axis <-11> speed <25.00000>;
+    turn gunl to x-axis <-11> speed <25.0>;
+    turn gunr to x-axis <-11> speed <25.0>;
     spin turret around y-axis speed <20.0>;
     firstaim = 1;
 }
@@ -62,9 +62,9 @@ AimWeapon1(heading, pitch)
 //	if ((get DELAY_UNIT_VAR) == 0) {
 //	  return(0);
 //	}
-	turn turret to y-axis heading speed <125.000000>;
-	turn gunr to x-axis <0.000000> - pitch speed <100.000000>;
-	turn gunl to x-axis <0.000000> - pitch speed <100.000000>;
+	turn turret to y-axis heading speed <125.0>;
+	turn gunr to x-axis <0.0> - pitch speed <100.0>;
+	turn gunl to x-axis <0.0> - pitch speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gunl around x-axis;
 	wait-for-turn gunr around x-axis;

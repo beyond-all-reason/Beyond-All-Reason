@@ -57,7 +57,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn turret to y-axis <0.0> speed <90.0>;
 }
 SetStunned(State)
 {

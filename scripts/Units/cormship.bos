@@ -50,7 +50,7 @@ Create()
 		sleep 500;
 	}
 	start-script RockOnWaves();
-	spin dish around y-axis speed <150.000000>;
+	spin dish around y-axis speed <150.0>;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -70,8 +70,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <70.000000>;
-	turn sleeve to x-axis <0.000000> speed <30.000000>;
+	turn turret to y-axis <0.0> speed <70.0>;
+	turn sleeve to x-axis <0.0> speed <30.0>;
 
 	turn launcher to x-axis <0> speed <90>;
 	wait-for-turn launcher around x-axis;
@@ -95,12 +95,12 @@ RestoreAfterDelay()
 
 Activate()
 {
-	spin dish around y-axis speed <150.000000>;
+	spin dish around y-axis speed <150.0>;
 }
 
 Deactivate()
 {
-	spin dish around y-axis speed <0.000000>;
+	spin dish around y-axis speed <0.0>;
 }
 
 waveSplash()
@@ -160,8 +160,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn turret to y-axis heading speed <170.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <130.000000>;
+	turn turret to y-axis heading speed <170.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <130.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script abaim();

@@ -24,8 +24,8 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <500.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <250.000000>;
+	turn turret to y-axis heading speed <500.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <250.0>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( (get ABS(lastheading-heading)<3000) AND (get ABS(lastpitch-pitch)<1500) )
 	{

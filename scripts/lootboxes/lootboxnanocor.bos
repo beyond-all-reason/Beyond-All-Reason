@@ -25,7 +25,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aim to y-axis <0.000000> speed <100.000000>;
+	turn aim to y-axis <0.0> speed <100.0>;
 	wait-for-turn aim around y-axis;
 }
 SetStunned(State)
@@ -43,7 +43,7 @@ RestoreAfterDelay()
 
 Activate()
 {
-	turn aim to y-axis buildHeading speed <320.000000>;
+	turn aim to y-axis buildHeading speed <320.0>;
 	wait-for-turn aim around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -56,7 +56,7 @@ Deactivate()
 StartBuilding(heading)
 {
 	buildHeading = heading;
-	turn aim to y-axis buildHeading speed <320.000000>;
+	turn aim to y-axis buildHeading speed <320.0>;
 }
 
 StopBuilding()

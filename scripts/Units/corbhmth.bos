@@ -132,7 +132,7 @@ RestoreAfterDelay()
 	while (Stunned) {
 		sleep 1;
     }
-	turn sleeve to x-axis <0.000000> speed <25.000000>;
+	turn sleeve to x-axis <0.0> speed <25.0>;
 	//restore_position = 1;
 }
 
@@ -170,7 +170,7 @@ AimWeapon1(heading, pitch)
 
 	//We can do this any time
 	restore_position = 0;
-	turn sleeve to x-axis <0.000000> - pitch speed <25.000000>;
+	turn sleeve to x-axis <0.0> - pitch speed <25.0>;
 	start-script RestoreAfterDelay();
 
 	// let AimControl know what to aim at
@@ -236,7 +236,7 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from flare1;
 	move barrel1 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel1 to z-axis [0.000000] speed [1.000549];
+	move barrel1 to z-axis [0.0] speed [1.000549];
 
 }
 
@@ -249,7 +249,7 @@ FireWeapon2()
 	emit-sfx 1024 + 0 from flare2;
 	move barrel2 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel2 to z-axis [0.000000] speed [1.000549];
+	move barrel2 to z-axis [0.0] speed [1.000549];
 
 }
 
@@ -262,7 +262,7 @@ FireWeapon3()
 	emit-sfx 1024 + 0 from flare3;
 	move barrel3 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel3 to z-axis [0.000000] speed [1.000549];
+	move barrel3 to z-axis [0.0] speed [1.000549];
 
 }
 

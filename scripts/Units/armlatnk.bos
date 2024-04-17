@@ -134,13 +134,13 @@ VehicleSteering(reversing)
 /*
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
+	turn base to x-axis anglex speed <50.0>;
+	turn base to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
 	// Alternatively, 
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 	return (0);
 }
 */
@@ -183,7 +183,7 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 
-	spin wheels around x-axis speed <140.000000> accelerate <5.000000>;
+	spin wheels around x-axis speed <140.0> accelerate <5.0>;
 
 	START_TILTBANK;
 }
@@ -191,7 +191,7 @@ StartMoving(reversing)
 StopMoving()
 {
 	//dbg();
-	stop-spin wheels around x-axis decelerate <24.000000>;
+	stop-spin wheels around x-axis decelerate <24.0>;
 	signal SIGNAL_MOVE;
 
 	STOP_TILTBANK;
@@ -210,9 +210,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn lturret to y-axis <0.000000> speed <150.000000>;
-	turn mturret to y-axis <0.000000> speed <150.000000>;
-	turn mbarrel to x-axis <0.000000> speed <150.000000>;
+	turn lturret to y-axis <0.0> speed <150.0>;
+	turn mturret to y-axis <0.0> speed <150.0>;
+	turn mbarrel to x-axis <0.0> speed <150.0>;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -233,7 +233,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn lturret to y-axis heading speed <150.000000>;
+	turn lturret to y-axis heading speed <150.0>;
 	wait-for-turn lturret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -243,8 +243,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn mturret to y-axis heading speed <300.000000>;
-	turn mbarrel to x-axis <0.000000> - pitch speed <300.000000>;
+	turn mturret to y-axis heading speed <300.0>;
+	turn mbarrel to x-axis <0.0> - pitch speed <300.0>;
 	wait-for-turn mturret around y-axis;
 	wait-for-turn mbarrel around x-axis;
 	start-script RestoreAfterDelay();

@@ -47,7 +47,7 @@ Create()
 StartBuilding(heading)
 {
 	show emitnano;
-	turn aim to y-axis heading speed <100.000000>;
+	turn aim to y-axis heading speed <100.0>;
 	set INBUILDSTANCE to 1;
 }
 

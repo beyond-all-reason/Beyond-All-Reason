@@ -23,7 +23,7 @@
 //	-- This will also name the function and line. 
 //
 // 5. Interpret infolog.
-//	f:<25805.000> u:05541 corsolar.Open:74  p1=5 p2=6 p3=7 p4=8
+//	f:<25805.0> u:05541 corsolar.Open:74  p1=5 p2=6 p3=7 p4=8
 //	- f:<gameframe.order> can tell you what gameframe it happened in, and also the order within the gameframe.
 //	- u:05541 is the unitID
 //	- corsolar.Open:74  unitDefName, the name of the BOS function (unless vanilla dbg()), and the line of BOS code it came from

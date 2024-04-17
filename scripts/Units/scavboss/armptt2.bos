@@ -61,9 +61,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turretl to y-axis <0.000000> speed <150.000000>;
-	turn turretr to y-axis <0.000000> speed <150.000000>;
-	turn turretaa to y-axis <0.000000> speed <150.000000>;
+	turn turretl to y-axis <0.0> speed <150.0>;
+	turn turretr to y-axis <0.0> speed <150.0>;
+	turn turretaa to y-axis <0.0> speed <150.0>;
 	wait-for-turn turretaa around y-axis;
 	move turretaa to y-axis [0] speed [16];
 	sleep(150);
@@ -141,7 +141,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretl to y-axis heading speed <300.000000>;
+	turn turretl to y-axis heading speed <300.0>;
 	wait-for-turn turretl around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -151,7 +151,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turretr to y-axis heading speed <300.000000>;
+	turn turretr to y-axis heading speed <300.0>;
 	wait-for-turn turretr around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -159,16 +159,16 @@ AimWeapon2(heading, pitch)
 
 FireWeapon1()
 {
-	move plungerl to z-axis [5.000000]  now;
+	move plungerl to z-axis [5.0]  now;
 	sleep 25;
-	move plungerl to z-axis [0.000000] speed [10.000000];
+	move plungerl to z-axis [0.0] speed [10.0];
 }
 
 FireWeapon2()
 {
-	move plungerr to z-axis [5.000000]  now;
+	move plungerr to z-axis [5.0]  now;
 	sleep 25;
-	move plungerr to z-axis [0.000000] speed [10.000000];
+	move plungerr to z-axis [0.0] speed [10.0];
 }
 
 AimFromWeapon1(pieceIndex)

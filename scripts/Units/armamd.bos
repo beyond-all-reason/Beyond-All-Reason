@@ -21,14 +21,14 @@ Create()
 
 Activate()
 {
-	turn door1 to z-axis <40> speed <73.000000>;
-	turn door2 to z-axis <-40> speed <74.000000>;
+	turn door1 to z-axis <40> speed <73.0>;
+	turn door2 to z-axis <-40> speed <74.0>;
 }
 
 Deactivate()
 {
-	turn door1 to z-axis <0.000000> speed <73.000000>;
-	turn door2 to z-axis <0.000000> speed <74.000000>;
+	turn door1 to z-axis <0.0> speed <73.0>;
+	turn door2 to z-axis <0.0> speed <74.0>;
 }
 
 SetMaxReloadTime(reloadMS)

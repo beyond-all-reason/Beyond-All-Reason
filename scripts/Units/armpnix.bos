@@ -24,8 +24,8 @@ Activate()
 	show thrustb;
 	show thrusta;
 	
-	move wingl to x-axis [-7.0000] speed [7];
-	move wingr to x-axis [7.0000] speed [7];
+	move wingl to x-axis [-7.0] speed [7];
+	move wingr to x-axis [7.0] speed [7];
 }
 
 Deactivate()

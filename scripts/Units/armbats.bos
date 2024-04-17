@@ -193,16 +193,16 @@ SetMaxReloadTime(reloadMS)
 RestoreWeapon1()
 {
 	sleep restore_delay;
-	turn turret1 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <30.000000>;
+	turn turret1 to y-axis <0.0> speed <55.0>;
+	turn sleeve1 to x-axis <0.0> speed <30.0>;
 	weapon1barrel = 1;
 }
 
 RestoreWeapon2()
 {
 	sleep restore_delay;
-	turn turret2 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve2 to x-axis <0.000000> speed <30.000000>;
+	turn turret2 to y-axis <0.0> speed <55.0>;
+	turn sleeve2 to x-axis <0.0> speed <30.0>;
 	weapon2barrel = 1;
 }
 
@@ -249,8 +249,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret1 to y-axis heading speed <55.000000>;
-	turn turret1 to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turret1 to y-axis heading speed <55.0>;
+	turn turret1 to x-axis <0.0> - pitch speed <30.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret1 around x-axis;
 	while( gun_1 )
@@ -268,8 +268,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turret2 to y-axis heading speed <55.000000>;
-	turn turret2 to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turret2 to y-axis heading speed <55.0>;
+	turn turret2 to x-axis <0.0> - pitch speed <30.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn turret2 around x-axis;
 	while( gun_2 )
@@ -290,7 +290,7 @@ FireWeapon1()
 	    emit-sfx 1024 + 0 from flare1a;
 		move barrel1a to z-axis [-2.500000] now;
 		sleep 100;
-		move barrel1a to z-axis [0.000000] speed [1.000000];
+		move barrel1a to z-axis [0.0] speed [1.0];
 		call-script MoveBarrelBlast(barrel1a);
 	}
 	if( weapon1barrel == 2 )
@@ -298,7 +298,7 @@ FireWeapon1()
 	    emit-sfx 1024 + 0 from flare1b;
 		move barrel1b to z-axis [-2.500000] now;
 		sleep 100;
-		move barrel1b to z-axis [0.000000] speed [1.000000];
+		move barrel1b to z-axis [0.0] speed [1.0];
 	}
 	++weapon1barrel;
 	if (weapon1barrel > 2)
@@ -314,7 +314,7 @@ FireWeapon2()
 	    emit-sfx 1024 + 0 from flare2a;
 		move barrel2a to z-axis [-2.500000] now;
 		sleep 100;
-		move barrel2a to z-axis [0.000000] speed [1.000000];
+		move barrel2a to z-axis [0.0] speed [1.0];
 		call-script MoveBarrelBlastTurret(barrel2a, turret2, 300);
 	}
 	if( weapon2barrel == 1 )
@@ -322,7 +322,7 @@ FireWeapon2()
 	    emit-sfx 1024 + 0 from flare2b;
 		move barrel2b to z-axis [-2.500000] now;
 		sleep 100;
-		move barrel2b to z-axis [0.000000] speed [1.000000];
+		move barrel2b to z-axis [0.0] speed [1.0];
 	}
 	++weapon2barrel;
 	if (weapon2barrel > 2)

@@ -12,7 +12,7 @@ static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cornecro_anim_walk.blend 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) {
-			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+			turn hip to x-axis <3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-0.560101> speed <16.803019> / animSpeed; 
 			turn luparm to x-axis <0.242998> speed <7.289952> / animSpeed; 
 			turn rarm to x-axis <-5.876015> speed <176.280455> / animSpeed; 
@@ -21,8 +21,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(isMoving) {
 		if (isMoving) {
-			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+			move hip to y-axis [-1.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <9.597569> speed <304.730096> / animSpeed; 
 			turn lfoot to x-axis <29.633575> speed <2420.907686> / animSpeed; 
 			turn lleg to x-axis <-65.287210> speed <354.353117> / animSpeed; 
@@ -35,7 +35,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) {
-			turn hip to x-axis <-3.000000> speed <90.000003> / animSpeed; 
+			turn hip to x-axis <-3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <17.195968> speed <227.951954> / animSpeed; 
 			turn lfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
 			turn lleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
@@ -48,22 +48,22 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) {
-			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <0.000000> speed <90.000003> / animSpeed; 
+			move hip to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
-			turn lfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
-			turn lleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn lfoot to x-axis <-0.0> speed <271.641430> / animSpeed; 
+			turn lleg to x-axis <-0.0> speed <1676.901224> / animSpeed; 
 			turn luparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
 			turn rarm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
 			turn rfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
 			turn rleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
 			turn ruparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <188.999987> / animSpeed; 
+			turn torso to y-axis <0.0> speed <188.999987> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) {
-			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <-3.000000> speed <90.000009> / animSpeed; 
+			move hip to y-axis [-1.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <-3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-19.158424> speed <398.472280> / animSpeed; 
 			turn lfoot to x-axis <20.826635> speed <624.799050> / animSpeed; 
 			turn lleg to x-axis <33.449953> speed <1003.498599> / animSpeed; 
@@ -77,7 +77,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) {
-			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-27.321836> speed <244.902341> / animSpeed; 
 			turn lfoot to x-axis <60.958646> speed <1203.960331> / animSpeed; 
 			turn lleg to x-axis <44.202163> speed <322.566304> / animSpeed; 
@@ -86,30 +86,30 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
 			turn rleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
 			turn ruparm to x-axis <19.688662> speed <186.147380> / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <280.007652> / animSpeed; 
+			turn torso to x-axis <-0.0> speed <280.007652> / animSpeed; 
 			turn torso to y-axis <-8.300000> speed <188.999975> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) {
-			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+			move hip to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
 			turn lfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
 			turn lleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
 			turn luparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
 			turn rarm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
-			turn rfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
-			turn rleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn rfoot to x-axis <-0.0> speed <271.641430> / animSpeed; 
+			turn rleg to x-axis <-0.0> speed <1676.901224> / animSpeed; 
 			turn ruparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <248.999993> / animSpeed; 
+			turn torso to y-axis <0.0> speed <248.999993> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
 // Call this from StopMoving()!
 StopWalking() {
-	move hip to y-axis [0] speed [10.000000];
-	turn hip to x-axis <0> speed <30.000003>;
+	move hip to y-axis [0] speed [10.0];
+	turn hip to x-axis <0> speed <30.0>;
 	turn larm to x-axis <0> speed <234.142155>;
 	turn lfoot to x-axis <0> speed <806.969229>;
 	turn lleg to x-axis <0> speed <976.776030>;
@@ -175,7 +175,7 @@ StartBuilding(torsoing, pitch)
 	show flare2;
 	show flare1;
 	signal SIGNAL_BUILD;
-	turn aimy1 to y-axis torsoing speed <240.000000>;
+	turn aimy1 to y-axis torsoing speed <240.0>;
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
@@ -190,7 +190,7 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
 	hide corhexl_emit;
-	turn aimy1 to y-axis <0.000000> speed <160.000000>;
+	turn aimy1 to y-axis <0.0> speed <160.0>;
 	turn aimx1 to x-axis <0> speed <240.0>;
 	turn aimy1 to x-axis <0> speed <5>;
 }

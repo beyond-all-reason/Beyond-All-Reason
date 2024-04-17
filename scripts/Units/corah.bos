@@ -39,7 +39,7 @@ Create()
 	gunStatus = 1;
 	sleeveOpen = 0;
 	spin fan around z-axis speed <300>;
-	turn sleeve to x-axis <-20.000000> speed <25.000000>;
+	turn sleeve to x-axis <-20.0> speed <25.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -53,9 +53,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <250.000000>;
+	turn turret to y-axis <0.0> speed <250.0>;
 	wait-for-turn turret around y-axis;
-	turn sleeve to x-axis <-20.000000> speed <25.000000>;
+	turn sleeve to x-axis <-20.0> speed <25.0>;
 	wait-for-turn sleeve around x-axis;
 	sleeveOpen = 0;
 }
@@ -79,12 +79,12 @@ AimWeapon2(heading, pitch)
 	set-signal-mask 2;
 	if( sleeveOpen == 0 )
 	{
-		turn sleeve to x-axis <-77.000000> speed <150.000000>;
+		turn sleeve to x-axis <-77.0> speed <150.0>;
 		wait-for-turn sleeve around x-axis;
 	}
 	sleeveOpen = 1;
-	turn turret to y-axis heading speed <250.000000>;
-	turn sleeve to x-axis <0> -pitch speed <150.000000>;
+	turn turret to y-axis heading speed <250.0>;
+	turn sleeve to x-axis <0> -pitch speed <150.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

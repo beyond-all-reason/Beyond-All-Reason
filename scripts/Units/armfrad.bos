@@ -75,8 +75,8 @@ Activate()
 
 Deactivate()
 {
-	spin tower around y-axis speed <0.000000>;
-	spin dish around z-axis speed <0.000000>;
+	spin tower around y-axis speed <0.0>;
+	spin dish around z-axis speed <0.0>;
 }
 
 

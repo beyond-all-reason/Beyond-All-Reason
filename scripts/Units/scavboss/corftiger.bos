@@ -31,8 +31,8 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0> - anglez speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 */
 
@@ -86,8 +86,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn sleeves to x-axis <0.000000> speed <15.000000>;
+	turn turret to y-axis <0.0> speed <35.005495>;
+	turn sleeves to x-axis <0.0> speed <15.0>;
 }
 SetStunned(State)
 {
@@ -107,7 +107,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <85.005495>;
-	turn sleeves to x-axis <0.000000> - pitch speed <50.005495>;
+	turn sleeves to x-axis <0.0> - pitch speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
 	start-script RestoreAfterDelay();
@@ -215,7 +215,7 @@ FireWeapon1()
 		//emit-sfx 1024 + 0 from flare1;
 		sleep 334;
 		//wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [4.5];
+		move barrel1 to z-axis [0.0] speed [4.5];
 	}
 	if( gun_1 == 1 )
 	{
@@ -224,7 +224,7 @@ FireWeapon1()
 		//emit-sfx 1024 + 0 from flare2;
 		sleep 334;
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [4.5];
+		move barrel2 to z-axis [0.0] speed [4.5];
 	}
 	//sleep 234;
 	gun_1 = !gun_1;

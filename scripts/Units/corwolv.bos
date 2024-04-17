@@ -30,8 +30,8 @@ Create()
 {
 	hide flare;
 	hide flare;
-	turn flare to z-axis <-45.00000> now;
-	turn flare to x-axis <-45.00000> now;
+	turn flare to z-axis <-45.0> now;
+	turn flare to x-axis <-45.0> now;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
 	call-script TB_Init();
@@ -63,8 +63,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <70.000000>;
-	turn gun to x-axis <0.000000> speed <60.000000>;
+	turn turret to y-axis <0.0> speed <70.0>;
+	turn gun to x-axis <0.0> speed <60.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 }
@@ -102,8 +102,8 @@ AimWeapon1(heading, pitch)
 	}
 	out_of_arc_count = 0;
 
-	turn turret to y-axis heading speed <110.000000>;
-	turn gun to x-axis <45.000000> - pitch speed <90.000000>;
+	turn turret to y-axis heading speed <110.0>;
+	turn gun to x-axis <45.0> - pitch speed <90.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
@@ -113,15 +113,15 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-6.000000] speed [1000.000000];
-	move barrel to y-axis [-5.00000] speed [1000.000000];
-	move sleeve to z-axis [-3.000000] speed [1000.000000];
-	move sleeve to y-axis [-2.50000] speed [1000.000000];
+	move barrel to z-axis [-6.0] speed [1000.0];
+	move barrel to y-axis [-5.0] speed [1000.0];
+	move sleeve to z-axis [-3.0] speed [1000.0];
+	move sleeve to y-axis [-2.50000] speed [1000.0];
 	sleep 33;
-	move barrel to z-axis [0.000000] speed [6.000000];
-	move barrel to y-axis [0.00000] speed [5.000000];
-	move sleeve to z-axis [0.000000] speed [3.000000];
-	move sleeve to y-axis [0.00000] speed [2.500000];
+	move barrel to z-axis [0.0] speed [6.0];
+	move barrel to y-axis [0.0] speed [5.0];
+	move sleeve to z-axis [0.0] speed [3.0];
+	move sleeve to y-axis [0.0] speed [2.500000];
 	return (0);
 }
 

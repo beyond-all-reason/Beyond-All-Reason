@@ -49,8 +49,8 @@ Create()
 		sleep 400;
 	}
 	start-script RockOnWaves();	
-    turn sleeve1 to x-axis <-30> speed <25.00000>;
-    turn sleeve2 to x-axis <-30> speed <25.00000>;
+    turn sleeve1 to x-axis <-30> speed <25.0>;
+    turn sleeve2 to x-axis <-30> speed <25.0>;
     spin turret around y-axis speed <25.0>;
 }
 
@@ -59,8 +59,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn sleeve1 to x-axis <-30> speed <25.00000>;
-    turn sleeve2 to x-axis <-30> speed <25.00000>;
+    turn sleeve1 to x-axis <-30> speed <25.0>;
+    turn sleeve2 to x-axis <-30> speed <25.0>;
     spin turret around y-axis speed <25.0>;
 }
 Stop()
@@ -87,8 +87,8 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <700.170330>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <550.131868>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <550.131868>;
+	turn sleeve1 to x-axis <0.0> - pitch speed <550.131868>;
+	turn sleeve2 to x-axis <0.0> - pitch speed <550.131868>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	return (1);
@@ -99,16 +99,16 @@ FireWeapon1()
 	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-10.000000] now;
+		move barrel1 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel1 to z-axis [0.000000] speed [37.500000];
+		move barrel1 to z-axis [0.0] speed [37.500000];
 	}
 	if( gun_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-10.000000] now;
+		move barrel2 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel2 to z-axis [0.000000] speed [37.500000];
+		move barrel2 to z-axis [0.0] speed [37.500000];
 	}
 	gun_1 = !gun_1;
 	return (0);

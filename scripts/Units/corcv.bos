@@ -106,8 +106,8 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 	readyToBuild = FALSE;
 	
-	turn loturret to y-axis <0.000000> speed <160.038462>;
-	turn upturret to y-axis <0.000000> speed <160.038462>;
+	turn loturret to y-axis <0.0> speed <160.038462>;
+	turn upturret to y-axis <0.0> speed <160.038462>;
 	wait-for-turn loturret around y-axis;
 
 	move loturret to y-axis [0] speed [12];

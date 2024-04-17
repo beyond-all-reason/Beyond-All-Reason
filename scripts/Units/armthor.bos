@@ -94,8 +94,8 @@ RestoreAfterDelay_tesla()
 	//large negative values to let wait-for-turn happen on first target
 	last_tesla_heading = -1000000;
 	last_tesla_pitch = -1000000;
-	turn turret to y-axis <0.000000> speed <45>;
-	turn sleeve to x-axis <0.000000> speed <15.000000>;
+	turn turret to y-axis <0.0> speed <45>;
+	turn sleeve to x-axis <0.0> speed <15.0>;
 }
 
 RestoreAfterDelay_EMP_missile()
@@ -143,8 +143,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <45.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
+	turn turret to y-axis heading speed <45.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <15.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	last_tesla_heading = heading;
@@ -159,8 +159,8 @@ Rock_Main_Cannon()
 	turn base to x-axis <0> - (GET KCOS(last_tesla_heading)) speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 
 FireSparks1()
@@ -185,14 +185,14 @@ FireWeapon1()
 	if( currentBarrel == 0 )
 	{
 		//show spark_emit2;
-		move ltbarrel to z-axis [-2.400000] speed [500.000000];
+		move ltbarrel to z-axis [-2.400000] speed [500.0];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare2;
 		start-script FireSparks2();
 		sleep 100;
 		//hide spark_emit2;
 		wait-for-move ltbarrel along z-axis;
-		move ltbarrel to z-axis [0.000000] speed [3.000000];
+		move ltbarrel to z-axis [0.0] speed [3.0];
 		wait-for-move ltbarrel along z-axis;
 		stop-spin ltbarrel around z-axis decelerate <15>;
 
@@ -200,14 +200,14 @@ FireWeapon1()
 	if( currentBarrel == 1 )
 	{
 		//show spark_emit1;
-		move rtbarrel to z-axis [-2.400000] speed [500.000000];
+		move rtbarrel to z-axis [-2.400000] speed [500.0];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare1;
 		start-script FireSparks1();
 		sleep 100;
 		//hide spark_emit1;
 		wait-for-move rtbarrel along z-axis;
-		move rtbarrel to z-axis [0.000000] speed [3.000000];
+		move rtbarrel to z-axis [0.0] speed [3.0];
 		wait-for-move rtbarrel along z-axis;
 		stop-spin rtbarrel around z-axis decelerate <15>;
 	}
@@ -234,28 +234,28 @@ retract_rlauncher()
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn rlauncher to x-axis <0.000000> speed <60.000000>;
+	turn rlauncher to x-axis <0.0> speed <60.0>;
 }
 
 retract_llauncher()
 {
 	signal SIGNAL_AIM5;
 	set-signal-mask SIGNAL_AIM5;
-	turn llauncher to x-axis <0.000000> speed <60.000000>;
+	turn llauncher to x-axis <0.0> speed <60.0>;
 }
 
 deploy_rlauncher()
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+	turn rlauncher to x-axis <0.0> - <90.0> speed <60.0>;
 }
 
 deploy_llauncher()
 {
 	signal SIGNAL_AIM5;
 	set-signal-mask SIGNAL_AIM5;
-	turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+	turn llauncher to x-axis <0.0> - <90.0> speed <60.0>;
 }
 
 //called from gadget unit_stockpile_script.lua
@@ -292,7 +292,7 @@ AimWeapon2(heading, pitch)
 	{
 		signal SIGNAL_AIM5;
 		set-signal-mask SIGNAL_AIM5;
-		turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+		turn llauncher to x-axis <0.0> - <90.0> speed <60.0>;
 		wait-for-turn llauncher around x-axis;
 		return (1);
 	}
@@ -300,7 +300,7 @@ AimWeapon2(heading, pitch)
 	{
 		signal SIGNAL_AIM2;
 		set-signal-mask SIGNAL_AIM2;
-		turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+		turn rlauncher to x-axis <0.0> - <90.0> speed <60.0>;
 		wait-for-turn rlauncher around x-axis;
 		return (1);
 	}
@@ -375,11 +375,11 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	move lempbarrel to z-axis [-1.00000] speed [100.000000];
+	move lempbarrel to z-axis [-1.0] speed [100.0];
 	emit-sfx 1024 + 0 from flare5;
 	sleep 100;
 	wait-for-move lempbarrel along z-axis;
-	move lempbarrel to z-axis [0.000000] speed [3.000000];
+	move lempbarrel to z-axis [0.0] speed [3.0];
 	wait-for-move lempbarrel along z-axis;
 }
 
@@ -427,11 +427,11 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
-	move rempbarrel to z-axis [-2.400000] speed [100.000000];
+	move rempbarrel to z-axis [-2.400000] speed [100.0];
 	emit-sfx 1024 + 0 from flare7;
 	sleep 100;
 	wait-for-move rempbarrel along z-axis;
-	move rempbarrel to z-axis [1.000000] speed [3.000000];
+	move rempbarrel to z-axis [1.0] speed [3.0];
 	wait-for-move rempbarrel along z-axis;
 }
 

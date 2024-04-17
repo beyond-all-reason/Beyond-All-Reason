@@ -68,9 +68,9 @@ AimWeapon1(heading, pitch)
 
 PostFire()
 {
-	move lgun to z-axis [-1.00000] speed [50.000000];
+	move lgun to z-axis [-1.0] speed [50.0];
 	sleep 200;
-	move lgun to z-axis [0] speed [10.000000];
+	move lgun to z-axis [0] speed [10.0];
 }
 
 FireWeapon1()

@@ -78,7 +78,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 Create()
@@ -118,7 +118,7 @@ Create()
 		sleep 500;
 	}
 	start-script RockOnWaves();
-	spin radar around y-axis speed <60.000000>;
+	spin radar around y-axis speed <60.0>;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -135,7 +135,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn sleeves1 to x-axis <0.000000> speed <45.000000>;
+	turn sleeves1 to x-axis <0.0> speed <45.0>;
 	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
 		if (aimy1position > 0 ) {
 			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
@@ -168,18 +168,18 @@ RestoreAfterDelay()
 RestoreAfterDelay2()
 {
 	sleep restore_delay;
-	turn tur2 to y-axis <0.000000> speed <100.000000>;
-	turn tur5 to y-axis <0.000000> speed <100.000000>;
-	turn tur6 to y-axis <0.000000> speed <100.000000>;
+	turn tur2 to y-axis <0.0> speed <100.0>;
+	turn tur5 to y-axis <0.0> speed <100.0>;
+	turn tur6 to y-axis <0.0> speed <100.0>;
 }
 
 RestoreAfterDelay3()
 {
 	sleep restore_delay;
-	turn tur3 to y-axis <0.000000> speed <125.000000>;
-	turn sleeves3 to x-axis <0.000000> speed <125.000000>;
-	turn tur4 to y-axis <0.000000> speed <125.000000>;
-	turn sleeves4 to x-axis <0.000000> speed <125.000000>;
+	turn tur3 to y-axis <0.0> speed <125.0>;
+	turn sleeves3 to x-axis <0.0> speed <125.0>;
+	turn tur4 to y-axis <0.0> speed <125.0>;
+	turn sleeves4 to x-axis <0.0> speed <125.0>;
 }
 
 waveSplash()
@@ -240,7 +240,7 @@ QueryWeapon1(pieceIndex)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <3.00>
+#define MAX_AIMY1_VELOCITY <3.0>
 #define AIMY1_ACCELERATION <0.12>
 #define AIMY1_JERK <0.5>
 #define AIMY1_PRECISION <1.2>
@@ -257,7 +257,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	
 	//We can do this any time
-	turn sleeves1 to x-axis <0.000000> - pitch speed <85.000000>;
+	turn sleeves1 to x-axis <0.0> - pitch speed <85.0>;
 	
 	aimy1target = heading;
 	aimy1delta = aimy1target - aimy1position;
@@ -314,8 +314,8 @@ AimWeapon1(heading, pitch)
 {
 	signal 2;
 	set-signal-mask 2;
-	turn tur1 to y-axis heading speed <45.000000>;
-	turn sleeves1 to x-axis <0.000000> - pitch speed <20.000000>;
+	turn tur1 to y-axis heading speed <45.0>;
+	turn sleeves1 to x-axis <0.0> - pitch speed <20.0>;
 	wait-for-turn tur1 around y-axis;
 	wait-for-turn sleeves1 around x-axis;
 	aimDir = heading;
@@ -329,30 +329,30 @@ FireWeapon1()
 	if( Static_Var_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1a;
-		move barrel1a to z-axis [-2.000000] speed [500.000000];
+		move barrel1a to z-axis [-2.0] speed [500.0];
 		sleep 100;
-		move barrel1a to z-axis [0.000000] speed [3.000000];
+		move barrel1a to z-axis [0.0] speed [3.0];
 	}
 	else if( Static_Var_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1b;
-		move barrel1b to z-axis [-2.000000] speed [500.000000];
+		move barrel1b to z-axis [-2.0] speed [500.0];
 		sleep 100;
-		move barrel1b to z-axis [0.000000] speed [3.000000];
+		move barrel1b to z-axis [0.0] speed [3.0];
 	}
 	else if( Static_Var_1 == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare1c;
-		move barrel1c to z-axis [-2.000000] speed [500.000000];
+		move barrel1c to z-axis [-2.0] speed [500.0];
 		sleep 100;
-		move barrel1c to z-axis [0.000000] speed [3.000000];
+		move barrel1c to z-axis [0.0] speed [3.0];
 	}
 	else if( Static_Var_1 == 3 )
 	{
 	    emit-sfx 1024 + 0 from flare1d;
-		move barrel1d to z-axis [-2.000000] speed [500.000000];
+		move barrel1d to z-axis [-2.0] speed [500.0];
 		sleep 100;
-		move barrel1d to z-axis [0.000000] speed [3.000000];
+		move barrel1d to z-axis [0.0] speed [3.0];
 	}
 	++Static_Var_1;
 	if( Static_Var_1 >= 4 )
@@ -379,7 +379,7 @@ AimWeapon2(heading, pitch)
 	{
 		return (0);
 	}
-	turn tur2 to y-axis heading speed <150.000000>;
+	turn tur2 to y-axis heading speed <150.0>;
 	wait-for-turn tur2 around y-axis;
 	start-script RestoreAfterDelay2();
 	return (1);
@@ -390,7 +390,7 @@ FireWeapon2()
 	sleep 180;
 	turn gun2 to z-axis <120> speed <400>;
 	sleep 1000 * <120> / <400>;
-	turn gun2 to z-axis <0.000000> now;
+	turn gun2 to z-axis <0.0> now;
 }
 
 AimFromWeapon3(pieceIndex)
@@ -407,8 +407,8 @@ AimWeapon3(heading, pitch)
 {
 	signal 8;
 	set-signal-mask 8;
-	turn tur3 to y-axis heading speed <200.000000>;
-	turn sleeves3 to x-axis <0.000000> - pitch speed <150.000000>;
+	turn tur3 to y-axis heading speed <200.0>;
+	turn sleeves3 to x-axis <0.0> - pitch speed <150.0>;
 	wait-for-turn tur3 around y-axis;
 	wait-for-turn sleeves3 around x-axis;
 	start-script RestoreAfterDelay3();
@@ -438,7 +438,7 @@ AimWeapon4(heading, pitch)
 	{
 		return (0);
 	}
-	turn tur5 to y-axis heading speed <150.000000>;
+	turn tur5 to y-axis heading speed <150.0>;
 	wait-for-turn tur5 around y-axis;
 	start-script RestoreAfterDelay2();
 	return (1);
@@ -449,7 +449,7 @@ FireWeapon4()
 	sleep 180;
 	turn gun5 to z-axis <120> speed <400>;
 	sleep 1000 * <120> / <400>;
-	turn gun5 to z-axis <0.000000> now;
+	turn gun5 to z-axis <0.0> now;
 }
 
 AimFromWeapon5(pieceIndex)
@@ -470,7 +470,7 @@ AimWeapon5(heading, pitch)
 	{
 		return (0);
 	}
-	turn tur6 to y-axis heading speed <150.000000>;
+	turn tur6 to y-axis heading speed <150.0>;
 	wait-for-turn tur6 around y-axis;
 	start-script RestoreAfterDelay2();
 	return (1);
@@ -481,7 +481,7 @@ FireWeapon5()
 	sleep 180;
 	turn gun6 to z-axis <120> speed <400>;
 	sleep 1000 * <120> / <400>;
-	turn gun6 to z-axis <0.000000> now;
+	turn gun6 to z-axis <0.0> now;
 }
 
 AimFromWeapon6(pieceIndex)
@@ -498,8 +498,8 @@ AimWeapon6(heading, pitch)
 {
 	signal 64;
 	set-signal-mask 64;
-	turn tur4 to y-axis heading speed <200.000000>;
-	turn sleeves4 to x-axis <0.000000> - pitch speed <150.000000>;
+	turn tur4 to y-axis heading speed <200.0>;
+	turn sleeves4 to x-axis <0.0> - pitch speed <150.0>;
 	wait-for-turn tur4 around y-axis;
 	wait-for-turn sleeves4 around x-axis;
 	start-script RestoreAfterDelay3();

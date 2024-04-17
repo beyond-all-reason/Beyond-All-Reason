@@ -34,8 +34,8 @@ Close()
 	isOpen = FALSE;
 	stop-spin dish around y-axis;
 
-	turn turret to y-axis <0.000000> speed <100.000000>;
-	turn sleeve to x-axis <0.000000> speed <100.000000>;
+	turn turret to y-axis <0.0> speed <100.0>;
+	turn sleeve to x-axis <0.0> speed <100.0>;
 	
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
@@ -108,8 +108,8 @@ AimWeapon1(heading, pitch)
 	if (!isOpen){
 		call-script Open();
 	}
-	turn turret to y-axis heading speed <50.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	turn turret to y-axis heading speed <50.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	return (1);

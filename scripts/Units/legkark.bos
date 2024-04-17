@@ -33,8 +33,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -349,8 +349,8 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 	start-script OpenCloseAnim(0);
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
-	turn aimx1 to x-axis <0.000000> speed <45.000000>;
+	turn aimy1 to y-axis <0.0> speed <90.0>;
+	turn aimx1 to x-axis <0.0> speed <45.0>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	wpn1_lasthead = 1000000;
@@ -399,14 +399,14 @@ FireWeapon1()
 FireWeapon2()
 {
 	emit-sfx 1024 + 0 from lflare;
-	move shield to z-axis [-0.5500000] speed [1375.000000];
-	move shield to x-axis [-1.210000] speed [1375.000000];
-	move shield to y-axis [0.55000] speed [1375.000000];
+	move shield to z-axis [-0.5500000] speed [1375.0];
+	move shield to x-axis [-1.210000] speed [1375.0];
+	move shield to y-axis [0.55000] speed [1375.0];
 	turn torso to y-axis <30> speed <200>;
 	wait-for-move shield along z-axis;
-	move shield to z-axis [0.000000] speed [1.375000];
+	move shield to z-axis [0.0] speed [1.375000];
 	move shield to x-axis [-1.7600000] speed [1.375000];
-	move shield to y-axis [0.000000] speed [1.375000];
+	move shield to y-axis [0.0] speed [1.375000];
 	turn torso to y-axis <0> speed <10>;
 }
 
@@ -419,8 +419,8 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	turn aimy1 to y-axis heading speed <200.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed <200.0>;
+	turn aimx1 to x-axis <0.0> - pitch speed <200.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

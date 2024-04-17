@@ -27,8 +27,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -96,14 +96,14 @@ StopBuilding()
 	readyToBuild = FALSE;
 	set INBUILDSTANCE to 0;
 
-	turn gun to y-axis <0.000000> speed <160.038462>;
+	turn gun to y-axis <0.0> speed <160.038462>;
 	wait-for-turn neck around y-axis;
 
 	move neck to y-axis [0] speed [20];
 	wait-for-move neck along y-axis;
 
-	turn door1 to z-axis <0.000000> speed <185.258242>;
-	turn door2 to z-axis <0.000000> speed <184.972527>;
+	turn door1 to z-axis <0.0> speed <185.258242>;
+	turn door2 to z-axis <0.0> speed <184.972527>;
 }
 
 QueryNanoPiece(pieceIndex)

@@ -31,8 +31,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <5.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <3.500000>;
+	turn turret to y-axis heading speed <5.0>;
+	turn gun to x-axis <0.0> - pitch speed <3.500000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	return (1);
@@ -50,15 +50,15 @@ FireWeapon1()
 {
 	shotcount = shotcount + 1;
 	//start-script HotBarrel();
-	move barrel to z-axis [-7.500000] speed [500.000000];
-	move gun to z-axis [-4.000000] speed [500.000000];
+	move barrel to z-axis [-7.500000] speed [500.0];
+	move gun to z-axis [-4.0] speed [500.0];
 	wait-for-move barrel along z-axis;
 	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
 	call-script lua_UnitScriptLight(2, shotcount);
 	sleep 200;
-	move barrel to z-axis [0.000000] speed [3.500000];
-	move gun to z-axis [0.000000] speed [3.500000];
+	move barrel to z-axis [0.0] speed [3.500000];
+	move gun to z-axis [0.0] speed [3.500000];
 }
 
 AimFromWeapon1(pieceIndex)

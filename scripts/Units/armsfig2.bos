@@ -34,15 +34,15 @@ Create()
 Activate()
 {
 	show thrust;
-	turn wingl to z-axis <90> speed <90.000000>;
-	turn wingr to z-axis <-90> speed <90.000000>;
+	turn wingl to z-axis <90> speed <90.0>;
+	turn wingr to z-axis <-90> speed <90.0>;
 }
 
 Deactivate()
 {
 	hide thrust;
-	turn wingl to z-axis <0> speed <90.000000>;
-	turn wingr to z-axis <0> speed <90.000000>;
+	turn wingl to z-axis <0> speed <90.0>;
+	turn wingr to z-axis <0> speed <90.0>;
 }
 
 AimWeapon1(heading, pitch)
@@ -50,10 +50,10 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	turn turretmisl to x-axis 0-pitch speed <720.000000>;
-	turn turretmisl to y-axis heading speed <360.000000>;
-	turn turretmisr to x-axis 0-pitch speed <720.000000>;
-	turn turretmisr to y-axis heading speed <360.000000>;
+	turn turretmisl to x-axis 0-pitch speed <720.0>;
+	turn turretmisl to y-axis heading speed <360.0>;
+	turn turretmisr to x-axis 0-pitch speed <720.0>;
+	turn turretmisr to y-axis heading speed <360.0>;
 	wait-for-turn turretmisl around x-axis;
 	wait-for-turn turretmisl around y-axis;
 	return (1);

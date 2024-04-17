@@ -13,8 +13,8 @@ Open()
 		return(0);
 	}
 	set ARMORED to 0;
-	move column3 to y-axis [3.000000] speed [10.000000];
-	move column4 to y-axis [3.000000] speed [10.000000];
+	move column3 to y-axis [3.0] speed [10.0];
+	move column4 to y-axis [3.0] speed [10.0];
 	wait-for-move column4 along y-axis;
 	spin column3 around y-axis speed resourceRate accelerate 90;
 	spin column4 around y-axis speed resourceRate accelerate 180;
@@ -25,8 +25,8 @@ Close()
 	stop-spin column3 around y-axis decelerate 90;
 	stop-spin column4 around y-axis decelerate 180;
 	wait-for-turn column4 around y-axis;
-	move column3 to y-axis [0.000000] speed [10.000000];
-	move column4 to y-axis [0.000000] speed [10.000000];
+	move column3 to y-axis [0.0] speed [10.0];
+	move column4 to y-axis [0.0] speed [10.0];
 	set ARMORED to 1;
 }
 

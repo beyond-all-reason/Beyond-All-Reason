@@ -15,7 +15,7 @@ Activate()
 
 Deactivate()
 {
-	spin sonar around y-axis speed <0.000000>;
+	spin sonar around y-axis speed <0.0>;
 }
 
 

@@ -64,8 +64,8 @@ StartBuilding(heading, pitch)
 		turn doorl to z-axis <67> speed <99>;
 		wait-for-turn doorr around z-axis;
 
-		move doorr to y-axis [-2.000000] speed [2.000000];
-		move doorl to y-axis [-2.000000] speed [2.000000];
+		move doorr to y-axis [-2.0] speed [2.0];
+		move doorl to y-axis [-2.0] speed [2.0];
 		wait-for-move doorr along y-axis;
 
 		turn post to x-axis <90> speed <131>;
@@ -74,7 +74,7 @@ StartBuilding(heading, pitch)
 		readyToBuild = TRUE;
 	}
 
-	turn post to y-axis heading speed <160.000000>;
+	turn post to y-axis heading speed <160.0>;
 	wait-for-turn post around y-axis;
 
 	set INBUILDSTANCE to 1;
@@ -100,16 +100,16 @@ StopBuilding()
 	
 	turn post to y-axis <0> speed <160>;
 
-	turn post to x-axis <0.000000> speed <197.000000>;
-	turn nanogun to x-axis <0.000000> speed <197.000000>;
+	turn post to x-axis <0.0> speed <197.0>;
+	turn nanogun to x-axis <0.0> speed <197.0>;
 	wait-for-turn post around x-axis;
 
-	move doorr to y-axis [0.000000] speed [4.000000];
-	move doorl to y-axis [0.000000] speed [4.000000];
+	move doorr to y-axis [0.0] speed [4.0];
+	move doorl to y-axis [0.0] speed [4.0];
 	wait-for-move doorr along y-axis;
 
-	turn doorr to z-axis <0.000000> speed <143.000000>;
-	turn doorl to z-axis <0.000000> speed <143.000000>;
+	turn doorr to z-axis <0.0> speed <143.0>;
+	turn doorl to z-axis <0.0> speed <143.0>;
 	wait-for-turn doorr around z-axis;
 }
 

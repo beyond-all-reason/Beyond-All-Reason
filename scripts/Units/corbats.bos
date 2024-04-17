@@ -80,7 +80,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -106,9 +106,9 @@ ExecuteRestoreAfterDelay()
     }
 
 	restore_position = 1;
-	turn sleeveb1 to x-axis <0.000000> speed <30.000000>;
-	turn sleeveb2 to x-axis <0.000000> speed <30.000000>;
-	turn sleeveb3 to x-axis <0.000000> speed <30.000000>;
+	turn sleeveb1 to x-axis <0.0> speed <30.0>;
+	turn sleeveb2 to x-axis <0.0> speed <30.0>;
+	turn sleeveb3 to x-axis <0.0> speed <30.0>;
 	
 }
 SetStunned(State)
@@ -253,9 +253,9 @@ AimWeapon1(heading, pitch)
 
 	//We can do this any time
 	restore_position = 0;
-	turn sleeveb1 to x-axis <0.000000> - pitch speed <30.000000>;
-	turn sleeveb2 to x-axis <0.000000> - pitch speed <30.000000>;
-	turn sleeveb3 to x-axis <0.000000> - pitch speed <30.000000>;
+	turn sleeveb1 to x-axis <0.0> - pitch speed <30.0>;
+	turn sleeveb2 to x-axis <0.0> - pitch speed <30.0>;
+	turn sleeveb3 to x-axis <0.0> - pitch speed <30.0>;
 	start-script RestoreAfterDelay();
 
 	// let AimControl know what to aim at
@@ -316,7 +316,7 @@ RestoreLaser()
 {
 	sleep restore_delay;
 	//set-signal-mask 0;
-	turn turreta to y-axis <0.000000> speed <100.000000>;
+	turn turreta to y-axis <0.0> speed <100.0>;
 }
 
 waveSplash()
@@ -362,7 +362,7 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
-	turn turreta to y-axis heading speed <200.000000>;
+	turn turreta to y-axis heading speed <200.0>;
 	wait-for-turn turreta around y-axis;
 	start-script RestoreLaser();
 	return (1);
@@ -373,19 +373,19 @@ FireWeapon4()
 	if( gun_2 == 0 )
 	{
 		sleep 250;
-		turn guna to z-axis <0.000000> speed <400.000000>;
+		turn guna to z-axis <0.0> speed <400.0>;
 		wait-for-turn guna around z-axis;
 	}
 	else if( gun_2 == 1 )
 	{
 		sleep 250;
-		turn guna to z-axis <120.027473> speed <400.000000>;
+		turn guna to z-axis <120.027473> speed <400.0>;
 		wait-for-turn guna around z-axis;
 	}
 	else if( gun_2 == 2 )
 	{
 		sleep 250;
-		turn guna to z-axis <-120.027473> speed <400.000000>;
+		turn guna to z-axis <-120.027473> speed <400.0>;
 		wait-for-turn guna around z-axis;
 	}
 	++gun_2;
@@ -400,9 +400,9 @@ FireWeapon1()
 
 	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb1;
-	move barrelb1 to z-axis [-5.00000] now; // [-2.500000]
+	move barrelb1 to z-axis [-5.0] now; // [-2.500000]
 	sleep 100;
-	move barrelb1 to z-axis [0.000000] speed [2.000000];
+	move barrelb1 to z-axis [0.0] speed [2.0];
 
 }
 
@@ -414,9 +414,9 @@ FireWeapon2()
 
 	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb2;
-	move barrelb2 to z-axis [-5.000000] now;
+	move barrelb2 to z-axis [-5.0] now;
 	sleep 100;
-	move barrelb2 to z-axis [0.000000] speed [2.000000];
+	move barrelb2 to z-axis [0.0] speed [2.0];
 
 }
 
@@ -428,9 +428,9 @@ FireWeapon3()
 
 	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb3;
-	move barrelb3 to z-axis [-5.000000] now;
+	move barrelb3 to z-axis [-5.0] now;
 	sleep 100;
-	move barrelb3 to z-axis [0.000000] speed [2.000000];
+	move barrelb3 to z-axis [0.0] speed [2.0];
 
 }
 

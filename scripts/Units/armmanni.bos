@@ -60,8 +60,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50.010989>;
-	turn sleeve to x-axis <0.000000> speed <50.010989>;
+	turn turret to y-axis <0.0> speed <50.010989>;
+	turn sleeve to x-axis <0.0> speed <50.010989>;
 }
 SetStunned(State)
 {
@@ -98,7 +98,7 @@ AimWeapon1(heading, pitch)
 	out_of_arc_count = 0;
 
 	turn turret to y-axis heading speed <50.010989>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.010989>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.010989>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

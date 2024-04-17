@@ -17,11 +17,11 @@ MoveRate2()
 	if( Rand( 1, 10 ) == 1 AND ( !inAileronRoll ) )
 	{
 		inAileronRoll = 1;
-		turn base to z-axis <240.000000> speed <120.000000>;
+		turn base to z-axis <240.0> speed <120.0>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <120.000000> speed <180.000000>;
+		turn base to z-axis <120.0> speed <180.0>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <0.000000> speed <120.000000>;
+		turn base to z-axis <0.0> speed <120.0>;
 		inAileronRoll = 0;
 	}
 }

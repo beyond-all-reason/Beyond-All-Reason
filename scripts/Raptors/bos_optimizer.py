@@ -6,7 +6,7 @@ import bos2cob
 import importlib
 import sys
 
-LINEAR_CONSTANT = 65536.000000
+LINEAR_CONSTANT = 65536.0
 ANGULAR_CONSTANT = 182.00000
 
 parser = argparse.ArgumentParser()

@@ -64,7 +64,7 @@ QueryTransport(pieceIndex)
 
 BeginTransport(targetHeight)
 {
-	move link to y-axis [0.000000] - targetHeight now;
+	move link to y-axis [0.0] - targetHeight now;
 }
 
 EndTransport()
@@ -105,14 +105,14 @@ StopMoving()
 
 MoveRate0()
 {
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
-	turn thrustrr2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl2 to x-axis <0.000000> speed <80.000000>;
+	turn thrustrr to x-axis <0.0> speed <80.0>;
+	turn thrustrl to x-axis <0.0> speed <80.0>;
+	turn thrustfr to x-axis <0.0> speed <80.0>;
+	turn thrustfl to x-axis <0.0> speed <80.0>;
+	turn thrustrr2 to x-axis <0.0> speed <80.0>;
+	turn thrustrl2 to x-axis <0.0> speed <80.0>;
+	turn thrustfr2 to x-axis <0.0> speed <80.0>;
+	turn thrustfl2 to x-axis <0.0> speed <80.0>;
 }
 
 MoveRate1()
@@ -121,14 +121,14 @@ MoveRate1()
 	signal 8;
 	set-signal-mask 8;
 	moverate = 1;
-	turn thrustrr to x-axis <10.000000> speed <60.000000>;
-	turn thrustrl to x-axis <10.000000> speed <60.000000>;
-	turn thrustfr to x-axis <10.000000> speed <60.000000>;
-	turn thrustfl to x-axis <10.000000> speed <60.000000>;
-	turn thrustrr2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustrl2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustfr2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustfl2 to x-axis <10.000000> speed <60.000000>;
+	turn thrustrr to x-axis <10.0> speed <60.0>;
+	turn thrustrl to x-axis <10.0> speed <60.0>;
+	turn thrustfr to x-axis <10.0> speed <60.0>;
+	turn thrustfl to x-axis <10.0> speed <60.0>;
+	turn thrustrr2 to x-axis <10.0> speed <60.0>;
+	turn thrustrl2 to x-axis <10.0> speed <60.0>;
+	turn thrustfr2 to x-axis <10.0> speed <60.0>;
+	turn thrustfl2 to x-axis <10.0> speed <60.0>;
 }
 
 MoveRate2()
@@ -136,14 +136,14 @@ MoveRate2()
 	signal 8;
 	set-signal-mask 8;
 	moverate = 2;
-	turn thrustrr to x-axis <20.000000> speed <45.000000>;
-	turn thrustrl to x-axis <20.000000> speed <45.000000>;
-	turn thrustfr to x-axis <20.000000> speed <45.000000>;
-	turn thrustfl to x-axis <20.000000> speed <45.000000>;
-	turn thrustrr2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustrl2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustfr2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustfl2 to x-axis <20.000000> speed <45.000000>;
+	turn thrustrr to x-axis <20.0> speed <45.0>;
+	turn thrustrl to x-axis <20.0> speed <45.0>;
+	turn thrustfr to x-axis <20.0> speed <45.0>;
+	turn thrustfl to x-axis <20.0> speed <45.0>;
+	turn thrustrr2 to x-axis <20.0> speed <45.0>;
+	turn thrustrl2 to x-axis <20.0> speed <45.0>;
+	turn thrustfr2 to x-axis <20.0> speed <45.0>;
+	turn thrustfl2 to x-axis <20.0> speed <45.0>;
 }
 
 MoveRate3()
@@ -151,14 +151,14 @@ MoveRate3()
 	signal 8;
 	set-signal-mask 8;
 	moverate = 3;
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
-	turn thrustrr2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl2 to x-axis <0.000000> speed <70.000000>;
+	turn thrustrr to x-axis <0.0> speed <70.0>;
+	turn thrustrl to x-axis <0.0> speed <70.0>;
+	turn thrustfr to x-axis <0.0> speed <70.0>;
+	turn thrustfl to x-axis <0.0> speed <70.0>;
+	turn thrustrr2 to x-axis <0.0> speed <70.0>;
+	turn thrustrl2 to x-axis <0.0> speed <70.0>;
+	turn thrustfr2 to x-axis <0.0> speed <70.0>;
+	turn thrustfl2 to x-axis <0.0> speed <70.0>;
 }
 
 static-var  Stunned;
@@ -167,11 +167,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	spin barrel around z-axis speed <600.000000>;
+	spin barrel around z-axis speed <600.0>;
 	sleep restore_delay;
-	spin barrel around z-axis speed <300.000000>;
+	spin barrel around z-axis speed <300.0>;
 	sleep (restore_delay / 2);
-	spin barrel around z-axis speed <150.000000>;
+	spin barrel around z-axis speed <150.0>;
 	sleep (restore_delay / 4);
 	stop-spin barrel around z-axis;
 	wpn1_lasthead = 1000000;
@@ -196,8 +196,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn sleeve to y-axis heading speed <200.000000>;
-	turn sleeve to x-axis <0.000000> - <45> - pitch speed <100.000000>;
+	turn sleeve to y-axis heading speed <200.0>;
+	turn sleeve to x-axis <0.0> - <45> - pitch speed <100.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -211,7 +211,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	spin barrel around z-axis speed <900.000000>;
+	spin barrel around z-axis speed <900.0>;
 	emit-sfx 1024 + 0 from flare;
 }
 

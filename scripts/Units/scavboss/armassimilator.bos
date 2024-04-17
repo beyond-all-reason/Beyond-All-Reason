@@ -17,93 +17,93 @@ static-var  gun_1, isMoving, isAiming, wpn1_lasthead;
 walk()
 {
 	//step 1 leg 
-	turn rthigh to x-axis <0> speed <84.000000>;
-	turn rshin to x-axis <0> speed <282.000000>;
-	turn rcalf to x-axis <0> speed <240.000000>;
-	turn rfoot to x-axis <0> speed <120.000000>;
+	turn rthigh to x-axis <0> speed <84.0>;
+	turn rshin to x-axis <0> speed <282.0>;
+	turn rcalf to x-axis <0> speed <240.0>;
+	turn rfoot to x-axis <0> speed <120.0>;
 
-	turn lthigh to x-axis <13> speed <78.000000>;
-	turn lshin to x-axis <24> speed <144.000000>;
-	turn lcalf to x-axis <-13> speed <78.000000>;
-	turn lfoot to x-axis <-23> speed <138.000000>;
+	turn lthigh to x-axis <13> speed <78.0>;
+	turn lshin to x-axis <24> speed <144.0>;
+	turn lcalf to x-axis <-13> speed <78.0>;
+	turn lfoot to x-axis <-23> speed <138.0>;
 
-	turn pelvis to y-axis <0> speed <12.000000>;
-	move pelvis to y-axis [0] speed <12.000000>;
+	turn pelvis to y-axis <0> speed <12.0>;
+	move pelvis to y-axis [0] speed <12.0>;
 	sleep 160;
 
 	//step 2 leg 
-	turn rthigh to x-axis <20> speed <120.000000>;
+	turn rthigh to x-axis <20> speed <120.0>;
 	turn rshin to x-axis <0> now;
-	turn rcalf to x-axis <1> speed <6.000000>;
-	turn rfoot to x-axis <-21> speed <126.000000>;
+	turn rcalf to x-axis <1> speed <6.0>;
+	turn rfoot to x-axis <-21> speed <126.0>;
 
-	turn lthigh to x-axis <-17> speed <180.000000>;
-	turn lshin to x-axis <1> speed <138.000000>;
-	turn lcalf to x-axis <-10> speed <18.000000>;
-	turn lfoot to x-axis <-9> speed <84.000000>;
+	turn lthigh to x-axis <-17> speed <180.0>;
+	turn lshin to x-axis <1> speed <138.0>;
+	turn lcalf to x-axis <-10> speed <18.0>;
+	turn lfoot to x-axis <-9> speed <84.0>;
 
-	turn pelvis to y-axis <4> speed <24.000000>;
-	move pelvis to y-axis [1] speed [6.000000];
+	turn pelvis to y-axis <4> speed <24.0>;
+	move pelvis to y-axis [1] speed [6.0];
 	sleep 160;
 
 	//step 3 leg 
-	turn rthigh to x-axis <36> speed <96.000000>;
-	turn rshin to x-axis <9> speed <54.000000>;
-	turn rcalf to x-axis <-12> speed <78.000000>;
-	turn rfoot to x-axis <1> speed <132.000000>;
+	turn rthigh to x-axis <36> speed <96.0>;
+	turn rshin to x-axis <9> speed <54.0>;
+	turn rcalf to x-axis <-12> speed <78.0>;
+	turn rfoot to x-axis <1> speed <132.0>;
 
-	turn lthigh to x-axis <-14> speed <18.000000>;
-	turn lshin to x-axis <-47> speed <288.000000>;
-	turn lcalf to x-axis <40> speed <300.000000>;
-	turn lfoot to x-axis <20> speed <174.000000>;
+	turn lthigh to x-axis <-14> speed <18.0>;
+	turn lshin to x-axis <-47> speed <288.0>;
+	turn lcalf to x-axis <40> speed <300.0>;
+	turn lfoot to x-axis <20> speed <174.0>;
 
-	turn pelvis to y-axis <0> speed <24.000000>;
-	move pelvis to y-axis [0] speed [6.000000];
+	turn pelvis to y-axis <0> speed <24.0>;
+	move pelvis to y-axis [0] speed [6.0];
 	sleep 160;
 
 	//step 4 leg 
-	turn rthigh to x-axis <13> speed <138.000000>;
-	turn rshin to x-axis <24> speed <90.000000>;
-	turn rcalf to x-axis <-13> speed <6.000000>;
-	turn rfoot to x-axis <-23> speed <144.000000>;
+	turn rthigh to x-axis <13> speed <138.0>;
+	turn rshin to x-axis <24> speed <90.0>;
+	turn rcalf to x-axis <-13> speed <6.0>;
+	turn rfoot to x-axis <-23> speed <144.0>;
 
-	turn lthigh to x-axis <0> speed <84.000000>;
-	turn lshin to x-axis <0> speed <282.000000>;
-	turn lcalf to x-axis <0> speed <240.000000>;
-	turn lfoot to x-axis <0> speed <120.000000>;
+	turn lthigh to x-axis <0> speed <84.0>;
+	turn lshin to x-axis <0> speed <282.0>;
+	turn lcalf to x-axis <0> speed <240.0>;
+	turn lfoot to x-axis <0> speed <120.0>;
 
-	turn pelvis to y-axis <0> speed <12.000000>;
-	move pelvis to y-axis [0] speed <12.000000>;
+	turn pelvis to y-axis <0> speed <12.0>;
+	move pelvis to y-axis [0] speed <12.0>;
 	sleep 160;
 
 	//step 5 leg 
-	turn rthigh to x-axis <-17> speed <180.000000>;
-	turn rshin to x-axis <1> speed <138.000000>;
-	turn rcalf to x-axis <-10> speed <18.000000>;
-	turn rfoot to x-axis <-9> speed <84.000000>;
+	turn rthigh to x-axis <-17> speed <180.0>;
+	turn rshin to x-axis <1> speed <138.0>;
+	turn rcalf to x-axis <-10> speed <18.0>;
+	turn rfoot to x-axis <-9> speed <84.0>;
 
-	turn lthigh to x-axis <20> speed <120.000000>;
+	turn lthigh to x-axis <20> speed <120.0>;
 	turn lshin to x-axis <0> now;
-	turn lcalf to x-axis <1> speed <6.000000>;
-	turn lfoot to x-axis <-21> speed <126.000000>;
+	turn lcalf to x-axis <1> speed <6.0>;
+	turn lfoot to x-axis <-21> speed <126.0>;
 
-	turn pelvis to y-axis <-4> speed <24.000000>;
-	move pelvis to y-axis [1] speed [6.000000];
+	turn pelvis to y-axis <-4> speed <24.0>;
+	move pelvis to y-axis [1] speed [6.0];
 	sleep 160;
 
 	//step 6 leg 
-	turn rthigh to x-axis <-14> speed <18.000000>;
-	turn rshin to x-axis <-47> speed <288.000000>;
-	turn rcalf to x-axis <40> speed <300.000000>;
-	turn rfoot to x-axis <20> speed <174.000000>;
+	turn rthigh to x-axis <-14> speed <18.0>;
+	turn rshin to x-axis <-47> speed <288.0>;
+	turn rcalf to x-axis <40> speed <300.0>;
+	turn rfoot to x-axis <20> speed <174.0>;
 
-	turn lthigh to x-axis <36> speed <96.000000>;
-	turn lshin to x-axis <9> speed <54.000000>;
-	turn lcalf to x-axis <-12> speed <78.000000>;
-	turn lfoot to x-axis <1> speed <132.000000>;
+	turn lthigh to x-axis <36> speed <96.0>;
+	turn lshin to x-axis <9> speed <54.0>;
+	turn lcalf to x-axis <-12> speed <78.0>;
+	turn lfoot to x-axis <1> speed <132.0>;
 
-	turn pelvis to y-axis <0> speed <24.000000>;
-	move pelvis to y-axis [0] speed [6.000000];
+	turn pelvis to y-axis <0> speed <24.0>;
+	move pelvis to y-axis [0] speed [6.0];
 	sleep 160;
 
 
@@ -113,20 +113,20 @@ stopwalk()
 {
 	if( TRUE )
 	{
-		turn rthigh to x-axis <0> speed <84.000000>;
-		turn rshin to x-axis <0> speed <282.000000>;
-		turn rcalf to x-axis <0> speed <240.000000>;
-		turn rfoot to x-axis <0> speed <120.000000>;
+		turn rthigh to x-axis <0> speed <84.0>;
+		turn rshin to x-axis <0> speed <282.0>;
+		turn rcalf to x-axis <0> speed <240.0>;
+		turn rfoot to x-axis <0> speed <120.0>;
 
 
-		turn lthigh to x-axis <0> speed <84.000000>;
-		turn lshin to x-axis <0> speed <282.000000>;
-		turn lcalf to x-axis <0> speed <240.000000>;
-		turn lfoot to x-axis <0> speed <120.000000>;
+		turn lthigh to x-axis <0> speed <84.0>;
+		turn lshin to x-axis <0> speed <282.0>;
+		turn lcalf to x-axis <0> speed <240.0>;
+		turn lfoot to x-axis <0> speed <120.0>;
 
 
-		turn pelvis to y-axis <0> speed <48.000000>;
-		move pelvis to y-axis [0] speed <48.000000>;
+		turn pelvis to y-axis <0> speed <48.0>;
+		move pelvis to y-axis [0] speed <48.0>;
 		wait-for-turn torso around y-axis;
 		sleep 160;
 	}
@@ -183,8 +183,8 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	if( !isAiming )
 	{
-		turn pelvis to y-axis <0.000000> speed <60.000000>;
-		move pelvis to y-axis [0.000000] speed [6.000000];
+		turn pelvis to y-axis <0.0> speed <60.0>;
+		move pelvis to y-axis [0.0] speed [6.0];
 	}
 	while( TRUE )
 	{

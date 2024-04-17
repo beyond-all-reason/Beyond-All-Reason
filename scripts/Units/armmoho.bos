@@ -34,8 +34,8 @@ Activate()
 
 Deactivate()
 {
-	stop-spin arms1 around y-axis decelerate <1.000000>;
-	stop-spin arms2 around y-axis decelerate <1.000000>;
+	stop-spin arms1 around y-axis decelerate <1.0>;
+	stop-spin arms2 around y-axis decelerate <1.0>;
 }
 
 SetSpeed(windOrMetal)

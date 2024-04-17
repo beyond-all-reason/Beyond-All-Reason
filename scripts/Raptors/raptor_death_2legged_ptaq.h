@@ -678,7 +678,7 @@ DeathAnimPtaq() {// For C:\Users\Peti\Downloads\raptor_death_remaster_v2.blend C
 
 			turn rfoot to x-axis ((<98.315635> *DEATHAMPLIDUTE)/100) speed ((<492.433007> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=-16.41
 			turn rfoot to z-axis ((<-76.874899> *DEATHAMPLIDUTE)/100) speed ((<707.923904> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=-23.60
-			turn rfoot to y-axis ((<23.455648> *DEATHAMPLIDUTE)/100) speed ((<1112.000969> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=-37.07
+			turn rfoot to y-axis ((<23.455648> *DEATHAMPLIDUTE)/100) speed ((<1112.0> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=-37.07
 			turn rknee to x-axis ((<-53.300167> *DEATHAMPLIDUTE)/100) speed ((<1424.420140> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=47.48
 			turn rknee to z-axis ((<16.245854> *DEATHAMPLIDUTE)/100) speed ((<199.763106> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=-6.66
 			turn rknee to y-axis ((<20.983205> *DEATHAMPLIDUTE)/100) speed ((<361.285768> *DEATHAMPLIDUTE)/100) / DEATHSPEEDPTAQ; //delta=12.04

@@ -36,10 +36,10 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn head1 to y-axis <-60.000000> speed <225.000000>;
-	turn head2 to y-axis <60.000000> speed <225.000000>;
-	turn head3 to y-axis <-60.000000> speed <225.000000>;
-	turn head4 to y-axis <60.000000> speed <225.000000>;
+	turn head1 to y-axis <-60.0> speed <225.0>;
+	turn head2 to y-axis <60.0> speed <225.0>;
+	turn head3 to y-axis <-60.0> speed <225.0>;
+	turn head4 to y-axis <60.0> speed <225.0>;
 	wait-for-turn head1 around y-axis;
 	
 	FACTORY_OPEN_BUILD;
@@ -51,10 +51,10 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	turn head1 to y-axis <0.000000> speed <225.000000>;
-	turn head2 to y-axis <0.000000> speed <225.000000>;
-	turn head3 to y-axis <0.000000> speed <225.000000>;
-	turn head4 to y-axis <0.000000> speed <225.000000>;
+	turn head1 to y-axis <0.0> speed <225.0>;
+	turn head2 to y-axis <0.0> speed <225.0>;
+	turn head3 to y-axis <0.0> speed <225.0>;
+	turn head4 to y-axis <0.0> speed <225.0>;
 	wait-for-turn head1 around y-axis;
 			
 	FACTORY_CLOSE_BUILD;

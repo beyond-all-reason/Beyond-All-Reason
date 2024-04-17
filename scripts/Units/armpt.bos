@@ -57,7 +57,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -100,9 +100,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turretl to y-axis <0.000000> speed <150.000000>;
-	turn turretr to y-axis <0.000000> speed <150.000000>;
-	turn turretaa to y-axis <0.000000> speed <150.000000>;
+	turn turretl to y-axis <0.0> speed <150.0>;
+	turn turretr to y-axis <0.0> speed <150.0>;
+	turn turretaa to y-axis <0.0> speed <150.0>;
 	wait-for-turn turretaa around y-axis;
 	move turretaa to y-axis [0] speed [16];
 	sleep(150);
@@ -180,8 +180,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretl to y-axis heading speed <300.000000>;
-	turn turretr to y-axis heading speed <300.000000>;
+	turn turretl to y-axis heading speed <300.0>;
+	turn turretr to y-axis heading speed <300.0>;
 	wait-for-turn turretl around y-axis;
 	wait-for-turn turretr around y-axis;
 	start-script RestoreAfterDelay();

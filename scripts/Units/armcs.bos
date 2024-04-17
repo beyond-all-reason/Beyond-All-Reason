@@ -98,7 +98,7 @@ StartBuilding(heading, pitch)
 
 	show nano;
 
-	turn turret to y-axis heading speed <160.000000>;
+	turn turret to y-axis heading speed <160.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 }

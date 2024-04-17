@@ -33,7 +33,7 @@ Create()
 {
 	hide wake;
 	hide flare;
-	turn sleeve to x-axis <-20.000000> speed <25.000000>;
+	turn sleeve to x-axis <-20.0> speed <25.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -48,8 +48,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <190.000000>;
-	turn sleeve to x-axis <-20.000000> speed <25.000000>;
+	turn turret to y-axis <0.0> speed <190.0>;
+	turn sleeve to x-axis <-20.0> speed <25.0>;
 	turn doorr to y-axis <0> speed <130>;
 	turn doorl to y-axis <0> speed <130>;
 }
@@ -79,8 +79,8 @@ QueryWeapon1(pieceIndex)
 AimWeapon2(heading, pitch)
 {
 
-	turn turret to y-axis heading speed <370.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <280.000000>;
+	turn turret to y-axis heading speed <370.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <280.0>;
 	turn doorr to y-axis <-135> speed <370>;
 	turn doorl to y-axis <135> speed <370>;
 	wait-for-turn turret around y-axis;

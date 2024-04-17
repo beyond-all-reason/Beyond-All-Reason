@@ -36,20 +36,20 @@ RockOnWaves()
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <15.000000>;
-	turn base to z-axis <0> - anglez speed <15.000000>;
+	turn base to x-axis anglex speed <15.0>;
+	turn base to z-axis <0> - anglez speed <15.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0.000000> - anglex speed <12.000000>;
-	turn base to z-axis anglez speed <12.000000>;
+	turn base to x-axis <0.0> - anglex speed <12.0>;
+	turn base to z-axis anglez speed <12.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis anglex / <0.005495> speed <9.000000>;
-	turn base to z-axis <0> - (anglez / <0.005495>) speed <9.000000>;
+	turn base to x-axis anglex / <0.005495> speed <9.0>;
+	turn base to z-axis <0> - (anglez / <0.005495>) speed <9.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0.000000> speed <3.000000>;
-	turn base to z-axis <0.000000> speed <3.000000>;
+	turn base to x-axis <0.0> speed <3.0>;
+	turn base to z-axis <0.0> speed <3.0>;
 	sleep 150;
 }
 
@@ -67,7 +67,7 @@ Create()
 StartBuilding(heading)
 {
 	show emitnano;
-	turn aim to y-axis heading speed <320.000000>;
+	turn aim to y-axis heading speed <320.0>;
 	set INBUILDSTANCE to 1;
 }
 

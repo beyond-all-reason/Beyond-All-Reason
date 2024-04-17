@@ -77,7 +77,7 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
-	turn base to z-axis <0.000000> speed <1.5>;
+	turn base to z-axis <0.0> speed <1.5>;
 }
 
 
@@ -118,11 +118,11 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret1 to y-axis <0.000000> speed <180.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <90.000000>;
+	turn turret1 to y-axis <0.0> speed <180.0>;
+	turn sleeve1 to x-axis <0.0> speed <90.0>;
 
-	turn turret2 to y-axis <0.000000> speed <180.000000>;
-	turn sleeve2 to x-axis <0.000000> speed <90.000000>;
+	turn turret2 to y-axis <0.0> speed <180.0>;
+	turn sleeve2 to x-axis <0.0> speed <90.0>;
 }
 SetStunned(State)
 {
@@ -180,8 +180,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret1 to y-axis heading speed <180.000000>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <90.000000>;
+	turn turret1 to y-axis heading speed <180.0>;
+	turn sleeve1 to x-axis <0.0> - pitch speed <90.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	aimDir = heading;
@@ -194,14 +194,14 @@ Shot1()
 	start-script RockZ(-9,aimDir);
 	if( gun_1 )
 	{
-		move barrel12 to z-axis [-2.000000] now;
-		move barrel12 to z-axis [0.000000] speed [3.000000];
+		move barrel12 to z-axis [-2.0] now;
+		move barrel12 to z-axis [0.0] speed [3.0];
 		emit-sfx 1024 + 0 from flare12;
 	}
 	else
 	{
-		move barrel11 to z-axis [-2.000000] now;
-		move barrel11 to z-axis [0.000000] speed [3.000000];
+		move barrel11 to z-axis [-2.0] now;
+		move barrel11 to z-axis [0.0] speed [3.0];
 		emit-sfx 1024 + 0 from flare11;
 	}
 	gun_1 = !gun_1;
@@ -223,8 +223,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turret2 to y-axis heading speed <180.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <90.000000>;
+	turn turret2 to y-axis heading speed <180.0>;
+	turn sleeve2 to x-axis <0.0> - pitch speed <90.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn sleeve2 around x-axis;
 	aimDir = heading;
@@ -237,14 +237,14 @@ Shot2()
 	start-script RockZ(-9,aimDir);
 	if( gun_2 )
 	{
-		move barrel22 to z-axis [-2.000000] now;
-		move barrel22 to z-axis [0.000000] speed [3.000000];
+		move barrel22 to z-axis [-2.0] now;
+		move barrel22 to z-axis [0.0] speed [3.0];
 		emit-sfx 1024 + 0 from flare22;
 	}
 	else
 	{
-		move barrel21 to z-axis [-2.000000] now;
-		move barrel21 to z-axis [0.000000] speed [3.000000];
+		move barrel21 to z-axis [-2.0] now;
+		move barrel21 to z-axis [0.0] speed [3.0];
 		emit-sfx 1024 + 0 from flare21;
 	}
 	gun_2 = !gun_2;

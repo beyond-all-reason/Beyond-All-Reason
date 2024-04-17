@@ -46,8 +46,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50>;
-	turn nano to y-axis <0.000000> speed <50>;
+	turn turret to y-axis <0.0> speed <50>;
+	turn nano to y-axis <0.0> speed <50>;
 }
 
 Restore_Weapon1()
@@ -56,7 +56,7 @@ Restore_Weapon1()
 	if (Stunned) {
 			return (1);
 	}
-	turn turret to y-axis <0.000000> speed <50>;
+	turn turret to y-axis <0.0> speed <50>;
 	last_primary_heading = -1000000;
 }
 
@@ -66,7 +66,7 @@ Restore_Nano()
 	if (Stunned) {
 			return (1);
 	}
-	turn nano to y-axis <0.000000> speed <50>;
+	turn nano to y-axis <0.0> speed <50>;
 }
 
 SetStunned(State)
@@ -86,7 +86,7 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <500.000000>;
+	turn turret to y-axis heading speed <500.0>;
 	// only wait-for-turn if it takes more than 3 frames to finish the turn
 	if ( (get ABS(last_primary_heading-heading)>9000) )
 	{

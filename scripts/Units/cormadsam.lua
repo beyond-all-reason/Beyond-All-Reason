@@ -40,10 +40,10 @@
 
 		StartThread(dmgsmoke, dmgPieces)
 
-                Turn(launcher, x_axis, math.rad(-55.000000), math.rad(60.000000))
+                Turn(launcher, x_axis, math.rad(-55.0), math.rad(60.0))
                 WaitForTurn(launcher, x_axis)
 
-		StartThread (animSpin, unitID, turret, y_axis, math.rad(25.000000))
+		StartThread (animSpin, unitID, turret, y_axis, math.rad(25.0))
         end
 
         local function RestoreAfterDelay(unitID)
@@ -77,8 +77,8 @@
         function script.AimWeapon1( heading, pitch )
                 Signal(SIGNAL_AIM1)
                 SetSignalMask(SIGNAL_AIM1)
-                Turn(turret, y_axis, heading, math.rad(245.000000))
-                Turn(launcher, x_axis, -pitch, math.rad(185.000000))
+                Turn(turret, y_axis, heading, math.rad(245.0))
+                Turn(launcher, x_axis, -pitch, math.rad(185.0))
                 WaitForTurn(turret, y_axis)
                 WaitForTurn(launcher, x_axis)
                 return true
@@ -132,8 +132,8 @@
                 if currBarrel == 9 then currBarrel = 1 end
 
 			Sleep (5000)
-			StartThread (animSpin, unitID, turret, y_axis, math.rad(25.000000))
-			Turn(launcher, x_axis, math.rad(-35.000000), math.rad(60.000000))
+			StartThread (animSpin, unitID, turret, y_axis, math.rad(25.0))
+			Turn(launcher, x_axis, math.rad(-35.0), math.rad(60.0))
         end
 
 	function script.Killed(recentDamage, maxHealth)

@@ -31,9 +31,9 @@ Create()
 
 Activate()
 {
-	spin turret around y-axis speed <25.000000>;
-	spin spinner1 around y-axis speed <100.000000>;
-	spin spinner2 around y-axis speed <-100.000000>;
+	spin turret around y-axis speed <25.0>;
+	spin spinner1 around y-axis speed <100.0>;
+	spin spinner2 around y-axis speed <-100.0>;
 }
 
 Deactivate()

@@ -32,7 +32,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <28.463688> speed <786.618223> / animSpeed; 
 			turn lthigh to z-axis <6.414564> speed <383.071557> / animSpeed; 
 			turn lthigh to y-axis <-1.128280> speed <123.646459> / animSpeed; 
-			turn pelvis to x-axis <-0.000000> speed <149.999983> / animSpeed; 
+			turn pelvis to x-axis <-0.0> speed <149.999983> / animSpeed; 
 			turn rfoot to x-axis <38.546265> speed <1128.417134> / animSpeed; 
 			turn rfoot to z-axis <-6.897524> speed <101.979838> / animSpeed; 
 			turn rfoot to y-axis <-1.430482> speed <57.160004> / animSpeed; 
@@ -64,7 +64,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to y-axis <0.884297> speed <60.377311> / animSpeed; 
 			move pelvis to y-axis [-0.790000] speed [23.699999] / animSpeed; 
 			turn pelvis to x-axis <4.568749> speed <137.062482> / animSpeed; 
-			turn pelvis to y-axis <-4.000000> speed <119.999986> / animSpeed; 
+			turn pelvis to y-axis <-4.0> speed <119.999986> / animSpeed; 
 			turn rfoot to x-axis <5.633654> speed <987.378323> / animSpeed; 
 			turn rfoot to z-axis <0.002615> speed <207.004152> / animSpeed; 
 			turn rfoot to y-axis <-0.002489> speed <42.839816> / animSpeed; 
@@ -73,7 +73,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rknee to y-axis <-0.903029> speed <17.539158> / animSpeed; 
 			turn rleg to x-axis <47.379492> speed <1996.137709> / animSpeed; 
 			turn rleg to z-axis <-2.989707> speed <65.145727> / animSpeed; 
-			turn rleg to y-axis <5.000039> speed <92.860037> / animSpeed; 
+			turn rleg to y-axis <5.0> speed <92.860037> / animSpeed; 
 			turn rthigh to x-axis <-58.670553> speed <899.234907> / animSpeed; 
 			turn rthigh to z-axis <-3.659250> speed <66.775942> / animSpeed; 
 			turn rthigh to y-axis <5.419124> speed <101.517866> / animSpeed; 
@@ -151,9 +151,9 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <-28.531841> speed <1124.294797> / animSpeed; 
 			turn lthigh to z-axis <1.384001> speed <106.589691> / animSpeed; 
 			turn lthigh to y-axis <-1.972103> speed <116.931095> / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [11.700000] / animSpeed; 
-			turn pelvis to x-axis <-0.000000> speed <88.499997> / animSpeed; 
-			turn pelvis to y-axis <0.000000> speed <163.593733> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [11.700000] / animSpeed; 
+			turn pelvis to x-axis <-0.0> speed <88.499997> / animSpeed; 
+			turn pelvis to y-axis <0.0> speed <163.593733> / animSpeed; 
 			turn rfoot to x-axis <-45.601082> speed <1486.777649> / animSpeed; 
 			turn rfoot to z-axis <8.777723> speed <72.755435> / animSpeed; 
 			turn rfoot to y-axis <2.942875> speed <14.622197> / animSpeed; 
@@ -229,7 +229,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:32
-			turn launcher to x-axis <3.000000> speed <128.999994> / animSpeed; 
+			turn launcher to x-axis <3.0> speed <128.999994> / animSpeed; 
 			turn lfoot to x-axis <3.635010> speed <1303.925050> / animSpeed; 
 			turn lfoot to z-axis <-6.350171> speed <70.450323> / animSpeed; 
 			turn lfoot to y-axis <-2.491368> speed <91.408108> / animSpeed; 
@@ -243,7 +243,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to z-axis <3.505405> speed <71.676934> / animSpeed; 
 			turn lthigh to y-axis <-1.514817> speed <9.411657> / animSpeed; 
 			move pelvis to y-axis [-0.390000] speed [23.399999] / animSpeed; 
-			turn pelvis to x-axis <3.299998> speed <99.000036> / animSpeed; 
+			turn pelvis to x-axis <3.299998> speed <99.0> / animSpeed; 
 			turn pelvis to y-axis <3.749998> speed <112.500029> / animSpeed; 
 			turn rfoot to x-axis <-2.631426> speed <1150.192505> / animSpeed; 
 			turn rknee to x-axis <25.001153> speed <390.905062> / animSpeed; 
@@ -258,7 +258,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:36
-			turn launcher to x-axis <-0.000000> speed <89.999990> / animSpeed; 
+			turn launcher to x-axis <-0.0> speed <89.999990> / animSpeed; 
 			turn lfoot to x-axis <-45.174461> speed <1464.284129> / animSpeed; 
 			turn lfoot to z-axis <-8.711228> speed <70.831730> / animSpeed; 
 			turn lfoot to y-axis <-2.849490> speed <10.743672> / animSpeed; 
@@ -271,9 +271,9 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <28.463688> speed <949.236400> / animSpeed; 
 			turn lthigh to z-axis <6.414564> speed <87.274763> / animSpeed; 
 			turn lthigh to y-axis <-1.128280> speed <11.596121> / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [11.700000] / animSpeed; 
-			turn pelvis to x-axis <-0.000000> speed <98.999946> / animSpeed; 
-			turn pelvis to y-axis <0.000000> speed <112.499952> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [11.700000] / animSpeed; 
+			turn pelvis to x-axis <-0.0> speed <98.999946> / animSpeed; 
+			turn pelvis to y-axis <0.0> speed <112.499952> / animSpeed; 
 			turn rfoot to x-axis <38.366183> speed <1229.928296> / animSpeed; 
 			turn rknee to x-axis <-3.925581> speed <867.802018> / animSpeed; 
 			turn rknee to z-axis <-1.245253> speed <55.816170> / animSpeed; 
@@ -290,7 +290,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 }
 // Call this from StopMoving()!
 StopWalking() {
-	move pelvis to y-axis [0.000000] speed [5.925000];
+	move pelvis to y-axis [0.0] speed [5.925000];
 	turn launcher to x-axis <5.899999> speed <82.499994>;
 	turn lfoot to x-axis <-0.511674> speed <366.071032>;
 	turn lfoot to y-axis <-0.309917> speed <22.852027>;
@@ -305,7 +305,7 @@ StopWalking() {
 	turn lthigh to y-axis <2.993269> speed <30.911615>;
 	turn lthigh to z-axis <-6.354488> speed <95.767889>;
 	turn pelvis to x-axis <-4.999999> speed <37.499996>;
-	turn pelvis to y-axis <0.000000> speed <40.898433>;
+	turn pelvis to y-axis <0.0> speed <40.898433>;
 	turn rfoot to x-axis <0.932360> speed <371.694412>;
 	turn rfoot to y-axis <0.474851> speed <22.005134>;
 	turn rfoot to z-axis <-10.296852> speed <64.797402>;
@@ -399,8 +399,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.000000> speed <90.021978>;
-	turn aimx1 to x-axis <0.000000> speed <45.010989>;
+	turn aimy1 to y-axis <0.0> speed <90.021978>;
+	turn aimx1 to x-axis <0.0> speed <45.010989>;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
@@ -421,7 +421,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <90.021978>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <45.010989>;
+	turn aimx1 to x-axis <0.0> - pitch speed <45.010989>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -515,8 +515,8 @@ DeathAnim() {// For N:\animations\corstorm_anim_death.blend Created by https://g
 			move pelvis to z-axis [11.873957] speed [8.092937] ; //delta=1.62 
 			move pelvis to y-axis [-4.178505] speed [14.959669] ; //delta=-2.99 
 			turn pelvis to x-axis <17.638905> speed <26.739495> ; //delta=-5.35 
-			turn pelvis to z-axis <0.000000> speed <19.745808> ; //delta=3.95 
-			turn pelvis to y-axis <-0.000000> speed <20.923533> ; //delta=4.18 
+			turn pelvis to z-axis <0.0> speed <19.745808> ; //delta=3.95 
+			turn pelvis to y-axis <-0.0> speed <20.923533> ; //delta=4.18 
 			turn rfoot to x-axis <-14.027358> speed <57.854568> ; //delta=11.57 
 			turn rfoot to z-axis <-10.616333> speed <1.555319> ; //delta=0.31 
 			turn rfoot to y-axis <-2.293257> speed <10.766926> ; //delta=-2.15 
@@ -575,7 +575,7 @@ DeathAnim() {// For N:\animations\corstorm_anim_death.blend Created by https://g
 			turn rfoot to x-axis <67.939215> speed <766.616864> ; //delta=-76.66 
 			turn rfoot to z-axis <6.278843> speed <166.969720> ; //delta=-16.70 
 			turn rfoot to y-axis <-10.416555> speed <91.261486> ; //delta=-9.13 
-			turn rknee to x-axis <-121.000216> speed <1377.156460> ; //delta=137.72 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
+			turn rknee to x-axis <-121.0> speed <1377.156460> ; //delta=137.72 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
 
 			turn rknee to z-axis <16.952591> speed <148.898092> ; //delta=-14.89 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
 

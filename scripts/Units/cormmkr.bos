@@ -11,7 +11,7 @@ MMStatus(State)
 		hide cover;
 	    show light;
 		show converter;
-		move converter to y-axis [6] speed [12.000000];	
+		move converter to y-axis [6] speed [12.0];	
 	}
 	else
 	{

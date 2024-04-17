@@ -14,7 +14,7 @@ Propcontrol()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 33;
 	}
 }
@@ -32,7 +32,7 @@ StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	move door to y-axis [1.000000] speed [4.000000];
+	move door to y-axis [1.0] speed [4.0];
 	move lfin to x-axis [-5.600000] speed [5.600000];
 	move rfin to x-axis [5.600000] speed [5.600000];
 	while( TRUE )
@@ -45,9 +45,9 @@ StartMoving(reversing)
 StopMoving()
 {	
 	signal SIGNAL_MOVE;
-	move door to y-axis [0.000000] speed [4.000000];
-	move lfin to x-axis [0.000000] speed [5.600000];
-	move rfin to x-axis [0.000000] speed [5.600000];
+	move door to y-axis [0.0] speed [4.0];
+	move lfin to x-axis [0.0] speed [5.600000];
+	move rfin to x-axis [0.0] speed [5.600000];
 
 }
 
@@ -96,9 +96,9 @@ StopBuilding()
 	sleep 6000;
 	
 	set INBUILDSTANCE to 0;
-	turn gun to y-axis <0.000000> speed <160>;
+	turn gun to y-axis <0.0> speed <160>;
 	wait-for-turn gun around y-axis;
-	move turret to y-axis [0.000000] speed [8.800000];
+	move turret to y-axis [0.0] speed [8.800000];
 }
 
 QueryNanoPiece(pieceIndex)

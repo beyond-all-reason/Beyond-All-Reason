@@ -26,7 +26,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <-1.186994> speed <424.911176> / animSpeed; 
 			move pelvis to z-axis [0.039343] speed [31.395532] / animSpeed; 
 			move pelvis to y-axis [0.983569] speed [108.822112] / animSpeed; 
-			turn pelvis to x-axis <-0.000000> speed <329.999975> / animSpeed; 
+			turn pelvis to x-axis <-0.0> speed <329.999975> / animSpeed; 
 			turn pelvis to y-axis <5.357556> speed <160.726680> / animSpeed; 
 			turn rfoot to x-axis <27.198047> speed <1276.335013> / animSpeed; 
 			turn rfoot to z-axis <-1.693794> speed <50.808809> / animSpeed; 
@@ -111,7 +111,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rfoot to x-axis <8.011376> speed <1149.500910> / animSpeed; 
 			turn rfoot to z-axis <-2.255484> speed <20.746905> / animSpeed; 
 			turn rfoot to y-axis <0.964495> speed <11.456472> / animSpeed; 
-			turn rleg to x-axis <-4.299766> speed <356.000059> / animSpeed; 
+			turn rleg to x-axis <-4.299766> speed <356.0> / animSpeed; 
 			turn rleg to z-axis <0.087867> speed <39.959610> / animSpeed; 
 			turn rleg to y-axis <-0.257089> speed <44.371897> / animSpeed; 
 			turn rthigh to x-axis <-3.942633> speed <1535.786310> / animSpeed; 
@@ -156,7 +156,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lleg to z-axis <-1.593439> speed <7.219029> / animSpeed; 
 			turn lleg to y-axis <0.860034> speed <50.364661> / animSpeed; 
 			turn lthigh to x-axis <-102.290627> speed <1276.544119> / animSpeed; 
-			turn lthigh to z-axis <-1.227646> speed <41.000950> / animSpeed; 
+			turn lthigh to z-axis <-1.227646> speed <41.0> / animSpeed; 
 			turn lthigh to y-axis <0.404285> speed <48.812960> / animSpeed; 
 			move pelvis to z-axis [0.629484] speed [33.047922] / animSpeed; 
 			turn pelvis to y-axis <-7.109897> speed <65.614217> / animSpeed; 
@@ -257,12 +257,12 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 StopWalking() {
 	move pelvis to y-axis [-2.643835] speed [27.205528];
 	move pelvis to z-axis [1.085860] speed [14.163395];
-	turn head to x-axis <0.000000> speed <98.249992>;
-	turn head to y-axis <0.000000> speed <98.249992>;
-	turn head to z-axis <0.000000> speed <98.249992>;
+	turn head to x-axis <0.0> speed <98.249992>;
+	turn head to y-axis <0.0> speed <98.249992>;
+	turn head to z-axis <0.0> speed <98.249992>;
 	turn lfoot to x-axis <-14.935460> speed <390.333876>;
-	turn lfoot to y-axis <0.000000> speed <19.098727>;
-	turn lfoot to z-axis <0.000000> speed <25.747446>;
+	turn lfoot to y-axis <0.0> speed <19.098727>;
+	turn lfoot to z-axis <0.0> speed <25.747446>;
 	turn lleg to x-axis <-12.244538> speed <387.738000>;
 	turn lleg to y-axis <2.547105> speed <167.296157>;
 	turn lleg to z-axis <-1.053010> speed <146.469962>;
@@ -270,10 +270,10 @@ StopWalking() {
 	turn lthigh to y-axis <-15.350700> speed <106.227794>;
 	turn lthigh to z-axis <-1.422855> speed <24.010606>;
 	turn pelvis to x-axis <10.999999> speed <82.499994>;
-	turn pelvis to y-axis <0.000000> speed <40.181670>;
+	turn pelvis to y-axis <0.0> speed <40.181670>;
 	turn rfoot to x-axis <-15.346453> speed <404.161832>;
-	turn rfoot to y-axis <0.000000> speed <21.519060>;
-	turn rfoot to z-axis <0.000000> speed <14.771893>;
+	turn rfoot to y-axis <0.0> speed <21.519060>;
+	turn rfoot to z-axis <0.0> speed <14.771893>;
 	turn rleg to x-axis <-12.530351> speed <375.374441>;
 	turn rleg to y-axis <-3.121162> speed <131.333077>;
 	turn rleg to z-axis <1.391352> speed <106.810614>;

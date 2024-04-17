@@ -44,15 +44,15 @@ StartDoorOpen()
 {
 	signal 4;
 	set-signal-mask 4;
-	turn doorr to z-axis <-90.000000> speed <100.000000>;
-	turn doorl to z-axis <90.000000> speed <100.000000>;
+	turn doorr to z-axis <-90.0> speed <100.0>;
+	turn doorl to z-axis <90.0> speed <100.0>;
 	wait-for-turn doorr around z-axis;
 	wait-for-turn doorl around z-axis;
 
 	sleep 5000;
 
-	turn doorr to z-axis <0.000000> speed <100.000000>;
-	turn doorl to z-axis <0.000000> speed <100.000000>;
+	turn doorr to z-axis <0.0> speed <100.0>;
+	turn doorl to z-axis <0.0> speed <100.0>;
 	wait-for-turn doorr around z-axis;
 	wait-for-turn doorr around z-axis;
 

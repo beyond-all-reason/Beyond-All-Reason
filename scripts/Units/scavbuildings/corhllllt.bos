@@ -41,8 +41,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret1 to y-axis heading speed <200.000000>;
-	turn turret1 to x-axis <0.0> - pitch speed <200.000000>;
+	turn turret1 to y-axis heading speed <200.0>;
+	turn turret1 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret1 around x-axis;
 	return (1);
@@ -52,8 +52,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turret2 to y-axis heading speed <200.000000>;
-	turn turret2 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn turret2 to y-axis heading speed <200.0>;
+	turn turret2 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn turret2 around x-axis;
 	return (1);
@@ -63,8 +63,8 @@ AimWeapon3(heading, pitch)
 {
 signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn turret3 to y-axis heading speed <200.000000>;
-	turn turret3 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn turret3 to y-axis heading speed <200.0>;
+	turn turret3 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret3 around y-axis;
 	wait-for-turn turret3 around x-axis;
 	return (1);
@@ -74,8 +74,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
-	turn turret4 to y-axis heading speed <200.000000>;
-	turn turret4 to x-axis <0.0> - pitch speed <200.000000>;
+	turn turret4 to y-axis heading speed <200.0>;
+	turn turret4 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret4 around y-axis;
 	wait-for-turn turret4 around x-axis;
 	return (1);

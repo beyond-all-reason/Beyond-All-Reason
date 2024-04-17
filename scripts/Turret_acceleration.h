@@ -22,7 +22,7 @@
 #endif
 
 #ifndef MAX_AIMY1_VELOCITY
-	#define MAX_AIMY1_VELOCITY <3.00>
+	#define MAX_AIMY1_VELOCITY <3.0>
 #endif
 
 #ifndef AIMY1_ACCELERATION

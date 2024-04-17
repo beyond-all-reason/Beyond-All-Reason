@@ -122,8 +122,8 @@ static-var isSmoking;
 			sleep maxTime;
 		#endif
 
-		turn BASEPIECE to z-axis <0.000000> speed RESTORESPEED;
-		turn BASEPIECE to x-axis <0.000000> speed RESTORESPEED;
+		turn BASEPIECE to z-axis <0.0> speed RESTORESPEED;
+		turn BASEPIECE to x-axis <0.0> speed RESTORESPEED;
 	}
 
 	#if RECOIL_POWER > 0

@@ -48,12 +48,12 @@ Create()
 	hide nano2;
 	spray = base;
 	set ARMORED to 1;
-	move base to y-axis [5.000000] now;
+	move base to y-axis [5.0] now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
-	move base to y-axis [0.000000] speed [10.000000];
+	move base to y-axis [0.0] speed [10.0];
 	start-script RockOnWaves();
 }
 
@@ -69,7 +69,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move base to y-axis [28] speed [25.000000];
+	move base to y-axis [28] speed [25.0];
 	wait-for-move base along y-axis;
 	
 	FACTORY_OPEN_BUILD;
@@ -81,7 +81,7 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	move base to y-axis [0.000000] speed [25.000000];
+	move base to y-axis [0.0] speed [25.0];
 	wait-for-move base along y-axis;
 	
 	FACTORY_CLOSE_BUILD;

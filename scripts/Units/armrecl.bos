@@ -21,7 +21,7 @@ Propcontrol()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin screw around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		spin screw around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 33;
 	}
 }
@@ -32,8 +32,8 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
-		move lfin to x-axis [-5.000000] speed [4.000000];
-		move rfin to x-axis [5.000000] speed [4.000000];
+		move lfin to x-axis [-5.0] speed [4.0];
+		move rfin to x-axis [5.0] speed [4.0];
 		emit-sfx 1024 + 0 from base;
 		sleep 250;
 	}
@@ -43,8 +43,8 @@ StartMoving(reversing)
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	move lfin to x-axis [0.000000] speed [4.000000];
-	move rfin to x-axis [0.000000] speed [4.000000];
+	move lfin to x-axis [0.0] speed [4.0];
+	move rfin to x-axis [0.0] speed [4.0];
 	sleep 1000;	
 	return (0);
 }
@@ -64,11 +64,11 @@ StartBuilding(heading)
 	set-signal-mask SIGNAL_BUILD;
 
 	if (!readyToBuild){
-		move ldoor to x-axis [-1.200000] speed [2.000000];
-		move rdoor to x-axis [1.200000] speed [2.000000];
+		move ldoor to x-axis [-1.200000] speed [2.0];
+		move rdoor to x-axis [1.200000] speed [2.0];
 		wait-for-move ldoor along x-axis;
 
-		move barrel to z-axis [2.000000] speed [2.000000];
+		move barrel to z-axis [2.0] speed [2.0];
 		wait-for-move barrel along z-axis;
 		readyToBuild = TRUE;
 	}
@@ -89,11 +89,11 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 	readyToBuild = FALSE;
 
-	move ldoor to x-axis [0] speed [2.000000];
-	move rdoor to x-axis [0] speed [2.000000];
+	move ldoor to x-axis [0] speed [2.0];
+	move rdoor to x-axis [0] speed [2.0];
 	wait-for-move ldoor along x-axis;
 
-	move barrel to z-axis [0] speed [2.000000];
+	move barrel to z-axis [0] speed [2.0];
 	wait-for-move barrel along z-axis;
 }
 

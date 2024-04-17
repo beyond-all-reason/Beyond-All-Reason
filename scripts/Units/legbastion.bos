@@ -22,7 +22,7 @@ Open()
 		move base2 to y-axis [0] speed [20];
 		move base3 to y-axis [0] speed [20];
 
-		turn sauronarms to x-axis <0.000000> speed <85>;
+		turn sauronarms to x-axis <0.0> speed <85>;
 		start-script SpinIdle();
 		//show fireline;
 	}
@@ -41,14 +41,14 @@ Close()
 	wait-for-move base3 along y-axis;
 	
 	
-	turn sauronarms to x-axis <-90.000000> speed <85>;
+	turn sauronarms to x-axis <-90.0> speed <85>;
 	turn sauron to y-axis <0> speed <35>;
 	
 	
-	turn ring1 to x-axis <0.000000> speed <85>;
-	turn ring2 to x-axis <0.000000> speed <85>;
-	turn ring2 to y-axis <0.000000> speed <85>;
-	turn ring3 to z-axis <0.000000> speed <85>;
+	turn ring1 to x-axis <0.0> speed <85>;
+	turn ring2 to x-axis <0.0> speed <85>;
+	turn ring2 to y-axis <0.0> speed <85>;
+	turn ring3 to z-axis <0.0> speed <85>;
 	stop-spin ring1 around x-axis;
 	stop-spin ring2 around x-axis;
 	stop-spin ring2 around y-axis;
@@ -106,7 +106,7 @@ RestoreAfterDelay() {
 	
 	if(isOpen==1) {
 		dakka = 0;
-		turn sauronarms to x-axis <0.000000> speed <85>;
+		turn sauronarms to x-axis <0.0> speed <85>;
 		turn sauron to y-axis <0> speed <35>;
 		start-script SpinIdle();
 	}
@@ -168,7 +168,7 @@ AimWeapon1(heading, pitch) {
 	//get PRINT(1, heading, pitch);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn sauronarms to x-axis <0.000000> - pitch speed <85>;
+	turn sauronarms to x-axis <0.0> - pitch speed <85>;
 	turn sauron to y-axis heading speed <35>;
 	
 	wait-for-turn sauron around y-axis;

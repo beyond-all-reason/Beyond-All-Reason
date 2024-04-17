@@ -77,8 +77,8 @@ AimWeapon1(heading, pitch)
 	if (heading < <-60> ) heading = <-60>;
 	if (pitch > <60> ) pitch = <60>;
 	if (pitch < <-60> ) pitch = <-60>;
-	turn aimy1 to y-axis heading speed <250.000000>;
-	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed <250.0>;
+	turn aimy1 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn aimy1 around y-axis;
 	
 	start-script RestoreAfterDelay();
@@ -87,15 +87,15 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	turn lforearm to y-axis <-140.000000> speed <600.000000>;
-	turn rforearm to y-axis <140.000000> speed <600.000000>;
-	turn lblade to y-axis <140.000000> speed <600.000000>;
-	turn rblade to y-axis <-140.000000> speed <600.000000>;
+	turn lforearm to y-axis <-140.0> speed <600.0>;
+	turn rforearm to y-axis <140.0> speed <600.0>;
+	turn lblade to y-axis <140.0> speed <600.0>;
+	turn rblade to y-axis <-140.0> speed <600.0>;
 	wait-for-turn rblade around y-axis;
-	turn lforearm to y-axis <0.000000> speed <120.000000>;
-	turn rforearm to y-axis <0.000000> speed <120.000000>;
-	turn lblade to y-axis <0.000000> speed <120.000000>;
-	turn rblade to y-axis <0.000000> speed <120.000000>;
+	turn lforearm to y-axis <0.0> speed <120.0>;
+	turn rforearm to y-axis <0.0> speed <120.0>;
+	turn lblade to y-axis <0.0> speed <120.0>;
+	turn rblade to y-axis <0.0> speed <120.0>;
 	return (0);
 }
 

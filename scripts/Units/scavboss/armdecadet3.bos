@@ -29,8 +29,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -193,27 +193,27 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from flare1;
 	if( gun_1 == 1 )
 	{
-		move barrel101 to z-axis [-10.000000] now;
-		move barrel101 to z-axis [0.000000] speed [10.000000];
-		turn spindle1 to z-axis <90.000000> speed <230.000000>;
+		move barrel101 to z-axis [-10.0] now;
+		move barrel101 to z-axis [0.0] speed [10.0];
+		turn spindle1 to z-axis <90.0> speed <230.0>;
 	}
 	if( gun_1 == 2 )
 	{
-		move barrel102 to z-axis [-10.000000] now;
-		move barrel102 to z-axis [0.000000] speed [10.000000];
-		turn spindle1 to z-axis <180.000000> speed <230.000000>;
+		move barrel102 to z-axis [-10.0] now;
+		move barrel102 to z-axis [0.0] speed [10.0];
+		turn spindle1 to z-axis <180.0> speed <230.0>;
 	}
 	if( gun_1 == 3 )
 	{
-		move barrel103 to z-axis [-10.000000] now;
-		move barrel103 to z-axis [0.000000] speed [10.000000];
-		turn spindle1 to z-axis <270.000000> speed <230.000000>;
+		move barrel103 to z-axis [-10.0] now;
+		move barrel103 to z-axis [0.0] speed [10.0];
+		turn spindle1 to z-axis <270.0> speed <230.0>;
 	}
 	if( gun_1 == 4 )
 	{
-		move barrel104 to z-axis [-10.000000] now;
-		move barrel104 to z-axis [0.000000] speed [10.000000];
-		turn spindle1 to z-axis <0.000000> speed <230.000000>;
+		move barrel104 to z-axis [-10.0] now;
+		move barrel104 to z-axis [0.0] speed [10.0];
+		turn spindle1 to z-axis <0.0> speed <230.0>;
 	}
 	++gun_1;
 	if( gun_1 == 5 )
@@ -227,27 +227,27 @@ FireWeapon2()
 	emit-sfx 1024 + 0 from flare2;
 	if( gun_2 == 1 )
 	{
-		move barrel201 to z-axis [-10.000000] now;
-		move barrel201 to z-axis [0.000000] speed [10.000000];
-		turn spindle2 to z-axis <90.000000> speed <230.000000>;
+		move barrel201 to z-axis [-10.0] now;
+		move barrel201 to z-axis [0.0] speed [10.0];
+		turn spindle2 to z-axis <90.0> speed <230.0>;
 	}
 	if( gun_2 == 2 )
 	{
-		move barrel202 to z-axis [-10.000000] now;
-		move barrel202 to z-axis [0.000000] speed [10.000000];
-		turn spindle2 to z-axis <180.000000> speed <230.000000>;
+		move barrel202 to z-axis [-10.0] now;
+		move barrel202 to z-axis [0.0] speed [10.0];
+		turn spindle2 to z-axis <180.0> speed <230.0>;
 	}
 	if( gun_2 == 3 )
 	{
-		move barrel203 to z-axis [-10.000000] now;
-		move barrel203 to z-axis [0.000000] speed [10.000000];
-		turn spindle2 to z-axis <270.000000> speed <230.000000>;
+		move barrel203 to z-axis [-10.0] now;
+		move barrel203 to z-axis [0.0] speed [10.0];
+		turn spindle2 to z-axis <270.0> speed <230.0>;
 	}
 	if( gun_2 == 4 )
 	{
-		move barrel204 to z-axis [-10.000000] now;
-		move barrel204 to z-axis [0.000000] speed [10.000000];
-		turn spindle2 to z-axis <0.000000> speed <230.000000>;
+		move barrel204 to z-axis [-10.0] now;
+		move barrel204 to z-axis [0.0] speed [10.0];
+		turn spindle2 to z-axis <0.0> speed <230.0>;
 	}
 	++gun_2;
 	if( gun_2 == 5 )

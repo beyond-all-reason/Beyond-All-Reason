@@ -50,7 +50,7 @@ Activate()
 
 Deactivate()
 {
-	spin wheel around z-axis speed <0.000000>;
+	spin wheel around z-axis speed <0.0>;
 }
 
 

@@ -32,7 +32,7 @@ MMStatus(State)
 	Active = State;
 	if (State)
 	{
-		spin fan around y-axis speed <300.000000> accelerate <10>;
+		spin fan around y-axis speed <300.0> accelerate <10>;
 	    show emit;
 	}
 	else

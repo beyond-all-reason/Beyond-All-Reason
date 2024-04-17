@@ -118,8 +118,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <360.000000>;
-	turn sleeve to x-axis <0.000000> speed <360.000000>;
+	turn turret to y-axis <0.0> speed <360.0>;
+	turn sleeve to x-axis <0.0> speed <360.0>;
 	start-script FoldGun();
 }
 
@@ -145,8 +145,8 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 200;
 	}
-	turn turret to y-axis heading speed <360.000000>;
-	turn sleeve to x-axis <0> - pitch speed <3600.000000>;
+	turn turret to y-axis heading speed <360.0>;
+	turn sleeve to x-axis <0> - pitch speed <3600.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

@@ -15,7 +15,7 @@ UnitSpeed(){
 			if (unitxz > 0 ){
 				groundheight = (get GROUND_WATER_HEIGHT(unitxz));
 			}
-			groundheight = groundheight /[1.0000];
+			groundheight = groundheight /[1.0];
 			
 			//groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
 			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);

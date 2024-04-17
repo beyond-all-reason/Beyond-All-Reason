@@ -18,10 +18,10 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 Open()
 {
 	set ARMORED to 0;
-	move top to y-axis [8.000000] speed [19.989014];
+	move top to y-axis [8.0] speed [19.989014];
 	wait-for-move top along y-axis;
-	move bore to z-axis [0.000000] speed [19.989014];
-	move barrel to z-axis [0.000000] speed [19.989014];
+	move bore to z-axis [0.0] speed [19.989014];
+	move barrel to z-axis [0.0] speed [19.989014];
 	isOpen = 1;
 }
 
@@ -29,7 +29,7 @@ Close()
 {
 	set ARMORED to 1;
 	isOpen = 0;
-	turn top to y-axis <0.000000> speed <300.000000>;
+	turn top to y-axis <0.0> speed <300.0>;
 	move bore to z-axis [-6] speed [19.989014];
 	move barrel to z-axis [-6.5] speed [19.989014];
 	wait-for-move barrel along z-axis;
@@ -102,8 +102,8 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn top to y-axis heading speed <300.000000>;
-	turn firepoint to x-axis <0.000000> - pitch speed <110.000000>;
+	turn top to y-axis heading speed <300.0>;
+	turn firepoint to x-axis <0.0> - pitch speed <110.0>;
 	wait-for-turn top around y-axis;
 	wait-for-turn firepoint around x-axis;
 	start-script RestoreAfterDelay();

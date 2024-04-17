@@ -21,7 +21,7 @@ Create()
 StartBuilding(heading)
 {
     show emitnano1;
-	turn centerpoint to y-axis heading speed <320.000000>;
+	turn centerpoint to y-axis heading speed <320.0>;
 	set INBUILDSTANCE to 1;
 }
 

@@ -15,8 +15,8 @@ Create()
 }
 Stop()
 {
-	spin fan1 around y-axis speed <0.0000>;
-	spin fan2 around y-axis speed <0.0000>;
+	spin fan1 around y-axis speed <0.0>;
+	spin fan2 around y-axis speed <0.0>;
 	return (0);
 }
 

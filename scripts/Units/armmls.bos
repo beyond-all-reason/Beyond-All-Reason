@@ -74,7 +74,7 @@ StartBuilding(heading)
 		readyToBuild = TRUE;
 	}	
 
-	turn NanoTurret to y-axis <180>+buildHeading speed <160.000000>;
+	turn NanoTurret to y-axis <180>+buildHeading speed <160.0>;
 	wait-for-turn NanoTurret around y-axis;
 	set INBUILDSTANCE to 1;
 	show nanoemit;
@@ -92,7 +92,7 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 	readyToBuild = FALSE;
 
-	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
+	turn NanoTurret to y-axis <0.0> speed <180.0>;
 	wait-for-turn NanoTurret around y-axis;
 
 	move nanoturret to y-axis [0] speed [24];

@@ -27,20 +27,20 @@ RockOnWaves()
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <15.00000>;
-	turn base to z-axis anglez speed <15.00000>;
+	turn base to x-axis anglex speed <15.0>;
+	turn base to z-axis anglez speed <15.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0.00000> - anglex speed <12.00000>;
-	turn base to z-axis <0.00000> - anglez speed <12.00000>;
+	turn base to x-axis <0.0> - anglex speed <12.0>;
+	turn base to z-axis <0.0> - anglez speed <12.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis anglex / <0.01099> speed <9.00000>;
-	turn base to z-axis anglez / <0.01099> speed <9.00000>;
+	turn base to x-axis anglex / <0.01099> speed <9.0>;
+	turn base to z-axis anglez / <0.01099> speed <9.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0.00000> speed <3.00000>;
-	turn base to z-axis <0.00000> speed <3.00000>;
+	turn base to x-axis <0.0> speed <3.0>;
+	turn base to z-axis <0.0> speed <3.0>;
 	sleep 150;
 	return (0);
 }
@@ -55,7 +55,7 @@ Create()
 	gun_1 = flare1;
 	start-script RockOnWaves();
 
-	turn turret to x-axis <-35> speed <25.00000>;
+	turn turret to x-axis <-35> speed <25.0>;
 	spin turret around y-axis speed <25.0>;
 	return (0);
 }
@@ -74,7 +74,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to x-axis <-25> speed <25.00000>;
+	turn turret to x-axis <-25> speed <25.0>;
 	spin turret around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -96,8 +96,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <450.00000>;
-	turn sleeve to x-axis <0.00000> - pitch speed <450.00000>;
+	turn turret to y-axis heading speed <450.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <450.0>;
 	wait-for-turn sleeve around z-axis;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();

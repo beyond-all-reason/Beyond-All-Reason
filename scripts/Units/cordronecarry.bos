@@ -62,7 +62,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -187,7 +187,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turret to y-axis heading speed <300.000000>;
+	turn turret to y-axis heading speed <300.0>;
 	turn launcher to x-axis <0> - pitch speed <300>;  //?
 	wait-for-turn turret around y-axis;
 	wait-for-turn launcher around x-axis;
