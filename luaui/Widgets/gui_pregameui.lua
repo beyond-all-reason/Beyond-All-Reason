@@ -563,7 +563,6 @@ function widget:RecvLuaMsg(msg, playerID) -- why this way? we want to ensure the
 		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode_fair_echo'))
 		initDMclocks()
 	end
-	-- it'd be great to just paint this on screen in the middle /!\ Commander, it's your turn, place your start pos now, you have 5 seconds! /!\ or something like that...
 end
 -- DOM end
 
