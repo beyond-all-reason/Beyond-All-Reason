@@ -55,6 +55,7 @@ end
 
 local customScale = 1
 local pointDuration = 45
+local pencilDuration = 5
 local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
@@ -134,6 +135,8 @@ local pics = {
     cpuPic = imageDirectory .. "cpu.dds",
     barPic = imageDirectory .. "bar.png",
     pointPic = imageDirectory .. "point.dds",
+    pencilPic = imageDirectory .. "pencil.dds",
+    eraserPic = imageDirectory .. "eraser.dds",
     lowPic = imageDirectory .. "low.dds",
     arrowPic = imageDirectory .. "arrow.dds",
     takePic = imageDirectory .. "take.dds",
@@ -1828,6 +1831,16 @@ function CheckTime()
                         player[playerID].pointTime = nil
                     end
                 end
+                if player[playerID].pencilTime ~= nil then
+                    if player[playerID].pencilTime <= now then
+                        player[playerID].pencilTime = nil
+                    end
+                end
+                if player[playerID].eraserTime ~= nil then
+                    if player[playerID].eraserTime <= now then
+                        player[playerID].eraserTime = nil
+                    end
+                end
             end
         end
     end
@@ -2057,7 +2070,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
     end
 
-    if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale) then
+    if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
         tipY = true
     end
 
@@ -2190,6 +2203,16 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                         if tipY then
                             PointTip(mouseX)
                         end
+                    end
+                end
+                if player[playerID].pencilTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawPencil(posY, player[playerID].pencilTime - now)
+                    end
+                end
+                if player[playerID].eraserTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawEraser(posY, player[playerID].eraserTime - now)
                     end
                 end
             end
@@ -2750,6 +2773,22 @@ function DrawPoint(posY, pointtime)
     gl_Color(1, 1, 1, 1)
 end
 
+function DrawPencil(posY, time)
+    leftPosX = widgetPosX + widgetWidth
+    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.11)
+    gl_Texture(pics["pencilPic"])
+    DrawRect(m_indent.posX + widgetPosX - 3.5, posY + (3*playerScale), m_indent.posX + widgetPosX - 1.5 + (8*playerScale), posY + (14*playerScale))
+    gl_Color(1, 1, 1, 1)
+end
+
+function DrawEraser(posY, time)
+    leftPosX = widgetPosX + widgetWidth
+    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.11)
+    gl_Texture(pics["eraserPic"])
+    DrawRect(m_indent.posX + widgetPosX -0.5, posY + (3*playerScale), m_indent.posX + widgetPosX + 1.5 + (8*playerScale), posY + (14*playerScale))
+    gl_Color(1, 1, 1, 1)
+end
+
 function TakeTip(mouseX)
     if right then
         if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
@@ -2890,8 +2929,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
+        tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
         if system ~= nil then
-            tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
+            tipText = tipText .. "\255\240\240\240" .. system
         end
         tipTextTime = os.clock()
     end
@@ -3771,6 +3811,10 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
             player[playerID].pointY = py
             player[playerID].pointZ = pz
             player[playerID].pointTime = now + pointDuration
+        elseif cmdType == 'line' then
+            player[playerID].pencilTime = now + pencilDuration
+        elseif cmdType == 'erase' then
+            player[playerID].eraserTime = now + pencilDuration
         end
     end
 end
