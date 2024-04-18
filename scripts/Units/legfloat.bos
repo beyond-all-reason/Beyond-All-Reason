@@ -117,7 +117,7 @@ StopMoving()
 	stop-spin lwheel around x-axis;
 }
 #define SMOKE_PIECE hull
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {
 	hide flare;

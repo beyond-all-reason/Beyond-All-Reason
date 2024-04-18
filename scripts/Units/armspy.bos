@@ -172,7 +172,7 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 5) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
-		if (animspeed>10) animSpeed = 10;
+		if (animSpeed>10) animSpeed = 10;
 		sleep 164;
 	}
 }
@@ -189,17 +189,19 @@ StopMoving(){
 	call-script StopWalking();
 }
 
-#include "../damagedmoke.h"
+#define SMOKE_PIECE pelvis
+#include "../damagedsmoke.h"
 
 Create()
 {
 	hide aimy1;
 	isMoving = FALSE;
 	buildDelay = 1;
-	animspeed = 5;
+	animSpeed = 5;
 	isCloaked = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
+}
 
 Activate()
 {

@@ -3,7 +3,7 @@
 
 piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;
 
-static-var  moveSpeed, currentSpeed, animSpeed, terrain, restore_delay;
+static-var  moveSpeed, currentSpeed, animSpeed,  restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -31,11 +31,6 @@ Create()
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	restore_delay = 200;
-}
-
-setSFXoccupy(state)
-{
-	terrain = state;
 }
 
 SetMaxReloadTime(reloadMS)

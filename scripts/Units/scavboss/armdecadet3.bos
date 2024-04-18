@@ -57,7 +57,7 @@ RockOnWaves()
 	}
 }
 
-#include "../../damagedmoke.h"
+#include "../../damagedsmoke.h"
 Create()
 {
 	hide flare2;

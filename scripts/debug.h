@@ -871,6 +871,8 @@ BenchMark1(count){
 		bench2 = get MAX_SPEED;
 		bench2 = bench2 + 1;
 		bench3 = get CURRENT_SPEED;
+		//bench2 = get ABS(bench2);
+		bench2 = ABSOLUTE(bench2);
 		if ((bench1 & 0x1) == 1 ){
 			//bench2 = get ABS(bench1);
 			//ABSOLUTE2(bench2);

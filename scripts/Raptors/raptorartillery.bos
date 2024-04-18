@@ -957,7 +957,7 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 }
 
 #define SMOKE_SFX 1024
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {

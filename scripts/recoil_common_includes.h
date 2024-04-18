@@ -205,5 +205,12 @@
 // Utilities
 
 #define SLEEP_UNTIL_UNITFINISHED while(get BUILD_PERCENT_LEFT) {sleep 333;}
+#define WRAPDELTA(angle) (((angle + 98280) % 65520) - 32760)
+
+#define SIGN(v) ((v > 0) - (v < 0)) 
+#define ABSOLUTE(v) (v * (-1 * (v<0)))
+// 15 commands to MAX, pretty bad
+#define MAXIMUM(v,m) ((v * (v > m)) + ((v <= m)* m))
+#define MINIMUM(v,m) ((v * (v < m)) + ((v >= m)* m))
 
 #endif

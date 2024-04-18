@@ -8,7 +8,9 @@ piece  base;
 
 Create()
 {
-	//start-script StartBench(1000);
+	#ifdef BENCHMARK
+		//start-script StartBench(1000);
+	#endif
 }
 
 

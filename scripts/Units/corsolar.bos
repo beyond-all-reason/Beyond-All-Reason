@@ -11,7 +11,7 @@ static-var  recentlyHit, wantOpen;
 
 #define SIGNAL_TURNON 4
 
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {
 	recentlyHit = 0;

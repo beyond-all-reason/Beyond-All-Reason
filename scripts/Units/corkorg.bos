@@ -6,7 +6,7 @@ piece  head, torso, hips, rgunflare, lgunflare, eyeflare, rmispoint,
        rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2, lfootstep, rfootstep;
 
 static-var  ShootingArm, WhichShoulderRocket, isMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
-            restore_delay, SmokeEffectFeet, HandsUp, wpn1_lasthead, wpn2_lasthead;
+            restore_delay, HandsUp, wpn1_lasthead, wpn2_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -602,11 +602,6 @@ Create()
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS;
-}
-
-SetSFXoccupy(terrainType)
-{
-	SmokeEffectFeet = terrainType;
 }
 
 

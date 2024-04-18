@@ -231,7 +231,7 @@ close()
 	return (0);
 }
 
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {
 	hide aimy1;

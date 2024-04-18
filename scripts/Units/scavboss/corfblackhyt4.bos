@@ -77,7 +77,7 @@ ProjXPW(Func_Var_1, Func_Var_2)
 //}
 
 
-#include "../../damagedmoke.h"
+#include "../../damagedsmoke.h"
 Create()
 {
 	hide thrustr2;

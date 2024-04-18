@@ -25,12 +25,6 @@ Create()
 	return (0);
 }
 
-// need this for terrain-specific effects, like dust
-//setSFXoccupy(state)
-//{
-//	terrain = state;
-//}
-
 static-var  Stunned;
 Restore_Nano()
 {

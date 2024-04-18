@@ -17,7 +17,7 @@ static-var recently_damaged, desired_activation;
 #include "../tilt_bank_mobileunit.h"
 
 
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {
 	recently_damaged = 0;

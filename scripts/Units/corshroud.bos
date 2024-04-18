@@ -10,7 +10,7 @@ static-var  recentlyDamaged;
 #define SIGNAL_TURNON 4
 
 
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {	
 	recentlyDamaged = 0;

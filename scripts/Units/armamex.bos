@@ -7,7 +7,7 @@ static-var  extractionRate, Stunned;
 
 
 
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 Create()
 {
 	extractionRate = 0;

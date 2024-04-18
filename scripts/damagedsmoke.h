@@ -1,4 +1,7 @@
-
+// damagedsmoke.h
+// By Beherith mysterme@gmail.com
+// This header is a very simple thing that should be start-scripted in Create after unit is finshed building. 
+// Emits more frequently as unit becomes more damaged
 #ifndef SMOKE_PIECE
     #define SMOKE_PIECE base
 #endif

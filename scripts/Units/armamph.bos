@@ -4,7 +4,7 @@
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot, prop, barrel, flare, turret, misbarrel, lmisflare, rmisflare;
 
 static-var  isMoving, isAiming, inWaterForm, gun_3,
-            restore_delay, terrainType, wpn1_lasthead, wpn3_lasthead;
+            restore_delay, isInWater, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -210,9 +210,10 @@ Movement()
 {
 	while( TRUE )
 	{
+		isInWater = get IN_WATER;
 		if( !inWaterForm )
 		{
-			if( terrainType == 2 )
+			if( isInWater == 1 )
 			{
 				call-script transform();
 				inWaterForm = 1;
@@ -220,7 +221,7 @@ Movement()
 		}
 		else
 		{
-			if( terrainType == 4 )
+			if( isInWater == 0 )
 			{
 				call-script reform();
 				inWaterForm = 0;
@@ -270,14 +271,7 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
-		if( terrainType == 1 )
-		{
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-		}
-		if( terrainType == 2 )
+		if( isInWater == 1 )
 		{
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
@@ -296,14 +290,6 @@ StopMoving()
 	return (0);
 }
 
-//0 = transported, 
-//1 = sea < 0 and unit is upright, or sea < -5 and unit is upright
-//2 = deep sea (greater than 5 water depth and unit is upright), 4 = land.
-SetSFXoccupy(terraintype)
-{
-	terrainType = terraintype;
-	return (0);
-}
 
 SetMaxReloadTime(reloadMS)
 {

@@ -36,7 +36,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 //	}
 //}
 
-#include "../../damagedmoke.h"
+#include "../../damagedsmoke.h"
 
 Create()
 {

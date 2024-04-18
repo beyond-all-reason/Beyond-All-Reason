@@ -254,7 +254,7 @@ close()
 }
 
 #define SMOKE_PIECE pelvis
-#include "../damagedmoke.h"
+#include "../damagedsmoke.h"
 
 Create()
 {
