@@ -14,10 +14,7 @@ static-var  Stunned;
 
 NanoEmit()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	while( TRUE )
 	{
 	

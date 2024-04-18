@@ -382,10 +382,7 @@ Create()
 	maxreloadtime=0;
 	open=FALSE;
 	firing=FALSE;
-	while(get BUILD_PERCENT_LEFT)
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay=2000;
 }
 

@@ -145,9 +145,7 @@ Create()
 	gun_1 = 0;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	while(get BUILD_PERCENT_LEFT) {
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

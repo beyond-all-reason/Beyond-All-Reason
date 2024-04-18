@@ -44,10 +44,7 @@ Create()
 	hide flare2;
 	gun_1 = 0;
 	call-script CATT1_Init();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

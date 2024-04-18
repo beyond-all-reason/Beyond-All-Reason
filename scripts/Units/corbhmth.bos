@@ -153,10 +153,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide flare3;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script AimControl();
 	start-script SmokeVents();
 	//call-script InitState();

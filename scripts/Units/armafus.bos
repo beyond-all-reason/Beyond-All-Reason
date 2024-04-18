@@ -12,10 +12,7 @@ static-var  Stunned;
 
 Create()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	call-script Activate();
 	return (0);
 }

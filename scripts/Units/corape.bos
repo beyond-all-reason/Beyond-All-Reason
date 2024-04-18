@@ -36,10 +36,7 @@ Create()
 	gun_1 = rflare;
 	turn rwing to z-axis <-60> speed <90>;
 	turn lwing to z-axis <60> speed <90>;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 

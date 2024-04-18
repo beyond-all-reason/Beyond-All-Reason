@@ -138,10 +138,7 @@ Create()
 	turn topflare to z-axis <0> speed <10000.0>;
 	
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
  	start-script Motion();
 }
 

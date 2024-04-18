@@ -19,10 +19,7 @@ SteamVents()
 Create()
 {
 	hide smoke;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script Activate();
 }

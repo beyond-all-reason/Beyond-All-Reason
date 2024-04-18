@@ -26,10 +26,7 @@ Create()
 	hide link;
 	turn jetl to x-axis <-90.0> now;
 	turn jetr to x-axis <-90.0> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 

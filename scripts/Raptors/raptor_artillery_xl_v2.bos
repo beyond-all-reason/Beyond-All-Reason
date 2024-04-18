@@ -148,9 +148,7 @@ Create()
 		emit-sfx 1024 + 2 from torso;
 	}
 	gun_1 = 1;
-	while(get BUILD_PERCENT_LEFT) {
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

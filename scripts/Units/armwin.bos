@@ -33,10 +33,7 @@ Create()
 	WindDirection = 0;
 	LastDirection = 0;
 	Built = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	Built = 1;
 	call-script Go();
 }

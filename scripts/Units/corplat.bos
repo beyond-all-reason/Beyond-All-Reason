@@ -49,10 +49,7 @@ Create()
 	spray = base;
 	set ARMORED to 1;
 	move base to y-axis [5.0] now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	move base to y-axis [0.0] speed [10.0];
 	start-script RockOnWaves();
 }

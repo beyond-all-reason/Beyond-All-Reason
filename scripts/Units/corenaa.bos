@@ -67,10 +67,7 @@ Create()
 	gun_1 = flare1;
     turn guns to x-axis <-30> speed <25.0>;
     spin turret around y-axis speed <25.0>;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 Stop()

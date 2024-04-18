@@ -19,10 +19,7 @@ Activate()
 Create()
 {
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 

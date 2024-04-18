@@ -15,10 +15,7 @@ Bob(){
 
 Create(random)
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Bob();
 	random = Rand( 1, 2 );
 	if( random == 1 )

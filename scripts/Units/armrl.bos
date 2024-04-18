@@ -23,10 +23,7 @@ Create()
 {
 	hide flare;
 	gun_1 = flare;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	turn launcher to x-axis <-25> speed <25.0>;
 	spin turret around y-axis speed <25.0>;
 }

@@ -89,10 +89,7 @@ Create()
 	turn engine to y-axis <180> now;
 	spin dish around y-axis speed <100.021978>;
 	restore_delay = 6000;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;

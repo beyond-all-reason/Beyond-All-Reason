@@ -41,10 +41,7 @@ Create()
 	hide nano;
 	hide wake;
 	buildHeading = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

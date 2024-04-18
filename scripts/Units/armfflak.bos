@@ -44,10 +44,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	gun_1 = flare1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();	
     turn sleeve1 to x-axis <-30> speed <25.0>;
     turn sleeve2 to x-axis <-30> speed <25.0>;

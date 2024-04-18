@@ -46,10 +46,7 @@ Create()
 	hide flare5;
 	gun_1 = flare1;
 	firstaim = 1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
 }
 

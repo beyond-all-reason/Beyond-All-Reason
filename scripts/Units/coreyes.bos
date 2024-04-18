@@ -17,10 +17,7 @@ Bob(){
 
 Create(pieceIndex1)
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Bob();
 	pieceIndex1 = Rand( 1, 2 );
 	if( pieceIndex1 == 1 )

@@ -70,9 +70,7 @@ Create()
 	gun_2 = flare2;
 	spin flare2 around z-axis speed <250.060440>;
 	restore_delay = 3000;
-	while(get BUILD_PERCENT_LEFT) {
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

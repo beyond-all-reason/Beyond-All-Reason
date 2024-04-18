@@ -96,10 +96,7 @@ Create()
 	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;
 	call-script TB_Init();	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script WheelControl();
 	start-script TurnControl();
 	start-script DamagedSmoke();

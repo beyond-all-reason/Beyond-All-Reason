@@ -136,10 +136,7 @@ Create()
 	gun_3 = 0;
 	isOpen = TRUE;
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script OpenCloseAnim(1);
 	start-script CATT1_Init();
 	start-script CATT2_Init();

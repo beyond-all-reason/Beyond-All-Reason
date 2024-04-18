@@ -43,10 +43,7 @@ Create()
 	hide bubbles1;
 	hide flare2;
 	hide flare1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

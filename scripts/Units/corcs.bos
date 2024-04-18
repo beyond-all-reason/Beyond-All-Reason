@@ -80,10 +80,7 @@ Create()
 	turn beam to x-axis <-180> now;
 
 	readyToBuild = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 	
 }

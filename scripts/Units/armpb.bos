@@ -70,10 +70,7 @@ Create()
 	restore_delay = 3000;
 	isOpen = 1;
 	OCA_intransition_wantOpen = 1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	// close and armor once construction is done
 	// only if no target in range when done
 	set-signal-mask SIGNAL_AIM1;

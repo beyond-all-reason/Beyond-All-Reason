@@ -27,10 +27,7 @@ Create()
 	turn thrust3 to x-axis <-90> now; 
 	turn thrust4 to x-axis <-90> now; 
 	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 	return (0);
 }

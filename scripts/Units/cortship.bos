@@ -45,10 +45,7 @@ Create()
 	hide bow;
 	hide link;
 	hide wake;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

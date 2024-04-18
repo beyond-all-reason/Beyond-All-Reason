@@ -39,9 +39,7 @@ Create()
 	hide ground;
 	recently_damaged = 0;
 	desired_activation = 1;
-	while(get BUILD_PERCENT_LEFT) {
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

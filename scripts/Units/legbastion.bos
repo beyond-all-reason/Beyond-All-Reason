@@ -85,10 +85,7 @@ Create()
 	lastfired = get(GAME_FRAME);
 	shotcount = 0;
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script SpinIdle();
 	start-script OpenCloseAnim(1);
 }

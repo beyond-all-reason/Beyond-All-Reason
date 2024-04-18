@@ -874,10 +874,7 @@ Create()
 	
 	turn rbflare to y-axis <35> now;
 	turn lbflare to y-axis <-35> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	return (0);
 }
 

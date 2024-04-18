@@ -56,10 +56,7 @@ Create()
 	turn boxa to x-axis <-25.0> speed <25.0>;
 	turn boxb to x-axis <-25.0> speed <25.0>;
     spin turret around y-axis speed <25.0>;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

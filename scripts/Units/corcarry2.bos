@@ -78,10 +78,7 @@ Create()
 	hide nano1;
 	hide nano2;
 	landingPadSelector = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

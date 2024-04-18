@@ -71,10 +71,7 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	is_open = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;

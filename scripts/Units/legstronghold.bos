@@ -42,10 +42,7 @@ Create()
 	hide link;
 	moverate = 0;
 	restore_delay = 300;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 

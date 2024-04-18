@@ -99,10 +99,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide flare3;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

@@ -47,10 +47,7 @@ Create()
 	gun_1=0;
 	speedwings=200;
 	isMoving = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 

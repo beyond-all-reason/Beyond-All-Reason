@@ -576,10 +576,7 @@ Create()
 	isAiming = FALSE;
 	animSpeed = 4;
 	wpnheading  = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	return (0);
 }
 

@@ -40,10 +40,7 @@ Create()
 	sleeveOpen = 0;
 	spin fan around z-axis speed <300>;
 	turn sleeve to x-axis <-20.0> speed <25.0>;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script HoverCraftMotion();
 }
 

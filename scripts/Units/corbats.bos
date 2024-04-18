@@ -232,10 +232,7 @@ Create()
 	aimy1delta = 0;
 
 	restore_delay = 3000;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 	start-script AimControl();
 }

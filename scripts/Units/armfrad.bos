@@ -58,10 +58,7 @@ SetStunned(State)
 Create()
 {
 	hide blink;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 	start-script Lights();
 	return (0);

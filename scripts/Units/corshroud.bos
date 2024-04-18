@@ -14,10 +14,7 @@ static-var  recentlyDamaged;
 Create()
 {	
 	recentlyDamaged = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

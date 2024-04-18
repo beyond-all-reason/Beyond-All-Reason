@@ -35,10 +35,7 @@ SetStunned(State)
 Create()
 {
 	resourceRate = 500;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 #define BASEPIECE base

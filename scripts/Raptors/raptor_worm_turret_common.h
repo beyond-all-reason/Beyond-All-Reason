@@ -189,10 +189,7 @@ Create()
 	AboveGround = 0;
 						 
 	start-script OpenCloseAnim(1);
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
  	//move aimpoint to y-axis [8] now;
  	start-script OpenCloseAnim(0);
  	start-script Motion();

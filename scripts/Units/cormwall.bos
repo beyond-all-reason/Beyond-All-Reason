@@ -43,10 +43,7 @@ Create()
 	//close_speed = <8.4375>;
 	//close_speed = <27>;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	set ARMORED to 1;
 	//start-script RestoreAfterDelay();
 }

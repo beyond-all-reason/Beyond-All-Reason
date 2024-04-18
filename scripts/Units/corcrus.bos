@@ -57,10 +57,7 @@ Create()
 	gun_2 = base;
 	isMoving = FALSE;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

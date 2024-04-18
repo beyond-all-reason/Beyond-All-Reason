@@ -60,10 +60,7 @@ Create()
 	restore_delay = 6000;
 	readyToBuild = FALSE;
 	moveSpeed = get MAX_SPEED;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script WheelControl();
 	call-script TB_Init();
 }

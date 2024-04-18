@@ -82,10 +82,7 @@ Create()
 	turn jetr1 to x-axis <-90.0> now;
 	turn jetl2 to x-axis <-90.0> now;
 	turn jetr2 to x-axis <-90.0> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 MoveRate0()

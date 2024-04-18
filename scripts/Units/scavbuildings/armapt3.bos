@@ -77,10 +77,7 @@ Create()
 	hide nano4;
 	hide pad;
 	spray = nano1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Activate() // activate first

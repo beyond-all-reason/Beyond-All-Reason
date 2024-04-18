@@ -68,10 +68,7 @@ Create()
 	activationState = 0;
 	spray = 0;
 	move base to y-axis [2.500000] now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	move base to y-axis [0.0] speed [5.0];
 	start-script RockOnWaves();
 	start-script RadarOn();

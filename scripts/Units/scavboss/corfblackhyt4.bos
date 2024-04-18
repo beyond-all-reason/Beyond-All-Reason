@@ -109,9 +109,7 @@ Create()
 	Static_Var_3 = 0;
 	Static_Var_2 = 0;
 	restore_delay = 3000;
-	while(get BUILD_PERCENT_LEFT) {
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
 

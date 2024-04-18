@@ -69,10 +69,7 @@ Create()
 	start-script OpenCloseAnim(1);
 
 	move aimpoint to y-axis [5] speed [150.0];
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RestoreAfterDelay();
 }
 

@@ -42,10 +42,7 @@ Create()
 	turn thrustrla to x-axis <-90> now; 
 	turn thrustfla to x-axis <-90> now; 
 	spin radar around y-axis speed <60.0>;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	sleep 1500;
 }
 

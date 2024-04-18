@@ -44,10 +44,7 @@ Create()
 	turn exhaust2 to x-axis <-90> now;
 	turn exhaust3 to x-axis <-135> now;
 	call-script TB_Init();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 

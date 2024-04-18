@@ -53,10 +53,7 @@ Create()
 	restore_delay = 2000;
 	isOpen = 0;
 	start-script OpenCloseAnim(1);
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	
 	firepoint = 0;
 	

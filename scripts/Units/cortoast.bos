@@ -109,10 +109,7 @@ Create()
 	turretOpen = 0;
 	restoreDelay = 10000;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script RestoreAfterDelay();
 	return (0);

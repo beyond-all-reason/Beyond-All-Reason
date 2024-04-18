@@ -51,10 +51,7 @@ Create()
 	deploy_state = 0;
 	animate_speed = [24];
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RestoreAfterDelay();
 }
 

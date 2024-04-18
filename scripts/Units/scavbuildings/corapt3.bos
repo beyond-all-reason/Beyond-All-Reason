@@ -65,10 +65,7 @@ Create()
 	hide nano1;
 	hide nano2;
 	spray = base;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	spin dish around y-axis speed <150.032967>;
 	return (0);
 }

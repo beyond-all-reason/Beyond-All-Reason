@@ -21,10 +21,7 @@ Create()
 	hide thrust1;
 	hide thrust2;
 	hide nano;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 

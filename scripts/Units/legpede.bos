@@ -975,10 +975,7 @@ Create()
 	fire_count_3 = 0;
 	fire_count_4 = 0;
 	animSpeed = 4;
-	while(get BUILD_PERCENT_LEFT)
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay = 5000;
 }
 

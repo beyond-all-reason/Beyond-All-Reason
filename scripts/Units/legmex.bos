@@ -38,10 +38,7 @@ SetStunned(State)
 Create()
 {
 	resourceRate = 1500;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 #define SMOKEPIECE base

@@ -36,10 +36,7 @@ Create()
 	hide nano;
 	hide wake;
 	hide cagelight_emit;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script HoverCraftMotion();
 }
 

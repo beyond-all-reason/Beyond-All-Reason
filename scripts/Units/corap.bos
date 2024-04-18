@@ -12,10 +12,7 @@ static-var  Stunned;
 
 Standby()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	sleep 50;
 	start-script Standby();
 }
@@ -67,10 +64,7 @@ Create()
 	hide cagelight_emit;
 	spray = 0;
 	start-script Standby();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	spin dish around y-axis speed <150.0>;
 	start-script Lights();
 	call-script DishSpin();

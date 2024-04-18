@@ -64,10 +64,7 @@ Create()
 
 	shooting = 0;
 	shotcount = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	spin dish around y-axis speed <90>;
 }
 

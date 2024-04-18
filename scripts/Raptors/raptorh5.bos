@@ -53,10 +53,7 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 //----
 FxEmit()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	while( TRUE )
 	{
 		emit-sfx 1024+3 from head_emit;

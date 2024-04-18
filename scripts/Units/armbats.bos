@@ -178,10 +178,7 @@ Create()
 	gun_1 = flare1a;
 	gun_2 = flare1a;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RockOnWaves();
 }
 

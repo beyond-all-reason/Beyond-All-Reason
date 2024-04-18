@@ -66,10 +66,7 @@ Create()
 
 	spray = 0;
 	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Lights();
 	turn dishbase1 to x-axis <45> speed <100>;
 	turn dishbase2 to x-axis <-45> speed <100>;
