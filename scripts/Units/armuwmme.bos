@@ -81,6 +81,7 @@ Deactivate()
 SetSpeed(windOrMetal)
 {
 	resourceRate = windOrMetal * 4;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 Killed(severity, corpsetype)

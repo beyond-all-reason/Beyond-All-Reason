@@ -44,6 +44,7 @@ SetStunned(State)
 SetSpeed(windOrMetal)
 {
 	extractionRate = windOrMetal * 10;
+	if (extractionRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 #define SMOKEPIECE base

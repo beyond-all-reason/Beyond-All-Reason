@@ -50,8 +50,7 @@ SetSpeed(windOrMetal)
 {
 	dbg(windOrMetal);
 	resourceRate = windOrMetal * 20;
-	spin arms1 around y-axis speed resourceRate accelerate <0.5>;
-	spin arms2 around y-axis speed -1*resourceRate accelerate <0.5>;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 Killed(severity, corpsetype)

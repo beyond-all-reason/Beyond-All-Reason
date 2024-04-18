@@ -43,7 +43,6 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 #define MAXTILT 100
 #include "raptor_hitbyweapon.h"
 
-#include "raptor_death_2legged_ptaq.h"
 
 #include "raptor_killed_2legged.h"
 

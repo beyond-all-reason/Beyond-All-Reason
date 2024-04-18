@@ -56,6 +56,7 @@ Deactivate()
 SetSpeed(windOrMetal)
 {
 	resourceRate = windOrMetal * 60;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 

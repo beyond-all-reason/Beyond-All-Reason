@@ -68,6 +68,7 @@ RestoreAfterDelay()
 SetSpeed(windOrMetal)
 {
 	resourceRate = windOrMetal * 2;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 AimWeapon1(heading, pitch)
