@@ -372,14 +372,14 @@ function widget:DrawScreen()
 					Spring.SendLuaRulesMsg("i_have_joined_fair")
 					ihavejoined_fair = true
 				end
-				if (os.clock() <= fair_timeout+5) then -- we show the message for 5 seconds
-					local text = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.fair_mode_wait')
+				--[[if (os.clock() <= fair_timeout+5) then -- we show the message for 5 seconds
+					local text = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.fairModeWait') -- this message was "Fair mode, your team has been waiting"
 					font:Begin()
 					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co") -- a bit even higher than center of your screen
 					font:End()
 				else
 					fairtime_out = nil
-				end
+				end]]
 				--Spring.Echo("Fair mode on, we were waiting for you. ;)") -- debug
 			end
 		else
@@ -390,7 +390,7 @@ function widget:DrawScreen()
 			end
 			if skippedMyTurn then
 				if myTurn_timeout and (os.clock() <= myTurn_timeout+draftYourTurnTimeout) then -- we show the message for (turn's) 5 seconds
-					local text = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.you_did_not_place')
+					local text = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
 					font:Begin()
 					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co") -- a bit even higher than center of your screen
 					font:End()
@@ -518,48 +518,52 @@ function widget:RecvLuaMsg(msg, playerID) -- why this way? we want to ensure the
 			myTurn = true
 			if (next_playerID > -1) then
 				local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(next_playerID, false)
-				show_DM_Message = Spring.I18N('ui.draftOrderMod.your_turn_now_and_next_is', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
+				show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = draftYourTurnTimeout, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
 				DM_messageTimeout = os.clock()+draftYourTurnTimeout
+				Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, your turn
 			else
-				show_DM_Message = Spring.I18N('ui.draftOrderMod.your_turn_to_place', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255' })
+				-- no mentioning timeout, since you are the last one placing anyway
+				show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255' })
 				DM_messageTimeout = os.clock()+draftYourTurnTimeout
+				Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, your turn
 			end
 			myTurn_timeout=os.clock() + draftYourTurnTimeout
 		elseif next_playerID == myPlayerID then
 			local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(current_playerID, false)
-			show_DM_Message = Spring.I18N('ui.draftOrderMod.you_are_right_after', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
+			show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
 			DM_messageTimeout = os.clock()+draftYourTurnTimeout
+			Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, you are next to place
 		else -- we can tell if that playerID is someone else...
 			if (next_playerID > -1) then
 				local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(current_playerID, false)
 				local tname2, _, _, tteam2, tallyteam2 = Spring.GetPlayerInfo(next_playerID, false)
 				if tname and tname2 and (tallyteam == myAllyTeamID) then
-					show_DM_Message = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.players_turn', { name = tname, name2 = tname2 })
+					show_DM_Message = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.playersTurn', { name = tname, name2 = tname2 })
 					DM_messageTimeout = os.clock()+draftYourTurnTimeout
 				end
 			else
 				local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(current_playerID, false)
 				if tname and (tallyteam == myAllyTeamID) then
-					show_DM_Message = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.player_turn', { name = tname })
+					show_DM_Message = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
 					DM_messageTimeout = os.clock()+draftYourTurnTimeout
 					--Spring.Echo("It's "..tname.."'s turn to place.")
 				end -- otherwise who's turn it is? uhh?
 			end
 		end
 	elseif words[1] == "DraftOrder_Random" then
-		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.mode_random')
+		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.modeRandom')
 		DM_welcomeMessageTimeout = os.clock()+30
-		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode_random'))
+		Spring.Echo(Spring.I18N('ui.draftOrderMod.modeRandom'))
 		draftMode_loaded = true
 	elseif words[1] == "DraftOrder_Skill" then
-		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.mode_skill')
+		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.modeSkill')
 		DM_welcomeMessageTimeout = os.clock()+30
-		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode_skill'))
+		Spring.Echo(Spring.I18N('ui.draftOrderMod.modeSkill'))
 		draftMode_loaded = true
 	elseif words[1] == "DraftOrder_Fair" then
-		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.mode_fair')
+		show_DM_welcomeMessage = DM_defaultColorString .. Spring.I18N('ui.draftOrderMod.modeFair')
 		DM_welcomeMessageTimeout = os.clock()+30
-		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode_fair'))
+		Spring.Echo(Spring.I18N('ui.draftOrderMod.modeFair'))
 		draftMode_loaded = true
 		fair_timeout=os.clock() + 2
 	end

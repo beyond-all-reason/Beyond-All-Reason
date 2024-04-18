@@ -628,16 +628,15 @@
 			"tooClose": "You cannot place your start position too close to another player"
 		},
 		"draftOrderMod": {
-			"fair_mode_wait": "Fair mode on, we were waiting for you. ;)",
-			"you_did_not_place": "You didn't place! Allowing the next player to place",
-			"your_turn_to_place": "%{textColor}It's %{warnColor}your%{textColor} turn to place",
-			"your_turn_now_and_next_is": "%{textColor}It's %{warnColor}your turn%{textColor} to place! You have 5 seconds to place. %{name}'s turn is next!",
-			"you_are_right_after": "%{textColor}It's %{name}'s turn to place! Get ready, %{warnColor}you%{textColor} are coming up next!",
-			"player_turn": "It's %{name}'s turn to place",
-			"players_turn": "It's %{name}'s turn to place, with %{name2} after them",
-			"mode_random": "Random draft order startpos mode enabled. Players wait their turn to place",
-			"mode_skill": "Skill based draft order startpos mode enabled. Players wait their turn to place",
-			"mode_fair": "Fair startpos mode enabled. To place, wait until your entire ally team joins the game first"
+			"youDidNotPlace": "You did not place. The next player will now proceed",
+			"yourTurnToPlace": "{warnColor}Your turn%{textColor} to place",
+			"yourTurnToPlaceNextIs": "%{warnColor}Your turn%{textColor} to place! You have %{number} seconds. Next is %{name}",
+			"yourTurnIsNext": "%{textColor}%{name} is now placing. %{warnColor}You%{textColor} are next!",
+			"playerTurn": "%{name} is now placing",
+			"playersTurn": "%{name} is now placing, followed by %{name2}",
+			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
+			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
+			"modeFair": "Fair start position mode activated. Please wait until your team joins the game before placing"
 		},
 		"substitutePlayers": {
 			"offer": "Offer to play",
