@@ -311,6 +311,7 @@ local myTurn = false
 local skippedMyTurn = false
 local ihavejoined_fair = false
 local myTurnTimeout = nil
+local myTurnIsLast = false
 local fairTimeout = nil
 local showDMMessage = nil
 local showDMWelcomeMessage = nil
@@ -388,7 +389,7 @@ function widget:DrawScreen()
 			end
 
 			if skippedMyTurn then
-				if myTurnTimeout and os.clock() <= myTurnTimeout + YourTurnTimeout then
+				if not myTurnIsLast and myTurnTimeout and os.clock() <= myTurnTimeout + YourTurnTimeout then
 					local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
 					font:Begin()
 					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
@@ -520,6 +521,7 @@ function widget:RecvLuaMsg(msg, playerID)
                 showDMMessage = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = YourTurnTimeout, textColor = DMDefaultColorString, warnColor = DMWarnColor})
             else
                 showDMMessage = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
+				myTurnIsLast = true
             end
             myTurnTimeout = os.clock() + YourTurnTimeout
             DMMessageTimeout = os.clock() + DM_defaultMessageShowFor
