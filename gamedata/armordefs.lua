@@ -369,6 +369,14 @@ local armorDefs = {
 		"armuwgeo",
 		"armuwageo",
 
+		"legcv",
+		"legca",
+		"legck",
+		"legotter",
+		"legacv",
+		"legaca",
+		"legack",
+
 	},
 
 	space = {

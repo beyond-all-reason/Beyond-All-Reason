@@ -10,6 +10,7 @@ local unitOrderTable = {
 	['legcv']          = 001135,
 	['armbeaver']      = 001140,
 	['cormuskrat']     = 001150,
+	['legotter']       = 001155,
 
 	['armca']          = 001160, --AIR
 	['corca']          = 001165,
