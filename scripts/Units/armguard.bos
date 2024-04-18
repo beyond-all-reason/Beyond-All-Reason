@@ -60,7 +60,10 @@ restoreAfterDelay()
 	{
 		turn turret to y-axis <180.0> speed <30.0>;
 	}
-	turn sleeves to x-axis <0.0> speed <45.0>;
+	if (trajectoryMode == LOW_TRAJECTORY)
+	{
+		turn sleeves to x-axis <0.0> speed <45.0>;
+	}
 }
 
 aimCommon(heading, pitch)

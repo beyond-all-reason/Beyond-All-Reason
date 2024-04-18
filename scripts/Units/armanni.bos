@@ -19,6 +19,7 @@ Open()
 	move post to y-axis [0] speed [52];
 	wait-for-move post along y-axis;
 
+	show light;
 	spin dish around y-axis speed <90>;
 	move barrel to z-axis [0] speed [24];
 	move light to z-axis [0] speed [16];
@@ -45,7 +46,7 @@ Close()
 	turn antenna to x-axis <90> speed <90>;
 	wait-for-move barrel along z-axis;
 	wait-for-turn antenna around x-axis;
-
+	hide light;
 
 	move post to y-axis [-52] speed [52];
 	wait-for-move post along y-axis;

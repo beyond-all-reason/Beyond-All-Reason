@@ -75,6 +75,7 @@ Create()
 	// only if no target in range when done
 	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
+	set-signal-mask 0;
 	start-script OpenCloseAnim(0);
 }
 

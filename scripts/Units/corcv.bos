@@ -59,10 +59,10 @@ Create()
 	hide cagelight_emit;
 	restore_delay = 6000;
 	readyToBuild = FALSE;
+	call-script TB_Init();
 	moveSpeed = get MAX_SPEED;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script WheelControl();
-	call-script TB_Init();
 }
 
 StartBuilding(heading, pitch)
