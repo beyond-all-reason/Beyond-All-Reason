@@ -328,9 +328,6 @@ function UnitDef_Post(name, uDef)
 		end
 
 		--Laser Citadel + gadget integration for all interceptors
-		if name == "armamd" then --Original citadel starbustlauncher antinuke
-			--uDef.maxthisunit = 0 -- Do not disable for now, raptors/AIs/Scavengers can have issue with it...
-		end
 		if name == "armacv" then --Replace original citadel with new one
 			uDef.buildoptions[23] = "armamdn"
 		end
@@ -350,6 +347,9 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.crblmssl.weaponvelocity = 1200
 		end
 
+		if name == "armamd" then --Original citadel starbustlauncher antinuke
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket) --Even tho original citadel is disabled, this is important for scavengers
+		end
 		if name == "armscab" then --Other antinukes - Armada
 			interceptorsRemakeUnit(uDef, uDef.weapondefs.armscab_weapon)
 		end

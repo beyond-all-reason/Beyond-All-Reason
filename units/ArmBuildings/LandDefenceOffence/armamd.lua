@@ -43,6 +43,7 @@ return {
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,
+			interceptorgadget = 0,
 		},
 		featuredefs = {
 			dead = {
