@@ -852,10 +852,10 @@ local options = {
         section = "options_extra",
         def     = "disabled",
         items 	= {
-            { key = "disabled", name = "Disabled", 		desc = "No changes." },
-            { key = "random", 	name = "Random", 		desc = "Before the game starts, you get to pick a start pos with a delay in a random order. You only get a few seconds so pick fast!" },
-            { key = "skill", 	name = "Skill", 		desc = "Same as above, but in skill based order, instead of random. You only get a few seconds so pick fast!" },
-            { key = "fair", 	name = "Fair", 		    desc = "The entire ally team must join the game (and wait 2 seconds for the last ally) - after that you and everyone else on your team are allowed to place." },
+            { key = "disabled", name = "Disabled",  desc = "No changes." },
+            { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "Fair",      desc = "The entire ally team must join the game first - after that (+2sec delay) everyone on the team can place." }
         },
     },
 
