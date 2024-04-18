@@ -6,6 +6,8 @@ static-var  gun_1;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
+#define DEBUG
+#include "../debug.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -34,18 +36,27 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
+#define TB_BASE base 
+#define TB_TURNRATE <60.0> 
+#define TB_TILT_X <-0.08>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#include "../tilt_bank_submarine.h"
+
+
 Create()
 {
 	hide tube1;
 	hide wake;
 	hide tube2;
 	gun_1 = tube1;
+	call-script TB_Init();
 }
 
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -57,8 +68,9 @@ StartMoving(reversing)
 }
 
 StopMoving()
-{
+{	
 	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 AimFromWeapon1(pieceIndex)

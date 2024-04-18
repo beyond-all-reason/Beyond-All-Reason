@@ -213,4 +213,8 @@
 #define MAXIMUM(v,m) ((v * (v > m)) + ((v <= m)* m))
 #define MINIMUM(v,m) ((v * (v < m)) + ((v >= m)* m))
 
+// Calculate how much sleep is needed given a delta and speed
+#define CALC_SLEEP(delta, speed) sleep(get ABS(delta / (speed + 1));
+
+
 #endif
