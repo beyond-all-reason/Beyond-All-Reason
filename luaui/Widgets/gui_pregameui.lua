@@ -519,15 +519,13 @@ function widget:RecvLuaMsg(msg, playerID) -- why this way? we want to ensure the
 			if (next_playerID > -1) then
 				local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(next_playerID, false)
 				show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = draftYourTurnTimeout, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
-				DM_messageTimeout = os.clock()+draftYourTurnTimeout
-				Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, your turn
 			else
 				-- no mentioning timeout, since you are the last one placing anyway
 				show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255' })
-				DM_messageTimeout = os.clock()+draftYourTurnTimeout
-				Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, your turn
 			end
 			myTurn_timeout=os.clock() + draftYourTurnTimeout
+			DM_messageTimeout = os.clock()+draftYourTurnTimeout
+			Spring.PlaySoundFile("beep4", 1, 'ui') -- please don't sleep, your turn
 		elseif next_playerID == myPlayerID then
 			local tname, _, _, tteam, tallyteam = Spring.GetPlayerInfo(current_playerID, false)
 			show_DM_Message = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DM_defaultColorString, warnColor = '\255\255\255\255'})
