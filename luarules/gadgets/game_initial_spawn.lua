@@ -130,14 +130,14 @@ if gadgetHandler:IsSyncedCode() then
 	-- draft/skill order mods --
 	----------------------------------------------------------------
 
-	local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - only used by draft/skill spawn options
-	local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - track whos order to place it is
-	local allyTeamIsInGame = {} -- [allyTeam] = true/false - used by "Fair" mode, we mark the ally team that has fully joined the game as true
-	local TeamIsInGame = {} -- [teamID] = true/false - used by "Fair" mode, once we get the reply frmo the client that they are in game, we test if all allies are also in game, if yes we flip the above to true and allow placing.
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false)) -- remember so we don't calculate gaia ally team
+	local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - used for random/skill draft - placement order
+	local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - whose order to place right now
+	local allyTeamIsInGame = {} -- [allyTeam] = true/false - used by "Fair" mode - fully joined ally teams
+	local TeamIsInGame = {} -- [teamID] = true/false - used by "Fair" mode - teams in game
+	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local draftMode = Spring.GetModOptions().draft_mode
 
-	local function FindPlayerIDFromTeamID(teamID) -- need revisit if we allow multiple players on same team btw
+	local function FindPlayerIDFromTeamID(teamID)
 		local playerList = Spring.GetPlayerList()
 		
 		for i = 1, #playerList do
@@ -152,10 +152,10 @@ if gadgetHandler:IsSyncedCode() then
 		return nil -- Return nil if no player with the specified teamID is found
 	end
 
-	-- Shuffle the table
 	local function shuffleArray(array)
-		-- maybe if array size is 1 just return array as is?
-		local n, random, j = #array, math.random
+		local n = #array
+		if n <= 1 then return array end
+		local random = math.random
 		for i = 1, n do
 			local j = random(i, n)
 			array[i], array[j] = array[j], array[i]
@@ -176,7 +176,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function compareSkills(teamA, teamB)
-		-- Implement a custom comparison function based on team skill
 		local skillA = GetSkill(FindPlayerIDFromTeamID(teamA))
 		local skillB = GetSkill(FindPlayerIDFromTeamID(teamB))
 		return skillA > skillB  -- Sort in descending order of skill
@@ -186,24 +185,24 @@ if gadgetHandler:IsSyncedCode() then
 		local teams = Spring.GetTeamList(allyTeamID)
 		for _, teamID in ipairs(teams) do
 			local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
-			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
+			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 				local players = Spring.GetPlayerList(teamID)
 				for _, playerID in ipairs(players) do
 					local skill = GetSkill(playerID)
 					if skill ~= 0 then
-						return false  -- If any player has non-zero skill, return false
+						return false
 					end
 				end
-			else return true end -- AI is not player, return true
+			end
 		end
-		return true  -- If all players have skill level zero, return true
+		return true -- If all players have skill level zero, return true
 	end
 
-	local function printTeamNamesAndIDs(teamOrder) -- TODO this should be lua msg probably...
+	local function printTeamNamesAndIDs(teamOrder)
 		for _, teamID in ipairs(teamOrder) do
-			local playerID = FindPlayerIDFromTeamID(teamID) -- we assume only ONE player can be on a team, which is OK for right now I guess?
+			local playerID = FindPlayerIDFromTeamID(teamID)
 			if not playerID then
-				Spring.Echo("Name: Unknown, Team ID: " .. teamID) -- if this one happens, we've touched AI or Gaia on accident then!
+				Spring.Echo("Name: Unknown, Team ID: " .. teamID)
 			else
 				local tname = Spring.GetPlayerInfo(playerID, false)
 				Spring.Echo("Name: " .. tname .. ", Team ID: " .. teamID)
@@ -211,16 +210,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function isTurnToPlace(allyTeamID, teamID) -- return 0 - cant place, -- 1 - your turn, -- 2 - your turn has passed
+	local function isTurnToPlace(allyTeamID, teamID)
+		-- Returns:
+		-- 0 - Can't place yet
+		-- 1 - Your turn
+		-- 2 - Your turn has passed
 		local teamOrder = allyTeamSpawnOrder[allyTeamID]
 		if not teamOrder then
-			return 2  -- No spawn order defined for this ally team, you can place whenever then
+			return 2  -- No spawn order defined for this ally team; you can place whenever then
 		end
-	
 		local placedIndex = allyTeamSpawnOrderPlaced[allyTeamID]
-		if (placedIndex <= 0) then return 2 end -- cannot figure out who's turn, you can place then
+		if placedIndex <= 0 then
+			return 2 -- Cannot figure out whose turn; you can place then
+		end
 		local teamIndex = nil
-	
 		-- Find the index of the team within the spawn order
 		for i, id in ipairs(teamOrder) do
 			if id == teamID then
@@ -228,31 +231,27 @@ if gadgetHandler:IsSyncedCode() then
 				break
 			end
 		end
-	
-		if not teamIndex then
-			return 2 -- The team is not in the spawn order, you can place whenever then
-		end
-	
-		if teamIndex == placedIndex then -- YOUR turn
+		if not teamIndex then return 2 end -- The team is not in the spawn order; you can place whenever then
+		if teamIndex == placedIndex then -- Your turn
 			return 1
-		elseif teamIndex < placedIndex then -- skipped your turn?
+		elseif teamIndex < placedIndex then -- Skipped your turn?
 			return 2
 		else
-			return 0 -- your turn is yet to be
+			return 0 -- Your turn is yet to be
 		end
 	end
 
 	local function SendDraftMessageToPlayer(allyTeamID, target_num)
-		-- if we can't find playerID of that team, then something has gone very bad... if player never connects we are going to wait for them forever... :(
-		if target_num+1 <= #allyTeamSpawnOrder[allyTeamID] then
+		if target_num + 1 <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			local playerID_next_in_queue_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num+1]) -- if there is a next player in queue we can announce them both
+			local playerID_next_in_queue_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num + 1])
 			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. playerID_next_in_queue_draft)
 		elseif target_num <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
 			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. "-1")
-		end -- if no players found in draft queue, that ally team is already done, no overflow
+		end
 	end
+
 	----------------------------------------------------------------
 	-- Initialize
 	----------------------------------------------------------------
@@ -308,54 +307,48 @@ if gadgetHandler:IsSyncedCode() then
 			initState = 0 -- players will be allowed to place startpoints
 			
 			if draftMode == "random" then -- Random draft
-				Spring.SendLuaUIMsg("DraftOrder_Random") -- https://discord.com/channels/549281623154229250/1163844303735500860
-				--Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
-				local teams = Spring.GetTeamList()  -- Get a list of all teams in the game
+				Spring.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
+				local teams = Spring.GetTeamList()
 				for _, teamID in ipairs(teams) do
-					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
+					local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 						if not allyTeamSpawnOrder[allyTeamID] then
-							allyTeamSpawnOrder[allyTeamID] = {}  -- Initialize order table for the ally team if it doesn't exist
+							allyTeamSpawnOrder[allyTeamID] = {}
 						end
-						table.insert(allyTeamSpawnOrder[allyTeamID], teamID)  -- Add the teamID to the order table for the ally team
+						table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
 					end
 				end
 				-- Now, shuffle the order for each ally team
 				for _, teamOrder in pairs(allyTeamSpawnOrder) do
 					shuffleArray(teamOrder)
 				end
-			elseif draftMode == "skill" then -- Skill-based placement order -- maybe if ALL player skills are zero, FORCE a random draft order?
-				Spring.SendLuaUIMsg("DraftOrder_Skill") -- https://discord.com/channels/549281623154229250/1134886429361713252
-				--Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
+			elseif draftMode == "skill" then -- Skill-based placement order
+				Spring.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
 				local teams = Spring.GetTeamList()
-				-- Sort teams based on skill
-				table.sort(teams, compareSkills)
-		
+				table.sort(teams, compareSkills) -- Sort teams based on skill
 				-- Assign sorted teams to allyTeamSpawnOrder
 				for _, teamID in ipairs(teams) do
-					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
+					local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 						if not allyTeamSpawnOrder[allyTeamID] then
-							allyTeamSpawnOrder[allyTeamID] = {}  -- Initialize order table for the ally team if it doesn't exist
+							allyTeamSpawnOrder[allyTeamID] = {}
 						end
-						table.insert(allyTeamSpawnOrder[allyTeamID], teamID)  -- Add the teamID to the order table for the ally team
+						table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
 					end
 				end
-
 				-- If the entire ally team has zero skill players, random shuffle then
 				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
 					if isAllyTeamSkillZero(allyTeamID) then
-						shuffleArray(allyTeamSpawnOrder[allyTeamID]) -- oof
+						shuffleArray(allyTeamSpawnOrder[allyTeamID])
 					end
 				end
-			elseif draftMode == "fair" then -- Fair mod -- wait until everyone joins the game first.
-				Spring.SendLuaUIMsg("DraftOrder_Fair") -- https://discord.com/channels/549281623154229250/1123310748236529715
-
-				-- init fair waiting mod
+			elseif draftMode == "fair" then -- Fair mod
+				Spring.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
+				-- Initialize fair waiting mod
 				local teams = Spring.GetTeamList()
 				for _, teamID in ipairs(teams) do
-					local _,_,_,isAiTeam,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then -- Check if the team is human player, if not - don't care
+					local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 						if allyTeamIsInGame[allyTeamID] == nil then
 							allyTeamIsInGame[allyTeamID] = false  -- Initialize table for the ally team if it doesn't exist
 						end
@@ -364,14 +357,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if draftMode == "skill" or draftMode == "random" then
-				-- Send first teams who should place
-				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
-					allyTeamSpawnOrderPlaced[allyTeamID] = 1 -- first team in the order queue must place now
-					SendDraftMessageToPlayer(allyTeamID, 1)
-					-- ^ the way it works, we just send the team 'oh hey its your turn now', then we wait until they place or send the message back 'i skip my turn'
-					-- then we OrderPlaced + 1 and send the next team, until the array is empty
+				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do -- Send first teams who should place
+					allyTeamSpawnOrderPlaced[allyTeamID] = 1 -- First team in the order queue must place now
+					SendDraftMessageToPlayer(allyTeamID, 1) -- We send the team a message notifying them it's their turn to place
 				end
-				-- Debug. Print the draft order for everybody to see:
+				-- Debug: Print the draft order for everybody to see
 				Spring.Echo("Spawn Orders:")
 				for allyTeamID, _ in pairs(allyTeamSpawnOrder) do
 					Spring.Echo("AllyTeam: "..allyTeamID)
@@ -515,18 +505,15 @@ if gadgetHandler:IsSyncedCode() then
 		local myTurn = false
 		local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
 		if not isAI then
-		if draftMode == "skill" or draftMode == "random" then
-			-- is it YOUR turn yet?
-			local turnCheck = isTurnToPlace(allyTeamID, teamID)
-			if turnCheck == 0 then -- NOT your turn, you must wait before other teams place before you!
-				return false
-			elseif turnCheck == 1 then -- if its 2, your turn has passed or we could not calculate, either way you are good to go to place
-				myTurn = true
-			end
-		elseif draftMode == "fair" then
-			if allyTeamIsInGame[allyTeamID] == false then return false end
-		end -- the rest of the code untouched, very simple implementation, we only care about delaying a player selecting a start pos out of turn, nothing else
-		end
+			if draftMode == "skill" or draftMode == "random" then
+				local turnCheck = isTurnToPlace(allyTeamID, teamID) -- Check if it's your turn
+				if turnCheck == 0 then
+					return false
+				elseif turnCheck == 1 then
+					myTurn = true
+				end
+			elseif draftMode == "fair" and allyTeamIsInGame[allyTeamID] == false then return false end
+		end -- The rest of the code remains untouched; it's a simple implementation
 
 		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
 		if allyTeamID == nil then
@@ -580,10 +567,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if myTurn then
-			-- nice job!
-			allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
+			allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1
 			SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
-			-- debug: Spring.Echo("Player has placed on his turn, neat.")
 		end
 		return true
 	end
