@@ -367,7 +367,7 @@ function widget:DrawScreen()
 			font:End()
 		end
 		if draftMode == "fair" then
-			if fairtime_out and (os.clock() >= fair_timeout) then
+			if (os.clock() >= fair_timeout) then
 				if not ihavejoined_fair then
 					Spring.SendLuaRulesMsg("i_have_joined_fair")
 					ihavejoined_fair = true
@@ -377,8 +377,6 @@ function widget:DrawScreen()
 					font:Begin()
 					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co") -- a bit even higher than center of your screen
 					font:End()
-				else
-					fairtime_out = nil
 				end]]
 				--Spring.Echo("Fair mode on, we were waiting for you. ;)") -- debug
 			end
