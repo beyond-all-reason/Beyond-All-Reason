@@ -109,7 +109,7 @@ local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spr
 local isSpec = Spring.GetSpectatingState()
 
 
-local playerScale = math.max(0.4, math.min(1, 25 / #Spring.GetTeamList()))
+local playerScale = math.max(0.3, math.min(1, 25 / #Spring.GetTeamList()))
 
 function aboveRectangle(mousePos,boxData)
 	local included = true
@@ -489,8 +489,7 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 	fontSize = fontSize * playerScale
 	lineHeight = fontSize
-	fontSize = fontSize + math.min(fontSize * 0.4, (fontSize * ((1-playerScale)*0.6)))
-	Spring.Echo(lineHeight, fontSize)
+	fontSize = fontSize + math.min(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
 end
 
 function widget:MouseMove(mx,my,dx,dy)
