@@ -1,9 +1,12 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, turret, barrel1, flare1, barrel2, flare2, barrel3, flare3, sleeve, foreturret, foregun, foreflare, aftturret, aftgun, aftflare, ground, wake, bow;
+piece  base, ground, turret, barrel1, flare1, barrel2, flare2, barrel3, flare3, sleeve, foreturret, foregun, foreflare, aftturret, aftgun, aftflare, wake, bow;
 
 static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
+
+#define DEBUG
+#include "../debug.h"
 
 // Signal definitions
 #define SIGNAL_AIM2 512
@@ -28,32 +31,61 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 // [ ] pitch forward when moving fast
 // [X] bank when turning 
 // [ ] Bounce on high speed
+//		[ ] boats should rise upwards
+//		[X] Ensure the bounce piece move happens before rot, yes move is before rot
 // [ ] Idle waves 
 // [ ] Independent axis damping if not specified
 // [ ] Better Recoil handling 
 // [ ] Integrate SmokeUnit
 // [ ] Minimize useage of local vars
-
+// [ ] separate ground and base, like for all other ships anyway too
+//		[ ] Movement physics based stuff should go onto base
+//		[ ] Recoil and hitbyweapon can go onto ground
+//		[ ] These could maybe use different speeds based on power, like missiles and stuff arent trivial
+// [ ] emit sfx correctly
+// [ ] Do NOT use RockUnit, as there is only one callin for all weapons, and boats usually have more than one
+// [ ] Validate that updates every 3 frames are sufficient
 
 // REQUIRED STATIC VARS:
-// heading
+// the aim headings must be stored for all weapons
 
+//-------------------- INTERNAL DEFINES ------------------
 
-//-------------------- EXTERNAL DEFINES ------------------
+//-------------------- MANDATORY DEFINES ------------------
+#ifndef RB_BASE
+	#define RB_BASE BASE
+#endif
+
 // mass of boat in AU
-#define RB_MASS 100
-
+#ifndef RB_MASS
+	#define RB_MASS 100
+#endif
 //Virtual Length and width of boat in elmos, assume the boat is a tall as it is wide
-#define RB_LENGTH 10
-#define RB_WIDTH 3
+#ifndef RB_LENGTH
+	#define RB_LENGTH 8
+#endif 
 
+#ifndef RB_WIDTH
+	#define RB_WIDTH 3
+#endif
+
+#ifndef RB_FRAMES
+	#define RB_FRAMES 1
+#endif
+
+#ifndef RB_BOUNCE_HEIGHT
+	#define RB_BOUNCE_HEIGHT [10.0]
+#endif
+
+//------------------- OPTIONAL DEFINES ------------------
 #define RB_RECOIL_ENERGY_1 3
 #define RB_RECOIL_ENERGY_3 0
-#define RB_PIECE ground
 
 // where 0 is no damping.
 #define RB_PITCH_DAMPING 2
 #define RB_ROLL_DAMPING  2
+
+#define RB_MAX_PITCH
 
 // How often should the speed/position of the boat be adjusted
 // 1: 1.8% CPU/1k, for flagships only
@@ -66,13 +98,8 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // ------------------ INTERNAL DEFINES ------------------
 
-#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (120))
-#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (120))
-#define SIGN(v) ((v > 0) - (v < 0)) 
-#define ABS(v) (v * (-1 * (v<0)))
-// 15 commands to MAX, pretty bad
-#define MAX(v,m) ((v * (v > m)) + ((v <= m)* m))
-#define MIN(v,m) ((v * (v < m)) + ((v >= m)* m))
+#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (100))
+#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (100))
 
 #define RB_RECOILBOAT(heading, power) \
 	RB_pitch_velocity = RB_pitch_velocity - (get KCOS(heading) * power) / RB_MASS; \
@@ -90,15 +117,19 @@ static-var RB_pitch_target, RB_roll_target;
 static-var RB_pitch_velocity, RB_roll_velocity;
 
 InitRockBoat(){
+	RB_pitch_velocity = 0;
+	RB_roll_velocity = 0; 
+	RB_pitch_target = 0;
+	RB_roll_target = 0;
+}
+
+
+BoatPhysics(){
 	var RB_pitch;
 	var RB_roll;
 	
 	RB_pitch = 0;
 	RB_roll = 0;
-	RB_pitch_velocity = 0;
-	RB_roll_velocity = 0; 
-	RB_pitch_target = 0;
-	RB_roll_target = 0;
 	
 	var torque_pitch;
 	var torque_roll;
@@ -106,8 +137,8 @@ InitRockBoat(){
 	var game_frame;
 	game_frame = RAND(1, 100);
 	
-	turn RB_PIECE to x-axis RB_pitch now;
-	turn RB_PIECE to z-axis RB_roll  now;
+	turn RB_BASE to x-axis RB_pitch now;
+	turn RB_BASE to z-axis RB_roll  now;
 	
 	var currHeading, currSpeed, prevHeading_delta, prevSpeed_delta;	
 	prevSpeed_delta = get (CURRENT_SPEED);
@@ -116,51 +147,58 @@ InitRockBoat(){
 	var maxSpeed;
 	maxSpeed = get (MAX_SPEED);
 
+	var curr_bounce;
+	curr_bounce = 0;
+	var sin_bounce;
+	sin_bounce = 0;
+
 	while (1){
 		game_frame = game_frame + RB_FRAMES;
-		if ((game_frame % RB_WAVE_FRAMES) == 0){
-			//game_frame = 0;
-	
-			currSpeed =   get (CURRENT_SPEED);
-			prevSpeed_delta = currSpeed - prevSpeed_delta;
-			RB_pitch_target = -1 *( 10* prevSpeed_delta + currSpeed) / 200;
-			
-			currHeading = get (HEADING);
-			prevHeading_delta = DELTAHEADING(currHeading, prevHeading_delta);
-			RB_roll_target = (prevHeading_delta * currSpeed) / maxSpeed;
-			
-			//get PRINT(currHeading, currSpeed, prevHeading_delta, currHeading - prevHeading_delta);
-			if ((currSpeed < 1000) AND ((game_frame % (5 * RB_WAVE_FRAMES)) == 0)){
-				RB_pitch_target = RAND(1, 1000)-500;
-				RB_roll_target = RAND(1, 1000) -500;
-			}else{
-				
-			}
-			
-			
-			prevHeading_delta = currHeading;
-			prevSpeed_delta = currSpeed;
-			
-		}
+
+
+		// Get Speed and Heading, store the deltas
+		currSpeed =   get (CURRENT_SPEED);
+		prevSpeed_delta = currSpeed - prevSpeed_delta;
+
+		currHeading = get (HEADING);
+		prevHeading_delta = DELTAHEADING(currHeading, prevHeading_delta);
+
+		// Move the pitch target backwards when going fast
+		// And keep it back when going fast
+		RB_pitch_target = -1 *( 10* prevSpeed_delta + currSpeed) / 200;
+		
+		// Roll the boat more when turning at high speed
+		RB_roll_target = (prevHeading_delta * currSpeed) / maxSpeed;
+		
+		//get PRINT(currHeading, currSpeed, prevHeading_delta, currHeading - prevHeading_delta);
+		//if ((currSpeed < 1000) AND ((game_frame % (5 * RB_WAVE_FRAMES)) == 0)){
+		//	RB_pitch_target = RAND(1, 1000)-500;
+		//	RB_roll_target = RAND(1, 1000) -500;
+		//}
 		
 		
+
+		// Save the vars, as we wont be using them again
+		prevHeading_delta = currHeading;
+		prevSpeed_delta = currSpeed;
+
+		// Calculate Bounce, be careful that your int doesnt overflow
+		sin_bounce = get KSIN(<7> * game_frame) + 1024;
+		curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
+		
+		
+		move RB_BASE to y-axis curr_bounce * sin_bounce / 10024 speed [500];
+		//dbg(curr_bounce, currSpeed, maxSpeed,sin_bounce);
+
 		// Calculate restoring torque due to displacement
 		torque_pitch = ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH))/10;
 		torque_roll =  ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ))/10;
 		
-		//silly max without jump
-		//torque_pitch = (torque_pitch > 100) * 100 + (torque_pitch <= 100) * torque_pitch;
+		//Clamp
 		//if (torque_pitch > 100) torque_pitch = 100;
 		//if (torque_roll > 100)   torque_roll = 100;
 		//if (torque_pitch < -100) torque_pitch = -100;
 		//if (torque_roll < -100)   torque_roll = -100;
-		
-		// Print debugging stuff:
-		//get PRINT(88888, torque_pitch, torque_roll);
-
-		// Convert torque to angular acceleration 
-		//RB_angular_acceleration_pitch = (   torque_pitch) / RB_INERTIA_PITCH;
-		//RB_angular_acceleration_roll  = (   torque_roll ) / RB_INERTIA_ROLL ;
 		
 		// Update angular velocity with angular acceleration
 		RB_pitch_velocity = RB_pitch_velocity + RB_FRAMES * (torque_pitch ) / RB_INERTIA_PITCH;
@@ -170,21 +208,17 @@ InitRockBoat(){
 		RB_pitch_velocity = ( (RB_pitch_velocity * (100 - RB_PITCH_DAMPING)) / 100) ;
 		RB_roll_velocity  = ( (RB_roll_velocity  * (100 - RB_ROLL_DAMPING )) / 100) ;
 		
+		// Ensure that there is a minimal return to normal speed
 		if (RB_pitch_velocity == 0) {
 			if (RB_pitch > 0) RB_pitch_velocity = -1;
 			else RB_pitch_velocity = 1;
 		}
-		
-		//RB_pitch_velocity = MAX(RB_pitch_velocity, 1) * SIGN(RB_pitch);
-		
+
 		if (RB_roll_velocity == 0) {
 			if (RB_roll > 0) RB_roll_velocity = -1;
 			else RB_roll_velocity = 1;
 		}
-		
-		// Print debugging stuff:
-		//get PRINT(RB_roll_velocity, RB_roll_velocity, RB_angular_acceleration_pitch, RB_angular_acceleration_roll);
-		
+
 		// Update pitch and roll based on angular velocity
 		RB_pitch = RB_pitch + RB_FRAMES* RB_pitch_velocity ;
 		RB_roll  = RB_roll  + RB_FRAMES* RB_roll_velocity;
@@ -196,15 +230,15 @@ InitRockBoat(){
 		// Execute corresponding movements
 		#if (RB_FRAMES == 1)
 			#if 0
-			if (RB_pitch_velocity != 0) turn RB_PIECE to x-axis RB_pitch now; 
-			if (RB_roll_velocity  != 0) turn RB_PIECE to z-axis RB_roll now; 
+			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis RB_pitch now; 
+			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis RB_roll now; 
 			#else
-				if (RB_pitch_velocity != 0) turn RB_PIECE to x-axis RB_pitch speed 30 * RB_pitch_velocity; 
-				if (RB_roll_velocity  != 0) turn RB_PIECE to z-axis RB_roll speed 30 * RB_roll_velocity; 
+				if (RB_pitch_velocity != 0) turn RB_BASE to x-axis RB_pitch speed 30 * RB_pitch_velocity; 
+				if (RB_roll_velocity  != 0) turn RB_BASE to z-axis RB_roll * 10 speed 10 * 30 * RB_roll_velocity; 
 			#endif
 		#else
-			turn RB_PIECE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
-			turn RB_PIECE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
+			turn RB_BASE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
+			turn RB_BASE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
 		#endif
 		
 		
@@ -284,27 +318,6 @@ HitByWeaponId(anglex, anglez, weaponid, damage) //weaponID is always 0,lasers an
 
 // -------------------------------- END WARSHIP --------------------
 
-/*
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-		//	turn ground to x-axis rockAng speed rockSpeed*4;
-		//	wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-			sleep 1;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}*/
-
 Create()
 {
 	hide bow;
@@ -322,9 +335,9 @@ Create()
 	gun_1 = base;
 	gun_2 = base;
 	restore_delay = 3000;
-	SLEEP_UNTIL_UNITFINISHED;
-	//start-script RockOnWaves();
 	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
 }
 
 SetMaxReloadTime(reloadMS)
