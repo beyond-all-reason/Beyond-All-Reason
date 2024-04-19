@@ -33,9 +33,8 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
-
-Perf Note:
-About 80% of turns and moves executed here are actually non-empty turns. So if-gating them might not even be worth it.
+Additional TODO:
+- [ ] It would be very nice if the turn speed was abs-maxed to ensure smoothness
 */
 
 #ifndef WRAPDELTA
@@ -57,22 +56,34 @@ About 80% of turns and moves executed here are actually non-empty turns. So if-g
     #define TB_TILT_X <0.1>
 #endif
 
+// If the unit can reverse
 #ifndef TB_CANREVERSE
     #define TB_CANREVERSE 0
 #endif
 
-
+// How often to update
 #ifndef TB_FRAMES
     #define TB_FRAMES 2
+#endif
+
+#ifdef TB_WAKE_PIECE
+	// Period of updates 
+	#ifndef TB_WAKE_PERIOD
+		#define TB_WAKE_PERIOD 8
+	#endif
+
+	#ifndef TB_WAKE_BUBBLES 
+		#define TB_WAKE_BUBBLES 259
+	#endif
 #endif
 
 #define TB_ACCURACY 1000
 
 // Prev and Delta share a variable
-static-var TB_prevHeadingDelta, TB_maxSpeed, TB_prevHeightDelta;
+static-var TB_prevHeadingDelta, TB_maxSpeed, TB_prevHeightDelta, TB_currHeadingORHeight;
 
 TB_Init(){
-	TB_maxSpeed = get MAX_SPEED;
+	TB_maxSpeed = get MAX(20000, get MAX_SPEED); // Make sure it is not zero in case we are stunned on create
 	TB_prevHeadingDelta = get HEADING;
 	TB_prevHeightDelta = get UNIT_Y;
 }
@@ -86,32 +97,39 @@ TB_Init(){
 	turn TB_BASE to z-axis <0> speed TB_TURNRATE; \
 	turn TB_BASE to x-axis <0> speed TB_TURNRATE; 
 
+
 TiltBank(reversing)
 {
 	// Could probably get away with half as many local vars...
-
-	var TB_currHeading;
-	var TB_currHeight;
-
+	#ifdef TB_WAKE_PIECE
+		var tb_frame;
+		tb_frame = 0;
+	#endif
 	while(1)
 	{
-		// get current
-		TB_currHeading = get HEADING;
-		TB_currHeight = get UNIT_Y;
-
+		// Get unit hieght
+		TB_currHeadingORHeight = get UNIT_Y;
 
 		// calc deltas
-		TB_prevHeightDelta  = (TB_currHeight - TB_prevHeightDelta) / (TB_FRAMES * 256); 
+		TB_prevHeightDelta  = (TB_currHeadingORHeight - TB_prevHeightDelta) / (TB_FRAMES * 1024); 
 		
 		#if TB_CANREVERSE == 1 
 			// Reversing isnt very reliable, but can be used here to flip directions
 			if (reversing){	TB_prevHeightDelta = -1 * TB_prevHeightDelta;}
 		#endif
-		turn TB_BASE to x-axis (TB_prevHeightDelta  * TB_TILT_X) speed TB_TURNRATE;
-		TB_prevHeightDelta = TB_currHeight;
+		// Tilt the unit if new target differs from old
+		if (TB_prevHeightDelta != TB_currHeadingORHeight){
+			turn TB_BASE to x-axis (TB_prevHeightDelta  * TB_TILT_X) speed TB_TURNRATE;
+			//dbg(TB_prevHeightDelta);
+			// Store the value
+			TB_prevHeightDelta = TB_currHeadingORHeight;
+		}
 
-		// adjust heading with speed
-		TB_prevHeadingDelta = (WRAPDELTA(TB_currHeading - TB_prevHeadingDelta) ) / TB_FRAMES;
+		// get current heading
+		TB_currHeadingORHeight = get HEADING;
+		// calculate the delta
+		TB_prevHeadingDelta = (WRAPDELTA(TB_currHeadingORHeight - TB_prevHeadingDelta) ) / TB_FRAMES;
+		// modulate heading with speed
 		TB_prevHeadingDelta = TB_prevHeadingDelta * ((get CURRENT_SPEED) * TB_ACCURACY / (TB_maxSpeed)) / (TB_ACCURACY * 10);
   
 		#if TB_CANREVERSE == 1 
@@ -119,12 +137,33 @@ TiltBank(reversing)
 			if (reversing){	TB_prevHeadingDelta = -1 * TB_prevHeadingDelta;	}
 		#endif
 		
-		//dbg(TB_prevHeightDelta, TB_prevHeadingDelta * ( TB_BANK_Z) / <1>, (TB_prevHeightDelta  * TB_TILT_X) / <1>);
-		if (TB_prevHeadingDelta != TB_currHeading){
+		//Bank the unit if its turning
+		if (TB_prevHeadingDelta != TB_currHeadingORHeight){
+
 			turn TB_BASE to z-axis TB_prevHeadingDelta * ( TB_BANK_Z) speed TB_TURNRATE;
+			TB_prevHeadingDelta = TB_currHeadingORHeight;
 		}
 
-		TB_prevHeadingDelta = TB_currHeading;
+		// Emit bubbles and wake from back of sub
+		#ifdef TB_WAKE_PIECE
+			tb_frame = (tb_frame + 1 ) % TB_WAKE_PERIOD;
+
+			if (tb_frame == 0){
+				emit-sfx TB_WAKE_BUBBLES from TB_WAKE_PIECE;
+			}
+
+			if (tb_frame == TB_WAKE_PERIOD/2){
+				#ifdef TB_WAKE_PIECE2
+					emit-sfx TB_WAKE_BUBBLES from TB_WAKE_PIECE2;
+				#else
+					emit-sfx TB_WAKE_BUBBLES from TB_WAKE_PIECE;
+				#endif
+				#ifdef TB_WAKE_FOAM
+					emit-sfx TB_WAKE_FOAM from TB_WAKE_PIECE;
+				#endif
+			}
+		#endif
+
 		sleep (32 * TB_FRAMES);
 	}
 }

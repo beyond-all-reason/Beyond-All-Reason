@@ -3,7 +3,7 @@
 
 piece  base, flare, wake1, wake2, door1, door2, neck, gun ;
 
-static-var  notBuilding, readyToBuild;
+static-var  readyToBuild;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -37,21 +37,26 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake1
+#define TB_WAKE_PIECE2 wake2
+#include "../tilt_bank_submarine.h"
+
+
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 259 from wake1;
-		emit-sfx 259 from wake2;
-		sleep 250;
-	}
+	START_TILTBANK;
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 
@@ -60,8 +65,8 @@ Create()
 	hide wake1;
 	hide wake2;
 	hide flare;
-	notBuilding = 1;
 	readyToBuild = FALSE;
+	call-script TB_Init();
 }
 
 StartBuilding(heading, pitch)

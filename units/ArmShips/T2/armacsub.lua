@@ -36,6 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 405,
+		upright = true,
 		waterline = 80, --35,
 		workertime = 300,
 		buildoptions = {

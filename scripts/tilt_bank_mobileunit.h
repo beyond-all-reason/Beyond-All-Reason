@@ -73,7 +73,7 @@ About 80% of turns and moves executed here are actually non-empty turns. So if-g
 	static-var TB_prevHeading, TB_prevSpeed, TB_maxSpeed;
 
 	TB_Init(){
-		TB_maxSpeed = get MAX_SPEED;
+		TB_maxSpeed = get MAX(10000, get MAX_SPEED); // Make sure it is not zero in case we are stunned on create
 		TB_prevHeading = get HEADING;
 		TB_prevSpeed = 0;
 	}
@@ -92,7 +92,7 @@ About 80% of turns and moves executed here are actually non-empty turns. So if-g
 	static-var TB_prevSpeed, TB_maxSpeed;
 
 	TB_Init(){
-		TB_maxSpeed = get MAX_SPEED;
+		TB_maxSpeed = get MAX(10000, get MAX_SPEED); // Make sure it is not zero in case we are stunned on create
 		TB_prevSpeed = 0;
 	}
 

@@ -6,8 +6,8 @@ static-var  gun_1;
 // Signal definitions
 #define SIGNAL_MOVE 1
 
-#define DEBUG
-#include "../debug.h"
+//#define DEBUG
+//#include "../debug.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -29,6 +29,7 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
 	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
+
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
@@ -37,9 +38,11 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 
 #define TB_BASE base 
-#define TB_TURNRATE <60.0> 
-#define TB_TILT_X <-0.08>
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
 #define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake
+#define TB_WAKE_FOAM 1024 + 1
 #include "../tilt_bank_submarine.h"
 
 
@@ -57,14 +60,6 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	START_TILTBANK;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		sleep 250;
-		emit-sfx 1024 + 0 from wake;
-		emit-sfx 1024 + 1 from wake;
-		sleep 250;
-	}
 }
 
 StopMoving()

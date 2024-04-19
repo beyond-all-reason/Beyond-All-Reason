@@ -17,21 +17,26 @@ static-var  buildHeading, nano;
 #define SMOKETHRESHOLD 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake1
+#define TB_WAKE_PIECE2 wake2
+#include "../tilt_bank_submarine.h"
+
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 256 | 3 from wake1;
-		emit-sfx 256 | 3 from wake2;
-		sleep 250;
-	}
+	START_TILTBANK;
 }
+
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 
@@ -43,6 +48,7 @@ Create()
 	hide wake2;
 	nano=0;
 	buildHeading = 0;
+	call-script TB_Init();
 }
 
 Activate()

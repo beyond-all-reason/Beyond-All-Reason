@@ -3,17 +3,25 @@
 
 piece  base, rfin, lfin, door, prop, turret, gun, nano1, nano2;
 
-static-var  moveSpeed, currentSpeed;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#include "../tilt_bank_submarine.h"
+
+
 Propcontrol()
 {
+	var currentSpeed;
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
 		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 33;
 	}
@@ -33,22 +41,20 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	move door to y-axis [1.0] speed [4.0];
-	move lfin to x-axis [-5.600000] speed [5.600000];
-	move rfin to x-axis [5.600000] speed [5.600000];
-	while( TRUE )
-	{
-		emit-sfx 259 from prop;
-		sleep 250;
-	}
+	move lfin to x-axis [-12.600000] speed [5.600000];
+	move rfin to x-axis [12.600000] speed [5.600000];
+	START_TILTBANK;
+	start-script Propcontrol();
 }
 
 StopMoving()
 {	
-	signal SIGNAL_MOVE;
+	signal SIGNAL_MOVE;	
 	move door to y-axis [0.0] speed [4.0];
 	move lfin to x-axis [0.0] speed [5.600000];
 	move rfin to x-axis [0.0] speed [5.600000];
-
+	STOP_TILTBANK;
+	stop-spin prop around z-axis decelerate <10.0>;
 }
 
 
@@ -56,8 +62,7 @@ Create()
 {
 	hide nano1;
 	hide nano2;
-	moveSpeed = get MAX_SPEED;
-	start-script Propcontrol();
+	call-script TB_Init();
 }
 
 Activate()

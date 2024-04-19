@@ -34,6 +34,13 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
 
 
 Create()
@@ -42,25 +49,20 @@ Create()
 	hide torp1;
 	hide torp2;
 	gun_1 = torp1;
+	call-script TB_Init();
 }
 
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		sleep 250;
-		emit-sfx 1024 + 0 from wake;
-		emit-sfx 1024 + 1 from wake;
-		sleep 250;
-	}
+	START_TILTBANK;
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 AimWeapon1(heading, pitch)
