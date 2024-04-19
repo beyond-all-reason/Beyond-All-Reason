@@ -636,7 +636,7 @@
 			"playersTurn": "%{name} is now placing, followed by %{name2}",
 			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
 			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
-			"modeFair": "Fair start position mode activated. Please wait until your team joins the game before placing"
+			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"
 		},
 		"substitutePlayers": {
 			"offer": "Offer to play",

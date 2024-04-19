@@ -80,6 +80,24 @@ local buttonRect = {0,0,0,0}
 local lockRect = {0,0,0,0}
 local blinkButton = false
 
+-- DraftOrder mod start
+local draftMode = Spring.GetModOptions().draft_mode
+local YourTurnTimeout = 5 -- This controls timeout for random/skill mode
+local draftModeLoaded = false
+local DMDefaultColorString = '\255\200\200\200'
+local DMWarnColor = '\255\255\255\255'
+local myTurn = false
+local skippedMyTurn = false
+local ihavejoined_fair = false
+local myTurnTimeout = nil
+local myTurnIsLast = false
+local fairTimeout = nil
+local showDMWelcomeMessage = nil
+local current_playerID = -1
+local next_playerID = -1
+local auto_ready_disable = false
+-- DraftOrder mod end
+
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
@@ -174,12 +192,14 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
-	-- starts game after a specified amount of time after all players have joined
-	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
-		auto_ready_timer = auto_ready_timer - Spring.GetLastUpdateSeconds()
-	end
-	if auto_ready_timer <=0 and auto_ready == true then
-		return true, true
+	if not auto_ready_disable then
+		-- starts game after a specified amount of time after all players have joined
+		if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+			auto_ready_timer = auto_ready_timer - Spring.GetLastUpdateSeconds()
+		end
+		if auto_ready_timer <=0 and auto_ready == true then
+			return true, true
+		end
 	end
 
 	-- only return true, true once ALL players are ready
@@ -295,29 +315,14 @@ function widget:Initialize()
 		end
 	end
 
+	if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") then
+		-- auto_ready_disable = true -- if we want to disable auto ready using this mod, otherwise do not uncomment
+		auto_ready_timer = auto_ready_timer * 2 -- extra time to place, just to be safe
+	end
+
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
 end
-
--- DraftOrder mod start
-local draftMode = Spring.GetModOptions().draft_mode
-local YourTurnTimeout = 5 -- This controls timeout for random/skill mode
-local draftModeLoaded = false
-local DM_welcomeMessageShowFor = 120 -- seconds
-local DM_defaultMessageShowFor = 60 -- seconds
-local DMDefaultColorString = '\255\200\200\200'
-local DMWarnColor = '\255\255\255\255'
-local myTurn = false
-local skippedMyTurn = false
-local ihavejoined_fair = false
-local myTurnTimeout = nil
-local myTurnIsLast = false
-local fairTimeout = nil
-local showDMMessage = nil
-local showDMWelcomeMessage = nil
-local DMMessageTimeout = 0
-local DMWelcomeMessageTimeout = 0
--- DraftOrder mod end
 
 function widget:DrawScreen()
 	if not startPointChosen then
@@ -331,7 +336,7 @@ function widget:DrawScreen()
 	buttonDrawn = false
 
 	-- display autoready timer
-	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
 		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
 		font:Begin()
@@ -355,33 +360,46 @@ function widget:DrawScreen()
 
 	-- DraftOrder mod start
 	if draftModeLoaded then
-		if showDMMessage and os.clock() <= DMMessageTimeout then
-			font:Begin()
-			font:Print(showDMMessage, vsx * 0.5, vsy * 0.7, 18.5 * uiScale, "co") -- higher than center of your screen
-			font:End()
-		else
-			showDMMessage = nil
-		end
-
-		if os.clock() <= DMWelcomeMessageTimeout then
-			font:Begin()
-			font:Print(showDMWelcomeMessage, vsx * 0.5, vsy * 0.4, 18.5 * uiScale, "co") -- lower than center of your screen
-			font:End()
-		end
-
-		if draftMode == "fair" then
-			if os.clock() >= fairTimeout and not ihavejoined_fair then
-				Spring.SendLuaRulesMsg("i_have_joined_fair")
-				ihavejoined_fair = true
+		local msg = ""
+		if myTurn then -- show counter
+			if not startPointChosen then -- but not if you are already good
+				if next_playerID == -1 then
+					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
+				else
+					local tname = select(1, Spring.GetPlayerInfo(next_playerID, false))
+					if tname == nil then tname = "unconnected" end
+					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()), textColor = DMDefaultColorString, warnColor = DMWarnColor})
+				end
 			end
-			--[[if os.clock() <= fairTimeout+5 then
-				local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.fairModeWait') -- this message was "Fair mode, your team has been waiting"
-				font:Begin()
-				font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
-				font:End()
-			end]]
-			--Spring.Echo("Fair mode on, we were waiting for you. ;)")
 		else
+			if next_playerID == myPlayerID then
+				local tname = select(1, Spring.GetPlayerInfo(current_playerID, false))
+				if tname == nil then tname = "unconnected" end
+				msg = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DMDefaultColorString, warnColor = DMWarnColor})
+			elseif next_playerID > -1 then
+				local tname, tname2 = select(1, Spring.GetPlayerInfo(current_playerID, false)), select(1, Spring.GetPlayerInfo(next_playerID, false))
+				if tname == nil then tname = "unconnected" end
+				if tname2 == nil then tname2 = "unconnected" end
+				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playersTurn', { name = tname, name2 = tname2 })
+			elseif current_playerID > -1 then
+				local tname = select(1, Spring.GetPlayerInfo(current_playerID, false))
+				if tname == nil then tname = "unconnected" end
+				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
+			end
+		end
+		font:Begin()
+		font:Print(msg, vsx * 0.5, vsy * 0.7, 18.5 * uiScale, "co") -- higher than center of your screen
+		font:End()
+
+		font:Begin()
+		font:Print(showDMWelcomeMessage, vsx * 0.5, vsy * 0.4, 18.5 * uiScale, "co") -- lower than center of your screen
+		font:End()
+
+		if os.clock() >= fairTimeout and not ihavejoined_fair then
+			Spring.SendLuaRulesMsg("i_have_joined_fair")
+			ihavejoined_fair = true
+		end
+		if draftMode ~= "fair" then
 			if myTurn and myTurnTimeout and os.clock() >= myTurnTimeout and not startPointChosen then
 				Spring.SendLuaRulesMsg("skip_my_turn")
 				myTurn = false
@@ -389,7 +407,7 @@ function widget:DrawScreen()
 			end
 
 			if skippedMyTurn then
-				if not myTurnIsLast and myTurnTimeout and os.clock() <= myTurnTimeout + YourTurnTimeout then
+				if not myTurnIsLast and myTurnTimeout and os.clock() <= (myTurnTimeout + YourTurnTimeout) then
 					local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
 					font:Begin()
 					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
@@ -401,7 +419,6 @@ function widget:DrawScreen()
 		end
 	end
 	-- DOM end
-
 
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
@@ -506,56 +523,37 @@ end
 
 -- DraftOrder mod start
 function widget:RecvLuaMsg(msg, playerID)
-    local words = {}
-    for word in msg:gmatch("%S+") do
-        table.insert(words, word)
-    end
+	local words = {}
+	for word in msg:gmatch("%S+") do
+		table.insert(words, word)
+	end
 
-    if words[1] == "DraftOrderPlayerTurn" then
-        local current_playerID = tonumber(words[2])
-        local next_playerID = tonumber(words[3] or -1)
-        if current_playerID == myPlayerID then
-            myTurn = true
-            if next_playerID > -1 then
-                local tname = Spring.GetPlayerInfo(next_playerID, false)
-                showDMMessage = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = YourTurnTimeout, textColor = DMDefaultColorString, warnColor = DMWarnColor})
-            else
-                showDMMessage = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
+	if words[1] == "DraftOrderPlayerTurn" then
+		current_playerID = tonumber(words[2] or -1)
+		next_playerID = tonumber(words[3] or -1)
+		if current_playerID == myPlayerID then
+			myTurn = true
+			if next_playerID == -1 then
 				myTurnIsLast = true
-            end
-            myTurnTimeout = os.clock() + YourTurnTimeout
-            DMMessageTimeout = os.clock() + DM_defaultMessageShowFor
-            Spring.PlaySoundFile("beep4", 1, 'ui')
-        elseif next_playerID == myPlayerID then
-            local tname = Spring.GetPlayerInfo(current_playerID, false)
-            showDMMessage = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DMDefaultColorString, warnColor = DMWarnColor})
-            DMMessageTimeout = os.clock() + DM_defaultMessageShowFor
-            Spring.PlaySoundFile("beep4", 1, 'ui')
-        else
-            if next_playerID > -1 then
-                local tname, tname2 = Spring.GetPlayerInfo(current_playerID, false), Spring.GetPlayerInfo(next_playerID, false)
-                if tname and tname2 then
-                    showDMMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playersTurn', { name = tname, name2 = tname2 })
-                    DMMessageTimeout = os.clock() + DM_defaultMessageShowFor
-                end
-            else
-                local tname = Spring.GetPlayerInfo(current_playerID, false)
-                if tname then
-                    showDMMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
-                    DMMessageTimeout = os.clock() + DM_defaultMessageShowFor
-                end
-            end
-        end
-    elseif words[1]:sub(1, 11) == "DraftOrder_" then
-        local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
-        showDMWelcomeMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.mode' .. mode)
-        DMWelcomeMessageTimeout = os.clock() + DM_defaultMessageShowFor
-        Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode))
-        draftModeLoaded = true -- We want to ensure the player's UI is loaded and seen by the player before proceeding
-        if mode == "Fair" then
-            fairTimeout = os.clock() + 2
-        end
-    end
+			end
+			myTurnTimeout = os.clock() + YourTurnTimeout
+			Spring.PlaySoundFile("beep4", 1, 'ui')
+		elseif next_playerID == myPlayerID then
+			Spring.PlaySoundFile("beep4", 1, 'ui')
+		elseif myTurn then
+			myTurn = false
+		end
+	elseif words[1]:sub(1, 11) == "DraftOrder_" then
+		local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
+		showDMWelcomeMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.mode' .. mode)
+		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode))
+		draftModeLoaded = true -- We want to ensure the player's UI is loaded and seen by the player before proceeding
+		if mode == "Fair" then
+			fairTimeout = os.clock() + 2
+		else
+			fairTimeout = os.clock()
+		end
+	end
 end
 -- DOM end
 

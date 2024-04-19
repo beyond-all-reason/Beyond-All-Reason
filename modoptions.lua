@@ -855,7 +855,7 @@ local options = {
             { key = "disabled", name = "Disabled",  desc = "No changes." },
             { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
             { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
-            { key = "fair",     name = "Fair",      desc = "The entire ally team must join the game first - after that (+2sec delay) everyone on the team can place." }
+            { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
 
