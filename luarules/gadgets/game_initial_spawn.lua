@@ -207,6 +207,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function checkVotesAndAdvanceTurn(allyTeamID)
+		if allyTeamSpawnOrderPlaced[allyTeamID] >= #allyTeamSpawnOrder[allyTeamID] then return end
 		local votedPercentage = calculateVotedPercentage(allyTeamID)
 		if votedPercentage > 50 then
 			--Spring.Echo("Over 50% of players on ally team " .. allyTeamID .. " have voted.")
