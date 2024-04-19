@@ -421,7 +421,7 @@ function widget:DrawScreen()
 
 			if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
 				Spring.SendLuaRulesMsg("vote_skip_turn")
-				voteSkipTurnTimeout = false
+				voteSkipTurnTimeout = nil
 			end
 		end
 	end
