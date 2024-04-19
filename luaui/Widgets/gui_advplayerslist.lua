@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 39,
+        version = 40,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true, --  loaded by default?
@@ -48,6 +48,7 @@ end
 	v37   (Floris/Borg_King): add support for much larger player/spec counts  64 -> 256
 	v38   (Floris): significant performance improvement, + fast updating resources
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
+	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -2775,7 +2776,7 @@ end
 
 function DrawPencil(posY, time)
     leftPosX = widgetPosX + widgetWidth
-    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.11)
+    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.12)
     gl_Texture(pics["pencilPic"])
     DrawRect(m_indent.posX + widgetPosX - 3.5, posY + (3*playerScale), m_indent.posX + widgetPosX - 1.5 + (8*playerScale), posY + (14*playerScale))
     gl_Color(1, 1, 1, 1)
@@ -2783,7 +2784,7 @@ end
 
 function DrawEraser(posY, time)
     leftPosX = widgetPosX + widgetWidth
-    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.11)
+    gl_Color(1, 1, 1, (time / pencilDuration ) * 0.12)
     gl_Texture(pics["eraserPic"])
     DrawRect(m_indent.posX + widgetPosX -0.5, posY + (3*playerScale), m_indent.posX + widgetPosX + 1.5 + (8*playerScale), posY + (14*playerScale))
     gl_Color(1, 1, 1, 1)
