@@ -627,7 +627,7 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 1200
+			uDef.weapondefs.stiletto_bomb.damage.default = 3000
 			uDef.weapondefs.stiletto_bomb.paralyzetime = 1			
 		end
 
