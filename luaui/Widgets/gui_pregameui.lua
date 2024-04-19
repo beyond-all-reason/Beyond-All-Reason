@@ -550,7 +550,10 @@ function widget:RecvLuaMsg(msg, playerID)
 		elseif myTurn then
 			myTurn = false
 		end
-		voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+		local _, _, _, _, allyTeamID = Spring.GetPlayerInfo(current_playerID, false)
+		if (allyTeamID == myAllyTeamID) then
+			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
 		showDMWelcomeMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.mode' .. mode)
