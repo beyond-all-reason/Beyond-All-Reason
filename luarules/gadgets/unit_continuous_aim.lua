@@ -119,6 +119,9 @@ local convertedUnits = {
 	[UnitDefNames.leegmech.id] = 5,
 }
 
+if Spring.GetModOptions().emprework then
+	convertedUnits[UnitDefNames.armdfly.id] = 3
+end
 
 local spamUnitsTeams = { --{unitDefID = {teamID = totalcreated,...}}
 	[UnitDefNames.armpw.id] = {},

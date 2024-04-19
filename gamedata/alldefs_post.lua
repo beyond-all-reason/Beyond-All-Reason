@@ -908,7 +908,15 @@ if Spring.GetModOptions().emprework == true then
 		end
 
 		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 8			
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 8
+			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
+			uDef.weapondefs.armdfly_paralyzer.beamttl = 1--testing
+			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.1--testing
+			uDef.weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
+			uDef.weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 100--testing (~280 for parity with live)
+
 		end
 		
 
