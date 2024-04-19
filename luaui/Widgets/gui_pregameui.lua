@@ -83,7 +83,7 @@ local blinkButton = false
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
 local YourTurnTimeout = 5 -- This controls timeout for random/skill mode
-local VoteSkipTurnDelay = YourTurnTimeout+1
+local VoteSkipTurnDelay = YourTurnTimeout+3
 local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
 local DMWarnColor = '\255\255\255\255'
