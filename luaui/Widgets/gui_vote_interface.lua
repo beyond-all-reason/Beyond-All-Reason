@@ -450,9 +450,10 @@ function widget:AddConsoleLine(lines, priority)
 						local players = Spring.GetPlayerList()
 						for _, pID in ipairs(players) do
 							local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
-							local pos = sfind(title, name, nil, true)
+							local pos = sfind(title, ' '..name..' ', nil, true)
 							if pos then
-								title = ssub(title, 1, pos-1).. colourNames(teamID) .. name .. titlecolor .. ssub(title, pos + string.len(name))
+								title = ssub(title, 1, pos-1).. colourNames(teamID) ..' '.. name ..' '.. titlecolor .. ssub(title, pos + string.len(' '..name..' '))
+								break
 							end
 						end
 					end
