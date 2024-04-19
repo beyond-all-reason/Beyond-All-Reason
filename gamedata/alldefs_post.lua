@@ -627,24 +627,49 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 1200
-			uDef.weapondefs.stiletto_bomb.paralyzetime = 5
+			uDef.weapondefs.stiletto_bomb.damage.default = 3000
+			uDef.weapondefs.stiletto_bomb.paralyzetime = 1			
 		end
 
 		if name == "armspid" then
-			uDef.weapondefs.spider.paralyzetime = 5
-			--uDef.weapondefs.spider.damage.default = 1500
+			uDef.weapondefs.spider.paralyzetime = 2			
+			uDef.weapondefs.spider.damage.vtol = 100			
+			uDef.weapondefs.spider.damage.default = 600
+			uDef.weapondefs.spider.reloadtime = 1.495
 		end
 
 		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 5
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 1
+			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
+			uDef.weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
+			uDef.weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
+
+
+
+
+			--mono beam settings
+			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
+			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
+			uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
+			uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
+
+			--burst testing within monobeam
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 250
+			uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
+			uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
+			uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
+			uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
+			uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
+
 		end
 
 		if name == "armemp" then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
-			uDef.weapondefs.armemp_weapon.paralyzetime = 15
+			uDef.weapondefs.armemp_weapon.paralyzetime = 22
 			uDef.weapondefs.armemp_weapon.damage.default = 60000
 
 		end
@@ -660,56 +685,74 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.empmissile.areaofeffect = 250
 			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
 			uDef.weapondefs.empmissile.damage.default = 20000
-			uDef.weapondefs.empmissile.paralyzetime = 5
-			uDef.weapondefs.emp.damage.default = 450
-			uDef.weapondefs.emp.paralyzetime = 5
+			uDef.weapondefs.empmissile.paralyzetime = 5	
+			uDef.weapondefs.emp.damage.default = 200
+			uDef.weapondefs.emp.reloadtime = .5
+			uDef.weapondefs.emp.paralyzetime = 1	
 		end
 
 		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 400
-			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5
+			--uDef.weapondefs.bladewing_lyzer.burst = 4--shotgun mode, outdated but worth keeping
+			--uDef.weapondefs.bladewing_lyzer.reloadtime = 0.8
+			--uDef.weapondefs.bladewing_lyzer.beamburst = true
+			--uDef.weapondefs.bladewing_lyzer.sprayangle = 2100
+			--uDef.weapondefs.bladewing_lyzer.beamdecay = 0.5
+			--uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
+			--uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
+			
+			uDef.weapondefs.bladewing_lyzer.damage.default = 300
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 1	
 		end
 
-		if name == "corsumo" then
-			uDef.customparams.paralyzemultiplier = 0.9
+
+		if (name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
+			uDef.customparams.paralyzemultiplier = 1.5
 		end
 
-		if name == "armmar" then
-			uDef.customparams.paralyzemultiplier = 1.3
-		end
-
-		if name == "armbanth" then
+		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo") then
 			uDef.customparams.paralyzemultiplier = 2
 		end
-
-		if name == "armraz" then
-			uDef.customparams.paralyzemultiplier = 1.2
+			
+		--if name == "corsumo" then
+			--uDef.customparams.paralyzemultiplier = 0.9
+		--end
+		
+		if name == "armmar" then
+			uDef.customparams.paralyzemultiplier = 0.8
 		end
-		if name == "armvang" then
-			uDef.customparams.paralyzemultiplier = 1.1
-		end
-
-		if name == "armlun" then
-			uDef.customparams.paralyzemultiplier = 1.05
-		end
-
-		if name == "corshiva" then
-			uDef.customparams.paralyzemultiplier = 1.1
+		
+		if name == "armbanth" then
+			uDef.customparams.paralyzemultiplier = 1.6
 		end
 
-		if name == "corcat" then
-			uDef.customparams.paralyzemultiplier = 1.05
-		end
-
-		if name == "corkarg" then
-			uDef.customparams.paralyzemultiplier = 1.2
-		end
-		if name == "corsok" then
-			uDef.customparams.paralyzemultiplier = 1.1
-		end
-		if name == "cordemon" then
-			uDef.customparams.paralyzemultiplier = 1.2
-		end
+		--if name == "armraz" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
+		--if name == "armvang" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
+		
+		--if name == "armlun" then
+			--uDef.customparams.paralyzemultiplier = 1.05
+		--end
+		
+		--if name == "corshiva" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
+		
+		--if name == "corcat" then
+			--uDef.customparams.paralyzemultiplier = 1.05
+		--end
+		
+		--if name == "corkarg" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
+		--if name == "corsok" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
+		--if name == "cordemont4" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
 
 	end
 
@@ -1152,9 +1195,9 @@ function WeaponDef_Post(name, wDef)
 			end
 			if name == 'spybombx' then
 				wDef.areaofeffect = 350
-				wDef.edgeeffectiveness = 0.30
-				wDef.paralyzetime = 12
-				wDef.damage.default = 20000
+				wDef.edgeeffectiveness = 0.4
+				wDef.paralyzetime = 20
+				wDef.damage.default = 16000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
