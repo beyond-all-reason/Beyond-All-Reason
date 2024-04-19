@@ -459,19 +459,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if (draftMode == "skill" or draftMode == "random") then
-			if msg == "skip_my_turn" then
-				local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-				if allyTeamIsInGame[allyTeamID] and teamID and allyTeamID then
-					local turnCheck = isTurnToPlace(allyTeamID, teamID)
-					if turnCheck == 1 then -- your turn and you skip? sure thing then!
-						allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
-						SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+			local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+			if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
+				if msg == "skip_my_turn" then
+					if allyTeamIsInGame[allyTeamID] and teamID and allyTeamID then
+						local turnCheck = isTurnToPlace(allyTeamID, teamID)
+						if turnCheck == 1 then -- your turn and you skip? sure thing then!
+							allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
+							SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+						end
 					end
+				elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][teamID] ~= nil then
+					votedToForceSkipTurn[allyTeamID][teamID] = true
+					checkVotesAndAdvanceTurn(allyTeamID)
 				end
-			elseif msg == "vote_skip_turn" then
-				local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-				votedToForceSkipTurn[allyTeamID][teamID] = true
-				checkVotesAndAdvanceTurn(allyTeamID)
 			end
 		end
 		if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") and msg == "i_have_joined_fair" then
