@@ -110,42 +110,6 @@ local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spr
 
 local isSpec = Spring.GetSpectatingState()
 
-function roundNumber(num,useFirstDecimal)
-	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
-end
-
-function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
-	if value == 0 or not value then
-		return value
-	end
-	local halfScale = ceil(#SIsuffixes/2)
-	if useFirstDecimal then
-		useFirstDecimal = useFirstDecimal + halfScale
-	end
-	useFirstDecimal = useFirstDecimal or #SIsuffixes+1
-	local sign = value > 0
-	value = abs(value)
-	thresholdmodifier = thresholdmodifier or 1
-	local startIndex = 1
-	if noSmallValues then
-		startIndex = halfScale
-	end
-	local baseVal = 10^(-12)
-	local retVal = ""
-	for i=startIndex, #SIsuffixes do
-		local tenPower = baseVal*10^(3*(i-1))
-		local compareVal = baseVal*10^(3*i) * thresholdmodifier
-		if value < compareVal then
-			retVal = roundNumber(value/tenPower,i>=useFirstDecimal) .. SIsuffixes[i]
-			break
-		end
-	end
-	if not sign then
-		retVal = "-" .. retVal
-	end
-	return retVal
-end
-
 function aboveRectangle(mousePos,boxData)
 	local included = true
 	for coordName, coordData in pairs(boxData.absSizes) do
@@ -672,11 +636,13 @@ function ReGenerateTextDisplayList()
 					if value == huge or value == -huge then
 						value = "-"
 					elseif tonumber(value) then
+						local v = tonumber(value)
 						if varName:sub(1,5) ~= "units" and varName ~= "aggressionLevel" then
-							value = convertSIPrefix(tonumber(value),1,true,1)
-						else
-							value = convertSIPrefix(tonumber(value))
+							if v and math.abs(v) < 1 then
+								v = 0
+							end
 						end
+						value = string.formatSI(v)
 					end
 					if varName == "damageEfficiency" or varName == "killEfficiency" then
 						value = value .. "%"

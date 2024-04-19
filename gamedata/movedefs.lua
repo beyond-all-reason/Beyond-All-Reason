@@ -53,7 +53,7 @@ local moveDatas = {
 	},
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak 
+	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -87,7 +87,7 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
-	--  
+	--
 	-- NOT USED AT THIS TIME.
 	-- ATANK4 = {
 	-- 	crushstrength = 30,
@@ -102,13 +102,13 @@ local moveDatas = {
 	-- notwasnt used
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
-	-- 	footprintx = 2,   
+	-- 	footprintx = 2,
 	-- 	footprintz = 2,
 	-- 	minwaterdepth = 8,
 	-- },
-	
+
 	-- review boats in general this is an area of possible mergers
-	
+
 	-- break line
 
 	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl  corsupp  corsjam cormls armpt
@@ -141,14 +141,14 @@ local moveDatas = {
 	-- 	minwaterdepth = 10,
 	-- },
 	-- battleships
-	--   not used 
+	--   not used
 	-- BOAT7 = {
 	-- 	crushstrength = 252,
 	-- 	footprintx = 7,
 	-- 	footprintz = 7,
 	-- 	minwaterdepth = 15,
 	-- },
-	-- flagships/aircraft carriers 
+	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
 	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2
 	BOAT8 = {
@@ -167,7 +167,7 @@ local moveDatas = {
 	-- 	crushstrength = 5,
 	-- 	subMarine = 1,
 	-- },
-	-- Battle Subs 
+	-- Battle Subs
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
 		footprintx = 4,
@@ -180,12 +180,12 @@ local moveDatas = {
 	-- UBOAT6 = {
 	-- 	footprintx = 6,
 	-- 	footprintz = 6,
-	-- 	minwaterdepth = 15, 
+	-- 	minwaterdepth = 15,
 	-- 	crushstrength = 5,
 	-- 	subMarine = 1,
 	-- },
 	--break line
-	
+
 	--corsh armah armch armsh
 	HOVER2 = {
 		badslope = 22,
@@ -198,7 +198,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold
+	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -209,7 +209,7 @@ local moveDatas = {
 		slopeMod = 25,
 		maxwaterslope = 255,
 	},
-	--Halberd    
+	--Halberd
 	-- review hover 3 and hover 4 with possible merge
 	--this isnt used ingame at all no unit deffs reported in bar dev game
 	--HHOVER3 = {
@@ -229,7 +229,7 @@ local moveDatas = {
 	-- HHOVER3 = {
 	-- 	badslope = 22,
 	-- 	badwaterslope = 255,
-	-- 	crushstrength = 252,  
+	-- 	crushstrength = 252,
 	-- 	footprintx = 3,
 	-- 	footprintz = 3,
 	-- 	maxslope = 22,
@@ -251,7 +251,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	-- transports
-	-- review this 
+	-- review this
 	-- NOT USED
 	-- HOVER4 = {
 	-- 	badslope = 22,
@@ -304,7 +304,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin 
+	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
 	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -393,7 +393,7 @@ local moveDatas = {
 		}
 	},
 
-	--armflea critter_ant dice critter_penguinbro xmasball2 critter_penguin critter_duck xmasball chip
+	--armflea critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
 	-- make a suggestion thread critterh
 	BOT1 = {
 		crushstrength = 5,
@@ -407,7 +407,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--   not used         
+	--   not used
 	-- BOT2 = {
 	-- 	crushstrength = 10,
 	-- 	footprintx = 2,
@@ -421,7 +421,7 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe 
+	--armmark corspec corck corvoyr armzues corcan armck corack legck corstorm legbart legbal legack armsnipe
 	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
 	--
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
@@ -437,7 +437,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr 
+	-- corhrk armfido leggstr corthud armham
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo legmech
+	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -476,7 +476,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- see if this one can be merged elsewhere 
+	-- see if this one can be merged elsewhere
 	-- corshiva armmar
 	HABOT4 = {
 		crushstrength = 252,
@@ -534,8 +534,8 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 30,
 	},
-	-- review this 
-	-- corjugg 
+	-- review this
+	-- corjugg
 	HBOT5 = {
 		crushstrength = 1400,
 		footprintx = 5,
@@ -591,7 +591,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1 
+	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1
 	--raptor_land_kamikaze_emp_t4_v1 raptor_land_spiker_basic_t2_v1 raptor_land_swarmer_basic_t3_v2 raptor_land_swarmer_basic_t3_v1 raptor_land_swarmer_basic_t3_v3 raptor_land_swarmer_basic_t2_v4 raptor_land_swarmer_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_swarmer_basic_t2_v1 raptor_land_swarmer_brood_t3_v1 raptor_land_swarmer_brood_t4_v1
 	--raptor_land_swarmer_brood_t2_v1 raptor_land_kamikaze_basic_t2_v1 raptor_land_kamikaze_basic_t4_v1  raptor_land_swarmer_fire_t4_v1 raptor_land_swarmer_acids_t2_v1 raptor_land_swarmer_spectre_t3_v1 raptor_land_swarmer_fire_t2_v1 raptorh5 raptor_land_spiker_spectre_t4_v1
 	-- raptorh1b
@@ -644,7 +644,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedmodclass = 2, -- hover
 	},
-	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual 
+	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
 	RAPTORALLTERRAINBIGHOVER = {
 		crushstrength = 250,
@@ -678,7 +678,7 @@ local moveDatas = {
 		maxwaterdepth = 0,
 	},
 
-	--     NOT USED   
+	--     NOT USED
 	-- CRITTERH = {
 	-- 	crushstrength = 0,
 	-- 	footprintx = 1,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox cordemont4
+	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -772,14 +772,14 @@ local moveDatas = {
 	-- 	crushstrength = 9999,
 	-- 	footprintx = 5,
 	-- 	footprintz = 5,
-	-- 	maxslope = 36, -- 
+	-- 	maxslope = 36, --
 	-- 	maxwaterdepth = 9999,
 	-- 	maxwaterslope = 255,
 	-- 	speedModClass = 2,
 	-- },
 	--breakline
 	--
-	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3 
+	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,

@@ -16,7 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local maxTime = Spring.GetModOptions().emprework==true and 10 or 20 --- bug fixed
+local modOptions = Spring.GetModOptions()
+
+local maxTime = modOptions.emprework==true and 10 or 20 --- bug fixed
 
 
 local excluded = {
@@ -44,7 +46,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 
 	
-	if Spring.GetModOptions().emprework==true then
+	if modOptions.emprework==true then
 		unitOhms[udid] = ud.customParams.paralyzemultiplier or 1
 		--Spring.Echo('ohm', ud.customParams.paralyzemultiplier)
 		if tonumber(ud.customParams.paralyzemultiplier) or 0 > 0 then

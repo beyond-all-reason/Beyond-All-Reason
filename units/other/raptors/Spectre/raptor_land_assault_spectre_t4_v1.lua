@@ -3,7 +3,6 @@ return {
 		maxacc = 0.414,
 		airsightdistance = 1800,
 		autoheal = 25,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 302,
@@ -38,9 +37,8 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptora2_spectre.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora2.cob",
 		seismicsignature = 4,
 		selfdestructas = "MEGABUG_DEATH",
@@ -85,7 +83,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -164,11 +161,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				onlytargetcategory = "VTOL",

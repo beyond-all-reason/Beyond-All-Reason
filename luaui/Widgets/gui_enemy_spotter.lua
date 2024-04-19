@@ -41,7 +41,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
 	end
-	if unitDef.name == 'xmasball' or unitDef.name == 'xmasball2' then
+	if unitDef.customParams.decoration then
 		unitDecoration[unitDefID] = true
 	end
 end

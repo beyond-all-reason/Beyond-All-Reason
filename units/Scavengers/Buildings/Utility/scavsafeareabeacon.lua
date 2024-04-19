@@ -15,7 +15,6 @@ return {
 		explodeas = "scavcomexplosion",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 300,
 		initcloaked = true,

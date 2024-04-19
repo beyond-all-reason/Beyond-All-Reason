@@ -3,12 +3,12 @@ local scenariodata = {
 	scenarioid		= "benchmark_lightside", -- no spaces, lowercase, this will be used to save the score
     version         = "1.0", -- increment this to keep the score when changing a mission
 	title			= "Benchmark BAR", -- can be anything
-	author			= "Beherith", -- your name here
+	author			= "Beherith, AKU", -- your name here
 	isnew 			= true,
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
-    summary         = [[This is a quick, 3 minute benchmark script (except of "collision" scenario). You may leave after the benchmark is complete.]],
-	briefing 		= [[This scenario starts a benchmark by spawning 650 Grunts to continously fight against 650 Pawns. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+    summary         = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
+	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
 		
 	A total of 2000 simulation frames are tested. 
 	
@@ -31,9 +31,8 @@ local scenariodata = {
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{name = "Bots", playerhandicap = "corak armpw 650 10 2040" , enemyhandicap = 0},
 		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
-		{name = "Pathing", playerhandicap = "corcv armck 2000 15 11000" , enemyhandicap = 0},
 		{name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040" , enemyhandicap = 0},
-		{name = "Collision", obstacles = "give 100 armdrag 0 @6200,0,4200p", playerhandicap = "armack armack 2000 2 1" , enemyhandicap = 0},
+		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
     },
     allowedsides     = {""}, --these are the permitted factions for this mission
 	victorycondition= "None", -- This is plaintext, but should be reflected in startscript
@@ -88,7 +87,7 @@ local scenariodata = {
 	[modoptions]
 	{
         scenariooptions = __SCENARIOOPTIONS__;
-		debugcommands = 1:cheat|10:__OBSTACLES__|15:luarules fightertest __PLAYERHANDICAP__|20:vsync 0|25:deselect|2015:screenshot|2016:luarules fightertest|2020:vsync 1;
+		debugcommands = 1:cheat|15:luarules fightertest __PLAYERHANDICAP__|20:vsync 0|25:deselect|30:__SIMSPEED__|35:__CPU80__|2015:screenshot|2016:luarules fightertest|2020:vsync 1;
 	}
 
 	[allyTeam1]

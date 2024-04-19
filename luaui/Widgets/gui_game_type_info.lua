@@ -16,7 +16,7 @@ function widget:GetInfo()
 	return {
 		name = "GameTypeInfo",
 		desc = "informs players of the game type at start",
-		author = "Teutooni",
+		author = "Teutooni. Optimizations by Psyborg, 2024",
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
@@ -33,9 +33,7 @@ local glScale = gl.Scale
 local glTranslate = gl.Translate
 local spGetGameSeconds = Spring.GetGameSeconds
 
-local message = ""
-local message2 = ""
-local message3 = ""
+local messages = {}
 
 local font
 
@@ -44,35 +42,48 @@ function widget:ViewResize()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
 	font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
+
+	if messages[1] then
+		messages[1].x = widgetScale * 60
+		messages[1].y = widgetScale * 15.5
+	end
+
+	if messages[2] then
+		messages[2].x = 100 * widgetScale
+		messages[2].y = 15.5 * widgetScale
+	end
+
+	if messages[3] then
+		messages[3].x = 40 * widgetScale
+		messages[3].y = 13 * widgetScale
+	end
 end
 
 function widget:Initialize()
+	if Spring.GetModOptions().deathmode == "neverend" then
+		WidgetHandler:RemoveWidget() return
+	end
+
+	messages[1] = {}
+
+	if Spring.GetModOptions().deathmode == "own_com" then
+		messages[3] = {}
+	end
+
+	-- Call once manually to set the initial positions
+	widget:LanguageChanged()
 	widget:ViewResize()
-
-	if Spring.GetModOptions().deathmode == "killall" then
-		message = Spring.I18N('ui.gametypeInfo.killAllUnits')
-	elseif Spring.GetModOptions().deathmode == "neverend" then
-		widgetHandler:RemoveWidget()
-	else
-		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
-	end
-
-	if Spring.GetModOptions().unba then
-		message3 = Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	end
 end
 
-local sec = 0
-local blink = false
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > 1 then
-		sec = sec - 1
-	end
-	if sec > 0.5 then
-		blink = true
+function widget:LanguageChanged()
+	if Spring.GetModOptions().deathmode == "killall" then
+		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllUnits')
 	else
-		blink = false
+		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
+	end
+
+	if Spring.GetModOptions().deathmode == "own_com" then
+		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
 	end
 end
 
@@ -84,25 +95,13 @@ function widget:DrawScreen()
 		return
 	end
 
-	local msg = '\255\255\255\255' .. string.format("%s %s", Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": ", message)
-	local msg2 = '\255\255\255\255' .. message2
-	local msg3
-	if blink then
-		msg3 = "\255\255\222\111" .. message3
-	else
-		msg3 = "\255\255\150\050" .. message3
-	end
-
 	glPushMatrix()
 	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 60 * widgetScale, 15.5 * widgetScale, "oc")
-	font:Print(msg2, 0, -35 * widgetScale, 13 * widgetScale, "oc")
-	font:Print(msg3, 0, 100 * widgetScale, 15.5 * widgetScale, "oc")
 
-	if Spring.GetModOptions().deathmode == "own_com" then
-		font:Print("\255\255\150\150" ..Spring.I18N('ui.gametypeInfo.owncomends'), 0, 40 * widgetScale, 13 * widgetScale, "oc")
+	for _, message in pairs(messages) do
+		font:Print(message.str, 0, message.x, message.y, "oc")
 	end
 
 	font:End()

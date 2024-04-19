@@ -29,7 +29,7 @@ local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loading bar
 
 local infolog = VFS.LoadFile("infolog.txt")
-local usingIntelGpu = false
+local usingIntelPotato = false
 if infolog then
 	local function lines(str)
 		local t = {}
@@ -46,17 +46,20 @@ if infolog then
 		end
 		if string.find(line, 'GL vendor') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
 			end
 		end
 		if string.find(line, 'GLSL version') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
 			end
 		end
 		if string.find(line, 'GL renderer') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
+			end
+			if string.find(string.lower(line), 'intel') and string.find(string.lower(line), 'arc') then
+				usingIntelPotato = false
 			end
 		end
 	end
@@ -126,6 +129,9 @@ local randomTip = ''
 if showTips then
 	local index = math.random(#tipKeys)
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
+end
+if string.find(backgroundTexture, "donations") then
+	randomTip = Spring.I18N('tips.loadscreen.donations')
 end
 
 -- for guishader
@@ -203,7 +209,7 @@ local borderSize = math.max(1, math.floor(vsy * 0.0027))
 local fontSize = 40
 local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
 local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
-local font2Size = 46
+local font2Size = 45
 local font2 = gl.LoadFont(fontfile2, font2Size*fontScale, (font2Size/4)*fontScale, 1.3)
 
 function DrawStencilTexture()
@@ -428,18 +434,21 @@ function addon.DrawLoadScreen()
 	local posY = posYorg
 
 	-- tip
-	local lineHeight = font2Size * 1.12
+	local tipTextSize = height*0.7
+	local tipTextLineHeight = tipTextSize * 1.17
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
-	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((lineHeight * #tipLines)/vsy)
+	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((tipTextLineHeight * #tipLines)/vsy)
 	if showTips and not showTipBackground and not showTipAboveBar then
 		if #tipLines > 1 then
-			posY = posY + ( (lineHeight*0.75/vsy) * (#tipLines-1) )
+			posY = posY + ( (tipTextLineHeight*0.75/vsy) * (#tipLines-1) )
 			tipPosYtop = posY
 		else
-			tipPosYtop = posY - (lineHeight* 0.2/vsy)
+			tipPosYtop = posY - (tipTextLineHeight* 0.2/vsy)
 		end
 	end
+
+	local barTextSize = height*0.55
 
 	if guishader then
 		if not blurShader then
@@ -448,7 +457,7 @@ function addon.DrawLoadScreen()
 			if showTips and showTipAboveBar and showTipBackground then
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
-			if usingIntelGpu then
+			if usingIntelPotato then
 				guishaderRects['loadprocess3'] = {0, 0.95*vsy, vsx,vsy}
 			end
 			DrawStencilTexture()
@@ -584,7 +593,6 @@ function addon.DrawLoadScreen()
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
 		gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
-		local barTextSize = height*0.54
 		font:SetTextColor(0.88,0.88,0.88,1)
 		font:SetOutlineColor(0,0,0,0.85)
 		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
@@ -605,19 +613,18 @@ function addon.DrawLoadScreen()
 		end
 
 		-- tip text
-		local barTextSize = height*0.74
 		gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (tipPosYtop*vsy)-(barTextSize*0.75), 0)
+		gl.Translate(vsx/2, (tipPosYtop*vsy)-(tipTextSize*0.75), 0)
 		font2:SetTextColor(1,1,1,1)
 		font2:SetOutlineColor(0,0,0,0.8)
 		for i,line in pairs(tipLines) do
-			font2:Print(line, 0, -lineHeight*(i-1), barTextSize, "oac")
+			font2:Print(line, 0, -tipTextLineHeight*(i-1), tipTextSize, "oac")
 		end
 		gl.PopMatrix()
 	end
 
-	if usingIntelGpu then
+	if usingIntelPotato then
 		gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
 		gl.Rect(0,0.95,1,1)
 		gl.PushMatrix()

@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-
+	local spGetUnitDefID = Spring.GetUnitDefID
 	local targetPriority = {
 		Bombers = 1,
 		Vtols = 10,
@@ -65,11 +65,14 @@ if gadgetHandler:IsSyncedCode() then
 		if targetID == -1 and attackerWeaponNum == -1 then
 			return true, defPriority
 		end
-		local unitDefID = Spring.GetUnitDefID(targetID)
+		local unitDefID = spGetUnitDefID(targetID)
 		if unitDefID then
 			local priority = defPriority or 1.0
-			if airCategories[unitDefID] and hasPriorityAir[Spring.GetUnitDefID(unitID)] then
-				priority = priority * targetPriority[airCategories[unitDefID]]
+			local airCategory = airCategories[unitDefID]
+			if airCategory then
+				if hasPriorityAir[spGetUnitDefID(unitID)] then
+					priority = priority * targetPriority[airCategory]
+				end
 			end
 			return true, priority
 		end

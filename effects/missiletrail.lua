@@ -2083,6 +2083,32 @@ local definitions = {
         --},
     },
 
+    ["flaktrailaamg"] = {
+
+
+        engineglow = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[trans]],
+                length             = 1.2,
+               -- lengthgrowth       = -4.5,
+                sidetexture        = [[trail3]],
+                size               = 1.2,
+                sizegrowth         = -0.08,
+                ttl                = 3,
+                pos                = [[0, 2, 0]],
+            },
+        },
+    },
+
   ["missiletrailaa-large"] = {
 
       fire = {
@@ -3251,6 +3277,51 @@ local definitions = {
         --  },
         --},
     },
+	
+	
+    ["missiletrail-grenadesmoke"] = {        -- used by grenades
+        engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+                dir                = [[0, 0.7 ,0]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-8.5 r1]],
+                sidetexture        = [[muzzleside]],
+                size               = 2.1,
+                sizegrowth         = [[0.2 r0.3]],
+                pos                = [[0, 0.01 ,0]],
+                ttl                = 1,
+                drawOrder          = 2,
+            },
+        },
+        --trail = {
+        --    air                = true,
+        --    class              = [[CBitmapMuzzleFlame]],
+        --    count              = 1,
+        --    ground             = true,
+        --    underwater         = 1,
+        --    water              = true,
+        --    properties = {
+        --        colormap           = [[0 0 0 0.01  0.035 0.025 0.015 0.09  0.035 0.025 0.015 0.07  0 0 0 0.01]],
+        --        dir                = [[dir]],
+        --        frontoffset        = 0,
+        --        fronttexture       = [[trans]],
+        --        length             = -50,
+        --        sidetexture        = [[smoketrail]],
+        --        size               = 2.50,
+        --        sizegrowth         = -0.055,
+        --        ttl                = 3,
+        --    },
+        --},
+    },	
+	
 }
 
 definitions["antimissiletrail"] = table.copy(definitions["cruisemissiletrail"])

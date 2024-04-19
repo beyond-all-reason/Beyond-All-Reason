@@ -3,7 +3,6 @@ return {
 		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
-
 		maxdec = 0.1,
 		energycost = 4550,
 		metalcost = 212,
@@ -45,7 +44,7 @@ return {
 		speed = 240.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorf1.s3o",
 		script = "Raptors/raptorf1.cob",
 		seismicsignature = 0,
@@ -99,7 +98,6 @@ return {
 				burst = 2,
 				burstrate = 0.5,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,
@@ -133,7 +131,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "acidspit",
 				maindir = "0 0 1",
 				maxangledif = 125,

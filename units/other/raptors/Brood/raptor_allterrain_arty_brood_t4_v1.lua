@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_brood_t4_v1 = {
 		maxacc = 1.15,
-
 		maxdec = 9.2,
 		energycost = 12320,
 		metalcost = 396,
@@ -35,7 +34,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_artillery_brood_big.s3o",
 		script = "Raptors/raptor_artillery_v2.cob",
 		seismicsignature = 0,
@@ -89,7 +88,6 @@ return {
 				craterboost = 0.2,
 				cratermult = 0.2,
 				edgeeffectiveness = 0.63,
-				--explosiongenerator = "custom:ELECTRIC_EXPLOSION",
 				explosiongenerator = "custom:dirt",
 				impulseboost = 0,
 				impulsefactor = 0.4,

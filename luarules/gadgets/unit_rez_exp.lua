@@ -39,8 +39,8 @@ local rezzedUnits = {} -- unitDefID: location
 local canResurrect = {}
 local unitWreckDefID = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.wreckName and FeatureDefNames[unitDef.wreckName] then
-		unitWreckDefID[unitDefID] = FeatureDefNames[unitDef.wreckName].id
+	if unitDef.corpse and FeatureDefNames[unitDef.corpse] then
+		unitWreckDefID[unitDefID] = FeatureDefNames[unitDef.corpse].id
 	end
 	if unitDef.canResurrect then
 		canResurrect[unitDefID] = true

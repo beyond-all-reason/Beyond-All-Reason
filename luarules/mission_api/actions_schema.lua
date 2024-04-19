@@ -34,7 +34,14 @@ local parameters = {
 		},
 	 },
 
-	[actionTypes.DisableTrigger] = {  },
+	[actionTypes.DisableTrigger] = {
+		[1] = {
+			name = 'triggerId',
+			required = true,
+			type = 'string',
+		},
+	 },
+
 	[actionTypes.IssueOrders] = {  },
 	[actionTypes.AllowCommands] = {  },
 	[actionTypes.RestrictCommands] = {  },
@@ -76,7 +83,7 @@ local parameters = {
 	},
 
 	[actionTypes.SpawnConstruction] = {  },
-	[actionTypes.DespawnUnits] = { 
+	[actionTypes.DespawnUnits] = {
 		[1] = {
 			name = 'name',
 			required = true,

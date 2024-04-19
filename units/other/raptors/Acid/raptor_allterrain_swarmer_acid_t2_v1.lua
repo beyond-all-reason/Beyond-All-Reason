@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_swarmer_acid_t2_v1 = {
 		maxacc = 1.4375,
-
 		maxdec = 2.3,
 		energycost = 5280,
 		metalcost = 99,
@@ -32,7 +31,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptoracidallterrain.s3o",
 		script = "Raptors/raptorc3.cob",
 		seismicsignature = 0,
@@ -82,7 +81,6 @@ return {
 				burst = 2,
 				burstrate = 0.3,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,

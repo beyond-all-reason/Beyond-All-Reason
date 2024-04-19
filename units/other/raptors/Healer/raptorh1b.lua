@@ -3,7 +3,6 @@ return {
 		maxacc = 1,
 		activatewhenbuilt = true,
 		autoheal = 24,
-
 		maxdec = 1,
 		energycost = 600,
 		metalcost = 40,
@@ -71,7 +70,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {

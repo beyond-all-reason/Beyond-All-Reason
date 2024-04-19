@@ -59,15 +59,15 @@ end
 
 function widget:UnitEnteredRadar(unitID, unitTeam)
 	if dots[unitID] then
-		dots[unitID].radar = true
+		dots[unitID][3] = true	-- radar
 	end
 end
 
 function widget:UnitLeftRadar(unitID, unitTeam)
 	if dots[unitID] then
-		dots[unitID].radar = false
-		--if not dots[unitID].los then -- not in LOS - forget unit type
-		--	dots[unitID].unitDefID = nil
+		dots[unitID][3] = false	-- radar
+		--if not dots[unitID][4] then -- not in LOS - forget unit type
+		--	dots[unitID][1] = nil		-- unitDefID
 		--end
 		removeUnitShape(unitID)
 	end
@@ -77,10 +77,10 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID and includedUnitDefIDs[unitDefID] and unitTeam ~= gaiaTeamID then		-- update unitID info, ID could have been reused already!
 		dots[unitID] = {
-			unitDefID = spGetUnitDefID(unitID),
-			teamID = unitTeam,
-			radar = true,
-			los = true,
+			[1] = spGetUnitDefID(unitID),
+			[2] = unitTeam,
+			[3] = true,	-- radar
+			[4] = true,	-- los
 		}
 	else
 		dots[unitID] = nil
@@ -90,13 +90,13 @@ end
 
 function widget:UnitLeftLos(unitID, unitTeam)
 	if dots[unitID] then
-		dots[unitID].los = false
-		if not dots[unitID].radar then -- not on radar - forget unit type
-			--dots[unitID].unitDefID = nil
+		dots[unitID][4] = false
+		if not dots[unitID][3] then -- not on radar - forget unit type
+			--dots[unitID][1] = nil	-- unitDefID
 			removeUnitShape(unitID)
 		else
 			local x, y, z = spGetUnitPosition(unitID)
-			addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, unitTeam)
+			addUnitShape(unitID, dots[unitID][1], x, y, z, 0, unitTeam)
 		end
 	end
 end
@@ -119,10 +119,10 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	for unitID, _ in pairs(dots) do
-		if not dots[unitID].los and dots[unitID].radar then
+		if not dots[unitID][4] and dots[unitID][3] then -- not in los but in radar
 			local x, y, z = spGetUnitPosition(unitID)
 			if x then
-				addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)
+				addUnitShape(unitID, dots[unitID][1], x, y, z, 0, dots[unitID][2])
 			end
 		end
 	end
@@ -150,7 +150,7 @@ function widget:Update(dt)
 				dots[unitID] = nil
 				removeUnitShape(unitID)	-- needs to be done cause we dont know if unit has died
 			elseif spIsUnitInView(unitID) then
-				addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)	-- update because unit position does change
+				addUnitShape(unitID, dots[unitID][1], x, y, z, 0, dots[unitID][2])	-- update because unit position does change
 			end
 		end
 	else
@@ -160,9 +160,14 @@ function widget:Update(dt)
 	end
 end
 
+local gameover = false
+function widget:GameOver()
+	gameover = true
+end
+
 function widget:GetConfigData()
 	return {
-		dots = dots,
+		dots = gameover and {} or dots,
 	}
 end
 

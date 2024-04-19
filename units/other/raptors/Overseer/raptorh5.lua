@@ -2,7 +2,6 @@ return {
 	raptorh5 = {
 		maxacc = 0.92,
 		autoheal = 8,
-
 		maxdec = 0.92,
 		energycost = 5201,
 		metalcost = 251,
@@ -39,7 +38,7 @@ return {
 		movementclass = "RAPTORSMALLHOVER",
 		nanocolor = "0.7 0.15 0.15",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/brain_bug.s3o",
 		script = "Raptors/raptorh5.cob",
 		selfdestructas = "ROOST_DEATH",
@@ -63,7 +62,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -86,11 +84,9 @@ return {
 				avoidfeature = 0,
 				avoidfriendly = 0,
 				camerashake = 0,
-				--cegtag = "blood_trail_xl",
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.55,
-				--explosiongenerator = "custom:blood_explode_xl",
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
@@ -105,12 +101,9 @@ return {
 				size = 0,
 				sizeDecay = 0,
 				stages = 0,
-				--soundhit = "bloodsplash3",
-				--soundstart = "bugattack",
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",
-				--weapontimer = 3,
 				weaponvelocity = 10000,
 				damage = {
 					default = 1,
@@ -151,13 +144,11 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				def = "CONTROLBLOB",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

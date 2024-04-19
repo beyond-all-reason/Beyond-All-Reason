@@ -16,7 +16,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 1780,
@@ -104,7 +103,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,--450,
+				weaponvelocity = 800,
 				damage = {
 					default = 16,
 					vtol = 2,

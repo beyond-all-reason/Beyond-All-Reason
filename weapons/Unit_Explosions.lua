@@ -1290,6 +1290,38 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+	['hugeBuildingExplosionGeneric-uw'] = {
+		weaponType = "Cannon",
+		AreaOfEffect = 420,
+		cameraShake = 420,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg4",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
+		damage = {
+			default = 1330,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+	['hugeBuildingExplosionGenericSelfd-uw'] = {
+		weaponType = "Cannon",
+		AreaOfEffect = 580,
+		cameraShake = 580,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg4",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
+		damage = {
+			default = 3100,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
 
 
 	--UNIT DEATHS--

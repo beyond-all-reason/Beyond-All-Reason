@@ -15,7 +15,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.06,
@@ -89,7 +88,6 @@ return {
 			cor_seaadvbomb = {
 				areaofeffect = 40,
 				avoidfeature = false,
-				--bounceexplosiongenerator = "custom:genericshellexplosion-small",
 				bounceexplosiongenerator = "custom:dirt",
 				bouncerebound = 0.15,
 				bounceslip = 0.75,
@@ -102,7 +100,6 @@ return {
 				edgeeffectiveness = 0.65,
 				metalpershot = 30,
 				energypershot = 1620,
-				--explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				explosiongenerator = "custom:dirtpopup",
 				gravityaffected = "true",
 				impulseboost = 0.123,

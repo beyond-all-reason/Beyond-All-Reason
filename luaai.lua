@@ -24,18 +24,10 @@ return {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
-  -- {
-  --   name = 'ScavReduxAI',
-  --   desc = 'Infinite Games'
-  -- },
-  -- {
-  --   name = 'STAI',
-  --   desc = 'Medium  AI by @pandaro',
-  -- },
-  -- {
-  --   name = 'ControlModeAI',
-  --   desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
-  -- },
+  {
+    name = 'STAI',
+    desc = 'Medium  AI by @pandaro',
+  },
   {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'

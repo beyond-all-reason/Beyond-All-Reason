@@ -59,14 +59,25 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	local nukes = {
-		[WeaponDefNames["armsilo_nuclear_missile"].id] = true,
-		[WeaponDefNames["corsilo_crblmssl"].id] = true,
-		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
-		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
-		[WeaponDefNames["raptor_turret_meteor_t4_v1_weapon"].id] = true,
-		--WeaponDefNames["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"].id] = true,
+	local nukesNames = {
+		armsilo_nuclear_missile = true,
+		corsilo_crblmssl = true,
+		armsilo_scav_nuclear_missile = true,
+		corsilo_scav_crblmssl = true,
+		raptor_turret_meteor_t4_v1_weapon = true,
+		--raptor_allterrain_arty_basic_t4_v1_meteorlauncher = true,
 	}
+	-- convert weaponname -> weaponDefID
+	local nukes = {}
+	for name, params in pairs(nukesNames) do
+		if WeaponDefNames[name] then
+			nukes[WeaponDefNames[name].id] = params
+		end
+	end
+	nukesNames = nil
+
+
+
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
 
@@ -76,30 +87,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadgetHandler:TeamDied(teamID)
+	function gadget:TeamDied(teamID)
 
 	end
 
-	function gadgetHandler:TeamChanged(teamID)
-
-	end
-
-	function gadgetHandler:PlayerChanged(playerID)
-
-	end
-
-	function gadgetHandler:PlayerAdded(playerID)
-		if gamestarted and not gameover then
-			local players = AllPlayers()
-			for ct, player in pairs (players) do
-				if tostring(player) then
-					SendToUnsynced("EventBroadcast", "PlayerAdded", tostring(player))
-				end
-			end
-		end
-	end
-
-	function gadgetHandler:PlayerRemoved(playerID, reason)
+	function gadget:TeamChanged(teamID)
 
 	end
 
@@ -149,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadgetHandler:GameOver(winningAllyTeams)
+	function gadget:GameOver(winningAllyTeams)
 		gameover = true
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
@@ -168,7 +160,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "IntrusionCountermeasure"
@@ -183,9 +175,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
 else
 
-	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')
+	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com')
 
 	local isCommander = {}
 	local isRadar = {}
@@ -200,8 +193,8 @@ else
 			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
-			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-				isRadar[unitDefID] = unitDef.radarRadius
+			if unitDef.isBuilding and unitDef.radarDistance > 1900 then
+				isRadar[unitDefID] = unitDef.radarDistance
 			end
 			if unitDef.extractsMetal > 0 then
 				isMex[unitDefID] = unitDef.extractsMetal
@@ -242,6 +235,12 @@ else
 	function BroadcastEvent(_,event, player)
 		if Script.LuaUI("EventBroadcast") and tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or isSpec) then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
+		end
+	end
+
+	function gadget:PlayerAdded(playerID)
+		if Spring.GetGameFrame() > 0 then
+			BroadcastEvent("EventBroadcast", 'PlayerAdded', tostring(myPlayerID))
 		end
 	end
 

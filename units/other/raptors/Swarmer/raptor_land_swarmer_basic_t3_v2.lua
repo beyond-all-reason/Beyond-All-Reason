@@ -2,7 +2,6 @@ return {
 	raptor_land_swarmer_basic_t3_v2 = {
 		maxacc = 0.345,
 		autoheal = 3,
-
 		maxdec = 0.345,
 		energycost = 79,
 		metalcost = 79,
@@ -33,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor1y.s3o",
 		script = "Raptors/raptor1y.cob",
 		seismicsignature = 0,
@@ -58,7 +57,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -110,7 +108,6 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

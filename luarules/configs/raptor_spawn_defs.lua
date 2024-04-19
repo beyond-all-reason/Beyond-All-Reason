@@ -1132,35 +1132,6 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	]]--
 }
 
-local highValueTargets = { -- Priority targets for Raptors. Must be immobile to prevent issues.
-	-- T2 Energy
-	[UnitDefNames["armwint2"].id] 	= true,
-	[UnitDefNames["corwint2"].id] 	= true,
-	[UnitDefNames["armfus"].id] 	= true,
-	[UnitDefNames["armckfus"].id] 	= true,
-	[UnitDefNames["corfus"].id] 	= true,
-	[UnitDefNames["armuwfus"].id] 	= true,
-	[UnitDefNames["coruwfus"].id] 	= true,
-	[UnitDefNames["armageo"].id] 	= true,
-	[UnitDefNames["corageo"].id] 	= true,
-	[UnitDefNames["armafus"].id] 	= true,
-	[UnitDefNames["corafus"].id] 	= true,
-	-- T2 Metal Makers
-	[UnitDefNames["armmmkr"].id] 	= true,
-	[UnitDefNames["cormmkr"].id] 	= true,
-	[UnitDefNames["armuwmmm"].id] 	= true,
-	[UnitDefNames["coruwmmm"].id] 	= true,
-	-- T2 Metal Extractors
-	[UnitDefNames["cormoho"].id] 	= true,
-	[UnitDefNames["armmoho"].id] 	= true,
-	-- Nukes
-	[UnitDefNames["corsilo"].id] 	= true,
-	[UnitDefNames["armsilo"].id] 	= true,
-	-- Antinukes
-	[UnitDefNames["armamd"].id] 	= true,
-	[UnitDefNames["corfmd"].id] 	= true,
-}
-
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
 	useEggs 				= useEggs,
 	useScum					= useScum,
@@ -1168,7 +1139,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	difficulties           	= difficulties,
 	raptorEggs			   	= table.copy(raptorEggs),
 	burrowName             	= burrowName,   -- burrow unit name
-	burrowDef              	= UnitDefNames[burrowName].id,
+	burrowDef              	= UnitDefNames[burrowName] and UnitDefNames[burrowName].id,
 	raptorSpawnMultiplier 	= Spring.GetModOptions().raptor_spawncountmult,
 	burrowSpawnType        	= Spring.GetModOptions().raptor_raptorstart,
 	swarmMode			   	= Spring.GetModOptions().raptor_swarmmode,
@@ -1184,7 +1155,6 @@ local config = { -- Don't touch this! ------------------------------------------
 	squadSpawnOptionsTable	= squadSpawnOptionsTable,
 	airStartAnger			= airStartAnger,
 	ecoBuildingsPenalty		= ecoBuildingsPenalty,
-	highValueTargets		= highValueTargets,
 	bossFightWaveSizeScale  = bossFightWaveSizeScale,
 	defaultRaptorFirestate = defaultRaptorFirestate,
 }

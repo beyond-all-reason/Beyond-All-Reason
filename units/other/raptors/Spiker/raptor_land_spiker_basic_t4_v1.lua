@@ -1,7 +1,6 @@
 return {
 	raptor_land_spiker_basic_t4_v1 = {
 		maxacc = 3.45,
-
 		maxdec = 3.45,
 		energycost = 174,
 		metalcost = 174,
@@ -39,7 +38,7 @@ return {
 		mincloakdistance = 200,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptors2.s3o",
 		script = "Raptors/raptors2.cob",
 		seismicsignature = 0,
@@ -66,7 +65,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -118,10 +116,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

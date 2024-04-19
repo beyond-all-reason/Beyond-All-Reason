@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_spectre_t4_v1 = {
 		maxacc = 0.4025,
-
 		maxdec = 0.345,
 		energycost = 1000,
 		metalcost = 100,
@@ -37,7 +36,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor2_spectre.s3o",
 		script = "Raptors/raptor2.cob",
 		seismicsignature = 2,
@@ -115,7 +114,7 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},
