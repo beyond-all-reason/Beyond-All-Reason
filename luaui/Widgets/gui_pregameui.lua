@@ -557,7 +557,6 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 -- DOM end
 
-
 function widget:Shutdown()
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
