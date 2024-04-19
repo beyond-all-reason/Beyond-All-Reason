@@ -262,6 +262,18 @@ if gadgetHandler:IsSyncedCode() then
 			-- If the entire ally team has zero skill players, random shuffle then
 			if isAllyTeamSkillZero(allyTeamID_ready) then
 				shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
+			else -- If two players have same skill, do a coin flip
+				local function randomlySwap(array, i, j)
+					if math.random(2) == 1 then
+						array[i], array[j] = array[j], array[i]
+					end
+				end
+				for i = 1, #allyTeamSpawnOrder[allyTeamID_ready] - 1 do
+					if GetSkillByTeam(allyTeamSpawnOrder[allyTeamID_ready][i]) <= 0 then break end
+					if GetSkillByTeam(allyTeamSpawnOrder[allyTeamID_ready][i]) == GetSkillByTeam(allyTeamSpawnOrder[allyTeamID_ready][i+1]) then
+						randomlySwap(allyTeamSpawnOrder[allyTeamID_ready], i, i+1)
+					end
+				end
 			end
 		end
 		if draftMode == "skill" or draftMode == "random" then
