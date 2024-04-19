@@ -444,7 +444,7 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeamIsInGame[allyTeamID] = true
 					InitDraftOrderData(allyTeamID)
 				end
-			end			
+			end
 		end
 	end
 	
