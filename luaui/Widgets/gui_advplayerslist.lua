@@ -2932,7 +2932,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         end
         tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
         if system ~= nil then
-            tipText = tipText .. "\255\240\240\240" .. system
+            tipText = tipText .. "\n\255\240\240\240" .. system
         end
         tipTextTime = os.clock()
     end
