@@ -634,18 +634,34 @@ function UnitDef_Post(name, uDef)
 		if name == "armspid" then
 			uDef.weapondefs.spider.paralyzetime = 2			
 			uDef.weapondefs.spider.damage.vtol = 100			
-			uDef.weapondefs.spider.damage.default = 400
+			uDef.weapondefs.spider.damage.default = 600
+			uDef.weapondefs.spider.reloadtime = 1.495
 		end
 
 		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 8
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 1
 			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
 			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
-			uDef.weapondefs.armdfly_paralyzer.beamttl = 1--testing
-			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.1--testing
 			uDef.weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
 			uDef.weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 100--testing (~280 for parity with live)
+
+
+
+
+			--mono beam settings
+			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
+			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
+			uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
+			uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
+
+			--burst testing within monobeam
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 250
+			uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
+			uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
+			uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
+			uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
+			uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
 
 		end
 
@@ -676,7 +692,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if name == "corbw" then
-			--uDef.weapondefs.bladewing_lyzer.burst = 4
+			--uDef.weapondefs.bladewing_lyzer.burst = 4--shotgun mode, outdated but worth keeping
 			--uDef.weapondefs.bladewing_lyzer.reloadtime = 0.8
 			--uDef.weapondefs.bladewing_lyzer.beamburst = true
 			--uDef.weapondefs.bladewing_lyzer.sprayangle = 2100
@@ -701,9 +717,9 @@ function UnitDef_Post(name, uDef)
 			--uDef.customparams.paralyzemultiplier = 0.9
 		--end
 		
-		--if name == "armmar" then
-			--uDef.customparams.paralyzemultiplier = 1.3
-		--end
+		if name == "armmar" then
+			uDef.customparams.paralyzemultiplier = 0.8
+		end
 		
 		if name == "armbanth" then
 			uDef.customparams.paralyzemultiplier = 1.6

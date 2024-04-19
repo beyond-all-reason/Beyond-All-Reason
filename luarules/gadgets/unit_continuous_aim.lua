@@ -111,6 +111,9 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
   ['legmed'] = 5,
 }
+--if Spring.GetModOptions().emprework then
+	--convertedUnitsNames['armdfly'] = 50
+--end
 -- convert unitname -> unitDefID
 local convertedUnits = {}
 for name, params in pairs(convertedUnitsNames) do
@@ -120,9 +123,6 @@ for name, params in pairs(convertedUnitsNames) do
 end
 convertedUnitsNames = nil
 
-if Spring.GetModOptions().emprework then
-	convertedUnits[UnitDefNames.armdfly.id] = 3
-end
 
 local spamUnitsTeamsNames = { --{unitDefID = {teamID = totalcreated,...}}
 	['armpw'] = {},

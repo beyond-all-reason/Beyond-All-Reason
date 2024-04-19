@@ -105,7 +105,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			bufferdamage = hp / 200
 			--rootdamage = (damage / 50) * hp^0.5
 			--Spring.Echo('h damage rootdamage',hp,damage, rootdamage)
-			damage = damage + bufferdamage --overcome relative effects drain
+			damage = damage + bufferdamage --overcome relative effects drain (eg stunned unit with 90000 hp loses 900 emp damage a tick, whereas unit with 900 hp loses 9 a tick. impossible to balance low damage emp weapons to overcome this without making them OP vs low HP units)
 			
 			
 			--Spring.Echo('raw stuntime, ohm, using mult value, thismaxtime (pre-minumum)', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
