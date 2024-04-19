@@ -125,6 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 	local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - whose order to place right now
 	local teamPlayerData = {} -- [teamID] = {id, name, skill} of that team's player
 	local allyTeamIsInGame = {} -- [allyTeam] = true/false - fully joined ally teams
+	local votedToForceSkipTurn = {} -- [allyTeam][teamID] - if more than 50% vote for it, the current player turn is force-skipped
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local draftMode = Spring.GetModOptions().draft_mode
 
@@ -194,6 +195,29 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function calculateVotedPercentage(allyTeamID)
+		local totalPlayers = Spring.GetTeamCount(allyTeamID)
+		local votedPlayers = 0
+		for teamID, _ in pairs(votedToForceSkipTurn[allyTeamID]) do
+			if votedToForceSkipTurn[allyTeamID][teamID] then
+				votedPlayers = votedPlayers + 1
+			end
+		end
+		return (votedPlayers / totalPlayers) * 100
+	end
+
+	local function checkVotesAndAdvanceTurn(allyTeamID)
+		local votedPercentage = calculateVotedPercentage(allyTeamID)
+		if votedPercentage > 50 then
+			--Spring.Echo("Over 50% of players on ally team " .. allyTeamID .. " have voted.")
+			for teamID, _ in pairs(votedToForceSkipTurn[allyTeamID]) do
+				votedToForceSkipTurn[allyTeamID][teamID] = false -- reset vote
+			end -- and advance turn
+			allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1
+			SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+		end
+	end
+
 	local function isTurnToPlace(allyTeamID, teamID)
 		-- Returns:
 		-- 0 - Can't place yet
@@ -246,6 +270,10 @@ if gadgetHandler:IsSyncedCode() then
 				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
+					if not votedToForceSkipTurn[allyTeamID] then
+						votedToForceSkipTurn[allyTeamID] = {}
+					end
+					votedToForceSkipTurn[allyTeamID][teamID] = false
 				end
 			end
 			shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
@@ -257,6 +285,10 @@ if gadgetHandler:IsSyncedCode() then
 				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
+					if not votedToForceSkipTurn[allyTeamID] then
+						votedToForceSkipTurn[allyTeamID] = {}
+					end
+					votedToForceSkipTurn[allyTeamID][teamID] = false
 				end
 			end
 			-- If the entire ally team has zero skill players, random shuffle then
@@ -425,14 +457,20 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 0)
 		end
 
-		if (draftMode == "skill" or draftMode == "random") and msg == "skip_my_turn" then
-			local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-			if allyTeamIsInGame[allyTeamID] and teamID and allyTeamID then
-				local turnCheck = isTurnToPlace(allyTeamID, teamID)
-				if turnCheck == 1 then -- your turn and you skip? sure thing then!
-					allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
-					SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+		if (draftMode == "skill" or draftMode == "random") then
+			if msg == "skip_my_turn" then
+				local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+				if allyTeamIsInGame[allyTeamID] and teamID and allyTeamID then
+					local turnCheck = isTurnToPlace(allyTeamID, teamID)
+					if turnCheck == 1 then -- your turn and you skip? sure thing then!
+						allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
+						SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+					end
 				end
+			elseif msg == "vote_skip_turn" then
+				local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+				votedToForceSkipTurn[allyTeamID][teamID] = true
+				checkVotesAndAdvanceTurn(allyTeamID)
 			end
 		end
 		if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") and msg == "i_have_joined_fair" then

@@ -83,6 +83,7 @@ local blinkButton = false
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
 local YourTurnTimeout = 5 -- This controls timeout for random/skill mode
+local VoteSkipTurnDelay = YourTurnTimeout+1
 local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
 local DMWarnColor = '\255\255\255\255'
@@ -90,6 +91,7 @@ local myTurn = false
 local skippedMyTurn = false
 local ihavejoined_fair = false
 local myTurnTimeout = nil
+local voteSkipTurnTimeout = nil
 local myTurnIsLast = false
 local fairTimeout = nil
 local showDMWelcomeMessage = nil
@@ -416,6 +418,11 @@ function widget:DrawScreen()
 					myTurnTimeout = nil
 				end
 			end
+
+			if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
+				Spring.SendLuaRulesMsg("vote_skip_turn")
+				voteSkipTurnTimeout = false
+			end
 		end
 	end
 	-- DOM end
@@ -543,6 +550,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		elseif myTurn then
 			myTurn = false
 		end
+		voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
 		showDMWelcomeMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.mode' .. mode)
