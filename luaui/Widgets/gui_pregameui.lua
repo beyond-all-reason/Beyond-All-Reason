@@ -550,9 +550,11 @@ function widget:RecvLuaMsg(msg, playerID)
 		elseif myTurn then
 			myTurn = false
 		end
-		local _, _, _, _, allyTeamID = Spring.GetPlayerInfo(current_playerID, false)
-		if (allyTeamID == myAllyTeamID) then
-			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+		if current_playerID > -1 then
+			local _, _, _, _, allyTeamID = Spring.GetPlayerInfo(current_playerID, false)
+			if (allyTeamID == myAllyTeamID) then
+				voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+			end
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
