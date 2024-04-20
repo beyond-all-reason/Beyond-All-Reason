@@ -30,6 +30,7 @@ if chunk then
 end
 
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
+local isActionPressed = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -71,13 +72,21 @@ function widget:Initialize()
 	if Spring.IsReplay() then
 		widget:GameOver()
 	end
+
+	widgetHandler:AddAction("stateprefs_record", onActionPress, nil, "p")
+	widgetHandler:AddAction("stateprefs_record", onActionRelease, nil, "r")
+end
+
+function onActionPress()
+  isActionPressed = true
+end
+
+function onActionRelease()
+  isActionPressed = false
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	if not ctrl then
-		return false
-	end
+	if not isActionPressed then return false end
 
 	local index = Spring.GetCmdDescIndex(cmdID)
 	local command = Spring.GetActiveCmdDesc(index)
@@ -121,6 +130,10 @@ function widget:GameOver()
 	Spring.Echo("Recorded States Prefs")
 	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
 	widgetHandler:RemoveWidget()
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("stateprefs_record")
 end
 
 --------------------------------------------------------------------------------
