@@ -370,7 +370,7 @@ function widget:DrawScreen()
 				else
 					local tname = select(1, Spring.GetPlayerInfo(next_playerID, false))
 					if tname == nil then tname = "unconnected" end
-					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlaceNextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()), textColor = DMDefaultColorString, warnColor = DMWarnColor})
+					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor }) .. ". " .. Spring.I18N('ui.draftOrderMod.nextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()) })
 				end
 			end
 		else
