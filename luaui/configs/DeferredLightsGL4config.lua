@@ -35,7 +35,7 @@ local exampleLight = {
 local unitDefLights = {
 
 
-	[UnitDefNames['corsiegebreaker'].id] = {
+	['corsiegebreaker'] = {
 
 
 		eyes1 = {
@@ -138,7 +138,7 @@ local unitDefLights = {
 
 
 	},
-	[UnitDefNames['armpw'].id] = {
+	['armpw'] = {
 		-- headlightpw = { -- this is the lightname
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
@@ -19068,7 +19068,7 @@ local unitEventLights = {
 
 		},
 
-		[UnitDefNames['corsiegebreaker'].id] = {
+		['corsiegebreaker'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrel_glow',
@@ -19094,7 +19094,7 @@ local unitEventLights = {
 			},
 		},
 
-		[UnitDefNames['armraz'].id] = {
+		['armraz'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lcannon',
