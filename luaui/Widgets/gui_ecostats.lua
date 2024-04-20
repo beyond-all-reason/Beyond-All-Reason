@@ -72,6 +72,7 @@ local widgetHeight = 0
 local widgetWidth = 130
 local tH = 40 -- team row height
 local WBadge = 14 -- width of player badge (side icon)
+local HBadge = 14 -- width of player badge (side icon)
 local cW = 100 -- column width
 local ctrlDown = false
 local textsize = 14
@@ -80,6 +81,14 @@ local refreshCaptions = false
 local maxMetal, maxEnergy = 0, 0
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+
+local maxTeamsize = 0
+for i=1, #Spring.GetAllyTeamList()-1 do
+	if #Spring.GetTeamList(i) > maxTeamsize then
+		maxTeamsize = #Spring.GetTeamList(i)
+	end
+end
+local playerScale = math.max(0.5, math.min(1, 14 / maxTeamsize))
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -249,7 +258,8 @@ local function setDefaults()
 	tH = 32
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	borderPadding = 4.5
-	WBadge = tH * 0.5
+	HBadge = tH * 0.5
+	WBadge = math.floor(HBadge * playerScale)
 	cW = 88
 	textsize = 14
 end
@@ -270,7 +280,8 @@ local function processScaling()
 
 	tH = math.floor(tH * sizeMultiplier)
 	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
-	WBadge = math.floor(WBadge * sizeMultiplier)
+	HBadge = math.floor(HBadge * sizeMultiplier)
+	WBadge = math.floor(HBadge * playerScale)
 	cW = math.floor(cW * sizeMultiplier)
 	textsize = math.floor(textsize * sizeMultiplier)
 	borderPadding = math.floor(borderPadding * sizeMultiplier)
@@ -467,13 +478,14 @@ local function Init()
 	maxPlayers = getMaxPlayers()
 
 	if maxPlayers == 1 then
-		WBadge = 18
+		HBadge = 18
 	elseif maxPlayers == 2 or maxPlayers == 3 then
-		WBadge = 16
+		HBadge = 16
 	else
-		WBadge = 14
+		HBadge = 14
 	end
-	WBadge = WBadge * sizeMultiplier
+	HBadge = HBadge * sizeMultiplier
+	WBadge = math.floor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = math.ceil((20 * sizeMultiplier) + maxPlayers * WBadge)
@@ -601,12 +613,13 @@ local function Reinit()
 	maxPlayers = getMaxPlayers()
 
 	if maxPlayers == 1 then
-		WBadge = 18 * sizeMultiplier
+		HBadge = 18 * sizeMultiplier
 	elseif maxPlayers == 2 or maxPlayers == 3 then
-		WBadge = 16 * sizeMultiplier
+		HBadge = 16 * sizeMultiplier
 	else
-		WBadge = 14 * sizeMultiplier
+		HBadge = 14 * sizeMultiplier
 	end
+	WBadge = math.floor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = (20 * sizeMultiplier) + maxPlayers * WBadge
@@ -911,12 +924,12 @@ end
 local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mouseOn, t, isDead, tID)
 	local w, h, dx, dy
 	if small then
-		w = floor((tH * 0.36) + 0.5)
+		w = floor((tH * 0.36) + 0.5) * playerScale
 		h = floor((tH * 0.36) + 0.5)
 		dx = -floor((tH * 0.06) + 0.5)
 		dy = floor((tH - (tH * 0.43)) + 0.5)
 	else
-		w = floor((tH * 0.46) + 0.5)
+		w = floor((tH * 0.46) + 0.5) * playerScale
 		h = floor((tH * 0.46) + 0.5)
 		dx = 0
 		dy = floor((tH - h) + 0.5)
