@@ -24,7 +24,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 1.8,
 		movementclass = "ATANK3",
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL GROUNDSCOUT",
 		onoffable = true,
 		objectname = "Units/CORSIEGEBREAKER.s3o",
 		script = "Units/CORSIEGEBREAKER.cob",
@@ -168,7 +168,7 @@ return {
 				targetmoveerror = 0,
 				thickness = 1.6,
 				tolerance = 10000,
-				turret = true,
+				turret = false,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3060,
 				damage = {
@@ -212,7 +212,7 @@ return {
 				targetmoveerror = 0,
 				thickness = 2.6,
 				tolerance = 10000,
-				turret = true,
+				turret = false,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1250,
 				damage = {
@@ -229,6 +229,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 50,
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -236,6 +237,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 50,
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 		},
 	},

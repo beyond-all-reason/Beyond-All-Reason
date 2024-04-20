@@ -6,7 +6,7 @@
 //piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
 piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, smoke1, aimfromy;
 
-static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading;
+static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading, xoffset, yoffset;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -74,7 +74,9 @@ Create()
 	shooting = 0;
 	pshotcount = 0;	
 	sshotcount = 0;	
-	
+
+	xoffset	= [3];
+	yoffset	= [1];
 	
 	weapon1_default_range = get WEAPON_RANGE(1);
 	weapon2_default_range = get WEAPON_RANGE(2);
@@ -87,6 +89,24 @@ Create()
 	turn r3 to y-axis <30> now;
 	turn l2 to y-axis <-15> now;
 	turn l3 to y-axis <-30> now;
+
+
+	//activate eg normal weapon eg hide rods
+	move r1 to x-axis xoffset now;
+	move r2 to x-axis xoffset now;
+	move r3 to x-axis xoffset now;
+	move l1 to x-axis 0-xoffset now;
+	move l2 to x-axis 0-xoffset now;
+	move l3 to x-axis 0-xoffset now;
+	
+	move r1 to y-axis 0-yoffset now;
+	move r2 to y-axis 0-yoffset now;
+	move r3 to y-axis 0-yoffset now;
+	move l1 to y-axis 0-yoffset now;
+	move l2 to y-axis 0-yoffset now;
+	move l3 to y-axis 0-yoffset now;
+
+
 
 	hide r1;
 	hide r2;
@@ -119,16 +139,34 @@ activatescr()
 	if( TRUE )
 	{
 		
-	signal SIG_AIM;
+		signal SIG_AIM;
 		fireMode = 1;
 
 
-		move r1 to x-axis [2.500000] speed [0.600000];
-		move r2 to x-axis [2.500000] speed [0.600000];
-		move r3 to x-axis [2.500000] speed [0.600000];
-		move l1 to x-axis [-2.500000] speed [0.600000];
-		move l2 to x-axis [-2.500000] speed [0.600000];
-		move l3 to x-axis [-2.500000] speed [0.600000];
+
+
+
+
+	//move chamber to z-axis [-4.000000] speed [500.000000];
+	//wait-for-move chamber along z-axis;
+
+		//activate eg normal weapon eg hide rods
+		move r1 to x-axis xoffset speed [0.600000];
+		move r2 to x-axis xoffset speed [0.600000];
+		move r3 to x-axis xoffset speed [0.600000];
+		move l1 to x-axis 0-xoffset speed [0.600000];
+		move l2 to x-axis 0-xoffset speed [0.600000];
+		move l3 to x-axis 0-xoffset speed [0.600000];
+		
+		move r1 to y-axis 0-yoffset speed [0.20000];
+		move r2 to y-axis 0-yoffset speed [0.20000];
+		move r3 to y-axis 0-yoffset speed [0.20000];
+		move l1 to y-axis 0-yoffset speed [0.20000];
+		move l2 to y-axis 0-yoffset speed [0.20000];
+		move l3 to y-axis 0-yoffset speed [0.20000];
+
+		wait-for-move r1 along y-axis;
+
 
 
 		hide r1;
@@ -170,13 +208,21 @@ deactivatescr()
 		show l2;
 		show l3;
 		
-		
+		//deac eg full weapon eg show rods
 		move r1 to x-axis [0.000000] speed [0.600000];
 		move r2 to x-axis [0.000000] speed [0.600000];
 		move r3 to x-axis [0.000000] speed [0.600000];
 		move l1 to x-axis [0.000000] speed [0.600000];
 		move l2 to x-axis [0.000000] speed [0.600000];
 		move l3 to x-axis [0.000000] speed [0.600000];
+
+		move r1 to y-axis [0] speed [0.200000];
+		move r2 to y-axis [0] speed [0.200000];
+		move r3 to y-axis [0] speed [0.200000];
+		move l1 to y-axis [0] speed [0.200000];
+		move l2 to y-axis [0] speed [0.200000];
+		move l3 to y-axis [0] speed [0.200000];
+		wait-for-move r1 along y-axis;
 
 		get WEAPON_RANGE(-1,get MAX(weapon1_default_range,weapon2_default_range));
 		get WEAPON_RANGE(-2,get MAX(weapon1_default_range,weapon2_default_range));
@@ -335,6 +381,7 @@ AimPrimary(heading, pitch)
 	
 	//potshotmode
 
+	if (pitch < <-10>) { return(0); }
 
     if (shooting==1) {return(0);}
     if (fireMode!=0) {return(0);}//if inactive, go to secondary weapon eg normalfire
@@ -367,6 +414,9 @@ AimPrimary(heading, pitch)
 	}
 	set HEADING to (get HEADING) + heading;//*/
 	wait-for-turn gun around x-axis;
+
+	start-script RestoreAfterDelay();
+
 	return 1;
 	
 
@@ -381,7 +431,6 @@ AimPrimary(heading, pitch)
 	//wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	//wait-for-turn chamber around x-axis;
-	start-script RestoreAfterDelay();
 	return (1);
 	//*/
 	
@@ -409,6 +458,9 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
+	
+	if (pitch < <-10>) { return(0); }
+	
 	// FIRE EVERYTHING
 	
     if (shooting==1) {return(0);}
@@ -456,6 +508,8 @@ AimSecondary(heading, pitch)
 	}
 	set HEADING to (get HEADING) + heading;//*/
 	wait-for-turn gun around x-axis;
+
+	start-script RestoreAfterDelay();
 	return 1;
 }
 
@@ -480,7 +534,7 @@ FireSecondary()
 
 	//emit-sfx 1024 + 0 from flare;
 	//emit-sfx 1024 + 2 from chamber;
-	move gun to z-axis [-2.5000000] speed [350.000000];
+	move gun to z-axis [-2.5] speed [350.000000];
 	//wait-for-move gun along z-axis;
 	
 	move chamber to z-axis [-4.000000] speed [500.000000];
@@ -522,12 +576,12 @@ FirePrimary()
 	show l2;
 	show l3;
 	
-	move r1 to x-axis [2.500000] speed [100.000000];
-	move r2 to x-axis [2.500000] speed [100.000000];
-	move r3 to x-axis [2.500000] speed [100.000000];
-	move l1 to x-axis [-2.500000] speed [100.000000];
-	move l2 to x-axis [-2.500000] speed [100.000000];
-	move l3 to x-axis [-2.500000] speed [100.000000];
+	move r1 to x-axis xoffset speed [100.000000];
+	move r2 to x-axis xoffset speed [100.000000];
+	move r3 to x-axis xoffset speed [100.000000];
+	move l1 to x-axis 0-xoffset speed [100.000000];
+	move l2 to x-axis 0-xoffset speed [100.000000];
+	move l3 to x-axis 0-xoffset speed [100.000000];
 
 
     call-script lua_UnitScriptLight(1, sshotcount);
@@ -551,10 +605,10 @@ FirePrimary()
 
 	
 
-	move r1 to x-axis [0.000000] speed [0.200000];
+	move r1 to x-axis [0.000000] speed [0.250000];
 	move r2 to x-axis [0.000000] speed [0.400000];
 	move r3 to x-axis [0.000000] speed [0.70000];
-	move l1 to x-axis [0.000000] speed [0.200000];
+	move l1 to x-axis [0.000000] speed [0.250000];
 	move l2 to x-axis [0.000000] speed [0.400000];
 	move l3 to x-axis [0.000000] speed [0.700000];
 
