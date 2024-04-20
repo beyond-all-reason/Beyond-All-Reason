@@ -1723,6 +1723,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},
+	corsiegebreaker = {
+		bitmap = "icons/vehicle_t2_tank_laser.png",
+		size = 1.46999991
+	},
 	corsfig = {
 		bitmap = "icons/air_sea.png",
 		size = 0.86099994

@@ -70,7 +70,7 @@ local unitDefLights = {
 		r1 = {
 			lightType = 'point',
 			pieceName = 'r1',
-			lightConfig = { posx = 2.3, posy = 2.6, posz = 2.2, radius = 4,
+			lightConfig = { posx = 15, posy = 15, posz = 15, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
