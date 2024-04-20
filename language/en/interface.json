@@ -629,8 +629,8 @@
 		},
 		"draftOrderMod": {
 			"youDidNotPlace": "You did not place. The next player will now proceed",
-			"yourTurnToPlace": "%{warnColor}Your turn%{textColor} to place",
-			"yourTurnToPlaceNextIs": "%{warnColor}Your turn%{textColor} to place! You have %{number} seconds. Next is %{name}",
+			"yourTurnToPlace": "%{warnColor}You%{textColor} can now start placing",
+			"yourTurnToPlaceNextIs": "%{warnColor}You%{textColor} can now start placing. %{name} can start placing in %{number}...",
 			"yourTurnIsNext": "%{textColor}%{name} is now placing. %{warnColor}You%{textColor} are next!",
 			"playerTurn": "%{name} is now placing",
 			"playersTurn": "%{name} is now placing, followed by %{name2}",
