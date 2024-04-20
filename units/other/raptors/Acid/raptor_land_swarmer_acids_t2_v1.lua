@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_acids_t2_v1 = {
 		maxacc = 0.1725,
-
 		maxdec = 0.345,
 		energycost = 53,
 		metalcost = 25,
@@ -32,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptoracidswarmer.s3o",
 		script = "Raptors/raptor1.cob",
 		seismicsignature = 0,
@@ -58,7 +57,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -83,7 +81,6 @@ return {
 				burst = 2,
 				burstrate = 0.3,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,

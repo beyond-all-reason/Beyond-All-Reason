@@ -48,7 +48,6 @@ local difficultyParams = {
 		topTurretsDamage = 10000,
 	},
 }
-
 local unitsTable = {}
 for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["armscavengerbossv2_" .. difficulty] = {
@@ -78,7 +77,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		footprintz = 2,
 		hidedamage = true,
 		holdsteady = true,
-		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 40,
@@ -113,9 +111,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		workertime = 1500,--400,
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "legmex",
-			--energyconv_capacity = 70,
-			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -130,17 +125,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				collisionvolumescales = "47 10 47",
 				collisionvolumetype = "CylY",
 				damage = 250000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 20,
-				hitdensity = 100,
 				metal = 3500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -148,18 +139,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 125000,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
-				hitdensity = 100,
 				metal = 1750,
 				object = "Units/arm6X6A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -238,8 +224,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponVelocity           = 1000,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = stats.minigunDamage,
 					vtol				 = stats.minigunDamage*3,
@@ -394,5 +380,4 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 	}
 end
-
 return unitsTable

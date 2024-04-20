@@ -3,7 +3,6 @@ return {
 		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
-
 		maxdec = 0.0115,
 		energycost = 3000,
 		metalcost = 120,
@@ -37,7 +36,6 @@ return {
 		noautofire = false,
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turrets_red_v2.s3o",
-		--reclaimspeed = 200,
 		repairable = true,
 		script = "Raptors/raptor_turrets_v2.cob",
 		seismicsignature = 0,
@@ -77,7 +75,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

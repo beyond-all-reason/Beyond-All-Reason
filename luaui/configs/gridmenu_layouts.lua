@@ -37,13 +37,13 @@ local labGrids = {
 	armvp = {
 		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armbeaver", "armpincer", "armsam", "armsam2",        -- amphib con, amphib tank, missile truck
 	},
 
 	corvp = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"cormuskrat", "corgarp", "cormist", "cormist2",       -- amphib con, amphib tank, missile truck
 	},
 	legvp = {
 		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
@@ -65,7 +65,7 @@ local labGrids = {
 	legavp = {
 		"legacv", "legmrv", "legsco", "cormart",              -- T2 con, Quickshot, scorpion, pillager
 		"corvrad", "coreter", "corgol", "leginf",             -- radar, jammer, goli, inferno
-		"corseal", "corban", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+		"legfloat", "legmed", "corsent", "corvroc",           -- croc, poison arrow, AA, diplomat
 	},
 	-- T1 air
 	armap = {
@@ -180,7 +180,7 @@ local labGrids = {
 	leggant = {
 		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok", "legpede", "leegmech",
-		"legjugglite","","",""
+		"legkeres","",""
 	}
 }
 local unitGrids = {
@@ -232,7 +232,7 @@ local unitGrids = {
 	},
 	legassistdrone = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -300,7 +300,7 @@ local unitGrids = {
 	},
 	legassistdrone_land = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -369,7 +369,7 @@ local unitGrids = {
 	-- legion commanders
     legcom = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -391,7 +391,7 @@ local unitGrids = {
 	},
 	legcomlvl2 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -413,7 +413,7 @@ local unitGrids = {
 	},
 	legcomlvl3 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -435,7 +435,7 @@ local unitGrids = {
 	},
 	legcomlvl4 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
@@ -503,7 +503,7 @@ local unitGrids = {
 	},
    legck = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -572,7 +572,7 @@ local unitGrids = {
 	},
     legcv = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -640,7 +640,7 @@ local unitGrids = {
 	},
     legca = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -900,7 +900,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -970,7 +970,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1039,7 +1039,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},

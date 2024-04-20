@@ -2,7 +2,6 @@ return {
 	raptor_allterrain_assault_acid_t2_v1 = {
 		maxacc = 0.414,
 		airsightdistance = 650,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 152,
@@ -32,9 +31,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptoracidallterrainassault.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptorallterraina1.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH_ACID",
@@ -63,7 +61,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray", --cob 1024
+				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
@@ -88,7 +86,6 @@ return {
 				burst = 2,
 				burstrate = 0.5,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,
@@ -122,7 +119,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "acidspit",
 				maindir = "0 0 1",
 				maxangledif = 125,

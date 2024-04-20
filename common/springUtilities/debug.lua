@@ -32,7 +32,7 @@ end
 
 local function traceEcho(...)
 	local myargs = {...}
-	infostr = ""
+	local infostr = ""
 	for i,v in ipairs(myargs) do
 		infostr = infostr .. tostring(v) .. "\t"
 	end
@@ -97,7 +97,7 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
     end
 
 	local myargs = {...}
-	infostr = "TraceFullEcho:["
+	local infostr = "TraceFullEcho:["
 	for i,v in ipairs(myargs) do
 		infostr = infostr .. tostring(v) .. "\t"
 	end

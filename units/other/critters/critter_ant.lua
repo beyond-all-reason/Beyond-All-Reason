@@ -2,7 +2,6 @@ return {
 	critter_ant = {
 		maxacc = 0.575,
 		blocking = false,
-
 		maxdec = 1.15,
 		energycost = 1,
 		metalcost = 0,
@@ -22,7 +21,6 @@ return {
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "blank",
 		idleautoheal = 0,
 		leavetracks = true,
 		maneuverleashlength = "640",

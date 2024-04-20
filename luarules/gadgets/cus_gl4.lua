@@ -209,7 +209,7 @@ end
 -- KNOWN BUGS:
 	-- Unitdestroyed doesnt trigger removal?
 
---inputs
+-- Export important things
 
 ---------------------------- SHADERUNITUNIFORMS / BITSHADEROPTIONS ---------------------------------------------
 
@@ -308,13 +308,11 @@ do --save a ton of locals
 		treepbr = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
-			hasAlphaShadows = 1.0,
 			brightnessFactor = 1.3,
 		},
 		tree = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
-			hasAlphaShadows = 1.0,
 			brightnessFactor = 1.3,
 		},
 		wreck = {
@@ -428,13 +426,18 @@ local function ClearBit(x, p)
 end
 
 local featuresDefsWithAlpha = {}
+local unitDefsUseSkinning = {}
 
 local function GetShader(drawPass, objectDefID)
 	if objectDefID == nil then
 		return false
 	end
 	if objectDefID >= 0 then
-		return shaders[drawPass]['unit']
+		if unitDefsUseSkinning[objectDefID] then 
+			return shaders[drawPass]['unitskinning']
+		else
+			return shaders[drawPass]['unit']
+		end
 	else
 		if featuresDefsWithAlpha[objectDefID] then
 			return shaders[drawPass]['tree']
@@ -444,12 +447,17 @@ local function GetShader(drawPass, objectDefID)
 	end
 end
 
-local function GetShaderName(drawPass, objectDefID)
+local function GetShaderName(drawPass, objectDefID) 
+	-- this function does 2 table lookups, could get away with just one. 
 	if objectDefID == nil then
 		return false
 	end
 	if objectDefID >= 0 then
-		return 'unit'
+		if unitDefsUseSkinning[objectDefID] then 
+			return 'unitskinning'
+		else
+			return 'unit'
+		end
 	else
 		if featuresDefsWithAlpha[objectDefID] then
 			return 'tree'
@@ -510,6 +518,7 @@ local MATERIALS_DIR = "modelmaterials_gl4/"
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
+local unitsSkinningTemplate -- This is reserved for units with skinning animations
 local featuresNormalMapTemplate
 local treesNormalMapTemplate
 
@@ -571,6 +580,35 @@ local function initMaterials()
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+	})
+
+
+	unitsSkinningTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
+		shaderDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+		deferredDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+		shadowDefinitions = {
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "",
+		},
+		reflectionDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 	})
@@ -907,8 +945,14 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[unitDefID] = 'armunit'
 			elseif 	unitDef.name:sub(1,3) == 'cor' then
 				objectDefToUniformBin[unitDefID] = 'corunit'
-			elseif 	unitDef.name:sub(1,3) == 'leg' then
+			elseif 	unitDef.name:sub(1,6) == 'leggat' then
 				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif 	unitDef.name:sub(1,7) == 'legrail' then
+				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif 	unitDef.name:sub(1,6) == 'legstr' then
+				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif 	unitDef.name:sub(1,3) == 'leg' then
+				objectDefToUniformBin[unitDefID] = 'corunit'
 			end
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
@@ -963,7 +1007,12 @@ local function initBinsAndTextures()
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
 			end
-
+			
+			if unitDef.customParams and unitDef.customParams.useskinning then 
+				unitDefsUseSkinning[unitDefID] = true
+				objectDefToUniformBin[unitDefID]  = 'otherunit' -- This will temporarily disable raptor shader
+			end
+			
 			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
 				textureKeytoSet[texKeyFast] = textureTable
@@ -1496,7 +1545,7 @@ end
 
 local shaderactivations = 0
 
-local shaderOrder = {'tree','feature','unit',} -- this forces ordering, no real reason to do so, just for testing
+local shaderOrder = {'tree','feature','unit','unitskinning'} -- this forces ordering, no real reason to do so, just for testing
 
 local drawpassstats = {} -- a table of drawpass number and the actual number of units and batches performed by that pass
 for drawpass, _ in pairs(overrideDrawFlagsCombined) do drawpassstats[drawpass] = {shaders = 0, batches = 0, units = 0} end
@@ -1611,6 +1660,7 @@ local function initGL4()
 	-- Initialize shaders types like so::
 	-- shaders[0]['unit_deferred'] = LuaShaderObject
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
+	compileMaterialShader(unitsSkinningTemplate, "unitskinning")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
 	compileMaterialShader(treesNormalMapTemplate, "tree")
 
@@ -1862,6 +1912,20 @@ function gadget:Initialize()
 	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 		initGL4()
 	end
+	
+	GG.CUSGL4 = {}
+	GG.CUSGL4.unitsInViewport = unitsInViewport
+	GG.CUSGL4.featuresInViewport = featuresInViewport
+	GG.CUSGL4.objectDefToBitShaderOptions = objectDefToBitShaderOptions
+	GG.CUSGL4.objectDefToUniformBin = objectDefToUniformBin
+	GG.CUSGL4.GetUniformBinID = GetUniformBinID
+	GG.CUSGL4.uniformBins = uniformBins
+	GG.CUSGL4.uniformBins = uniformBins
+	GG.CUSGL4.shaders = shaders
+	GG.CUSGL4.GetShader = GetShader
+	GG.CUSGL4.GetShaderName = GetShaderName
+	GG.CUSGL4.SetShaderUniforms = SetShaderUniforms
+	
 end
 
 function gadget:Shutdown()
@@ -1889,6 +1953,11 @@ function gadget:Shutdown()
 	--gadgetHandler:RemoveChatAction("disablecusgl4")
 	--gadgetHandler:RemoveChatAction("reloadcusgl4")
 	--gadgetHandler:RemoveChatAction("cusgl4updaterate")
+	for k,v in pairs(GG.CUSGL4) do
+		GG.CUSGL4[k] = nil
+	end
+	
+	GG.CUSGL4 = nil
 end
 
 

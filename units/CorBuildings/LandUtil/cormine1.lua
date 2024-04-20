@@ -21,7 +21,6 @@ return {
 		firestate = 2,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "building",
 		idleautoheal = 10,
 		idletime = 300,
 		initcloaked = true,

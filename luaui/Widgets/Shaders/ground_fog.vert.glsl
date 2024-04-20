@@ -27,7 +27,7 @@ void main()
 	
 	vec4 vertexPos = vec4(1.0);
 	vertexPos.xz = (positionxy_xyfract.xy + mapSize.xy) * 0.5;
-	vec2 uvhm = heighmapUVatWorldPos(vertexPos.xz);
+	vec2 uvhm = heightmapUVatWorldPos(vertexPos.xz);
 	float hmaptexlod = -0.0;
 	// get height around here:
 	vertexPos.y  = textureLod(heightmapTex, uvhm, hmaptexlod).x ;

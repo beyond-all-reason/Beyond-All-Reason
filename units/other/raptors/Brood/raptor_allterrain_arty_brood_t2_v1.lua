@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_brood_t2_v1 = {
 		maxacc = 0.115,
-
 		maxdec = 0.414,
 		energycost = 12320,
 		metalcost = 396,
@@ -34,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_artillery_brood_small.s3o",
 		script = "Raptors/raptor_artillery_v2.cob",
 		seismicsignature = 0,
@@ -59,7 +58,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -89,7 +87,6 @@ return {
 				craterboost = 0.2,
 				cratermult = 0.2,
 				edgeeffectiveness = 0.63,
-				--explosiongenerator = "custom:ELECTRIC_EXPLOSION",
 				explosiongenerator = "custom:dirt",
 				impulseboost = 0,
 				impulsefactor = 0.4,

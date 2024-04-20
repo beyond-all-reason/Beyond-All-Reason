@@ -16,6 +16,7 @@ function LabsBST:Init()
 	self.mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	self.network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
 	self.isAirFactory = self.mtype == 'air'
+	self.face = u:GetFacing(self.id)
 	self.qIndex = 1
 	self:resetCounters()
 	self:ampRating() -- amph rating for this factory
@@ -42,9 +43,26 @@ end
 
 function LabsBST:OwnerCreated()
 	self.ai.labshst.labs[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true,level = self.spec.techLevel,exitRect = self.exitRect,mtype = self.mtype}
+
 end
 function LabsBST:OwnerBuilt()
 	self.ai.labshst.labs[self.id].underConstruction = nil
+	self.ai.labshst.lastLabEcoE = self.ai.ecohst.Energy.income
+	local outX, outZ
+	if self.face == 0 then
+		outX = 0
+		outZ = 200
+	elseif self.face == 2 then
+		outX = 0
+		outZ = -200
+	elseif self.face == 3 then
+		outX = -200
+		outZ = 0
+	elseif self.face == 1 then
+		outX = 200
+		outZ = 0
+	end
+	self.unit:Internal():Move({x= self.position.x + outX, y = self.position.y, z = self.position.z + outZ})
 end
 
 function LabsBST:OwnerDead()
@@ -53,9 +71,9 @@ end
 
 function LabsBST:preFilter()
 	self:EchoDebug('prefilter')
-	if self.ai.Energy.full > 0.1  then
+	if self.ai.ecohst.Energy.full > 0.1  then
 		self.unit:Internal():FactoryUnWait()
-	elseif self.ai.Metal.full < 0.1 then
+	elseif self.ai.ecohst.Metal.full < 0.1 then
 		for id, lab in pairs(self.ai.labshst.labs) do
 			if lab.underConstruction then
 				self.unit:Internal():FactoryWait()
@@ -67,19 +85,24 @@ function LabsBST:preFilter()
 end
 
 function LabsBST:Update()
-	local f = self.game:Frame()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
+	local f = self.game:Frame()
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
-
 	local soldier, param, utype = self:getSoldier()
-	self:EchoDebug('update',soldier)
 	if soldier then
-		for i=1,param.wave or 1 do
+		local limit = param.wave
+   		if type(param.wave) == 'function' then
+			self:EchoDebug('function param wave',self.queue[self.qIndex].wave)
+			limit = param:wave(_)
+		end
+
+		self:EchoDebug('param.wave',param.wave,soldier)
+		for i=1,limit or 1 do
 			utype = self.game:GetTypeByName(soldier)
-			self.unit:Internal():Build(utype,self.unit:Internal():GetPosition(),0,{-1})
+			self.unit:Internal():Build(utype,self.position,0,{-1})
 		end
 	end
 end
@@ -88,6 +111,11 @@ function LabsBST:getQueue()
 	if self.spec.techLevel >= 3 then
 		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
 			return self.ai.taskshst.labs.premode
+		end
+	end
+	if self.ai.armyhst.t1tot2factory[self.name]  then
+		if self.ai.tool:countFinished({self.ai.armyhst.t1tot2factory[self.name]}) > 0 and self.ai.tool:countFinished({'_fus_'}) > 0 and self.ai.tool:countFinished({'t2mex'}) >= 2 and self.ai.ecohst.Metal.full < 0.9 then
+			return self.ai.taskshst.labs.t1postmode
 		end
 	end
 	return self.ai.taskshst.labs.default
@@ -104,14 +132,22 @@ function LabsBST:getSoldier()
 		param = self.queue[i]
 		soldier,utype = self:getSoldierFromCategory(param.category)
 		self:EchoDebug('soldier',soldier)
-		soldier = self:ecoCheck(param.category,param.economy,soldier)
-		self:EchoDebug('eco',soldier)
-		soldier = self:countCheck(soldier,param.numeric)
-		self:EchoDebug('count',soldier)
-		soldier = self:toAmphibious(soldier)
-		self:EchoDebug('amp',soldier)
-		soldier = self:specialFilters(soldier,param.category)
-		self:EchoDebug('special',soldier)
+		if soldier then
+			soldier = self:ecoCheck(param.category,param.economy,soldier)
+			self:EchoDebug('eco',soldier)
+			if soldier then
+				soldier = self:countCheck(soldier,param.numeric)
+				self:EchoDebug('count',soldier)
+				if soldier then
+					soldier = self:toAmphibious(soldier)
+					self:EchoDebug('amp',soldier)
+					if soldier then
+						soldier,utype = self:specialFilters(soldier,param,utype)
+						self:EchoDebug('special',soldier)
+					end
+				end
+			end
+		end
 		self.qIndex = self.qIndex + 1
 		if self.qIndex > #self.queue then
 			self.qIndex = 1
@@ -123,11 +159,17 @@ function LabsBST:getSoldier()
 
 end
 
-function LabsBST:specialFilters(soldier,category)
-	if category == 'antiairs' and not self.ai.needAntiAir then
-		return nil
+function LabsBST:specialFilters(soldier,param,utype)
+	if param.category == 'antiairs' and not self.ai.needAntiAir then
+		return nil,nil
 	end
-	return soldier
+	if param.special and type(param.special) == 'function' then
+		self:EchoDebug('function param special',self.queue[self.qIndex].wave)
+		local newSoldier,newUtype = param:special(soldier,utype)
+		return newSoldier,newUtype
+	end
+
+	return soldier,utype
 end
 
 function LabsBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
@@ -199,8 +241,8 @@ end
 
 function LabsBST:ampRating()
 	-- precalculate amphibious rank
-	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.unit:Internal():GetPosition())
-	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.unit:Internal():GetPosition())
+	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.position)
+	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.position)
 	local amphRank = 0
 	if #ampSpots > 0 and #vehSpots > 0 then
 		amphRank = 1 - (#vehSpots / #ampSpots)

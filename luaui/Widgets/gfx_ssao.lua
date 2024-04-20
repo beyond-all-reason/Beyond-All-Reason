@@ -222,6 +222,10 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['ssao'] = {}
 	WG['ssao'].getPreset = function()
 		return preset
@@ -456,15 +460,17 @@ function widget:Shutdown()
 		gl.DeleteTexture(ssaoBlurTexes[i])
 	end
 
-	gl.DeleteFBO(ssaoFBO)
-	gl.DeleteFBO(gbuffFuseFBO)
-	for i = 1, 2 do
-		gl.DeleteFBO(ssaoBlurFBOs[i])
+	if gl.DeleteFBO then
+		gl.DeleteFBO(ssaoFBO)
+		gl.DeleteFBO(gbuffFuseFBO)
+		for i = 1, 2 do
+			gl.DeleteFBO(ssaoBlurFBOs[i])
+		end
 	end
 
-	ssaoShader:Finalize()
-	gbuffFuseShader:Finalize()
-	gaussianBlurShader:Finalize()
+	if ssaoShader then ssaoShader:Finalize() end
+	if gbuffFuseShader then gbuffFuseShader:Finalize() end
+	if gaussianBlurShader then gaussianBlurShader:Finalize() end
 end
 
 local function DoDrawSSAO(isScreenSpace)

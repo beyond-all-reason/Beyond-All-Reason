@@ -20,7 +20,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 161,
@@ -74,7 +73,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "cormex",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

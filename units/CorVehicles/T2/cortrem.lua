@@ -21,7 +21,6 @@ return {
 		leavetracks = true,
 		mass = 5001,
 		health = 3000,
-		--maxreversevelocity = 0.762,
 		maxslope = 14,
 		speed = 40.5,
 		maxwaterdepth = 15,
@@ -57,18 +56,13 @@ return {
 				collisionvolumescales = "55.5426483154 42.2261505127 61.5749359131",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 8,
-				hitdensity = 100,
 				metal = 1006,
 				object = "Units/cortrem_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -76,18 +70,13 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 2,
-				hitdensity = 100,
 				metal = 474,
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -123,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			tremor_focus_fire = {
-					
+
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -133,7 +122,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,
@@ -151,8 +139,6 @@ return {
 					speceffect = "sector_fire",
 					when = "always",
 					max_range_reduction = "0.25",
-					--active_range = "1275",
-					--active_accuracy = "0",
 					spread_angle = "15",
 				},
 				damage = {
@@ -160,10 +146,9 @@ return {
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 			tremor_spread_fire = {
-				
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -173,7 +158,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,
@@ -190,7 +174,7 @@ return {
 				customparams = {
 					speceffect = "sector_fire",
 					when = "always",
-					max_range_reduction = "0.35", 
+					max_range_reduction = "0.35",
 					spread_angle = "24",
 				},
 				damage = {
@@ -198,7 +182,7 @@ return {
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 		},
 		weapons = {

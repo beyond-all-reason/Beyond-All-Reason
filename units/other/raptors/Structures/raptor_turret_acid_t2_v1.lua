@@ -3,7 +3,6 @@ return {
 		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
-
 		maxdec = 0.0115,
 		energycost = 3000,
 		metalcost = 120,
@@ -37,7 +36,6 @@ return {
 		noautofire = false,
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turrets_acid_v2.s3o",
-		--reclaimspeed = 200,
 		repairable = true,
 		script = "Raptors/raptor_turrets_v2.cob",
 		seismicsignature = 0,
@@ -98,7 +96,6 @@ return {
 				sizedecay = 0.04,
 				alphaDecay = 0.18,
 				stages = 8,
-				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 750,
 				reloadtime = 20,

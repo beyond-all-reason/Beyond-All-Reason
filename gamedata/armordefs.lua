@@ -111,6 +111,7 @@ local armorDefs = {
 		"armrl",
 		"armrock",
 		"armsam",
+		"armsam2",
 		"armscab",
 		"armsd",
 		"armsh",
@@ -183,6 +184,7 @@ local armorDefs = {
 		"cormex",
 		"cormh",
 		"cormist",
+		"cormist2",
 		"cormmkr",
 		"cormoho",
 		"cormort",
@@ -344,7 +346,7 @@ local armorDefs = {
 		"armlunchbox",
 		"armmeatball",
 		"armsptkt4",
-		"cordemont4",
+		"cordemon",
 		"corgolt4",
 
 		"scavmist",
@@ -354,14 +356,19 @@ local armorDefs = {
 		"armapt3",
 		"corapt3",
 		"legbastion",
+		"legbombard",
+		"legperdition",
 		"legstarfall",
+		"legflak",
+		"legsolar",
+		"legsolar",
+		"legadvsol",
 
 		"coruwgeo",
 		"coruwageo",
-		"armuwageo",
+		"armuwgeo",
 		"armuwageo",
 
-		"legjugglite",
 	},
 
 	space = {
@@ -481,6 +488,7 @@ local armorDefs = {
 		"legphoenix",
 		"legstronghold",
 		"legwhisper",
+		"critter_gull",
 	},
 	shields = {
 		"armgate",

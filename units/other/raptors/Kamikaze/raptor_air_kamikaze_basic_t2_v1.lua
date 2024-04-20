@@ -3,7 +3,6 @@ return {
 		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
-
 		maxdec = 0.1,
 		energycost = 4550,
 		metalcost = 212,
@@ -44,7 +43,7 @@ return {
 		speed = 450.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_dodo_air.s3o",
 		script = "Raptors/raptorf1.cob",
 		seismicsignature = 0,

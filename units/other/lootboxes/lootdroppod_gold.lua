@@ -3,7 +3,6 @@ return {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
-
 		maxdec = 0,
 		energycost = 25000,
 		metalcost = 400,
@@ -71,7 +70,6 @@ return {
 				impulsefactor = 0.1,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				--model = "Lootboxes/lootbox.s3o",
 				name = "Lootbox",
 				range = 59999,
 				reloadtime = 5,

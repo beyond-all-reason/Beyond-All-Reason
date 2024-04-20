@@ -127,7 +127,7 @@ function ShieldSphereColorParticle:EndDraw()
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 
-	local gf = Spring.GetGameFrame()
+	local gf = Spring.GetGameFrame() + Spring.GetFrameTimeOffset()
 
 	shieldShader:Activate()
 	

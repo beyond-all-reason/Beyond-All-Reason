@@ -96,7 +96,12 @@ local function hasSelfDActive(unitID)
 end
 
 local function hasSelfDQueued(unitID)
-	local cmdQueue = spGetCommandQueue(unitID, -1) or {}
+	local limit = -1
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	if unitDefID and UnitDefs[unitDefID].isFactory then
+		limit = 1
+	end
+	local cmdQueue = spGetCommandQueue(unitID, limit) or {}
 	if #cmdQueue > 0 then
 		for i = 1, #cmdQueue do
 			if cmdQueue[i].id == CMD.SELFD then
@@ -203,15 +208,34 @@ function widget:DrawWorld()
 	glDepthTest(true)
 end
 
+local CMD_IGNORE_QUEUE = {
+	CMD.INSERT,
+	CMD.REMOVE,
+	CMD.WAIT,
+	CMD.FIRE_STATE,
+	CMD.MOVE_STATE,
+	CMD.REPEAT,
+	CMD.ONOFF,
+}
+
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if ignoreUnitDefs[unitDefID] then
 		return
 	end
 
 	if cmdID ~= CMD.SELFD and not cmdOpts.shift and queuedSelfD[unitID] then
-		-- had a queued selfd, but the queue was replaced, so mark not queued
-		queuedSelfD[unitID] = nil
+		-- had a queued selfd, but the queue was potentially replaced
+
+		-- check for commands that don't replace the queue
+		if not table.contains(CMD_IGNORE_QUEUE, cmdID) then
+			--queue was replaced, so mark not queued
+			queuedSelfD[unitID] = nil
+		end
 	elseif cmdID == CMD.SELFD then
+		if cmdOpts.shift and UnitDefs[unitDefID].isFactory then
+			-- factories can receive shift-selfd orders, but they go to the units produced, not the factory itself
+			return
+		end
 		local cmdQueue = spGetCommandQueue(unitID, -1)
 		local hasCmdQueue = #cmdQueue > 0
 

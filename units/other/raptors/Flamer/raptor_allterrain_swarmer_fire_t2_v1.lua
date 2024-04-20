@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_swarmer_fire_t2_v1 = {
 		maxacc = 1.4375,
-
 		maxdec = 2.3,
 		energycost = 5280,
 		metalcost = 99,
@@ -32,7 +31,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorpyroallterrain.s3o",
 		script = "Raptors/raptorpyroallterrain.cob",
 		seismicsignature = 0,

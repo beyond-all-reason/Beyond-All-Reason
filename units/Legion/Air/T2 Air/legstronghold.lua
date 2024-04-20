@@ -4,7 +4,7 @@ return {
 		blocking = false,
 		maxdec = 0.6,
 		energycost = 11000,
-		metalcost = 650,
+		metalcost = 550,
 		buildpic = "legstronghold.DDS",
 		buildtime = 20000,
 		canfly = true,
@@ -19,7 +19,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 2600,
@@ -81,7 +80,7 @@ return {
 				[1] = "vtolcrac",
 			},
 		},
-	
+
 		weapondefs = {
 			armmg_weapon = {
 				accuracy = 7,
@@ -108,7 +107,6 @@ return {
 				range = 575,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -117,13 +115,12 @@ return {
 				thickness = 0.91,
 				tolerance = 6000,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
 					commanders = 5,
-					default = 10,
-					vtol = 10,
+					default = 12,
+					vtol = 12,
 				},
 			},
 		},

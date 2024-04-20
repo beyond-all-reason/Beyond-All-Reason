@@ -26,7 +26,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "lootbox",
 		idleautoheal = 10,
 		idletime = 1800,
 		levelground = false,
@@ -51,7 +50,6 @@ return {
 		unitname = "lootboxgold",
 		upright = true,
 		usebuildinggrounddecal = false,
-		--waterline = 0,
 		yardmap = "oooo oooo oooo oooo",
 		reclaimable = false,
 		customparams = {

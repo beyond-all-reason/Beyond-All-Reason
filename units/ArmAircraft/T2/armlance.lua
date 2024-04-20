@@ -14,7 +14,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.1325,
@@ -105,7 +104,7 @@ return {
 				name = "Light homing torpedo launcher",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 6, --8
+				reloadtime = 6,
 				soundhit = "xplodep3",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
@@ -114,7 +113,7 @@ return {
 				startvelocity = 35,
 				tolerance = 2000,
 				tracks = true,
-				turnrate = 20000, --17000
+				turnrate = 20000,
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 35,
@@ -122,7 +121,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 375, --500
+					default = 375,
 				},
 				customparams = {
 					speceffect = "torpwaterpen",

@@ -3,7 +3,6 @@ return {
 		maxacc = 6.9,
 		activatewhenbuilt = true,
 		autoheal = 50,
-
 		maxdec = 0.23,
 		energycost = 3000,
 		metalcost = 128,
@@ -38,7 +37,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL HOVER",
+		nochasecategory = "VTOL SPACE HOVER",
 		objectname = "Raptors/raptor_dodo.s3o",
 		script = "Raptors/raptor_dodo1.cob",
 		seismicsignature = 2,
@@ -65,7 +64,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 			instantselfd = true,
 		},
 		sfxtypes = {

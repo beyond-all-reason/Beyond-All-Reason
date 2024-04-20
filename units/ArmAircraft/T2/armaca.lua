@@ -20,7 +20,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 200,
@@ -74,7 +73,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert2',
-			area_mex_def = "armmoho",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",

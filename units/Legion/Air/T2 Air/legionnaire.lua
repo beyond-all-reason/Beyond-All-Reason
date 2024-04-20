@@ -16,7 +16,6 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "air",
 		maxacc= 0.4,
 		maxaileron = 0.016,
 		maxbank = 0.72,
@@ -110,7 +109,6 @@ return {
 				range = 600,
 				reloadtime = 1,
 				rgbcolor = "1 0.4 0.95",
-				--size = 2.25,
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
@@ -119,7 +117,6 @@ return {
 				thickness = 0.6,
 				tolerance = 2400,
 				turret = true,
-				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 2500,
 				damage = {
@@ -128,7 +125,7 @@ return {
 					vtol = 80,
 				},
 			},
-		
+
 		},
 		weapons = {
 			[1] = {

@@ -19,7 +19,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = false,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5000,
@@ -58,7 +57,6 @@ return {
 			"cortide",
 			"coruwms",
 			"coruwes",
-			-- "coruwmex",
 			"corfmkr",
 			"corsy",
 			"corfdrag",
@@ -71,7 +69,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "cormex",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

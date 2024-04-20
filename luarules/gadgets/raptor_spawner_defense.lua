@@ -1,3 +1,11 @@
+
+if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
+else
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	return false
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Spawner",
@@ -8,13 +16,6 @@ function gadget:GetInfo()
 		layer = 0,
 		enabled = true
 	}
-end
-
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
-	return false
 end
 
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
@@ -30,12 +31,12 @@ if gadgetHandler:IsSyncedCode() then
 	if tracy == nil then
 		--Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
-		tracy.ZoneBeginN = function () return end 
-		tracy.ZoneBegin = function () return end 
-		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end 
-		tracy.Message = function () return end 
-		tracy.ZoneName = function () return end 
-		tracy.ZoneText = function () return end 
+		tracy.ZoneBeginN = function () return end
+		tracy.ZoneBegin = function () return end
+		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end
+		tracy.Message = function () return end
+		tracy.ZoneName = function () return end
+		tracy.ZoneText = function () return end
 	end
 	--
 
@@ -219,7 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Utility
-	
+
 	local SetListUtilities = VFS.Include('common/SetList.lua')
 
 	function SetToList(set)
@@ -772,7 +773,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if config.burrowSpawnType == "avoid" then -- Last Resort for Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range
-				
+
 				for _ = 1,100 do -- Attempt #1 Avoid all sensors
 					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
@@ -1038,7 +1039,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSpecialPercentage = mRandom(5,10)
 
 			end
-			
+
 		end
 
 		waveParameters.waveSizeMultiplier = waveParameters.waveSizeMultiplier*waveParameters.firstWavesBoost
@@ -1243,6 +1244,14 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 
+	local WALLS = {
+		"armdrag",
+		"armfort",
+		"cordrag",
+		"corfort",
+		"scavdrag",
+		"scavfort",
+	}
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
@@ -1261,7 +1270,14 @@ if gadgetHandler:IsSyncedCode() then
 			unitList:Remove(unitID)
 		end
 
-		if not unitDef.canMove then
+		-- If a wall
+		for _, wallName in pairs(WALLS) do
+			if unitDef.name == wallName then
+				return
+			end
+		end
+
+		if not unitDef.canMove or (unitDef.customParams and unitDef.customParams.iscommander) then
 			-- Calculate an eco value based on energy and metal production
 			local ecoValue = 1
 			if unitDef.energyMake then
@@ -1277,20 +1293,20 @@ if gadgetHandler:IsSyncedCode() then
 				ecoValue = ecoValue + unitDef.tidalGenerator*15
 			end
 			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-				ecoValue = ecoValue + 400
+				ecoValue = ecoValue + 200
 			end
 			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
 				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
 			end
 
 			-- Decoy fusion support
-			if unitDef.customParams and unitDef.customParams.decoyfor then
+			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
 				ecoValue = ecoValue + 1000
 			end
 
 			-- Make it extra risky to build T2 eco
 			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
-				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 0.75
+				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
 			end
 
 			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1

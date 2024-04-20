@@ -144,19 +144,21 @@ local UnitEffects = {
 local scavEffects = {}
 if UnitDefNames['armcom_scav'] then
 	for k, effect in pairs(UnitEffects) do
-		scavEffects[k .. '_scav'] = effect
-		if scavEffects[k .. '_scav'].options then
-			if scavEffects[k .. '_scav'].options.color then
-				scavEffects[k .. '_scav'].options.color = { 0.92, 0.32, 1.0 }
-			end
-			if scavEffects[k .. '_scav'].options.colormap then
-				scavEffects[k .. '_scav'].options.colormap = { { 0.92, 0.32, 1.0 } }
-			end
-			if scavEffects[k .. '_scav'].options.colormap1 then
-				scavEffects[k .. '_scav'].options.colormap1 = { { 0.92, 0.32, 1.0 } }
-			end
-			if scavEffects[k .. '_scav'].options.colormap2 then
-				scavEffects[k .. '_scav'].options.colormap2 = { { 0.92, 0.32, 1.0 } }
+		if UnitDefNames[k .. '_scav'] then 
+			scavEffects[k .. '_scav'] = effect
+			if scavEffects[k .. '_scav'].options then
+				if scavEffects[k .. '_scav'].options.color then
+					scavEffects[k .. '_scav'].options.color = { 0.92, 0.32, 1.0 }
+				end
+				if scavEffects[k .. '_scav'].options.colormap then
+					scavEffects[k .. '_scav'].options.colormap = { { 0.92, 0.32, 1.0 } }
+				end
+				if scavEffects[k .. '_scav'].options.colormap1 then
+					scavEffects[k .. '_scav'].options.colormap1 = { { 0.92, 0.32, 1.0 } }
+				end
+				if scavEffects[k .. '_scav'].options.colormap2 then
+					scavEffects[k .. '_scav'].options.colormap2 = { { 0.92, 0.32, 1.0 } }
+				end
 			end
 		end
 	end

@@ -7,7 +7,7 @@ local layer = gadget and -9 or -999999
 
 function upget:GetInfo()
 	return {
-		name = "API Resource Spot Finder",
+		name = "API Resource Spot Finder (mex/geo)",
 		desc = "Finds metal and geothermal spots for other upgets",
 		author = "Niobium, Tarte (added geothermal)",
 		version = "2.0",
@@ -28,6 +28,17 @@ local metalMapSquareSize = Game.metalMapSquareSize -- Resolution of metal map
 local squareSize = Game.squareSize -- Resolution of build positions
 local precision = Game.footprintScale * Game.squareSize -- (footprint 1 = 16 map distance)
 
+-- Some of these maps have more than 2 metal spots, disable mex denier
+local metalMaps = {
+	["Oort_Cloud_V2"] = true,
+	["Asteroid_Mines_V2.1"] = true,
+	["Cloud9_V2"] = true,
+	["Iron_Isle_V1"] = true,
+	["Nine_Metal_Islands_V1"] = true,
+	["SpeedMetal BAR V2"] = true,
+}
+local isMetalMap = false
+
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
@@ -39,6 +50,7 @@ local huge = math.huge
 local spGetGroundInfo = Spring.GetGroundInfo
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTestBuildOrder = Spring.TestBuildOrder
+local spSetGameRulesParam = Spring.SetGameRulesParam
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
@@ -60,12 +72,19 @@ for udefID, def in ipairs(UnitDefs) do
 	unitZoff[udefID] = (4 * def.zsize) % 16
 end
 
+local metalSpots
+local geoSpots
+
 ------------------------------------------------------------
 -- Find geothermal spots
 ------------------------------------------------------------
 
 local function GetFootprintPos(value) -- not entirely acurate, unsure why
-	return (math.floor(value / precision) * precision) + (precision / 2)
+	return (math.round(value / precision) * precision)
+end
+
+local function getClosestGeo(x, z)
+	return math.getClosestPosition(x, z, geoSpots)
 end
 
 local function GetSpotsGeo()
@@ -75,25 +94,26 @@ local function GetSpotsGeo()
 			geoFeatureDefs[defID] = true
 		end
 	end
-	local geoSpots = {}
+	local spots = {}
 	local features = Spring.GetAllFeatures()
 	local spotCount = 0
 	for i = 1, #features do
 		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
-			geoSpots[spotCount] = {
+			spots[spotCount] = {
+				isGeo = true,
 				x = GetFootprintPos(x),
 				y = y,
 				z = GetFootprintPos(z),
-				minX = GetFootprintPos(x),
-				maxX = GetFootprintPos(x),
-				minZ = GetFootprintPos(z),
-				maxZ = GetFootprintPos(z),
+				minX = GetFootprintPos(x) - (precision / 2),
+				maxX = GetFootprintPos(x) + (precision / 2),
+				minZ = GetFootprintPos(z) - (precision / 2),
+				maxZ = GetFootprintPos(z) + (precision / 2),
 			}
 		end
 	end
-	return geoSpots
+	return spots
 end
 
 ------------------------------------------------------------
@@ -128,6 +148,7 @@ local function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
+
 local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
 	if facing == 0 or facing == 2 then
@@ -159,6 +180,7 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
+
 local function IsBuildingPositionValid(spot, x, z)
 	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
@@ -180,6 +202,31 @@ end
 -- Find metal spots
 ------------------------------------------------------------
 
+local function setMexGameRules(spots)
+	-- Set gamerules values for mex spots, used by AI
+	if spots and #spots > 0 then
+		local mexCount = #spots
+		spSetGameRulesParam("mex_count", mexCount)
+
+		for i = 1, mexCount do
+			local mex = spots[i]
+			spSetGameRulesParam("mex_x" .. i, mex.x)
+			spSetGameRulesParam("mex_y" .. i, mex.y)
+			spSetGameRulesParam("mex_z" .. i, mex.z)
+			spSetGameRulesParam("mex_metal" .. i, mex.worth)
+		end
+	else
+		Spring.SetGameRulesParam("mex_count", -1)
+	end
+end
+
+---Returns the nearest mex spot to the given coordinates. Does not consider if the spot is taken
+---@param x table
+---@param z table
+local function getClosestMex(x, z)
+	return math.getClosestPosition(x, z, metalSpots)
+end
+
 local function GetSpotsMetal()
 	-- Main group collection
 	local uniqueGroups = {}
@@ -189,6 +236,7 @@ local function GetSpotsMetal()
 	local stripLeft = {}
 	local stripRight = {}
 	local stripGroup = {}
+	local maxStripLength = extractorRadius * 6
 
 	-- Indexes
 	local aboveIdx
@@ -295,28 +343,54 @@ local function GetSpotsMetal()
 		g.z = (g.minZ + g.maxZ) * 0.5
 		g.y = spGetGroundHeight(g.x, g.z)
 
+		g.isMex = true
+
 		spots[#spots + 1] = g
+
+		if gMaxX - gMinX > maxStripLength or g.maxZ - g.minZ > maxStripLength then
+			return false, true
+		end
 	end
-	return spots
+
+	--for i = 1, #spots do
+	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
+	--end
+
+	return spots, false
 end
+
+
 
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
 
 function upget:Initialize()
-	globalScope["resource_spot_finder"] = {}
-	globalScope["resource_spot_finder"].metalSpotsList = GetSpotsMetal()
+	if(gadget) then
+		-- With armmex.extractsMetal=0.001 and armmoho.extractsMetal=0.004
+		-- base_extraction=0.001 is meant to say that T1 mex is baseline x1, and T2 is baseline x4
+		-- as opposed to T1 being x0.5 and T2 being x2.
+		-- Unused now.
+		Spring.SetGameRulesParam("base_extraction", 1.0)
+	end
 
+	if metalMaps[Game.mapName] then
+		metalSpots, isMetalMap = false, true
+	else
+		metalSpots, isMetalMap = GetSpotsMetal()
+	end
+
+	geoSpots = GetSpotsGeo()
+	globalScope["resource_spot_finder"] = {}
+	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
+	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
+	globalScope["resource_spot_finder"].isMetalMap = isMetalMap
+	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
+	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
-end
 
--- function upget:Update(dt)
-function upget:Update()
-	globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
-
-	-- remove update callin, we already did all we wanted to do
-	local handler = gadget and gadgetHandler or widgetHandler
-	handler:RemoveCallIn("Update")
+	if(gadget) then
+		setMexGameRules(metalSpots)
+	end
 end

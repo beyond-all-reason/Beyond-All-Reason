@@ -3,7 +3,6 @@ return {
 		maxacc = 1.035,
 		activatewhenbuilt = true,
 		autoheal = 50,
-
 		maxdec = 0.805,
 		energycost = 15000,
 		metalcost = 250,
@@ -31,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorp2.s3o",
 		script = "Raptors/raptorr2.cob",
 		seismicsignature = 0,
@@ -57,11 +56,9 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				--[1] = "custom:blank", --left over from morph of arty raptor
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
@@ -144,13 +141,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "CHASEWEAPON",
 				maindir = "0 0 1",
 				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "FLAMER",
 				maindir = "0 0 1",
 				maxangledif = 270,
