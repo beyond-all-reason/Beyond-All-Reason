@@ -389,39 +389,42 @@ function widget:DrawScreen()
 				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
 			end
 		end
-		font:Begin()
-		font:Print(msg, vsx * 0.5, vsy * 0.7, 18.5 * uiScale, "co") -- higher than center of your screen
-		font:End()
 
 		font:Begin()
 		font:Print(showDMWelcomeMessage, vsx * 0.5, vsy * 0.4, 18.5 * uiScale, "co") -- lower than center of your screen
 		font:End()
 
-		if os.clock() >= fairTimeout and not ihavejoined_fair then
-			Spring.SendLuaRulesMsg("i_have_joined_fair")
-			ihavejoined_fair = true
-		end
-		if draftMode ~= "fair" then
-			if myTurn and myTurnTimeout and os.clock() >= myTurnTimeout and not startPointChosen then
-				Spring.SendLuaRulesMsg("skip_my_turn")
-				myTurn = false
-				skippedMyTurn = true
-			end
+		if not mySpec then
+			font:Begin()
+			font:Print(msg, vsx * 0.5, vsy * 0.7, 18.5 * uiScale, "co") -- higher than center of your screen
+			font:End()
 
-			if skippedMyTurn then
-				if not myTurnIsLast and myTurnTimeout and os.clock() <= (myTurnTimeout + YourTurnTimeout) then
-					local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
-					font:Begin()
-					font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
-					font:End()
-				else
-					myTurnTimeout = nil
+			if os.clock() >= fairTimeout and not ihavejoined_fair then
+				Spring.SendLuaRulesMsg("i_have_joined_fair")
+				ihavejoined_fair = true
+			end
+			if draftMode ~= "fair" then
+				if myTurn and myTurnTimeout and os.clock() >= myTurnTimeout and not startPointChosen then
+					Spring.SendLuaRulesMsg("skip_my_turn")
+					myTurn = false
+					skippedMyTurn = true
 				end
-			end
 
-			if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
-				Spring.SendLuaRulesMsg("vote_skip_turn")
-				voteSkipTurnTimeout = nil
+				if skippedMyTurn then
+					if not myTurnIsLast and myTurnTimeout and os.clock() <= (myTurnTimeout + YourTurnTimeout) then
+						local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
+						font:Begin()
+						font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
+						font:End()
+					else
+						myTurnTimeout = nil
+					end
+				end
+
+				if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
+					Spring.SendLuaRulesMsg("vote_skip_turn")
+					voteSkipTurnTimeout = nil
+				end
 			end
 		end
 	end
