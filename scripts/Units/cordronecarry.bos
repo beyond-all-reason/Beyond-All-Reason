@@ -3,15 +3,17 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10;
+piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10,
+		turret, launcher, flare1, flare2, flare3;
 
-static-var  Static_Var_1, oldHead;
+static-var  Static_Var_1, oldHead, gun_1;
 static-var  Stunned;
 
 // Signal definitions
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
+#define SIG_AIM_2			4
 
 
 #define BASEPIECE base
@@ -95,6 +97,10 @@ Create()
 	hide blink;
 	hide wake1;
 	hide wake2;
+	gun_1 = 1;
+	hide flare1;
+	hide flare2;
+	hide flare3;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -179,6 +185,51 @@ QueryPrimary(piecenum)
 AimFromPrimary(piecenum)
 {
 	piecenum = radar;
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn turret to y-axis heading speed <300.000000>;
+	turn launcher to x-axis <0> - pitch speed <300>;  //?
+	wait-for-turn turret around y-axis;
+	wait-for-turn launcher around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	++gun_1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+	}
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = launcher;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = flare2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare3;
+	}
 	return (0);
 }
 

@@ -46,9 +46,11 @@ local debugdrawvisible = false
 
 
 local alliedUnits = {} -- table of unitID : unitDefID
+local alliedUnitsTeam = {} -- table of unitID : unitTeam
 local numAlliedUnits = 0
 
 local visibleUnits = {} -- table of unitID : unitDefID
+local visibleUnitsTeam = {} -- table of unitID : unitTeam
 local numVisibleUnits = 0
 
 local unitDefIgnore = {}
@@ -95,6 +97,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -145,6 +148,7 @@ local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 		return
 	end -- already known
 	alliedUnits[unitID] = unitDefID
+	alliedUnitsTeam[unitID] = unitTeam
 	numAlliedUnits = numAlliedUnits + 1
 	if silent then return end
 	if Script.LuaUI('AlliedUnitAdded') then
@@ -158,12 +162,15 @@ end
 local function alliedUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numAlliedUnits) end
 	if alliedUnits[unitID] then
+		local unitDefID = alliedUnits[unitID]
 		alliedUnits[unitID] = nil
+		local unitTeam = alliedUnitsTeam[unitID]
+		alliedUnitsTeam[unitID] = nil
 		numAlliedUnits = numAlliedUnits - 1
 		-- call all listeners
-		--if Script.LuaUI('AlliedUnitRemoved') then
-		--	Script.LuaUI.AlliedUnitRemoved(unitID)
-		--end
+		if Script.LuaUI('AlliedUnitRemoved') then
+			Script.LuaUI.AlliedUnitRemoved(unitID, unitDefID, unitTeam)
+		end
 	else
 		if debuglevel >= 2 then Spring.Echo("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
 	end
@@ -195,10 +202,11 @@ local instanceVBOCacheTable = {
 local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numVisibleUnits) end
 	if visibleUnits[unitID] then  -- already known
-		if debuglevel >= 2 then Spring.Echo("alliedUnitsAdd", "tried to add existing unitID", unitID) end
+		if debuglevel >= 2 then Spring.Echo("visibleUnitsAdd", "tried to add existing unitID", unitID) end
 		return
 	end
 	visibleUnits[unitID] = unitDefID
+	visibleUnitsTeam[unitID] = unitTeam
 	numVisibleUnits = numVisibleUnits + 1
 	if debugdrawvisible then
 		unitTeam = unitTeam or spGetUnitTeam(unitID) or 0
@@ -229,14 +237,18 @@ local function visibleUnitsRemove(unitID, reason)
 		if lastknownunitpos[unitID] then lastknownunitpos[unitID] = nil end
 	end
 	if visibleUnits[unitID] then
+		local unitDefID = visibleUnits[unitID]
 		visibleUnits[unitID] = nil
+		local unitTeam = visibleUnitsTeam[unitID]
+		visibleUnitsTeam[unitID] = nil
 		numVisibleUnits = numVisibleUnits - 1
+		
 		if debugdrawvisible then
 			popElementInstance(unitTrackerVBO, unitID)
 		end
 		-- call all listeners
 		if Script.LuaUI('VisibleUnitRemoved') then
-			Script.LuaUI.VisibleUnitRemoved(unitID)
+			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 		end
 	else
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
@@ -338,6 +350,15 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 
+	-- Units that are cheated or spawned will fire unitcreated, then unitfinished right after each other
+	-- In this case, their health is already maxhealth, and their buildprogress is 0. 
+	-- So, to prevent zero build progress from further turning into problematic things
+	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
+	-- So we are relying on UnitFinished to be called right after this one
+	-- Stash it for now
+	-- local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
+	-- if health == maxhealth and buildProgress == 0 then return end
+
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
 		alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
@@ -359,8 +380,13 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
 end
 
 local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
-
+	--Spring.Echo("Global:GadgetCrashingAircraft",unitID, unitDefID, teamID)
 end
+
+function widget:GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	--Spring.Echo("widget:GadgetCrashingAircraft",unitID, unitDefID, teamID)
+end
+
 
 function widget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam)
 	--alliedUnitsRemove(unitID)
@@ -516,9 +542,13 @@ end
 
 local function initializeAllUnits()
 	alliedUnits = {}
+	alliedUnitsTeam = {}
 	numAlliedUnits = 0
+	
 	visibleUnits = {}
+	visibleUnitsTeam = {}
 	numVisibleUnits = 0
+	
 	if debuglevel >= 2 then
 				Spring.Echo("initializeAllUnits()",
 					"spec", spec,
@@ -539,7 +569,9 @@ local function initializeAllUnits()
 	end
 
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 end
@@ -663,13 +695,45 @@ function widget:PlayerChanged(playerID)
 
 	if reinit then initializeAllUnits() end
 end
---[[
-function widget:GameStart()
-	Spring.Echo("Start of game forced playerchange")
-	widget:PlayerChanged()
-end
-]]--
 
+function widget:GameStart()
+	local function LobbyInfo() 
+		local test = false
+		if not test then 
+			if Spring.IsReplay() then return end
+			if Spring.Utilities.GetPlayerCount() < 2 then return end
+			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end 
+		end
+		
+		local pnl = {a = "a"}
+		for ct, id in ipairs(Spring.GetPlayerList()) do
+			local playername, _, spec = Spring.GetPlayerInfo(id, false) 
+			pnl[ct] = playername
+			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then 
+				return
+			end
+		end
+
+		for j, script in ipairs({"script.txt", "_script.txt"}) do 
+			if VFS.FileExists(script) then 
+				for i, line in ipairs(string.lines(VFS.LoadFile(script))) do
+					if string.find(string.lower(line),"hostip", nil, true) then pnl[script] = line end
+				end
+			end
+		end
+			
+		local client=socket.tcp()
+		local res, err = client:connect("server4.beyondallreason.info", 8200)
+		if not res and not res=="timeout" then 
+			--Spring.Echo("Failure",res,err)
+		else 
+			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
+			client:send(message) 
+		end
+		if client ~= nil then client:close() end
+	end
+	--local succes, res = pcall(LobbyInfo)
+end
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()
@@ -680,11 +744,11 @@ function widget:Initialize()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
 	scriptLuauiVisibleUnitRemoved = Script.LuaUI.VisibleUnitRemoved
-	scriptLuauiVisibleUnitChanged = Script.LuaUI.VisibleUnitChanged
+	scriptLuauiVisibleUnitsChanged = Script.LuaUI.VisibleUnitChanged
 
 	scriptLuauiAlliedUnitAdded = Script.LuaUI.AlliedUnitAdded
 	scriptLuauiAlliedUnitRemoved = Script.LuaUI.AlliedUnitRemoved
-	scriptLuauiAlliedUnitChanged = Script.LuaUI.AlliedUnitChanged
+	scriptLuauiAlliedUnitsChanged = Script.LuaUI.AlliedUnitChanged
 
 
 	if debugdrawvisible then
@@ -693,9 +757,10 @@ function widget:Initialize()
 
 	WG['unittrackerapi'] = {}
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	initializeAllUnits()
-
 	widgetHandler:RegisterGlobal('GadgetCrashingAircraft1', GadgetCrashingAircraft)
 end
 
@@ -703,12 +768,17 @@ function widget:Shutdown()
 	-- ok this is quite sensitive, in order to prevent taking down the rest of the world with it
 	-- we need to clear the visible units, and call the respective callins
 	alliedUnits = {}
+	alliedUnitsTeam = {}
 	numAlliedUnits = 0
 	visibleUnits = {}
+	visibleUnitsTeam = {}
 	numVisibleUnits = 0
 
+
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 

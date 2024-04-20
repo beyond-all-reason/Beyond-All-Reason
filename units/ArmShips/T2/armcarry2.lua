@@ -1,16 +1,13 @@
 return {
 	armcarry2 = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 17000,
-		buildcostmetal = 1400,
-		--builder = true,
+		energycost = 17000,
+		metalcost = 1400,
 		buildpic = "ARMCARRY2.DDS",
 		buildtime = 20000,
-		--canassist = false,
-		--canattack = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -21,18 +18,17 @@ return {
 		corpse = "DEAD",
 		energymake = 25,
 		energystorage = 1500,
-		energyuse = 25,
+		energyupkeep = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		losemitheight = 56,
+		sightemitheight = 56,
 		mass = 10000,
-		maxdamage = 3000,
-		maxvelocity = 2.1,
+		health = 3000,
+		speed = 63.0,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		movestate = 1,
@@ -67,33 +63,25 @@ return {
 				collisionvolumescales = "61.8225860596 60.9250030518 154.450805664",
 				collisionvolumetype = "Box",
 				damage = 9168,
-				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
-				hitdensity = 100,
 				metal = 700,
 				object = "Units/armcarry_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
-				hitdensity = 100,
 				metal = 350,
 				object = "Units/arm6X6C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -187,7 +175,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 0.123,
@@ -197,9 +185,9 @@ return {
 				range = 1200,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
@@ -207,15 +195,14 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdroneold",     --Name of the unit spawned by this carrier unit. 
-					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 1200, 	
-					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
-					spawnrate = 5, 				--Spawnrate roughly in seconds. 
-					maxunits = 14,				--Will spawn units until this amount has been reached. 
-					buildcostenergy = 900,--1100,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					buildcostmetal = 40,--55,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
+					carried_unit = "armdroneold",     --Name of the unit spawned by this carrier unit.
+					engagementrange = 1200,
+					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 5, 				--Spawnrate roughly in seconds.
+					maxunits = 14,				--Will spawn units until this amount has been reached.
+					energycost = 900,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 40,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1300,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 12,
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
@@ -224,17 +211,13 @@ return {
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 14,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit. 
-					dockingpieceend = 27,		--Last model piece used for docking. Will loop back to first when exceeded. 
+					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
+					dockingpieceend = 27,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 240,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},
 		weapons = {
-			--[2] = {
-			--	badtargetcategory = "ALL",
-			--	def = "AMD_ROCKET",
-			--},
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",

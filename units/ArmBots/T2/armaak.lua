@@ -1,10 +1,10 @@
 return {
 	armaak = {
-		acceleration = 0.138,
+		maxacc = 0.138,
 		airsightdistance = 925,
-		brakerate = 0.6486,
-		buildcostenergy = 5600,
-		buildcostmetal = 520,
+		maxdec = 0.6486,
+		energycost = 5600,
+		metalcost = 520,
 		buildpic = "ARMAAK.DDS",
 		buildtime = 7000,
 		canmove = true,
@@ -18,14 +18,14 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1130,
+		health = 1130,
 		maxslope = 14,
-		maxvelocity = 1.58,
+		speed = 47.4,
 		movementclass = "ABOT2",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",
 		script = "Units/ARMAAK.cob",
-		seismicsignature = 1,
+		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 400,
 		turninplace = true,
@@ -48,18 +48,13 @@ return {
 				collisionvolumescales = "30.0 14.3981628418 32.5845489502",
 				collisionvolumetype = "Box",
 				damage = 1212,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 15,
-				hitdensity = 100,
 				metal = 314,
 				object = "Units/armaak_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -67,18 +62,13 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 606,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 4,
-				hitdensity = 100,
 				metal = 126,
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -146,8 +136,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1300,
 				damage = {
-					bombers = 220,
-					fighters = 220,
 					vtol = 220,
 				},
 				rgbcolor = {
@@ -201,8 +189,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 				},
 			},
@@ -251,8 +237,6 @@ return {
 				startvelocity = 100,
 				weaponvelocity = 800,
 				damage = {
-					bombers = 100,
-					fighters = 100,
 					vtol = 100,
 				},
 				customparams = {
@@ -286,8 +270,8 @@ return {
 					default = 0,
 				},
 				customparams = {
-					bogus = 1
-				}
+					bogus = 1,
+				},
 			},
 		},
 		weapons = {

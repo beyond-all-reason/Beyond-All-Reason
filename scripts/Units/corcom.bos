@@ -964,7 +964,7 @@ FirePrimary()
 
 AimFromTertiary(piecenum)
 {
-	piecenum = biggun;
+	piecenum = rbigflash;
 	return (0);
 }
 
@@ -981,7 +981,7 @@ AimTertiary(heading, pitch)
 	gun_3 = lfirept;
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
+	turn aimx1 to x-axis <0> - pitch speed <360.000000>;
 	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
 	//wait-for-turn biggun around x-axis;

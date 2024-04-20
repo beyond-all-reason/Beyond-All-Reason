@@ -1,8 +1,8 @@
 return {
 	cormwall = {
-		acceleration = 0,
-		buildcostenergy = 4800, --was 4850
-		buildcostmetal = 1020, --was 485
+		maxacc = 0,
+		energycost = 4800, --was 4850
+		metalcost = 1020, --was 485
 		buildpic = "CORMWALL.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
@@ -17,12 +17,11 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		icontype = "building",
 		idleautoheal = 10,
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 5320, --was 4450, --1/2 of corfort
+		health = 5320, --was 4450, --1/2 of corfort
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -59,18 +58,13 @@ return {
 				collisionvolumescales = "32 50 32",
 				collisionvolumetype = "CylY",
 				damage = 540,
-				energy = 0,
 				featuredead = "ROCKTEETH",
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 205,
 				object = "Units/corfort.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			rockteeth = {
 				animating = 0,
@@ -83,13 +77,11 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 2,
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

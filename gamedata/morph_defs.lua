@@ -14,7 +14,7 @@ local morphDefs = {		--beginning of morphDefs
 		cmdname = 'Ascend',		--if omitted will default to "Upgrade"
 		texture = 'MyIcon.dds',		--if omitted will default to [newunitname] buildpic, textures should be in "LuaRules/Images/Morph"
 		text = 'Description',		--if omitted will default to "Upgrade into a [newunitname]", else it's "Description"
-						--you may use "$$unitname" and "$$into" in 'text', both will be replaced with human readable unit names 
+						--you may use "$$unitname" and "$$into" in 'text', both will be replaced with human readable unit names
 	},
 }				--end of morphDefs
 --]]
@@ -70,8 +70,9 @@ local morphDefs = {
 			--require = [[tech2]],
 		},
 	},
+}
 
-
+local scavMorphdefs ={
 	-- Scav copies (until i can do that automagically)
 	armmex_scav = {
 		{
@@ -118,6 +119,13 @@ local morphDefs = {
 			--require = [[tech2]],
 		},
 	},
+}
+
+if UnitDefNames['armmoho_scav'] then
+	table.merge(morphDefs, scavMorphdefs)
+end
+
+local legMorphDefs = {
 
 	--Legion Commander
 	legcom = {
@@ -202,8 +210,7 @@ local morphDefs = {
 	},
 }
 
-
-
+table.merge(morphDefs, legMorphDefs)
 
 -- --------------------- Evo stuff for reference --------------------------------------------
 
@@ -299,7 +306,7 @@ local morphDefs = {
 -- 		{
 -- 		into = 'ecommandercloak',
 -- 		time = timeToBuild_ecommandercloak,
--- 		cmdname = [[Cloaking 
+-- 		cmdname = [[Cloaking
 -- Overseer]],
 -- 			energy = energyCost_ecommandercloak,
 -- 			metal = 0,
@@ -347,12 +354,12 @@ local morphDefs = {
 -- 			require = [[tech2]],
 -- 		},
 -- 	},
-	
+
 -- 	ecommandercloak = {
 -- 	    {
 -- 			into = 'ecommander',
 -- 			time = timeToBuild_ecommander,
--- 			cmdname = [[Healer 
+-- 			cmdname = [[Healer
 -- Overseer]],
 -- 			energy = energyCost_ecommander,
 -- 			metal = 0,
@@ -396,12 +403,12 @@ local morphDefs = {
 -- 			require = [[tech1]],
 -- 		},
 -- 	},
-	
+
 -- 	ecommandershield = {
 -- 	    {
 -- 			into = 'ecommander',
 -- 			time = timeToBuild_ecommander,
--- 			cmdname = [[Healer 
+-- 			cmdname = [[Healer
 -- Overseer]],
 -- 			energy = energyCost_ecommander,
 -- 			metal = 0,
@@ -410,7 +417,7 @@ local morphDefs = {
 -- 		{
 -- 			into = 'ecommandercloak',
 -- 			time = timeToBuild_ecommandercloak,
--- 			cmdname = [[Cloaking 
+-- 			cmdname = [[Cloaking
 -- Overseer]],
 -- 			energy = energyCost_ecommandercloak,
 -- 			metal = 0,
@@ -445,12 +452,12 @@ local morphDefs = {
 -- 			require = [[tech1]],
 -- 		},
 -- 	},
-	
+
 -- 	ecommanderbuild = {
 -- 	    {
 -- 			into = 'ecommander',
 -- 			time = timeToBuild_ecommander,
--- 			cmdname = [[Healer 
+-- 			cmdname = [[Healer
 -- Overseer]],
 -- 			energy = energyCost_ecommander,
 -- 			metal = 0,
@@ -459,7 +466,7 @@ local morphDefs = {
 -- 		{
 -- 			into = 'ecommandercloak',
 -- 			time = timeToBuild_ecommandercloak,
--- 			cmdname = [[Cloaking 
+-- 			cmdname = [[Cloaking
 -- Overseer]],
 -- 			energy = energyCost_ecommandercloak,
 -- 			metal = 0,
@@ -494,12 +501,12 @@ local morphDefs = {
 -- 			require = [[tech1]],
 -- 		},
 -- 	},
-	
+
 -- 	ecommanderfactory = {
 -- 	    {
 -- 			into = 'ecommander',
 -- 			time = timeToBuild_ecommander,
--- 			cmdname = [[Healer 
+-- 			cmdname = [[Healer
 -- Overseer]],
 -- 			energy = energyCost_ecommander,
 -- 			metal = 0,
@@ -508,7 +515,7 @@ local morphDefs = {
 -- 		{
 -- 			into = 'ecommandercloak',
 -- 			time = timeToBuild_ecommandercloak,
--- 			cmdname = [[Cloaking 
+-- 			cmdname = [[Cloaking
 -- Overseer]],
 -- 			energy = energyCost_ecommandercloak,
 -- 			metal = 0,
@@ -547,7 +554,7 @@ local morphDefs = {
 -- 	    {
 -- 			into = 'ecommandermeteor',
 -- 			time = timeToBuild_ecommandermeteor,
--- 			cmdname = [[Meteor 
+-- 			cmdname = [[Meteor
 -- Overseer]],
 -- 			energy = energyCost_ecommandermeteor,
 -- 			metal = 0,
@@ -557,7 +564,7 @@ local morphDefs = {
 -- 	    {
 -- 			into = 'ecommander',
 -- 			time = timeToBuild_ecommander,
--- 			cmdname = [[Healer 
+-- 			cmdname = [[Healer
 -- Overseer]],
 -- 			energy = energyCost_ecommander,
 -- 			metal = 0,
@@ -566,7 +573,7 @@ local morphDefs = {
 -- 		{
 -- 			into = 'ecommandercloak',
 -- 			time = timeToBuild_ecommandercloak,
--- 			cmdname = [[Cloaking 
+-- 			cmdname = [[Cloaking
 -- Overseer]],
 -- 			energy = energyCost_ecommandercloak,
 -- 			metal = 0,
@@ -600,7 +607,7 @@ local morphDefs = {
 -- 			text = 'Evolve into Factory Overseer: Gains the ability to build all raider, riot, and MBTs anywhere, gains 8x buildpower.',
 -- 		},
 -- 	},
-	
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
 -- --Economy
@@ -642,11 +649,11 @@ local morphDefs = {
 -- 	},
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
--- --Factories	
+-- --Factories
 
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- 	-- elightturret2 = 	{
 -- 		-- {
 -- 			-- into = 'elightturret2_up1',
@@ -657,7 +664,7 @@ local morphDefs = {
 -- 			-- text = [[+20% damage/hp buff, +15% faster reload]],
 -- 			-- require = [[tech1]],
 -- 		-- },
--- 	-- },	
+-- 	-- },
 -- 	-- elightturret2_up1 = 	{
 -- 		-- {
 -- 			-- into = 'elightturret2_up2',
@@ -691,7 +698,7 @@ local morphDefs = {
 -- 			-- text = [[+20% damage/hp buff, +15% faster reload]],
 -- 			-- require = [[tech1]],
 -- 		-- },
--- 	-- },	
+-- 	-- },
 -- 	-- eheavyturret2_up1 = 	{
 -- 		-- {
 -- 			-- into = 'eheavyturret2_up2',
@@ -714,7 +721,7 @@ local morphDefs = {
 -- 			-- require = [[tech3]],
 -- 		-- },
 -- 	-- },
-	
+
 -- 	-- euwturret = 	{
 -- 		-- {
 -- 			-- into = 'euwturret_up1',
@@ -725,7 +732,7 @@ local morphDefs = {
 -- 			-- text = [[+20% damage/hp buff, +15% faster reload]],
 -- 			-- require = [[tech1]],
 -- 		-- },
--- 	-- },	
+-- 	-- },
 -- 	-- euwturret_up1 = 	{
 -- 		-- {
 -- 			-- into = 'euwturret_up2',
@@ -748,10 +755,10 @@ local morphDefs = {
 -- 			-- require = [[tech3]],
 -- 		-- },
 -- 	-- },
-	
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- 	ehbotengineer = 	{
 -- 		{
 -- 			into = 'ehbotengineer_turret',
@@ -761,7 +768,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotpeewee = 	{
 -- 		{
 -- 			into = 'ehbotpeewee_turret',
@@ -771,7 +778,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotthud = 	{
 -- 		{
 -- 			into = 'ehbotthud_turret',
@@ -781,7 +788,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotsniper = 	{
 -- 		{
 -- 			into = 'ehbotsniper_turret',
@@ -791,7 +798,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotrocko = 	{
 -- 		{
 -- 			into = 'ehbotrocko_turret',
@@ -801,7 +808,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotkarganneth = 	{
 -- 		{
 -- 			into = 'ehbotkarganneth_turret',
@@ -811,7 +818,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a stationary turret that gains 25% range.',
 -- 		},
--- 	},	
+-- 	},
 -- -- And back again
 -- 	ehbotengineer_turret = 	{
 -- 		{
@@ -822,7 +829,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotpeewee_turret = 	{
 -- 		{
 -- 			into = 'ehbotpeewee',
@@ -832,7 +839,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotthud_turret = 	{
 -- 		{
 -- 			into = 'ehbotthud',
@@ -842,7 +849,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotsniper_turret = 	{
 -- 		{
 -- 			into = 'ehbotsniper',
@@ -852,7 +859,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotrocko_turret = 	{
 -- 		{
 -- 			into = 'ehbotrocko',
@@ -862,7 +869,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
+-- 	},
 -- 	ehbotkarganneth_turret = 	{
 -- 		{
 -- 			into = 'ehbotkarganneth',
@@ -872,11 +879,11 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Retract to mobile state.',
 -- 		},
--- 	},	
-	
+-- 	},
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- 	etech1 = 	{
 -- 		{
 -- 			into = 'etech2',
@@ -887,7 +894,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a Tech Level 2 Facility.',
 -- 		},
--- 	},	
+-- 	},
 -- 	etech2 = 	{
 -- 		{
 -- 			into = 'etech3',
@@ -898,11 +905,11 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve into a Tech Level 3 Facility.',
 -- 		},
--- 	},	
-	
+-- 	},
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- 	zarm = 	{
 -- 		{
 -- 			into = 'zarm_up1',
@@ -912,7 +919,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve Tech 1',
 -- 		},
--- 	},	
+-- 	},
 -- 	zarm_up1 = 	{
 -- 		{
 -- 			into = 'zarm_up2',
@@ -922,7 +929,7 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve Tech 2',
 -- 		},
--- 	},	
+-- 	},
 -- 	zarm_up2 = 	{
 -- 		{
 -- 			into = 'zarm_up3',
@@ -932,10 +939,10 @@ local morphDefs = {
 -- 			metal = 0,
 -- 			text = 'Evolve Tech 3',
 -- 		},
--- 	},	
+-- 	},
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- 	zespire1 = 	{
 -- 		{
 -- 			into = 'zespire4',
@@ -946,7 +953,7 @@ local morphDefs = {
 -- 			require = [[tech2]],
 -- 			text = 'Evolve into a Budding Energy Spire.',
 -- 		},
--- 	},	
+-- 	},
 -- 	zespire4 = 	{
 -- 		{
 -- 			into = 'zespire5',
@@ -957,11 +964,11 @@ local morphDefs = {
 -- 			require = [[tech3]],
 -- 			text = 'Evolve into a Mature Energy Spire.',
 -- 		},
--- 	},	
-	
+-- 	},
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
-	
+
 -- ----------------------------------------------------------
 -- ----------------------------------------------------------
 
@@ -981,7 +988,7 @@ local morphDefs = {
 -- ----------------------------------------------------------
 -- --Shotguns
 -- ----------------------------------------------------------
-	
+
 -- 	eriottank2 = 	{
 -- 		{
 -- 			into = 'eriottank2_shotgun',
@@ -995,7 +1002,7 @@ local morphDefs = {
 -- 			require = [[tech1]],
 -- 		},
 -- 	},
-	
+
 -- 	eallterrriot = 	{
 -- 		{
 -- 			into = 'eallterrriot_shotgun',
@@ -1009,7 +1016,7 @@ local morphDefs = {
 -- 			require = [[tech1]],
 -- 		},
 -- 	},
-	
+
 -- 	eamphibriot = 	{
 -- 		{
 -- 			into = 'eamphibriot_shotgun',
@@ -1022,11 +1029,10 @@ local morphDefs = {
 -- 			text = [[Shotgun]],
 -- 			require = [[tech1]],
 -- 		},
--- 	},	
+-- 	},
 -- }
 --
 -- Here's an example of why active configuration
--- scripts are better then static TDF files...
 --
 
 --

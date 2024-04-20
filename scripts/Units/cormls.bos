@@ -5,10 +5,11 @@
 
 piece  base, door1, door2, neck, boom, nano, wake;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, notBuilding;
 
 // Signal definitions
 #define SIG_MOVE			2
+#define SIG_BUILD			4
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -37,106 +38,6 @@ RockOnWaves()
 }
 
 
-activatescr()
-{
-		turn door1 to z-axis <-175> speed <360>;
-		turn door2 to z-axis <175> speed <360>;
-		sleep 200;
-
-		move neck to y-axis [3] speed [12];
-		move boom to y-axis [9] speed [24];
-		sleep 200;
-}
-
-deactivatescr()
-{
-		move neck to y-axis [0] speed [12];
-		move boom to y-axis [0] speed [24];
-		sleep 200;
-		turn door1 to z-axis <0> speed <360>;
-		turn door2 to z-axis <0> speed <360>;
-		sleep 200;
-
-}
-
-Go()
-{
-	call-script activatescr();
-	turn boom to y-axis Static_Var_2 speed <160.000000>;
-	wait-for-turn boom around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn boom to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn boom around y-axis;
-	call-script deactivatescr();
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	hide nano;
-	hide wake;
-	Static_Var_2 = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
-StartBuilding(Func_Var_1)
-{
-	show nano;
-	Static_Var_2 = Func_Var_1;
-	start-script RequestState(0);
-}
-
-StopBuilding()
-{
-	hide nano;
-	start-script RequestState(1);
-}
 
 waveSplash()
 {
@@ -169,6 +70,136 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
+}
+
+
+Go()
+{
+	call-script activatescr();
+	turn neck to y-axis Static_Var_2 speed <160.000000>;
+	wait-for-turn neck around y-axis;
+	set INBUILDSTANCE to 1;
+	sleep 500;
+}
+
+Stop()
+{	
+	set INBUILDSTANCE to 0;
+	turn neck to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn neck around y-axis;
+	call-script deactivatescr();
+	sleep 200;	
+}
+
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			notBuilding = 1;
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+
+Create()
+{
+	hide nano;
+	hide wake;
+	Static_Var_2 = 0;
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
+	
+}
+
+
+activatescr()
+{
+	turn door1 to z-axis <-175> speed <360>;
+	turn door2 to z-axis <175> speed <360>;
+	sleep 200;
+
+	move neck to y-axis [3] speed [12];
+	move boom to y-axis [9] speed [24];
+	sleep 200;
+
+}
+
+deactivatescr()
+{
+
+	move neck to y-axis [0] speed [12];
+	move boom to y-axis [0] speed [24];
+	sleep 200;
+	turn door1 to z-axis <0> speed <360>;
+	turn door2 to z-axis <0> speed <360>;
+	sleep 200;
+}
+
+
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+
+
+StartBuilding(head,pitch)
+{
+	show nano;
+	Static_Var_2 = head;
+	start-script RequestState(0);
+	signal SIG_BUILD;
+	turn neck to y-axis Static_Var_2 speed <160.000000>;
+	wait-for-turn neck around y-axis;
+	set INBUILDSTANCE to 1;
+	//this seems to break nano pointing for this boat only, reasons unknown
+	//while( notBuilding ) sleep 40;
+}
+
+StopBuilding()
+{
+	hide nano;
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 3000;
+	set-signal-mask 0;
+	signal SIG_BUILD;
+	turn neck to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn neck around y-axis;
+	start-script RequestState(1);
 }
 
 QueryNanoPiece(piecenum)
@@ -178,8 +209,7 @@ QueryNanoPiece(piecenum)
 	move base to y-axis [0.0] speed [0.23];
 }
 
-TargetHeading(Func_Var_1)
-{
+TargetHeading(Func_Var_1) {
 	Static_Var_2 = 0 - Func_Var_1;
 }
 
@@ -187,6 +217,7 @@ SweetSpot(piecenum)
 {
 	piecenum = Base;
 }
+
 
 Killed(severity, corpsetype)
 {

@@ -84,12 +84,19 @@ function ShieldSphereColorParticle:Draw()
     if self.stunned then --or Spring.IsUnitIcon(self.unit) then
         return
     end
+	
 	local radius = self.radius
+	local posx, posy, posz = Spring.GetUnitPosition(self.unit)
+	local shieldvisible = Spring.IsSphereInView(posx,posy, posz, radius * 1.2)
+	
+	if not shieldvisible then return end
+	
 	if not renderBuckets[radius] then
 		renderBuckets[radius] = {}
 	end
 
 	table.insert(renderBuckets[radius], self)
+	
 
 	haveTerrainOutline = haveTerrainOutline or (self.terrainOutline and canOutline)
 	haveUnitsOutline = haveUnitsOutline or (self.unitsOutline and canOutline)
@@ -100,7 +107,13 @@ local function EncodeBitmaskField(bitmask, option, position)
 	return math.bit_or(bitmask, ((option and 1) or 0) * math.floor(2 ^ position))
 end
 
+local impactInfoStringTable = {} 
+for i =1, MAX_POINTS+1 do 
+	impactInfoStringTable[i-1] = string.format("impactInfo.impactInfoArray[%d]", i - 1)
+end
+
 function ShieldSphereColorParticle:EndDraw()
+	if next(renderBuckets) == nil then return end  
 	--ideally do sorting of renderBuckets
 	gl.Blending("alpha")
 	gl.DepthTest(true)
@@ -114,9 +127,10 @@ function ShieldSphereColorParticle:EndDraw()
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 
-	local gf = Spring.GetGameFrame()
+	local gf = Spring.GetGameFrame() + Spring.GetFrameTimeOffset()
 
-	shieldShader:ActivateWith(function ()
+	shieldShader:Activate()
+	
 		shieldShader:SetUniformFloat("gameFrame", gf)
 		shieldShader:SetUniformMatrix("viewMat", "view")
 		shieldShader:SetUniformMatrix("projMat", "projection")
@@ -124,6 +138,7 @@ function ShieldSphereColorParticle:EndDraw()
 		for _, rb in pairs(renderBuckets) do
 			for _, info in ipairs(rb) do
 				local posx, posy, posz = Spring.GetUnitPosition(info.unit)
+				if Spring.IsSphereInView(posx, posy, posz, info.radius * 1.2) then
 				posx, posy, posz = posx + info.pos[1], posy + info.pos[2], posz + info.pos[3]
 
 				local pitch, yaw, roll = Spring.GetUnitRotation(info.unit)
@@ -144,10 +159,11 @@ function ShieldSphereColorParticle:EndDraw()
 
 				shieldShader:SetUniformInt("effects", optionX)
 
-				local col1, col2 = GetShieldColor(info.unit, info)
-				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
-				shieldShader:SetUniformFloat("color2", col2[1], col2[2], col2[3], col2[4])
-
+				local col1r, col1g, col1b, col1a , col2r, col2g, col2b, col2a = GetShieldColor(info.unit, info)
+				--local col1r, col1g, col1b, col1a , col2r, col2g, col2b, col2a = 1,1,1,1, 1,1,1,1
+				
+				shieldShader:SetUniformFloat("color1", col1r, col1g, col1b, col1a)
+				shieldShader:SetUniformFloat("color2", col2r, col2g, col2b, col2a)
 				--means high quality shield rendering is in place
 				if (GG and GG.GetShieldHitPositions and info.impactAnimation) then
 					local hitTable = GG.GetShieldHitPositions(info.unit)
@@ -163,16 +179,18 @@ function ShieldSphereColorParticle:EndDraw()
 						shieldShader:SetUniformInt("impactInfo.count", hitPointCount)
 						for i = 1, hitPointCount do
 							local hx, hy, hz, aoe = hitTable[i].x, hitTable[i].y, hitTable[i].z, hitTable[i].aoe
-							shieldShader:SetUniformFloat(string.format("impactInfo.impactInfoArray[%d]", i - 1), hx, hy, hz, aoe)
+							shieldShader:SetUniformFloat(impactInfoStringTable[i-1], hx, hy, hz, aoe)
 						end
 
 					end
 				end
 
 				gl.CallList(geometryLists[info.shieldSize])
+				end
 			end
 		end
-	end)
+		
+	shieldShader:Deactivate()
 
 	if haveTerrainOutline then
 		gl.Texture(0, false)

@@ -85,8 +85,14 @@ local effectDefs = {
 	["armsfig"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
 	},
+	["armsfig2"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
+	},
 	["corsfig"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
+	},
+	["corsfig2"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
 	["armhawk"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
@@ -97,7 +103,12 @@ local effectDefs = {
 	["legfig"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", limit = true },
 	},
-
+	["legionnaire"] = {
+		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta", limit = true },
+	},
+	["legvenator"] = {
+		{ color = { 0.3, 0.4, 0.6 }, width = 5.5, length = 55, piece = "thrusta", limit = true },
+	},
 	-- radar
 	["armawac"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
@@ -106,6 +117,9 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+	},
+	["legwhisper"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
@@ -145,6 +159,16 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
 	},
+	["legstronghold"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla2", emitVector = { 0, 1, 0 }, light = 0.75 },
+	},
 
 	-- gunships
 	["armkam"] = {
@@ -169,6 +193,12 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
 	["corcrw"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
+	},
+	["corcrwh"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
@@ -291,7 +321,11 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebl", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebr", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
-
+	["legphoenix"] = {
+		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
+		{ color = { 0.8, 0.7, 0.2 }, width = 5, length = 40, piece = "mthrust", light = 1 },
+		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+	},
 	-- construction
 	["armca"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },
@@ -352,18 +386,19 @@ local function deepcopy(orig)
 end
 
 for name, effects in pairs(effectDefs) do
-
-	-- make length and width smaller cause will enlarge when in full effect
-	for i, effect in pairs(effects) do
-		effect.length = math.floor(effect.length * 0.8)
-		effect.width = math.floor(effect.width * 0.92)
-	end
-
-	-- create scavenger variant
-	if UnitDefNames[name..'_scav'] then
-		effectDefs[name..'_scav'] = deepcopy(effects)
+	if UnitDefNames[name] then
+		-- make length and width smaller cause will enlarge when in full effect
 		for i, effect in pairs(effects) do
-			effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
+			effect.length = math.floor(effect.length * 0.8)
+			effect.width = math.floor(effect.width * 0.92)
+		end
+
+		-- create scavenger variant
+		if UnitDefNames[name..'_scav'] then
+			effectDefs[name..'_scav'] = deepcopy(effects)
+			for i, effect in pairs(effects) do
+				effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
+			end
 		end
 	end
 end
@@ -382,21 +417,19 @@ local xzVelocityUnits = {}
 local defs = {}
 local limitDefs = {}
 for name, effects in pairs(effectDefs) do
-	for fx, data in pairs(effects) do
-		if not effectDefs[name][fx].emitVector then
-			effectDefs[name][fx].emitVector = { 0, 0, -1 }
-		end
-		if effectDefs[name][fx].xzVelocity then
-			xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
-		end
-		if effectDefs[name][fx].limit then
-			limitDefs[UnitDefNames[name].id] = true
-		end
-	end
 	if UnitDefNames[name] then
+		for fx, data in pairs(effects) do
+			if not effectDefs[name][fx].emitVector then
+				effectDefs[name][fx].emitVector = { 0, 0, -1 }
+			end
+			if effectDefs[name][fx].xzVelocity then
+				xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
+			end
+			if effectDefs[name][fx].limit then
+				limitDefs[UnitDefNames[name].id] = true
+			end
+		end
 		defs[UnitDefNames[name].id] = effectDefs[name]
-	else
-		Spring.Echo("Airjets: Error: unitdef name '"..name.."' doesnt exist")
 	end
 end
 effectDefs = defs

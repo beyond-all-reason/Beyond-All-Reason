@@ -23,7 +23,7 @@ end
 
 
 function AttackHST:SetMassLimit()
-	self.squadMassLimit = math.ceil(self.ai.Metal.income * 100)
+	self.squadMassLimit = math.ceil(100 + self.ai.ecohst.Metal.income * 100)
 	self:EchoDebug('squad mass limit',self.squadMassLimit)
 end
 
@@ -44,36 +44,50 @@ end
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
+-- 	local RAM = gcinfo()
 	self:DraftAttackSquads()
+-- 	Spring:Echo('attackhstupdate1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
+-- 			Spring:Echo('attackhstupdate2',gcinfo()-RAM)
 			self:Watchdog(squad)
+-- 			Spring:Echo('attackhstupdate3',gcinfo()-RAM)
 			if not self:SquadAttack(squad) then
+-- 				Spring:Echo('attackhstupdate4',gcinfo()-RAM)
 				self:SquadAdvance(squad)
+-- 				Spring:Echo('attackhstupdate5',gcinfo()-RAM)
 			end
 		end
 	end
+-- 	Spring:Echo('attackhstupdate6',gcinfo()-RAM)
 	self:SquadsTargetUpdate2()
+-- 	Spring:Echo('attackhstupdate7',gcinfo()-RAM)
 	self:visualDBG(squad)
 end
 
 function AttackHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
+
 		for index,soldier in pairs(soldiers) do
+		self:EchoDebug(index,mtype,soldier.squad)
 			if soldier and soldier.unit and not soldier.squad then
-				for index,squad in pairs(self.squads) do
+				for idx,squad in pairs(self.squads) do
+					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
 					if not squad.lock and squad.mtype == mtype  then
 						table.insert(squad.members , soldier)
 						soldier.squad = squad
 						self:SquadFormation(squad)
+						self:EchoDebug('insert' ,index , 'in squad',squad.squadID)
 						if (squad.mass > self.squadMassLimit or #squad.members > self.countLimit) or (squad.mass > 15000)then
 							squad.lock = true
-							self.countLimit = math.min(15,self.countLimit + self.ai.overviewhst.ECONOMY)
+							self:EchoDebug('squad',squad.squadID, 'full' ,squad.mass > self.squadMassLimit,#squad.members > self.countLimit,squad.mass > 15000)
+							self.countLimit = math.min(20,self.countLimit + self.ai.labshst.ECONOMY)
 						end
 					end
 				end
 				if not soldier.squad then
+					self:EchoDebug('init a new squad')
 					self:SetMassLimit()
 					self.squadID = self.squadID + 1
 					self.squads[self.squadID] = {}
@@ -90,7 +104,8 @@ function AttackHST:DraftAttackSquads()
 					squad.colour = {0,math.random(),math.random(),1}
 					self:SquadFormation(squad)
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
-					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.overviewhst.ECONOMY) or (squad.mass > 15000)then
+
+					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.labshst.ECONOMY) or (squad.mass > 15000)then
 						squad.lock = true
 
 					end
@@ -103,17 +118,25 @@ end
 function AttackHST:SquadCheck(squad)
 	self:EchoDebug('integrity',squad.squadID,#squad.members)
 	local check = nil
-	local pos = api:Position()
+	local x,y,z = 0,0,0
 	local mass = 0
 	local memberCount = 0
 	for i,member in pairs(squad.members) do
-		local uPos = self.ai.tool:UnitPos(member)
-		if not uPos then
+
+
+-- 		local uPos = self.ai.tool:UnitPos(member)
+
+		if not member.unit 	then
+
 			table.remove(squad.members,i)
 			self:RemoveRecruit(member)
 		else
 			check = true
-			pos = self.ai.tool:sumPos(pos,uPos)
+			local ux,uy,uz = member.unit:Internal():GetRawPos()
+-- 			pos = self.ai.tool:sumPos(pos,uPos)
+			x = x + ux--member.unit.x
+-- 			y = y + uy--member.unit.y
+			z = z + uz--member.unit.z
 			memberCount = memberCount + 1
 			mass = mass + member.mass
 		end
@@ -122,26 +145,36 @@ function AttackHST:SquadCheck(squad)
 		self:SquadDisband(squad, squad.squadID)
 		return
 	end
-	squad.position = {x = pos.x / memberCount,z = pos.z / memberCount}
+	squad.position = squad.position or {}
+	squad.position.x = x / memberCount
+	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
 	local memberDist = math.huge
 	local leader = nil
 	local leaderPos = nil
+	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
-		local p = self.ai.tool:UnitPos(member)
-		if p then
-			local d = self.ai.tool:distance(p,squad.position)
-			if d < memberDist then
-				memberDist = d
-				leader = member.unit:Internal()
-				leaderPos = p
-			end
+
+		if member.unit then
+			squad.leader = member.unit:Internal()
+			--leaderPos = {x = member.unit.x, y = member.unit.y  , z = member.unit.z}
+			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
+			break
+-- 			local d = self.ai.tool:distance(p,squad.position)
+-- 			if d < memberDist then
+-- 				memberDist = d
+
+-- 			end
 		end
 	end
-	self:EchoDebug('set Leader',leader,leaderPos.x,leaderPos.z)
-	squad.leader = leader
-	squad.leaderPos = leaderPos
+-- 	self:EchoDebug('set Leader',leader,leader.x,leader.z)
+-- 	squad.leader = leader
+--
+-- 	squad.leaderPos = squad.leaderPos or {}
+-- 	squad.leaderPos.x = leader.x
+-- 	squad.leaderPos.y = leader.y
+-- 	squad.leaderPos.z = leader.z
 	return true
 end
 
@@ -277,8 +310,12 @@ function AttackHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
+-- 	local RAM = gcinfo()
+	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
+-- 	RAM1 = gcinfo()
+-- 	if RAM1-RAM > 0 then Spring.Echo('squad advance1',RAM1-RAM) end
 	local members = squad.members
 	local nextPos = squad.path[squad.step]
 	local angle = math.min (squad.step + 1,#squad.path)
@@ -286,8 +323,10 @@ function AttackHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
+-- 	RAM2 = gcinfo()
+-- 	if RAM2-RAM1 > 0 then Spring.Echo('squad advance2',RAM2-RAM1 ) end
 	for i,member in pairs(members) do
-		local pos = nextPos
+		local pos
  		if member.formationBack and squad.step ~= #squad.path then
  			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
  		end
@@ -296,8 +335,10 @@ function AttackHST:SquadAdvance(squad)
  			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
  		end
  		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
-		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
+		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
+-- 	RAM3 = gcinfo()
+-- 	if RAM3-RAM2 > 0 then Spring.Echo('squad advance3',RAM3-RAM2) end
 	self:EchoDebug('advance after members move')
 end
 
@@ -315,12 +356,12 @@ function AttackHST:SquadsTargetUpdate2()
 			self:EchoDebug('squadID',squadID, 'offense cell', squad.target.X,squad.target.Z)
 		else
 			self:SquadResetTarget(squad)
-			local defense = self:SquadsTargetDefense(squad)
-			if defense then
-				squad.target = defense
-				squad.role = 'defense'
-				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
-			else
+			--local defense = self:SquadsTargetDefense(squad)
+-- 			if defense then
+-- 				squad.target = defense
+-- 				squad.role = 'defense'
+-- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
+-- 			else
 				local offense = self:SquadsTargetAttack2(squad)
 				if offense and squad.lock then
 					path, step = self:SquadFindPath(squad,offense)
@@ -342,7 +383,7 @@ function AttackHST:SquadsTargetUpdate2()
 						self:EchoDebug('squad', squadID, 'have no target')
 					end
 				end
-			end
+			--end
 		end
 	end
 end
@@ -485,6 +526,7 @@ end
 
 function AttackHST:visualDBG()
 	local ch = 6
+
 	if not self.ai.drawDebug then
 		return
 	end

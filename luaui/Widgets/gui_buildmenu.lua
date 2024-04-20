@@ -52,13 +52,12 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, activeAreaMargin, iconTypesMap
+local bgpadding, activeAreaMargin
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
-local cachedUnitIcons
 
 local math_isInRect = math.isInRect
 
@@ -114,6 +113,27 @@ local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+local unitName = {}
+local unitBuildOptions = {}
+local unitMetal_extractor = {}
+local unitTranslatedHumanName = {}
+local unitTranslatedTooltip = {}
+local iconTypes = {}
+local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+	unitBuildOptions[udid] = ud.buildOptions
+	unitTranslatedHumanName[udid] = ud.translatedHumanName
+	unitTranslatedTooltip[udid] = ud.translatedTooltip
+	if ud.customParams.metal_extractor then
+		unitMetal_extractor[udid] = ud.customParams.metal_extractor
+	end
+	if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
+		iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+	end
+end
+orgIconTypes = nil
 
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -219,10 +239,8 @@ local function RefreshCommands()
 		if startDefID then
 
 			local cmdUnitdefs = {}
-			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
-					cmdUnitdefs[udefid] = i
-				end
+			for i, udefid in pairs(unitBuildOptions[startDefID]) do
+				cmdUnitdefs[udefid] = i
 			end
 			for k, uDefID in pairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -230,7 +248,7 @@ local function RefreshCommands()
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
 						id = uDefID * -1,
-						name = UnitDefs[uDefID].name,
+						name = unitName[uDefID],
 						params = {}
 					}
 				end
@@ -449,11 +467,12 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypesMap[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[units.unitIconType[uDefID]] or nil)) or nil,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
 		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
+
 
 	-- colorize/highlight unit icon
 	if cellColor then
@@ -486,7 +505,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	-- price
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
@@ -497,9 +516,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
-		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
-		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight, priceFontSize, "ro")
-		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 	end
 
 	-- factory queue number
@@ -666,33 +684,8 @@ function drawBuildmenu()
 	font2:End()
 end
 
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
-	local excludeRaptors = not Spring.Utilities.Gametype.IsRaptors()
-	gl.Translate(-vsx,0,0)
-	gl.Color(1, 1, 1, 0.001)
-	for id, unit in pairs(UnitDefs) do
-		if not excludeScavs or not string.find(unit.name,'_scav') then
-			if not excludeRaptors or not string.find(unit.name,'raptor') then
-				gl.Texture('#'..id)
-				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
-					gl.Texture(':l:' .. iconTypesMap[units.unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-				end
-			end
-		end
-	end
-	gl.Color(1, 1, 1, 1)
-	gl.Translate(vsx,0,0)
-end
 
 function widget:DrawScreen()
-	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
-		cachedUnitIcons = true
-		cacheUnitIcons()
-	end
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
@@ -766,11 +759,11 @@ function widget:DrawScreen()
 								local text
 								local textColor = "\255\215\255\215"
 								if units.unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = UnitDefs[uDefID].translatedHumanName
 								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..unitTranslatedTooltip[uDefID], nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
@@ -965,7 +958,9 @@ end
 
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
-	WG['pregame-build'].setPreGamestartDefID(uDefID)
+	if WG['pregame-build'] then
+		WG['pregame-build'].setPreGamestartDefID(uDefID)
+	end
 end
 
 function widget:MousePress(x, y, button)
@@ -995,15 +990,21 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+						local uDefID = cmds[cellRectID].id
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
 							if preGamestartPlayer then
-								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
-								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
+								setPreGamestartDefID(-uDefID)
+							elseif spGetCmdDescIndex(uDefID) then
+								local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
+								local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+								if isRepeatMex then
+									WG['areamex'].setAreaMexType(uDefID)
+								end
+								Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 							end
 						else
 							if cmds[cellRectID].params[1] and playSounds then
@@ -1034,9 +1035,7 @@ local function buildUnitHandler(_, _, _, data)
 	if not preGamestartPlayer then return end
 	if units.unitRestricted[data.unitDefID] then return end
 
-	local comDef = UnitDefs[startDefID]
-
-	if not comDef or not comBuildOptions[comDef.name] or not comBuildOptions[comDef.name][data.unitDefID] then return end
+	if not unitName[startDefID] or not comBuildOptions[unitName[startDefID]] or not comBuildOptions[unitName[startDefID]][data.unitDefID] then return end
 
 	-- If no current active selection we can return early
 	if not selBuildQueueDefID then
@@ -1076,7 +1075,7 @@ local function buildUnitHandler(_, _, _, data)
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
-			if comBuildOptions[comDef.name][uDef.id] and not units.unitRestricted[uDef.id] then
+			if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
 				table.insert(buildCycle, uDef.id)
 			end
 		end
@@ -1115,7 +1114,7 @@ local function bindBuildUnits(widget)
 	for _, comDefName in ipairs({ "armcom", "corcom" }) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
-				local unitDefName = UnitDefs[buildOption].name
+				local unitDefName = unitName[buildOption]
 
 				comBuildOptions[comDefName][buildOption] = true
 				table.insert(boundUnits, unitDefName)
@@ -1133,12 +1132,6 @@ function widget:Initialize()
 	units.checkGeothermalFeatures()
 	if disableWind then
 		units.restrictWindUnits(true)
-	end
-
-
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
 	-- Get our starting unit
@@ -1265,7 +1258,7 @@ function widget:GetConfigData()
 		defaultColls = defaultColls,
 		stickToBottom = stickToBottom,
 		maxPosY = maxPosY,
-		gameID = Game.gameID,
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 	}
 end

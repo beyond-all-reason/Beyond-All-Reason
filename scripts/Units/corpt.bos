@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece base, turret, launcher, radar, wake1, flare1, flare2, flare3;
+piece base, turret, launcher, radar, wake1, flare1, flare2, flare3, blink;
 
 static-var  gun_1, restore_delay;
 
@@ -20,6 +20,29 @@ static-var  gun_1, restore_delay;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from blink;
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
+Go()
+{
+	spin radar around x-axis speed <-50.043956> accelerate <2>;
+	return (0);
+}
+
+Stop()
+{
+	spin radar around x-axis speed <0.000000>;
+	return (0);
+}
+
 Create()
 {
 	hide flare1;
@@ -28,7 +51,18 @@ Create()
 	hide wake1;
 	gun_1 = 1;
 	restore_delay = 3000;
+	start-script Lights();
 	return (0);
+}
+
+Activate()
+{
+	start-script Go();
+}
+
+Deactivate()
+{
+	start-script Stop();
 }
 
 SetMaxReloadTime(Func_Var_1)

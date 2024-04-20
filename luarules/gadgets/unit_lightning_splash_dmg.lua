@@ -36,6 +36,38 @@ local math_max = math.max
 local math_cos = math.cos
 local math_sin = math.sin
 
+-- A fun unit test is: /luarules fightertest armclaw armclaw 200 10 1000
+
+-- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink. 
+local projTablePoolSize = 0 
+local projTablePool = {}
+local function GetProjTable()
+	if projTablePoolSize == 0 then 
+		return {
+				weaponDefID = 0,
+				proOwnerID = 0,
+				spark_ceg = 0,
+				spark_basedamage = 0,
+				spark_forkdamage = 0,
+				spark_range = 0,
+				spark_maxunits = 0,
+				x = 0,
+				y = 0,
+				z = 0,
+			}
+	else
+		local free = projTablePool[projTablePoolSize]
+		projTablePool[projTablePoolSize] = nil 
+		projTablePoolSize = projTablePoolSize -1 
+		return free
+	end
+end
+
+local function FreeProjTable(projTable)
+	projTablePoolSize = projTablePoolSize + 1
+	projTablePool[projTablePoolSize] = projTable
+end
+
 -- dictionary for in-game spark weapons
 local sparkWeapons = {}
 for wdid, wd in pairs(WeaponDefNames) do
@@ -81,6 +113,9 @@ function gadget:GameFrame(frame)
 	end
 end
 
+-- this is a table that can be reused for each spawnprojectile
+local projectileCacheTable = {pos = {0,0,0}, ["end"] = {0,0,0}, ttl = 2, owner = -1}
+
 -- this part handles the actual spark and chaining effect and applies damage
 -- for a typical lighting bolt ttl = 1, main bolt strikes frame 1, spark bolts strike frame 2
 function gadget:ProjectileDestroyed(proID)
@@ -91,6 +126,7 @@ function gadget:ProjectileDestroyed(proID)
 		local nearUnit, nearUnitDefID
 		for i=1, #nearUnits do
 			if count == 0 then -- exit if maximum chain is reached
+				FreeProjTable(lightningProjectiles[proID])
 				lightningProjectiles[proID] = nil
 				return
 			end
@@ -108,6 +144,14 @@ function gadget:ProjectileDestroyed(proID)
 						-- create visual lighting arc from main bolt termination point to spark target
 						-- set owner = -1 as a "spark bolt" identifier
 						-- lightning.weaponDefID
+						projectileCacheTable.pos[1] = lightning.x
+						projectileCacheTable.pos[2] = lightning.y
+						projectileCacheTable.pos[3] = lightning.z
+						projectileCacheTable['end'][1] = ex
+						projectileCacheTable['end'][2] = ey
+						projectileCacheTable['end'][3] = ez
+						
+						--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
 						spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
 						count = count - 1 -- spark target count accounting
 					end
@@ -132,15 +176,22 @@ function gadget:ProjectileDestroyed(proID)
 
 			-- create effects
 			-- using special defined thinner bolt for left-over chain bolts
+			projectileCacheTable.pos[1] = lightning.x
+			projectileCacheTable.pos[2] = height1
+			projectileCacheTable.pos[3] = lightning.z
+			projectileCacheTable['end'][1] = newx -- note, the keyword 'end' is reserved
+			projectileCacheTable['end'][2] = height2
+			projectileCacheTable['end'][3] = newz
+			--spSpawnProjectile(visual_chain_weapon, projectileCacheTable)
 			spSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
 			spSpawnCEG(terminal_spark_effect,newx,height2,newz,0,0,0)
 		end
 
 		-- clear from table
+		FreeProjTable(lightningProjectiles[proID])
 		lightningProjectiles[proID] = nil
 	end
 end
-
 
 -- when a lighting bolt is created by a unit, save some info to a table, to be used to figure out sparking when the bolt despawns
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
@@ -151,7 +202,20 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 			local xv,yv,zv = spGetProjectileVelocity(proID) -- get bolt length
 
 			-- fill table, to be used in ProjectileDestroyed
-			lightningProjectiles[proID] = {
+
+			local projTable = GetProjTable()
+			projTable.weaponDefID = weaponDefID
+			projTable.proOwnerID = proOwnerID
+			projTable.spark_ceg = sparkWeapons[weaponDefID].ceg
+			projTable.spark_basedamage = sparkWeapons[weaponDefID].basedamage
+			projTable.spark_forkdamage = sparkWeapons[weaponDefID].forkdamage
+			projTable.spark_range = sparkWeapons[weaponDefID].range
+			projTable.spark_maxunits = sparkWeapons[weaponDefID].maxunits
+			projTable.x = xp+xv
+			projTable.y = yp+yv
+			projTable.z = zp+zv
+
+			--[[lightningProjectiles[proID] = {
 				weaponDefID = weaponDefID,
 				proOwnerID = proOwnerID,
 				spark_ceg = sparkWeapons[weaponDefID].ceg,
@@ -163,7 +227,8 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 				x = xp+xv,
 				y = yp+yv,
 				z = zp+zv,
-			}
+			}]]--
+			lightningProjectiles[proID] = projTable
 		end
 	end
 end

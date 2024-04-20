@@ -24,8 +24,8 @@ end
 -- range - from center to edge, in elmos
 -- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
 
-local TimedDamageWeapons = {
-    [WeaponDefNames.raptoracidassault_acidspit.id] = {
+local TimedDamageWeaponsNames = {
+    ['raptor_land_assault_acid_t2_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -33,7 +33,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidarty_acidspit.id] = {
+    ['raptor_allterrain_arty_acid_t2_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -41,7 +41,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidartyxl_acidspit.id] = {
+    ['raptor_allterrain_arty_acid_t4_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -49,7 +49,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidbomber_acidbomb.id] = {
+    ['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -57,7 +57,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidswarmer_acidspit.id] = {
+    ['raptor_land_swarmer_acids_t2_v1_acidspit'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -65,7 +65,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidallterrain_acidspit.id] = {
+    ['raptor_allterrain_swarmer_acid_t2_v1_acidspit'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -73,7 +73,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptoracidallterrainassault_acidspit.id] = {
+    ['raptor_allterrain_assault_acid_t2_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -81,7 +81,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turrets_acid_acidspit.id] = {
+    ['raptor_turret_acid_t2_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -89,7 +89,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turretl_acid_acidspit.id] = {
+    ['raptor_turret_acid_t3_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -97,7 +97,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turretxl_acid_acidspit.id] = {
+    ['raptor_turret_acid_t4_v1_acidspit'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -105,7 +105,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_miniqueen_acid_acidgoo.id] = {
+    ['raptor_matriarch_acid_acidgoo'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -113,7 +113,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_miniqueen_acid_spike_acid_blob.id] = {
+    ['raptor_matriarch_acid_spike_acid_blob'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -123,7 +123,7 @@ local TimedDamageWeapons = {
     },
 
 
-	[WeaponDefNames.legbart_clusternapalm.id] = {
+	['leegmech_aimhull'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -131,7 +131,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "test",
     },
-	[WeaponDefNames.legbar_clusternapalm.id] = {
+	['legbart_clusternapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -139,15 +139,31 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "test",
     },
-	[WeaponDefNames.leginc_heatraylarge.id] = {
-        ceg = "fire-incinerator",
+	['legbar_clusternapalm'] = {
+        ceg = "fire-area-75",
         damageCeg = "burnflamexl",
-        time = 3,
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
+	['leginc_heatraylarge'] = {
+        ceg = "burnflamexm",
+        damageCeg = "burnflamexl",
+        time = 1,
         damage = 0,
         range = 37,
         resistance = "test",
     },
-	[WeaponDefNames.leginf_rapidnapalm.id] = {
+    ['legbastion_pineappleofdoom'] = {
+        ceg = "fire-incinerator",
+        damageCeg = "burnflamexl",
+        time = 2,
+        damage = 0,
+        range = 50,
+        resistance = "test",
+    },
+	['leginf_rapidnapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -155,7 +171,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "test",
     },
-	[WeaponDefNames.legnap_napalmbombs.id] = {
+	['legnap_napalmbombs'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 15,
@@ -163,7 +179,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "test",
     },
-	[WeaponDefNames.legcom_napalmmissile.id] = {
+	['legcom_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 10,
@@ -171,7 +187,7 @@ local TimedDamageWeapons = {
         range = 100,
         resistance = "test",
     },
-	[WeaponDefNames.legcomlvl2_napalmmissile.id] = {
+	['legcomlvl2_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 10,
@@ -179,7 +195,7 @@ local TimedDamageWeapons = {
         range = 100,
         resistance = "test",
     },
-	[WeaponDefNames.legcomlvl3_napalmmissile.id] = {
+	['legcomlvl3_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 10,
@@ -187,7 +203,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "test",
     },
-	[WeaponDefNames.legcomlvl4_napalmmissile.id] = {
+	['legcomlvl4_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 10,
@@ -195,7 +211,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "test",
     },
-	[WeaponDefNames.legbart_scav_clusternapalm.id] = {
+	['legbart_scav_clusternapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -203,7 +219,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "test",
     },
-	[WeaponDefNames.legbar_scav_clusternapalm.id] = {
+	['legbar_scav_clusternapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -211,15 +227,15 @@ local TimedDamageWeapons = {
         range = 70,
         resistance = "test",
     },
-	[WeaponDefNames.leginc_scav_heatraylarge.id] = {
+	['leginc_scav_heatraylarge'] = {
         ceg = "fire-incinerator",
-        damageCeg = "burnflamexl",
-        time = 3,
+        damageCeg = "burnflame",
+        time = 1,
         damage = 0,
         range = 37,
         resistance = "test",
     },
-	[WeaponDefNames.leginf_scav_rapidnapalm.id] = {
+	['leginf_scav_rapidnapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -227,7 +243,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "test",
     },
-	[WeaponDefNames.legnap_scav_napalmbombs.id] = {
+	['legnap_scav_napalmbombs'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 15,
@@ -235,11 +251,26 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "test",
     },
-
+	['legperdition_napalmmissile'] = {
+        ceg = "fire-area-150",
+        damageCeg = "burnflamexl",
+        time = 15,
+        damage = 175,
+        range = 150,
+        resistance = "test",
+    },
 }
+-- convert weaponname -> weaponDefID
+local TimedDamageWeapons = {}
+for name, params in pairs(TimedDamageWeaponsNames) do
+	if WeaponDefNames[name] then
+		TimedDamageWeapons[WeaponDefNames[name].id] = params
+	end
+end
+TimedDamageWeaponsNames = nil
 
-local TimedDamageDyingUnits = {
-    [UnitDefNames.raptoracidassault.id] = {
+local TimedDamageDyingUnitsNames = {
+    ['raptor_land_assault_acid_t2_v1'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -247,7 +278,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptoracidarty.id] = {
+    ['raptor_allterrain_arty_acid_t2_v1'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -255,7 +286,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptoracidartyxl.id] = {
+    ['raptor_allterrain_arty_acid_t4_v1'] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -263,7 +294,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptoracidswarmer.id] = {
+    ['raptor_land_swarmer_acids_t2_v1'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -271,7 +302,7 @@ local TimedDamageDyingUnits = {
         range = 75,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptoracidallterrain.id] = {
+    ['raptor_allterrain_swarmer_acid_t2_v1'] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -280,6 +311,14 @@ local TimedDamageDyingUnits = {
         resistance = "_RAPTORACID_",
     },
 }
+-- convert unitname -> unitDefID
+local TimedDamageDyingUnits = {}
+for name, params in pairs(TimedDamageDyingUnitsNames) do
+	if UnitDefNames[name] then
+		TimedDamageDyingUnits[UnitDefNames[name].id] = params
+	end
+end
+TimedDamageDyingUnitsNames = nil
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -287,7 +326,7 @@ local TimedDamageDyingUnits = {
 
 -- local function getRandomFreeExplosionID()
 --     local attempts = 0
---     repeat 
+--     repeat
 --         attempts = attempts + 1
 --         local number = math.random(1,100000)
 --         if not aliveExplosions[number] then

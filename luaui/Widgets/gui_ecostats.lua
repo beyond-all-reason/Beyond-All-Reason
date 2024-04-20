@@ -1,3 +1,7 @@
+if #Spring.GetAllyTeamList()-1 > 16 then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name = "Ecostats",
@@ -25,6 +29,7 @@ local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
 local lastTextListUpdate = os.clock() - 10
+local lastBarsUpdate = os.clock() - 10
 local gamestarted = false
 local gameover = false
 local inSpecMode = false
@@ -67,13 +72,23 @@ local widgetHeight = 0
 local widgetWidth = 130
 local tH = 40 -- team row height
 local WBadge = 14 -- width of player badge (side icon)
+local HBadge = 14 -- width of player badge (side icon)
 local cW = 100 -- column width
 local ctrlDown = false
 local textsize = 14
 local maxPlayers = 0
 local refreshCaptions = false
+local maxMetal, maxEnergy = 0, 0
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+
+local maxTeamsize = 0
+for i=1, #Spring.GetAllyTeamList()-1 do
+	if #Spring.GetTeamList(i) > maxTeamsize then
+		maxTeamsize = #Spring.GetTeamList(i)
+	end
+end
+local playerScale = math.max(0.5, math.min(1, 14 / maxTeamsize))
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -109,19 +124,6 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 	if def.customParams.iscommander then
 		comDefs[udefID] = true
-	end
-end
-
-local function round(num, idp)
-	local mult = 10 ^ (idp or 0)
-	return floor(num * mult + 0.5) / mult
-end
-
-local function formatRes(number)
-	if number < 1000 then
-		return string.format("%d", number)
-	else
-		return string.format("%.1fk", number / 1000)
 	end
 end
 
@@ -256,7 +258,8 @@ local function setDefaults()
 	tH = 32
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	borderPadding = 4.5
-	WBadge = tH * 0.5
+	HBadge = tH * 0.5
+	WBadge = math.floor(HBadge * playerScale)
 	cW = 88
 	textsize = 14
 end
@@ -271,11 +274,14 @@ local function processScaling()
 		sizeMultiplier = sizeMultiplier * 0.88
 	elseif numAllyteams > 11 then
 		sizeMultiplier = sizeMultiplier * 0.82
+	elseif numAllyteams > 14 then
+		sizeMultiplier = sizeMultiplier * 0.77
 	end
 
 	tH = math.floor(tH * sizeMultiplier)
 	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
-	WBadge = math.floor(WBadge * sizeMultiplier)
+	HBadge = math.floor(HBadge * sizeMultiplier)
+	WBadge = math.floor(HBadge * playerScale)
 	cW = math.floor(cW * sizeMultiplier)
 	textsize = math.floor(textsize * sizeMultiplier)
 	borderPadding = math.floor(borderPadding * sizeMultiplier)
@@ -391,7 +397,6 @@ local function setAllyData(allyID)
 		allyData[index] = {}
 		local teamList = GetTeamList(allyID)
 		allyData[index]["teams"] = teamList
-
 	end
 
 	if not (allyData[index].teams and #allyData[index].teams > 0) then
@@ -421,6 +426,11 @@ local function setAllyData(allyID)
 
 	if not allyData[index]["isAlive"] and cfgRemoveDead then
 		allyData[index] = nil
+		guishaderRects['ecostats_' .. allyID] = nil
+		if WG['guishader'] and guishaderRectsDlists['ecostats_' .. allyID] then
+			WG['guishader'].DeleteDlist('ecostats_' .. allyID)
+			guishaderRectsDlists['ecostats_' .. allyID] = nil
+		end
 	end
 end
 
@@ -468,13 +478,14 @@ local function Init()
 	maxPlayers = getMaxPlayers()
 
 	if maxPlayers == 1 then
-		WBadge = 18
+		HBadge = 18
 	elseif maxPlayers == 2 or maxPlayers == 3 then
-		WBadge = 16
+		HBadge = 16
 	else
-		WBadge = 14
+		HBadge = 14
 	end
-	WBadge = WBadge * sizeMultiplier
+	HBadge = HBadge * sizeMultiplier
+	WBadge = math.floor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = math.ceil((20 * sizeMultiplier) + maxPlayers * WBadge)
@@ -534,6 +545,7 @@ local function removeGuiShaderRects()
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
 				WG['guishader'].DeleteDlist('ecostats_' .. aID)
 				guishaderRectsDlists['ecostats_' .. aID] = nil
+				guishaderRects['ecostats_' .. aID] = nil
 			end
 		end
 	end
@@ -601,12 +613,13 @@ local function Reinit()
 	maxPlayers = getMaxPlayers()
 
 	if maxPlayers == 1 then
-		WBadge = 18 * sizeMultiplier
+		HBadge = 18 * sizeMultiplier
 	elseif maxPlayers == 2 or maxPlayers == 3 then
-		WBadge = 16 * sizeMultiplier
+		HBadge = 16 * sizeMultiplier
 	else
-		WBadge = 14 * sizeMultiplier
+		HBadge = 14 * sizeMultiplier
 	end
+	WBadge = math.floor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = (20 * sizeMultiplier) + maxPlayers * WBadge
@@ -664,10 +677,10 @@ end
 
 local function DrawEText(numberE, vOffset)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberE) })
+		local label = string.formatSI(numberE)
 		font:Begin()
 		font:SetTextColor({ 1, 1, 0, 1 })
-		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
+		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
 		font:End()
 	end
 end
@@ -675,10 +688,10 @@ end
 local function DrawMText(numberM, vOffset)
 	vOffset = vOffset - (borderPadding * 0.5)
 	if cfgResText then
-		local label = tconcat({ "", formatRes(numberM) })
+		local label = string.formatSI(numberM)
 		font:Begin()
 		font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
-		font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
+		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
 		font:End()
 	end
 end
@@ -911,12 +924,12 @@ end
 local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mouseOn, t, isDead, tID)
 	local w, h, dx, dy
 	if small then
-		w = floor((tH * 0.36) + 0.5)
+		w = floor((tH * 0.36) + 0.5) * playerScale
 		h = floor((tH * 0.36) + 0.5)
 		dx = -floor((tH * 0.06) + 0.5)
 		dy = floor((tH - (tH * 0.43)) + 0.5)
 	else
-		w = floor((tH * 0.46) + 0.5)
+		w = floor((tH * 0.46) + 0.5) * playerScale
 		h = floor((tH * 0.46) + 0.5)
 		dx = 0
 		dy = floor((tH - h) + 0.5)
@@ -1017,37 +1030,39 @@ local function drawListStandard()
 		updateButtons()
 	end
 
-	local maxMetal, maxEnergy = 0, 0
-	for _, data in ipairs(allyData) do
-		local aID = data.aID
-
-		if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
-
-			if avgData[aID] == nil then
-				avgData[aID] = {}
-				avgData[aID]["tE"] = data["tE"]
-				avgData[aID]["tEr"] = data["tEr"]
-				avgData[aID]["tM"] = data["tM"]
-				avgData[aID]["tMr"] = data["tMr"]
-			else
-				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
-				avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
-				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
-				avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
-			end
-			if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
-				maxMetal = avgData[aID]["tM"]
-			end
-			if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
-				maxEnergy = avgData[aID]["tE"]
-			end
-		end
-	end
-
 	local updateTextLists = false
 	if os.clock() > lastTextListUpdate + 0.5 then
 		updateTextLists = true
 		lastTextListUpdate = os.clock()
+	end
+
+	if os.clock() > lastBarsUpdate + 0.15 then
+		updateTextLists = true
+		lastBarsUpdate = os.clock()
+		maxMetal, maxEnergy = 0, 0
+		for _, data in ipairs(allyData) do
+			local aID = data.aID
+			if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
+				if avgData[aID] == nil then
+					avgData[aID] = {}
+					avgData[aID]["tE"] = data["tE"]
+					avgData[aID]["tEr"] = data["tEr"]
+					avgData[aID]["tM"] = data["tM"]
+					avgData[aID]["tMr"] = data["tMr"]
+				else
+					avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
+					avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
+					avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
+					avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
+				end
+				if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
+					maxMetal = avgData[aID]["tM"]
+				end
+				if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
+					maxEnergy = avgData[aID]["tE"]
+				end
+			end
+		end
 	end
 
 	for _, data in ipairs(allyData) do

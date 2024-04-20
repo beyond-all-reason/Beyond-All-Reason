@@ -1,9 +1,9 @@
 return {
 	corassistdrone_land = {
-		acceleration = 1,
-		brakerate = 1,
-		buildcostenergy = 1,
-		buildcostmetal = 1,
+		maxacc = 1,
+		maxdec = 1,
+		energycost = 1,
+		metalcost = 1,
 		builddistance = 150,
 		builder = true,
 		buildpic = "CORMUSKRAT.DDS",
@@ -20,9 +20,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 2000,
+		health = 2000,
 		maxslope = 16,
-		maxvelocity = 1.25,
+		speed = 37.5,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		objectname = "Units/corassistdrone_land.s3o",
@@ -72,7 +72,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "cormex",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",

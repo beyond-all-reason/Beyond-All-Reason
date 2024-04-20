@@ -1,6 +1,6 @@
 local difficultyParams = {
 	["veryeasy"] = {
-		maxDamage = 400000,
+		health = 400000,
 		autoHeal = 0,
 		dgunStockpile = 60,
 		dgunReload = 6,
@@ -8,7 +8,7 @@ local difficultyParams = {
 		topTurretsDamage = 3300,
 	},
 	["easy"] = {
-		maxDamage = 600000,
+		health = 600000,
 		autoHeal = 5,
 		dgunStockpile = 50,
 		dgunReload = 5,
@@ -16,7 +16,7 @@ local difficultyParams = {
 		topTurretsDamage = 4400,
 	},
 	["normal"] = {
-		maxDamage = 800000,
+		health = 800000,
 		autoHeal = 10,
 		dgunStockpile = 40,
 		dgunReload = 4,
@@ -24,7 +24,7 @@ local difficultyParams = {
 		topTurretsDamage = 5500,
 	},
 	["hard"] = {
-		maxDamage = 1000000,
+		health = 1000000,
 		autoHeal = 15,
 		dgunStockpile = 30,
 		dgunReload = 3,
@@ -32,7 +32,7 @@ local difficultyParams = {
 		topTurretsDamage = 6600,
 	},
 	["veryhard"] = {
-		maxDamage = 1500000,
+		health = 1500000,
 		autoHeal = 20,
 		dgunStockpile = 20,
 		dgunReload = 2,
@@ -40,7 +40,7 @@ local difficultyParams = {
 		topTurretsDamage = 8000,
 	},
 	["epic"] = {
-		maxDamage = 2000000,
+		health = 2000000,
 		autoHeal = 25,
 		dgunStockpile = 10,
 		dgunReload = 1,
@@ -48,20 +48,19 @@ local difficultyParams = {
 		topTurretsDamage = 10000,
 	},
 }
-
 local unitsTable = {}
 for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["armscavengerbossv2_" .. difficulty] = {
-		acceleration = 0.01,
+		maxacc = 0.01,
 		activatewhenbuilt = true,
 		autoheal = stats.autoHeal,--10,
-		brakerate = 0.01,
-		buildcostenergy = 5000000,
-		buildcostmetal = 500000,
+		maxdec = 0.01,
+		energycost = 5000000,
+		metalcost = 500000,
 		builddistance = 750,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
-		buildtime = stats.maxDamage,
+		buildtime = stats.health,
 		cancapture = true,
 		canmanualfire = true,
 		canmove = true,
@@ -78,14 +77,13 @@ for difficulty, stats in pairs(difficultyParams) do
 		footprintz = 2,
 		hidedamage = true,
 		holdsteady = true,
-		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
-		losemitheight = 40,
+		sightemitheight = 40,
 		mass = 9999999,
-		maxdamage = stats.maxDamage, --4450,
+		health = stats.health, --4450,
 		maxslope = 20,
-		maxvelocity = 1.25, --1.65, --1.083,
+		speed = 37.5, --1.65, --1.083,
 		maxwaterdepth = 35,
 		metalmake = 2,
 		metalstorage = 500,
@@ -113,9 +111,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		workertime = 1500,--400,
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "legmex",
-			--energyconv_capacity = 70,
-			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -130,17 +125,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				collisionvolumescales = "47 10 47",
 				collisionvolumetype = "CylY",
 				damage = 250000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 20,
-				hitdensity = 100,
 				metal = 3500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
 			},
 			heap = {
 				blocking = false,
@@ -148,18 +139,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 125000,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
-				hitdensity = 100,
 				metal = 1750,
 				object = "Units/arm6X6A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -238,12 +224,10 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponVelocity           = 1000,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = stats.minigunDamage,
-					bombers				 = stats.minigunDamage*3,
-					fighters 			 = stats.minigunDamage*3,
 					vtol				 = stats.minigunDamage*3,
 				},
 			},
@@ -396,5 +380,4 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 	}
 end
-
 return unitsTable

@@ -3,12 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, barrel, flare, sleeve, head, tail;
+piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, misflare;
 
-static-var  restore_delay, Static_Var_2, bMoving;
+static-var  restore_delay, Static_Var_2, bMoving, gun_2, corrected;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM2			4
 
 
 
@@ -21,7 +22,6 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 
@@ -39,7 +39,7 @@ EmitSFX()
 	{
 		if( bMoving )
 		{
-			if( Static_Var_2 == 3 )
+			if( Static_Var_2 == 3 )//does ... anything ever trip this?
 			{
 				emit-sfx 259 from base;
 			}
@@ -51,7 +51,10 @@ EmitSFX()
 Create()
 {
 	hide flare;
-	hide flare;
+	hide misflare;
+	//turn turretmis to x-axis <-25> now;
+//	turn aturret to y-axis <-180> speed <500>;
+	
 	Static_Var_2 = 4;
 	bMoving = FALSE;
 	restore_delay = 3000;
@@ -73,6 +76,15 @@ ExecuteRestoreAfterDelay()
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
 	move barrel to z-axis [-4.000000] speed [12.000000];
 	move turret to y-axis [0] speed [8];
+	turn lid to x-axis <0.000000> speed <80>;	
+	turn turretmis to y-axis <0> speed <180>;
+	turn misbox to x-axis <0> speed <180>;
+	sleep 1500;
+	move turretmis to y-axis [0.000000] speed [5.000000];
+	wait-for-turn lid around x-axis;
+	wait-for-move turretmis along y-axis;
+	wait-for-turn misbox around x-axis;
+	
 }
 SetStunned(State)
 {
@@ -129,6 +141,55 @@ AimFromPrimary(piecenum)
 {
 	piecenum = turret;
 }
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM2;
+	set-signal-mask SIG_AIM2;
+	turn lid to x-axis <-179.000000> speed <200.000000>;
+	
+		
+	corrected = heading;
+	if (heading < <45> AND heading > 0) {
+		corrected = <45>;
+	}
+	if (heading > <-45> AND heading < 0) {
+		corrected = <-45>;
+	}
+	turn turretmis to y-axis corrected speed <180.000000>;
+
+	
+	turn misbox to x-axis -1*pitch speed <180>;
+	move turretmis to y-axis [3.5] speed [2];
+	wait-for-turn lid around x-axis;
+	wait-for-move turretmis along x-axis;
+	wait-for-turn turretmis around y-axis;
+	wait-for-turn misbox around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	++gun_2;
+	if (gun_2 == 4) gun_2 = 1;
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretmis;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = misflare;
+	return (0);
+}
+
+
+
 
 SweetSpot(piecenum)
 {
