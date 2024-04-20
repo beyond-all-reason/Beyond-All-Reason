@@ -32,6 +32,8 @@ local math_isInRect = math.isInRect
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
+local lineHeight = fontSize
+
 local isFFA = Spring.Utilities.Gametype.IsFFA()
 
 local header = {
@@ -89,16 +91,12 @@ local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
 local max					= math.max
-local ceil					= math.ceil
 local floor					= math.floor
-local abs					= math.abs
 local huge					= math.huge
 local sort					= table.sort
 local log10					= math.log10
 local round					= math.round
 local char					= string.char
-local format				= string.format
-local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
 local RectRound, UiElement, elementCorner
@@ -109,6 +107,9 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local isSpec = Spring.GetSpectatingState()
+
+
+local playerScale = math.max(0.3, math.min(1, 25 / #Spring.GetTeamList()))
 
 function aboveRectangle(mousePos,boxData)
 	local included = true
@@ -410,7 +411,7 @@ function widget:GameFrame(n,forceupdate)
 	end
 	totalNumLines = totalNumLines + 1
 	sort(teamData,compareAllyTeams)
-	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
+	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*lineHeight
 	prevNumLines = totalNumLines
 	glDeleteList(textDisplayList)
 	textDisplayList = glCreateList(ReGenerateTextDisplayList)
@@ -476,7 +477,7 @@ end
 function getLineAndColumn(x,y)
 	local relativex = x - guiData.mainPanel.absSizes.x.min - columnSize/2
 	local relativey = guiData.mainPanel.absSizes.y.max - y
-	local line = floor(relativey/fontSize) +1
+	local line = floor(relativey/lineHeight) +1
 	local column = floor(relativex/columnSize) +1
 	return line,column
 end
@@ -486,6 +487,9 @@ function updateFontSize()
 	columnSize = guiData.mainPanel.absSizes.x.length / numColums
 	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
+	fontSize = fontSize * playerScale
+	lineHeight = fontSize
+	fontSize = fontSize + math.min(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
 end
 
 function widget:MouseMove(mx,my,dx,dy)
@@ -582,9 +586,9 @@ function ReGenerateBackgroundDisplayList()
 			if math.floor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
 				bottomCorner = 1
 			end
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*lineHeight), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
-			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
+			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*lineHeight, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*lineHeight, 3*widgetScale)
 		end
 	end
 	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn <= numColums then
@@ -593,7 +597,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -602,7 +606,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end
@@ -619,11 +623,11 @@ function ReGenerateTextDisplayList()
 	font:SetOutlineColor(0, 0, 0, 1)
 		--print the header
 		local colCount = 0
-		local heightCorrection = fontSize*((1-fontSizePercentage)/2)
+		local heightCorrection = lineHeight*((1-fontSizePercentage)/2)
 
 		for _, headerName in ipairs(header) do
-			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
-			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*fontSize, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
 			colCount = colCount + 1
 		end
 		lineCount = lineCount + 3
@@ -655,10 +659,10 @@ function ReGenerateTextDisplayList()
 					end
 					if i == 1 then
 						font2:Begin()
-						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 						font2:End()
 					else
-						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 					end
 					colCount = colCount + 1
 				end
