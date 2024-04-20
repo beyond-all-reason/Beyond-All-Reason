@@ -138,6 +138,7 @@ return {
 				soundhitwet = "",--"splssml",
 				soundstart = "",--"cannhvy1",
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				damage = {
@@ -160,7 +161,7 @@ return {
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,
-					enabledocking = false,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 10,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.

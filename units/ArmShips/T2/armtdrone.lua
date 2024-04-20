@@ -166,7 +166,6 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "td_depthcharge",
 				maindir = "0 -2 1",
 				maxangledif = 120,
