@@ -6,7 +6,7 @@
 //piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
 piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, panels, smoke1, aimfromy;
 
-static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range;
+static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -82,6 +82,12 @@ Create()
 	get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
 	get WEAPON_RANGE(-2,get MIN(weapon1_default_range,weapon2_default_range));
 	
+
+	turn r2 to y-axis <15> now;
+	turn r3 to y-axis <30> now;
+	turn l2 to y-axis <-15> now;
+	turn l3 to y-axis <-30> now;
+
 	hide r1;
 	hide r2;
 	hide r3;
@@ -113,10 +119,7 @@ activatescr()
 	if( TRUE )
 	{
 		
-		
-		// signal kills any current aim animations
-		signal SIG_AIM;
-		// variable setting weapon state
+	signal SIG_AIM;
 		fireMode = 1;
 
 
@@ -157,9 +160,7 @@ deactivatescr()
 	if( TRUE )
 	{
 
-		// signal kills any current aim animations
 		signal SIG_AIM;
-		// variable setting weapon state
 		fireMode = 0;//secondary weapon/ normal fire
 		
 		show r1;
@@ -283,7 +284,6 @@ StopMoving()
 
 
 
-// test later without, this might be fighting firing if tries to reset? can aim signal be checked?
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -339,6 +339,11 @@ AimPrimary(heading, pitch)
     if (shooting==1) {return(0);}
     if (fireMode!=0) {return(0);}//if inactive, go to secondary weapon eg normalfire
 	
+	
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if (reloading) {
+		return(0);
+	}
 	
 
 	//start-script ResetAim();
@@ -412,6 +417,14 @@ AimSecondary(heading, pitch)
 	{
 		return(0);
 	}
+
+
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if (reloading) {
+		return(0);
+	}
+
+
 /*
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

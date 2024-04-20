@@ -82,6 +82,13 @@ Create()
 	get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
 	get WEAPON_RANGE(-2,get MIN(weapon1_default_range,weapon2_default_range));
 	
+	
+	turn r2 to y-axis <15> now;
+	turn r3 to y-axis <30> now;
+	turn l2 to y-axis <-15> now;
+	turn l3 to y-axis <-30> now;
+	
+	
 	hide r1;
 	hide r2;
 	hide r3;
