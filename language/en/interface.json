@@ -628,12 +628,12 @@
 			"tooClose": "You cannot place your start position too close to another player"
 		},
 		"draftOrderMod": {
-			"youDidNotPlace": "You did not place. The next player will now proceed",
+			"youDidNotPlace": "You did not place. The next player can now start placing",
 			"yourTurnToPlace": "%{warnColor}You%{textColor} can now start placing",
 			"nextIs": "%{name} can start placing in %{number}...",
 			"yourTurnIsNext": "%{textColor}%{name} is now placing. %{warnColor}You%{textColor} are next!",
 			"playerTurn": "%{name} is now placing",
-			"playersTurn": "%{name} is now placing, followed by %{name2}",
+			"followedBy": "followed by %{name}",
 			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
 			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
 			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"

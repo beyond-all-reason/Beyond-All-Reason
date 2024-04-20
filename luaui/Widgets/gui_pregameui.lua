@@ -382,7 +382,7 @@ function widget:DrawScreen()
 				local tname, tname2 = select(1, Spring.GetPlayerInfo(current_playerID, false)), select(1, Spring.GetPlayerInfo(next_playerID, false))
 				if tname == nil then tname = "unconnected" end
 				if tname2 == nil then tname2 = "unconnected" end
-				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playersTurn', { name = tname, name2 = tname2 })
+				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname }) .. ", " .. Spring.I18N('ui.draftOrderMod.followedBy', { name2 = tname })
 			elseif current_playerID > -1 then
 				local tname = select(1, Spring.GetPlayerInfo(current_playerID, false))
 				if tname == nil then tname = "unconnected" end
