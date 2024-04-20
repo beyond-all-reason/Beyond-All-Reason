@@ -49,7 +49,6 @@ for udid, ud in pairs(UnitDefs) do
 	if modOptions.emprework==true then
 		unitOhms[udid] = ud.customParams.paralyzemultiplier == nil and 1 or tonumber(ud.customParams.paralyzemultiplier)--it arrives as a string because WHY NOT
 		
-		--Spring.Echo('ohm', ud.customParams.paralyzemultiplier, unitOhms[udid])
 		if tonumber(ud.customParams.paralyzemultiplier) or 0 > 0 then
 		--Spring.Echo('ohm', ud.name, ud.customParams.paralyzemultiplier)
 		end
