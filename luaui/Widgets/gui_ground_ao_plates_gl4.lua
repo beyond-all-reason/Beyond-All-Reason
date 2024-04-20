@@ -24,7 +24,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local debugmode = false
 
--- Speedups of dubious usefulness: 
+-- Speedups of dubious usefulness:
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
@@ -42,9 +42,9 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant/dont have plates
-	
+
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-	
+
 	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
 	--Spring.Echo(decalInfo.texfile, p,q,s,t)
 
@@ -59,12 +59,12 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, this is used when reinitializing everything on VisibleUnitsChanged
-		unitID) -- last one should be UNITID! 
+		unitID) -- last one should be UNITID!
 end
 
 local firstRun = true
 function widget:DrawWorldPreUnit()
-	if firstRun then 
+	if firstRun then
 		glTexture(0, atlas.atlasimage)
 		glTexture(0, false)
 		firstRun = false
@@ -89,10 +89,9 @@ end
 function widget:Initialize()
 	-- Init texture atlas
 	--makeAtlas()
-	
+
 	-- Init the unitDefIDtoDecalInfo
-	for id , unitDefID in pairs(UnitDefs) do
-		local UD = UnitDefs[id]
+	for id , UD in pairs(UnitDefs) do
 		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
@@ -108,7 +107,7 @@ function widget:Initialize()
 			end
 		end
 	end
-	
+
 	-- Init GL4 things
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
@@ -127,7 +126,7 @@ function widget:Initialize()
 	shaderConfig.USE_TRIANGLES = nil
 
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
-	if groundPlateVBO == nil then 
+	if groundPlateVBO == nil then
 		Spring.Echo("Error while initializing InitDrawPrimitiveAtUnit, removing widget")
 		widgetHandler:RemoveWidget()
 		return
@@ -139,7 +138,7 @@ function widget:Initialize()
 	end
 end
 
---- Look how easy api_unit_tracker is to use! 
+--- Look how easy api_unit_tracker is to use!
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	AddPrimitiveAtUnit(unitID, unitDefID, nil, "VisibleUnitAdded")
 end

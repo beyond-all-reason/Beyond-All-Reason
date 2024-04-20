@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_emp_t2_v1 = {
 		maxacc = 0.1725,
-
 		maxdec = 0.345,
 		energycost = 53,
 		metalcost = 25,
@@ -32,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptore1.s3o",
 		script = "Raptors/raptor1.cob",
 		seismicsignature = 0,
@@ -58,7 +57,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -76,7 +74,6 @@ return {
 			raptorparalyzersmall = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -103,8 +100,6 @@ return {
 				range = 250,
 				reloadtime = 1.5,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric",
 				soundstartvolume = 42,
 				soundtrigger = true,

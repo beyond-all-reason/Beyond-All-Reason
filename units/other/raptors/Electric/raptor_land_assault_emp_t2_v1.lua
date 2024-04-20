@@ -2,7 +2,6 @@ return {
 	raptor_land_assault_emp_t2_v1 = {
 		maxacc = 0.414,
 		airsightdistance = 650,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 152,
@@ -32,9 +31,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptore2.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora1.cob",
 		seismicsignature = 0,
 		selfdestructas = "raptor_empdeath_big",
@@ -63,7 +61,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray", --cob 1024
+				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
@@ -81,7 +79,6 @@ return {
 			raptorparalyzerbig = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -109,8 +106,6 @@ return {
 				range = 400,
 				reloadtime = 4.5,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
 				soundstartvolume = 65,
 				soundtrigger = true,
@@ -127,10 +122,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "raptorparalyzerbig",
 				maindir = "0 0 1",
 				maxangledif = 125,
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

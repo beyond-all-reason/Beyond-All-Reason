@@ -19,8 +19,22 @@ end
 
 
 function TasksHST:startLabsParams()
-	local M = self.ai.Metal
-	local E = self.ai.Energy
+	local M = self.ai.ecohst.Metal
+	local E = self.ai.ecohst.Energy
+	self.labs.t1postmode={
+		{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1, mtype = 5, max = 2,},
+			wave = 1},
+		{category = 'rezs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 10,  max = 10,},
+			wave = 1},
+	}
 	self.labs.premode = {
 		{category = 'techs',
 			economy = function()
@@ -28,6 +42,18 @@ function TasksHST:startLabsParams()
 			end,
 			numeric = {min = 1, mtype = nil, max = 3,},
 			wave = 1},
+
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 20},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end
+
+			},
+
 		}
 	self.labs.default = {
 			{category = 'techs',
@@ -36,6 +62,17 @@ function TasksHST:startLabsParams()
 			end,
 			numeric = {min = 1, mtype = 5, max = 2,},
 			wave = 1},
+
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 20},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end
+
+			},
 
 
 			{category = 'scouts',
@@ -64,12 +101,28 @@ function TasksHST:startLabsParams()
 			numeric = {min = 3,mtype = nil,max = 7},
 			wave = 1},
 
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 45},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end,
+
+			},
 
 			{category = 'battles',
 			economy = function()
 				return true
 			end,
 			numeric = {min = 3},
+			special = function(_,soldier,utype)
+				if self.ai.ecohst.Metal.full > 0.5 and type(self.ai.armyhst.battles[soldier]) == 'string' then
+					return self.ai.armyhst.battles[soldier] ,self.game:GetTypeByName(self.ai.armyhst.battles[soldier])
+				end
+				return soldier,utype
+			end,
             wave = 5},
 
 
@@ -80,6 +133,16 @@ function TasksHST:startLabsParams()
 			numeric = {min = 3,mtype = 6,max = 7},
 			wave = 1},
 
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 45},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end
+
+			},
 
 			{category = 'artillerys',
 			economy = function(_,U)
@@ -95,12 +158,22 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 7},
-			wave = 3},
+			wave = 1},
 
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 45},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end
+
+			},
 
 			{category = 'breaks',
 			economy = function()
-				return self.ai.Metal.full > 0.3 and self.ai.Energy.full > 0.3
+				return self.ai.ecohst.Metal.full > 0.3 and self.ai.ecohst.Energy.full > 0.3
 			end,
 			numeric = {min = 0,max = 15},
 			wave = 3},
@@ -113,22 +186,16 @@ function TasksHST:startLabsParams()
 			numeric = {min = 3,mtype = nil,max = 7},
 			wave = 1},
 
-
-			{category = 'rezs',
-			economy = function()
-				return true
-			end,-- rezzers
-			numeric = {min = 1,mtype = 8,max = 10},
-			wave = 2},
-
-
-
 			{category = 'engineers',
 			economy = function()
 				return true
 			end, --help builders and build thinghs
-			numeric = {min = 1,mtype = 8,max = 10},
-			wave = 1},
+			numeric = {min = 1,max = 45},
+			wave =  function()
+				return self.ai.engineerhst.engineerNeeded
+			end
+
+			},
 
 			{category = 'antiairs',
 			economy = function()
@@ -208,8 +275,18 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 5},
-			wave = 3},
+			wave = 1},
 
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,max = 45},
+			wave = function()
+				return self.ai.engineerhst.engineersNeeded
+			end,
+
+			},
 
 			{category = 'subkillers',
 			economy = function()
@@ -221,7 +298,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'breaks',
 			economy = function()
-				return self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
+				return self.ai.ecohst.Metal.full > 0.7 and self.ai.ecohst.Energy.full > 0.7
 			end,
 			numeric = {max = 40},
 			wave = 10},
@@ -303,8 +380,8 @@ function TasksHST:startLabsParams()
 end
 
 function TasksHST:startRolesParams()
-	local M = self.ai.Metal
-	local E = self.ai.Energy
+	local M = self.ai.ecohst.Metal
+	local E = self.ai.ecohst.Energy
 ------------------------------------------------------------------------------------------------------------------------------------
 	------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------
@@ -327,7 +404,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_wind_' ,
 			economy = function(_,param,name)--ecofunc()
-					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -336,7 +413,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.5 or E.income < E.usage )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.5 or E.income < E.usage )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -345,7 +422,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.5 or E.income < E.usage  )  or E.income < 40 ) and self.ai.Energy.income < 3000
+					return ((E.full < 0.5 or E.income < E.usage  )  or E.income < 40 ) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -381,7 +458,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
-					return (M.full < 0.5 or M.income < 6)
+					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -445,7 +522,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_popup2_' ,
 			economy = function(_,param,name)--ecofunc()
-					return  M.full > 0.2 and E.full > 0.2
+					return  true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -499,7 +576,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_antinuke_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > 4000 and M.income > 75 and E.full > 0.5 and M.full > 0.5
+					return E.income > 4000 and M.income > 75
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = 1 , --numericalParameter
@@ -630,7 +707,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
+			location = {min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
 
 		{ 	category = '_popup2_' ,
@@ -639,7 +716,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_popup2_'}} ,
+			location = {list = self.map:GetMetalSpots(),min = 50,neighbours = {'_popup2_'}} ,
 	        },
 
 		{ 	category = '_solar_' ,
@@ -677,12 +754,12 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = 2 , --numericalParameter
-			location = {categories = {'_mex_','factoryMobilities'},max = 1000,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
+			location = {categories = {'_nano_','factoryMobilities'},max = 300,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
 			},
 
 		{ 	category = '_wind_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -692,7 +769,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -702,7 +779,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc(_,param,name)
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -748,7 +825,8 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_convs_' ,
 			economy = function(_,param,name)--ecofunc()
-					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (self.ai.ecohst.extraEnergy > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
+					local eco = self.ai.ecohst
+					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (eco.Energy.income - eco.Energy.usage > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -767,7 +845,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_antinuke_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > 4000 and M.income > 75 and E.full > 0.5 and M.full > 0.2
+					return E.income > 4000 and M.income > 75
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = 1 , --numericalParameter
@@ -817,7 +895,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_popup2_' ,
 			economy = function(_,param,name)--ecofunc()
-					return  M.full > 0.2 and E.full > 0.2
+					return  true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -889,6 +967,81 @@ function TasksHST:startRolesParams()
 	        },
 
 		}
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	self.roles.nano = {
+		{ 	category = '_nano_' ,
+			economy = function(_,param,name)--ecofunc()
+					return (E.full > 0.25  and M.full > 0.25) --or
+					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		}
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+self.roles.metalMaker = {
+		{ 	category = '_convs_' ,
+			economy = function(_,param,name)--ecofunc()
+					local eco = self.ai.ecohst
+					return (E.full > 0.9 )
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        special = true,
+	        },
+		{ 	category = '_estor_' ,
+			economy = function(_,param,name)--ecofunc()
+					return E.full > 0.75 and E.income > 400
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_mstor_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  M.full > 0.75 and M.income > 20 and E.income > 200
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_targeting_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  E.income > 5000
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 3 , --numericalParameter
+			location = {categories = {'selfCat','_nano_'},himself = true} ,
+	        },
+						}
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -904,7 +1057,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location = {min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
@@ -914,7 +1067,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location = {min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
@@ -924,17 +1077,10 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location ={min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 			special = true } , --specialFilter
 
-		{ 	category = '_llt_' ,
-			economy = function(_,param,name)--ecofunc()
-					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
-	        },list = self.map:GetMetalSpots() ,
+
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
@@ -945,6 +1091,14 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = true ,
 	        },
+		{ 	category = '_llt_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,}
+	        },list = self.map:GetMetalSpots() ,
 		}
 
 end

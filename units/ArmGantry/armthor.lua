@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			maxrange="540",
 			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
@@ -57,18 +58,13 @@ return {
 				collisionvolumescales = "31.8865509033 22.2328948975 29.3510131836",
 				collisionvolumetype = "Box",
 				damage = 25000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 25,
-				hitdensity = 100,
 				metal = 5500,
 				object = "Units/armthor_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -76,18 +72,13 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 10000,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
 				height = 4,
-				hitdensity = 100,
 				metal = 2750,
 				object = "Units/arm2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -158,16 +149,15 @@ return {
 				weaponvelocity = 400,
 				customparams = {
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
-					spark_forkdamage = "0.25", --old value = "0.5",
-					spark_maxunits = "5", --old value = "12",
-					spark_range = "125", --old value = "175",
+					spark_forkdamage = "0.25",
+					spark_maxunits = "5",
+					spark_range = "125",
 				},
 				damage = {
 					default = 300,
 					subs = 30,
 				},
 			},
-
 			empmissile = {
 				areaofeffect = 196,
 				avoidfeature = false,
@@ -214,7 +204,6 @@ return {
 					default = 80000,
 				},
 			},
-
 			emp = {
 				areaofeffect = 8,
 				avoidfeature = false,

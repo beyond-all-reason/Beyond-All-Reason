@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_swarmer_emp_t2_v1 = {
 		maxacc = 1.4375,
-
 		maxdec = 2.3,
 		energycost = 5280,
 		metalcost = 99,
@@ -32,7 +31,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorelectricallterrain.s3o",
 		script = "Raptors/raptorc3.cob",
 		seismicsignature = 0,
@@ -76,7 +75,6 @@ return {
 			raptorparalyzersmall = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -103,8 +101,6 @@ return {
 				range = 250,
 				reloadtime = 1.5,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric",
 				soundstartvolume = 42,
 				soundtrigger = true,

@@ -4,7 +4,6 @@ return {
 		airsightdistance = 600,
 		amphibious = true,
 		bankscale = "1",
-
 		maxdec = 0.2,
 		energycost = 2200,
 		metalcost = 72,
@@ -47,7 +46,7 @@ return {
 		speed = 360.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "NOTAIR",
+		nochasecategory = "NOTAIR SPACE",
 		objectname = "Raptors/raptor_pidgeonc.s3o",
 		script = "Raptors/raptorw1c.cob",
 		seismicsignature = 0,
@@ -71,7 +70,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -97,7 +95,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

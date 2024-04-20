@@ -2,7 +2,6 @@ return {
 	critter_crab = {
 		maxacc = 0.1,
 		blocking = false,
-
 		maxdec = 0.01,
 		energycost = 1,
 		metalcost = 0,
@@ -19,10 +18,8 @@ return {
 		category = "MOBILE NOWEAPON NOTAIR NOTSUB",
 		defaultmissiontype = "Standby",
 		explodeas = "SMALLBUG_DEATH",
-		--floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "blank",
 		idleautoheal = 0,
 		leavetracks = false,
 		maneuverleashlength = "640",
@@ -30,7 +27,6 @@ return {
 		health = 44,
 		maxslope = 65,
 		speed = 13.5,
-		--maxwaterdepth = 22,
 		movementclass = "ABOT2",
 		movestate = -1,
 		noautofire = false,
@@ -40,7 +36,7 @@ return {
 		script = "Critters/critter_crab.lua",
 		seismicsignature = 0,
 		selfdestructcountdown = 0,
-		sightdistance = 0,
+		sightdistance = 500,
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
@@ -52,7 +48,6 @@ return {
 		turnrate = 500,
 		unitname = "critter_crab",
 		upright = false,
-		--waterline = 6,
 		workertime = 0,
 		customparams = {
 			paralyzemultiplier = 0,

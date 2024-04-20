@@ -346,14 +346,14 @@ function widget:Initialize()
 	WG['ordermenu'].reloadBindings = reloadBindings
 	WG['ordermenu'].setBottomPosition = function(value)
 		stickToBottom = value
-		widget:ViewResize()
+		doUpdate = true
 	end
 	WG['ordermenu'].getAlwaysShow = function()
 		return alwaysShow
 	end
 	WG['ordermenu'].setAlwaysShow = function(value)
 		alwaysShow = value
-		widget:ViewResize()
+		doUpdate = true
 	end
 	WG['ordermenu'].getBottomPosition = function()
 		return stickToBottom
@@ -367,6 +367,7 @@ function widget:Initialize()
 		else
 			disabledCommand[params[1]] = nil
 		end
+		doUpdate = true
 	end
 	WG['ordermenu'].getColorize = function()
 		return colorize
@@ -877,6 +878,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 			doUpdateClock = os_clock() + 0.01
 		end
 	end
+end
+
+function widget:CommandsChanged() -- required to read changes from EditUnitCmdDesc
+	doUpdateClock = os_clock() + 0.01
 end
 
 function widget:SelectionChanged(sel)

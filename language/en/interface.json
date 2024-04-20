@@ -135,6 +135,15 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"category_econ": "Economy",
+			"category_combat": "Combat",
+			"category_utility": "Utility",
+			"category_production": "Build",
+			"category_econ_descr": "Show economy structures",
+			"category_combat_descr": "Show combat and defensive structures",
+			"category_utility_descr": "Show utility structures",
+			"category_production_descr": "Show production structures",
+			"buildmode_descr": "Enable unit production hotkeys",
 			"homePage": "Go back to main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
@@ -163,6 +172,8 @@
 			"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
 			"guard": "Guard",
 			"guard_tooltip": "Guard another unit against enemy units attacking it",
+			"factoryguard": "Factory Guard",
+			"factoryguard_tooltip": "Builders produced by this factory will automatically guard it",
 			"wait": "Wait",
 			"wait_tooltip": "Pause a unit/factory on processing command/build queues",
 			"repair": "Repair",
@@ -228,17 +239,17 @@
 			"Low traj": "High Traj",
 			"High traj": "High Traj",
 			"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
+			"hound_weapon_plasma": "Heavy Plasma",
+			"hound_weapon_gauss": "Gauss Cannon",
+			"hound_weapon_toggle_tooltip": "Sets weapon to a slow plasma projectile with a large aoe, or a fast projectile gauss weapon",
 
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"gaussCannon": "Gauss Cannon",
-				"heavyPlasma": "Heavy Plasma",
 				"siegeMode": "Spread Fire",
 				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
-				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
+				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire"
 			}
 		},
 		"idleBuilders": {
@@ -459,7 +470,8 @@
 			"metalExtraction": "Metal extraction: %{amount}"
 		},
 		"buildEstimate": {
-			"time": "ETA"
+			"time": "ETA",
+			"cancelled": "Decaying"
 		},
 		"statusBars": {
 			"building": "Building",
@@ -476,7 +488,6 @@
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
-			"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
 		},
@@ -517,7 +528,9 @@
 			"windStrength": "Wind speed",
 			"waterDamage": "Water damage",
 			"raptorOptions": "Raptor options",
-			"modOptions": "Mod options"
+			"modOptions": "Mod options",
+			"reclaimableMetal": "Reclaimable Metal",
+			"reclaimableEnergy": "Reclaimable Energy"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",
@@ -871,6 +884,7 @@
 				"label_playlist": "Playlist",
 				"label_messages": "Messages",
 				"label_cursor": "Cursor",
+				"label_commands": "Commands",
 				"label_hotkeys": "Hotkeys",
 				"label_camera": "Camera",
 				"label_cloak": "Cloak Units",
@@ -1025,6 +1039,7 @@
 				"sndvolgeneral": "general",
 				"sndvolbattle": "battle",
 				"sndvolui": "interface",
+				"sndvolambient": "ambient",
 				"sndvolunitreply": "unit reply",
 				"sndunitsound": "Unit Response Sounds",
 				"sndunitsound_desc": "Unit Response Sounds",
@@ -1158,6 +1173,8 @@
 				"gridmenu_alwaysreturn_descr": "While queueing commands, return to categories page after issuing",
 				"gridmenu_autoselectfirst": "Grid category selects structure",
 				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
+				"gridmenu_labbuildmode": "Factory build mode hotkeys",
+				"gridmenu_labbuildmode_descr": "To use lab building hotkeys, build mode needs to be activated first",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
@@ -1204,6 +1221,8 @@
 				"advplayerlist_side_descr": "show side/faction icon",
 				"advplayerlist_skill": "OpenSkill value",
 				"advplayerlist_skill_descr": "show the player openskill number (used for balancing algorithm)",
+				"advplayerlist_resources": "resource bars",
+				"advplayerlist_resources_descr": "displays the energy/metal resource bar values\n(if you have team members)",
 				"advplayerlist_income": "income values",
 				"advplayerlist_income_descr": "displays the energy/metal income values\n(if you have team members)",
 				"advplayerlist_cpuping": "cpu/ping number",
@@ -1365,6 +1384,8 @@
 				"attackrange_shiftonly_descr": "Show ranges only when shift is pressed",
 				"attackrange_cursorunitrange": "cursor hover range",
 				"attackrange_cursorunitrange_descr": "Show ranges when hovering over a unit",
+				"attackrange_numrangesmult": "Max units multiplier",
+				"attackrange_numrangesmult_descr": "Multiplier to the limit of max amount of units it will make attack ranges active for.",
 				"defrange": "Defense ranges",
 				"defrange_descr": "Displays range of defenses (enemy and ally)",
 				"defrange_allyair": "Ally Air",
@@ -1387,6 +1408,8 @@
 				"lockcamera_hideenemies_descr": "When viewing a players camera, this will display what the tracked player sees",
 				"lockcamera_los": "show tracked player LoS",
 				"lockcamera_los_descr": "When viewing a players camera and los, shows shaded los ranges too",
+				"drag_multicommand_shift": "Repeat command when dragging",
+				"drag_multicommand_shift_descr": "When dragging right-click with a single unit selected, issue repeat commands while holding shift",
 				"playertv_countdown": "Player TV countdown",
 				"playertv_countdown_descr": "Countdown time before it switches player",
 				"displayselectedname": "Display selected playername",
@@ -1424,7 +1447,7 @@
 				"autogroup_persist_descr": "Autogroups persist in new games.\nIf this is enabled, units which were added to an autogroup in previous games\n will be added to the same group in this game.",
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
-				"factoryguard_descr": "Newly created builders will assist their source factory",
+				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",

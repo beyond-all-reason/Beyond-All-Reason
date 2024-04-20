@@ -40,8 +40,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			wpn1turretx = 300,
-			wpn1turrety = 300,
+			weapon1turretx = 300,
+			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -51,17 +51,12 @@ return {
 				collisionvolumescales = "60.1392364502 36.4953460693 58.797164917",
 				collisionvolumetype = "Box",
 				damage = 7500,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 40,
-				hitdensity = 100,
 				metal = 4000,
 				object = "Units/scavboss/armpwt4_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

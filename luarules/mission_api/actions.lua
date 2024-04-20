@@ -1,4 +1,13 @@
 local trackedUnits = GG['MissionAPI'].TrackedUnits
+local triggers = GG['MissionAPI'].Triggers
+
+local function enableTrigger(triggerId)
+	triggers[triggerId].settings.active = true
+end
+
+local function disableTrigger(triggerId)
+	triggers[triggerId].settings.active = false
+end
 
 local function sendMessage(message)
 	Spring.Echo(message)
@@ -27,6 +36,8 @@ local function despawnUnits(name)
 end
 
 return {
+	EnableTrigger = enableTrigger,
+	DisableTrigger = disableTrigger,
 	SendMessage = sendMessage,
 	SpawnUnits = spawnUnits,
 	DespawnUnits = despawnUnits,

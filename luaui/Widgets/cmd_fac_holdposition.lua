@@ -28,7 +28,7 @@ end
 
 local unitSet = {}
 
-local unitArray_ = {
+local unitNames = {
   "armlab",
   "armalab",
   "armvp",
@@ -39,7 +39,6 @@ local unitArray_ = {
   "armfhp",
   "armshltx",
   "armshltxuw",
-  "armcom",
   "armamsub",
   "corlab",
   "coralab",
@@ -52,19 +51,29 @@ local unitArray_ = {
   "corgant",
   "corgantuw",
   "coramsub",
-  "corcom",
   "leglab",
   "legvp",
   "legalab",
   "legavp",
   "leggant",
 }
-local unitArray = {}
-for _, name in pairs(unitArray_) do
-  unitArray[UnitDefNames[name].id] = true
-  unitArray[UnitDefNames[name.."_scav"].id] = true
+-- add commanders too
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		unitNames[#unitNames+1] = unitDef.name
+	end
 end
-unitArray_ = nil
+
+local unitArray = {}
+for _, name in pairs(unitNames) do
+	if UnitDefNames[name] then
+		unitArray[UnitDefNames[name].id] = true
+	end
+	if UnitDefNames[name.."_scav"] then
+		unitArray[UnitDefNames[name.."_scav"].id] = true
+	end
+end
+unitNames = nil
 
 local myTeamID = Spring.GetMyTeamID()
 

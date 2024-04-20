@@ -1,5 +1,19 @@
 // Mono-space font required
 {
+"terrain": {
+	"analyze": "armcom",
+
+	// These constants control how to decide between Seas and Lakes.
+	"lake_tiles": 100,  // 300,
+	"lake_width_tiles": 10,  // 32,
+
+	// At least area_min_tiles connected Tiles are necessary for an Area to be created.
+	"area_min_tiles": 32,  // 64,
+
+	"areas_merge_size": 64,  // 80,
+	"areas_merge_altitude": 64  // 80  // 10 * altitude_scale
+},
+
 "building": {
 	"class_land": {
 		"fac_land": {
@@ -43,7 +57,7 @@
 			"yard": [10, 12]
 		},
 		"fac_strider": {
-			"type": ["rectangle", "special"],
+			"type": ["rectangle", "factory"],
 			"offset": [0, 12],
 			"yard": [16, 20]
 		},
@@ -129,6 +143,10 @@
 			"yard": [4, 4],
 			"not_ignore": ["factory", "def_low", "terra"]
 		},
+		"wall": {
+			"type": ["rectangle", "def_low"],
+			"not_ignore": ["factory", "mex", "geo", "terra"]
+		},
 		"_default_": {
 			"type": ["rectangle", "unknown"],
 			"yard": [6, 6],
@@ -160,7 +178,8 @@
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
 		"def_low": ["armllt", "armclaw", "corllt", "cormaw"],
 		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp"],
-		"small": ["armrad", "corrad", "armfrad", "corfrad"]
+		"small": ["armrad", "corrad", "armfrad", "corfrad"],
+		"wall": ["armdrag", "cordrag"]
 	}
 }
 }

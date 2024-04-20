@@ -8,87 +8,120 @@ function EcoHST:internalName()
 	return "ecohst"
 end
 
-
-local framesPerAvg = 20
-local resourceNames = { "Energy", "Metal" }
-local resourceCount = #resourceNames
+local average = 30
 
 function EcoHST:Init()
 	self.DebugEnabled = false
-	self.hasData = false -- so that it gets data immediately
+	self.resourceNames = { "Energy", "Metal" }
 	self.samples = {}
-	self.ai.Energy = {}
-	self.ai.Metal = {}
-	self:Update()
+	self.Index = 1
+
+	local McurrentLevel, Mstorage, Mpull, Mincome, Mexpense, Mshare, Msent, Mreceived = Spring.GetTeamResources(self.ai.id, 'metal')
+	local EcurrentLevel, Estorage, Epull, Eincome, Eexpense, Eshare, Esent, Ereceived = Spring.GetTeamResources(self.ai.id, 'energy')
+	for i= 1,average do
+		for idx,name in pairs(self.resourceNames) do
+			self.samples[i] =  {}
+			self.samples[i].Metal = {}
+			self.samples[i].Energy = {}
+			local M = self.samples[i]['Metal']
+			M.reserves = McurrentLevel
+			M.capacity = Mstorage
+			M.pull = Mpull
+			M.income = Mincome
+			M.usage = Mexpense
+			M.share = Mshare
+			M.sent = Msent
+			M.received = Mreceived
+			M.full = 1
+
+			local E = self.samples[i]['Energy']
+			E.reserves = EcurrentLevel
+			E.capacity = Estorage
+			E.pull = Epull
+			E.income = Eincome
+			E.usage = Eexpense
+			E.share = Eshare
+			E.sent = Esent
+			E.received = Ereceived
+			E.full = 1
+		end
+	end
+	self.Energy = {reserves = 0, capacity = 1000, pull = 0 , income = 20, usage = 0, share = 0, sent = 0, received = 0,full = 1}
+	self.Metal = {reserves = 0, capacity = 1000, pull = 0 , income = 20, usage = 0, share = 0, sent = 0, received = 0,full = 1}
+
 end
 
 function EcoHST:Update()
-	--if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	local sample = {}
-	-- because resource data is stored as userdata
-	for i = 1, resourceCount do
-		local name = resourceNames[i]
-		local udata = self.game:GetResourceByName(name)
-		sample[name] = { income = udata.income, usage = udata.usage, reserves = udata.reserves }
-		self.ai[name].capacity = udata.capacity -- capacity is not something that fluctuates wildly
-	end
-	self.samples[#self.samples+1] = sample
-	if not self.hasData or #self.samples == framesPerAvg then
-		self:Average()
-		self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
-		self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
-		self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
-		self.ai.scaledEnergy = self.ai.Energy.reserves * self.ai.realEnergy
-		self.extraEnergy = self.ai.Energy.income - self.ai.Energy.usage
-		self.extraMetal = self.ai.Metal.income - self.ai.Metal.usage
-	end
-end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	local currentSample = self.samples[self.Index]
+	local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, 'metal')
+	local M = currentSample.Metal
+	M.reserves = currentLevel
+	M.capacity = storage
+	M.pull = pull
+	M.income = income
+	M.usage = expense
+	M.share = share
+	M.sent = sent
+	M.received = received
 
-function EcoHST:Average()
-	local resources = {}
-	-- get sum of samples
-	local samples = self.samples
-	for i = 1, #samples do
-		local sample = samples[i]
-		for name, resource in pairs(sample) do
-			for property, value in pairs(resource) do
-				resources[name] = resources[name] or {}
-				resources[name][property] = (resources[name][property] or 0) + value
+	currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, 'energy')
+	local E = currentSample.Energy
+	E.reserves = currentLevel
+	E.capacity = storage
+	E.pull = pull
+	E.income = income
+	E.usage = expense
+	E.share = share
+	E.sent = sent
+	E.received = received
+
+	local reset = false
+	for i ,sample in pairs(self.samples) do
+		for name, properties in pairs(sample) do
+			for property, value in pairs(properties) do
+				if not reset then
+					self[name][property] = 0
+				end
+				self[name][property] = self[name][property] + value
 			end
 		end
+		reset = true
 	end
-	-- get averages
-	local totalSamples = #self.samples
-	for name, resource in pairs(self.samples[1]) do
-		for property, value in pairs(resource) do
-			self.ai[name][property] = resources[name][property] / totalSamples
+	for i,name in pairs(self.resourceNames) do
+		for property, value in pairs(self[name]) do
+
+			self[name][property] = (self[name][property] / average)
 		end
-		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
-		self.ai[name].effective = self.ai[name].extra / self.ai[name].income
-		if self.ai[name].capacity == 0 then
-			self.ai[name].full = math.huge
+		if self[name].capacity == 0 then
+			self[name].full = math.huge
 		else
-			self.ai[name].full = self.ai[name].reserves / self.ai[name].capacity
-		end
-		if self.ai[name].income == 0 then
-			self.ai[name].tics = math.huge
-		else
-			self.ai[name].tics = self.ai[name].reserves / self.ai[name].income
+			self[name].full = (self[name].reserves) / self[name].capacity
 		end
 	end
-	self.hasData = true
-	self.samples = {}
+	self.Index = self.Index + 1
+	if self.Index > average then
+		self.Index = 1
+	end
 	self:DebugAll()
 end
 
 function EcoHST:DebugAll()
-	if DebugEnabled then
-		for i, name in pairs(resourceNames) do
-			local resource = self.ai[name]
-			for property, value in pairs(resource) do
-				self:EchoDebug(name .. "." .. property .. ": " .. value)
-			end
+	if self.DebugEnabled then
+-- 		for i,sample in pairs(self.samples) do
+-- 			for name, properties in pairs(sample) do
+-- 				for property, value in pairs(properties) do
+-- 					self:EchoDebug('sample = ',i,name,  ".",property , ": " , value)
+-- 				end
+-- 			end
+-- 		end
+		for property,value in pairs(self.Metal) do
+			self:EchoDebug('average Metal',property,value)
 		end
-	end
-end
+		for property,value in pairs(self.Energy) do
+			self:EchoDebug('average Energy',property,value)
+		end
 
+	end
+
+end

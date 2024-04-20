@@ -3,7 +3,6 @@ return {
 		maxacc = 0.414,
 		airsightdistance = 1800,
 		autoheal = 25,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 302,
@@ -33,9 +32,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorapexallterrainassault.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptorapexallterraina.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
@@ -158,11 +156,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				onlytargetcategory = "VTOL",

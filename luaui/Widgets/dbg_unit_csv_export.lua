@@ -12,6 +12,7 @@ end
 
 
 local filename = "unitlist.csv"
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 
 local function round(num, numDecimalPlaces)
@@ -20,10 +21,21 @@ local function round(num, numDecimalPlaces)
     else return math.ceil(num * mult - 0.5) / mult end
 end
 
-function widget:Initialize()
-    if Script.LuaRules('GetIconTypes') then
-        iconTypesMap = Script.LuaRules.GetIconTypes()
+local function buildTree(conDefID, tree)
+    local buildOptions = UnitDefs[conDefID].buildOptions
+    for _, option in ipairs(buildOptions) do
+        if not tree[option] then
+            tree[option] = true
+            if UnitDefs[option].buildOptions then
+                tree = buildTree(option, tree)
+            end
+        end
     end
+
+    return tree
+end
+
+function widget:Initialize()
     local file = assert(io.open(filename,'w'), "Unable to save file")
 
     local columnSeparator = ';'
@@ -52,7 +64,7 @@ function widget:Initialize()
         'hover'..columnSeparator..
         'ship'..columnSeparator..
         'tank'..columnSeparator..
-        'kbot'..columnSeparator..
+        'bot'..columnSeparator..
         'building'..columnSeparator..
         'dps'..columnSeparator..
         'weaponrange'..columnSeparator..
@@ -87,15 +99,8 @@ function widget:Initialize()
         end
     end
 
-    -- gather all units that any builder has in its buildoptions
-    local inBuildoptions = {}
-    for udid, unitDef in pairs(UnitDefs) do
-        if unitDef.buildOptions then
-            for id, optionDefID in pairs(unitDef.buildOptions) do
-                inBuildoptions[optionDefID] = true
-            end
-        end
-    end
+    local inBuildoptions = buildTree(UnitDefNames["armcom"].id, {})
+    inBuildoptions = buildTree(UnitDefNames["corcom"].id, inBuildoptions)
 
     for udid, unitDef in pairs(UnitDefs) do
         if inBuildoptions[udid] or unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'legcom' then
@@ -299,7 +304,7 @@ function widget:Initialize()
                     unitDef.translatedHumanName..columnSeparator..
                     unitDef.translatedTooltip..columnSeparator..
                     description..columnSeparator..
-                    (iconTypesMap[unitDef.iconType] and string.gsub(string.gsub(iconTypesMap[unitDef.iconType], 'icons/', ''), '.png', '') or '')..columnSeparator..
+                    (iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..
@@ -315,7 +320,7 @@ function widget:Initialize()
                     (unitDef.modCategories["hover"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["ship"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["tank"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["kbot"] and '1' or '')..columnSeparator..
+                    (unitDef.modCategories["bot"] and '1' or '')..columnSeparator..
                     ((unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) and '1' or '')..columnSeparator..
                     dps..columnSeparator..
                     weaponRange..columnSeparator..

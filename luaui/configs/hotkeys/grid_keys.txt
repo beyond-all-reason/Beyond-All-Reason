@@ -95,6 +95,9 @@ bind               sc_t  repeat 1
 bind Shift+sc_t,Shift+sc_t  repeat 0
 bind         Shift+sc_t  repeat 1
 
+bind Ctrl+sc_g,Ctrl+sc_g factoryguard 0
+bind           Ctrl+sc_g factoryguard 1
+
 bind           Any+sc_'  togglelos
 bind          Ctrl+sc_t  toggleoverview
 bind           Alt+sc_o  cameraflip
@@ -110,7 +113,6 @@ bind             Any+f8  ShowElevation
 bind                f10  options
 bind                f11  luaui selector
 bind            Any+f12  screenshot png
-bind      Alt+backspace  fullscreen
 
 bind          Ctrl+sc_`  group unset
 bind           Alt+sc_`  remove_from_autogroup

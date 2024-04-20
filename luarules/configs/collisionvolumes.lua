@@ -118,6 +118,10 @@ unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
 }
+unitCollisionVolume['legsolar'] = {
+	on={70,70,70,0,-12,1,0,1,0},
+	off={40,76,40,0,-10,1,0,1,0},
+}
 
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
@@ -176,8 +180,8 @@ pieceCollisionVolume['corgator'] = {
 	['1']={15,5,25,0,0,2,2,1},
 }
 pieceCollisionVolume['corsala'] = {
-	['0']={31,17,31,0,3.5,0,2,1},
-	['1']={12,5.75,15,0,1.875,1.5,2,1},
+	['0']={34,20,34,0,3.5,0,2,1},
+	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }
 
 pieceCollisionVolume['armshockwave'] = {

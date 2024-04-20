@@ -43,12 +43,11 @@ function ArmyHST:Init()
 
 		}
 	self.engineers = {
-		armmls = true,
-		armfark = true,
-		armconsul = true,
-		corfast = true,
-		cormls = true,
-
+		armmls = 'armacs',
+		armfark = 'armack',
+		armconsul = 'amracv',
+		corfast = 'corack',
+		cormls = 'coracs',
 		}
 	self.wartechs = {
 		armdecom = true,
@@ -151,7 +150,7 @@ function ArmyHST:Init()
 		corstorm = true,
 		armart = true,
 		corwolv = true,
-		armfido = true,
+		armfboy = true,
 		cormort = true,
 		armmart = true,
 		cormart = true,
@@ -180,7 +179,7 @@ function ArmyHST:Init()
 		corthud = true,
 		armstump = true,
 		corraid = true,
-		armmav = true,
+		armfido = 'armmav',
 		corcan = true,
 		armbull = true,
 		correap = true,
@@ -205,7 +204,7 @@ function ArmyHST:Init()
 		armwar = true,
 		armjanus = true,
 		corlevlr = true,
-		armfboy = true,
+		armsnipe = true,
 		corsumo = true,
 		corgol = true,
 		armmanni = true,
@@ -741,15 +740,15 @@ ArmyHST.factoryExitSides = {
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
-	coravp = 1,
-	coralab = 1,
-	corasy = 1,
-	coraap = 1,
+	coravp = 'corvp',
+	coralab = 'corlab',
+	corasy = 'corsy',
+	coraap = 'corap',
 	corplat = 1,
-	armavp = 1,
-	armalab = 1,
-	armasy = 1,
-	armaap = 1,
+	armavp = 'armvp',
+	armalab = 'armlab',
+	armasy = 'armsy',
+	armaap = 'armap',
 	armplat = 1,
 	}
 
@@ -762,15 +761,13 @@ ArmyHST.expFactories = {
 	}
 
 -- leads to experimental
-ArmyHST.leadsToExpFactories = {
-	corlab = 1,
-	armlab = 1,
-	coralab = 1,
-	armalab = 1,
-	corsy = 1,
-	armsy = 1,
-	corasy = 1,
-	armasy = 1,
+ArmyHST.t1tot2factory = {
+	corlab = 'coralab',
+	armlab = 'armalab',
+	corsy = 'corasy',
+	armsy = 'armasy',
+	armvp = 'armavp',
+	corvp = 'coravp',
 	}
 
 ArmyHST.commanderList = {

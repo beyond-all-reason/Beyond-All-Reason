@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
@@ -36,7 +35,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_electric.s3o",
 		pushresistant = true,
 		script = "Raptors/raptor_miniqueen.cob",
@@ -121,7 +120,6 @@ return {
 			melee = {
 				areaofeffect = 30,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -149,8 +147,6 @@ return {
 				range = 400,
 				reloadtime = 15,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
 				soundstartvolume = 65,
 				soundtrigger = true,

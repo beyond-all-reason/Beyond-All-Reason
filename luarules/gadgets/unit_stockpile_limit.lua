@@ -12,72 +12,68 @@ function gadget:GetInfo()
 end
 
 
-
-if gadgetHandler:IsSyncedCode() then -- SYNCED --
+if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOCKPILE = CMD.STOCKPILE
 	local CMD_INSERT = CMD.INSERT
 	local StockpileDesiredTarget = {}
 
-	----------------------------------------------------------------------------
-	-- Config
-	----------------------------------------------------------------------------
 	local defaultStockpileLimit = 99
-	local isStockpilingUnit = { -- number represents maximum stockpile. You can also use stockpileLimit customParam which overwrites whatever is set in this table
-		[UnitDefNames['armmercury'].id] = 5,
-		[UnitDefNames['corscreamer'].id] = 5,
+	local isStockpilingUnitNames = { -- number represents maximum stockpile. You can also use stockpileLimit customParam which overwrites whatever is set in this table
+		['armmercury'] = 5,
+		['corscreamer'] = 5,
 
-		[UnitDefNames['armthor'].id] = 2,
+		['armthor'] = 2,
 
-		[UnitDefNames['legmos'].id] = 8,
-		[UnitDefNames['legmineb'].id] = 1,
+		['legmos'] = 8,
+		['legmineb'] = 1,
 
-		[UnitDefNames['armsilo'].id] = 10,
-		[UnitDefNames['corsilo'].id] = 10,
-		[UnitDefNames['cordesolator'].id] = 10,
-		[UnitDefNames['armseadragon'].id] = 10,
+		['armsilo'] = 10,
+		['corsilo'] = 10,
+		['cordesolator'] = 10,
+		['armseadragon'] = 10,
 
-		[UnitDefNames['armamd'].id] = 20,
-		[UnitDefNames['corfmd'].id] = 20,
-		[UnitDefNames['raptor_turret_antinuke_t2_v1'].id] = 5,
-		[UnitDefNames['raptor_turret_antinuke_t3_v1'].id] = 10,
+		['armamd'] = 20,
+		['corfmd'] = 20,
+		['raptor_turret_antinuke_t2_v1'] = 5,
+		['raptor_turret_antinuke_t3_v1'] = 10,
 
-		[UnitDefNames['armjuno'].id] = 20,
-		[UnitDefNames['corjuno'].id] = 20,
+		['armjuno'] = 20,
+		['corjuno'] = 20,
 
-		[UnitDefNames['armcarry'].id] = 20,
-		[UnitDefNames['corcarry'].id] = 20,
-		
-		[UnitDefNames['armantiship'].id] = 20,
-		[UnitDefNames['corantiship'].id] = 20,
+		['armcarry'] = 20,
+		['corcarry'] = 20,
 
-		[UnitDefNames['armscab'].id] = 20,
-		[UnitDefNames['cormabm'].id] = 20,
+		['armantiship'] = 20,
+		['corantiship'] = 20,
 
-		[UnitDefNames['armemp'].id] = 10,
-		[UnitDefNames['cortron'].id] = 10,
+		['armscab'] = 20,
+		['cormabm'] = 20,
 
-		[UnitDefNames['armbotrail'].id] = 50,
-		
-		[UnitDefNames['legcom'].id] = 2,
-		[UnitDefNames['legcomlvl2'].id] = 2,
-		[UnitDefNames['legcomlvl3'].id] = 3,
-		[UnitDefNames['legcomlvl4'].id] = 4,
-		
-		[UnitDefNames['legstarfall'].id] = 1,
-		
+		['armemp'] = 10,
+		['cortron'] = 10,
+		['legperdition'] = 10,
+
+		['armbotrail'] = 50,
+
+		['legcom'] = 2,
+		['legcomlvl2'] = 2,
+		['legcomlvl3'] = 3,
+		['legcomlvl4'] = 4,
+
+		['legstarfall'] = 1,
 	}
-	----------------------------------------------------------------------------
-	-- Scav copies
-	----------------------------------------------------------------------------
-
-	local isStockpilingUnitScav = {}
-	for defID, maxCount in pairs(isStockpilingUnit) do
-		if UnitDefNames[UnitDefs[defID].name .. "_scav"] then
-			isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
+	-- convert unitname -> unitDefID + add scavengers
+	local isStockpilingUnit = {}
+	for name, params in pairs(isStockpilingUnitNames) do
+		if UnitDefNames[name] then
+			isStockpilingUnit[UnitDefNames[name].id] = params
+			if UnitDefNames[name..'_scav'] then
+				isStockpilingUnit[UnitDefNames[name..'_scav'].id] = params
+			end
 		end
 	end
-	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
+	isStockpilingUnitNames = nil
 
 	----------------------------------------------------------------------------
 	----------------------------------------------------------------------------
@@ -174,14 +170,14 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
-	
+
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 		if canStockpile[unitDefID] then
 			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
-	
+
 	function gadget:UnitCaptured(unitID, unitDefID, unitTeam)
 		if canStockpile[unitDefID] then
 			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
@@ -196,7 +192,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		StockpileDesiredTarget[unitID] = nil
 	end
-	
+
 	function gadget:Initialize()
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do

@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
@@ -39,7 +38,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_fire.s3o",
 		pushresistant = true,
 		script = "Raptors/raptor_miniqueen.cob",
@@ -173,6 +172,7 @@ return {
 				def = "flamethrowerspike",
 				maindir = "0 0 1",
 				maxangledif = 155,
+				badtargetcategory = "SPACE",
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR",
@@ -189,6 +189,7 @@ return {
 			[5] = {
 				def = "flamethrowermain",
 				maxangledif = 180,
+				badtargetcategory = "SPACE",
 			},
 		},
 	},

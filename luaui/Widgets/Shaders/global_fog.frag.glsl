@@ -1541,7 +1541,7 @@ void main(void)
 	
 	//Calculate backscatter color from minimap if possible?
 	#if (USEMINIMAP == 1) 
-		vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
+		vec4 minimapcolor = textureLod(miniMapTex, heightmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
 		//if (fromCameraNormalized.y > 0 && mapdepth > 0.9999) rayUpness = 0;
 		fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow * rayUpness ;
 	#endif

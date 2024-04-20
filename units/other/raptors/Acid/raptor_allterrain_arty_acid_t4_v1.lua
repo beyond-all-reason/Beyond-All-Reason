@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_acid_t4_v1 = {
 		maxacc = 0.115,
-
 		maxdec = 0.414,
 		energycost = 12320,
 		metalcost = 396,
@@ -34,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_artillery_meteor_v2_acid.s3o",
 		script = "Raptors/raptor_artillery_v2.cob",
 		seismicsignature = 0,
@@ -59,7 +58,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -99,7 +97,6 @@ return {
 				sizedecay = 0.04,
 				alphaDecay = 0.18,
 				stages = 8,
-				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 2000,
 				reloadtime = 20,

@@ -14,6 +14,7 @@ local lastGameUpdate = Spring.GetGameSeconds()
 
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -30,6 +31,7 @@ local font
 
 local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
+local blinkTime = 20
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -175,16 +177,19 @@ local function drawEtaText(timeLeft, yoffset)
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
+		local canceled = timeLeft<0
+		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame()%blinkTime>=blinkTime/2) and "\255\255\255\255" or"\255\255\1\1")..Spring.I18N('ui.buildEstimate.cancelled').." ")
+		timeLeft = math.abs(timeLeft)
 		local minutes = timeLeft / 60
 		local seconds = timeLeft % 60
-		etaText = etaPrefix .. string.format("\255\1\255\1%02d:%02d", minutes, seconds)
+		etaText = etaPrefix .. string.format((not canceled and "\255\1\255\1" or "") .. "%02d:%02d", minutes, seconds)
 	end
 
 	glTranslate(0, yoffset, 10)
 	glBillboard()
 	glTranslate(0, 5, 0)
 	font:Begin()
-	font:Print(etaText, 0, 0, 6, "co")
+	font:Print(etaText, 0, -10, 6, "co")
 	font:End()
 end
 

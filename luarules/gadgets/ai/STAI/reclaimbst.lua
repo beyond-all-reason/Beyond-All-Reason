@@ -4,9 +4,13 @@ function ReclaimBST:Name()
 	return "ReclaimBST"
 end
 
+function ReclaimBST:Init()
+	self.position = self.unit:Internal():GetPosition()
+end
+
 function ReclaimBST:Act()
 	local timearea = 10000
-	self.act = self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
+	self.act = self.unit:Internal():AreaReclaim(self.position,timearea)
 	self.unit:ElectBehaviour()
 end
 
@@ -18,6 +22,7 @@ function ReclaimBST:Update()
 -- 	end
 -- 	self.uFrame = f
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ReclaimBST' then return end
+	self.position.x,self.position.y,self.position.z = self.unit:Internal():GetRawPos()
 	self:Act()
 
 end
