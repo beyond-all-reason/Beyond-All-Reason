@@ -14,7 +14,7 @@ end
 if not gadgetHandler:IsSyncedCode() then return false end
 
 -- is unba com on
-if true and Spring.GetModOptions().unbacom == 0 then return false end
+if true and Spring.GetModOptions().unbacom ~= "enabled" then return false end
 Spring.Echo("the script ran?!")
 Spring.Echo(Spring.GetModOptions().unbacom)
 local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost

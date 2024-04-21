@@ -237,7 +237,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unbacom ~= 0 then
+		if modOptions.unbacom == "enabled" then
 			local function setTrue(options)
 				local set = {}
 				for _, option in ipairs(options) do
@@ -252,7 +252,7 @@ function UnitDef_Post(name, uDef)
 			
 			if unbacomlist[name] then
 				Spring.Echo(name)
-				uDef.customparams.evolution_timer = math.floor(modOptions.unbacom*60)
+				uDef.customparams.evolution_timer = math.floor(modOptions.unbacomleveuprate*60)
 				Spring.Echo(name)
 			end
 
