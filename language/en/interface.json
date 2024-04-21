@@ -628,6 +628,7 @@
 			"tooClose": "You cannot place your start position too close to another player"
 		},
 		"draftOrderMod": {
+			"order": "Order",
 			"youDidNotPlace": "You did not place. The next player can now start placing",
 			"yourTurnToPlace": "%{warnColor}You%{textColor} can now start placing",
 			"nextIs": "%{name} can start placing in %{number}...",

@@ -98,6 +98,19 @@ local showDMWelcomeMessage = nil
 local current_playerID = -1
 local next_playerID = -1
 local auto_ready_disable = false
+local myTeamPlayersOrder = nil
+local currentPlayerIndex = 0
+local function findPlayerName(playerID)
+	if myTeamPlayersOrder then
+		for _, player in ipairs(myTeamPlayersOrder) do
+			if player.id == playerID and player.name ~= "unconnected" then
+				return player.name
+			end
+		end
+	end
+	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected"
+	return tname
+end
 -- DraftOrder mod end
 
 local function createButton()
@@ -362,42 +375,65 @@ function widget:DrawScreen()
 
 	-- DraftOrder mod start
 	if draftModeLoaded then
-		local msg = ""
-		if myTurn then -- show counter
-			if not startPointChosen then -- but not if you are already good
-				if next_playerID == -1 then
-					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
-				else
-					local tname = select(1, Spring.GetPlayerInfo(next_playerID, false))
-					if tname == nil then tname = "unconnected" end
-					msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor }) .. ". " .. Spring.I18N('ui.draftOrderMod.nextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()) })
-				end
-			end
-		else
-			if next_playerID == myPlayerID then
-				local tname = select(1, Spring.GetPlayerInfo(current_playerID, false))
-				if tname == nil then tname = "unconnected" end
-				msg = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DMDefaultColorString, warnColor = DMWarnColor})
-			elseif next_playerID > -1 then
-				local tname, tname2 = select(1, Spring.GetPlayerInfo(current_playerID, false)), select(1, Spring.GetPlayerInfo(next_playerID, false))
-				if tname == nil then tname = "unconnected" end
-				if tname2 == nil then tname2 = "unconnected" end
-				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname }) .. ", " .. Spring.I18N('ui.draftOrderMod.followedBy', { name2 = tname })
-			elseif current_playerID > -1 then
-				local tname = select(1, Spring.GetPlayerInfo(current_playerID, false))
-				if tname == nil then tname = "unconnected" end
-				msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
-			end
-		end
-
 		font:Begin()
 		font:Print(showDMWelcomeMessage, vsx * 0.5, vsy * 0.4, 18.5 * uiScale, "co") -- lower than center of your screen
 		font:End()
 
+		local msg = ""
+		if myTeamPlayersOrder then
+			if myTurn then -- show counter
+				if not startPointChosen then -- but not if you are already good
+					if next_playerID == -1 then
+						msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
+					else
+						local tname = findPlayerName(next_playerID)
+						msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor }) .. ". " .. Spring.I18N('ui.draftOrderMod.nextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()) })
+					end
+				end
+			else
+				if next_playerID == myPlayerID then
+					local tname = findPlayerName(current_playerID)
+					msg = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DMDefaultColorString, warnColor = DMWarnColor})
+				elseif next_playerID > -1 then
+					local tname, tname2 = findPlayerName(current_playerID), findPlayerName(next_playerID)
+					msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname }) .. ", " .. Spring.I18N('ui.draftOrderMod.followedBy', { name2 = tname })
+				elseif current_playerID > -1 then
+					local tname = findPlayerName(current_playerID)
+					msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
+				end
+			end
+		end
+
 		if not mySpec then
-			font:Begin()
-			font:Print(msg, vsx * 0.5, vsy * 0.7, 18.5 * uiScale, "co") -- higher than center of your screen
-			font:End()
+			-- We can draw "fancy" playerOrder in the right center part of the screen now, and show '->' next to playerName whos' turn it is right now
+			if myTeamPlayersOrder then
+				font:Begin()
+				local x = vsx * 0.95
+				local y_offset = #myTeamPlayersOrder * 0.03
+				local y = vsy * (0.5 + y_offset + 0.03)
+				font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.order').. ":", x, y, 18.5 * uiScale, "ro")
+				for i, data in ipairs(myTeamPlayersOrder) do
+					local playerID = data.id
+					local playerName = findPlayerName(playerID)
+					y = vsy * (0.5 + y_offset - (i-1) * 0.03) -- player order vertical position - descending order
+					local msgMod = ""
+					local lockState = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_lockState")
+					if i == currentPlayerIndex then
+						msgMod = DMWarnColor .. "→ " -- only arrows are ok, checkmarks and others error out
+					elseif lockState == 1 then -- slightly better than readyState because you can tell for sure if someone placed and is happy with it
+						msgMod = DMDefaultColorString .. "* "
+					else
+						msgMod = DMDefaultColorString .. msgMod
+					end
+
+					font:Print(msgMod .. playerName, x, y, 18.5 * uiScale, "ro")
+				end
+				font:End()
+
+				font:Begin()
+				font:Print(msg, vsx * 0.5, vsy * 0.68, 18.5 * uiScale, "co") -- higher than center of your screen
+				font:End()
+			end
 
 			if os.clock() >= fairTimeout and not ihavejoined_fair then
 				Spring.SendLuaRulesMsg("i_have_joined_fair")
@@ -414,7 +450,7 @@ function widget:DrawScreen()
 					if not myTurnIsLast and myTurnTimeout and os.clock() <= (myTurnTimeout + YourTurnTimeout) then
 						local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
 						font:Begin()
-						font:Print(text, vsx * 0.5, vsy * 0.78, 18.5 * uiScale, "co")
+						font:Print(text, vsx * 0.5, vsy * 0.82, 18.5 * uiScale, "co")
 						font:End()
 					else
 						myTurnTimeout = nil
@@ -538,9 +574,21 @@ function widget:RecvLuaMsg(msg, playerID)
 		table.insert(words, word)
 	end
 
-	if words[1] == "DraftOrderPlayerTurn" then
-		current_playerID = tonumber(words[2] or -1)
-		next_playerID = tonumber(words[3] or -1)
+	if words[1] == "DraftOrderPlayersOrder" then
+		allyTeamID_about = tonumber(words[2] or -1)
+		if allyTeamID_about ~= myAllyTeamID then return end
+		myTeamPlayersOrder = {}
+		for i = 3, #words do
+			local playerid = tonumber(words[i])
+			tname = select(1, Spring.GetPlayerInfo(playerid, false)) or "unconnected"
+			table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+		end
+	elseif words[1] == "DraftOrderPlayerTurn" then
+		allyTeamID_about = tonumber(words[2] or -1)
+		if allyTeamID_about ~= myAllyTeamID then return end
+		current_playerID = tonumber(words[3] or -1)
+		next_playerID = tonumber(words[4] or -1)
+		currentPlayerIndex = tonumber(words[5] or -1)
 		if current_playerID == myPlayerID then
 			myTurn = true
 			if next_playerID == -1 then

@@ -188,11 +188,26 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function printTeamNamesAndIDs(teamOrder)
-		for _, teamID in ipairs(teamOrder) do
-			local tname = teamPlayerData[teamID].name or "unknown"
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Name: " .. tname .. ", Team ID: " .. teamID)
+	local function sendTeamOrder(teamOrder, allyTeamID_ready)
+		-- we send to allyTeamID Turn1 Turn2 Turn3 {...}
+		local orderMsg = ""
+		local orderIds = ""
+		local alone = true
+		for i, teamID in ipairs(teamOrder) do
+			local tname = teamPlayerData[teamID].name or "unknown" -- "unknown" should not happen if we create the order after everyone connects, so we are good
+			if i == 1 then
+				orderMsg = tname
+				orderIds = FindPlayerIDFromTeamID(teamID)
+			else
+				if alone then alone = false end
+				orderMsg = orderMsg .. ", " .. tname
+				orderIds = orderIds .. " " .. FindPlayerIDFromTeamID(teamID)
+			end
 		end
+		if not alone then
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Order [id:"..allyTeamID_ready.."]: "..orderMsg)
+		end
+		Spring.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
 	end
 
 	local function calculateVotedPercentage(allyTeamID)
@@ -251,15 +266,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SendDraftMessageToPlayer(allyTeamID, target_num)
+		-- we send allyTeamID currentTurn nextTurn index
 		if target_num + 1 <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
 			local playerID_next_in_queue_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num + 1])
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. playerID_next_in_queue_draft)
+			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. playerID_draft .. " " .. playerID_next_in_queue_draft .. " " .. target_num)
 		elseif target_num <= #allyTeamSpawnOrder[allyTeamID] then
 			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. playerID_draft .. " " .. "-1")
+			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. playerID_draft .. " " .. "-1 " .. target_num)
 		else
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn -1 -1")
+			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " -1 -1 " .. target_num)
 		end
 	end
 
@@ -310,11 +326,9 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if draftMode == "skill" or draftMode == "random" then
-			-- Debug: Print the draft order for everybody to see (changed to log, no need to show it in chat)
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Spawn Order for AllyTeam: "..allyTeamID_ready)
-			printTeamNamesAndIDs(allyTeamSpawnOrder[allyTeamID_ready])
 			allyTeamSpawnOrderPlaced[allyTeamID_ready] = 1 -- First team in the order queue must place now
 			SendDraftMessageToPlayer(allyTeamID_ready, 1) -- We send the team a message notifying them it's their turn to place
+			sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready)
 		end
 	end
 
