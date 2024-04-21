@@ -51,21 +51,13 @@ local function tryRawCmd(rawCmd, isRepeat, isRelease)
 end
 
 local function chainHandler(_, extra, bOpts, _, isRepeat, isRelease)
-	-- Wether to keep sending actions even if first does not respond
+	-- Whether to keep sending actions even if first does not respond
+	--
 	local force = false
 
 	if bOpts[1] == "force" then
 		force = true
 		extra = string.match(extra, "^force[%s]+(.*)$")
-	end
-
-	if not force then
-		Spring.Echo(
-			"<Chain Actions>",
-			"Missing force parameter, use like this: chain force <action1> <action1args> | <action2> <action2args>"
-		)
-
-		return false
 	end
 
 	local rawCmds = string.split(extra, "|")
