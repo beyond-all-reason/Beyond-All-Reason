@@ -659,14 +659,16 @@ local function drawStats(uDefID, uID)
 					end
 				end
 				DrawText(texts.modifiers..":", dmgString)
-			elseif uWep.stockpile == true and uWep.stockpileTime then
+			-- I am going to keep trying not to read anything before here. Right... here:
+			elseif uWep.stockpile == true then
 				local dmgString
+				local wip = "*"
 				local damage = 0
 				local dps = 0
 				-- Test duration:
 				local evaltime = 30.0
 				local stocktime = uWep.stockpileTime / 30.0
-				local firstrestock = stockpileTime
+				local firstrestock = stocktime
 				local reloadtime = useExp and reload or uWep.reload
 				-- In addition to an eval firing time, the weapon starts with an eval stockpile count.
 				-- The odd bit of math below cuts a balance between the eval window and an ~expected stockpile.
@@ -703,7 +705,7 @@ local function drawStats(uDefID, uID)
 						['legcomlvl4'] = 4,
 						['legstarfall'] = 1,
 					}
-					stocklimit = isStockpilingUnit[uDefID] or defaultStockpileLimit
+					stocklimit = isStockpilingUnitNames[uDef.name] or defaultStockpileLimit
 				end
 				local evalstocks = math.min(
 					stocklimit,
@@ -722,11 +724,19 @@ local function drawStats(uDefID, uID)
 						/ reload
 					) * reload
 				end
-				firstreload = math.max(firstrestock, stockeddur + reloadtime)
-				-- There are three ways the evaluation window can go:
+				local firstreload = math.max(firstrestock, stockeddur + reloadtime)
+				-- Not sure how the original code was doing this tbh so:
+				if defaultDamage == 0 or defaultDamage == 1 then
+					defaultDamage = math.max(
+						uWep.damages[Game.armorTypes["vtol"]] or defaultDamage, -- idk if nil matters
+						uWep.damages[Game.armorTypes["subs"]] or defaultDamage, -- just in case
+						uWep.damages[Game.armorTypes["default"]] or defaultDamage
+					)
+				end
+				-- There are three ways our evaluation window can go:
 				if stockeddur == 0 then          -- (1) Stockpiles are expended in the first salvo.
 					local initialburst = math.floor(math.min(uWep.salvoSize, evalstocks))
-					if firstreload < evaltime
+					if firstreload < evaltime then
 						damage = defaultDamage * initialburst + defaultDamage * (1.0 + (evaltime - firstrestock) / stocktime)
 					else
 						damage = defaultDamage * initialburst + defaultDamage * evaltime / firstreload 
@@ -736,9 +746,9 @@ local function drawStats(uDefID, uID)
 				else                              -- (3) Stockpiles are expended at a point during the eval window.
 					damage = defaultDamage * (1.0 + stockeddur / reloadtime) * burst
 					if firstreload < evaltime then
-						damage += defaultDamage * (1.0 + (evaltime - firstreload) / stocktime) -- do burst weapons wait on stocks == burst?
+						damage = damage + defaultDamage * (1.0 + (evaltime - firstreload) / stocktime) -- do burst weapons wait on stocks == burst?
 					else
-						damage += defaultDamage * evaltime / firstreload
+						damage = damage + defaultDamage * evaltime / firstreload
 					end
 				end
 				dps = damage / evaltime
@@ -749,17 +759,20 @@ local function drawStats(uDefID, uID)
 				-- if wepCount > 1 then -- Don't stockpiled weapons not work together?
 				-- 	dmgString = dmgString .. white .. " ("..texts.each..")"
 				-- end
-				DrawText(texts.dmg..":", dmgString)
+				if dps < 2.0 then
+					dmgString = "problem: "..evalstocks.."|"..firstrestock.."/"..firstreload.."/"..stockeddur.."|"..burst.."*"..defaultDamage
+				end
+				DrawText(texts.dmg..wip..":", dmgString)
 				-- repetitious code: modifiers are shown for all but disintegrator weapons
 				local dmgString	= white
 				for cat=1, #uWep.damages do
 					local oDmg = uWep.damages[cat]
 					local catName = Game.armorTypes[cat]
-					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
+					if catName and oDmg and (oDmg ~= defaultDamage and oDmg ~= uWep.damages[0] or cat == 0) then
 						dmgString = dmgString..white..catName.." = "..(format(yellow .. "%d", (oDmg*100/defaultDamage)))..yellow.."%"..white.."; "
 					end
 				end
-				DrawText(texts.modifiers..":", dmgString)
+				DrawText(texts.modifiers..wip..":", dmgString)
 			else
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
