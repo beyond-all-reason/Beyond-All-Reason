@@ -725,8 +725,8 @@ local function drawStats(uDefID, uID)
 				firstreload = math.max(firstrestock, stockeddur + reloadtime)
 				-- There are three ways the evaluation window can go:
 				if stockeddur == 0 then          -- (1) Stockpiles are expended in the first salvo.
+					local initialburst = math.floor(math.min(uWep.salvoSize, evalstocks))
 					if firstreload < evaltime
-						local initialburst = math.floor(math.min(uWep.salvoSize, evalstocks))
 						damage = defaultDamage * initialburst + defaultDamage * (1.0 + (evaltime - firstrestock) / stocktime)
 					else
 						damage = defaultDamage * initialburst + defaultDamage * evaltime / firstreload 
