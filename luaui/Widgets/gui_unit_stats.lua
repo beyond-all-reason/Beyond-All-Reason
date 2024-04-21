@@ -722,7 +722,7 @@ local function drawStats(uDefID, uID)
 						/ reload
 					) * reload
 				end
-				firstreload = [Math]::Max(firstrestock, stockeddur + reloadtime)
+				firstreload = math.max(firstrestock, stockeddur + reloadtime)
 				-- There are three ways the evaluation window can go:
 				if stockeddur == 0 then          -- (1) Stockpiles are expended in the first salvo.
 					if firstreload < evaltime
