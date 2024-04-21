@@ -603,7 +603,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		elseif myTurn then
 			myTurn = false
 		end
-		if current_playerID > -1 then
+		if current_playerID > -1 and next_playerID > -1 then
 			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then

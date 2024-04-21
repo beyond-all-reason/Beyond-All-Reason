@@ -483,7 +483,7 @@ if gadgetHandler:IsSyncedCode() then
 								SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
 							end
 						end
-					elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil then
+					elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil and allyTeamSpawnOrderPlaced[allyTeamID] < #allyTeamSpawnOrder[allyTeamID] then
 						votedToForceSkipTurn[allyTeamID][playerTeam] = true
 						checkVotesAndAdvanceTurn(allyTeamID)
 					end
