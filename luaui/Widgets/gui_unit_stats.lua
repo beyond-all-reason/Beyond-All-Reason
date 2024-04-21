@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 local texts = {}
+local zerotext = ''
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
@@ -260,6 +261,7 @@ end
 
 function widget:Initialize()
 	texts = Spring.I18N('ui.unitstats')
+	zerotext = Spring.I18N('ui.topbar.wind.nowind') -- The 'No' in 'No wind'.
 
 	widget:ViewResize(vsx,vsy)
 
@@ -578,7 +580,6 @@ local function drawStats(uDefID, uID)
 			uWep = wDefs[WeaponDefNames[uWep.customParams.def].id]
 		end
 		if uWep.range > 0 then
-			local oBurst = uWep.salvoSize * uWep.projectiles
 			local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
 			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
 				oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
@@ -599,6 +600,7 @@ local function drawStats(uDefID, uID)
 			else
 				DrawText(texts.weap..":", wpnName)
 			end
+
 			local reload = uWep.reload
 			local accuracy = uWep.accuracy
 			local moveError = uWep.targetMoveError
@@ -626,6 +628,8 @@ local function drawStats(uDefID, uID)
 			end
 			if uWep.damages.impulseBoost > 0 then
 				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
+			-- elseif uWep.damages.impulseFactor == 0 then
+			-- 	infoText = format("%s %s "..texts.impulse, infoText, zerotext) -- "No impulse", e.g. for laser weapons?
 			end
 			if uWep.damages.craterBoost > 0 then
 				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
@@ -634,21 +638,123 @@ local function drawStats(uDefID, uID)
 				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
 			end
 			DrawText(texts.info..":", infoText)
+
 			local defaultDamage = uWep.damages[0]
 			local cat = 0
 			local oDmg = uWep.damages[cat]
 			local catName = Game.armorTypes[cat]
-			local burst = uWep.salvoSize
+			local burst = uWep.salvoSize * uWep.projectiles -- (uWep.projectiles or 1) ?
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..":", yellow..texts.infinite)
 			elseif wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
-					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
+					local dps = 0 -- defaultDamage * burst / (useExp and reload or uWep.reload)
 					local bDamages = defaultDamage * burst
 					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
 					DrawText(texts.dmg..":", dmgString)
 				end
+				local dmgString	= white
+				for cat=1, #uWep.damages do
+					local oDmg = uWep.damages[cat]
+					local catName = Game.armorTypes[cat]
+					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
+						dmgString = dmgString..white..catName.." = "..(format(yellow .. "%d", (oDmg*100/defaultDamage)))..yellow.."%"..white.."; "
+					end
+				end
+				DrawText(texts.modifiers..":", dmgString)
+			elseif uWep.stockpile == true and uWep.stockpileTime then
+				local dmgString
+				local damage = 0
+				local dps = 0
+				-- Test duration:
+				local evaltime = 30.0
+				local stocktime = uWep.stockpileTime / 30.0
+				local firstrestock = stockpileTime
+				local reloadtime = useExp and reload or uWep.reload
+				-- In addition to an eval firing time, the weapon starts with an eval stockpile count.
+				-- The odd bit of math below cuts a balance between the eval window and an ~expected stockpile.
+				local stocklimit = uDef.customParams and uDef.customParams.stockpileLimit or 0
+				if stocklimit == 0 then
+					-- from unit_stockpile_limit.lua:
+					local defaultStockpileLimit = 99
+					local isStockpilingUnitNames = {
+						['armmercury'] = 5,
+						['corscreamer'] = 5,
+						['armthor'] = 2,
+						['legmos'] = 8,
+						['legmineb'] = 1,
+						['armsilo'] = 10,
+						['corsilo'] = 10,
+						['armamd'] = 20,
+						['corfmd'] = 20,
+						['raptor_turret_antinuke_t2_v1'] = 5,
+						['raptor_turret_antinuke_t3_v1'] = 10,
+						['armjuno'] = 20,
+						['corjuno'] = 20,
+						['armcarry'] = 20,
+						['corcarry'] = 20,
+						['armantiship'] = 20,
+						['corantiship'] = 20,
+						['armscab'] = 20,
+						['cormabm'] = 20,
+						['armemp'] = 10,
+						['cortron'] = 10,
+						['armbotrail'] = 50,
+						['legcom'] = 2,
+						['legcomlvl2'] = 2,
+						['legcomlvl3'] = 3,
+						['legcomlvl4'] = 4,
+						['legstarfall'] = 1,
+					}
+					stocklimit = isStockpilingUnit[uDefID] or defaultStockpileLimit
+				end
+				local evalstocks = math.min(
+					stocklimit,
+					(1.0 + math.sqrt(stocktime / evaltime)) * (reloadtime + evaltime) / stocktime
+				)
+				if evalstocks ~= math.ceil(evalstocks) then
+					firstrestock = math.max(firstrestock * (math.ceil(evalstocks) - evalstocks), 1 / 30)
+				end
+				-- Time spent firing while stockpiles remain:
+				local stockeddur = 0
+				if evalstocks > 1 and reloadtime * uWep.salvoSize < stocktime then
+					-- I dunno how running out of stockpiles mid-salvo would work, so this is close enough:
+					-- Still banking on `projectiles` being basically free but `salvosize` costing stockpiles. Should instead verify.
+					stockeddur = math.floor(
+						(evalstocks - 1.0) / uWep.salvoSize / (1.0 / reloadtime - 1.0 / stocktime)
+						/ reload
+					) * reload
+				end
+				firstreload = [Math]::Max(firstrestock, stockeddur + reloadtime)
+				-- There are three ways the evaluation window can go:
+				if stockeddur == 0 then          -- (1) Stockpiles are expended in the first salvo.
+					if firstreload < evaltime
+						local initialburst = math.floor(math.min(uWep.salvoSize, evalstocks))
+						damage = defaultDamage * initialburst + defaultDamage * (1.0 + (evaltime - firstrestock) / stocktime)
+					else
+						damage = defaultDamage * initialburst + defaultDamage * evaltime / firstreload 
+					end
+				elseif stockeddur > evaltime then -- (2) Stockpiles are not depleted during the eval window.
+					damage = defaultDamage * (1.0 + evaltime / reloadtime) * burst
+				else                              -- (3) Stockpiles are expended at a point during the eval window.
+					damage = defaultDamage * (1.0 + stockeddur / reloadtime) * burst
+					if firstreload < evaltime then
+						damage += defaultDamage * (1.0 + (evaltime - firstreload) / stocktime) -- do burst weapons wait on stocks == burst?
+					else
+						damage += defaultDamage * evaltime / firstreload
+					end
+				end
+				dps = damage / evaltime
+				local bDamages = defaultDamage * burst
+				totaldps = totaldps + dps -- * wepCount -- Don't stockpiled weapons not work together?
+				totalbDamages = totalbDamages + bDamages -- * wepCount -- Don't stockpiled weapons not work together?
+				dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
+				-- if wepCount > 1 then -- Don't stockpiled weapons not work together?
+				-- 	dmgString = dmgString .. white .. " ("..texts.each..")"
+				-- end
+				DrawText(texts.dmg..":", dmgString)
+				-- repetitious code: modifiers are shown for all but disintegrator weapons
 				local dmgString	= white
 				for cat=1, #uWep.damages do
 					local oDmg = uWep.damages[cat]
