@@ -1233,7 +1233,7 @@ local options = {
     {
         key    	= "unbacomleveuprate",
         name   	= "Unbalanced Commanders Levelup Rate",
-        desc   	= "(Range 0.1 - 20). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
+        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 4,
