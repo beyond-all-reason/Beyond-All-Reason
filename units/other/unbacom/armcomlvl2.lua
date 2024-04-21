@@ -48,7 +48,7 @@ return {
 		radaremitheight = 40,
 		reclaimable = false,
    		releaseheld  = true,
-		script = "Units/ARMCOM_lus.lua",
+		script = "Units/ARMCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
@@ -106,7 +106,7 @@ return {
 			evolution_announcement_size = 18.5,
 			evolution_target = "armcomlvl3",
 			evolution_condition = "timer",
-			evolution_timer = 240,
+			evolution_timer = 99999,
 		},
 		featuredefs = {
 			dead = {
@@ -231,6 +231,7 @@ return {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
+				camerashake = 0,
 				corethickness = 0.4,
 				craterareaofeffect = 0,
 				craterboost = 0,

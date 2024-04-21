@@ -58,7 +58,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 1148,
 		upright = true,
-		workertime = 750,
+		workertime = 1472,
 		buildoptions = {
 			[1] = "cormoho",
 			[2] = "corfus",
@@ -118,14 +118,14 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			workertimeboost = 8,
+			workertimeboost = 5,
 			wtboostunittype = "MOBILE",
 			stockpileLimit = 3,
 			evolution_announcement = "Legion commanders have upgraded to level 10",
 			evolution_announcement_size = 18.5,
 			evolution_target = "legcomlvl10",
 			evolution_condition = "timer",
-			evolution_timer = 240,
+			evolution_timer = 99999,
 			combatradius = 500,
 		},
 		featuredefs = {
@@ -338,7 +338,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 8000,   
+				energypershot = 4000,   
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
@@ -352,12 +352,12 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 20,
+				projectiles = 30,
 				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2250,
 				stockpile = true,
-				stockpiletime = 12,
+				stockpiletime = 6,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -411,15 +411,15 @@ return {
 					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
 					engagementrange = 1000,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 5, 			--Spawnrate roughly in seconds.
+					spawnrate = 2, 			--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
-					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 50,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
-					carrierdeaththroe = "release",
+					carrierdeaththroe = "death",
 					dockingarmor = 0.2,
-					dockinghealrate = 16,
+					dockinghealrate = 450,
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,

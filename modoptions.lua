@@ -1220,12 +1220,14 @@ local options = {
     
     {
         key 	= "unbacom",
-        name 	= "Unbalanced Commanders",
-        desc 	= "Commanders level up every few minutes with unique (and unbalanced) abilities for each faction.",
-        type 	= "bool",
-        def 	= false,
-        section = "options_experimental",
-        hidden 	= false,
+        name 	= "Unbalanced Commanders Levelup Rate",
+        desc 	= "4 minutes recommended. Set an interval in minutes for Commanders to evolve. Commanders level up with unique (and unbalanced) abilities for each faction. 10 levels total. 0 disables this option.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 0,
+        min    	= 0,
+        max    	= 15,
+        step   	= 0.1,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

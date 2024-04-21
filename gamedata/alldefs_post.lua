@@ -237,36 +237,42 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unbacom == true then
-			if name == "armcom" then
+		if modOptions.unbacom ~= 0 then
+			local function setTrue(options)
+				local set = {}
+				for _, option in ipairs(options) do
+					set[option] = true
+				end
+				return set
+			end
+			
+			local unbacomlist = setTrue({"armcom", "armcomlvl2", "armcomlvl3", "armcomlvl4", "armcomlvl5", "armcomlvl6", "armcomlvl7", "armcomlvl8", "armcomlvl9", "armcomlvl10",
+			"corcom", "corcomlvl2", "corcomlvl3", "corcomlvl4", "corcomlvl5", "corcomlvl6", "corcomlvl7", "corcomlvl8", "corcomlvl9", "corcomlvl10",
+			"legcom", "legcomlvl2", "legcomlvl3", "legcomlvl4", "legcomlvl5", "legcomlvl6", "legcomlvl7", "legcomlvl8", "legcomlvl9", "legcomlvl10",})
+			
+			if unbacomlist[name] then
+				Spring.Echo(name)
+				uDef.customparams.evolution_timer = math.floor(modOptions.unbacom*60)
+				Spring.Echo(name)
+			end
+
+			if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-				uDef.customparams.evolution_timer = 240
 			end
 			if name == "corcom" then
 				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-				uDef.customparams.evolution_timer = 240
-			end
-			if name == "legcom" then
-				uDef.customparams.evolution_timer = 240
-			end
-			if name == "legcomlvl2" then
-				uDef.customparams.evolution_timer = 240
-			end
-			if name == "legcomlvl3" then
-				uDef.customparams.evolution_timer = 240
 			end
 			if name == "legcomlvl4" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl5"
 				uDef.customparams.evolution_condition = "timer"
-				uDef.customparams.evolution_timer = 240
 			end
 		end
 

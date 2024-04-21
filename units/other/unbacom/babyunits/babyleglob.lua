@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 1263.84998,
-		unitrestricted = 60,
+		unitrestricted = 90,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
@@ -76,6 +76,7 @@ return {
 		},
 		weapondefs = {
 			arm_ham = {
+				allowNonBlockingAim = true,
 				areaofeffect = 24,
 				avoidfeature = false,
 				craterareaofeffect = 0,

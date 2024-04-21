@@ -14,8 +14,9 @@ end
 if not gadgetHandler:IsSyncedCode() then return false end
 
 -- is unba com on
-if false and Spring.GetModOptions().unbacom ~= true then return false end -- this is supposed to integrate with toggle for unbacom modoptions, but it doesn't seem to do anything right now
-
+if true and Spring.GetModOptions().unbacom == 0 then return false end
+Spring.Echo("the script ran?!")
+Spring.Echo(Spring.GetModOptions().unbacom)
 local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost
 local mobileunits = {} -- stores the names of units that can move
 local boostedworkertimes = {}-- stores the values of builders who have defined workertimeboost definitions.
