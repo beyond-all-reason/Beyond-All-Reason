@@ -411,6 +411,7 @@ function widget:DrawScreen()
 				local x = vsx * 0.95
 				local y_offset = #myTeamPlayersOrder * 0.03
 				local y = vsy * (0.5 + y_offset + 0.03)
+				local colorMod = DMDefaultColorString
 				font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.order').. ":", x, y, 18.5 * uiScale, "ro")
 				for i, data in ipairs(myTeamPlayersOrder) do
 					local playerID = data.id
@@ -419,14 +420,15 @@ function widget:DrawScreen()
 					local msgMod = ""
 					local lockState = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_lockState")
 					if i == currentPlayerIndex then
-						msgMod = DMWarnColor .. "→ " -- only arrows are ok, checkmarks and others error out
+						msgMod = "→ " -- only arrows are ok, checkmarks and others error out
 					elseif lockState == 1 then -- slightly better than readyState because you can tell for sure if someone placed and is happy with it
-						msgMod = DMDefaultColorString .. "* "
-					else
-						msgMod = DMDefaultColorString .. msgMod
+						msgMod = "* "
+					end
+					if playerID == myPlayerID then
+						colorMod = DMWarnColor
 					end
 
-					font:Print(msgMod .. playerName, x, y, 18.5 * uiScale, "ro")
+					font:Print(colorMod .. msgMod .. playerName, x, y, 18.5 * uiScale, "ro")
 				end
 				font:End()
 
