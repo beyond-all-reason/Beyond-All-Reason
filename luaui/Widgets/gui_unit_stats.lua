@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 local texts = {}
-local zerotext = ''
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
@@ -261,7 +260,6 @@ end
 
 function widget:Initialize()
 	texts = Spring.I18N('ui.unitstats')
-	zerotext = Spring.I18N('ui.topbar.wind.nowind') -- The 'No' in 'No wind'.
 
 	widget:ViewResize(vsx,vsy)
 
@@ -628,8 +626,6 @@ local function drawStats(uDefID, uID)
 			end
 			if uWep.damages.impulseBoost > 0 then
 				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
-			-- elseif uWep.damages.impulseFactor == 0 then
-			-- 	infoText = format("%s %s "..texts.impulse, infoText, zerotext) -- "No impulse", e.g. for laser weapons?
 			end
 			if uWep.damages.craterBoost > 0 then
 				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
