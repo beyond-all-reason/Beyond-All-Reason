@@ -759,9 +759,6 @@ local function drawStats(uDefID, uID)
 				-- if wepCount > 1 then -- Don't stockpiled weapons not work together?
 				-- 	dmgString = dmgString .. white .. " ("..texts.each..")"
 				-- end
-				if dps < 2.0 then
-					dmgString = "problem: "..evalstocks.."|"..firstrestock.."/"..firstreload.."/"..stockeddur.."|"..burst.."*"..defaultDamage
-				end
 				DrawText(texts.dmg..wip..":", dmgString)
 				-- repetitious code: modifiers are shown for all but disintegrator weapons
 				local dmgString	= white
