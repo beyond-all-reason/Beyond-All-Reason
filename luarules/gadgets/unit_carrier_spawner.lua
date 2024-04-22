@@ -153,7 +153,6 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	--Known bugs:
 		-- Land carriers struggling with the attack formations
 		-- Drones occationally stuck hovering near the carrier instead of following the active command
-		-- drones can decay while 'idling', even with a parent carrier. or while fighting, anytime not docked, cause unclear. carry2 has this presently, hence decay disabled for them for now.
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
