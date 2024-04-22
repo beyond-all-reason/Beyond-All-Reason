@@ -470,7 +470,7 @@ vertex = [[
 			%%VERTEX_UV_TRANSFORM%%
 
 			#ifdef ENABLE_OPTION_TREADS
-			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE) || BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
 				#define ATLAS_SIZE 4096.0
 				#define PX_TO_UV(x) (float(x) / ATLAS_SIZE)
 				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(             \
@@ -527,27 +527,19 @@ vertex = [[
 						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 28.0));
 					}
 				}
+
+				// ################# LEGION ##################
+				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
+					const float texSpeedMult = -6.0;
+					if (IN_PIXEL_RECT(uvCoords, 2559, 768, 773, 406)) {
+						// Legion Track and rubber Bar pattern
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 56.0));
+					}
+				}
+
 				#undef ATLAS_SIZE
 				#undef IN_PIXEL_RECT
 				#undef PIXELS_TO_UV
-			}
-
-			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
-				const float atlasSize = 4096.0;
-				const float gfMod = 6.9;
-				const float texSpeed = -6.0;
-				float unitSpeed = uni[instData.y].speed.w;
-				float baseOffset =  unitSpeed * mod(float(simFrame), gfMod) / atlasSize;
-				float texOffset = baseOffset * texSpeed;
-
-				// note, invert we invert Y axis
-				//const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
-				const vec4 treadBoundaries = vec4(2559.0, 3332.0, atlasSize - 1174.0, atlasSize - 768.0) / atlasSize;
-				if (all(bvec4(
-						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
-						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
-					uvCoords.x += texOffset;
-				}
 			}
 			#endif
 
