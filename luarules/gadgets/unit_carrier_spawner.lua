@@ -360,11 +360,13 @@ local function SpawnUnit(spawnData)
 
 
 				local spareDock = false
+				local dockingpiece
 				if ownerID then
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 					local subUnitCount = carrierMetaList[ownerID].subUnitCount
 					subUnitCount = subUnitCount + 1
 					carrierMetaList[ownerID].subUnitCount = subUnitCount
+					local dockingpieceindex
 					for i = 1, #carrierMetaList[ownerID].availablePieces do
 						if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
 							spareDock = true
@@ -374,8 +376,6 @@ local function SpawnUnit(spawnData)
 							break
 						end
 					end
-					local dockingpiece
-					local dockingpieceindex
 					local droneData = {
 						active = true,
 						docked = false, --
