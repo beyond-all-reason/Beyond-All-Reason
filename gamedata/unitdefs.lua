@@ -90,6 +90,10 @@ elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
 	legionEnabled = true
 end
 
+if Spring.GetModOptions().experimentalextraunits == true then
+	scavengersEnabled = true
+end
+
 if Spring.GetModOptions().forceallunits == true then
 	raptorsEnabled = true
 	scavengersEnabled = true
