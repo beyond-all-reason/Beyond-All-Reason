@@ -237,7 +237,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unbacom == "enabled" then
+		if modOptions.unbacom then
 			local function setTrue(options)
 				local set = {}
 				for _, option in ipairs(options) do
