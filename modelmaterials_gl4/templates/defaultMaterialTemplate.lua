@@ -493,12 +493,12 @@ vertex = [[
 				// but...
 				// as long as the end result looks like the tracks are moving it is good enough for now
 
-				const float loopingFrameCount = mod(simFrame, 8); // Greatest Common Factor (12, 20, 56, ...) = 4
-				const float baseOffset = loopingFrameCount * unitSpeed;
+				float loopingFrameCount = mod(simFrame, 8.0); // Greatest Common Factor (12, 20, 56, ...) = 4
+				float baseOffset = loopingFrameCount * unitSpeed;
 
 				// ################# ARMADA ##################
 				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM)) {
-					const float texSpeedMult = 4;
+					const float texSpeedMult = 4.0;
 					if (IN_PIXEL_RECT(uvCoords, 2573, 1548, 498, 82)) {
 						// Arm small (top) width 12px
 						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 12.0));
