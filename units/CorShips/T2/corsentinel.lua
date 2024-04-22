@@ -61,7 +61,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/cordronecarry_dead.s3o",
+				object = "Units/CORSENTINEL_DEAD.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

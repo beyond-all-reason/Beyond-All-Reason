@@ -60,7 +60,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 700,
-				object = "Units/armdronecarry_dead.s3o",
+				object = "Units/armtrident_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
