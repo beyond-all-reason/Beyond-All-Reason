@@ -253,8 +253,8 @@ do --save a ton of locals
 	local OPTION_SHIFT_RGBHSV     = 4 -- userDefined[2].rgb (gl.SetUnitBufferUniforms(unitID, {math.random(),math.random()-0.5,math.random()-0.5}, 8) -- shift Hue, saturation, valence )
 	local OPTION_VERTEX_AO        = 8
 	local OPTION_FLASHLIGHTS      = 16
-	local OPTION_THREADS_ARM      = 32
-	local OPTION_THREADS_CORE     = 64
+	local OPTION_TREADS_ARM      = 32
+	local OPTION_TREADS_CORE     = 64
 	local OPTION_HEALTH_TEXTURING = 128
 	local OPTION_HEALTH_DISPLACE  = 256
 	local OPTION_HEALTH_TEXRAPTORS = 512
@@ -266,22 +266,22 @@ do --save a ton of locals
 
 	uniformBins = {
 		armunit = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
 		corunit = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
 		armscavenger = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
 		corscavenger = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
@@ -563,13 +563,13 @@ local function initMaterials()
 	unitsNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
@@ -578,7 +578,7 @@ local function initMaterials()
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
@@ -588,14 +588,14 @@ local function initMaterials()
 	unitsSkinningTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
@@ -606,7 +606,7 @@ local function initMaterials()
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
