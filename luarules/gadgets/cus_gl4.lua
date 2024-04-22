@@ -1953,9 +1953,11 @@ function gadget:Shutdown()
 	--gadgetHandler:RemoveChatAction("disablecusgl4")
 	--gadgetHandler:RemoveChatAction("reloadcusgl4")
 	--gadgetHandler:RemoveChatAction("cusgl4updaterate")
-	for k,v in pairs(GG.CUSGL4) do
-		GG.CUSGL4[k] = nil
-	end
+	if GG.CUSGL4 then 
+		for k,v in pairs(GG.CUSGL4) do
+			GG.CUSGL4[k] = nil
+		end
+	end 
 	
 	GG.CUSGL4 = nil
 end
