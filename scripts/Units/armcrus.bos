@@ -77,6 +77,12 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 	#define RB_BOUNCE_HEIGHT [10.0]
 #endif
 
+// in degrees per frame
+#ifndef RB_BOUNCE_PERIOD
+	#define RB_BOUNCE_PERIOD <7>
+#endif
+
+
 //------------------- OPTIONAL DEFINES ------------------
 #define RB_RECOIL_ENERGY_1 3
 #define RB_RECOIL_ENERGY_3 0
@@ -98,8 +104,8 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // ------------------ INTERNAL DEFINES ------------------
 
-#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (100))
-#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (100))
+#define RB_INERTIA_PITCH ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_LENGTH * RB_LENGTH) / (10))
+#define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (10))
 
 #define RB_RECOILBOAT(heading, power) \
 	RB_pitch_velocity = RB_pitch_velocity - (get KCOS(heading) * power) / RB_MASS; \
@@ -115,6 +121,9 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 static-var RB_pitch_target, RB_roll_target;
 // Velocity is changed by impulse from being shot and from shooting
 static-var RB_pitch_velocity, RB_roll_velocity;
+
+// Always zero this in startmoving
+static-var RB_bounce_frame;
 
 InitRockBoat(){
 	RB_pitch_velocity = 0;
@@ -133,9 +142,7 @@ BoatPhysics(){
 	
 	var torque_pitch;
 	var torque_roll;
-	
-	var game_frame;
-	game_frame = RAND(1, 100);
+
 	
 	turn RB_BASE to x-axis RB_pitch now;
 	turn RB_BASE to z-axis RB_roll  now;
@@ -149,15 +156,15 @@ BoatPhysics(){
 
 	var curr_bounce;
 	curr_bounce = 0;
-	var sin_bounce;
-	sin_bounce = 0;
+	var cos_bounce;
+	cos_bounce = 0;
 
 	while (1){
-		game_frame = game_frame + RB_FRAMES;
+		
 
 
 		// Get Speed and Heading, store the deltas
-		currSpeed =   get (CURRENT_SPEED);
+		currSpeed =   get (CURRENT_SPEED); // usually around 100,000
 		prevSpeed_delta = currSpeed - prevSpeed_delta;
 
 		currHeading = get (HEADING);
@@ -169,30 +176,17 @@ BoatPhysics(){
 		
 		// Roll the boat more when turning at high speed
 		RB_roll_target = (prevHeading_delta * currSpeed) / maxSpeed;
-		
-		//get PRINT(currHeading, currSpeed, prevHeading_delta, currHeading - prevHeading_delta);
-		//if ((currSpeed < 1000) AND ((game_frame % (5 * RB_WAVE_FRAMES)) == 0)){
-		//	RB_pitch_target = RAND(1, 1000)-500;
-		//	RB_roll_target = RAND(1, 1000) -500;
-		//}
-		
-		
 
 		// Save the vars, as we wont be using them again
 		prevHeading_delta = currHeading;
 		prevSpeed_delta = currSpeed;
 
-		// Calculate Bounce, be careful that your int doesnt overflow
-		sin_bounce = get KSIN(<7> * game_frame) + 1024;
-		curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
 		
-		
-		move RB_BASE to y-axis curr_bounce * sin_bounce / 10024 speed [500];
 		//dbg(curr_bounce, currSpeed, maxSpeed,sin_bounce);
 
 		// Calculate restoring torque due to displacement
-		torque_pitch = ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH))/10;
-		torque_roll =  ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ))/10;
+		torque_pitch = ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH));
+		torque_roll =  ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ));
 		
 		//Clamp
 		//if (torque_pitch > 100) torque_pitch = 100;
@@ -220,8 +214,8 @@ BoatPhysics(){
 		}
 
 		// Update pitch and roll based on angular velocity
-		RB_pitch = RB_pitch + RB_FRAMES* RB_pitch_velocity ;
-		RB_roll  = RB_roll  + RB_FRAMES* RB_roll_velocity;
+		RB_pitch = RB_pitch + RB_FRAMES * RB_pitch_velocity ;
+		RB_roll  = RB_roll  + RB_FRAMES * RB_roll_velocity;
 
 		// Print debugging stuff:
 		//get PRINT(RB_pitch, RB_roll, RB_pitch_velocity, RB_roll_velocity);
@@ -240,10 +234,33 @@ BoatPhysics(){
 			turn RB_BASE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
 			turn RB_BASE to z-axis RB_roll  speed (30 / RB_FRAMES) * RB_roll_velocity;
 		#endif
-		
-		
-		sleep 32 * RB_FRAMES;
 
+		// increment bounce phase and modulo it
+		RB_bounce_frame = (RB_bounce_frame + RB_FRAMES * RB_BOUNCE_PERIOD);
+
+		// emit a the bottom peak
+		if (RB_bounce_frame >= <360>){
+			emit-sfx 1024 + 2 from bow;
+			RB_bounce_frame = 0;
+		}
+
+		// emit at the top peak
+		if (RB_bounce_frame >= <180> && RB_bounce_frame < <180> + (RB_FRAMES * RB_BOUNCE_PERIOD)){
+			emit-sfx 1024 + 2 from bow;
+		}
+		
+		
+		// Calculate Bounce, be careful that your int doesnt overflow
+		cos_bounce = get KCOS(RB_bounce_frame) + 1024;
+
+
+		curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
+
+		move RB_BASE to y-axis curr_bounce * cos_bounce / 1024 speed [500];
+
+		// emit a wakesplash on up and down bounce
+		
+		sleep 33 * RB_FRAMES - 1;
 	}
 }
 
@@ -398,6 +415,7 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	var waketime;
+	RB_bounce_frame = 0;
 	start-script waveSplash();
 	var bowtime;
 	bowtime = 0;
