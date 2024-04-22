@@ -358,8 +358,8 @@ local function SpawnUnit(spawnData)
 					return
 				end
 
-				local dockingpieceindex = 0
 
+				local spareDock = false
 				if ownerID then
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 					local subUnitCount = carrierMetaList[ownerID].subUnitCount
@@ -367,6 +367,7 @@ local function SpawnUnit(spawnData)
 					carrierMetaList[ownerID].subUnitCount = subUnitCount
 					for i = 1, #carrierMetaList[ownerID].availablePieces do
 						if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
+							spareDock = true
 							dockingpiece = carrierMetaList[ownerID].availablePieces[i].dockingPiece
 							dockingpieceindex = i
 							carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable = false
@@ -374,6 +375,7 @@ local function SpawnUnit(spawnData)
 						end
 					end
 					local dockingpiece
+					local dockingpieceindex
 					local droneData = {
 						active = true,
 						docked = false, --
@@ -390,7 +392,7 @@ local function SpawnUnit(spawnData)
 
 
 				mcEnable(subUnitID)
-				if dockingpiece == 0 then
+				if spareDock == false then
 					mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
 				else
 					--try to spawn in free dock point (offset relative to unit)

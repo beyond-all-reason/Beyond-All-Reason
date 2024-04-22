@@ -888,7 +888,7 @@ local icontypes = {
 		size = 2.0999999
 	},
 	armtrident = {
-		bitmap = "icons/ship_t2_carrier.png",
+		bitmap = "icons/ship_t2_dronecarry.png",
 		size = 1.83749986
 	},
 	armtdrone = {
@@ -1732,7 +1732,7 @@ local icontypes = {
 		size = 1.36499989
 	},
 	corsentinel = {
-		bitmap = "icons/ship_t2_carrier.png",
+		bitmap = "icons/ship_t2_dronecarry.png",
 		size = 1.83749986
 	},
 	corsfig = {

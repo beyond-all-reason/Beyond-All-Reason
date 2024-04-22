@@ -20,7 +20,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
 		losemitheight = 56,
@@ -171,7 +170,7 @@ return {
 				}
 			},
 			
-			cotc_depthcharge = {
+			sentinel_depthcharge = {
 				avoidfeature = false,
 				avoidfriendly = false,
 				bouncerebound = 0.6,
@@ -219,7 +218,7 @@ return {
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 			[2] = {
-				def = "plasma",
+				def = "sentinel_depthcharge",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
