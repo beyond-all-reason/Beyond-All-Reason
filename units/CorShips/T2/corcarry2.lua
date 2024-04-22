@@ -205,7 +205,7 @@ return {
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 20,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1300,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 6,
+					decayrate = 0,--bugged in some way, needs this
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
 					dockinghealrate = 30,

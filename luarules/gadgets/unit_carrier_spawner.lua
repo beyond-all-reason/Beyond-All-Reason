@@ -153,6 +153,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	--Known bugs:
 		-- Land carriers struggling with the attack formations
 		-- Drones occationally stuck hovering near the carrier instead of following the active command
+		-- drones can decay while 'idling', even with a parent carrier. or while fighting, anytime not docked, cause unclear. carry2 has this presently, hence decay disabled for them for now.
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -160,6 +161,7 @@ for weaponDefID = 1, #WeaponDefs do
 	if wdcp.carried_unit then
 		spawnDefs[weaponDefID] = {
 			name = wdcp.carried_unit,
+			name2 = wdcp.carried_unit2,
 			name3 = wdcp.carried_unit3,
 			name4 = wdcp.carried_unit4,
 			feature = wdcp.spawns_feature,
@@ -356,14 +358,13 @@ local function SpawnUnit(spawnData)
 					return
 				end
 
+				local dockingpieceindex = 0
 
 				if ownerID then
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 					local subUnitCount = carrierMetaList[ownerID].subUnitCount
 					subUnitCount = subUnitCount + 1
 					carrierMetaList[ownerID].subUnitCount = subUnitCount
-					local dockingpiece
-					local dockingpieceindex
 					for i = 1, #carrierMetaList[ownerID].availablePieces do
 						if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
 							dockingpiece = carrierMetaList[ownerID].availablePieces[i].dockingPiece
@@ -372,6 +373,7 @@ local function SpawnUnit(spawnData)
 							break
 						end
 					end
+					local dockingpiece
 					local droneData = {
 						active = true,
 						docked = false, --
@@ -388,7 +390,23 @@ local function SpawnUnit(spawnData)
 
 
 				mcEnable(subUnitID)
-				mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				if dockingpiece == 0 then
+					mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				else
+					--try to spawn in free dock point (offset relative to unit)
+					local dockPointx
+					local dockPointy
+					local dockPointz
+					
+					local carrierx
+					local carriery
+					local carrierz
+					dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
+					carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
+					--Spring.Echo(dockingpieceindex)
+					--Spring.Debug.TableEcho(Spring.GetUnitPiecePosition(ownerID, dockingpiece))
+					mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
+				end
 				mcDisable(subUnitID)
 
 

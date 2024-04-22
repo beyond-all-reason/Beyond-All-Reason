@@ -3644,6 +3644,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['armtrident'] = {
+		tower = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 22.5, posy = 21, posz = -5, radius = 18,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.07,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		towerfront = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 22.5, posy = 11, posz = 10.5, radius = 22,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['armdronecarryland'] = {
 		tower = {
 			lightType = 'point',
@@ -3976,6 +3996,26 @@ local unitLights = {
 		},
 	},
 	['cordronecarry'] = {
+		tower = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -16.5, posy = 20, posz = -34, radius = 17,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.11,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'radar',
+			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 4,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0, g = 1, b = 0, a = 0.33,
+							modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['corsentinel'] = {
 		tower = {
 			lightType = 'point',
 			pieceName = 'base',

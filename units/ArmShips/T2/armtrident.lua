@@ -13,7 +13,7 @@ return {
 		canrepair = false,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "48 48 92",
+		collisionvolumescales = "42 42 84",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		explodeas = "hugeexplosiongeneric",
@@ -154,10 +154,10 @@ return {
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 6,
+					decayrate = 0,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "release",
+					carrierdeaththroe = "death",
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,
