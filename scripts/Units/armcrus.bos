@@ -35,6 +35,7 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 //		[X] Ensure the bounce piece move happens before rot, yes move is before rot
 // [ ] Idle waves 
 // [ ] Independent axis damping if not specified
+// [ ] Damping should be velocity dependent!
 // [ ] Better Recoil handling 
 // [ ] Integrate SmokeUnit
 // [ ] Minimize useage of local vars
@@ -58,23 +59,27 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // mass of boat in AU
 #ifndef RB_MASS
-	#define RB_MASS 100
+	#define RB_MASS 80
 #endif
-//Virtual Length and width of boat in elmos, assume the boat is a tall as it is wide
+
+//Virtual Length of the boat, longer boats will have lower frequency pitches
 #ifndef RB_LENGTH
 	#define RB_LENGTH 8
 #endif 
 
+// Virtual width of boat, widget boats will roll slower
 #ifndef RB_WIDTH
 	#define RB_WIDTH 3
 #endif
 
+// DO NOT TOUCH TODO
 #ifndef RB_FRAMES
 	#define RB_FRAMES 1
 #endif
 
+// How tall, in elmos, the unit should Bounce at full speed
 #ifndef RB_BOUNCE_HEIGHT
-	#define RB_BOUNCE_HEIGHT [10.0]
+	#define RB_BOUNCE_HEIGHT [2.0]
 #endif
 
 // in degrees per frame
@@ -82,12 +87,23 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 	#define RB_BOUNCE_PERIOD <7>
 #endif
 
+// Phase offsets 
+#ifndef RB_BOWSPLASH1_PHASE
+	#define RB_BOWSPLASH1_PHASE <90>
+#endif
+
+#ifndef RB_BOWSPLASH2_PHASE
+	#define RB_BOWSPLASH2_PHASE <270>
+#endif
+
 
 //------------------- OPTIONAL DEFINES ------------------
-#define RB_RECOIL_ENERGY_1 3
+#define RB_RECOIL_ENERGY_1 500
 #define RB_RECOIL_ENERGY_3 0
 
 // where 0 is no damping.
+
+#define RB_DAMPFACTOR 1000
 #define RB_PITCH_DAMPING 2
 #define RB_ROLL_DAMPING  2
 
@@ -126,10 +142,17 @@ static-var RB_pitch_velocity, RB_roll_velocity;
 static-var RB_bounce_frame;
 
 InitRockBoat(){
-	RB_pitch_velocity = 0;
-	RB_roll_velocity = 0; 
+	#ifdef DEBUG
+		RB_pitch_velocity = 16000;
+		RB_roll_velocity = 16000; 
+	#else
+		RB_pitch_velocity = 0;
+		RB_roll_velocity = 0; 
+
+	#endif
 	RB_pitch_target = 0;
 	RB_roll_target = 0;
+	dbg(RB_INERTIA_PITCH, RB_INERTIA_ROLL);
 }
 
 
@@ -159,6 +182,10 @@ BoatPhysics(){
 	var cos_bounce;
 	cos_bounce = 0;
 
+	var tmp1, tmp2;
+	tmp1 = 0;
+	tmp2 = 0;
+
 	while (1){
 		
 
@@ -172,10 +199,11 @@ BoatPhysics(){
 
 		// Move the pitch target backwards when going fast
 		// And keep it back when going fast
-		RB_pitch_target = -1 *( 10* prevSpeed_delta + currSpeed) / 200;
+		RB_pitch_target = -2 *( 10* prevSpeed_delta + currSpeed) ;
 		
 		// Roll the boat more when turning at high speed
-		RB_roll_target = (prevHeading_delta * currSpeed) / maxSpeed;
+		RB_roll_target = 4* prevHeading_delta * ((256* (currSpeed + maxSpeed)) / maxSpeed);
+		//dbg(RB_pitch_target, RB_roll_target,prevHeading_delta);
 
 		// Save the vars, as we wont be using them again
 		prevHeading_delta = currHeading;
@@ -185,8 +213,9 @@ BoatPhysics(){
 		//dbg(curr_bounce, currSpeed, maxSpeed,sin_bounce);
 
 		// Calculate restoring torque due to displacement
-		torque_pitch = ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH));
-		torque_roll =  ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ));
+		torque_pitch =  ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH));
+		torque_roll =   ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ));
+		//dbg(torque_pitch, torque_roll);
 		
 		//Clamp
 		//if (torque_pitch > 100) torque_pitch = 100;
@@ -199,22 +228,34 @@ BoatPhysics(){
 		RB_roll_velocity  = RB_roll_velocity  + RB_FRAMES * (torque_roll  ) / RB_INERTIA_ROLL ;
 		
 		// Simple damping to simulate resistance from water and air
-		RB_pitch_velocity = ( (RB_pitch_velocity * (100 - RB_PITCH_DAMPING)) / 100) ;
-		RB_roll_velocity  = ( (RB_roll_velocity  * (100 - RB_ROLL_DAMPING )) / 100) ;
+		tmp1 = get ABS(RB_pitch_velocity);
+		RB_pitch_velocity =  (RB_pitch_velocity * (256 - (RB_PITCH_DAMPING + tmp1/RB_DAMPFACTOR))/256 ) ;
+		tmp2 = get ABS(RB_roll_velocity);
+		RB_roll_velocity  =  (RB_roll_velocity  * (256 - (RB_ROLL_DAMPING +  tmp2/RB_DAMPFACTOR))/256 ) ;
+
+		//dbg(tmp1/RB_DAMPFACTOR, tmp2/RB_DAMPFACTOR);
+
 		
+		//if(currSpeed > 0 ) dbg(RB_pitch_velocity, RB_roll_velocity);
 		// Ensure that there is a minimal return to normal speed
-		if (RB_pitch_velocity == 0) {
-			if (RB_pitch > 0) RB_pitch_velocity = -1;
-			else RB_pitch_velocity = 1;
+		if (RB_pitch_velocity / 16 == 0) {
+			//dbg(88888);
+			RB_pitch_velocity = 1000;
+			//if (RB_pitch > 0) RB_pitch_velocity = -1;
+			//else RB_pitch_velocity = 1;
 		}
 
-		if (RB_roll_velocity == 0) {
-			if (RB_roll > 0) RB_roll_velocity = -1;
-			else RB_roll_velocity = 1;
+		if (RB_roll_velocity/16 == 0) {
+			//dbg(44444);
+			RB_roll_velocity = 1000;
+			//if (RB_roll > 0) RB_roll_velocity = -1;
+			//else RB_roll_velocity = 1;
 		}
+		//dbg(torque_pitch, torque_roll, RB_pitch_velocity, RB_roll_velocity);
 
+		//if(currSpeed > 0 ) dbg(torque_roll, RB_roll_velocity);
 		// Update pitch and roll based on angular velocity
-		RB_pitch = RB_pitch + RB_FRAMES * RB_pitch_velocity ;
+		RB_pitch = RB_pitch + RB_FRAMES * RB_pitch_velocity;
 		RB_roll  = RB_roll  + RB_FRAMES * RB_roll_velocity;
 
 		// Print debugging stuff:
@@ -227,8 +268,8 @@ BoatPhysics(){
 			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis RB_pitch now; 
 			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis RB_roll now; 
 			#else
-				if (RB_pitch_velocity != 0) turn RB_BASE to x-axis RB_pitch speed 30 * RB_pitch_velocity; 
-				if (RB_roll_velocity  != 0) turn RB_BASE to z-axis RB_roll * 10 speed 10 * 30 * RB_roll_velocity; 
+				if (RB_pitch_velocity != 0) turn RB_BASE to x-axis (RB_pitch/256) speed (30 * RB_pitch_velocity + 1);  
+				if (RB_roll_velocity  != 0) turn RB_BASE to z-axis (RB_roll /256) speed (30 * RB_roll_velocity + 1); 
 			#endif
 		#else
 			turn RB_BASE to x-axis RB_pitch speed (30 / RB_FRAMES) * RB_pitch_velocity;
@@ -236,27 +277,35 @@ BoatPhysics(){
 		#endif
 
 		// increment bounce phase and modulo it
-		RB_bounce_frame = (RB_bounce_frame + RB_FRAMES * RB_BOUNCE_PERIOD);
+		if (currSpeed> 0){
+			RB_bounce_frame = (RB_bounce_frame + RB_FRAMES * RB_BOUNCE_PERIOD);
+			// emit a the bottom peak
+			if (RB_bounce_frame >= <360>){
+				RB_bounce_frame = 0;
+				//dbg(RB_bounce_frame/ <1>,111);
+			}
 
-		// emit a the bottom peak
-		if (RB_bounce_frame >= <360>){
-			emit-sfx 1024 + 2 from bow;
-			RB_bounce_frame = 0;
+			// BowSplash Phase 1
+			if (RB_bounce_frame >= RB_BOWSPLASH1_PHASE && RB_bounce_frame < RB_BOWSPLASH1_PHASE + (RB_FRAMES * RB_BOUNCE_PERIOD)){
+				emit-sfx 1024 + 2 from bow;
+			}
+
+			// BowSplash Phase 2
+			if (RB_bounce_frame >= RB_BOWSPLASH2_PHASE && RB_bounce_frame < RB_BOWSPLASH2_PHASE + (RB_FRAMES * RB_BOUNCE_PERIOD)){
+				emit-sfx 1024 + 2 from bow;
+			}
+			
+			//dbg(RB_bounce_frame/ <1>);
+			// Calculate Bounce, be careful that your int doesnt overflow
+			// Start at the -1 point of the cosine with + <180>
+			cos_bounce = get KCOS(RB_bounce_frame + <180>) + 1024;
+
+			//dbg(RB_bounce_frame/ <1>,cos_bounce);
+
+			curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
+
+			move RB_BASE to y-axis curr_bounce * cos_bounce / 1024 speed [500];
 		}
-
-		// emit at the top peak
-		if (RB_bounce_frame >= <180> && RB_bounce_frame < <180> + (RB_FRAMES * RB_BOUNCE_PERIOD)){
-			emit-sfx 1024 + 2 from bow;
-		}
-		
-		
-		// Calculate Bounce, be careful that your int doesnt overflow
-		cos_bounce = get KCOS(RB_bounce_frame) + 1024;
-
-
-		curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
-
-		move RB_BASE to y-axis curr_bounce * cos_bounce / 1024 speed [500];
 
 		// emit a wakesplash on up and down bounce
 		
@@ -415,14 +464,14 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	var waketime;
-	RB_bounce_frame = 0;
+	RB_bounce_frame = RAND(0, <180>);
 	start-script waveSplash();
 	var bowtime;
 	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from bow;
+		//emit-sfx 1024 + 1 from wake;
+		//if (bowtime) emit-sfx 1024 + 2 from bow;
         bowtime = !bowtime;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
