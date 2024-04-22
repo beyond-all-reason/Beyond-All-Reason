@@ -95,8 +95,7 @@ end
 
 
 local function isFinished(UnitID)
-  local _,_,_,_,buildProgress = Spring.GetUnitHealth(UnitID)
-  return (buildProgress==nil)or(buildProgress>=1)
+  return not Spring.GetUnitIsBeingBuilt(UnitID)
 end
 
 local function HeadingToFacing(heading)
@@ -549,12 +548,6 @@ local function FinishMorph(unitID, morphData)
   local h = Spring.GetUnitHeading(unitID)
   Spring.SetUnitBlocking(unitID, false)
   morphUnits[unitID] = nil
-
-  local oldHealth,oldMaxHealth,paralyzeDamage,captureProgress,buildProgress = Spring.GetUnitHealth(unitID)
-  local isBeingBuilt = false
-  if buildProgress < 1 then
-    isBeingBuilt = true
-  end
 
   local newUnit
   local face = HeadingToFacing(h)

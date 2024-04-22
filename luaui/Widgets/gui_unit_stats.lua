@@ -361,10 +361,10 @@ local function drawStats(uDefID, uID)
 	local transportable = not (uDef.cantBeTransported and uDef.cantBeTransported or false)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
-	local buildProg, uExp
+	local isBuilding, buildProg, uExp
 	local level = 1
 	if uID then
-		_, _, _, _, buildProg = spGetUnitHealth(uID)
+		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, 'los') or 0
@@ -395,7 +395,7 @@ local function drawStats(uDefID, uID)
 	------------------------------------------------------------------------------------
 	-- Units under construction
 	------------------------------------------------------------------------------------
-	if buildProg and buildProg < 1 then
+	if isBuilding then
 
 		local myTeamID = spGetMyTeamID()
 		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = spGetTeamResources(myTeamID, 'metal')
