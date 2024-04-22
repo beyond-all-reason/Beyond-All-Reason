@@ -16,7 +16,7 @@ if not string.split then
 end
 
 if not string.trim then
-	-- fast (for LuaJIT) space strimming, e.g.: " a sd   ".trim() == "a sd"
+	-- fast (for LuaJIT) space trimming, e.g.: " a sd   ".trim() == "a sd"
 	function string.trim(str)
 		if str == "" then
 			return str

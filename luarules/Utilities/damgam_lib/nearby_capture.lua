@@ -17,8 +17,7 @@ local function NearbyCapture(unitID, difficulty, range)
     for i = 1,#nearbyUnits do
         local attackerID = nearbyUnits[i]
         if attackerID ~= unitID then
-            local buildProgress = select(5, Spring.GetUnitHealth(unitID))
-            if buildProgress == 1 then
+            if not Spring.GetUnitIsBeingBuilt(unitID) then
                 local attackerAllyTeamID = Spring.GetUnitAllyTeam(attackerID)
                 local attackerDefID = Spring.GetUnitDefID(attackerID)
                 local attackerMetalCost = UnitDefs[attackerDefID].metalCost

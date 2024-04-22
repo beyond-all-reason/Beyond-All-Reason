@@ -17,8 +17,8 @@ vertex = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
+	#define OPTION_TREADS_ARM 5
+	#define OPTION_TREADS_CORE 6
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
@@ -236,7 +236,7 @@ vertex = [[
 
 			%%VERTEX_UV_TRANSFORM%%
 
-			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_ARM)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM)) {
 				const float atlasSize = 4096.0;
 				const float gfMod = 8.0;
 				const float texSpeed = 4.0;
@@ -252,7 +252,7 @@ vertex = [[
 				}
 			}
 
-			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_CORE)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
 				const float atlasSize = 2048.0;
 				const float gfMod = 6.0;
 				const float texSpeed = -6.0;
@@ -367,8 +367,8 @@ fragment = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
+	#define OPTION_TREADS_ARM 5
+	#define OPTION_TREADS_CORE 6
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
@@ -1531,8 +1531,8 @@ local defaultMaterialTemplate = {
 		flashlights       = false,
 		normalmap_flip    = false,
 
-		threads_arm       = false,
-		threads_core      = false,
+		treads_arm       = false,
+		treads_core      = false,
 
 		health_displace  = false,
 		health_texturing = false,
@@ -1556,8 +1556,8 @@ local defaultMaterialTemplate = {
 		flashlights      = false,
 		normalmap_flip   = false,
 
-		threads_arm      = false,
-		threads_core     = false,
+		treads_arm      = false,
+		treads_core     = false,
 
 		modelsfog        = true,
 
@@ -1609,8 +1609,8 @@ local shaderPlugins = {
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
+	#define OPTION_TREADS_ARM 5
+	#define OPTION_TREADS_CORE 6
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
@@ -1631,8 +1631,8 @@ local knownBitOptions = {
 	["vertex_ao"] = 3,
 	["flashlights"] = 4,
 
-	["threads_arm"] = 5,
-	["threads_core"] = 6,
+	["treads_arm"] = 5,
+	["treads_core"] = 6,
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,

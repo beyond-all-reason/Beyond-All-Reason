@@ -37,11 +37,12 @@ return {
 		buildoptions = {
 			[1] = "corfav",
 			[2] = "legcv",
-			[3] = "leghades",
-			[4] = "leghelios",
-			[5] = "leggat",
-			[6] = "legbar",
-			[7] = "legrail",
+			[3] = "legotter",
+			[4] = "leghades",
+			[5] = "leghelios",
+			[6] = "leggat",
+			[7] = "legbar",
+			[8] = "legrail",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
