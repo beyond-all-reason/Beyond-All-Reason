@@ -12,7 +12,7 @@ end
 
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local processPlayerChangedFrame, processPlayerChangedPlayerID
+local processTeamDiedFrame, processTeamDiedTeamID, processTeamDiedTeamID
 
 local function switchToTeam(teamID)
 	local oldMapDrawMode = Spring.GetMapDrawMode()
@@ -24,11 +24,10 @@ local function switchToTeam(teamID)
 	end
 end
 
-local function processPlayerChanged(playerID)
-	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+local function processTeamDied(teamID)
 	if teamID then
-		local _, _, isPlayerTeamDead = Spring.GetTeamInfo(teamID, false)
-		if isPlayerTeamDead and myTeamID == teamID then
+		local _, _, isDead = Spring.GetTeamInfo(teamID, false)
+		if isDead and myTeamID == teamID then
 			local myAllyTeamID = Spring.GetMyAllyTeamID()
 			-- first try alive team mates
 			local teamList = Spring.GetTeamList(myAllyTeamID)
@@ -54,9 +53,8 @@ end
 function widget:TeamDied(teamID)
 	spec, fullview = Spring.GetSpectatingState()
 	if spec and myTeamID == teamID then
-		local _, playerID = Spring.GetTeamInfo(teamID, false)
-		processPlayerChangedFrame = Spring.GetGameFrame() + 1
-		processPlayerChangedPlayerID = playerID
+		processTeamDiedFrame = Spring.GetGameFrame() + 1
+		processTeamDiedTeamID = teamID
 	end
 end
 
@@ -65,15 +63,15 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)	-- player can be spec here and team not be dead still
 	if spec and teamID and myTeamID == teamID then
-		processPlayerChangedFrame = Spring.GetGameFrame() + 1
-		processPlayerChangedPlayerID = playerID
+		processTeamDiedFrame = Spring.GetGameFrame() + 1
+		processTeamDiedTeamID = teamID
 	end
 end
 
 function widget:GameFrame(f)
-	if processPlayerChangedFrame and processPlayerChangedFrame <= f then
-		processPlayerChanged(processPlayerChangedPlayerID)
-		processPlayerChangedFrame = nil
-		processPlayerChangedPlayerID = nil
+	if processTeamDiedFrame and processTeamDiedFrame <= f then
+		processTeamDied(processTeamDiedTeamID)
+		processTeamDiedFrame = nil
+		processTeamDiedTeamID = nil
 	end
 end

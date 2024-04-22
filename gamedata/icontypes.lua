@@ -2259,6 +2259,10 @@ local icontypes = {
 		bitmap = "icons/air_t2_bomber_napalm.png",
 		size = 1.85000002
 	},
+	legotter = {
+		bitmap = "icons/amphib_worker.png",
+		size = 1.36499989
+	},
 	legpede = {
 		bitmap = "icons/corkarg_2.05.png",
 		size = 3

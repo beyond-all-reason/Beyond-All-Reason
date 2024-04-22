@@ -94,6 +94,12 @@ if Spring.GetModOptions().experimentalextraunits == true then
 	scavengersEnabled = true
 end
 
+if Spring.GetModOptions().forceallunits == true then
+	raptorsEnabled = true
+	scavengersEnabled = true
+	legionEnabled = true
+end
+
 for _, filename in ipairs(luaFiles) do
 	if legionEnabled or not filename:find('legion') then
 		if scavengersEnabled or not filename:find('scavengers') then

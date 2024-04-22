@@ -190,7 +190,6 @@ end
 local patchResolution = grassConfig.patchResolution
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGrass = Spring.GetGrass
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitDefID = Spring.GetUnitDefID
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
@@ -664,11 +663,11 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
-		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-		if buildProgress and buildProgress >= 1 then
-			adjustUnitGrass(unitID)
-		else
+		local isBuilding = Spring.GetUnitIsBeingBuilt(unitID)
+		if isBuilding then
 			removeUnitGrassQueue[unitID] = removeUnitGrassFrames
+		else
+			adjustUnitGrass(unitID)
 		end
 	end
 end

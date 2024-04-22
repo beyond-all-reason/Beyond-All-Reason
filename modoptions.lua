@@ -1218,6 +1218,15 @@ local options = {
         hidden 	= true,
     },
 
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
