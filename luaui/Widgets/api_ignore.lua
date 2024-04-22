@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name = "Ignore List API", --version 4.1
-		desc = "Adds /ignoreplayer <name>, /unignoreplayer <name>, /ignorelist\n(puts ignoredPlayers table into WG)",
-		author = "Bluestone",
-		date = "June 2014", --last change September 10,2009
+		name    = "Ignore List API", --version 4.1
+		desc    = "Adds /ignoreplayer <name>, /unignoreplayer <name>, /ignorelist\n(puts ignoredPlayers table into WG)",
+		author  = "Bluestone",
+		date    = "June 2014", --last change September 10,2009
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true, --enabled by default
+		layer   = 0,
+		enabled = true,
 		handler = true, --can use widgetHandler:x()
 	}
 end
