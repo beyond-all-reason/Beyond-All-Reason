@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 12500,
 		buildcostmetal = 1250,
-		buildpic = "CORDRONECARRY.DDS",
+		buildpic = "CORSENTINEL.DDS",
 		buildtime = 20000,
 		canmove = true,
 		canreclaim = false,

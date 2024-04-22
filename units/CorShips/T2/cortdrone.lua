@@ -22,7 +22,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 10.5,
 		maxwaterdepth = 0,
-		nochasecategory = "COMMANDER VTOL",
+		nochasecategory = "VTOL",
 		objectname = "Units/CORDRONE.s3o",
 		script = "Units/CORDRONE.cob",
 		seismicsignature = 0,
