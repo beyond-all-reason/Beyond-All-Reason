@@ -74,7 +74,7 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // DO NOT TOUCH TODO
 #ifndef RB_FRAMES
-	#define RB_FRAMES 1
+	#define RB_FRAMES 2
 #endif
 
 // How tall, in elmos, the unit should Bounce at full speed
