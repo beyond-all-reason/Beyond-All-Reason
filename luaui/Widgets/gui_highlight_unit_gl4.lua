@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name = "Highlight Unit GL4",
-		desc = "Highlights the unit or feature under the cursor",
-		author = "Floris (original: trepan)",
-		date = "January 2022",
+		name    = "Highlight Unit GL4",
+		desc    = "Highlights the unit or feature under the cursor",
+		author  = "Floris (original: trepan)",
+		date    = "January 2022",
 		license = "GNU GPL, v2 or later",
-		layer = -10000,
-		enabled = true  --  loaded by default?
+		layer   = -10000,
+		enabled = true
 	}
 end
 

@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
 	return {
-		name      = "Show Orders",
-		desc      = "Hold shift+meta to show allied units orders",
-		author    = "Niobium",
-		date      = "date",
-		version   = 1.0,
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true  --  loaded by default?
+		name    = "Show Orders",
+		desc    = "Hold shift+meta to show allied units orders",
+		author  = "Niobium",
+		date    = "date",
+		version = 1.0,
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
 	}
 end
 

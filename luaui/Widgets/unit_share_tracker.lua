@@ -2,13 +2,13 @@ local versionNumber = "v1.1"
 
 function widget:GetInfo()
 	return {
-		name = "Share Tracker",
-		desc = versionNumber .. " Marks received units.",
-		author = "Evil4Zerggin/TheFatController/indev29",
-		date = "17 August 2009",
+		name    = "Share Tracker",
+		desc    = versionNumber .. " Marks received units.",
+		author  = "Evil4Zerggin/TheFatController/indev29",
+		date    = "17 August 2009",
 		license = "GNU LGPL, v2.1 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

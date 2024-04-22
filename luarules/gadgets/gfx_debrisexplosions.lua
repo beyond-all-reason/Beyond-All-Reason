@@ -1,13 +1,14 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "Debris Explosions",
-        desc      = "Spawns CEG for debris explosions",
-        author    = "Doo",
-        date      = "Dec 9th 2017",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "Debris Explosions",
+		desc    = "Spawns CEG for debris explosions",
+		author  = "Doo",
+		date    = "Dec 9th 2017",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 -- TODO: Fold this into one gadget with all the other silly projectile ceg spawners!

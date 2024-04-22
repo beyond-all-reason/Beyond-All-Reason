@@ -12,15 +12,15 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-  return {
-    name      = "Factory Auto-Repeat",
-    desc      = "Sets new factories to Repeat on automatically",
-    author    = "TheFatController",
-    date      = "Mar 20, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = false  --  loaded by default?
-  }
+	return {
+		name    = "Factory Auto-Repeat",
+		desc    = "Sets new factories to Repeat on automatically",
+		author  = "TheFatController",
+		date    = "Mar 20, 2007",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = false
+	}
 end
 
 --------------------------------------------------------------------------------

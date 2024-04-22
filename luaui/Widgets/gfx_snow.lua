@@ -1,13 +1,14 @@
+
 function widget:GetInfo()
-  return {
-    name      = "Snow",
-    desc      = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
-    author    = "Floris (original: trepan, Argh)",
-    date      = "29 may 2015",
-    license   = "GNU GPL, v2 or later",
-    layer     = -24,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name    = "Snow",
+		desc    = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
+		author  = "Floris (original: trepan, Argh)",
+		date    = "29 may 2015",
+		license = "GNU GPL, v2 or later",
+		layer   = -24,
+		enabled = true
+	}
 end
 
 --------------------------------------------------------------------------------

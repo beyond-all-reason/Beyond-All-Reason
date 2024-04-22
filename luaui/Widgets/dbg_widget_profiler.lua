@@ -1,17 +1,15 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
-		name = "Widget Profiler",
-		desc = "",
-		author = "jK, Bluestone",
+		name    = "Widget Profiler",
+		desc    = "",
+		author  = "jK, Bluestone",
 		version = "2.0",
-		date = "2007+",
+		date    = "2007+",
 		license = "GNU GPL, v2 or later",
-		layer = -1000000,
+		layer   = -1000000,
 		handler = true,
-		enabled = false  --  loaded by default?
+		enabled = false
 	}
 end
 

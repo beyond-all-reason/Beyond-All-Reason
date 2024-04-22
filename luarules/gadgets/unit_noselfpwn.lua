@@ -1,16 +1,14 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-    return {
-        name      = "No Self Pwn",
-        desc      = "Prevents Some units from damaging themselves.",
-        author    = "quantum/TheFatController",
-        date      = "Feb 1, 2008",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "No Self Pwn",
+		desc    = "Prevents Some units from damaging themselves.",
+		author  = "quantum/TheFatController",
+		date    = "Feb 1, 2008",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

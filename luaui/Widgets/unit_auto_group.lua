@@ -2,13 +2,13 @@ local versionNum = '4.010'
 
 function widget:GetInfo()
 	return {
-		name = "Auto Group",
-		desc = "v" .. (versionNum) .. " Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units. Type '/luaui autogroup help' for help or view settings at: Settings/Interface/AutoGroup'.",
-		author = "Licho",
-		date = "Mar 23, 2007",
+		name    = "Auto Group",
+		desc    = "v" .. (versionNum) .. " Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units. Type '/luaui autogroup help' for help or view settings at: Settings/Interface/AutoGroup'.",
+		author  = "Licho",
+		date    = "Mar 23, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

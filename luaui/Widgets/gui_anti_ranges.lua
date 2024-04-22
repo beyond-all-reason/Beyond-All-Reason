@@ -1,15 +1,15 @@
---------------------------------------------------------------------------------
+
 function widget:GetInfo()
-    return {
-        name      = "Anti Ranges",
-        desc      = "Draws circle to show anti defence ranges (options: /antiranges_glow, antiranges_fade)",
-        author    = "[teh]decay, Floris",
-        date      = "25 january 2015",
-        license   = "GNU GPL, v2 or later",
-        version   = 3,
-        layer     = 5,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "Anti Ranges",
+		desc    = "Draws circle to show anti defence ranges (options: /antiranges_glow, antiranges_fade)",
+		author  = "[teh]decay, Floris",
+		date    = "25 january 2015",
+		license = "GNU GPL, v2 or later",
+		version = 3,
+		layer   = 5,
+		enabled = true
+	}
 end
 
 -- project page on github: https://github.com/jamerlan/gui_mobile_anti_defence_range

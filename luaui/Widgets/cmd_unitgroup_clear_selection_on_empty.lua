@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name = "Unit Groups - Clear selection on empty",
-		desc = "Clears selection when selecting an empty unit group",
-		author = "verybadsoldier",
-		date = "2021-10-10",
+		name    = "Unit Groups - Clear selection on empty",
+		desc    = "Clears selection when selecting an empty unit group",
+		author  = "verybadsoldier",
+		date    = "2021-10-10",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default
+		layer   = 0,
+		enabled = true
 	}
 end
 

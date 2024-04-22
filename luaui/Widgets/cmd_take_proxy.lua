@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name      = "Take Proxy",
-		desc      = "Renames /luarules take2 to /take",
-		author    = "BrainDamage",
-		date      = "2012",
-		license   = "WTFPL",
-		layer     = 0,
-		enabled   = true  -- loaded by default
+		name    = "Take Proxy",
+		desc    = "Renames /luarules take2 to /take",
+		author  = "BrainDamage",
+		date    = "2012",
+		license = "WTFPL",
+		layer   = 0,
+		enabled = true
 	}
 end
 

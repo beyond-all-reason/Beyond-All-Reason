@@ -10,17 +10,17 @@ if customparamDefsDetected then
 
     local excludeScavengers = true
 
-    function widget:GetInfo()
-        return {
-            name      = "Write customparam.__def to files",
-            desc      = "",
-            author    = "Bluestone",
-            date      = "-1",
-            license   = "GNU GPL, v2 or later",
-            layer     = 0,
-            enabled   = true  --  loaded by default?
-        }
-    end
+	function widget:GetInfo()
+		return {
+			name    = "Write customparam.__def to files",
+			desc    = "",
+			author  = "Bluestone",
+			date    = "-1",
+			license = "GNU GPL, v2 or later",
+			layer   = 0,
+			enabled = true
+		}
+	end
 
 	local savedTables = {}
 

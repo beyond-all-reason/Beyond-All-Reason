@@ -12,15 +12,15 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-  return {
-    name      = "Factory hold position",
-    desc      = "Sets new factories, and all units they build, to hold position automatically (except aircraft)",
-    author    = "Masta Ali",
-    date      = "Mar 20, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default
-  }
+	return {
+		name    = "Factory hold position",
+		desc    = "Sets new factories, and all units they build, to hold position automatically (except aircraft)",
+		author  = "Masta Ali",
+		date    = "Mar 20, 2007",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 --------------------------------------------------------------------------------

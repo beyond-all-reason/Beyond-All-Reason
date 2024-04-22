@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name      = "Auto Cloak Units",
-		desc      = "Auto cloaks Units with Cloak",
-		author    = "wilkubyk",
-		date      = "2022.12.29",
-		license   = "GNU GPL, v2 or later",
-		layer     = -99999,
-		enabled   = true  -- loaded by default
+		name    = "Auto Cloak Units",
+		desc    = "Auto cloaks Units with Cloak",
+		author  = "wilkubyk",
+		date    = "2022.12.29",
+		license = "GNU GPL, v2 or later",
+		layer   = -99999,
+		enabled = true
 	}
 end
 

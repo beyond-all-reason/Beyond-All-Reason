@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name = "BuildETA",
-		desc = "Displays estimated time of arrival for builds",
-		author = "trepan (modified by jK)",
-		date = "2007",
+		name    = "BuildETA",
+		desc    = "Displays estimated time of arrival for builds",
+		author  = "trepan (modified by jK)",
+		date    = "2007",
 		license = "GNU GPL, v2 or later",
-		layer = -9,
-		enabled = true  --  loaded by default?
+		layer   = -9,
+		enabled = true
 	}
 end
 

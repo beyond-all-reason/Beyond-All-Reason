@@ -1,13 +1,13 @@
 
 function gadget:GetInfo()
 	return {
-		name      = "Prevent Lab Hax",
-		desc      = "Stops enemy units from entering labs",
-		author    = "Google Frog/TheFatController",
-		date      = "Jul 24, 2007",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true  --  loaded by default?
+		name    = "Prevent Lab Hax",
+		desc    = "Stops enemy units from entering labs",
+		author  = "Google Frog/TheFatController",
+		date    = "Jul 24, 2007",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
 	}
 end
 

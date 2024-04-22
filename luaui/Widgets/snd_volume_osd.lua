@@ -1,21 +1,13 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  file:    	snd_volume_osd.lua
---  brief:   	volume control OSD
--- version: 	1.1
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
-		name = "Volume OSD",
-		desc = "A sound control OSD",
-		author = "Jools",
-		date = "Jan 10, 2012",
+		name    = "Volume OSD",
+		desc    = "A sound control OSD",
+		author  = "Jools",
+		date    = "Jan 10, 2012",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

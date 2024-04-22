@@ -1,13 +1,14 @@
+
 function widget:GetInfo()
 	return {
-		name = "Area unload",
-		desc = "Makes area unloads deterministic with equal distanced drops (not random) ",
-		author = "Doo",
-		date = "April 2018",
+		name 	= "Area unload",
+		desc 	= "Makes area unloads deterministic with equal distanced drops (not random) ",
+		author 	= "Doo",
+		date 	= "April 2018",
 		license = "GNU GPL, v2 or later",
 		handler = true,
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer 	= 0,
+		enabled = true
 	}
 end
 

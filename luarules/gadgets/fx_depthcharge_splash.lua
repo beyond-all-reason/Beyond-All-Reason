@@ -1,14 +1,15 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "Depthcharge splash",
-        desc      = "Makes splashes for depth-charges and torpedoes entering the water",
-        version   = "cake",
-        author    = "Bluestone",
-        date      = "July 2014",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true,  --  loaded by default?
-    }
+	return {
+		name    = "Depthcharge splash",
+		desc    = "Makes splashes for depth-charges and torpedoes entering the water",
+		version = "cake",
+		author  = "Bluestone",
+		date    = "July 2014",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

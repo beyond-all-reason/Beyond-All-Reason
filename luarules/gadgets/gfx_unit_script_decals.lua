@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name = "Unit Script Decals",
-		desc = "Forwards Decaling Events to Widgets from COB Unit scripts",
-		author = "Beherith",
-		date = "2023.02.07",
+		name    = "Unit Script Decals",
+		desc    = "Forwards Decaling Events to Widgets from COB Unit scripts",
+		author  = "Beherith",
+		date    = "2023.02.07",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true, --  loaded by default?
+		layer   = 0,
+		enabled = true,
 	}
 end
 

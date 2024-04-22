@@ -4,13 +4,13 @@ end
 
 function widget:GetInfo()
 	return {
-		name = "Scav Stats Panel",
-		desc = "Shows statistics and progress when fighting vs Scavs",
-		author = "quantum",
-		date = "May 04, 2008",
+		name    = "Scav Stats Panel",
+		desc    = "Shows statistics and progress when fighting vs Scavs",
+		author  = "quantum",
+		date    = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
-		layer = -9,
-		enabled = true  --  loaded by default?
+		layer   = -9,
+		enabled = true
 	}
 end
 

@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name = "Prevent Range Hax",
-		desc = "Prevent Range Hax",
-		author = "TheFatController",
-		date = "Jul 24, 2007",
+		name    = "Prevent Range Hax",
+		desc    = "Prevent Range Hax",
+		author  = "TheFatController",
+		date    = "Jul 24, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

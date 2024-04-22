@@ -1,14 +1,15 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "Notifications",
-        desc      = "Plays various voice notifications",
-        author    = "Doo, Floris",
-        date      = "2018",
-        license   = "GNU GPL, v2 or later",
-        version   = 1,
-        layer     = 5,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "Notifications",
+		desc    = "Plays various voice notifications",
+		author  = "Doo, Floris",
+		date    = "2018",
+		license = "GNU GPL, v2 or later",
+		version = 1,
+		layer   = 5,
+		enabled = true
+	}
 end
 
 local function GetAllyTeamID(teamID)

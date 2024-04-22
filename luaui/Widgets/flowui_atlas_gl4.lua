@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
 	return {
-		name      = 'FlowUI GL4 Atlas',
-		desc      = 'FlowUI GL4 Atlas Maker',
-		author    = 'Beherith',
-		version   = '1.0',
-		date      = '2021.05.26',
-		license   = 'GNU GPL, v2 or later',
-		layer     = 100000000,
-		enabled   = false,  --  loaded by default?
+		name    = 'FlowUI GL4 Atlas',
+		desc    = 'FlowUI GL4 Atlas Maker',
+		author  = 'Beherith',
+		version = '1.0',
+		date    = '2021.05.26',
+		license = 'GNU GPL, v2 or later',
+		layer   = 100000000,
+		enabled = false,
 	}
 end
 

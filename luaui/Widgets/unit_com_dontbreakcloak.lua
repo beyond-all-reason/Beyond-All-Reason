@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
 	return {
-		name      = 'Com DontBreakCloak',
-		desc      = 'Sets commanders to hold fire when cloaked',
-		author    = 'Niobium',
-		version   = '1.0',
-		date      = 'April 2011',
-		license   = 'GNU GPL, v2 or later',
-		layer     = 0,
-		enabled   = true,  --  loaded by default?
+		name    = 'Com DontBreakCloak',
+		desc    = 'Sets commanders to hold fire when cloaked',
+		author  = 'Niobium',
+		version = '1.0',
+		date    = 'April 2011',
+		license = 'GNU GPL, v2 or later',
+		layer   = 0,
+		enabled = true,
 	}
 end
 

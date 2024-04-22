@@ -1,15 +1,14 @@
 
-
 function widget:GetInfo()
 	return {
-		name      = 'FlowUI GL4 Tester',
-		desc      = 'FlowUI GL4 Testing',
-		author    = 'Beherith',
-		version   = '1.0',
-		date      = '2021.05.020',
-		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
-		layer     = 100,
-		enabled   = false,  --  loaded by default?
+		name    = 'FlowUI GL4 Tester',
+		desc    = 'FlowUI GL4 Testing',
+		author  = 'Beherith',
+		version = '1.0',
+		date    = '2021.05.020',
+		license = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
+		layer   = 100,
+		enabled = false,
 	}
 end
 

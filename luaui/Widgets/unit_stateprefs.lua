@@ -1,15 +1,13 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
-		name = "State Prefs V2",
-		desc = "Sets pre-defined units states. CTRL-click on a unit's state commands to define states for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
-		author = "Errrrrrr, quantum + Doo",
-		date = "April 21, 2023",
+		name    = "State Prefs V2",
+		desc    = "Sets pre-defined units states. CTRL-click on a unit's state commands to define states for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
+		author  = "Errrrrrr, quantum + Doo",
+		date    = "April 21, 2023",
 		license = "GNU GPL, v2 or later",
-		layer = 1000,
-		enabled = false, --  loaded by default?
+		layer   = 1000,
+		enabled = false,
 	}
 end
 

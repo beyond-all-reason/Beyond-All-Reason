@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name = "Command Queue Manager",
-		desc = "Skips current command or cancels the last command in command",
-		author = "[DE]LSR",
-		date = "5 Apr, 2022",
+		name    = "Command Queue Manager",
+		desc    = "Skips current command or cancels the last command in command",
+		author  = "[DE]LSR",
+		date    = "5 Apr, 2022",
 		license = "GNU GPL, v2 or later",
-		layer = 1, --  after the normal widgets
-		enabled = true, --  loaded by default?
+		layer   = 1, --  after the normal widgets
+		enabled = true,
 	}
 end
 

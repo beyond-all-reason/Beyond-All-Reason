@@ -1,13 +1,13 @@
 
 function gadget:GetInfo()
 	return {
-		name = "Windmill Control",
-		desc = "Controls windmill helix",
-		author = "quantum (modified by Krogoth86)",
-		date = "June 29, 2007",
+		name    = "Windmill Control",
+		desc    = "Controls windmill helix",
+		author  = "quantum (modified by Krogoth86)",
+		date    = "June 29, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

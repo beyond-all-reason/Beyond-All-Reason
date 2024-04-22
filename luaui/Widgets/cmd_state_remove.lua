@@ -1,12 +1,13 @@
+
 function widget:GetInfo()
 	return {
-		name      = "State Remover",
-		desc      = "Removes 'return fire' and 'roam' states",
-		author    = "Google Frog",
-		date      = "Oct 2, 2009",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = false  --  loaded by default?
+		name    = "State Remover",
+		desc    = "Removes 'return fire' and 'roam' states",
+		author  = "Google Frog",
+		date    = "Oct 2, 2009",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = false
 	}
 end
 

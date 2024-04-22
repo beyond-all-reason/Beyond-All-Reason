@@ -1,14 +1,15 @@
+
 function widget:GetInfo()
-    return {
-      name      = "Converter Usage",
-      desc      = "Shows the % of converters that are in use, their energy consumption and metal production",
-      author    = "Lexon, Floris",
-      date      = "05.08.2022",
-	  license   = "GNU GPL, v2 or later",
-      layer     = 0,
-      enabled   = true  --  loaded by default?
-    }
-  end
+	return {
+		name    = "Converter Usage",
+		desc    = "Shows the % of converters that are in use, their energy consumption and metal production",
+		author  = "Lexon, Floris",
+		date    = "05.08.2022",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
+end
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))

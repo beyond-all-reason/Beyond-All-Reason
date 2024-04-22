@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name = "Game End",
-		desc = "Handles team/allyteam deaths and declares gameover",
-		author = "Andrea Piras",
-		date = "June, 2013",
+		name    = "Game End",
+		desc    = "Handles team/allyteam deaths and declares gameover",
+		author  = "Andrea Piras",
+		date    = "June, 2013",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

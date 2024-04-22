@@ -1,13 +1,13 @@
 
 function widget:GetInfo()
 	return {
-		name      = "Reclaim Field Highlight",
-		desc      = "Highlights clusters of reclaimable material",
-		author    = "ivand, refactored by esainane, edited for BAR by Lexon",
-		date      = "2022",
-		license   = "public",
-		layer     = 1000,
-		enabled   = true  --  loaded by default?
+		name    = "Reclaim Field Highlight",
+		desc    = "Highlights clusters of reclaimable material",
+		author  = "ivand, refactored by esainane, edited for BAR by Lexon",
+		date    = "2022",
+		license = "public",
+		layer   = 1000,
+		enabled = true
 	}
 end
 

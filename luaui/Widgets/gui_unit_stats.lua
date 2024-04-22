@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
 	return {
-		name      = "Unit Stats",
-		desc      = "Shows detailed unit stats",
-		author    = "Niobium + Doo",
-		date      = "Jan 11, 2009",
-		version   = 1.7,
-		license   = "GNU GPL, v2 or later",
-		layer     = -999990,
-		enabled   = true,  --  loaded by default?
+		name    = "Unit Stats",
+		desc    = "Shows detailed unit stats",
+		author  = "Niobium + Doo",
+		date    = "Jan 11, 2009",
+		version = 1.7,
+		license = "GNU GPL, v2 or later",
+		layer   = -999990,
+		enabled = true,
 	}
 end
 

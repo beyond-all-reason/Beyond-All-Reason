@@ -1,13 +1,13 @@
 
 function widget:GetInfo()
 	return {
-		name = "Point Tracker",
-		desc = "Tracks recently placed map points.",
-		author = "Beherith",
-		date = "20211020",
+		name    = "Point Tracker",
+		desc    = "Tracks recently placed map points.",
+		author  = "Beherith",
+		date    = "20211020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

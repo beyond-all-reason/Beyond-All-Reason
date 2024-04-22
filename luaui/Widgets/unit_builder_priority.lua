@@ -15,16 +15,18 @@
 -- Notes:
 --   - For debugging select all lines ending in "-- DEBUG" and uncomment
 
-local info = {
-	name = "Builder Priority",
-	desc = "Allows to set builders (nanos, labs and cons) on low or high priority mode",
-	author = "[teh]decay",
-	date = "20 aug 2015",
-	license = "GNU GPL, v2 or later",
-	layer = 0,
-	version = 8,
-	enabled = true  -- loaded by default
-}
+function widget:GetInfo()
+	return {
+		name    = "Builder Priority",
+		desc    = "Allows to set builders (nanos, labs and cons) on low or high priority mode",
+		author  = "[teh]decay",
+		date    = "20 aug 2015",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		version = 8,
+		enabled = true
+	}
+end
 
 local CMD_PRIORITY = 34571
 
@@ -186,10 +188,6 @@ end
 --
 -- Callins (widget setup/config/teardown)
 --
-function widget:GetInfo()
-	return info
-end
-
 function widget:GetConfigData()
 	-- spEcho("[builder_priority] widget:GetConfigData (nanos: "..tostring(lowpriorityNanos).." cons: "..tostring(lowpriorityCons).." labs: "..tostring(lowpriorityLabs)..")")  -- DEBUG
 	return {

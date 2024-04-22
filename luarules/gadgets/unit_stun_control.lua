@@ -1,15 +1,13 @@
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
-		name      = "Stun Control",
-		desc      = "Disables on/off for Stunned Units",
-		author    = "Nixtux",
-		date      = "Apr 13, 2014",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true  --  loaded by default?
+		name    = "Stun Control",
+		desc    = "Disables on/off for Stunned Units",
+		author  = "Nixtux",
+		date    = "Apr 13, 2014",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
 	}
 end
 

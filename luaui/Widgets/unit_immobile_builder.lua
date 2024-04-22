@@ -11,15 +11,15 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-  return {
-	name		= "ImmobileBuilder",
-	desc		= "Sets immobile builders to MANEUVER, with a FIGHT command",
-	author		= "trepan",
-	date		= "Jan 8, 2007",
-	license		= "GNU GPL, v2 or later",
-	layer		= 0,
-	enabled		= true  --  loaded by default?
-  }
+	return {
+		name    = "ImmobileBuilder",
+		desc    = "Sets immobile builders to MANEUVER, with a FIGHT command",
+		author  = "trepan",
+		date    = "Jan 8, 2007",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 --------------------------------------------------------------------------------

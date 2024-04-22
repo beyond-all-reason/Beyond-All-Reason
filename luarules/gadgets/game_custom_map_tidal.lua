@@ -2,13 +2,13 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 function gadget:GetInfo()
 	return {
-		name = "Custom Map Tidal",
-		desc = "Sets map tidal for modoption via engine call",
-		author = "robert the pie",
-		date = "December 2023",
+		name    = "Custom Map Tidal",
+		desc    = "Sets map tidal for modoption via engine call",
+		author  = "robert the pie",
+		date    = "December 2023",
 		license = "GPLv2 or late",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

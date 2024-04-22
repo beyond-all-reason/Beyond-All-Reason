@@ -13,13 +13,13 @@
 
 function widget:GetInfo()
 	return {
-		name = "CameraShake",
-		desc = "Camera shakes",
-		author = "trepan",
-		date = "Jun 15, 2007",
+		name 	= "CameraShake",
+		desc 	= "Camera shakes",
+		author 	= "trepan",
+		date 	= "Jun 15, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer 	= 0,
+		enabled = true
 	}
 end
 

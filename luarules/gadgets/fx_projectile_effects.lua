@@ -1,14 +1,15 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "Projectile Effects",
-        desc      = "Unifies projectile effect CEG spawning",
-        version   = "1",
-        author    = "Beherith, Floris, Bluestone",
-        date      = "2023.11.13",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = false,  --  loaded by default?
-    }
+	return {
+		name    = "Projectile Effects",
+		desc    = "Unifies projectile effect CEG spawning",
+		version = "1",
+		author  = "Beherith, Floris, Bluestone",
+		date    = "2023.11.13",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = false,
+	}
 end
 
 --- This gadget replaces: -----

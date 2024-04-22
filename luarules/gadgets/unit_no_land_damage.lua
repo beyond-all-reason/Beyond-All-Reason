@@ -1,16 +1,14 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-    return {
-        name      = "No Land Damage",
-        desc      = "Stops torpedo bombers from damaging units when they're on land.",
-        author    = "TheFatController",
-        date      = "Aug 31, 2009",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "No Land Damage",
+		desc    = "Stops torpedo bombers from damaging units when they're on land.",
+		author  = "TheFatController",
+		date    = "Aug 31, 2009",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

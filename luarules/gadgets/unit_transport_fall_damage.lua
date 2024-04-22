@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name = "Fall Damage from Transports",
-		desc = "All units that fall from transports except Commandos receive height and mass proportional damage",
-		author = "Beherith",
-		date = "2023.06.22",
+		name    = "Fall Damage from Transports",
+		desc    = "All units that fall from transports except Commandos receive height and mass proportional damage",
+		author  = "Beherith",
+		date    = "2023.06.22",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = false  --  loaded by default?
+		layer   = 0,
+		enabled = false
 	}
 end
 

@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name = "ffa",
-		desc = "No owner code for FFA games. Removes abandoned teams",
-		author = "TheFatController",
-		date = "19 Jan 2008",
+		name    = "ffa",
+		desc    = "No owner code for FFA games. Removes abandoned teams",
+		author  = "TheFatController",
+		date    = "19 Jan 2008",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true    --	loaded by default?
+		layer   = 0,
+		enabled = true
 	}
 end
 

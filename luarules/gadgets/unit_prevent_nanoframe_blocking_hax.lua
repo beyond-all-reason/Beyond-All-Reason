@@ -1,12 +1,13 @@
+
 function gadget:GetInfo()
 	return {
-		name      = "Prevent Nanoframe Blocking Hax",
-		desc      = "Prevents nanoframes from blocking projectiles until they have reached x% build progress",
-		author    = "",
-		date      = "",
-		license   = "Hornswaggle",
-		layer     = 0,
-		enabled   = true  --  loaded by default?
+		name    = "Prevent Nanoframe Blocking Hax",
+		desc    = "Prevents nanoframes from blocking projectiles until they have reached x% build progress",
+		author  = "",
+		date    = "",
+		license = "Hornswaggle",
+		layer   = 0,
+		enabled = true
 	}
 end
 

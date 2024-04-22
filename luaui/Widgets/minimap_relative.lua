@@ -12,15 +12,15 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-  return {
-    name      = "RelativeMinimap",
-    desc      = "Keeps the minimap at a relative size (maxspect)",
-    author    = "trepan",
-    date      = "Feb 5, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name    = "RelativeMinimap",
+		desc    = "Keeps the minimap at a relative size (maxspect)",
+		author  = "trepan",
+		date    = "Feb 5, 2007",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 --------------------------------------------------------------------------------

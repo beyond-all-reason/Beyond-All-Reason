@@ -1,13 +1,14 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "game_no_share_to_enemy",
-        desc      = "Disallows sharing to enemies",
-        author    = "TheFatController",
-        date      = "19 Jan 2008",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "game_no_share_to_enemy",
+		desc    = "Disallows sharing to enemies",
+		author  = "TheFatController",
+		date    = "19 Jan 2008",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 --------------------------------------------------------------------------------

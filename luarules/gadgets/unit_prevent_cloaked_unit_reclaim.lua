@@ -1,13 +1,14 @@
+
 function gadget:GetInfo()
-    return {
-        name      = "Prevent Cloaked Unit Reclaim",
-        desc      = "Prevents builders from reclaiming cloaked units",
-        author    = "hihoman23",
-        date      = "Apr 2024",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name    = "Prevent Cloaked Unit Reclaim",
+		desc    = "Prevents builders from reclaiming cloaked units",
+		author  = "hihoman23",
+		date    = "Apr 2024",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
+	}
 end
 
 local canReclaim = {}

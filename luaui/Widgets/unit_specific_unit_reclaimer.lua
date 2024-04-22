@@ -1,13 +1,13 @@
 
 function widget:GetInfo()
 	return {
-		name			= "Specific Unit Reclaimer",
-		desc			= "Hold down Alt or Ctrl and give an area reclaim order, centered on a unit of the type to reclaim.",
-		author		= "Google Frog",
-		date			= "May 12, 2008",
-		license	 = "GNU GPL, v2 or later",
-		layer		 = 0,
-		enabled	 = true	--	loaded by default?
+		name    = "Specific Unit Reclaimer",
+		desc    = "Hold down Alt or Ctrl and give an area reclaim order, centered on a unit of the type to reclaim.",
+		author  = "Google Frog",
+		date    = "May 12, 2008",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
 	}
 end
 
