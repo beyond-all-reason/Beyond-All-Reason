@@ -188,11 +188,11 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function sendTeamOrder(teamOrder, allyTeamID_ready)
+	local function sendTeamOrder(teamOrder, allyTeamID_ready, log)
 		-- we send to allyTeamID Turn1 Turn2 Turn3 {...}
 		local orderMsg = ""
 		local orderIds = ""
-		local alone = true
+		--local alone = true
 		for i, teamID in ipairs(teamOrder) do
 			local tname = teamPlayerData[teamID].name or "unknown" -- "unknown" should not happen if we create the order after everyone connects, so we are good
 			if i == 1 then
@@ -204,7 +204,7 @@ if gadgetHandler:IsSyncedCode() then
 				orderIds = orderIds .. " " .. FindPlayerIDFromTeamID(teamID)
 			end
 		end
-		if not alone then
+		if log --[[and not alone]] then
 			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Order [id:"..allyTeamID_ready.."]: "..orderMsg)
 		end
 		Spring.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
@@ -328,7 +328,7 @@ if gadgetHandler:IsSyncedCode() then
 		if draftMode == "skill" or draftMode == "random" then
 			allyTeamSpawnOrderPlaced[allyTeamID_ready] = 1 -- First team in the order queue must place now
 			SendDraftMessageToPlayer(allyTeamID_ready, 1) -- We send the team a message notifying them it's their turn to place
-			sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready)
+			sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready, true)
 		end
 	end
 
@@ -473,41 +473,48 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if not playerIsSpec then
-			if (draftMode == "skill" or draftMode == "random") then
-				if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
-					if msg == "skip_my_turn" then
-						if allyTeamIsInGame[allyTeamID] and playerTeam and allyTeamID then
-							local turnCheck = isTurnToPlace(allyTeamID, playerTeam)
-							if turnCheck == 1 then -- your turn and you skip? sure thing then!
-								allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
-								SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+			if (draftMode ~= "disabled") then
+				if (draftMode == "skill" or draftMode == "random") then
+					if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
+						if msg == "skip_my_turn" then
+							if allyTeamIsInGame[allyTeamID] and playerTeam and allyTeamID then
+								local turnCheck = isTurnToPlace(allyTeamID, playerTeam)
+								if turnCheck == 1 then -- your turn and you skip? sure thing then!
+									allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1 -- if it "overflows", that means all teams inside the allyteam can place, which is OK
+									SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+								end
+							end
+						elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil and allyTeamSpawnOrderPlaced[allyTeamID] < #allyTeamSpawnOrder[allyTeamID] then
+							votedToForceSkipTurn[allyTeamID][playerTeam] = true
+							checkVotesAndAdvanceTurn(allyTeamID)
+						end
+					end
+				end
+				if msg == "i_have_joined_fair" then
+					local playerName = select(1,Spring.GetPlayerInfo(playerID, false))
+					if playerID > -1 and playerName ~= nil then
+						teamPlayerData[playerTeam] = {id = playerID, name = playerName, skill = GetSkillByPlayer(playerID)} -- Save data
+					end
+					-- Check if all allies have joined
+					if allyTeamIsInGame[allyTeamID] ~= true then
+						local allAlliesJoined = true
+						local teamList = Spring.GetTeamList(allyTeamID)
+						for _, team in ipairs(teamList) do
+							if teamPlayerData[team] == nil then
+								allAlliesJoined = false
+								--Spring.Echo("Player missing in team:", team)
+								break
 							end
 						end
-					elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil and allyTeamSpawnOrderPlaced[allyTeamID] < #allyTeamSpawnOrder[allyTeamID] then
-						votedToForceSkipTurn[allyTeamID][playerTeam] = true
-						checkVotesAndAdvanceTurn(allyTeamID)
-					end
-				end
-			end
-			if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") and msg == "i_have_joined_fair" then
-				local playerName = select(1,Spring.GetPlayerInfo(playerID, false))
-				if playerID > -1 and playerName ~= nil then
-					teamPlayerData[playerTeam] = {id = playerID, name = playerName, skill = GetSkillByPlayer(playerID)} -- Save data
-				end
-				-- Check if all allies have joined
-				if allyTeamIsInGame[allyTeamID] ~= true then
-					local allAlliesJoined = true
-					local teamList = Spring.GetTeamList(allyTeamID)
-					for _, team in ipairs(teamList) do
-						if teamPlayerData[team] == nil then
-							allAlliesJoined = false
-							--Spring.Echo("Player missing in team:", team)
-							break
+						if allAlliesJoined then
+							allyTeamIsInGame[allyTeamID] = true
+							InitDraftOrderData(allyTeamID)
 						end
 					end
-					if allAlliesJoined then
-						allyTeamIsInGame[allyTeamID] = true
-						InitDraftOrderData(allyTeamID)
+				elseif msg == "send_me_the_info_again" then -- someone luaui /reload'ed, send them the queue and index again
+					if draftMode ~= "fair" and allyTeamIsInGame[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] then
+						SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+						sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false)
 					end
 				end
 			end

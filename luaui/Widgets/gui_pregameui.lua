@@ -29,6 +29,7 @@ local readyButtonColor = {0.05, 0.28, 0}
 local unreadyButtonColor = {0.28, 0.05, 0}
 local subButtonColor = {0.08, 0.22, 0}
 local unsubButtonColor = {0.22, 0.08, 0}
+local waitButtonColor = {0.01, 0.01, 0.01}
 
 local readied = false	-- send readystate (in widget:GameSetup)
 local pressedReady	-- pressed button
@@ -82,41 +83,254 @@ local blinkButton = false
 
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
-local YourTurnTimeout = 5 -- This controls timeout for random/skill mode
-local VoteSkipTurnDelay = YourTurnTimeout+3
+local turnTimeOut = 5 -- This controls timeout for random/skill mode
+local VoteSkipTurnDelay = turnTimeOut+3
 local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
 local DMWarnColor = '\255\255\255\255'
 local myTurn = false
-local skippedMyTurn = false
 local ihavejoined_fair = false
-local myTurnTimeout = nil
+local currentTurnTimeout = nil
 local voteSkipTurnTimeout = nil
-local myTurnIsLast = false
 local fairTimeout = nil
-local showDMWelcomeMessage = nil
 local current_playerID = -1
 local next_playerID = -1
 local auto_ready_disable = false
 local myTeamPlayersOrder = nil
 local currentPlayerIndex = 0
-local function findPlayerName(playerID)
-	if myTeamPlayersOrder then
-		for _, player in ipairs(myTeamPlayersOrder) do
-			if player.id == playerID and player.name ~= "unconnected" then
-				return player.name
+local hasStartbox = false
+-- a lot of code copied from advplayerlist...
+local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":lc:" .. imgDir
+local pics = {
+    readyTexture = imageDirectory .. "indicator.dds",
+    rank0 = imageDirectory .. "ranks/1.png",
+    rank1 = imageDirectory .. "ranks/2.png",
+    rank2 = imageDirectory .. "ranks/3.png",
+    rank3 = imageDirectory .. "ranks/4.png",
+    rank4 = imageDirectory .. "ranks/5.png",
+    rank5 = imageDirectory .. "ranks/6.png",
+    rank6 = imageDirectory .. "ranks/7.png",
+    rank7 = imageDirectory .. "ranks/8.png",
+}
+local playerReadyState = {}
+local playerScale = 1
+local gl_Texture = gl.Texture
+local gl_Color = gl.Color
+local function RectQuad(px, py, sx, sy)
+    local o = 0.008        -- texture offset, because else grey line might show at the edges
+    gl.TexCoord(o, 1 - o)
+    gl.Vertex(px, py, 0)
+    gl.TexCoord(1 - o, 1 - o)
+    gl.Vertex(sx, py, 0)
+    gl.TexCoord(1 - o, o)
+    gl.Vertex(sx, sy, 0)
+    gl.TexCoord(o, o)
+    gl.Vertex(px, sy, 0)
+end
+local function DrawRect(px, py, sx, sy)
+    gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy)
+end
+local function DrawState(playerID, posX, posY)
+	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
+	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
+	local hasStartPoint = (playerReadyState[playerID] == 4)
+	if ai then
+		gl_Color(0.1, 0.1, 0.97, 1)
+	else
+		if ready then
+			gl_Color(0.1, 0.95, 0.2, 1)
+		else
+			if hasStartPoint then
+				gl_Color(1, 0.65, 0.1, 1)
+			else
+				gl_Color(0.8, 0.1, 0.1, 1)
 			end
 		end
 	end
-	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected"
+	gl_Texture(pics["readyTexture"])
+	DrawRect(posX, posY - (1*playerScale), posX + (16*playerScale), posY + (16*playerScale))
+	gl_Color(1, 1, 1, 1)
+end
+-- we don't have sandblock icon yet so improv time
+local function drawSandclock(posX, posY)
+	local triangleSize = 4
+	gl.PushMatrix()
+	gl.Color(1, 1, 1, 1)
+	gl.Translate(posX, posY-2.1, 0)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(0, triangleSize, 0)
+		gl.Vertex(-triangleSize * 2 * math.sin(math.rad(30)), -triangleSize * 2 * math.cos(math.rad(30)), 0)
+		gl.Vertex(triangleSize * 2 * math.sin(math.rad(30)), -triangleSize * 2 * math.cos(math.rad(30)), 0)
+	  end)
+	gl.PopMatrix()
+	gl.PushMatrix()
+	gl.Color(1, 1, 1, 1)
+	gl.Translate(posX, posY+2.1, 0)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+	gl.Vertex(0, -triangleSize, 0)
+	gl.Vertex(-triangleSize * 2 * math.sin(math.rad(30)), triangleSize * 2 * math.cos(math.rad(30)), 0)
+	gl.Vertex(triangleSize * 2 * math.sin(math.rad(30)), triangleSize * 2 * math.cos(math.rad(30)), 0)
+	  end)
+	gl.PopMatrix()
+end
+local function SetSidePics()
+    local playerList = Spring.GetPlayerList()
+    for _, playerID in pairs(playerList) do
+        playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+    end
+end
+local function DrawRankImage(rankImage, posX, posY)
+    gl_Color(1, 1, 1, 1)
+    gl_Texture(rankImage)
+    DrawRect(posX + (3*playerScale), posY + (8*playerScale) - (7.5*playerScale), posX + (17*playerScale), posY + (8*playerScale) + (7.5*playerScale))
+end
+local function DrawRank(rank, posX, posY)
+    if rank == 0 then
+        DrawRankImage(pics["rank0"],  posX, posY)
+    elseif rank == 1 then
+        DrawRankImage(pics["rank1"],  posX, posY)
+    elseif rank == 2 then
+        DrawRankImage(pics["rank2"],  posX, posY)
+    elseif rank == 3 then
+        DrawRankImage(pics["rank3"],  posX, posY)
+    elseif rank == 4 then
+        DrawRankImage(pics["rank4"],  posX, posY)
+    elseif rank == 5 then
+        DrawRankImage(pics["rank5"],  posX, posY)
+    elseif rank == 6 then
+        DrawRankImage(pics["rank6"],  posX, posY)
+    elseif rank == 7 then
+        DrawRankImage(pics["rank7"],  posX, posY)
+    else
+
+    end
+end
+local function DrawSkill(skill, posX, posY)
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    font:Begin()
+    font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+    font:End()
+end
+-- advplayerlist end
+local function colourNames(teamID)
+	if teamID == nil then return "\255\210\210\210" end -- debug
+	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local R255 = math.floor(nameColourR * 255)
+	local G255 = math.floor(nameColourG * 255)
+	local B255 = math.floor(nameColourB * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+end
+local function canPlayerPlaceNow(playerID) -- returns true if playerID is found before array hits index (currentPlayerIndex)
+	if draftMode == nil or draftMode == "disabled" or draftMode == "fair" then return true end
+	if currentPlayerIndex == nil or currentPlayerIndex <= 0 or myTeamPlayersOrder == nil then
+		return false
+	end
+	for i = 1, #myTeamPlayersOrder do
+		if (i > currentPlayerIndex) then
+			return false
+		end
+        if myTeamPlayersOrder[i].id == playerID then
+            return true
+        end
+    end
+    return false
+end
+local function findPlayerName(playerID)
+	if myTeamPlayersOrder then
+		for _, player in ipairs(myTeamPlayersOrder) do
+			if player.id == playerID then
+				if player.name ~= nil then
+					return player.name
+				else -- try to cache missing player name
+					local tname = select(1, Spring.GetPlayerInfo(playerID, false))
+					if tname ~= nil then
+						player.name = tname
+						return player.name
+					end
+				end
+			end
+		end
+	end
+	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected" -- show "unconnected" instead of nil if we don't know the name
 	return tname
+end
+local function draftModeInited() -- We want to ensure the player's UI is loaded and seen by the player before proceeding
+	if draftModeLoaded then return end
+	local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
+	Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode))
+	draftModeLoaded = true
+	if mode == "Fair" then
+		fairTimeout = os.clock() + 2
+	else
+		fairTimeout = os.clock()
+	end
+end
+local function buttonTextRefresh()
+	if mySpec then
+		showLockButton = true
+		if not offeredAsSub then
+			buttonText = Spring.I18N('ui.substitutePlayers.offer')
+		else
+			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
+		end
+	else
+		if (draftMode == nil or draftMode == "disabled" or draftMode == "fair") then -- regular
+			if readied then
+				showLockButton = true
+				if locked then
+					buttonText = Spring.I18N('ui.initialSpawn.unlock')
+				else
+					buttonText = Spring.I18N('ui.initialSpawn.lock')
+				end
+			else
+				showLockButton = true
+				buttonText = Spring.I18N('ui.initialSpawn.ready')
+			end
+		else -- modded
+			if canPlayerPlaceNow(myPlayerID) then
+				if startPointChosen then
+					showLockButton = true
+					if locked then
+						buttonText = Spring.I18N('ui.initialSpawn.unlock')
+					else
+						buttonText = Spring.I18N('ui.initialSpawn.lock')
+					end
+				else
+					showLockButton = false
+					buttonText = ""
+				end
+			else
+				showLockButton = true
+				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
+			end
+		end
+	end
 end
 -- DraftOrder mod end
 
 local function createButton()
+	buttonTextRefresh()
+	local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
+	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec then
+		gl.DeleteList(buttonList)
+		gl.DeleteList(buttonHoverList)
+		return
+	end
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
-		if not locked then
+		if cantPlaceNow then
+			color = waitButtonColor
+		elseif not locked then
 			color = readyButtonColor
 		else
 			color = unreadyButtonColor
@@ -140,23 +354,7 @@ local function createButton()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	if mySpec then
-		if not offeredAsSub then
-			buttonText = Spring.I18N('ui.substitutePlayers.offer')
-		else
-			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
-		end
-	else
-		if readied then
-			if locked then
-				buttonText = Spring.I18N('ui.initialSpawn.unlock')
-			else
-				buttonText = Spring.I18N('ui.initialSpawn.lock')
-			end
-		else
-			buttonText = Spring.I18N('ui.initialSpawn.ready')
-		end
-	end
+	buttonTextRefresh()
 
 	vsx, vsy = Spring.GetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
@@ -236,12 +434,15 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
-	if buttonDrawn then
+	if buttonDrawn and showLockButton then
 
 		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
 			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
+
+				local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
+				if cantPlaceNow then return false end
 
 				-- if not pressed on ready
 				if not readied then
@@ -335,8 +536,17 @@ function widget:Initialize()
 		auto_ready_timer = auto_ready_timer * 2 -- extra time to place, just to be safe
 	end
 
+	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
+	if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
+		hasStartbox = true
+	end
+
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
+
+	if (draftMode ~= nil and draftMode ~= "disabled") then
+		reloadedDraftMode = os.clock()+2 -- in case you luaui reload
+	end
 end
 
 function widget:DrawScreen()
@@ -375,88 +585,114 @@ function widget:DrawScreen()
 
 	-- DraftOrder mod start
 	if draftModeLoaded then
-		font:Begin()
-		font:Print(showDMWelcomeMessage, vsx * 0.5, vsy * 0.4, 18.5 * uiScale, "co") -- lower than center of your screen
-		font:End()
+		-- "Victory" condition was at y: 0.155 (now at 0.68) -- gui_game_type_info.lua
+		-- "Pick a startspot within..." is probably at ~0.08 -- I have no idea how map_startbox.lua decids where to draw it, so if this mod is enabled, that widget won't draw it, instead we do it here
 
-		local msg = ""
+		-- we will draw this basically:	   (y)
+		-- 			  4s				-- 0.26
+		-- 	 Place your Commander		-- 0.23
+		-- 	"Pick a startpos within"    -- I'm not going to touch that just yet (map_startbox.lua) (~0.20)
+		--     Next is "Player2"		-- 0.18
+
+		-- UI design by Scopa, implemented by Tom Fyuri
 		if myTeamPlayersOrder then
-			if myTurn then -- show counter
-				if not startPointChosen then -- but not if you are already good
-					if next_playerID == -1 then
-						msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor })
+			if not mySpec then
+				if draftMode ~= "fair" then
+					local tmsg = ""
+					if currentTurnTimeout then
+						tmsg = math.floor(currentTurnTimeout-os.clock())
+						if (tmsg < 0) then tmsg = "?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
+							tmsg = tmsg .. "s"
+						end
+					elseif (current_playerID > -1 and next_playerID > -1) then
+						tmsg = ""
 					else
+						tmsg = ""
+					end
+					if (current_playerID ~= myPlayerID) and (current_playerID > -1) then
+						font:Begin()
+						font:Print(DMDefaultColorString .. tmsg, vsx * 0.5, vsy * 0.26, 22.0 * uiScale, "co")
+						font:End()
+					end
+					local amIunlocked = canPlayerPlaceNow(myPlayerID)
+					if not amIunlocked and (current_playerID ~= myPlayerID) then
+						-- added because you can't place until your turn has come up or passed
+						if (current_playerID > -1) then
+							local tname = findPlayerName(current_playerID)
+							font:Begin()
+							font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.waitingFor', { name = tname}), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+							font:End()
+						end
+					elseif not startPointChosen then
+						font:Begin()
+						font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.placeYourCom'), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+						font:End()
+					end
+					if (current_playerID > -1 and next_playerID > -1) then
 						local tname = findPlayerName(next_playerID)
-						msg = Spring.I18N('ui.draftOrderMod.yourTurnToPlace', { textColor = DMDefaultColorString, warnColor = DMWarnColor }) .. ". " .. Spring.I18N('ui.draftOrderMod.nextIs', { name = tname, number = math.floor(myTurnTimeout-os.clock()) })
+						font:Begin()
+						font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.nextIsPlayer', { name = tname}), vsx * 0.5, vsy * 0.20, 15.0 * uiScale, "co")
+						font:End()
+					end
+					if hasStartbox then
+						local infotext = Spring.I18N('ui.startSpot.anywhere')
+						local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
+						font:Begin()
+						font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.18, 15.0 * uiScale, "co")
+						font:End()
+					end -- and if the player doens't have green box? not tell them anything?
+
+					-- "fancy" Team Placement UI
+					SetSidePics()
+					local x = vsx * 0.85
+					local y = vsy * 0.80
+					gl_Color(0, 0, 0, 0.5)  -- Black color with 50% opacity
+					local total_height_maybe = (((#myTeamPlayersOrder+3) * 20 * uiScale))
+					gl.Rect(x - 70 * uiScale, y + 50 * uiScale, x + 180 * uiScale, y - total_height_maybe) -- longest player name can probably get away outside rectangle width
+					gl_Color(1, 1, 1, 1)
+					font:Begin()
+					font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x-10, y, 16 * uiScale, "lo")
+					font:End()
+					for i, data in ipairs(myTeamPlayersOrder) do
+						local y_offset = i * 0.02
+						local y_shift = vsy * (0.80 - y_offset) -- player order vertical position - descending order
+
+						local playerID = data.id
+						local playerName = findPlayerName(playerID)
+						local playerTeamID = select(4, Spring.GetPlayerInfo(playerID, false))
+						local playerNameText = colourNames(playerTeamID) .. playerName
+						local customtable = select(11, Spring.GetPlayerInfo(playerID))
+						local playerRank, playerSkill = 0, 0
+						if type(customtable) == 'table' then
+							local tsMu = customtable.skill
+							local tsSigma = customtable.skilluncertainty
+							local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+							if (ts ~= nil) then playerSkill = ts end
+							if (rank ~= nil) then playerRank = customtable.rank end
+						end
+						-- | indicator/timer/sandclock | rankicon | skill/zero | [playercolor] playername |
+						if (current_playerID == playerID) then
+							font:Begin()
+							font:Print(DMDefaultColorString .. tmsg, x, y_shift, 12 * uiScale, "lo")
+							font:End()
+						elseif (canPlayerPlaceNow(playerID)) then
+							DrawState(playerID, x, y_shift)
+						else
+							drawSandclock(x+10, y_shift+5)
+						end
+						DrawRank(playerRank, x+20, y_shift)
+						DrawSkill(playerSkill, x+40, y_shift)
+						font:Begin()
+						font:Print(DMDefaultColorString .. playerNameText, x+60, y_shift, 16 * uiScale, "lo")
+						font:End()
 					end
 				end
-			else
-				if next_playerID == myPlayerID then
-					local tname = findPlayerName(current_playerID)
-					msg = Spring.I18N('ui.draftOrderMod.yourTurnIsNext', { name = tname, textColor = DMDefaultColorString, warnColor = DMWarnColor})
-				elseif next_playerID > -1 then
-					local tname, tname2 = findPlayerName(current_playerID), findPlayerName(next_playerID)
-					msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname }) .. ", " .. Spring.I18N('ui.draftOrderMod.followedBy', { name2 = tname })
-				elseif current_playerID > -1 then
-					local tname = findPlayerName(current_playerID)
-					msg = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.playerTurn', { name = tname })
-				end
 			end
-		end
-
-		if not mySpec then
-			-- We can draw "fancy" playerOrder in the right center part of the screen now, and show '->' next to playerName whos' turn it is right now
-			if myTeamPlayersOrder then
-				font:Begin()
-				local x = vsx * 0.95
-				local y_offset = #myTeamPlayersOrder * 0.03
-				local y = vsy * (0.5 + y_offset + 0.03)
-				local colorMod = DMDefaultColorString
-				font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.order').. ":", x, y, 18.5 * uiScale, "ro")
-				for i, data in ipairs(myTeamPlayersOrder) do
-					local playerID = data.id
-					local playerName = findPlayerName(playerID)
-					y = vsy * (0.5 + y_offset - (i-1) * 0.03) -- player order vertical position - descending order
-					local msgMod = ""
-					local lockState = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_lockState")
-					if i == currentPlayerIndex then
-						msgMod = "→ " -- only arrows are ok, checkmarks and others error out
-					elseif lockState == 1 then -- slightly better than readyState because you can tell for sure if someone placed and is happy with it
-						msgMod = "* "
-					end
-					if playerID == myPlayerID then
-						colorMod = DMWarnColor
-					end
-
-					font:Print(colorMod .. msgMod .. playerName, x, y, 18.5 * uiScale, "ro")
-				end
-				font:End()
-
-				font:Begin()
-				font:Print(msg, vsx * 0.5, vsy * 0.68, 18.5 * uiScale, "co") -- higher than center of your screen
-				font:End()
-			end
-
-			if os.clock() >= fairTimeout and not ihavejoined_fair then
-				Spring.SendLuaRulesMsg("i_have_joined_fair")
-				ihavejoined_fair = true
-			end
+			-- non UI part
 			if draftMode ~= "fair" then
-				if myTurn and myTurnTimeout and os.clock() >= myTurnTimeout and not startPointChosen then
+				if myTurn and currentTurnTimeout and os.clock() >= currentTurnTimeout and not startPointChosen then
 					Spring.SendLuaRulesMsg("skip_my_turn")
 					myTurn = false
-					skippedMyTurn = true
-				end
-
-				if skippedMyTurn then
-					if not myTurnIsLast and myTurnTimeout and os.clock() <= (myTurnTimeout + YourTurnTimeout) then
-						local text = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.youDidNotPlace')
-						font:Begin()
-						font:Print(text, vsx * 0.5, vsy * 0.82, 18.5 * uiScale, "co")
-						font:End()
-					else
-						myTurnTimeout = nil
-					end
 				end
 
 				if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
@@ -465,6 +701,14 @@ function widget:DrawScreen()
 				end
 			end
 		end
+	elseif (os.clock() >= reloadedDraftMode) then
+		reloadedDraftMode = nil
+		Spring.SendLuaRulesMsg("send_me_the_info_again")
+		draftModeInited()
+	end
+	if draftMode ~= "disabled" and not ihavejoined_fair and fairTimeout and os.clock() >= fairTimeout then
+		Spring.SendLuaRulesMsg("i_have_joined_fair")
+		ihavejoined_fair = true
 	end
 	-- DOM end
 
@@ -476,7 +720,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif showbutton == true then
+	elseif showbutton == true and showLockButton == true then
 
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
@@ -505,7 +749,8 @@ function widget:DrawScreen()
 		-- draw ready button and text
 		local x, y = Spring.GetMouseState()
 		local colorString
-		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
+		local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
+		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
 		else
@@ -516,7 +761,7 @@ function widget:DrawScreen()
 			else
 				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
 			end
-			if readied then
+			if readied or cantPlaceNow then
 				colorString = "\255\222\222\222"
 			end
 			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
@@ -579,11 +824,21 @@ function widget:RecvLuaMsg(msg, playerID)
 	if words[1] == "DraftOrderPlayersOrder" then
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
-		myTeamPlayersOrder = {}
-		for i = 3, #words do
-			local playerid = tonumber(words[i])
-			tname = select(1, Spring.GetPlayerInfo(playerid, false)) or "unconnected"
-			table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+		if myTeamPlayersOrder == nil then
+			myTeamPlayersOrder = {}
+			--table.insert(myTeamPlayersOrder, {id = 6, name = "Player6" }) -- debug
+			--table.insert(myTeamPlayersOrder, {id = 7, name = "Player5" }) -- debug
+			for i = 3, #words do
+				local playerid = tonumber(words[i])
+				tname = select(1, Spring.GetPlayerInfo(playerid, false))
+				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+			end
+			buttonPosX = 0.88
+			buttonPosY = 0.80 - (((#myTeamPlayersOrder+4) * 0.02))
+			buttonX = math.floor(vsx * buttonPosX)
+			buttonY = math.floor(vsy * buttonPosY)
+			buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+			createButton()
 		end
 	elseif words[1] == "DraftOrderPlayerTurn" then
 		allyTeamID_about = tonumber(words[2] or -1)
@@ -591,31 +846,26 @@ function widget:RecvLuaMsg(msg, playerID)
 		current_playerID = tonumber(words[3] or -1)
 		next_playerID = tonumber(words[4] or -1)
 		currentPlayerIndex = tonumber(words[5] or -1)
+		--current_playerID = 6 -- debug
+		--currentPlayerIndex = 1 -- debug
 		if current_playerID == myPlayerID then
 			myTurn = true
-			if next_playerID == -1 then
-				myTurnIsLast = true
-			end
-			myTurnTimeout = os.clock() + YourTurnTimeout
 			Spring.PlaySoundFile("beep4", 1, 'ui')
 		elseif next_playerID == myPlayerID then
 			Spring.PlaySoundFile("beep4", 1, 'ui')
 		elseif myTurn then
 			myTurn = false
 		end
+		if current_playerID > -1 then
+			currentTurnTimeout = os.clock() + turnTimeOut
+		end
 		if current_playerID > -1 and next_playerID > -1 then
 			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 		end
+		createButton()
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
-		local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
-		showDMWelcomeMessage = DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.mode' .. mode)
-		Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode))
-		draftModeLoaded = true -- We want to ensure the player's UI is loaded and seen by the player before proceeding
-		if mode == "Fair" then
-			fairTimeout = os.clock() + 2
-		else
-			fairTimeout = os.clock()
-		end
+		reloadedDraftMode = nil
+		draftModeInited()
 	end
 end
 -- DOM end

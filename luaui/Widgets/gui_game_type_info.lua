@@ -96,7 +96,7 @@ function widget:DrawScreen()
 	end
 
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
+	glTranslate((vsx * 0.5), (vsy * 0.68), 0) --has to be below where newbie info appears! -- was 0.19
 	glScale(1.5, 1.5, 1)
 	font:Begin()
 
