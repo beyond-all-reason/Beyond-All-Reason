@@ -342,6 +342,8 @@ local unitOrderTable = {
 
 	['armdronecarry']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
+	['armdtrident']  = 009362, --DEPTH CHARGE DRONE CARRIERS
+	['corsentinel']  = 009363,
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,
