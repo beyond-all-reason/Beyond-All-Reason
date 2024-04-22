@@ -147,7 +147,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius

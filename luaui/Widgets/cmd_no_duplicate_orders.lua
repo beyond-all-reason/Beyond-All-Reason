@@ -31,7 +31,6 @@ local GetCommandQueue         = Spring.GetCommandQueue
 local GetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local GetUnitPosition         = Spring.GetUnitPosition
 local GiveOrderToUnit         = Spring.GiveOrderToUnit
-local GetUnitHealth           = Spring.GetUnitHealth
 local GetUnitIsBeingBuilt     = Spring.GetUnitIsBeingBuilt
 
 local buildList = {}

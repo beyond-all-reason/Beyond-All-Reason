@@ -16,7 +16,6 @@ local edgeAlpha = 0.55
 local animAmount = 0.3
 
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local unitshapes = {}
 

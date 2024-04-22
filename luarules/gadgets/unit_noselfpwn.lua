@@ -17,9 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
   return false  --  silent removal
 end
 
-local GetUnitHealth = Spring.GetUnitHealth
-local SetUnitHealth = Spring.SetUnitHealth
-
 local PWN_UNITS = {
   [UnitDefNames.corpyro.id] = true,
   [UnitDefNames.cormaw.id] = true,
