@@ -1221,13 +1221,9 @@ local options = {
     {
         key 	= "unbacom",
         name 	= "Unbalanced Commanders",
-        type 	= "list",
-        def 	= "disabled",
+        type 	= "bool",
+        def 	= false,
         section = "options_experimental",
-        items 	= {
-            { key = "enabled", 	name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
-        }
     },
 
     {
