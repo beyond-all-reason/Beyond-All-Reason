@@ -25,27 +25,27 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // -------------------------------- WARSHIP ------------------------
 // TODO:
-// [ ] Make damping factor scale with current pitch and roll
+// [X] Make damping factor scale with current pitch and roll
 // [X] Fix rounding of angular acceleration at <1.0
-// [ ] Rock when slow, do this by modulating the 'target pos' 
-// [ ] pitch forward when moving fast
+// [X] Rock when slow, do this by modulating the 'target pos' 
+// [X] pitch forward when moving fast
 // [X] bank when turning 
-// [ ] Bounce on high speed
-//		[ ] boats should rise upwards
+// [X] Bounce on high speed
+//		[X] boats should rise upwards
 //		[X] Ensure the bounce piece move happens before rot, yes move is before rot
-// [ ] Idle waves 
-// [ ] Independent axis damping if not specified
-// [ ] Damping should be velocity dependent!
-// [ ] Better Recoil handling 
+// [X] Idle waves 
+// [X] Independent axis damping if not specified
+// [X] Damping should be velocity dependent!
+// [X] Better Recoil handling 
 // [ ] Integrate SmokeUnit
 // [ ] Minimize useage of local vars
-// [ ] separate ground and base, like for all other ships anyway too
+// [NOTNEEEDED] separate ground and base, like for all other ships anyway too
 //		[ ] Movement physics based stuff should go onto base
 //		[ ] Recoil and hitbyweapon can go onto ground
 //		[ ] These could maybe use different speeds based on power, like missiles and stuff arent trivial
 // [ ] emit sfx correctly
 // [ ] Do NOT use RockUnit, as there is only one callin for all weapons, and boats usually have more than one
-// [ ] Validate that updates every 3 frames are sufficient
+// [X] Validate that updates every 2 frames are sufficient
 
 // REQUIRED STATIC VARS:
 // the aim headings must be stored for all weapons
@@ -74,7 +74,7 @@ static-var  gun_1, restore_delay, gun_2, Static_Var_7, aimDir3, aimDir, oldHead;
 
 // DO NOT TOUCH TODO
 #ifndef RB_FRAMES
-	#define RB_FRAMES 2
+	#define RB_FRAMES 1
 #endif
 
 // How tall, in elmos, the unit should Bounce at full speed
@@ -203,9 +203,6 @@ BoatPhysics(){
 	var cos_bounce;
 	cos_bounce = 0;
 
-	var tmp1, tmp2;
-	tmp1 = 0;
-	tmp2 = 0;
 
 	while (1){
 		
@@ -222,96 +219,59 @@ BoatPhysics(){
 		RB_pitch_target = -2 *( 10* prevSpeed_delta + currSpeed) ;
 		
 		// Roll the boat more when turning at high speed
-		RB_roll_target = 4* prevHeading_delta * ((256* (currSpeed + maxSpeed)) / maxSpeed);
-		//dbg(RB_pitch_target, RB_roll_target,prevHeading_delta);
+		RB_roll_target = 4* (prevHeading_delta/ RB_FRAMES) * ((256* (currSpeed + maxSpeed)) / maxSpeed);
 
 		// Save the vars, as we wont be using them again
 		prevHeading_delta = currHeading;
 		prevSpeed_delta = currSpeed;
 
-		
-		//dbg(curr_bounce, currSpeed, maxSpeed,sin_bounce);
-
 		// Calculate restoring torque due to displacement
 		torque_pitch =  ( (RB_pitch - RB_pitch_target) * (-1 *  RB_LENGTH));
 		torque_roll =   ( (RB_roll  - RB_roll_target ) * (-1 *  RB_WIDTH ));
-		//dbg(torque_pitch, torque_roll);
-		
-		//Clamp
-		//if (torque_pitch > 100) torque_pitch = 100;
-		//if (torque_roll > 100)   torque_roll = 100;
-		//if (torque_pitch < -100) torque_pitch = -100;
-		//if (torque_roll < -100)   torque_roll = -100;
-		
+
 		// Update angular velocity with angular acceleration
 		RB_pitch_velocity = RB_pitch_velocity + RB_FRAMES * (torque_pitch ) / RB_INERTIA_PITCH;
 		RB_roll_velocity  = RB_roll_velocity  + RB_FRAMES * (torque_roll  ) / RB_INERTIA_ROLL ;
 		
 		// Simple damping to simulate resistance from water and air
-		//tmp1 = get ABS(RB_pitch_velocity);
-		RB_pitch_velocity =  (RB_pitch_velocity * (256 - RB_PITCH_DAMPING - ( get ABS(RB_pitch_velocity))/RB_DAMPFACTOR)/256 ) ;
-		//tmp2 = get ABS(RB_roll_velocity);
-		RB_roll_velocity  =  (RB_roll_velocity  * (256 - RB_ROLL_DAMPING -  ( get ABS(RB_roll_velocity ))/RB_DAMPFACTOR)/256 ) ;
-
-		//dbg(tmp1/RB_DAMPFACTOR, tmp2/RB_DAMPFACTOR);
+		RB_pitch_velocity =  (RB_pitch_velocity * (256 -  (RB_FRAMES * RB_PITCH_DAMPING) - (RB_FRAMES *  get ABS(RB_pitch_velocity))/RB_DAMPFACTOR)/256 ) ;
+		RB_roll_velocity  =  (RB_roll_velocity  * (256 -  (RB_FRAMES * RB_ROLL_DAMPING ) - (RB_FRAMES *  get ABS(RB_roll_velocity ))/RB_DAMPFACTOR)/256 ) ;
+		//dbg((get ABS(RB_pitch_velocity)))/RB_DAMPFACTOR, (get ABS(RB_roll_velocity)))/RB_DAMPFACTOR);
 
 		//if(currSpeed > 0 ) dbg(torque_roll, RB_roll_velocity);
 		// Update pitch and roll based on angular velocity
 		RB_pitch = RB_pitch + RB_FRAMES * RB_pitch_velocity;
 		RB_roll  = RB_roll  + RB_FRAMES * RB_roll_velocity;
 		
-		//if(currSpeed > 0 ) dbg(RB_pitch_velocity, RB_roll_velocity);
-		// Ensure that there is a minimal return to normal speed
-		if (RB_pitch_velocity / 16 == 0) {
-			//dbg(88888);
-			RB_pitch_velocity = RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
-			//if (RB_pitch > 0) RB_pitch_velocity = -1;
-			//else RB_pitch_velocity = 1;
+		//If we are stationary, give us a kick
+		if (currSpeed == 0){
+			//  if( ABS(X) < Y) === if (X/Y == 0)
+			if (RB_pitch_velocity / 16 == 0) {
+				RB_pitch_velocity = RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
+			}
+
+			if (RB_roll_velocity / 16 == 0) {
+				RB_roll_velocity =  RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
+			}
 		}
-
-		if (RB_roll_velocity/16 == 0) {
-			//dbg(44444);
-			RB_roll_velocity =  RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
-			//if (RB_roll > 0) RB_roll_velocity = -1;
-			//else RB_roll_velocity = 1;
-		}
-		//dbg(torque_pitch, torque_roll, RB_pitch_velocity, RB_roll_velocity);
-
-
-		// Print debugging stuff:
-		//get PRINT(RB_pitch, RB_roll, RB_pitch_velocity, RB_roll_velocity);
-		//get PRINT(RB_pitch, RB_roll);
 
 		// Execute corresponding movements
 		#if (RB_FRAMES == 1)
-			#if 0
-			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis RB_pitch now; 
-			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis RB_roll now; 
-			#else
-				if (RB_pitch_velocity != 0) turn RB_BASE to x-axis (RB_pitch/256) speed (30 * RB_pitch_velocity + 1);  
-				if (RB_roll_velocity  != 0) turn RB_BASE to z-axis (RB_roll /256) speed (30 * RB_roll_velocity + 1); 
-			#endif
+			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis (RB_pitch/256) speed (30 * RB_pitch_velocity + 1)/256;  
+			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis (RB_roll /256) speed (30 * RB_roll_velocity + 1)/256; 
 		#else
 			turn RB_BASE to x-axis (RB_pitch/256) speed (30) * RB_pitch_velocity / 256;
-			turn RB_BASE to z-axis (RB_roll /256)  speed (30) * RB_roll_velocity / 256;
+			turn RB_BASE to z-axis (RB_roll /256) speed (30) * RB_roll_velocity / 256;
 		#endif
+	
 
-		
-		//dbg(RB_pitch/64, RB_roll /64, RB_pitch_velocity, RB_roll_velocity);
-		#ifdef DEBUG
-			currpitch = (RB_pitch/256);
-			currroll =  (RB_roll /256) ;
-		#endif
-
-		
-
+		// emit a wakesplash on up and down bounce
 		// increment bounce phase and modulo it
 		if (currSpeed> 0){
 			RB_bounce_frame = (RB_bounce_frame + RB_FRAMES * RB_BOUNCE_PERIOD);
 			// emit a the bottom peak
 			if (RB_bounce_frame >= <360>){
 				RB_bounce_frame = 0;
-				//dbg(RB_bounce_frame/ <1>,111);
 			}
 
 			// BowSplash Phase 1
@@ -324,19 +284,15 @@ BoatPhysics(){
 				emit-sfx 1024 + 2 from bow;
 			}
 			
-			//dbg(RB_bounce_frame/ <1>);
 			// Calculate Bounce, be careful that your int doesnt overflow
 			// Start at the -1 point of the cosine with + <180>
-			cos_bounce = get KCOS(RB_bounce_frame + <180>) + 1024;
-
-			//dbg(RB_bounce_frame/ <1>,cos_bounce);
+			cos_bounce = (get KCOS(RB_bounce_frame + <180>) + 1024);
 
 			curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
 
 			move RB_BASE to y-axis curr_bounce * cos_bounce / 1024 speed [500];
 		}
 
-		// emit a wakesplash on up and down bounce
 		
 		sleep 33 * RB_FRAMES - 1;
 	}
