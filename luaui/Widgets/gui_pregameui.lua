@@ -609,12 +609,12 @@ function widget:DrawScreen()
 					else
 						tmsg = ""
 					end
-					if (current_playerID ~= myPlayerID) and (current_playerID > -1) then
+					local amIunlocked = canPlayerPlaceNow(myPlayerID)
+					if not startPointChosen and next_playerID > -1 and ((amIunlocked and current_playerID == myPlayerID) or (not amIunlocked and current_playerID ~= myPlayerID)) then
 						font:Begin()
 						font:Print(DMDefaultColorString .. tmsg, vsx * 0.5, vsy * 0.26, 22.0 * uiScale, "co")
 						font:End()
 					end
-					local amIunlocked = canPlayerPlaceNow(myPlayerID)
 					if not amIunlocked and (current_playerID ~= myPlayerID) then
 						-- added because you can't place until your turn has come up or passed
 						if (current_playerID > -1) then
