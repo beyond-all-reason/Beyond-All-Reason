@@ -152,8 +152,8 @@ local function DrawState(playerID, posX, posY)
 	DrawRect(posX, posY - (1*playerScale), posX + (16*playerScale), posY + (16*playerScale))
 	gl_Color(1, 1, 1, 1)
 end
--- we don't have sandblock icon yet so improv time
-local function drawSandclock(posX, posY)
+-- we don't have sandclock icon yet so improv time
+local function DrawSandClock(posX, posY)
 	local triangleSize = 4
 	gl.PushMatrix()
 	gl.Color(1, 1, 1, 1)
@@ -678,7 +678,7 @@ function widget:DrawScreen()
 						elseif (canPlayerPlaceNow(playerID)) then
 							DrawState(playerID, x, y_shift)
 						else
-							drawSandclock(x+10, y_shift+5)
+							DrawSandClock(x+10, y_shift+5)
 						end
 						DrawRank(playerRank, x+20, y_shift)
 						DrawSkill(playerSkill, x+40, y_shift)
