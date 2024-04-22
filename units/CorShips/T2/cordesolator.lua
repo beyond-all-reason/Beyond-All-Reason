@@ -20,7 +20,6 @@ return {
 		canManualFire = true,
 		footprintx = 7,
 		footprintz = 7,
-		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1500,
@@ -41,6 +40,12 @@ return {
 		turnrate = 540,
 		upright = true,
 		waterline = 40,
+		
+		firestate = 0,
+		noAutoFire = false,
+		canManualFire = false,
+		
+		
 		customparams = {
 			unitgroup = 'nuke',--I mean also sub but?
 			model_author = "Hornet",

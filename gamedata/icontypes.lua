@@ -303,6 +303,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	armexcalibur = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
+	},
 	armeyes = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
@@ -750,6 +754,10 @@ local icontypes = {
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
+	},
+	armseadragon = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
 	},
 	armseap = {
 		bitmap = "icons/air_torp_sea.png",
@@ -1215,6 +1223,10 @@ local icontypes = {
 		bitmap = "icons/cordemon.png",
 		size = 2.625
 	},
+	cordesolator = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
+	},
 	cordl = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
@@ -1606,6 +1618,10 @@ local icontypes = {
 	cornecro = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
+	},
+	coronager = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
 	},
 	corparrow = {
 		bitmap = "icons/corparrow.png",
