@@ -192,7 +192,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- we send to allyTeamID Turn1 Turn2 Turn3 {...}
 		local orderMsg = ""
 		local orderIds = ""
-		--local alone = true
+		local alone = true
 		for i, teamID in ipairs(teamOrder) do
 			local tname = teamPlayerData[teamID].name or "unknown" -- "unknown" should not happen if we create the order after everyone connects, so we are good
 			if i == 1 then
@@ -204,7 +204,7 @@ if gadgetHandler:IsSyncedCode() then
 				orderIds = orderIds .. " " .. FindPlayerIDFromTeamID(teamID)
 			end
 		end
-		if log --[[and not alone]] then
+		if log and not alone then
 			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Order [id:"..allyTeamID_ready.."]: "..orderMsg)
 		end
 		Spring.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
