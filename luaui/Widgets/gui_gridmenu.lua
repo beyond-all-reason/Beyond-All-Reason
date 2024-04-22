@@ -23,7 +23,7 @@ end
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
@@ -1809,7 +1809,8 @@ local function drawBuildProgress()
 				for cellRectID, cellRect in pairs(cellRects) do
 					local cellUnitDefID = cellCmds[cellRectID].id * -1
 					if unitBuildDefID == cellUnitDefID then
-						local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+						local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
+						progress = 1 - progress -- make the effect wind counter-clockwise
 						RectRoundProgress(
 							cellRect.x + cellPadding + iconPadding,
 							cellRect.y + cellPadding + iconPadding,

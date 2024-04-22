@@ -70,9 +70,8 @@ local function CheckUnit(unitID)
 		return true
 	end
 
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
+	local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
 	if buildProgress >= blockingBuildProgress then
-		--Spring.Echo("to remove (bp)", unitID)
 		return true
 	end
 
@@ -80,8 +79,8 @@ local function CheckUnit(unitID)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
-	if health/maxHealth < blockingBuildProgress then	-- sadly buildProgress is always 0 even when cheated in
+	local _,buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	if buildProgress < blockingBuildProgress then
 		local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
 		if projectileBlocking then
 			AddNanoFrame(unitID)

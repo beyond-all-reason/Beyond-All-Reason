@@ -1449,7 +1449,7 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	--Spring.Debug.TableEcho(unitDrawBins)
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags, reason)
@@ -1458,7 +1458,7 @@ local function ProcessUnits(units, drawFlags, reason)
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnit", unitID, drawFlag) end
-		local _,_,_,_,buildpercent = spGetUnitHealth(unitID)
+		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 		if drawFlag % 4 > 1 then -- check if its at least in opaque or alpha pass
 			if unitsInViewport[unitID] == nil then
@@ -1476,7 +1476,7 @@ local function ProcessUnits(units, drawFlags, reason)
 
 		if (drawFlag == 0) or (drawFlag >= 32) then
 			RemoveObject(unitID, reason)
-		elseif (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
+		elseif isBuilding or spGetUnitIsCloaked(unitID) then
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else

@@ -101,7 +101,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spIsUnitInView = Spring.IsUnitInView
 local spIsUnitInLos = Spring.IsUnitInLos
 local spPlaySoundFile = Spring.PlaySoundFile
-local spGetUnitHealth = Spring.GetUnitHealth
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -255,7 +254,8 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if not enabled then return end
 	if builderID and GUIUnitSoundEffects[unitDefID]then
-		if select(5, spGetUnitHealth(unitID)) < 0.05 then	--buildProgress
+		local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		if buildProgress < 0.05 then	--buildProgress
 			if myTeamID == spGetUnitTeam(builderID) then
 				local posx, posy, posz = spGetUnitPosition(unitID)
 				if CurrentGameFrame >= UnitCreatedSoundDelayLastFrame + UnitCreatedSoundDelayFrames then

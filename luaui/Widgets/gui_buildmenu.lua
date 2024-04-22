@@ -144,7 +144,7 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMouseState = Spring.GetMouseState
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
@@ -898,7 +898,8 @@ function widget:DrawScreen()
 									local cellUnitDefID = cmds[cellRectID].id * -1
 									if unitBuildDefID == cellUnitDefID then
 										drawncellRectIDs[cellRectID] = true
-										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+										local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
+										progress = 1 - progress -- make the effect wind counter-clockwise
 										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 									end
 								end
