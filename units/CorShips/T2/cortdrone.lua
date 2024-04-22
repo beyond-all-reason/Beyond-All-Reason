@@ -89,7 +89,7 @@ return {
 				noselfdamage = true,
 				numbounce = 1,
 				range = 200,
-				reloadtime = 3,
+				reloadtime = 6,
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
