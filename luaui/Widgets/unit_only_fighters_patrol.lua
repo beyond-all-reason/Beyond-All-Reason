@@ -1,17 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  file:    unit_only_fighters_patrol.lua
---  brief:   Only fighters go on factory's patrol route after leaving airlab. Reduces lag.
---  author:  dizekat
---  based on Factory Kickstart by OWen Martindell aka TheFatController
---
---  Copyright (C) 2008
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 
 function widget:GetInfo()
 	return {

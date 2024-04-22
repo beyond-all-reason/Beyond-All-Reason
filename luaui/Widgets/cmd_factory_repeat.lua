@@ -1,15 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  file:    cmd_factory_repeat.lua
---  brief:   Sets new factories to Repeat on automatically
---  author:  Owen Martindell
---
---  Copyright (C) 2007.
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
