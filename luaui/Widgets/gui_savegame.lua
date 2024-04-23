@@ -1,12 +1,11 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Save Game Menu",
-		desc    = "bla",
-		author  = "KingRaptor, stripped down to nothing by beherith", --https://raw.githubusercontent.com/ZeroK-RTS/Zero-K/c765e592cb1cc6fc34438d274874f4c33f6e5f9c/LuaUI/Widgets/gui_savegame.lua
-		date    = "2021",
+		name = "Save Game Menu",
+		desc = "bla",
+		author = "KingRaptor, stripped down to nothing by beherith", --https://raw.githubusercontent.com/ZeroK-RTS/Zero-K/c765e592cb1cc6fc34438d274874f4c33f6e5f9c/LuaUI/Widgets/gui_savegame.lua
+		date = "2021",
 		license = "GNU GPL, v2 or later",
-		layer   = -9999,
+		layer = -9999,
 		enabled = true
 	}
 end

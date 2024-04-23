@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
 		name    = "UnitDamagedReplay",
-		desc    = 'Expose full UnitDamaged to widgets only during replays',
-		author  = 'Itanthias',
-		date    = 'Sept 2022',
-		license = 'GNU GPL, v2 or later',
-		layer   = 1,
-		enabled = true
+		desc	= 'Expose full UnitDamaged to widgets only during replays',
+		author	= 'Itanthias',
+		date	= 'Sept 2022',
+		license	= 'GNU GPL, v2 or later',
+		layer	= 1,
+		enabled	= true
 	}
 end
 

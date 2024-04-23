@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "PopUpWaterStructures",
-		desc    = "",
-		author  = "TheFatController",
-		date    = "26 May 2013",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		name      = "PopUpWaterStructures",
+		desc      = "",
+		author    = "TheFatController",
+		date      = "26 May 2013",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

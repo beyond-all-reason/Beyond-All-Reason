@@ -1,15 +1,14 @@
-
 function widget:GetInfo()
-	return {
-		name    = "EMP + decloak range",
-		desc    = "When spy or gremlin is selected, it displays its decloak range (orange) and emp range (blue)",
-		author  = "[teh]decay",
-		date    = "14 feb 2015",
-		license = "The BSD License",
-		layer   = 0,
-		version = 5,
-		enabled = true
-	}
+    return {
+        name      = "EMP + decloak range",
+        desc      = "When spy or gremlin is selected, it displays its decloak range (orange) and emp range (blue)",
+        author    = "[teh]decay",
+        date      = "14 feb 2015",
+        license   = "The BSD License",
+        layer     = 0,
+        version   = 5,
+        enabled   = true
+    }
 end
 
 -- project page on github: https://github.com/jamerlan/spy_range

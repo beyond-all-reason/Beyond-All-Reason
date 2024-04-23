@@ -1,12 +1,11 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Commander Name Tags",
-		desc    = "Displays a name tags above commanders.",
-		author  = "Bluestone, Floris",
-		date    = "20 february 2015",
+		name = "Commander Name Tags",
+		desc = "Displays a name tags above commanders.",
+		author = "Bluestone, Floris",
+		date = "20 february 2015",
 		license = "GNU GPL, v2 or later",
-		layer   = -2,
+		layer = -2,
 		enabled = true,
 	}
 end

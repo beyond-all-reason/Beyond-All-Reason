@@ -1,12 +1,11 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "AirPlantParents",
-		desc    = "Adds options to air plants, makes building aircraft neutral",
-		author  = "TheFatController",
-		date    = "15 Dec 2008",
+		name = "AirPlantParents",
+		desc = "Adds options to air plants, makes building aircraft neutral",
+		author = "TheFatController",
+		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true
 	}
 end

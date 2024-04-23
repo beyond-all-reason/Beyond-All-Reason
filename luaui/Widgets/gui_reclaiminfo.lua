@@ -1,12 +1,12 @@
 
 function widget:GetInfo()
 	return {
-		name    = "ReclaimInfo",
-		desc    = "Shows the amount of metal/energy when using area reclaim.",
-		author  = "Pendrokar",
-		date    = "Nov 17, 2007",
+		name = "ReclaimInfo",
+		desc = "Shows the amount of metal/energy when using area reclaim.",
+		author = "Pendrokar",
+		date = "Nov 17, 2007",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true
 	}
 end

@@ -1,12 +1,18 @@
+--[[
+local msg = 'luar_uels ihatelua -100 200'
+for word in msg:gmatch("[%-_%w]+") do
+  print (word)
+end
+]]--
 
 function gadget:GetInfo()
 	return {
-		name    = "Dev Helper Cmds",
-		desc    = "provides various luarules commands to help developers, can only be used after /cheat",
-		author  = "Bluestone",
-		date    = "",
+		name = "Dev Helper Cmds",
+		desc = "provides various luarules commands to help developers, can only be used after /cheat",
+		author = "Bluestone",
+		date = "",
 		license = "GNU GPL, v2 or later, Horses",
-		layer   = -1999999999,
+		layer = -1999999999,
 		enabled = true
 	}
 end

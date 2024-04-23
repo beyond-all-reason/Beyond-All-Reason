@@ -1,14 +1,13 @@
-
 function widget:GetInfo()
-	return {
-		name    = "State Reverse Toggle",
-		desc    = "Makes all buttons with 3 or more states reverse toggleable",
-		author  = "Google Frog, Deadnight Warrior",
-		date    = "Oct 2, 2009",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+  return {
+    name      = "State Reverse Toggle",
+    desc      = "Makes all buttons with 3 or more states reverse toggleable",
+    author    = "Google Frog, Deadnight Warrior",
+    date      = "Oct 2, 2009",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = true
+  }
 end
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -25,7 +24,7 @@ function widget:CommandNotify(id, params, options)
 			if options.right then
 				local units = spGetSelectedUnits()
 				local state = params[1] -2
-				if state < 0 then
+				if state < 0 then 
 					state = state + #comButton.params - 1
 				end
 				for _,sid in ipairs(units) do

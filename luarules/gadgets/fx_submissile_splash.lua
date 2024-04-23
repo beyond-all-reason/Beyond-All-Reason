@@ -1,15 +1,14 @@
-
 function gadget:GetInfo()
-	return {
-		name    = "subMissile splash",
-		desc    = "Makes splashes for missiles that emerge from the water",
-		version = "cake",
-		author  = "Bluestone",
-		date    = "July 2014",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = false,
-	}
+    return {
+        name      = "subMissile splash",
+        desc      = "Makes splashes for missiles that emerge from the water",
+        version   = "cake",
+        author    = "Bluestone",
+        date      = "July 2014",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = false,
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then

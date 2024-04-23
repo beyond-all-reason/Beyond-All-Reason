@@ -1,14 +1,13 @@
-
 function gadget:GetInfo()
-	return {
-		name    = "DirectControl",
-		desc    = "Block direct control (FPS) for units",
-		author  = "trepan",
-		date    = "Jul 10, 2007",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+    return {
+        name      = "DirectControl",
+        desc      = "Block direct control (FPS) for units",
+        author    = "trepan",
+        date      = "Jul 10, 2007",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 -- Direct control ("fps mode") is disabled for players because:

@@ -1,14 +1,13 @@
-
 function gadget:GetInfo()
-	return {
-		name    = "LuaUI Reload",
-		desc    = "Implements /luarules reloadluaui (because luaui cannot reload itself)",
-		author  = "Bluestone",
-		date    = "Feb 2015",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+  return {
+    name      = "LuaUI Reload",
+    desc      = "Implements /luarules reloadluaui (because luaui cannot reload itself)",
+    author    = "Bluestone",
+    date      = "Feb 2015",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = true
+  }
 end
 
 if (gadgetHandler:IsSyncedCode()) then

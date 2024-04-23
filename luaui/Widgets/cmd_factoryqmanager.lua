@@ -3,12 +3,12 @@ local versionNumber = 1.4
 
 function widget:GetInfo()
 	return {
-		name    = "FactoryQ Manager",
-		desc    = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
-		author  = "very_bad_soldier",
-		date    = "Jul 6, 2008",
+		name = "FactoryQ Manager",
+		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
+		author = "very_bad_soldier",
+		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = -9000,
+		layer = -9000,
 		enabled = false
 	}
 end

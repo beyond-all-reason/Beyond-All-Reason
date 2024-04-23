@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "Healthbars Widget Forwarding",
-		desc    = "Notifies widgets that a feature reclaim or resurrect action has begun, updates GL Uniforms, and also notifies on capture start, emp damage, reload",
-		author  = "Beherith", -- ty Sprung
-		date    = "2021.11.25",
-		license = "GNU GPL, v2 or later",
-		layer   = -1,
-		enabled = true
+		name		= "Healthbars Widget Forwarding",
+		desc		= "Notifies widgets that a feature reclaim or resurrect action has begun, updates GL Uniforms, and also notifies on capture start, emp damage, reload",
+		author		= "Beherith", -- ty Sprung
+		date		= "2021.11.25",
+		license	 	= "GNU GPL, v2 or later",
+		layer		= -1,
+		enabled		= true
 	}
 end
 

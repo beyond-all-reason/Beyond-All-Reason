@@ -1,12 +1,14 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
-		name    = "Bomber Control",
-		desc    = "Like taking candy from a bomber",
-		author  = "TheFatController",
-		date    = "May 25, 2011",
+		name = "Bomber Control",
+		desc = "Like taking candy from a bomber",
+		author = "TheFatController",
+		date = "May 25, 2011",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = false
 	}
 end

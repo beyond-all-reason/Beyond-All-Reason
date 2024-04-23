@@ -1,14 +1,16 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-	return {
-		name    = "Prevent Load Hax",
-		desc    = "Prevent Load Hax",
-		author  = "TheFatController",
-		date    = "Jul 20, 2009",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+    return {
+        name      = "Prevent Load Hax",
+        desc      = "Prevent Load Hax",
+        author    = "TheFatController",
+        date      = "Jul 20, 2009",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 --------------------------------------------------------------------------------

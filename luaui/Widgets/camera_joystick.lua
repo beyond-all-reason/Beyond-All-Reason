@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
 	return {
-		name	= "Camera Joystick",
-		desc	= "Control Rotateable overhead (CTRL+F4) camera with a joystick via joystick server from https://github.com/Beherith/camera_joystick_springrts",
-		author	= "Beherith",
-		date	= "2021.04.06",
-		license	= "GNU GPL, v2 or later",
-		layer	= 1,		 --	after the normal widgets
-		enabled	= false
+		name			= "Camera Joystick",
+		desc			= "Control Rotateable overhead (CTRL+F4) camera with a joystick via joystick server from https://github.com/Beherith/camera_joystick_springrts",
+		author		= "Beherith",
+		date			= "2021.04.06",
+		license   = "GNU GPL, v2 or later",
+		layer		 = 1,		 --	after the normal widgets
+		enabled	 = false
 	}
 end
 ---------------------INFO------------------------

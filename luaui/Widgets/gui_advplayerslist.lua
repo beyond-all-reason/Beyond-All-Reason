@@ -1,15 +1,14 @@
-
 function widget:GetInfo()
-	return {
-		name    = "AdvPlayersList",
-		desc    = "List of players and spectators",
-		author  = "Marmoth. (spiced up by Floris)",
-		date    = "2008",
-		version = 40,
-		license = "GNU GPL, v2 or later",
-		layer   = -4,
-		enabled = true,
-	}
+    return {
+        name = "AdvPlayersList",
+        desc = "List of players and spectators",
+        author = "Marmoth. (spiced up by Floris)",
+        date = "2008",
+        version = 40,
+        license = "GNU GPL, v2 or later",
+        layer = -4,
+        enabled = true,
+    }
 end
 
 --[[Changelog

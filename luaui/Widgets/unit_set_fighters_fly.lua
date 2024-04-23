@@ -1,15 +1,16 @@
-
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 function widget:GetInfo()
-	return {
-		name    = "Set fighters on Fly mode",
-		desc    = "Setting fighters on Fly mode",
-		author  = "Floris (original unit_air_allways_fly widget by [teh]Decay)",
-		date    = "july 2017",
-		license = "GNU GPL, v2 or later",
-		version = 1,
-		layer   = 5,
-		enabled = true
-	}
+    return {
+        name      = "Set fighters on Fly mode",
+        desc      = "Setting fighters on Fly mode",
+        author    = "Floris (original unit_air_allways_fly widget by [teh]Decay)",
+        date      = "july 2017",
+        license   = "GNU GPL, v2 or later",
+        version   = 1,
+        layer     = 5,
+        enabled   = true
+    }
 end
 
 -- this widget is a variant of unit_air_allways_fly: project page on github: https://github.com/jamerlan/unit_air_allways_fly

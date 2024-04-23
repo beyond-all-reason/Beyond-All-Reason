@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-	return {
-		name    = "Instant Self Destruct",
-		desc    = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
-		author  = "Google Frog",
-		date    = "21 September, 2013",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+  return {
+    name      = "Instant Self Destruct",
+    desc      = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
+    author    = "Google Frog",
+    date      = "21 September, 2013",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = true
+  }
 end
 
 --------------------------------------------------------------------------------

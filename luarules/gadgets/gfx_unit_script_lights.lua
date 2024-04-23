@@ -1,12 +1,11 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "Unit Script Lights",
-		desc    = "Forwards Lighting Events to Widgets from COB Unit scripts",
-		author  = "Beherith",
-		date    = "Apr, 2008",
+		name = "Unit Script Lights",
+		desc = "Forwards Lighting Events to Widgets from COB Unit scripts",
+		author = "Beherith",
+		date = "Apr, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end

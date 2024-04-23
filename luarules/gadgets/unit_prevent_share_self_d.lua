@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "No Share Self-D",
-		desc    = "Prevents self-destruction when a unit changes hands or a player leaves",
-		author  = "quantum, Bluestone",
-		date    = "July 13, 2008",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		name      = "No Share Self-D",
+		desc      = "Prevents self-destruction when a unit changes hands or a player leaves",
+		author    = "quantum, Bluestone",
+		date      = "July 13, 2008",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

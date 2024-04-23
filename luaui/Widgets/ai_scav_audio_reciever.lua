@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Scavenger Audio Reciever",
-		desc    = "AAA",
-		author  = "Damgam",
-		date    = "2020",
-		license = "GNU GPL, v2 or later",
-		layer   = 30000,
-		enabled = true,
+	name      = "Scavenger Audio Reciever",
+	desc      = "AAA",
+	author    = "Damgam",
+	date      = "2020",
+	license   = "GNU GPL, v2 or later",
+	layer     = 30000,
+	enabled   = true,
 	}
 end
 

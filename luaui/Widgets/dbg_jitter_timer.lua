@@ -1,12 +1,13 @@
 
+
 function widget:GetInfo()
 	return {
-		name    = "Jitter Timer",
-		desc    = "Draw the sim time offset from real time. Allows adding drawframe load via /drawframeload X (millisecs) and simframeload via /gameframeload Y (millisecs)",
-		author  = "Beherith",
-		date    = "2022.02.01",
+		name = "Jitter Timer",
+		desc = "Draw the sim time offset from real time. Allows adding drawframe load via /drawframeload X (millisecs) and simframeload via /gameframeload Y (millisecs)",
+		author = "Beherith",
+		date = "2022.02.01",
 		license = "GNU GPL, v2 or later",
-		layer   = -200000,
+		layer = -200000,
 		enabled = false,
 	}
 end
@@ -166,8 +167,8 @@ function widget:DrawScreen()
 	gl.Color(0.0, 0.0, 0.0, 1.0)
 	--background rect
 	gl.Rect(viewSizeX - timerwidth,viewSizeY - timerYoffset-96,viewSizeX,viewSizeY - timerYoffset + timerheight);
-
-
+	
+	
 	gl.Color(1.0, 0.0, 1.0, 1.0)
 	gl.Rect(viewSizeX - (timerwidth*0.5),viewSizeY - timerYoffset + timerheight /2 ,viewSizeX + timerwidth * 0.5 - (timerwidth * (1.0 - deltajitter*30)),viewSizeY - timerYoffset + timerheight );
 
@@ -192,8 +193,8 @@ function widget:DrawScreen()
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 
 	gl.PopMatrix()
-
-
+	
+	
 	-- Frame Drop Indicator!!
 	local df = Spring.GetDrawFrame()
 	local offset =  32 * (df%8)

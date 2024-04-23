@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-	return {
-		name    = "Objectify",
-		desc    = "makes units neutral and stealthy when unit has customparam: objectify", -- (like walls)
-		author  = "Bluestone, Floris",
-		date    = "Feb 2015",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+    return {
+        name      = "Objectify",
+        desc      = "makes units neutral and stealthy when unit has customparam: objectify", -- (like walls)
+        author    = "Bluestone, Floris",
+        date      = "Feb 2015",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 -- make them neutral, radar stealthy, not appear on the minimap

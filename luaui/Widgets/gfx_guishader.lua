@@ -5,12 +5,12 @@ end
 
 function widget:GetInfo()
 	return {
-		name    = "GUI Shader",
-		desc    = "Blurs the 3D-world under several other widgets UI elements.",
-		author  = "Floris (original blurapi widget by: jK)",
-		date    = "17 february 2015",
+		name = "GUI Shader",
+		desc = "Blurs the 3D-world under several other widgets UI elements.",
+		author = "Floris (original blurapi widget by: jK)",
+		date = "17 february 2015",
 		license = "GNU GPL, v2 or later",
-		layer   = -990000, -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
+		layer = -990000, -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
 		enabled = true
 	}
 end

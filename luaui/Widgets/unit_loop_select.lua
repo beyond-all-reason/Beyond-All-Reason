@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
 	return {
-		name    = "Loop Select",
-		desc    = "Selects units inside drawn loop (Hold meta to draw loop)",
-		author  = "Niobium",
-		version = "v1.1",
-		date    = "Jul 18, 2009",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = false
+		name      = "Loop Select",
+		desc      = "Selects units inside drawn loop (Hold meta to draw loop)",
+		author    = "Niobium",
+		version   = "v1.1",
+		date      = "Jul 18, 2009",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = false
 	}
 end
 

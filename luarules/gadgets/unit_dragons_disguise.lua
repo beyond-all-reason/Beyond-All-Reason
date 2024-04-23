@@ -1,14 +1,13 @@
-
 function gadget:GetInfo()
-	return {
-		name    = "Dragons Disguise",
-		desc    = "Sets Dragons claw & dragons maw to Neutral when closed",
-		author  = "TheFatController",
-		date    = "25 Nov 2008",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+    return {
+        name      = "Dragons Disguise",
+        desc      = "Sets Dragons claw & dragons maw to Neutral when closed",
+        author    = "TheFatController",
+        date      = "25 Nov 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then

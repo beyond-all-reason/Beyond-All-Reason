@@ -1,14 +1,13 @@
-
 function widget:GetInfo()
-	return {
-		name    = "Unit CSV Export",
-		desc    = "export units (for the purpose of the website database)",
-		author  = "Floris",
-		date    = "May 2018",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = false
-	}
+  return {
+    name      = "Unit CSV Export",
+    desc      = "export units (for the purpose of the website database)",
+    author    = "Floris",
+    date      = "May 2018",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = false
+  }
 end
 
 

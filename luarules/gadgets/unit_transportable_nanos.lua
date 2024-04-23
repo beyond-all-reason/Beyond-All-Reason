@@ -1,14 +1,16 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-	return {
-		name    = "Unit transportable nanos",
-		desc    = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
-		author  = "Beherith",
-		date    = "Jul 2012",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+    return {
+        name      = "Unit transportable nanos",
+        desc      = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
+        author    = "Beherith",
+        date      = "Jul 2012",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then

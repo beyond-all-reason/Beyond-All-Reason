@@ -1,13 +1,13 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "Cloak", -- gadget copy from: Decloak when damaged
-		desc    = "optionally: decloaks units when they are damged",
-		author  = "Google Frog",
-		date    = "Nov 25, 2009", -- Major rework 12 Feb 2014
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		name      = "Cloak",	-- gadget copy from: Decloak when damaged
+		desc      = "optionally: decloaks units when they are damged",
+		author    = "Google Frog",
+		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

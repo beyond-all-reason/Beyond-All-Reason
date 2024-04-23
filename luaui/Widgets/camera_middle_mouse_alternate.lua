@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
   return {
-    name	= "Middle Mouse SmoothScroll",
-    desc	= "Alternate view movement for the middle mouse button & overhead camera",
-    author	= "[DE]LSR, original implementation by trepan",
-    date	= "March 2023",
-    license	= "GNU GPL, v2 or later",
-    layer	= 1,     --  after the normal widgets
-    enabled	= false
+    name      = "Middle Mouse SmoothScroll",
+    desc      = "Alternate view movement for the middle mouse button & overhead camera",
+    author    = "[DE]LSR, original implementation by trepan",
+    date      = "March 2023",
+    license   = "GNU GPL, v2 or later",
+    layer     = 1,     --  after the normal widgets
+    enabled   = false
   }
 end
 

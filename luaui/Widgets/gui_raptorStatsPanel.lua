@@ -4,12 +4,12 @@ end
 
 function widget:GetInfo()
 	return {
-		name    = "Raptor Stats Panel",
-		desc    = "Shows statistics and progress when fighting vs Raptors",
-		author  = "quantum",
-		date    = "May 04, 2008",
+		name = "Raptor Stats Panel",
+		desc = "Shows statistics and progress when fighting vs Raptors",
+		author = "quantum",
+		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = -9,
+		layer = -9,
 		enabled = true
 	}
 end

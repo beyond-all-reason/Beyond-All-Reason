@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "Dynamic collision volume & Hitsphere Scaledown",
-		desc    = "Adjusts collision volume for pop-up style units & Reduces the diameter of default sphere collision volume for 3DO models",
-		author  = "Deadnight Warrior",
-		date    = "Nov 26, 2011",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		name      = "Dynamic collision volume & Hitsphere Scaledown",
+		desc      = "Adjusts collision volume for pop-up style units & Reduces the diameter of default sphere collision volume for 3DO models",
+		author    = "Deadnight Warrior",
+		date      = "Nov 26, 2011",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

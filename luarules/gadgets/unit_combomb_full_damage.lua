@@ -4,13 +4,13 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "unit_combomb_full_damage",
-		desc    = "Flying Combombs Do Less Damage",
-		author  = "TheFatController, Bluestone",
-		date    = "Dec 2012",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		name      = "unit_combomb_full_damage",
+		desc      = "Flying Combombs Do Less Damage",
+		author    = "TheFatController, Bluestone",
+		date      = "Dec 2012",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

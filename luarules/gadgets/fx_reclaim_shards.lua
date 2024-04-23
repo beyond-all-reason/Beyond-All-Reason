@@ -1,12 +1,11 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "fx_reclaim_shards",
-		desc    = "fx_reclaim_shards",
-		author  = "TheFatController",
-		date    = "13 Feb 2008",
+		name = "fx_reclaim_shards",
+		desc = "fx_reclaim_shards",
+		author = "TheFatController",
+		date = "13 Feb 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true
 	}
 end

@@ -1,12 +1,11 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Mouse to Mexes",
-		desc    = "Click to make a mex table. Alt+M to toggle. Works with any game.",
-		author  = "Google Frog",
-		date    = "April 28, 2012",
+		name = "Mouse to Mexes",
+		desc = "Click to make a mex table. Alt+M to toggle. Works with any game.",
+		author = "Google Frog",
+		date = "April 28, 2012",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = false
 	}
 end

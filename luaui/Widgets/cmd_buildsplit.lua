@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Build Split",
-		desc    = "Splits builds over cons, and vice versa (use shift+space to activate)",
-		author  = "Niobium",
-		version = "v1.0",
-		date    = "Jan 11, 2009",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		name      = "Build Split",
+		desc      = "Splits builds over cons, and vice versa (use shift+space to activate)",
+		author    = "Niobium",
+		version   = "v1.0",
+		date      = "Jan 11, 2009",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
 		enabled = true
 	}
 end

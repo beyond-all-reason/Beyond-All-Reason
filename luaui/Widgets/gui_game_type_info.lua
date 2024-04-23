@@ -1,12 +1,12 @@
 
 function widget:GetInfo()
 	return {
-		name    = "GameTypeInfo",
-		desc    = "informs players of the game type at start",
-		author  = "Teutooni. Optimizations by Psyborg, 2024",
-		date    = "Jul 6, 2008",
+		name = "GameTypeInfo",
+		desc = "informs players of the game type at start",
+		author = "Teutooni. Optimizations by Psyborg, 2024",
+		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true
 	}
 end

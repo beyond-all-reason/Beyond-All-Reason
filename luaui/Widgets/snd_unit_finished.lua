@@ -1,14 +1,13 @@
-
 function widget:GetInfo()
-	return {
-		name    = "Unit Finished Sounds",
-		desc    = "Plays a sound when a unit is built",
-		author  = "TheFatController",
-		date    = "30 Sep 2009",
-		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
-	}
+  return {
+    name      = "Unit Finished Sounds",
+    desc      = "Plays a sound when a unit is built",
+    author    = "TheFatController",
+    date      = "30 Sep 2009",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = true
+  }
 end
 
 --------------------------------------------------------------------------------

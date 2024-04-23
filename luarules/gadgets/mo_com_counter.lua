@@ -1,13 +1,12 @@
-
 function gadget:GetInfo()
 	return {
-		name    = "Com Counter",
-		desc    = "Tells each team the total number of commanders alive in enemy allyteams",
-		author  = "Bluestone",
-		date    = "08/03/2014",
-		license = "GNU GPL, v2 or later, Horses",
-		layer   = 0,
-		enabled = true
+		name      = "Com Counter",
+		desc      = "Tells each team the total number of commanders alive in enemy allyteams",
+		author    = "Bluestone",
+		date      = "08/03/2014",
+		license   = "GNU GPL, v2 or later, Horses",
+		layer     = 0,
+		enabled   = true
 	}
 end
 

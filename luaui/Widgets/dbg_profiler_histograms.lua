@@ -5,13 +5,13 @@
 
 function widget:GetInfo()
 	return {
-		name    = "Profiler Histograms",
-		desc    = "Try to profile stuff, use /histogram Sim::Script",
-		author  = "Beherith",
-		date    = "2021.mar.29",
+		name = "Profiler Histograms",
+		desc = "Try to profile stuff, use /histogram Sim::Script",
+		author = "Beherith",
+		date = "2021.mar.29",
 		license = "GNU GPL, v2 or later",
-		layer   = -100000,
-		enabled = false
+		layer = -100000,
+		enabled = false,
 	}
 end
 

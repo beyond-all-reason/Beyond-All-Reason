@@ -4,13 +4,13 @@ end
 
 function widget:GetInfo()
 	return {
-		name    = "Auto cheat",
-		desc    = "Enables cheats for $VERSION game versions",
-		author  = "ivand",
-		date    = "2017",
-		license = "GNU LGPL, v2.1 or later",
-		layer   = 0,
-		enabled = false
+		name      = "Auto cheat",
+		desc      = "Enables cheats for $VERSION game versions",
+		author    = "ivand",
+		date      = "2017",
+		license   = "GNU LGPL, v2.1 or later",
+		layer     = 0,
+		enabled   = false
 	}
 end
 
@@ -27,7 +27,7 @@ end
 
 function widget:GameFrame(f)
 	if f > gf then
-		if not Spring.IsCheatingEnabled() and not Spring.IsReplay() then
+		if not Spring.IsCheatingEnabled() and not Spring.IsReplay() then 
 			Spring.SendCommands("say !cheats")
 			Spring.SendCommands("say !hostsay /globallos")
 			Spring.SendCommands("say !hostsay /godmode")

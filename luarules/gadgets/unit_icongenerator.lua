@@ -10,12 +10,12 @@ example usage (need cheats):
 
 function gadget:GetInfo()
 	return {
-		name    = "IconGenerator",
-		desc    = "/luarules buildicon(s) [unitdefname|all]",
-		author  = "jK",
-		date    = "Oct 01, 2008",
+		name = "IconGenerator",
+		desc = "/luarules buildicon(s) [unitdefname|all]",
+		author = "jK",
+		date = "Oct 01, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = -10,
+		layer = -10,
 		enabled = true
 	}
 end

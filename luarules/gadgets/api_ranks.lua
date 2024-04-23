@@ -1,12 +1,12 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "ranks api",
-		desc    = "a shared interface to recieve unit ranks",
-		author  = "jK",
-		date    = "Dec 19, 2007",
+		name = "ranks api",
+		desc = "a shared interface to recieve unit ranks",
+		author = "jK",
+		date = "Dec 19, 2007",
 		license = "GNU GPL, v2 or later",
-		layer   = -990000,
+		layer = -990000,
 		enabled = true
 	}
 end

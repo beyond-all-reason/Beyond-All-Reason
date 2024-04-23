@@ -1,15 +1,14 @@
-
 function gadget:GetInfo()
-	return {
-		name    = "GeoVent Sounds",
-		desc    = "Plays sound effect over geovents",
-		author  = "Damgam",
-		date    = "2023",
-		license = "GNU GPL, v2 or later",
-		version = 1,
-		layer   = 5,
-		enabled = true
-	}
+    return {
+        name      = "GeoVent Sounds",
+        desc      = "Plays sound effect over geovents",
+        author    = "Damgam",
+        date      = "2023",
+        license   = "GNU GPL, v2 or later",
+        version   = 1,
+        layer     = 5,
+        enabled   = true
+    }
 end
 
 if gadgetHandler:IsSyncedCode() then

@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
 	return {
-		name    = "FOV changer",
-		desc    = "shortcuts: keypad 1/7 or CTRL+O/P",
-		author  = "",
-		date    = "",
-		license = "GNU GPL, v2 or later",
-		layer   = 999999,
-		enabled = false
+	name      = "FOV changer",
+	desc      = "shortcuts: keypad 1/7 or CTRL+O/P",
+	author    = "",
+	date      = "",
+	license   = "GNU GPL, v2 or later",
+	layer     = 999999,
+	enabled   = false
 	}
 end
 

@@ -4,14 +4,15 @@
 -- Quick video on what VAO/VBO are: https://www.youtube.com/watch?v=WMiggUPst-Q
 
 
+
 function widget:GetInfo()
 	return {
-		name    = "Frame Grapher",
-		desc    = "Draw frame time graph in bottom right, bar height is time elapsed between frames, blue bars are estimated sim frames, purple bars are CTO errors, and bars are shaded black if their CTO error differs from ideal",
-		author  = "Beherith",
-		date    = "2021.mar.29",
+		name = "Frame Grapher",
+		desc = "Draw frame time graph in bottom right, bar height is time elapsed between frames, blue bars are estimated sim frames, purple bars are CTO errors, and bars are shaded black if their CTO error differs from ideal",
+		author = "Beherith",
+		date = "2021.mar.29",
 		license = "GNU GPL, v2 or later",
-		layer   = -100000,
+		layer = -100000,
 		enabled = false,
 	}
 end

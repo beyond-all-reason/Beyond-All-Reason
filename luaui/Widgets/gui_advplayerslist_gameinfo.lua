@@ -1,13 +1,12 @@
-
 function widget:GetInfo()
 	return {
-		name    = "AdvPlayersList Game Info",
-		desc    = "Displays current gametime, fps and gamespeed",
-		author  = "Floris",
-		date    = "april 2017",
-		license = "GNU GPL, v2 or later",
-		layer   = -3,
-		enabled = true,
+		name	= "AdvPlayersList Game Info",
+		desc	= "Displays current gametime, fps and gamespeed",
+		author	= "Floris",
+		date	= "april 2017",
+		license	= "GNU GPL, v2 or later",
+		layer	= -3,
+		enabled	= true,
 	}
 end
 

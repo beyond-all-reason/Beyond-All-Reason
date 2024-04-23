@@ -1,12 +1,11 @@
-
 function widget:GetInfo()
 	return {
-		name    = "Rank Icons GL4",
-		desc    = "Shows a rank icon depending on experience next to units",
-		author  = "trepan (idea quantum,jK), Floris, Beherith",
-		date    = "Feb, 2008",
+		name = "Rank Icons GL4",
+		desc = "Shows a rank icon depending on experience next to units",
+		author = "trepan (idea quantum,jK), Floris, Beherith",
+		date = "Feb, 2008",
 		license = "GNU GPL, v2 or later",
-		layer   = 5,
+		layer = 5,
 		enabled = true
 	}
 end
