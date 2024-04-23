@@ -70,8 +70,8 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 // [X] Better Recoil handling 
 // [X] Integrate SmokeUnit
 // [ ] Minimize usage of local vars
-// [ ] Slave large turrets to RB_pitch/RB_roll!
-//		[ ] Static-var the RB_pitch/RB_roll
+// [X] Slave large turrets to RB_pitch/RB_roll (RB_AIMPITCHCORRECTION)
+//		[X] Static-var the RB_pitch/RB_roll
 // [NOTNEEEDED] separate ground and base, like for all other ships anyway too
 //		[-] Movement physics based stuff should go onto base
 //		[-] Recoil and hitbyweapon can go onto ground
