@@ -135,7 +135,7 @@ end
 
 -- debug/for testing: AI lists for sale ANY unit it finishes building, good enough for single player testing, comment out in production though
 -- if you are using inactive AI, just use godmode 3 to control it to order to build something, then godmode 0 to stop control and then try alt+doubleclick to buy
-function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
+--[[function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
     local _, _, _, isAiTeam = spGetTeamInfo(teamID)
     if isAiTeam then
         local unitDefID = spGetUnitDefID(unitID)
@@ -150,6 +150,6 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 	    local msgFromTeamID = spGetUnitTeam(unitID)
         spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID) -- Announce offer
     end
-end
+end]]
 
 end
