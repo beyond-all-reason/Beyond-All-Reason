@@ -28,8 +28,7 @@ function widget:GetInfo() return {
 -- Once you are done you (and your allies) will see that the unit is flashing green and is displaying the sign "$" above itself. The price is exactly the same as the unit metalCost.
 
 -- As a buyer:
--- 1) make sure you have nothing selected first.
--- 2) hold alt and double-click over an ally unit that your ally is selling. make sure you have resources first. in case you don't have enough metal - nothing will happen.
+-- 1) hold alt and double-click over an ally unit that your ally is selling. make sure you have resources first. in case you don't have enough metal - nothing will happen.
 
 --------------------------------
 local spGetPlayerInfo       = Spring.GetPlayerInfo
