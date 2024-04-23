@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date      = "May 2018",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true,
+		enabled   = false,
 	}
 end
 
@@ -28,6 +28,7 @@ Look for these in UnitDefs customparams:
  wpn1turretx
  wpn1turrety
 
+This, should entirely be removed anyway, along with the customparams
  
  ]]
 

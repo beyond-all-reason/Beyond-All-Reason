@@ -16,7 +16,7 @@ AimWeapon1(heading, pitch)
 	[...]
 	start-script Weapon1Drawn(); -- can call a function that draws weapons and then calls Weapon1Drawn() when done if there is an actual animation (ie pw)
 	[...] -- Remove animations from aimWeapon scripts (use a DrawWeapon1() if an animation is needed, weapon1control will rotate the different aimpieces)
-	start-script Weapon1SetWtdAim(heading, pitch);
+	start-script Weapon1SetWantedAim(heading, pitch);
 	[...]
 	return (aim1);
 }
@@ -161,7 +161,7 @@ Weapon1Restored()
 	return (TRUE);
 }
 
-Weapon1SetWtdAim(pitch, heading)
+Weapon1SetWantedAim(pitch, heading)
 {
 	wtdHead1 = heading;
 	wtdPitch1 = <0> - pitch;

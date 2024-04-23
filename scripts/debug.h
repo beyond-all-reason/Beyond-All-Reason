@@ -35,7 +35,7 @@
 #ifdef DEBUG
 lua_CobDebug(callerID, line, p1, p2, p3, p4, p5, p6, p7, p8)
 {
-	return 0;
+	return (0);
 }
 
 	#define dbg(...) call-script lua_CobDebug(1, __LINE__, ## __VA_ARGS__ ); 

@@ -1,10 +1,11 @@
 
 #include "../../recoil_common_includes.h"
-#include "unitDefsTurretSpeeds.h"
-
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
 static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
-
+ 
+// Note, removed old deprecated unitDefsTurretSpeeds.h 
+#define Weapon1TurretX <300>
+#define Weapon1TurretY <300>
 #include "weapon1control.h"
 
 // Signal definitions
@@ -1116,7 +1117,7 @@ AimWeapon1(heading, pitch)
 	call-script StopAnimation();
 	start-script RestoreAfterDelay();
 	isAiming = TRUE;
-	start-script Weapon1SetWtdAim(heading, pitch);
+	start-script Weapon1SetWantedAim(heading, pitch);
 	if (wpnReady1 == 0)
 	{
 		start-script DrawWeapon1();

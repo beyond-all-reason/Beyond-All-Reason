@@ -1,6 +1,5 @@
 
 #include "../recoil_common_includes.h"
-#include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
@@ -61,7 +60,6 @@ VS_Init(){
 		VS_prevHeading = VS_currHeading;
 
 
-
 VehicleSteering(reversing)
 {
 	// Could probably get away with half as many local vars...
@@ -104,8 +102,11 @@ VehicleSteering(reversing)
 // ================== STEERING CONTROL ==================
 
 
+// Note, removed old deprecated unitDefsTurretSpeeds.h 
+#define Weapon1TurretX <300>
+#define Weapon1TurretY <300>
 
-#include "weapon1control.h"
+#include "../weapon1control.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -1136,10 +1137,10 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	start-script Weapon1Control();
 	
-	call-script StopAnimation();
-	call-script Weapon1Drawn();
+	//call-script StopAnimation();
+	Weapon1Drawn();
 	
-	start-script Weapon1SetWtdAim(heading, pitch);
+	start-script Weapon1SetWantedAim(heading, pitch);
 
 	start-script RestoreAfterDelay();
 	return (aim1);

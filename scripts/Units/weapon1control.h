@@ -16,7 +16,7 @@ AimWeapon1(heading, pitch)
 	[...]
 	start-script Weapon1Drawn(); -- can call a function that draws weapons and then calls Weapon1Drawn() when done if there is an actual animation (ie pw)
 	[...] -- Remove animations from aimWeapon scripts (use a DrawWeapon1() if an animation is needed, weapon1control will rotate the different aimpieces)
-	start-script Weapon1SetWtdAim(heading, pitch);
+	start-script Weapon1SetWantedAim(heading, pitch);
 	[...]
 	return (aim1);
 }
@@ -50,15 +50,16 @@ RestoreAfterDelay()
 - Weapon1Drawn allows unit to fire by setting wpnReady1 = 1
 - if pitch = 1, head = 1 and wpnReady = 1 then the weapon can shoot: aim1 = 1 and aimweapon returns aim1
 - Restore animations go in RestoreAfterDelay, RestoreWeapon1() restores aimy and aimx pieces orientation, Weapon1Restored() waits for these pieces to be restored
+- Avoid wait-for-turn in AimWeapon and/or Weapon1Control as much as possible. If you have to (ie DrawWeapon1 of armpw, make sure you don't have multiple turns stacking with different goals
 */
-#define SIGNAL_WPN1CTRL 64
+#define SIGNAL_CUSTOM 64
 
 static-var curHead1, wtdHead1, head1, curPitch1, wtdPitch1, pitch1, aim1, wpnReady1;
 
 Weapon1Control()
 {
-	signal SIGNAL_WPN1CTRL;
-	set-signal-mask SIGNAL_WPN1CTRL;
+	signal SIGNAL_CUSTOM;
+	set-signal-mask SIGNAL_CUSTOM;
 	while (TRUE)
 	{
 		if (curHead1 > <180>)
@@ -163,12 +164,12 @@ Weapon1Restored()
 		sleep 25;
 	}
 	
-	signal SIGNAL_WPN1CTRL;
+	signal SIGNAL_CUSTOM;
 	return (TRUE);
 	
 }
 
-Weapon1SetWtdAim(pitch, heading)
+Weapon1SetWantedAim(pitch, heading)
 {
 	wtdHead1 = heading;
 	wtdPitch1 = <0> - pitch;
