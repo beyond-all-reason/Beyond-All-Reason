@@ -14,7 +14,8 @@ end
 if not gadgetHandler:IsSyncedCode() then return false end
 
 -- is unba com on
-if true and Spring.GetModOptions().unbacom ~= "enabled" then return false end
+if not Spring.GetModOptions().unbacom then return false end
+
 local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost
 local mobileunits = {} -- stores the names of units that can move
 local boostedworkertimes = {}-- stores the values of builders who have defined workertimeboost definitions.
