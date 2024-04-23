@@ -70,15 +70,15 @@ function widget:Initialize()
     -- TODO, if you restart the widget you will forget who is selling any units, create inline that loops through all units and gets param if they are on sale
     if not(Spring.IsReplay() or spGetSpectatingState()) then
 	    widgetHandler:AddAction("sell_unit", OfferToSellAction, nil, 'p')
-        for _, unitID in ipairs(Spring.GetAllUnits()) do
-            if spValidUnitID(unitID) then
-                teamID = spGetUnitTeam(unitID)
-                if spAreTeamsAllied(teamID, myTeamID) then
-                    local price = spGetUnitRulesParam(unitID, "unitPrice")
-                    --Spring.Echo("I see "..unitID.." p:"..price)
-                    if (price > 0) then
-                        unitsForSale[unitID] = price
-                    end
+    end
+    for _, unitID in ipairs(Spring.GetAllUnits()) do
+        if spValidUnitID(unitID) then
+            teamID = spGetUnitTeam(unitID)
+            if spAreTeamsAllied(teamID, myTeamID) then
+                local price = spGetUnitRulesParam(unitID, "unitPrice")
+                --Spring.Echo("I see "..unitID.." p:"..price)
+                if (price > 0) then
+                    unitsForSale[unitID] = price
                 end
             end
         end

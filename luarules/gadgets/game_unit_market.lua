@@ -47,7 +47,9 @@ function gadget:Initialize()
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    local msgFromTeamID = select(4,spGetPlayerInfo(playerID))
+    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
+
+    if mySpec then return end -- ignore msgs from spectators
 
     local words = {}
     for word in msg:gmatch("%S+") do
