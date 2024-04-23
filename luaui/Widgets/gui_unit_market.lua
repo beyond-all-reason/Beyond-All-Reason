@@ -25,7 +25,7 @@ function widget:GetInfo() return {
 -- a) write in chat: /luaui sell_unit
 -- b) write in chat: /sell_unit
 -- c) bind a hotkey before hand: bind alt+c /sell_unit, then just press the hotkey to toggle sellable status.
--- Once you are done you (and your allies) will see that the unit is flashing green and is displaying the word "BUY" above itself. The price is exactly the same as the unit metalCost.
+-- Once you are done you (and your allies) will see that the unit is flashing green and is displaying the sign "$" above itself. The price is exactly the same as the unit metalCost.
 
 -- As a buyer:
 -- 1) make sure you have nothing selected first.
