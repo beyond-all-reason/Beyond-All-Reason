@@ -325,7 +325,6 @@ return {
 				},
 				shield = {
 					alpha = 0.25,
-					energyupkeep = 0,
 					force = 2.5,
 					intercepttype = 479,
 					power = 1000,

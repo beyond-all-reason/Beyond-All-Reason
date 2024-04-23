@@ -390,7 +390,6 @@ return {
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
-					energyupkeep = 0,
 					force = 2.5,
 					intercepttype = 11111,
 					power = 9800,
