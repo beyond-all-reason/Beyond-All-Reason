@@ -6,7 +6,7 @@ static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, restore_delay,
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
 #define Weapon1TurretY <300>
-#include "weapon1control.h"
+#include "../../weapon1control.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -1053,7 +1053,7 @@ DrawWeapon1()
 	wait-for-turn luparm around x-axis;
 	wait-for-turn ruparm around x-axis;
 	
-	start-script Weapon1Drawn();
+	Weapon1Drawn();
 }
 
 
@@ -1114,15 +1114,21 @@ Shot1()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	call-script StopAnimation();
-	start-script RestoreAfterDelay();
-	isAiming = TRUE;
-	start-script Weapon1SetWantedAim(heading, pitch);
 	if (wpnReady1 == 0)
 	{
 		start-script DrawWeapon1();
 	}
-	return (aim1);
+	set-signal-mask SIGNAL_AIM1;
+	start-script Weapon1Control();
+	
+	// This is needed cause Weapon1Control() wont kick in till the next frame
+	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
+	
+	isAiming = TRUE;
+	
+	Weapon1SetWantedAim(heading, pitch);
+	start-script RestoreAfterDelay();
+	return (canFire);
 }
 
 Killed(severity, corpsetype)

@@ -9,7 +9,7 @@ static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, cur
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
 #define Weapon1TurretY <300>
-#include "weapon1control.h"
+#include "../../weapon1control.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -1038,15 +1038,18 @@ AimWeapon1(heading, pitch)
 
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script Weapon1Control();
 	
-	call-script StopAnimation();
-	call-script Weapon1Drawn();
+	// This is needed cause Weapon1Control() wont kick in till the next frame
+	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
 	
-	start-script Weapon1SetWantedAim(heading, pitch);
+	Weapon1Drawn();
+	
+	Weapon1SetWantedAim(heading, pitch);
 
 	start-script RestoreAfterDelay();
-	return (aim1);
+	return (canFire);
 }
 
 
@@ -1055,23 +1058,18 @@ FireWeapon1()
 {
 	//gun_1 == 0 means right!
 	if (gun_1 == 0 ){
-		turn ruparm to x-axis <15> now;
-		turn rloarm to x-axis <-15> now;
-		turn ruparm to x-axis <0> speed <30>;
-		turn rloarm to x-axis <0> speed <30>;
+		turn ruparm to x-axis <10> now;
+		turn rloarm to x-axis <-10> now;
+		turn ruparm to x-axis <0> speed <60>;
+		turn rloarm to x-axis <0> speed <60>;
 	}
 	else
 	{
-		turn luparm to x-axis <15> now;
-		turn lloarm to x-axis <-15> now;
-		turn luparm to x-axis <0> speed <30>;
-		turn lloarm to x-axis <0> speed <30>;
+		turn luparm to x-axis <10> now;
+		turn lloarm to x-axis <-10> now;
+		turn luparm to x-axis <0> speed <60>;
+		turn lloarm to x-axis <0> speed <60>;
 	}
-	
-	
-	
-	
-	
 	gun_1 = !gun_1;
 }
 

@@ -7,7 +7,7 @@ piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
 static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
 
-//#define DEBUG
+#define DEBUG
 #include "../debug.h"
 // ================== STEERING CONTROL ==================
 
@@ -89,7 +89,7 @@ VehicleSteering(reversing)
 		VS_currSpeed = (get CURRENT_SPEED);
 
 
-		dbg((VS_currSpeed - VS_prevSpeed) * VS_TILT_X /  (VS_maxSpeed) / <1>);
+		//dbg((VS_currSpeed - VS_prevSpeed) * VS_TILT_X /  (VS_maxSpeed) / <1>);
 		
 		VS_pelvis_X = (VS_currSpeed - VS_prevSpeed) * VS_TILT_X /  (VS_maxSpeed);
 
@@ -105,7 +105,6 @@ VehicleSteering(reversing)
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
 #define Weapon1TurretY <300>
-
 #include "../weapon1control.h"
 
 // Signal definitions
@@ -1132,18 +1131,18 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {	
-
-	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script Weapon1Control();
+
+	// This is needed cause Weapon1Control() wont kick in till the next frame
+	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
 	
-	//call-script StopAnimation();
 	Weapon1Drawn();
-	
-	start-script Weapon1SetWantedAim(heading, pitch);
+	Weapon1SetWantedAim(heading, pitch);
 
 	start-script RestoreAfterDelay();
-	return (aim1);
+	return (canFire);
 }
 
 
@@ -1164,7 +1163,6 @@ FireWeapon1()
 		turn luparm to x-axis <0> speed <30>;
 		turn lloarm to x-axis <0> speed <30>;
 	}
-	sleep 100;
 	gun_1 = !gun_1;
 }
 

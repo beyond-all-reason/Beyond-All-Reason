@@ -213,7 +213,10 @@
 #define MAXIMUM(v,m) ((v * (v > m)) + ((v <= m)* m))
 #define MINIMUM(v,m) ((v * (v < m)) + ((v >= m)* m))
 
+// Note that this exploits division underflow
+// Also note that you can pass in an expression to value, like a subtraction
 #define ABSOLUTE_LESS_THAN(value, threshold) !((value)/threshold)
+#define ABSOLUTE_GREATER_THAN(value, threshold) ((value)/threshold)
 
 // Calculate how much sleep is needed given a delta and speed
 #define CALC_SLEEP(delta, speed) sleep(get ABS(delta / (speed + 1));

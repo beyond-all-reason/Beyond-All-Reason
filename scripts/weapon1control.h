@@ -18,7 +18,7 @@ AimWeapon1(heading, pitch)
 	[...] -- Remove animations from aimWeapon scripts (use a DrawWeapon1() if an animation is needed, weapon1control will rotate the different aimpieces)
 	start-script Weapon1SetWantedAim(heading, pitch);
 	[...]
-	return (aim1);
+	return (canFire);
 }
 
 static-var  Stunned;
@@ -49,99 +49,66 @@ RestoreAfterDelay()
 
 - Weapon1Control moves the aim pieces depending on turretSpeeds, sets pitch = 1 when pitch reached and head = 1 when head reached
 - Weapon1Drawn allows unit to fire by setting wpnReady1 = 1
-- if pitch = 1, head = 1 and wpnReady = 1 then the weapon can shoot: aim1 = 1 and aimweapon returns aim1
+- if pitch = 1, head = 1 and wpnReady = 1 then the weapon can shoot: canFire = 1 and aimweapon returns canFire
 - Restore animations go in RestoreAfterDelay, RestoreWeapon1() restores aimy and aimx pieces orientation, Weapon1Restored() waits for these pieces to be restored
 - Avoid wait-for-turn in AimWeapon and/or Weapon1Control as much as possible. If you have to (ie DrawWeapon1 of armpw, make sure you don't have multiple turns stacking with different goals
 
 Notes 2024.04 Beherith
 -- Static_Var_Weapon1Control is unused
 -- Refactoring to use better, simpler code
--- (1.62 us mean)
-
+-- (1.0 us mean instead of 3us)
+-- Remember, that when start-scripted, Weapon1Control runs 1 frame late, this is bad on a reaimtime of 2
+-- because the new aim thread will terminate the old one, hence the need for SIGNAL_CUSTOM
 */
-#define SIGNAL_CUSTOM 64
 
-static-var curHead1, wantedHead1, head1, curPitch1, wantedPitch1, pitch1, aim1, wpnReady1;
+static-var curHead1, wantedHead1, curPitch1, wantedPitch1, canFire, wpnReady1;
+
 
 Weapon1Control()
 {
+	
 	signal SIGNAL_CUSTOM;
 	set-signal-mask SIGNAL_CUSTOM;
+	var deltaangle;
+	
 	while (TRUE)
 	{
-		/*
-		if (curHead1 > <180>)
-		{
-			curHead1 = <-360> + curHead1;
-		}
-		if (curPitch1 > <180>)
-		{
-			curPitch1 = <-360> + curPitch1;
-		}
-		if (curHead1 < <-180>)
-		{
-			curHead1 = <360> + curHead1;
-		}
-		if (curPitch1 < <-180>)
-		{
-			curPitch1 = <360> + curPitch1;
-		}*/
-		curHead1 = WRAPDELTA(curHead1);
-		curPitch1 = WRAPDELTA(curPitch1);
-		if (Static_Var_Weapon1Control == 1)
-		{
-			if (((get ABS(curHead1 - wantedHead1)) > <360>) OR(((get ABS(curHead1 - wantedHead1)) > (Weapon1TurretY / 30)) AND ((get ABS(curHead1 - wantedHead1)) < <360> - (Weapon1TurretY / 30))))
-			{
-				head1 = 0;
-				if(curHead1 < wantedHead1) {
-					if(get ABS(curHead1 - wantedHead1)< <180>)
-					   curHead1 = curHead1 + (Weapon1TurretY / 30);
-					else curHead1 = curHead1 - (Weapon1TurretY / 30);
-					}
+		// Start off assuming that we are ready to fire:
+		canFire = 1;
 
-				else {
-					if(get ABS(curHead1 - wantedHead1)< <180>)
-					   curHead1 = curHead1 - (Weapon1TurretY / 30);
-					else curHead1 = curHead1 + (Weapon1TurretY / 30);
-					}
-			}
-			else
-			{
-				head1 = 1;
-				curHead1 = wantedHead1;
-			}
-			if (((get ABS(curPitch1 - wantedPitch1)) > <360>) OR(((get ABS(curPitch1 - wantedPitch1)) > (Weapon1TurretX / 30)) AND ((get ABS(curPitch1 - wantedPitch1)) < <360> - (Weapon1TurretX / 30))))
-			{
-				pitch1 = 0;
-				if(curPitch1 < wantedPitch1) {
-					if(get ABS(curPitch1 - wantedPitch1)< <180>)
-					   curPitch1 = curPitch1 + (Weapon1TurretX / 30);
-					else curPitch1 = curPitch1 - (Weapon1TurretX / 30);
-					}
+		deltaangle = WRAPDELTA(curHead1 - wantedHead1);
 
-				else {
-					if(get ABS(curPitch1 - wantedPitch1)< <180>)
-					   curPitch1 = curPitch1 - (Weapon1TurretX / 30);
-					else curPitch1 = curPitch1 + (Weapon1TurretX / 30);
-					}
-			}
-			else
-			{
-				pitch1 = 1;
-				curPitch1 = wantedPitch1;
-			}
-			if (pitch1 == 1 AND head1 == 1 AND wpnReady1 == 1 AND wantedHead1 != 0)
-			{
-				aim1 = 1;
-			}
-			else
-			{
-				aim1 = 0;
-			}
-			turn aimy1 to y-axis curHead1 now;
-			turn aimx1 to x-axis curPitch1 now;
+		//dbg(curHead1, curPitch1, deltaangle);
+		
+		// If we are further off than how much we can turn in one frame, then we arent ready
+		if (ABSOLUTE_GREATER_THAN(deltaangle,(Weapon1TurretY / 30))){
+			// We arent ready to fire: 
+			canFire = 0;
+			curHead1 = curHead1 - (SIGN(deltaangle))* (Weapon1TurretY / 30);
+		}else{
+			curHead1 = wantedHead1;
 		}
-		sleep 1;
+
+		// Calculate current difference between wanted and actual angle:
+		deltaangle = WRAPDELTA(curPitch1 - wantedPitch1);
+		// If we are further off than how much we can turn in one frame, then we arent ready
+		if (ABSOLUTE_GREATER_THAN(deltaangle,(Weapon1TurretX / 30))){
+			// We arent ready to fire: 
+			canFire = 0;
+			curPitch1 = curPitch1 - (SIGN(deltaangle))* (Weapon1TurretX / 30);
+		}else{
+			curPitch1 = wantedPitch1;
+		}
+
+		canFire = canFire && wpnReady1;
+		// Do it with speed instead of now so that the execution of these can be done in a multithreaded way
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis curPitch1 speed Weapon1TurretX;
+
+		// Bailing out doesnt work well, as it leaves canFire in a true state, remember to:
+		// canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
+		if (canFire) return 0;
+		else sleep 32;
 	}
 }
 
@@ -152,20 +119,17 @@ InitialSetup1()
 	wantedHead1 = 0;
 	wantedPitch1 = 0;
 	wpnReady1 = 0;
-	//start-script Weapon1Control();
+	start-script Weapon1Control();
 }
 
 #define Weapon1Drawn() wpnReady1 = 1
-/*
-Weapon1Drawn()
-{
-	wpnReady1 = 1;
-}*/
+
 
 RestoreWeapon1()
 {
 	wantedHead1 = 0;
 	wantedPitch1 = 0;
+	start-script Weapon1Control();
 }
 
 Weapon1Restored()
@@ -177,12 +141,12 @@ Weapon1Restored()
 	}
 	
 	signal SIGNAL_CUSTOM;
-	return (TRUE);
-	
 }
 
+#define Weapon1SetWantedAim(heading, pitch) wantedHead1 = heading; wantedPitch1 = <0> - pitch;
+/*
 Weapon1SetWantedAim(pitch, heading)
 {
 	wantedHead1 = heading;
 	wantedPitch1 = <0> - pitch;
-}
+}*/

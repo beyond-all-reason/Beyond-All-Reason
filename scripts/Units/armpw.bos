@@ -1125,17 +1125,21 @@ Shot1()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	start-script Weapon1Control();
-	
-	call-script StopAnimation();
-	start-script RestoreAfterDelay();
-	isAiming = TRUE;
-	start-script Weapon1SetWantedAim(heading, pitch);
 	if (wpnReady1 == 0)
 	{
 		start-script DrawWeapon1();
 	}
-	return (aim1);
+	set-signal-mask SIGNAL_AIM1;
+	start-script Weapon1Control();
+	
+	// This is needed cause Weapon1Control() wont kick in till the next frame
+	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
+	
+	isAiming = TRUE;
+	
+	Weapon1SetWantedAim(heading, pitch);
+	start-script RestoreAfterDelay();
+	return (canFire);
 }
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armpw_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
