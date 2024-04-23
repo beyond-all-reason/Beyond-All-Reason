@@ -80,6 +80,7 @@ local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local GetMouseState = Spring.GetMouseState
 local SelectUnitArray = Spring.SelectUnitArray
 local TraceScreenRay = Spring.TraceScreenRay
@@ -158,8 +159,8 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-					local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-					if buildProgress == 1 then
+					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
+					if finishedBuilding then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end

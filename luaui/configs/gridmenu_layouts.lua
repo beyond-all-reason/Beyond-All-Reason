@@ -1198,7 +1198,7 @@ local unitGrids = {
 	cordecom = {
 		{
 			{ "cormex", "corsolar", "corwin", },               -- mex, solar, wind
-			{ "cormakr", "", "coruwms", cortide},              -- T1 converter, uw ms storage, tidal
+			{ "cormakr", "", "coruwms", "cortide" },           -- T1 converter, uw ms storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{

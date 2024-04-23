@@ -1218,6 +1218,15 @@ local options = {
         hidden 	= true,
     },
 
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
@@ -1306,30 +1315,6 @@ local options = {
         type    = "string",
         def     = "",
     },
-	{
-		key		= "forceraptors",
-		name	= "Force Load Raptors",
-		desc	= "Load All Raptor Unit Defs even if raptor ai isn't present",
-		section = "dev",
-		type	= "bool",
-		def		= false,
-	},
-	{
-		key		= "forcescav",
-		name	= "Force Load Scavanger",
-		desc	= "Load scav units even if scav ai isn't present",
-		section = "dev",
-		type	= "bool",
-		def		= false,
-	},
-	{
-		key		= "forcelegion",
-		name	= "Force Load Legion",
-		desc	= "Load legion units even if legion isn't enabled, as such not adding it to start options but still loading the units",
-		section = "dev",
-		type	= "bool",
-		def		= false,
-	},
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

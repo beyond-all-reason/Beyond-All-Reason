@@ -253,8 +253,8 @@ do --save a ton of locals
 	local OPTION_SHIFT_RGBHSV     = 4 -- userDefined[2].rgb (gl.SetUnitBufferUniforms(unitID, {math.random(),math.random()-0.5,math.random()-0.5}, 8) -- shift Hue, saturation, valence )
 	local OPTION_VERTEX_AO        = 8
 	local OPTION_FLASHLIGHTS      = 16
-	local OPTION_THREADS_ARM      = 32
-	local OPTION_THREADS_CORE     = 64
+	local OPTION_TREADS_ARM      = 32
+	local OPTION_TREADS_CORE     = 64
 	local OPTION_HEALTH_TEXTURING = 128
 	local OPTION_HEALTH_DISPLACE  = 256
 	local OPTION_HEALTH_TEXRAPTORS = 512
@@ -266,22 +266,22 @@ do --save a ton of locals
 
 	uniformBins = {
 		armunit = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
 		corunit = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
 		armscavenger = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
 		corscavenger = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
@@ -563,13 +563,13 @@ local function initMaterials()
 	unitsNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
@@ -578,7 +578,7 @@ local function initMaterials()
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
@@ -588,14 +588,14 @@ local function initMaterials()
 	unitsSkinningTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
@@ -606,7 +606,7 @@ local function initMaterials()
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_TREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
@@ -1449,7 +1449,7 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	--Spring.Debug.TableEcho(unitDrawBins)
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags, reason)
@@ -1458,7 +1458,7 @@ local function ProcessUnits(units, drawFlags, reason)
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnit", unitID, drawFlag) end
-		local _,_,_,_,buildpercent = spGetUnitHealth(unitID)
+		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 		if drawFlag % 4 > 1 then -- check if its at least in opaque or alpha pass
 			if unitsInViewport[unitID] == nil then
@@ -1476,7 +1476,7 @@ local function ProcessUnits(units, drawFlags, reason)
 
 		if (drawFlag == 0) or (drawFlag >= 32) then
 			RemoveObject(unitID, reason)
-		elseif (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
+		elseif isBuilding or spGetUnitIsCloaked(unitID) then
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
@@ -1953,9 +1953,11 @@ function gadget:Shutdown()
 	--gadgetHandler:RemoveChatAction("disablecusgl4")
 	--gadgetHandler:RemoveChatAction("reloadcusgl4")
 	--gadgetHandler:RemoveChatAction("cusgl4updaterate")
-	for k,v in pairs(GG.CUSGL4) do
-		GG.CUSGL4[k] = nil
-	end
+	if GG.CUSGL4 then 
+		for k,v in pairs(GG.CUSGL4) do
+			GG.CUSGL4[k] = nil
+		end
+	end 
 	
 	GG.CUSGL4 = nil
 end
