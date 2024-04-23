@@ -19,6 +19,16 @@ end
  -If using continuous aiming, the correct values for the waitforturn checks are: > 65536, > WeaponXTurretY/30, < 65536 - WeaponXTurretY/30 (== not within one frame of the last valid heading)
 
  This gadget will only call the setting function if it finds both the wpnXturretx and wpnXturrety customParams, if the weapon doesn't use a rotation around x-axis in its aiming then just set it to 1 (not nil)
+
+For future notes, look for these in COB scripts
+ Weapon1TurretX 
+ Weapon1TurretY
+ 
+Look for these in UnitDefs customparams:
+ wpn1turretx
+ wpn1turrety
+
+ 
  ]]
 
 if not gadgetHandler:IsSyncedCode() then return end
