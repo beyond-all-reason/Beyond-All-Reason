@@ -57,6 +57,7 @@ local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local myTeamID     = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
+local isSpectating = Spring.GetSpectatingState()
 
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {}      -- Array to store units offered for sale {UnitID => metalCost}
@@ -74,7 +75,7 @@ function widget:Initialize()
     for _, unitID in ipairs(Spring.GetAllUnits()) do
         if spValidUnitID(unitID) then
             teamID = spGetUnitTeam(unitID)
-            if spAreTeamsAllied(teamID, myTeamID) then
+            if isSpectating or spAreTeamsAllied(teamID, myTeamID) then
                 local price = spGetUnitRulesParam(unitID, "unitPrice")
                 --Spring.Echo("I see "..unitID.." p:"..price)
                 if (price > 0) then
@@ -83,6 +84,10 @@ function widget:Initialize()
             end
         end
     end
+end
+
+function widget:PlayerChanged(playerID)
+	isSpectating = spGetSpectatingState()
 end
 
 function OfferToSell(unitID)
@@ -123,8 +128,8 @@ end
 function widget:RecvLuaMsg(msg, playerID)
     local msgFromTeamID = select(4,spGetPlayerInfo(playerID))
 
-    -- ignore messages from enemies
-    if not spAreTeamsAllied(msgFromTeamID, myTeamID) then return end
+    -- ignore messages from enemies unless you are spec
+    if not (isSpectating or spAreTeamsAllied(msgFromTeamID, myTeamID)) then return end
 
     local words = {}
     for word in msg:gmatch("%S+") do
@@ -188,7 +193,7 @@ local lastClickTime = nil
 
 function widget:MousePress(mx, my, button)
     local alt, ctrl, meta, shift = spGetModKeyState()
-    if alt then
+    if alt and not isSpectating then
         if button == 1 then
             local _, coords = spTraceScreenRay(mx, my, true)
             if coords ~= nil then
