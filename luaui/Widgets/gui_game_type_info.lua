@@ -37,6 +37,8 @@ local messages = {}
 
 local font
 
+local draftMode = Spring.GetModOptions().draft_mode
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
@@ -95,8 +97,10 @@ function widget:DrawScreen()
 		return
 	end
 
+	local y = 0.19
+	if (draftMode ~= nil and draftMode ~= "disabled") then y = 0.68 end
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.68), 0) --has to be below where newbie info appears! -- was 0.19
+	glTranslate((vsx * 0.5), (vsy * y), 0)
 	glScale(1.5, 1.5, 1)
 	font:Begin()
 
