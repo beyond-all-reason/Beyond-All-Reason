@@ -35,7 +35,7 @@ local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRe
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFullBuildQueue = Spring.GetFullBuildQueue
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -109,8 +109,7 @@ local function isIdleBuilder(unitID)
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
 			--- has no build queue
-			local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-			if buildProgress == 1 then
+			if not spGetUnitIsBeingBuilt(unitID) then
 				--- isnt under construction
 				if isFactory[udef] then
 					return true

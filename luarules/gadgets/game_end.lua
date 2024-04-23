@@ -400,14 +400,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:PlayerRemoved(playerID, reason)
-		CheckAllPlayers()
-	end
-
-	function gadget:PlayerChanged(playerID) -- not all events that we want to test call gadget:PlayerChanged (e.g. allying)
-		CheckAllPlayers()
-	end
-
 	function gadget:TeamChanged(teamID)
 		CheckAllPlayers()
 	end

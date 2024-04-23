@@ -310,12 +310,7 @@ function ShardUnit:CanMorph()
 end
 
 function ShardUnit:IsBeingBuilt()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	if buildProgress then -- add a scavenger workaround, but this function is better to return the complete output instead a simple true/false
-		return buildProgress < 1
-	else
-		return false
-	end
+	return Spring.GetUnitIsBeingBuilt( self.id )
 end
 
 function ShardUnit:IsMorphing()
@@ -673,7 +668,7 @@ function ShardUnit:CaptureProgress()
 end
 
 function ShardUnit:BuildProgress()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local isBuilding, buildProgress = Spring.GetUnitIsBeingBuilt( self.id )
 	return buildProgress
 end
 

@@ -24,7 +24,7 @@ return {
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
 		maxbank = 0.8,
-		health = 2300,
+		health = 2000,
 		maxelevator = 0.00898,
 		maxpitch = 0.625,
 		maxrudder = 0.00498,
