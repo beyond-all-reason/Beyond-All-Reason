@@ -701,7 +701,7 @@ function widget:DrawScreen()
 				end
 			end
 		end
-	elseif (os.clock() >= reloadedDraftMode) then
+	elseif (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
 		reloadedDraftMode = nil
 		Spring.SendLuaRulesMsg("send_me_the_info_again")
 		draftModeInited()
