@@ -723,11 +723,11 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
-		if carrierStates.firestate == 0 then
+		if carrierStates.movestate == 0 then
 			idleRadius = 0
-			--activeSpawning = false
-		elseif carrierStates.movestate == 0 then
-			idleRadius = 0
+		--elseif carrierStates.firestate == 0 then --This is disabled to allow cloaking carriers to retreat while keeping drones undocked (armada unbacom)
+		--idleRadius = 0
+		--activeSpawning = false
 		elseif carrierStates.movestate == 1 then
 			idleRadius = 200
 		end
