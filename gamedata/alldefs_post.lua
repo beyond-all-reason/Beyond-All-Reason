@@ -238,22 +238,9 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unbacom == "enabled" then
-			local function setTrue(options)
-				local set = {}
-				for _, option in ipairs(options) do
-					set[option] = true
-				end
-				return set
-			end
 			
-			local unbacomlist = setTrue({"armcom", "armcomlvl2", "armcomlvl3", "armcomlvl4", "armcomlvl5", "armcomlvl6", "armcomlvl7", "armcomlvl8", "armcomlvl9", "armcomlvl10",
-			"corcom", "corcomlvl2", "corcomlvl3", "corcomlvl4", "corcomlvl5", "corcomlvl6", "corcomlvl7", "corcomlvl8", "corcomlvl9", "corcomlvl10",
-			"legcom", "legcomlvl2", "legcomlvl3", "legcomlvl4", "legcomlvl5", "legcomlvl6", "legcomlvl7", "legcomlvl8", "legcomlvl9", "legcomlvl10",})
-			
-			if unbacomlist[name] then
-				Spring.Echo(name)
-				uDef.customparams.evolution_timer = math.floor(modOptions.unbacomleveuprate*60)
-				Spring.Echo(name)
+			if uDef.customparams.isunbacom or uDef.customparams.iscommander then
+				uDef.customparams.evolution_timer = modOptions.unbacomleveluprate*60
 			end
 
 			if  name == "armcom" then
@@ -273,6 +260,8 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl5"
 				uDef.customparams.evolution_condition = "timer"
+				uDef.customparams.workertimeboost = 5
+				uDef.customparams.wtboostunittype = "MOBILE"
 			end
 		end
 
