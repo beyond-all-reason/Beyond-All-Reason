@@ -810,8 +810,7 @@ end
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
-		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress < 1 then return end
+		if Spring.GetUnitIsBeingBuilt(unitID) then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do

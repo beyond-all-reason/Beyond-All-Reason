@@ -310,8 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 			InsertLandAtAirbaseCommands(unitID)
 		end
 
-		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-		if buildProgress == 1.0 then
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
