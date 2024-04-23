@@ -121,7 +121,6 @@ local function FindPlayerIDFromTeamID(teamID)
             return playerID
         end
     end
-    -- Return nil if no player with the given team ID is found
     return nil
 end
 
@@ -140,9 +139,9 @@ function widget:RecvLuaMsg(msg, playerID)
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
         local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end -- whats wrong?
+        if not unitDefID then return end
         local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end -- whats wrong?
+        if not unitDef then return end
         local name,_ = spGetPlayerInfo(playerID, false)
         if not unitsForSale[unitID] then
             unitsForSale[unitID] = unitDef.metalCost
@@ -154,14 +153,12 @@ function widget:RecvLuaMsg(msg, playerID)
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
         local price  = tonumber(words[3])
-        ClearUnitData(unitID) -- unit sold? clear it
+        ClearUnitData(unitID)
         local old_ownerID = FindPlayerIDFromTeamID(tonumber(words[4]))
         local new_ownerID = FindPlayerIDFromTeamID(tonumber(words[5]))
         if (old_ownerID and new_ownerID) then
-            local owner_name,_ = spGetPlayerInfo(new_ownerID, false)
-            if not owner_name then return end -- whats wrong?
-            local old_owner_name,_ = spGetPlayerInfo(old_ownerID, false)
-            if not owner_name then return end -- whats wrong?
+            local owner_name = select(1,spGetPlayerInfo(new_ownerID, false)) or "unknown"
+            local old_owner_name = select(1,spGetPlayerInfo(old_ownerID, false)) or "unknown"
             spEcho(old_owner_name.." sold "..unitDef.translatedHumanName.." for "..price.." metal to "..owner_name..".")
         end
     end

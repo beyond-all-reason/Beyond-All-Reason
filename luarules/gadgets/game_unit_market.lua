@@ -39,7 +39,7 @@ local RPAccess = {allied = true}
 function gadget:Initialize()
     -- if market is disabled globally, exit
     if not unitMarket or unitMarket ~= true then
-        gadgetHandler:RemoveGadget(self) -- not enabled? shutdown
+        gadgetHandler:RemoveGadget(self)
     end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
@@ -49,7 +49,7 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
     local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
 
-    if mySpec then return end -- ignore msgs from spectators
+    if mySpec then return end
 
     local words = {}
     for word in msg:gmatch("%S+") do
@@ -61,12 +61,12 @@ function gadget:RecvLuaMsg(msg, playerID)
         local unitID = tonumber(words[2])
         if not spValidUnitID(unitID) then return end
         local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end -- whats wrong?
+        if not unitDefID then return end
         local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end -- whats wrong?
+        if not unitDef then return end
 		local finished = (select(5,spGetUnitHealth(unitID))==1)
-        if not finished then return end -- not finished, bad
-        if unitDef.metalCost < 0 then return end -- should I even test it?
+        if not finished then return end
+        if unitDef.metalCost < 0 then return end
         if not unitsForSale[unitID] then
             unitsForSale[unitID] = unitDef.metalCost
             spSetUnitRulesParam(unitID, "unitPrice", unitDef.metalCost, RPAccess)
@@ -80,9 +80,9 @@ function gadget:RecvLuaMsg(msg, playerID)
         local unitID = tonumber(words[2])
         if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end -- no unit/not for sale?
         local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end -- whats wrong?
+        if not unitDefID then return end
         local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end -- whats wrong?
+        if not unitDef then return end
         local current,storage = GetTeamResources(msgFromTeamID, "metal")
         if (current <= 0 or current < unitsForSale[unitID]) then return end -- can't afford
         local old_ownerID = spGetUnitTeam(unitID)
