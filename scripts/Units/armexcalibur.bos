@@ -11,7 +11,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, core, con, condar, base, wake;
+piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, core, con, condar, base, wake, prop;
 
 static-var  activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount, deployed, modpitch, Stunned;
 
@@ -198,6 +198,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	spin prop around z-axis speed <40>;
 	hide flare;
 	//move antenna to y-axis [-15] speed [240];
 	//move base to z-axis [-15] speed [240];

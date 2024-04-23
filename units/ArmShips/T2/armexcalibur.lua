@@ -1,8 +1,8 @@
 return {
 	armexcalibur = {
-		acceleration = 0.03,
+		maxacc = 0.03,
 		activatewhenbuilt = false,
-		brakerate = 0.05,
+		maxdec = 0.05,
 		buildcostenergy = 16000,
 		buildcostmetal = 900,
 		buildpic = "armexcalibur.DDS",
@@ -19,8 +19,8 @@ return {
 		footprintz = 3,
 		idleautoheal = 10,
 		idletime = 900,
-		maxdamage = 1200,
-		maxvelocity = 1.6,
+		health = 1200,
+		speed = 60,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL",

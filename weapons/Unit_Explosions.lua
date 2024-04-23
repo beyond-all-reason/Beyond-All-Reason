@@ -501,6 +501,23 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+	nukeSub = {
+		weaponType = "Cannon",
+		AreaOfEffect = 780,
+		cameraShake = 780,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:afusexpl",
+		damage = {
+			commanders = 1800,
+			default = 4000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
 
 	penetrator = {
 		weaponType = "Cannon",

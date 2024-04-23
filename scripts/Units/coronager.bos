@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom;
+piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom, prop;
 
 static-var  gun_1;
 
@@ -40,6 +40,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Create()
 {
+	spin prop around z-axis speed <40>;
 	hide wake;
 	hide flare1;
 	hide flare2;
