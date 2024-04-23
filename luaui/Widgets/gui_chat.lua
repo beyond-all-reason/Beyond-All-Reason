@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local LineType = {
+local LineTypes = {
 	Console = -1,
 	Player = 1,
 	Spectator = 2,
@@ -76,6 +76,9 @@ local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "So
 local font, font2, font3, chobbyInterface, hovering
 
 local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
+
+local prevGameID
+local prevOrgLines
 
 local playSound = true
 local sndChatFile  = 'beep4'
@@ -528,24 +531,24 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local energyColor = '\255\255\255\180'
 
 	-- metal/energy given
-	if lineType == LineType.Player and sfind(text, 'I sent ', nil, true) then
+	if lineType == LineTypes.Player and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
 			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
 			text = msgColor..'shared '..metalColor..sendMetal..metalColor.. ' metal'..msgColor..' to '..playername
-			lineType = LineType.System
+			lineType = LineTypes.System
 		elseif sfind(text, ' energy to ', nil, true) then
 			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
 			text = msgColor..'shared '..energyColor..sendEnergy..energyColor..' energy'..msgColor..' to '..playername
-			lineType = LineType.System
+			lineType = LineTypes.System
 		end
 	-- player taken
-	elseif lineType == LineType.Player and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
+	elseif lineType == LineTypes.Player and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
 		if sfind(text, 'I took ', nil, true) then
 			local playernameStart = sfind(text, 'I took ')+7
 			local playername = ssub(text, playernameStart, slen(text)-1) -- strip dot.
@@ -558,7 +561,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			end
 			playername = teamcolorPlayername(playername)
 			text = msgColor..'took '..playername..addition
-			lineType = LineType.System
+			lineType = LineTypes.System
 		end
 	end
 
@@ -581,11 +584,11 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
-		if lineType == LineType.Mapmark and lastMapmarkCoords then
+		if lineType == LineTypes.Mapmark and lastMapmarkCoords then
 			chatLines[chatLinesCount].coords = lastMapmarkCoords
 			lastMapmarkCoords = nil
 		end
-		if lineType == LineType.System then
+		if lineType == LineTypes.System then
 			chatLines[chatLinesCount].text = line
 
 			if lastLineUnitShare and lastLineUnitShare.newTeamID == Spring.GetMyTeamID() then
@@ -606,7 +609,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	end
 
 	-- play sound for player/spectator chat
-	if isLive and (lineType == LineType.Player or lineType == LineType.Spectator) and playSound and not Spring.IsGUIHidden() then
+	if isLive and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
 		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
 	end
 end
@@ -734,7 +737,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 	-- player message
 	if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
-		lineType = LineType.Player
+		lineType = LineTypes.Player
 		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
 
@@ -766,7 +769,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 		-- spectator message
 	elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil  or  names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
-		lineType = LineType.Spectator
+		lineType = LineTypes.Spectator
 		if names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
 			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
@@ -800,7 +803,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 		-- point
 	elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
-		lineType = LineType.Mapmark
+		lineType = LineTypes.Mapmark
 		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 		text = ssub(line,slen(name.." added point: ")+1)
 		if text == '' then
@@ -839,7 +842,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 		-- battleroom message
 	elseif ssub(line,1,1) == ">" then
-		lineType = LineType.Spectator
+		lineType = LineTypes.Spectator
 		text = ssub(line,3)
 		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
 			local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
@@ -871,7 +874,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 		-- units given
 	elseif names[ssub(line,1,(sfind(line," shared units to ", nil, true) or 1)-1)] ~= nil then
-		lineType = LineType.System
+		lineType = LineTypes.System
 
 		local msgColor = '\255\180\180\180'
 		local msgHighlightColor = '\255\215\215\215'
@@ -893,7 +896,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 
 		-- console chat
 	elseif addOrgLine or doConsoleLine then
-		lineType = LineType.Console
+		lineType = LineTypes.Console
 
 		if sfind(line, "Input grabbing is ", nil, true) then
 			bypassThisMessage = true
@@ -1139,14 +1142,14 @@ local function processLine(i)
 		chatLines[i].lineDisplayList = glCreateList(function()
 			font:Begin()
 			if chatLines[i].gameFrame then
-				if chatLines[i].lineType == LineType.Mapmark then
+				if chatLines[i].lineType == LineTypes.Mapmark then
 					-- player name
 					font2:Begin()
 					font2:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 					font2:End()
 					-- divider
 					font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
-				elseif chatLines[i].lineType == LineType.System then -- sharing resources, taken player
+				elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 					-- player name
 					font3:Begin()
 					font3:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
@@ -1160,7 +1163,7 @@ local function processLine(i)
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
-			if chatLines[i].lineType == LineType.System then -- sharing resources, taken player
+			if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 				font3:Begin()
 				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 				font3:End()
@@ -1179,15 +1182,15 @@ local function processLine(i)
 end
 
 local initialized = false
-local function processLines()
+local function processLines(clearConsole)
 	clearDisplayLists()
 	chatLines = {}
-	if force then
+	if clearConsole then
 		consoleLines = {}
 	else
-		for i, params in ipairs(consoleLines) do
-			processConsoleLine(i)
-		end
+		--for i, params in ipairs(consoleLines) do
+		--	processConsoleLine(i)
+		--end
 	end
 	for _, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], false, not initialized)
@@ -1208,6 +1211,15 @@ function widget:Update(dt)
 		uiSec = 0
 
 		local doProcessLines = false
+
+		if prevOrgLines and Spring.GetGameRulesParam("GameID") then
+			if prevGameID == Spring.GetGameRulesParam("GameID") then
+				orgLines = prevOrgLines
+				doProcessLines = true
+			end
+			prevOrgLines = nil
+			prevGameID = nil
+		end
 
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
@@ -2114,7 +2126,7 @@ function widget:ViewResize()
 	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
-	processLines(forceProcessLines)
+	processLines()
 end
 
 function widget:PlayerChanged(playerID)
@@ -2224,10 +2236,6 @@ function widget:Shutdown()
 	end
 end
 
-function widget:GameStart()
-	processLines()	-- refresh so playername have their associated colors applied in the history lines too
-end
-
 function widget:GameOver()
 	gameOver = true
 end
@@ -2240,18 +2248,18 @@ function widget:GetConfigData(data)
 		end
 	end
 
-	-- limit it to possibly prevent game config corruption
-	local maxOrgLines = 500
+	local maxOrgLines = 600
 	if #orgLines > maxOrgLines then
 		local prunedOrgLines = {}
 		for i=1, maxOrgLines do
-			prunedOrgLines[i] = orgLines[#orgLines-(maxOrgLines+i)]
+			prunedOrgLines[i] = orgLines[(#orgLines-maxOrgLines)+i]
 		end
 		orgLines = prunedOrgLines
 	end
 
 	return {
 		gameFrame = Spring.GetGameFrame(),
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		orgLines = gameOver and nil or orgLines,
 		inputHistory = inputHistoryLimited,
 		maxLines = maxLines,
@@ -2271,8 +2279,11 @@ end
 
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
-		if Spring.GetGameFrame() > 0 then
+		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
 			orgLines = data.orgLines
+		elseif data.gameID then
+			prevGameID = data.gameID
+			prevOrgLines = data.orgLines
 		end
 	end
 	if data.inputHistory ~= nil then
