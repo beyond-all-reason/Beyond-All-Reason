@@ -56,10 +56,10 @@ local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local myTeamID     = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
-local isSpectating = Spring.GetSpectatingState()
+local isSpectating = Spring.GetSpectatingState() == true
 
 local unitMarket = Spring.GetModOptions().unit_market
-local unitsForSale = {}      -- Array to store units offered for sale {UnitID => metalCost}
+local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 
 function widget:Initialize()
     -- if market is disabled, exit
@@ -91,7 +91,6 @@ end
 
 function OfferToSell(unitID)
     spSendLuaRulesMsg("unitOfferToSell " .. unitID) -- Tell gadget we are offering unit for sale
-
 end
 function OfferToBuy(unitID)
     spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
@@ -102,6 +101,27 @@ function widget:TextCommand(command)
         local selectedUnits = spGetSelectedUnits()
         for _, unitID in ipairs(selectedUnits) do
             OfferToSell(unitID)
+        end
+    end
+end
+
+function widget:TextCommand(command)
+    if (string.find(command, 'sell_unit') == 1) then
+        local selectedUnits = spGetSelectedUnits()
+        if selectedUnits == nil or #selectedUnits <= 0 then return end
+
+        local anyUnitForSale = false -- Flag to check if any selected unit are already on sale
+        for _, unitID in ipairs(selectedUnits) do
+            if unitsForSale[unitID] then
+                anyUnitForSale = true -- If they are we are going to remove sale status on them
+                OfferToSell(unitID)
+            end
+        end
+        -- If none of the selected units are on sale, call OfferToSell to set all of them on sale
+        if not anyUnitForSale then
+            for _, unitID in ipairs(selectedUnits) do
+                OfferToSell(unitID)
+            end
         end
     end
 end
@@ -137,12 +157,13 @@ function widget:RecvLuaMsg(msg, playerID)
     if words[1] == "unitForSale" then
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
+        local selling = tonumber(words[3])
         local unitDefID = spGetUnitDefID(unitID)
         if not unitDefID then return end
         local unitDef = UnitDefs[unitDefID]
         if not unitDef then return end
         local name,_ = spGetPlayerInfo(playerID, false)
-        if not unitsForSale[unitID] then
+        if selling > 0 then
             unitsForSale[unitID] = unitDef.metalCost
             spEcho(name.." is selling "..unitDef.translatedHumanName.." for "..unitDef.metalCost.." metal.")
         else
@@ -240,44 +261,42 @@ function widget:DrawWorld()
 	for unitID, _ in pairs(unitsForSale) do
 		local x, y, z = spGetUnitPosition(unitID)
 
-		if not spIsUnitInView(unitID) or x == nil or y == nil or z == nil then
-			return
-		end
+		if spIsUnitInView(unitID) and x then
+            local currentTime = spGetGameSeconds() % animationDuration
+            local animationProgress = math.sin((currentTime / animationDuration) * (2 * math.pi * animationFrequency))
 
-		local currentTime = spGetGameSeconds() % animationDuration
-		local animationProgress = math.sin((currentTime / animationDuration) * (2 * math.pi * animationFrequency))
+            local greenColorA	= {0.3, 1.0, 0.3, 1.0}
+            local redColor = 1
+            local greenColor = (0.8 + animationProgress * 0.2)
 
-		local greenColorA	= {0.3, 1.0, 0.3, 1.0}
-		local redColor = 1
-		local greenColor = (0.8 + animationProgress * 0.2)
+            local radiusSize = 15 + animationProgress * 10
 
-		local radiusSize = 15 + animationProgress * 10
+            local ux, uy, uz = spGetUnitViewPosition(unitID)
 
-		local ux, uy, uz = spGetUnitViewPosition(unitID)
-		-- at this point ux,uy,uz should never be nil
-		local yellow	= {1.0, 1.0, 0.3, 0.66}
-		gl.PushMatrix()
-        gl.Translate(ux, uy, uz)
-        gl.Billboard()
-        gl.Color(yellow)
-        gl.BeginText()
-        gl.Text("$", 12.0, 15.0, 24.0)
-        gl.EndText()
-		gl.PopMatrix()
+            local yellow	= {1.0, 1.0, 0.3, 0.66}
+            gl.PushMatrix()
+            gl.Translate(ux, uy, uz)
+            gl.Billboard()
+            gl.Color(yellow)
+            gl.BeginText()
+            gl.Text("$", 12.0, 15.0, 24.0)
+            gl.EndText()
+            gl.PopMatrix()
 
-		gl.Color(greenColorA)
-		gl.DrawGroundCircle(x, y, z, radiusSize, 32)  -- Increase the radius based on animation progress
+            gl.Color(greenColorA)
+            gl.DrawGroundCircle(x, y, z, radiusSize, 32)  -- Increase the radius based on animation progress
 
-		local numSegments = 32
-		local angleStep = (2 * math.pi) / numSegments
-		gl.BeginEnd(GL.TRIANGLE_FAN, function()
-			--gl.Color(1, greenColor, 0, (0.5 + animationProgress * 0.5))
-			gl.Color(0.1, 1.0, 0.3, (0.1 + animationProgress * 0.05))
-			gl.Vertex(x, y+25, z)
-			for i = 0, numSegments do
-				local angle = i * angleStep
-				gl.Vertex(x + math.sin(angle) * radiusSize, y + 0, z + math.cos(angle) * radiusSize)
-			end
-		end) -- animmation part of the code was inspired by ally t2 lab flashing widget
+            local numSegments = 32
+            local angleStep = (2 * math.pi) / numSegments
+            gl.BeginEnd(GL.TRIANGLE_FAN, function()
+                --gl.Color(1, greenColor, 0, (0.5 + animationProgress * 0.5))
+                gl.Color(0.1, 1.0, 0.3, (0.1 + animationProgress * 0.05))
+                gl.Vertex(x, y+25, z)
+                for i = 0, numSegments do
+                    local angle = i * angleStep
+                    gl.Vertex(x + math.sin(angle) * radiusSize, y + 0, z + math.cos(angle) * radiusSize)
+                end
+            end) -- animmation part of the code was inspired by ally t2 lab flashing widget
+        end
 	end
 end

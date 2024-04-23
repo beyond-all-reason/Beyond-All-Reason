@@ -46,6 +46,57 @@ function gadget:Initialize()
 	end
 end
 
+local function setUnitOnSale(unitID, price, toggle)
+    if unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 or toggle == false then
+        unitsForSale[unitID] = price
+        spSetUnitRulesParam(unitID, "unitPrice", price, RPAccess)
+        return true
+    else
+        unitsForSale[unitID] = nil
+        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
+        return false
+    end
+end
+local function removeSale(unitID)
+    unitsForSale[unitID] = nil
+end
+local function offerUnitForSale(unitID)
+    if not spValidUnitID(unitID) then return end
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return end
+    local finished = (select(5,spGetUnitHealth(unitID))==1)
+    if not finished then return end
+    if unitDef.metalCost < 0 then return end
+    local selling = setUnitOnSale(unitID, unitDef.metalCost, true)
+    local msgFromTeamID = spGetUnitTeam(unitID)
+    if selling then
+        spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID)
+    else
+        spSendLuaUIMsg("unitForSale " .. unitID .. " 0 " .. " " .. msgFromTeamID)
+    end
+end
+local function tryToBuyUnit(unitID, msgFromTeamID)
+    if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return end
+    local current,storage = GetTeamResources(msgFromTeamID, "metal")
+    if (current <= 0 or current < unitsForSale[unitID]) then return end
+    local old_ownerID = spGetUnitTeam(unitID)
+    if not spAreTeamsAllied(old_ownerID, msgFromTeamID) then return end
+    local price = unitsForSale[unitID]
+    TransferUnit(unitID, msgFromTeamID)
+    if msgFromTeamID ~= old_ownerID then -- don't send resources to yourself
+        ShareTeamResource(msgFromTeamID, old_ownerID, "metal", price)
+    end
+    spSendLuaUIMsg("unitSold " .. unitID .. " " .. price .. " " .. old_ownerID .. " " .. msgFromTeamID) -- Announce sale
+    spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
+    removeSale(unitID)
+end
+
 function gadget:RecvLuaMsg(msg, playerID)
     local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
 
@@ -59,63 +110,32 @@ function gadget:RecvLuaMsg(msg, playerID)
     if words[1] == "unitOfferToSell" then
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
-        if not spValidUnitID(unitID) then return end
-        local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end
-        local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end
-		local finished = (select(5,spGetUnitHealth(unitID))==1)
-        if not finished then return end
-        if unitDef.metalCost < 0 then return end
-        if not unitsForSale[unitID] then
-            unitsForSale[unitID] = unitDef.metalCost
-            spSetUnitRulesParam(unitID, "unitPrice", unitDef.metalCost, RPAccess)
-        else -- flip
-            unitsForSale[unitID] = nil
-            spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
-        end
-        spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID) -- Announce offer
+        offerUnitForSale(unitID)
     elseif words[1] == "unitTryToBuy" then
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
-        if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end -- no unit/not for sale?
-        local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end
-        local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end
-        local current,storage = GetTeamResources(msgFromTeamID, "metal")
-        if (current <= 0 or current < unitsForSale[unitID]) then return end -- can't afford
-        local old_ownerID = spGetUnitTeam(unitID)
-        if not spAreTeamsAllied(old_ownerID, msgFromTeamID) then return end -- ignore enemy units, won't be buying them anyway
-        local price = unitsForSale[unitID]
-        TransferUnit(unitID, msgFromTeamID)
-        if msgFromTeamID ~= old_ownerID then -- don't send resources to yourself
-            ShareTeamResource(msgFromTeamID, old_ownerID, "metal", price)
-        end
-        spSendLuaUIMsg("unitSold " .. unitID .. " " .. price .. " " .. old_ownerID .. " " .. msgFromTeamID) -- Announce sale
-        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
-        unitsForSale[unitID] = nil
+        tryToBuyUnit(unitID, msgFromTeamID)
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-    unitsForSale[unitID] = nil
+    removeSale(unitID)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     if unitDefID then
         spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
-        unitsForSale[unitID] = nil
+        removeSale(unitID)
     end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-    unitsForSale[unitID] = nil
+    removeSale(unitID)
 end
 
 -- debug/for testing: AI lists for sale ANY unit it finishes building, good enough for single player testing, comment out in production though
 -- if you are using inactive AI, just use godmode 3 to control it to order to build something, then godmode 0 to stop control and then try alt+doubleclick to buy
---[[function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
+function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
     local _, _, _, isAiTeam = spGetTeamInfo(teamID)
     if isAiTeam then
         local unitDefID = spGetUnitDefID(unitID)
@@ -125,12 +145,11 @@ end
 
         if unitDef.metalCost < 0 then return end -- should I even test it?
 
-        unitsForSale[unitID] = unitDef.metalCost
-        spSetUnitRulesParam(unitID, "unitPrice", unitDef.metalCost, RPAccess)
+        setUnitOnSale(unitID, unitDef.metalCost, false)
 
 	    local msgFromTeamID = spGetUnitTeam(unitID)
         spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID) -- Announce offer
     end
-end]]
+end
 
 end
