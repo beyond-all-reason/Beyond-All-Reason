@@ -17,58 +17,58 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 if not Spring.GetModOptions().disable_assist_ally_construction then
-    return false
+	return false
 end
 
 local function isComplete(u)
-    local _,_,_,_,buildProgress=Spring.GetUnitHealth(u)
-    if buildProgress and buildProgress>=1 then
-        return true
-    else
-        return false
-    end
+	local _,_,_,_,buildProgress=Spring.GetUnitHealth(u)
+	if buildProgress and buildProgress>=1 then
+		return true
+	else
+		return false
+	end
 end
 
 
 local function isBuildCapable(unitID)
-    local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-    local spyDefs = {UnitDefs[UnitDefNames.armspy.id], UnitDefs[UnitDefNames.corspy.id]}
-    return (unitDef.isBuilder or (spyDefs[1] == unitDef) or (spyDefs[2] == unitDef))
+	local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+	local spyDefs = {UnitDefs[UnitDefNames.armspy.id], UnitDefs[UnitDefNames.corspy.id]}
+	return (unitDef.isBuilder or (spyDefs[1] == unitDef) or (spyDefs[2] == unitDef))
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
-    -- Disallow guard commands onto ally's labs, and units with build bp or that can reclaim
+	-- Disallow guard commands onto ally's labs, and units with build bp or that can reclaim
 
-    if (cmdID == CMD.GUARD) then
-        local targetID = cmdParams[1]
-        local targetTeam = Spring.GetUnitTeam(targetID)
+	if (cmdID == CMD.GUARD) then
+		local targetID = cmdParams[1]
+		local targetTeam = Spring.GetUnitTeam(targetID)
 
-        if not isBuildCapable(targetID) then
-            return true
-        end
+		if not isBuildCapable(targetID) then
+			return true
+		end
 
-        if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-            return false
-        end
-    end
+		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			return false
+		end
+	end
 
-    -- Also disallow assisting building (caused by a repair command) units under construction 
-    -- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
+	-- Also disallow assisting building (caused by a repair command) units under construction 
+	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
 
-    if (cmdID == CMD.REPAIR and #cmdParams == 1) then
-        local targetID = cmdParams[1]
-        local targetTeam = Spring.GetUnitTeam(targetID)
+	if (cmdID == CMD.REPAIR and #cmdParams == 1) then
+		local targetID = cmdParams[1]
+		local targetTeam = Spring.GetUnitTeam(targetID)
 
-        if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-            if(not isComplete(targetID)) then
-                return false
-            end
-        end
-        return true
-    end
+		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			if(not isComplete(targetID)) then
+				return false
+			end
+		end
+		return true
+	end
 
 
 
-    return true
+	return true
 end

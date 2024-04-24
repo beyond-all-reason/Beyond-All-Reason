@@ -74,21 +74,21 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 
-    
+	
 -- Disallow reclaiming allied units for metal
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
-    if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
-        local targetID = cmdParams[1]
-        local targetTeam
-        if(targetID >= Game.maxUnits) then
-            return true
-        end
-        targetTeam = Spring.GetUnitTeam(targetID)
-        if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-            return false
-        end
-        return true
-    end
+	if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
+		local targetID = cmdParams[1]
+		local targetTeam
+		if(targetID >= Game.maxUnits) then
+			return true
+		end
+		targetTeam = Spring.GetUnitTeam(targetID)
+		if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			return false
+		end
+		return true
+	end
 	return true
 end

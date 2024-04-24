@@ -23,10 +23,10 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
 
-    if(capture) then
-        return true
-    end
-    return false
+	if(capture) then
+		return true
+	end
+	return false
 end
 
 
