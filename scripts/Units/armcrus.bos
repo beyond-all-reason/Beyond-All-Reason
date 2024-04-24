@@ -1,11 +1,11 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, turret, barrel1, flare1, barrel2, flare2, barrel3, flare3, sleeve, foreturret, foregun, foreflare, aftturret, aftgun, aftflare, wake, bow;
+piece  base, turret, sleeve,barrel1,  barrel2, barrel3,flare1, flare2, flare3,  foreturret, foregun, aftturret, aftgun, foreflare, aftflare, wake, bow;
 
 static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 
 // Signal definitions
@@ -84,18 +84,20 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 //-------------------- INTERNAL DEFINES ------------------
 
 //-------------------- MANDATORY DEFINES ------------------
+
+// The base piece to move
 #ifndef RB_BASE
 	#define RB_BASE BASE
 #endif
 
-// mass of boat in AU
+// mass of boat in arbitrary units
 #ifndef RB_MASS
-	#define RB_MASS 10
+	#define RB_MASS 20
 #endif
 
 //Virtual Length of the boat, longer boats will have lower frequency pitches
 #ifndef RB_LENGTH
-	#define RB_LENGTH 8
+	#define RB_LENGTH 16
 #endif 
 
 // Virtual width of boat, wider boats will roll slower
@@ -105,13 +107,22 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 
 // How strongly the ship will pitch back and forth with forward acceleration
 #ifndef RB_PITCH_ACCELERATION
-	#define RB_PITCH_ACCELERATION 
+	#define RB_PITCH_ACCELERATION 10
 #endif
 
 // How often should BoatPhysics update, Only set it to 1 for rare, fast boats
 #ifndef RB_FRAMES
 	#define RB_FRAMES 2
 #endif
+
+// RB_DAMPFACTOR is the velocity dependent damping, so faster moves are damped more.
+// Higher numbers mean less damping
+// This shouldnt ever be less than 1000
+#define RB_DAMPFACTOR 2000
+
+// Constant damping factors, higher number more damping. 
+#define RB_PITCH_DAMPING 4
+#define RB_ROLL_DAMPING  2
 
 // How tall, in elmos, the unit should Bounce at full speed
 #ifndef RB_BOUNCE_HEIGHT
@@ -132,6 +143,37 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 	#define RB_BOWSPLASH2_PHASE <270>
 #endif
 
+#ifndef RB_BOWSPLASH_CEG
+	#define RB_BOWSPLASH_CEG 1024+2
+#endif
+
+#ifndef RB_BOWSPLASH_PIECE
+	#define RB_BOWSPLASH_PIECE bow
+#endif
+
+#ifndef RB_WAKE_CEG
+	#define RB_WAKE_CEG 1024+1
+#endif
+
+#ifndef RB_WAKE_PIECE
+	#define RB_WAKE_PIECE wake
+#endif
+
+// Every X updates emit wake
+#ifndef RB_WAKE_PERIOD
+	#define RB_WAKE_PERIOD 3
+#endif
+
+// anglez is left-right, +500 right
+// anglex is front-back, where +500 is front
+#ifndef UNITSIZE
+	#define UNITSIZE (RB_LENGTH + RB_WIDTH)/2
+#endif
+#ifndef MAXTILT
+	#define MAXTILT 100
+#endif
+
+
 // The amount of energy imparted to the boat when it becomes idle to rock it around
 #ifndef RB_IDLE_KICK 
 	#define RB_IDLE_KICK 5000
@@ -139,26 +181,15 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 
 
 //------------------- OPTIONAL DEFINES ------------------
-#define RB_RECOIL_ENERGY_1 3500
-#define RB_RECOIL_ENERGY_3 500
+#define RB_RECOIL_ENERGY_1 700
+#define RB_RECOIL_ENERGY_3 250
 
-// RB_DAMPFACTOR is the velocity dependent damping, so faster moves are damped more.
-// Higher numbers mean less damping
-#define RB_DAMPFACTOR 1000
 
-// Constant damping factors, higher number more damping. 
-#define RB_PITCH_DAMPING 4
-#define RB_ROLL_DAMPING  2
-
-#define RB_MAX_PITCH
 
 // How often should the speed/position of the boat be adjusted
 // 1: 1.8% CPU/1k, for flagships only
 // 2: 1.1% CPU/1k  for smaller boats
 // 3: 0.8% CPU/1k  if you really wanna save a tiny bit of perf
-
-
-#define RB_WAVE_FRAMES 5
 
 // ------------------ INTERNAL DEFINES ------------------
 
@@ -166,9 +197,10 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 #define RB_INERTIA_ROLL  ((RB_MASS) * (RB_WIDTH * RB_WIDTH + RB_WIDTH  * RB_WIDTH ) / (10))
 
 #define RB_RECOILBOAT(heading, power) \
-	RB_pitch_velocity = RB_pitch_velocity - (get KCOS(heading) * power) / RB_MASS; \
-	RB_roll_velocity  = RB_roll_velocity  - (get KSIN(heading) * power) / RB_MASS;
+	RB_pitch_velocity = RB_pitch_velocity - (get KCOS(heading) * (power / RB_MASS)); \
+	RB_roll_velocity  = RB_roll_velocity  - (get KSIN(heading) * (power / RB_MASS));
 
+#define RB_PRECISION 256
 
 // Goes from <-180> - <180> (32760)
 // 16 instructions
@@ -178,7 +210,7 @@ static-var  gun_1, restore_delay, gun_2, aimDir3, aimDir;
 // Roll is the Z axis
 static-var RB_pitch, RB_roll, maxSpeed;
 // Target is changed by the movement of the unit
-static-var RB_pitch_target, RB_roll_target;
+//static-var RB_pitch_target, RB_roll_target;
 // Velocity is changed by impulse from being shot and from shooting
 static-var RB_pitch_velocity, RB_roll_velocity;
 
@@ -186,17 +218,16 @@ static-var RB_pitch_velocity, RB_roll_velocity;
 static-var RB_bounce_frame;
 
 InitRockBoat(){
-	RB_pitch_target = 0;
-	RB_roll_target = 0;
+
 	RB_pitch = 0;
 	RB_roll = 0;
 	maxSpeed = get (MAX_SPEED);
 
 	#ifdef DEBUG
-		RB_pitch_velocity = 32000;
-		RB_roll_velocity = 32000; 	
-		/*
+		RB_pitch_velocity = 164000;
+		RB_roll_velocity = 320; 	
 		dbg(RB_INERTIA_PITCH, RB_INERTIA_ROLL);
+		/*
 		var deltat;
 		deltat = get GAME_FRAME;
 		sleep 63;
@@ -233,6 +264,8 @@ BoatPhysics(){
 	var cos_bounce;
 	cos_bounce = 0;
 
+	var wake_freq;
+	wake_freq = 0;
 
 	while (1){
 		
@@ -242,54 +275,61 @@ BoatPhysics(){
 		prevSpeed_delta = currSpeed - prevSpeed_delta;
 
 		currHeading = get (HEADING);
-		prevHeading_delta = DELTAHEADING(currHeading, prevHeading_delta);
+		prevHeading_delta = WRAPDELTA(currHeading - prevHeading_delta); // usually at most a few thousand
 
 		// Move the pitch target backwards when going fast
 		// And keep it back when going fast
-		RB_pitch_target = -2 *( 10* prevSpeed_delta + currSpeed) ;
+		torque_pitch = -2 *( RB_PITCH_ACCELERATION* prevSpeed_delta + currSpeed) ;
 		
 		// Roll the boat more when turning at high speed
-		RB_roll_target = 4 * (prevHeading_delta/ RB_FRAMES) * ((256* (currSpeed + maxSpeed)) / maxSpeed);
+		torque_roll = 4 * (prevHeading_delta/ RB_FRAMES) * ((RB_PRECISION* (currSpeed + maxSpeed)) / maxSpeed);
 
-		// Save the vars, as we wont be using them again
+		// Save the curr heading and speed, as we wont be using them again
 		prevHeading_delta = currHeading;
 		prevSpeed_delta = currSpeed;
 
 		// Calculate restoring torque due to displacement
-		torque_pitch =  ( (RB_pitch - RB_pitch_target) * (-1 * RB_LENGTH));
-		torque_roll =   ( (RB_roll  - RB_roll_target ) * (-1 * RB_WIDTH ));
-
+		torque_pitch =  ( (RB_pitch - torque_pitch) * (-1 * RB_LENGTH));
+		torque_roll =   ( (RB_roll  - torque_roll ) * (-1 * RB_WIDTH ));
+		
 		// Update angular velocity with angular acceleration
-		RB_pitch_velocity = RB_pitch_velocity +  (torque_pitch ) / (RB_INERTIA_PITCH * RB_FRAMES );
-		RB_roll_velocity  = RB_roll_velocity  +  (torque_roll  ) / (RB_INERTIA_ROLL  * RB_FRAMES ) ;
+		RB_pitch_velocity = RB_pitch_velocity +  (torque_pitch  / (RB_INERTIA_PITCH * RB_FRAMES ));
+		RB_roll_velocity  = RB_roll_velocity  +  (torque_roll   / (RB_INERTIA_ROLL  * RB_FRAMES )) ;
 		
 		// Simple damping to simulate resistance from water and air
-		RB_pitch_velocity =  (RB_pitch_velocity * (256 -  (RB_FRAMES * RB_PITCH_DAMPING) - (get ABS(RB_pitch_velocity))/(RB_DAMPFACTOR/ RB_FRAMES))/256 ) ;
-		RB_roll_velocity  =  (RB_roll_velocity  * (256 -  (RB_FRAMES * RB_ROLL_DAMPING ) - (get ABS(RB_roll_velocity ))/(RB_DAMPFACTOR/ RB_FRAMES))/256 ) ;
-		//dbg((get ABS(RB_pitch_velocity)))/RB_DAMPFACTOR, (get ABS(RB_roll_velocity)))/RB_DAMPFACTOR);
-
-		//if(currSpeed > 0 ) dbg(torque_roll, RB_roll_velocity);
+		// OVERFLOW WARNING HERE ON LOW DAMPFACTOR: NEGATIVE SUBTRACTIONS HERE!
+		RB_pitch_velocity =  (RB_pitch_velocity * (256 -  (RB_FRAMES * RB_PITCH_DAMPING) - (get ABS(RB_pitch_velocity))/(RB_DAMPFACTOR/ RB_FRAMES)))/256  ;
+		RB_roll_velocity  =  (RB_roll_velocity  * (256 -  (RB_FRAMES * RB_ROLL_DAMPING ) - (get ABS(RB_roll_velocity ))/(RB_DAMPFACTOR/ RB_FRAMES)))/256  ;
+		
 		// Update pitch and roll based on angular velocity
 		RB_pitch = RB_pitch + RB_FRAMES * RB_pitch_velocity;
 		RB_roll  = RB_roll  + RB_FRAMES * RB_roll_velocity;
 		
-				// emit a wakesplash on up and down bounce
+		// emit a wakesplash on up and down bounce
 		// increment bounce phase and modulo it
 		if (currSpeed> 0){
-			RB_bounce_frame = (RB_bounce_frame + RB_FRAMES * RB_BOUNCE_PERIOD);
+			RB_bounce_frame = (RB_bounce_frame + (RB_FRAMES * RB_BOUNCE_PERIOD));
 			// emit a the bottom peak
 			if (RB_bounce_frame >= <360>){
 				RB_bounce_frame = 0;
 			}
 
 			// BowSplash Phase 1
-			if (RB_bounce_frame >= RB_BOWSPLASH1_PHASE && RB_bounce_frame < (RB_BOWSPLASH1_PHASE + RB_FRAMES * RB_BOUNCE_PERIOD)){
-				emit-sfx 1024 + 2 from bow;
+			if (ABSOLUTE_LESS_THAN(RB_bounce_frame - RB_BOWSPLASH1_PHASE, (3 * RB_FRAMES * RB_BOUNCE_PERIOD))){
+				emit-sfx RB_BOWSPLASH_CEG from RB_BOWSPLASH_PIECE;
+				//dbg(1,RB_bounce_frame, RB_BOWSPLASH1_PHASE);
 			}
 
 			// BowSplash Phase 2
-			if (RB_bounce_frame >= RB_BOWSPLASH2_PHASE && RB_bounce_frame < (RB_BOWSPLASH2_PHASE + RB_FRAMES * RB_BOUNCE_PERIOD)){
-				emit-sfx 1024 + 2 from bow;
+			if (ABSOLUTE_LESS_THAN(RB_bounce_frame - RB_BOWSPLASH2_PHASE, (3 * RB_FRAMES * RB_BOUNCE_PERIOD))){
+				emit-sfx RB_BOWSPLASH_CEG from RB_BOWSPLASH_PIECE;
+				//dbg(2,RB_bounce_frame);
+			}
+
+			// WakeSplash:
+			wake_freq = wake_freq + RB_FRAMES; 
+			if (!(wake_freq % (RB_WAKE_PERIOD))){
+				emit-sfx RB_WAKE_CEG from RB_WAKE_PIECE;
 			}
 			
 			// Calculate Bounce, be careful that your int doesnt overflow
@@ -303,25 +343,24 @@ BoatPhysics(){
 		//If we are stationary, give us a kick
 		else
 		{
-			//  if( ABS(X) < Y) === if (X/Y == 0)
-			if (RB_pitch_velocity / 16 == 0) {
-				RB_pitch_velocity = RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
-				dbg(7777);
+			if (ABSOLUTE_LESS_THAN(RB_pitch_velocity, 16)) {
+				NEXTRANDOM;
+				RB_pitch_velocity = RANDOM(2 * RB_IDLE_KICK)- RB_IDLE_KICK;
 			}
 
-			if (RB_roll_velocity / 16 == 0) {
-				RB_roll_velocity =  RAND(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
-				dbg(8888);
+			if (ABSOLUTE_LESS_THAN(RB_roll_velocity, 16)) {
+				NEXTRANDOM;
+				RB_roll_velocity =  RANDOM(2 * RB_IDLE_KICK)- RB_IDLE_KICK;
 			}
 		}
 
 		// Execute corresponding movements
 		#if (RB_FRAMES == 1)
-			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis (RB_pitch/256) speed (30 * RB_pitch_velocity )/256;  
-			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis (RB_roll /256) speed (30 * RB_roll_velocity  )/256; 
+			if (RB_pitch_velocity != 0) turn RB_BASE to x-axis (RB_pitch/RB_PRECISION) speed (30 * RB_pitch_velocity )/RB_PRECISION;  
+			if (RB_roll_velocity  != 0) turn RB_BASE to z-axis (RB_roll /RB_PRECISION) speed (30 * RB_roll_velocity  )/RB_PRECISION; 
 		#else
-			turn RB_BASE to x-axis (RB_pitch/256) speed (30) * RB_pitch_velocity / 256;
-			turn RB_BASE to z-axis (RB_roll /256) speed (30) * RB_roll_velocity / 256;
+			turn RB_BASE to x-axis (RB_pitch/RB_PRECISION) speed (30) * RB_pitch_velocity / RB_PRECISION;
+			turn RB_BASE to z-axis (RB_roll /RB_PRECISION) speed (30) * RB_roll_velocity / RB_PRECISION;
 		#endif
 	
 		sleep 33 * RB_FRAMES - 1;
@@ -340,15 +379,6 @@ RecoilRockBoat(heading, power, delay){
 	if (delay) sleep delay;
 	RB_RECOILBOAT(heading, power)
 }
-
-// anglez is left-right, +500 right
-// anglex is front-back, where +500 is front
-#ifndef UNITSIZE
-	#define UNITSIZE (RB_LENGTH + RB_WIDTH)/2
-#endif
-#ifndef MAXTILT
-	#define MAXTILT 100
-#endif
 
 static-var isSmoking;
 
@@ -391,7 +421,8 @@ DamagedSmoke() // ah yes, clever use of stack variables
 		if (current_health_pct < 4) current_health_pct = 4;
 
 		// Less health means blacker smoke
-		if( Rand( 1, 65 ) < current_health_pct ) {
+		NEXTRANDOM;
+		if( RANDOM(65) < current_health_pct ) {
 			emit-sfx 257 from BASEPIECE;
 		}
 		else {
@@ -409,6 +440,7 @@ DamagedSmoke() // ah yes, clever use of stack variables
 
 Create()
 {
+	INITRANDOM(0);
 	hide bow;
 	hide wake;
 	hide flare2;
@@ -441,8 +473,7 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <55.0>;
-	turn barrel1 to x-axis <0.0> speed <15.0>;
-	turn barrel2 to x-axis <0.0> speed <15.0>;
+	turn sleeve to x-axis <0.0> speed <15.0>;
 }
 SetStunned(State)
 {
@@ -467,19 +498,6 @@ RestoreDeckLaser()
 	turn aftgun to x-axis <0.0> speed <100.0>;
 }
 
-waveSplash()
-{
-	return (0);
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.32] speed [0.25];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.25];
-		wait-for-turn base around x-axis;
-	}
-}
 
 StartMoving(reversing)
 {
@@ -487,27 +505,11 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	var waketime;
 	RB_bounce_frame = RAND(0, <180>);
-	/*
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from bow;
-        bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 10000 / waketime;
-	}
-	*/
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.25];
 }
 
 AimWeapon2(heading, pitch)
@@ -541,26 +543,12 @@ FireWeapon2()
 
 AimFromWeapon2(pieceIndex)
 {
-	if( gun_2 )
-	{
-		pieceIndex = aftgun;
-	}
-	else
-	{
-		pieceIndex = foregun;
-	}
+	pieceIndex = foregun + gun_2;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	if( gun_2 )
-	{
-		pieceIndex = aftflare;
-	}
-	else
-	{
-		pieceIndex = foreflare;
-	}
+	pieceIndex = foreflare + gun_2;
 }
 
 AimWeapon3(heading, pitch)
@@ -591,22 +579,13 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-
-	//var ph, rh;
-	//ph = get KCOS(heading); 
-	//rh = get KSIN(heading);// X angle
-	//dbg(heading,ph,RB_pitch, rh, RB_roll);
-
-	turn turret to y-axis heading speed <110.0>;
-	//turn sleeve to x-axis <0.0> - pitch speed <90.0>;
-
-	#define RB_AIMPITCHCORRECTION(heading) (get KSIN(heading)*(RB_roll/(-256)) + (get KCOS(heading))*(RB_pitch/(-256)) )/1024
-	turn sleeve to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
-	//turn sleeve to x-axis (-1*rh*(RB_roll /256))/(1024) - pitch speed <90.0>;
-	//turn sleeve to x-axis (-1*ph*(RB_pitch/256))/(1024) - pitch speed <45.0>;
-	wait-for-turn turret around y-axis;
-	//wait-for-turn sleeve around x-axis;
 	aimDir = heading;
+	
+	turn turret to y-axis heading speed <110.0>;	
+	turn sleeve to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
+	
+	wait-for-turn turret around y-axis;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -631,15 +610,8 @@ FireWeapon1()
 		move barrel3 to z-axis [-2.300000] now;
 		move barrel3 to z-axis [0.0] speed [1.500000];
 	}
-	gun_1=gun_1+1;
-	if (gun_1>2){
-		gun_1=0;
-	}
+	gun_1= ( gun_1 + 1 ) % 3;
 	
-	// A bit of delay before adding velocity looks way better :D
-	//#IF RB_FRAMES == 1
-	//	sleep 65;
-	//#ENDIF
 	sleep 65 - 32 * RB_FRAMES;
 	//call-script RecoilRockBoat(aimDir, RB_RECOIL_ENERGY_1);
 	RB_RECOILBOAT(aimDir, RB_RECOIL_ENERGY_1);
@@ -652,20 +624,8 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 ==0)
-	{
-		pieceIndex = flare1;
-	}
-	else if( gun_1 ==1)
-	{
-		pieceIndex = flare2;
-	}
-	else
-	{
-		pieceIndex = flare3;
-	}
+	pieceIndex = flare1 + gun_1;
 }
-
 
 
 Killed(severity, corpsetype)
