@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author  = 'Niobium',
 		date    = 'April 2012',
 		license = 'GNU GPL, v2 or later',
-		layer   = 2,
+		layer   = 2, -- after 'Tax Resource Sharing'
 		enabled = true
 	}
 end
