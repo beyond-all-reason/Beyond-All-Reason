@@ -29,14 +29,25 @@ local function isComplete(u)
     end
 end
 
+
+local function isBuildCapable(unitID)
+    local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+    local spyDefs = {UnitDefs[UnitDefNames.armspy.id], UnitDefs[UnitDefNames.corspy.id]}
+    return (unitDef.isBuilder or (spyDefs[1] == unitDef) or (spyDefs[2] == unitDef))
+end
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
-    -- Disallow guard commands onto other ally's units. (Optional todo: disallow guards on allied build-capable units and labs only)
+    -- Disallow guard commands onto ally's labs, and units with build bp or that can reclaim
 
     if (cmdID == CMD.GUARD) then
         local targetID = cmdParams[1]
         local targetTeam = Spring.GetUnitTeam(targetID)
-    
+
+        if not isBuildCapable(targetID) then
+            return true
+        end
+
         if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
             return false
         end
