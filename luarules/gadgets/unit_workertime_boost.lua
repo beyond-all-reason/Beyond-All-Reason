@@ -36,23 +36,25 @@ for id, def in pairs(UnitDefs) do
 		mobileunits[id] = true
 	end
 
-	if def.customParams.wtboostunittype and string.find(def.customParams.wtboostunittype, "MOBILE") then
-		boosttriggers[id] = def.customParams.wtboostunittype
+	if def.customParams.wtboostunittype then
+		boosttriggers[id] = def.customParams.wtboostunittype --stores the string of the builder that defines unit categories
 	end
 end
 
 local boostedtofinish = {}-- going to store the key of unitID equal to the builderID
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	local test1 = type(builderID)
 	if  builderID ~= nil then
 		local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
 		local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
 	
 		if boost and trigger and builderID then
-			if trigger == "MOBILE" and mobileunits[unitDefID] then
+			if string.find(trigger, "MOBILE") and mobileunits[unitDefID] then
 				Spring.SetUnitBuildSpeed(builderID, boost)
 				boostedtofinish[builderID] = builderID
+			elseif boostedtofinish[builderID] then
+				Spring.SetUnitBuildSpeed(builderID, originalworkertimes[Spring.GetUnitDefID(builderID)]) -- if another unit is created by a boosted builder that isn't a trigger, revert to normal workertime
+				table.remove(boostedtofinish[builderID])
 			end
 		end
 	end
