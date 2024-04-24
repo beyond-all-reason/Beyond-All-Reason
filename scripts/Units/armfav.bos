@@ -35,21 +35,6 @@ Steering(heading, steer, currentSpeed)
 	}
 }
 
-//WheelControl()
-//{
-//	while(TRUE)
-//	{
-//		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-//		wheelSpeed = currentSpeed * 40; //original speed 7
-//		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
-//		spin lfwheel around x-axis speed  (<1> * wheelSpeed);         //(<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
-//		spin rfwheel around x-axis speed  (<1> * wheelSpeed);				//(<0.5.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
-//		spin bwheels around x-axis speed  (<0.7> * wheelSpeed);		 //(<0.5.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
-//		sleep 50; //200
-//	}
-// }
-
-
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
