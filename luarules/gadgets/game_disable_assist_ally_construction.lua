@@ -16,6 +16,9 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
+if not Spring.GetModOptions().disable_assist_ally_construction then
+    return false
+end
 
 local function isComplete(u)
     local _,_,_,_,buildProgress=Spring.GetUnitHealth(u)
@@ -27,10 +30,6 @@ local function isComplete(u)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-
-    if(not Spring.GetModOptions().disable_assist_ally_construction) then
-        return true
-    end
 
     -- Disallow guard commands onto other ally's units. (Optional todo: disallow guards on allied build-capable units and labs only)
 

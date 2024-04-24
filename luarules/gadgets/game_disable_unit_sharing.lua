@@ -16,14 +16,12 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
+if not Spring.GetModOptions().disable_unit_sharing then
+	return false
+end
 
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-
-    if(not Spring.GetModOptions().disable_unit_sharing) then
-        return true
-    end
 
     if(capture) then
         return true

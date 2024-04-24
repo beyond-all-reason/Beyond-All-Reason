@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
-		layer   = 1, -- Needs to occur before "Prevent Excessive Share" to replace it.
+		layer   = 1, -- Needs to occur before "Prevent Excessive Share" since their restriction on AllowResourceTransfer is not compatible
 		enabled = true
 	}
 end
@@ -14,6 +14,9 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+if not Spring.GetModOptions().tax_resource_sharing_and_prevent_some_reclaim_loopholes then
 	return false
 end
 
@@ -29,10 +32,6 @@ local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 
 
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-
-	if(not Spring.GetModOptions().tax_resource_sharing_and_prevent_some_reclaim_loopholes) then
-		return true
-	end
 
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
 	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
@@ -78,10 +77,6 @@ end
     
 -- Disallow reclaiming allied units for metal
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-
-	if(not Spring.GetModOptions().tax_resource_sharing_and_prevent_some_reclaim_loopholes) then
-		return true
-	end
 
     if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
         local targetID = cmdParams[1]
