@@ -33,7 +33,17 @@ Create()
 	hide firing;
 	hide firing1;
 	hide firing2;
-	//turn firing 1 & 2
+
+
+
+	//show firing;
+	//show firing1;
+	//show firing2;
+
+	//turn firing1 to z-axis <20> speed <10>;
+	//turn firing2 to z-axis <-20> speed <10>;
+
+
 	shotcount = 0;
 	restore_delay = 15000;
 	silo_state = 0;
@@ -52,9 +62,9 @@ OpenSilo()
 	show firing1;
 	show firing2;
 
-	turn firing1 to y-axis <20> speed <10>;
-	turn firing2 to y-axis <20> speed <10>;
-	spin firing around x-axis speed [10] accelerate [2];
+	turn firing1 to y-axis <30> speed <2>;
+	turn firing2 to y-axis <-30> speed <2>;
+	spin firing around z-axis speed <70> accelerate <3>;
 
 	
 	if ( (silo_state==0) OR (silo_state==4) )
@@ -67,7 +77,7 @@ OpenSilo()
 		// 8.5 seconds to open up
 		silo_state = 1;
 
-		turn tube to x-axis <-90> speed <15>;
+		turn tube to x-axis <-90> speed <8>;
 		////turn door2 to z-axis <-127.5> speed <15>;
 		wait-for-turn tube around x-axis;
 		//wait-for-turn door2 around z-axis;
@@ -79,7 +89,7 @@ CloseSiloDoors()
 {
 	turn firing1 to y-axis <0> speed <10>;
 	turn firing2 to y-axis <0> speed <10>;
-	stop-spin firing around x-axis decelerate [2];
+	stop-spin firing around z-axis decelerate <1>;
 	//stop spin
 	// 30 seconds to close from <127.5> open position
 

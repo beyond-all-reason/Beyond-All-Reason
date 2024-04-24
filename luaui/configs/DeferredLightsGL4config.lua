@@ -4903,10 +4903,10 @@ local unitLights = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 0, posz = 50, radius = 42,
+			lightConfig = { posx = 0, posy = 0, posz = 60, radius = 42,
 							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
-							r = 0.5, g = 0.4, b = 0.2, a = 0.16,
-							modelfactor = 0.3, specular = 0.25, scattering = 1.9, lensflare = 0,
+							r = 0.5, g = 0.4, b = 0.2, a = 0.26,
+							modelfactor = 0.4, specular = 0.25, scattering = 1.9, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		nukelight = {

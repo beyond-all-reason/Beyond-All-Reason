@@ -47,9 +47,9 @@ OpenSilo()
 	show firing1;
 	show firing2;
 
-	turn firing1 to y-axis <20> speed <10>;
-	turn firing2 to y-axis <20> speed <10>;
-	spin firing around x-axis speed [10] accelerate [2];
+	turn firing1 to y-axis <30> speed <2>;
+	turn firing2 to y-axis <-30> speed <2>;
+	spin firing around z-axis speed <70> accelerate <3>;
 	if ( (silo_state==0) OR (silo_state==4) )
 	{
 		// the sound effect
@@ -76,7 +76,7 @@ CloseSiloDoors()
 {
 	turn firing1 to y-axis <0> speed <10>;
 	turn firing2 to y-axis <0> speed <10>;
-	stop-spin firing around x-axis decelerate [2];
+	stop-spin firing around z-axis decelerate <1>;
 
 	// 30 seconds to close from <127.5> open position
 
