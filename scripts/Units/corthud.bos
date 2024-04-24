@@ -455,7 +455,6 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIGNAL_AIM1;
 	
 	if (isAiming == 1) return;
