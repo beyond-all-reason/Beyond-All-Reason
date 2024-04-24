@@ -4364,6 +4364,16 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 
+		eyestest = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 24, posz = 4, radius = 22,
+							color2r = 1, color2g = 0.2, color2b = 0.1, colortime = 0,
+							r = 1, g = 0.2, b = 0.1, a = 0.115,
+							modelfactor = 0.3, specular = 0, scattering = 1.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -4387,8 +4397,8 @@ local unitLights = {
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 8, posz = 58, radius = 17,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
-							r = 1, g = 0.2, b = 0.2, a = 0.3,
-							modelfactor = 0.4, specular = 0, scattering = 3.7, lensflare = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.2,
+							modelfactor = 0.3, specular = 0, scattering = 2.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -4903,10 +4913,10 @@ local unitLights = {
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 0, posz = 60, radius = 42,
+			lightConfig = { posx = 0, posy = 3, posz = 55, radius = 22,
 							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
-							r = 0.5, g = 0.4, b = 0.2, a = 0.26,
-							modelfactor = 0.4, specular = 0.25, scattering = 1.9, lensflare = 0,
+							r = 0.5, g = 0.4, b = 0.2, a = 0.22,
+							modelfactor = 0.3, specular = 0, scattering = 1.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		nukelight = {
