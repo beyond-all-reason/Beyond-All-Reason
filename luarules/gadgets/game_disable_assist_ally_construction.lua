@@ -31,9 +31,7 @@ end
 
 
 local function isBuildCapable(unitID)
-	local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-	local spyDefs = {UnitDefs[UnitDefNames.armspy.id], UnitDefs[UnitDefNames.corspy.id]}
-	return (unitDef.isBuilder or (spyDefs[1] == unitDef) or (spyDefs[2] == unitDef))
+	return UnitDefs[Spring.GetUnitDefID(unitID)].isBuilder
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
