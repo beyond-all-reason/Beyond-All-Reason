@@ -25,8 +25,8 @@ static-var  silo_state;
 
 Create()
 {
-	spin prop1 around z-axis speed <40>;
-	spin prop2 around z-axis speed <40>;
+	spin prop1 around z-axis speed <400>;
+	spin prop2 around z-axis speed <400>;
 
 	hide flare;
 	hide firing;

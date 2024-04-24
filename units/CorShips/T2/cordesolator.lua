@@ -53,8 +53,8 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corgantry",
-			techlevel = 3,
+			subfolder = "corships/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

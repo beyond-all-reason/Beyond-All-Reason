@@ -7,7 +7,7 @@
 
 piece  base, flare, tube, housing, rtube, ltube, wake, firing, firing1, firing2, prop, propr, propl;
 
-static-var  restore_delay, shotcount;
+static-var  restore_delay, shotcount, justfired;
 
 static-var  silo_state;
 // 0 = closed
@@ -26,9 +26,9 @@ static-var  silo_state;
 
 Create()
 {
-	spin prop around z-axis speed <40>;
-	spin propl around z-axis speed <40>;
-	spin propr around z-axis speed <40>;
+	spin prop around z-axis speed <400>;
+	spin propl around z-axis speed <400>;
+	spin propr around z-axis speed <400>;
 	hide flare;
 	hide firing;
 	hide firing1;
@@ -37,6 +37,7 @@ Create()
 	shotcount = 0;
 	restore_delay = 15000;
 	silo_state = 0;
+	justfired = 0;
 	return (0);
 }
 
@@ -120,12 +121,17 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	if (justfired==0) { justfired=1; } else { justfired=0; }
 	return (1);
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	if (justfired==0) {
+		piecenum = ltube;
+	} else {
+		piecenum = rtube;
+	}
 	return (0);
 }
 

@@ -49,8 +49,8 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/arm_normal.dds",
 			removewait = true,
-			subfolder = "armgantry",--unclear if this is useful
-			techlevel = 3,
+			subfolder = "armships/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

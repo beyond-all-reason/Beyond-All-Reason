@@ -40,7 +40,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Create()
 {
-	spin prop around z-axis speed <40>;
+	spin prop around z-axis speed <400>;
 	hide wake;
 	hide flare1;
 	hide flare2;
