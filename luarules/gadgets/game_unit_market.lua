@@ -9,6 +9,8 @@ function gadget:GetInfo()
         enabled = true
     }
 end
+
+if gadgetHandler:IsSyncedCode() then
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 local unitMarket   = Spring.GetModOptions().unit_market
 
@@ -18,7 +20,6 @@ local unitMarket   = Spring.GetModOptions().unit_market
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
 
-if gadgetHandler:IsSyncedCode() then
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetTeamInfo         = Spring.GetTeamInfo
