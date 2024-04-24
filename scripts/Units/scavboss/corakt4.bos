@@ -4,7 +4,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
-static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, wpnheading ;
+static-var  isMoving, isAiming, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
@@ -967,7 +967,6 @@ Create()
 	hide lfire;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_Weapon1Control = 1;
 	gun_1 = torso;
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;

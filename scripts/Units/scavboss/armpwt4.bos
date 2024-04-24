@@ -1,7 +1,7 @@
 
 #include "../../recoil_common_includes.h"
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
-static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
+static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
  
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
@@ -1005,7 +1005,6 @@ Create()
 	turn lfire to x-axis <10> now;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	Static_Var_Weapon1Control = 1;
 	gun_1 = 0;
 	restore_delay = 3000;
 	animSpeed = 4;
