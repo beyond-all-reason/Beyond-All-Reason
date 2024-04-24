@@ -62,7 +62,7 @@ end
 
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if boostedtofinish[unitID] then
-		Spring.SetUnitBuildSpeed(unitID, originalworkertimes[Spring.GetUnitDefID(unitID)])
+		Spring.SetUnitBuildSpeed(unitID, originalworkertimes[unitDefID])
 		table.remove(boostedtofinish[unitID])
 	end
 end
