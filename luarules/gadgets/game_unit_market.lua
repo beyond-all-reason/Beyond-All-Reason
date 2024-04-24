@@ -60,17 +60,18 @@ end
 local function removeSale(unitID)
     unitsForSale[unitID] = nil
 end
-local function offerUnitForSale(unitID)
+local function offerUnitForSale(unitID, msgFromTeamID)
     if not spValidUnitID(unitID) then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
+	local unitTeamID = spGetUnitTeam(unitID)
+	if msgFromTeamID ~= unitTeamID then return end -- comment this out in local testing
     local finished = (select(5,spGetUnitHealth(unitID))==1)
     if not finished then return end
     if unitDef.metalCost < 0 then return end
     local selling = setUnitOnSale(unitID, unitDef.metalCost, true)
-    local msgFromTeamID = spGetUnitTeam(unitID)
     if selling then
         spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID)
     else
@@ -92,7 +93,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerID then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerID, "metal", price)
     end
-    spSendLuaUIMsg("unitSold " .. unitID .. " " .. price .. " " .. old_ownerID .. " " .. msgFromTeamID) -- Announce sale
+    spSendLuaUIMsg("unitSold " .. unitID .. " " .. price .. " " .. old_ownerID .. " " .. msgFromTeamID)
     spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
     removeSale(unitID)
 end
@@ -110,7 +111,7 @@ function gadget:RecvLuaMsg(msg, playerID)
     if words[1] == "unitOfferToSell" then
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
-        offerUnitForSale(unitID)
+        offerUnitForSale(unitID, msgFromTeamID)
     elseif words[1] == "unitTryToBuy" then
         --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
