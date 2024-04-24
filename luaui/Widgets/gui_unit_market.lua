@@ -61,6 +61,23 @@ local isSpectating = Spring.GetSpectatingState() == true
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 
+local function InitFindSales()
+    for _, unitID in ipairs(Spring.GetAllUnits()) do
+        if spValidUnitID(unitID) then
+            teamID = spGetUnitTeam(unitID)
+            if isSpectating or spAreTeamsAllied(teamID, myTeamID) then
+                local price = spGetUnitRulesParam(unitID, "unitPrice")
+                --Spring.Echo("I see "..unitID.." p:"..price)
+                if (price > 0) then
+                    unitsForSale[unitID] = price
+		        else
+		            ClearUnitData(unitID)
+                end
+            end
+        end
+    end
+end
+
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
@@ -71,22 +88,14 @@ function widget:Initialize()
     if not(Spring.IsReplay() or spGetSpectatingState()) then
 	    widgetHandler:AddAction("sell_unit", OfferToSellAction, nil, 'p')
     end
-    for _, unitID in ipairs(Spring.GetAllUnits()) do
-        if spValidUnitID(unitID) then
-            teamID = spGetUnitTeam(unitID)
-            if isSpectating or spAreTeamsAllied(teamID, myTeamID) then
-                local price = spGetUnitRulesParam(unitID, "unitPrice")
-                --Spring.Echo("I see "..unitID.." p:"..price)
-                if (price > 0) then
-                    unitsForSale[unitID] = price
-                end
-            end
-        end
-    end
+	InitFindSales()
 end
 
 function widget:PlayerChanged(playerID)
-	isSpectating = spGetSpectatingState()
+	if spGetSpectatingState() ~= isSpectating then
+		isSpectating = spGetSpectatingState()
+		InitFindSales()
+	end
 end
 
 function OfferToSell(unitID)
