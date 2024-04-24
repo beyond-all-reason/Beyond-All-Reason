@@ -34,7 +34,7 @@ return {
 		trackoffset = -6,
 		trackstrength = 10,
 		tracktype = "corparrowtracks",
-		trackwidth = 46,
+		trackwidth = 30,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.21,
