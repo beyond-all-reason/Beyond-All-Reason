@@ -160,6 +160,7 @@ for weaponDefID = 1, #WeaponDefs do
 	if wdcp.carried_unit then
 		spawnDefs[weaponDefID] = {
 			name = wdcp.carried_unit,
+			name2 = wdcp.carried_unit2,
 			name3 = wdcp.carried_unit3,
 			name4 = wdcp.carried_unit4,
 			feature = wdcp.spawns_feature,
@@ -357,15 +358,17 @@ local function SpawnUnit(spawnData)
 				end
 
 
+				local spareDock = false
+				local dockingpiece
 				if ownerID then
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 					local subUnitCount = carrierMetaList[ownerID].subUnitCount
 					subUnitCount = subUnitCount + 1
 					carrierMetaList[ownerID].subUnitCount = subUnitCount
-					local dockingpiece
 					local dockingpieceindex
 					for i = 1, #carrierMetaList[ownerID].availablePieces do
 						if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
+							spareDock = true
 							dockingpiece = carrierMetaList[ownerID].availablePieces[i].dockingPiece
 							dockingpieceindex = i
 							carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable = false
@@ -388,7 +391,23 @@ local function SpawnUnit(spawnData)
 
 
 				mcEnable(subUnitID)
-				mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				if spareDock == false then
+					mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				else
+					--try to spawn in free dock point (offset relative to unit)
+					local dockPointx
+					local dockPointy
+					local dockPointz
+					
+					local carrierx
+					local carriery
+					local carrierz
+					dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
+					carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
+					--Spring.Echo(dockingpieceindex)
+					--Spring.Debug.TableEcho(Spring.GetUnitPiecePosition(ownerID, dockingpiece))
+					mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
+				end
 				mcDisable(subUnitID)
 
 
@@ -544,6 +563,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 			end
 		end
 	elseif carrierMetaList[unitID] and (cmdID ~= CMD.MOVE or cmdID ~= CMD.FIRE_STATE) then
+		--Spring.Echo("hornetdebug unitID:", unitID, " command:", cmdID, " commandParam:", cmdParams)
 		carrierMetaList[unitID].activeRecall = false
 		carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
 		carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
@@ -719,6 +739,8 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local setTargetOrder = false
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
+	
+	--Spring.Echo("hornetdebug carrier:", carrierID, " command:", cmdID, " commandParam:", cmdParam_1)
 
 	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius

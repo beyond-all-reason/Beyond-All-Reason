@@ -58,7 +58,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if spGetUnitIsBeingBuilt(unitId) then
+	if spGetUnitIsBeingBuilt(unitID) then
 		local teamID = unitTeam or spGetUnitTeam(unitID) -- as unitTeam is passed except on VisibleUnitsChanged
 		local r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
 		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent, animAmount, 0, 0, 0, 0, "underconstruction")

@@ -429,6 +429,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "armcarry2"
 			uDef.buildoptions[numBuildoptions + 6] = "armexcalibur"
 			uDef.buildoptions[numBuildoptions + 7] = "armseadragon"
+			uDef.buildoptions[numBuildoptions + 8] = "armtrident"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
@@ -436,6 +437,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "corcarry2"
 			uDef.buildoptions[numBuildoptions + 4] = "coronager"
 			uDef.buildoptions[numBuildoptions + 5] = "cordesolator"
+			uDef.buildoptions[numBuildoptions + 6] = "corsentinel"
 		end
 	end
 

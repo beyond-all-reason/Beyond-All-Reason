@@ -24,14 +24,22 @@ local types = {
 local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
-local languageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode'}
-languageCodes = table.merge(languageCodes, table.invert(languageCodes))
-
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+
+local languageCodes = { 'en', 'fr', }
+languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
+end
+
+local devLanguageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode', }
+devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
+
+local devLanguageNames = {}
+for key, code in ipairs(devLanguageCodes) do
+	devLanguageNames[key] = Spring.I18N.languages[code]
 end
 
 -- detect potatos
@@ -3209,6 +3217,12 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
+		{ id = "language", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+			onchange = function(i, value)
+				local language = languageCodes[value]
+				WG['language'].setLanguage(language)
+			end
+		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -4530,10 +4544,10 @@ function init()
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
-		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+		{ id = "language_dev", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = devLanguageNames, value = devLanguageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
-				local language = languageCodes[value]
-				WG['language'].setLanguage(language)
+				local devLanguage = devLanguageCodes[value]
+				WG['language'].setLanguage(devLanguage)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
