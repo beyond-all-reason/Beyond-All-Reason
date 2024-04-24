@@ -259,8 +259,8 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "waterballon",
-				maindir = "0 0.2 1",
-				maxangledif = 80,
+				maindir = "0 0 1",
+				maxangledif = 40,
 				onlytargetcategory = "NOTHOVER",
 			},
 
