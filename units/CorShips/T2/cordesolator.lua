@@ -11,12 +11,11 @@ return {
 		canmove = true,
 		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE",
 		collisionvolumeoffsets = "0 1 4",
-		collisionvolumescales = "40 40 100",
+		collisionvolumescales = "20 45 100",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "nukeSub",
-		firestate = 0,
-		noAutoFire = true,
+		firestate = 2,
 		canManualFire = true,
 		footprintx = 7,
 		footprintz = 7,
@@ -24,7 +23,7 @@ return {
 		idletime = 1800,
 		health = 2600,
 		maxslope = 10,
-		speed = 35,
+		speed = 45,
 		minwaterdepth = 20,
 		maxwaterdepth = 9999,
 		movementclass = "UBOAT4",
@@ -41,13 +40,6 @@ return {
 		turnrate = 300,
 		upright = true,
 		waterline = 40,
-		
-		firestate = 2,
-		noAutoFire = false,
-		canManualFire = true,
-		
-		
-		
 		customparams = {
 			unitgroup = 'nuke',--I mean also sub but?
 			model_author = "Hornet",
@@ -134,7 +126,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				cegtag = "torpedotrail-large",
+				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

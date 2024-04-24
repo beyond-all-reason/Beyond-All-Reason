@@ -7,9 +7,7 @@
 
 piece  base, flare, tube, doorr, doorl, wake, firing,firing1,firing2, prop1, prop2;
 
-static-var  restore_delay, shotcount;
-
-static-var  silo_state;
+static-var  restore_delay, shotcount, silo_state;
 // 0 = closed
 // 1 = opening
 // 2 = opened
@@ -22,6 +20,7 @@ static-var  silo_state;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE			4
+#define SIG_AIM2			8
 
 Create()
 {
@@ -55,7 +54,7 @@ OpenSilo()
 	if ( (silo_state==0) OR (silo_state==4) )
 	{
 		// the sound effect
-		emit-sfx 4096 + 1 from flare;
+		emit-sfx 4096 + 2 from flare;
 	}
 	if ( NOT (silo_state==3) )
 	{
@@ -99,7 +98,7 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIG_AIM; // kill any OpenSilo threads
+	signal SIG_AIM2; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
@@ -115,10 +114,39 @@ RestoreAfterDelay()
 	return (0);
 }
 
+
+
+
+
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	return (1);
+}
+
+FirePrimary()
+{
+	return (1);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = firing;
+	return (0);
+}
+
+
+
+
+
+
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM2;
+	set-signal-mask SIG_AIM2;
 	start-script OpenSilo();
 	start-script RestoreAfterDelay();
 	if (silo_state == 2)
@@ -128,7 +156,7 @@ AimPrimary(heading, pitch)
 	return (0);
 }
 
-FirePrimary()
+FireSecondary()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -137,7 +165,7 @@ FirePrimary()
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = flare;
 	return (0);

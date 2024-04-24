@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
 		collide=true,
-		collisionvolumeoffsets = "0 0 -4",
+		collisionvolumeoffsets = "0 1 -4",
 		collisionvolumescales = "20 15 52",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
