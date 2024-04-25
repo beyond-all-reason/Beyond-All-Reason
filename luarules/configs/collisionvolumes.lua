@@ -131,7 +131,7 @@ for name, v in pairs(unitCollisionVolume) do
 	end
 end
 pieceCollisionVolume['corhrk'] = {
-	['2']={42,48,36,0,-8,0,2,1},
+	['2']={35,40,30,0,-8,0,2,1},
 
 }
 pieceCollisionVolume['legpede'] = {
