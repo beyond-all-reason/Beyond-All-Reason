@@ -63,7 +63,7 @@ function widget:UnitEnteredLos(unitID, teamID)
 		return
 	end
     local unitDefID = spGetUnitDefID(unitID)
-	if includedUnitDefIDs[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") == 1 then
+	if includedUnitDefIDs[unitDefID] and Spring.GetUnitIsBeingBuilt(unitID) then
 		local x, y, z = spGetUnitBasePosition(unitID)
 		local dx,_,dz = spGetUnitDirection(unitID)
 		local angle = math_deg(math_atan2(dx,dz))
@@ -83,7 +83,7 @@ local function updateGhostSites()
 	for unitID, site in pairs(ghostSites) do
 		if not unitshapes[unitID] then
 			local _,inLos,_ = spGetPositionLosState(site.x, site.y, site.z)
-			if inLos and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+			if inLos and not Spring.GetUnitIsBeingBuilt(unitID) then
 				removeUnitShape(unitID)
 				ghostSites[unitID] = nil
 			end
