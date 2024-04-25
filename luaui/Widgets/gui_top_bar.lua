@@ -1976,6 +1976,11 @@ function widget:Initialize()
 		return showButtons
 	end
 
+	WG['topbar'].updateTopBarEnergy = function(value)
+		mmLevel = value
+		updateResbar('energy')
+	end
+
 	widget:ViewResize()
 
 	if gameFrame > 0 then

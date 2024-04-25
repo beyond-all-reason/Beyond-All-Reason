@@ -599,9 +599,9 @@ function SetModulesPositionX()
             updateWidgetScale()
         end
     end
-	if widgetWidth < minWidth then
-		widgetWidth = minWidth
-	end
+    if widgetWidth < minWidth then
+        widgetWidth = minWidth
+    end
 
     if widgetWidth ~= prevWidgetWidth then
         prevWidgetWidth = widgetWidth
@@ -1739,6 +1739,9 @@ function CreateBackground()
     local prevApiAbsPosition = apiAbsPosition
     if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom or prevApiAbsPosition[4] ~= absRight then
         forceMainListRefresh = true
+    end
+    if absRight > vsx+margin then   -- lazy bugfix needed when playerScale < 1 is in effect
+        absRight = vsx+margin
     end
     apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, false }
 
