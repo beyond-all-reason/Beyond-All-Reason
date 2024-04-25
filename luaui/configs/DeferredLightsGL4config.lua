@@ -103,8 +103,8 @@ local unitLights = {
 	['armfatf'] = {
 		greenblob = {
 			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 10, posy = 95, posz = 8.5, radius = 17,
+			pieceName = 'light',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 12,
 							r = 0, g = 1.5, b = 0, a = 0.8,
 							modelfactor = 0.8, specular = 0.9, scattering = 1, lensflare = 10,
