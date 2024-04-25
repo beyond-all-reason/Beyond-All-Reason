@@ -3,27 +3,9 @@
 
 piece  base, wheel;
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
+#define WATER_ROCK_UNITSIZE 7
+#include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -33,11 +15,10 @@ RockOnWaves()
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-
 Create()
 {
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script FloatMotion();
 }
 
 Activate()
@@ -49,7 +30,6 @@ Deactivate()
 {
 	spin wheel around z-axis speed <0.0>;
 }
-
 
 
 Killed(severity, corpsetype)

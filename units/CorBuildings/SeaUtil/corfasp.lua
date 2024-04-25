@@ -26,7 +26,7 @@ return {
 		minwaterdepth = 5,
 		objectname = "Units/CORFASP.s3o",
 		onoffable = true,
-		script = "Units/CORASP.cob",
+		script = "Units/CORFASP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,

@@ -3,32 +3,22 @@
 // This is a nice bobbing and rocking on the waves animation.
 // Looks quite decent and performs like a champ due to interpolated proper speed turns
 // Usage:
-// 1.A. Define the numbers below (undefined numbers stay default)
-//  -   Define WATER_ROCK_FREQ_XYZ as 0 to disable
-// 1.B. OR Define a WATER_ROCK_UNITSIZE number between 1 and 25
-//  -   This will override any other defines, and give an approximation
-
+// 1.A. Define a WATER_ROCK_UNITSIZE between 1 and 25
+// 1.B. Optionally override any of the defines below
+// 2. Include this file
 
 #ifndef WATER_ROCK_PIECE
 	#define WATER_ROCK_PIECE base
 #endif
 
 
-// This is the easy-config, defining this will override any others
-#ifdef WATER_ROCK_UNITSIZE
-    // large units need less amplitude here , <1.0> for large, <3.0> for small
-	#define WATER_ROCK_AMPLITUDE (<3.0> - (WATER_ROCK_UNITSIZE * <0.1>))
-	#define WATER_ROCK_FRAMES 10
-	#define  WATER_ROCK_FREQ_X (30-  WATER_ROCK_UNITSIZE)
-	#define  WATER_ROCK_FREQ_Z (41-  WATER_ROCK_UNITSIZE)
-	#define  WATER_ROCK_FREQ_Y (51-  WATER_ROCK_UNITSIZE)
-    #define WATER_BOB_HEIGHT  (20000 + (2000 * WATER_ROCK_UNITSIZE))
+#ifndef WATER_ROCK_UNITSIZE
+    #define WATER_ROCK_UNITSIZE 10 
 #endif
-
 
 // How much to rock side to side in angle
 #ifndef WATER_ROCK_AMPLITUDE
-	#define WATER_ROCK_AMPLITUDE <2.0>
+	#define WATER_ROCK_AMPLITUDE (<3.0> - (WATER_ROCK_UNITSIZE * <0.1>))
 #endif
 
 // How frequently to update in frames
@@ -38,22 +28,22 @@
 
 // How fast to rock around X
 #ifndef WATER_ROCK_FREQ_X 
-	#define  WATER_ROCK_FREQ_X 20
+	#define  WATER_ROCK_FREQ_X (30-  WATER_ROCK_UNITSIZE)
 #endif
 
 // How fast to rock around Z
 #ifndef WATER_ROCK_FREQ_Z
-	#define  WATER_ROCK_FREQ_Z 23
+	#define  WATER_ROCK_FREQ_Z (41-  WATER_ROCK_UNITSIZE)
 #endif
 
 // How fast bobbing up and down should be 
 #ifndef WATER_ROCK_FREQ_Y
-	#define  WATER_ROCK_FREQ_Y 52
+	#define  WATER_ROCK_FREQ_Y (52-  WATER_ROCK_UNITSIZE)
 #endif
 
 // How much to bob up and down in linear units
 #ifndef WATER_BOB_HEIGHT
-	#define WATER_BOB_HEIGHT 40000
+	#define WATER_BOB_HEIGHT (20000 + (2000 * WATER_ROCK_UNITSIZE))
 #endif
 
 

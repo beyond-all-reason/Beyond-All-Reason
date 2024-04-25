@@ -4,13 +4,7 @@
 piece  base, wheel,wheel2,frame;
 
 
-#define WATER_ROCK_PIECE base
-#define WATER_ROCK_AMPLITUDE <2.0>
-#define WATER_ROCK_FRAMES 10
-#define WATER_ROCK_FREQ_X 20
-#define WATER_ROCK_FREQ_Z 23
-#define WATER_ROCK_FREQ_Y 52
-#define WATER_BOB_HEIGHT 40000
+#define WATER_ROCK_UNITSIZE 10
 #include "../floatmotion.h"
 
 #define BASEPIECE base

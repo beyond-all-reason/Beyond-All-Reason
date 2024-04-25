@@ -26,7 +26,7 @@ return {
 		minwaterdepth = 5,
 		objectname = "Units/ARMFASP.s3o",
 		onoffable = true,
-		script = "Units/ARMASP.cob",
+		script = "Units/ARMFASP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,

@@ -14,6 +14,17 @@ static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var
 
 #include "../opencloseanim.h"
 
+#define WATER_ROCK_UNITSIZE 17
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define MAXTILT 200
+#define UNITSIZE 10
+#define RECOIL_POWER 10000
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
@@ -43,69 +54,6 @@ static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var
 
 #include "../constant_acceleration_turret_turning_2.h"
 
-
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while(( get ABS( rockAng ) )< <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 4096;
-	set-signal-mask 4096;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.0> speed <1.5>;
-}
 
 
 Open()
@@ -189,15 +137,13 @@ Create()
 	Static_Var_3 = 0;
 	restore_delay = 2000;
 	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion(1);
 	start-script OpenCloseAnim(1);
 	start-script CATT1_Init();
 	start-script CATT2_Init();
 }
 
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Activate()
@@ -265,7 +211,6 @@ AimWeapon3(heading, pitch)
 
 FireWeapon1()
 {
-	start-script RockZ(-27,aimDir);
 	emit-sfx 1024 + 0 from flareb;
 	move boreb to z-axis [-4.0] speed [500.0];
 	move barrelb to z-axis [-4.0] speed [500.0];

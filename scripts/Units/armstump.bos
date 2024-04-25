@@ -5,6 +5,9 @@ piece  base, flare, turret, barrel, sleeve, smoke2, smoke1;
 
 static-var  restore_delay;
 
+#define DEBUG
+#include "../debug.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -39,8 +42,13 @@ StopMoving()
 }
 
 
+static-var prevheading, prevpitch;
 Create()
 {
+	prevheading = 0;
+	prevpitch = 0;
+	turn turret to y-axis <0.0> speed <90.021978>;
+	turn sleeve to x-axis <0.0> speed <50.010989>;
 	hide smoke2;
 	hide smoke1;
 	hide flare;
@@ -77,8 +85,6 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-
-
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -90,6 +96,31 @@ AimWeapon1(heading, pitch)
 	start-script RestoreAfterDelay();
 	return (1);
 }
+
+
+/*
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	var gf;
+	gf = get GAME_FRAME;
+	turn turret to y-axis heading speed <90.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
+	var sleepx, sleepy;
+	sleepy = get ABS(WRAPDELTA(heading- prevheading))/ <90.0> ;
+	sleepx = get ABS(WRAPDELTA(pitch- prevpitch))/ <90.0> ;
+
+	dbg(1, sleepy, (get GAME_FRAME) - gf);
+	wait-for-turn turret around y-axis;
+	dbg(2, sleepx, (get (GAME_FRAME) - gf));
+	wait-for-turn sleeve around x-axis;
+	dbg(3, get (GAME_FRAME) - gf);
+	prevheading = heading;
+	prevpitch = pitch;
+	start-script RestoreAfterDelay();
+	return (1);
+}*/
 
 FireWeapon1()
 {

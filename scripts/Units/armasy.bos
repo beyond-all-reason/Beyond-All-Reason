@@ -16,26 +16,15 @@ static-var  spray;
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.11> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*1.5;
-			turn base to z-axis rockAng speed rockSpeed*1.5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+
+#define WATER_ROCK_PIECE base
+#define WATER_ROCK_AMPLITUDE <1.0>
+#define WATER_ROCK_FRAMES 15
+#define WATER_ROCK_FREQ_X 20
+#define WATER_ROCK_FREQ_Z 23
+#define WATER_ROCK_FREQ_Y 52
+#define WATER_BOB_HEIGHT 64000
+#include "../floatmotion.h"
 
 
 Create()
@@ -48,7 +37,7 @@ Create()
 
 	spray = 0;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script FloatMotion();
 }
 
 QueryNanoPiece(pieceIndex)

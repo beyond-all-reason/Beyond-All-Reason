@@ -5,12 +5,6 @@ piece  base, tower, light;
 
 
 #define WATER_ROCK_PIECE base
-#define WATER_ROCK_AMPLITUDE <2.0>
-#define WATER_ROCK_FRAMES 10
-#define WATER_ROCK_FREQ_X 10
-#define WATER_ROCK_FREQ_Z 13
-#define WATER_ROCK_FREQ_Y 22
-#define WATER_BOB_HEIGHT 40000
 #define WATER_ROCK_UNITSIZE 20
 #include "../floatmotion.h"
 

@@ -6,11 +6,40 @@ piece  base;
 //#define BENCHMARK
 //#include "../debug.h"
 
+#define USERANDOM
+#include "../random.h"
+
+BenchRandom(){
+	var i;
+	var j;
+	while (TRUE){
+		sleep 100;
+		i = 0;
+
+		while (i < 1000){
+			i = i + 1;
+			#if 0
+				j = RAND(0,i);
+			#else
+				///NEXTRANDOM;
+				//j = RANDOM(100);
+				j = (j /2) + (j/2)+ (j/2)+ (j/2)+ (j/2)+ (j/2)+ (j/2);
+				//j = (j +2) + (j+2)+ (j+2)+ (j+2)+ (j+2)+ (j+2)+ (j+2) ;
+				
+				//get PRINT(j);
+			#endif
+		}
+		
+	}
+}
+
 Create()
 {
 	#ifdef BENCHMARK
 		//start-script StartBench(1000);
 	#endif
+	INITRANDOM(1);
+	start-script BenchRandom();
 }
 
 

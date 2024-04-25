@@ -8,26 +8,8 @@ static-var  gun_1;
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#define WATER_ROCK_UNITSIZE 13
+#include "../floatmotion.h"
 
 
 #define BASEPIECE base
@@ -35,7 +17,7 @@ RockOnWaves()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
-
+#define RECOIL_POWER 20000
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
@@ -50,7 +32,7 @@ Create()
 	hide lflare2;
 	gun_1 = 0;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script FloatMotion();
 }
 
 AimWeapon1(heading, pitch)
