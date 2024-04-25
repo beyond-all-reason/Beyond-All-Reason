@@ -651,19 +651,19 @@ function UnitDef_Post(name, uDef)
 
 
 			--mono beam settings
-			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
-			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
-			uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
-			uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
+			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
+			--uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
+			--uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
+			--uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
+			--uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
 
 			--burst testing within monobeam
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 250
-			uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
-			uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
-			uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
-			uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
-			uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
+			--uDef.weapondefs.armdfly_paralyzer.damage.default = 125
+			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
+			--uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
+			--uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
+			--uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
+			--uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
 
 		end
 
