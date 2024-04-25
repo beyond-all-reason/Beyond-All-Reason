@@ -766,10 +766,19 @@ function DrawWindow()
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
 							local text = option.name
-							local width = font2:GetTextWidth(text) * math.floor(15 * widgetScale)
+							local width = font:GetTextWidth(text) * math.floor(15 * widgetScale)
 							local maxWidthMult = 1
-							if width > (xPosMax - xPos - 45) * maxWidthMult then
-								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > (math.floor(xPosMax - xPos - 50))  do
+							if option.type == 'bool' then
+								maxWidthMult = 0.85
+							elseif option.type == 'select' then
+								maxWidthMult = 0.5
+							elseif option.type == 'slider' then
+								maxWidthMult = 0.55
+							end
+							local maxWidth = (xPosMax - xPos - 45) * maxWidthMult
+							if width > maxWidth then
+								maxWidth = (xPosMax - xPos - 50) * maxWidthMult
+								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > maxWidth do
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
@@ -5831,7 +5840,7 @@ function init()
 				for k, v in pairs(soundList) do
 					if type(v) == 'table' then
 						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 							  onchange = function(i, value)
 								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 							  end,
