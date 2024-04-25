@@ -14,8 +14,8 @@ return {
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
-		footprintx = 3,
-		footprintz = 3,
+		footprintx = 4,
+		footprintz = 5,
 		idleautoheal = 5,
 		usepiececollisionvolumes = 1,
 		idletime = 1800,
@@ -23,7 +23,7 @@ return {
 		maxdamage = 2300,
 		maxslope = 12,
 		maxvelocity = 1.8,
-		movementclass = "ATANK3",
+		movementclass = "MTANK3",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		onoffable = true,
 		objectname = "Units/CORSIEGEBREAKER.s3o",
@@ -171,8 +171,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3060,
 				damage = {
-					commanders = 800,
-					default = 1600,
+					commanders = 500,
+					default = 1000,
 				},
 			},
 			dreadovercharge = {
@@ -214,8 +214,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1250,
 				damage = {
-					commanders = 1000,
-					default = 8000,--at max range is same dps as starlight. isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
+					commanders = 700,
+					default = 5000,--at max range is same dps as starlight. isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
 				},
 
 			},

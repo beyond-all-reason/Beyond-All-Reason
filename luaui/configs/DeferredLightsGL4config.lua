@@ -2011,7 +2011,7 @@ local unitLights = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 7, posz = 43, radius = 11,
+			lightConfig = { posx = 0, posy = 8, posz = 52, radius = 11,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
 							r = 1, g = 0.2, b = 0.2, a = 0.09,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
@@ -2020,7 +2020,7 @@ local unitLights = {
 		eyes2 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 4, posy = 7, posz = 39, radius = 9,
+			lightConfig = { posx = 4.8, posy = 8, posz = 51, radius = 9,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
 							r = 1, g = 0.2, b = 0.2, a = 0.07,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
@@ -2029,7 +2029,7 @@ local unitLights = {
 		eyes3 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -4, posy = 7, posz = 39, radius = 9,
+			lightConfig = { posx = -4.8, posy = 8, posz = 51, radius = 9,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
 							r = 1, g = 0.2, b = 0.2, a = 0.07,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
@@ -2040,7 +2040,7 @@ local unitLights = {
 		r1 = {
 			lightType = 'point',
 			pieceName = 'r1',
-			lightConfig = { posx = 2.9, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = 3.5, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
@@ -2049,7 +2049,7 @@ local unitLights = {
 		r2 = {
 			lightType = 'point',
 			pieceName = 'r2',
-			lightConfig = { posx = 2.9, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = 3.5, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
@@ -2058,7 +2058,7 @@ local unitLights = {
 		r3 = {
 			lightType = 'point',
 			pieceName = 'r3',
-			lightConfig = { posx = 3, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = 3.6, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
@@ -2070,7 +2070,7 @@ local unitLights = {
 		l1 = {
 			lightType = 'point',
 			pieceName = 'l1',
-			lightConfig = { posx = -2.9, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = -3.4, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
@@ -2079,7 +2079,7 @@ local unitLights = {
 		l2 = {
 			lightType = 'point',
 			pieceName = 'l2',
-			lightConfig = { posx = -2.9, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = -3.4, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
@@ -2088,7 +2088,7 @@ local unitLights = {
 		l3 = {
 			lightType = 'point',
 			pieceName = 'l3',
-			lightConfig = { posx = -3, posy = 1.2, posz = 0, radius = 4,
+			lightConfig = { posx = -3.6, posy = 1.4, posz = 0, radius = 4,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0.3, b = 0.0, a = 1,
 							modelfactor = 0.1, specular = 0, scattering = 0.3, lensflare = 0,
