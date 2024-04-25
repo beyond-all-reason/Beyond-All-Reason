@@ -39,7 +39,8 @@
 	#define UNITSIZE 5
 #endif
 
-// How strongly to rock backwards on recoil, usually about 10000
+// How strongly to rock backwards on recoil, usually about 20000
+// Negative numbers will recoil forwards, can be useful at times
 #ifndef RECOIL_POWER
 	#define RECOIL_POWER 0
 #endif
@@ -126,9 +127,13 @@ static-var isSmoking;
 		turn BASEPIECE to x-axis <0.0> speed RESTORESPEED;
 	}
 
-	#if RECOIL_POWER > 0
+	#if RECOIL_POWER != 0
 		RockUnit(anglex,anglez){	
-			start-script HitByWeapon(RECOIL_POWER,-1 *anglez, -1*anglex);
+			#if RECOIL_POWER > 0 
+				start-script HitByWeapon(RECOIL_POWER,-1 *anglez, -1*anglex);
+			#else
+				start-script HitByWeapon(-1 * RECOIL_POWER, anglez, anglex);
+			#endif
 		}
 	#endif
 
