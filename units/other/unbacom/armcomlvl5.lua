@@ -466,6 +466,7 @@ return {
 						dockinghealrate = 16,
 						docktohealthreshold = 100,
 						enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+						holdfireradius = 300,		--defines the radius for drones to wander when "hold fire" firestate issued
 						dockingHelperSpeed = 100,
 						dockingpiecestart = 14,		--First model piece to be used for docking.
 						dockingpieceinterval = 0,	--Number of pieces to skip when docking the next unit.
