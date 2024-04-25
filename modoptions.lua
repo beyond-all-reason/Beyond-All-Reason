@@ -230,7 +230,7 @@ local options = {
 	{
 		key			="tax_resource_sharing_and_prevent_some_reclaim_loopholes",
 		name   		="Tax Resource Sharing",
-		desc   		="Taxes resource sharing and overflow (engine TODO), and disables reclaiming allied units for metal.",
+		desc   		="Taxes resource sharing and overflow (engine TODO), and disables reclaiming allied units for metal. If using, should also select 'Disable Unit Sharing' and 'Disable Assist Ally Construction'",
 		type   		= "bool",
 		section		="restrictions",
 		def    		= false,
