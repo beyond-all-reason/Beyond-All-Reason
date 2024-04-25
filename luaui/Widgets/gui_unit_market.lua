@@ -78,6 +78,24 @@ local function InitFindSales()
     end
 end
 
+-- if we add a button for this, we can call this func
+local function toggleSelectedUnitsForSale()
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits <= 0 then return end
+	local anyUnitForSale = false
+	for _, unitID in ipairs(selectedUnits) do
+		if unitsForSale[unitID] then
+			anyUnitForSale = true
+			OfferToSell(unitID)
+		end
+	end
+	if not anyUnitForSale then
+		for _, unitID in ipairs(selectedUnits) do
+			OfferToSell(unitID)
+		end
+	end
+end
+
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
@@ -116,22 +134,7 @@ end
 
 function widget:TextCommand(command)
     if (string.find(command, 'sell_unit') == 1) then
-        local selectedUnits = spGetSelectedUnits()
-        if selectedUnits == nil or #selectedUnits <= 0 then return end
-
-        local anyUnitForSale = false -- Flag to check if any selected unit are already on sale
-        for _, unitID in ipairs(selectedUnits) do
-            if unitsForSale[unitID] then
-                anyUnitForSale = true -- If they are we are going to remove sale status on them
-                OfferToSell(unitID)
-            end
-        end
-        -- If none of the selected units are on sale, call OfferToSell to set all of them on sale
-        if not anyUnitForSale then
-            for _, unitID in ipairs(selectedUnits) do
-                OfferToSell(unitID)
-            end
-        end
+		toggleSelectedUnitsForSale()
     end
 end
 
