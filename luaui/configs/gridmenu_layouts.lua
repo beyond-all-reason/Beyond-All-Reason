@@ -379,7 +379,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -401,7 +401,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -423,7 +423,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -445,7 +445,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -513,7 +513,7 @@ local unitGrids = {
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -582,7 +582,7 @@ local unitGrids = {
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -650,7 +650,7 @@ local unitGrids = {
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -858,7 +858,7 @@ local unitGrids = {
 			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
