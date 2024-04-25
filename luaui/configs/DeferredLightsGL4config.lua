@@ -75,7 +75,7 @@ local unitLights = {
 		arm1 = {	-- looks like arm movement is different and light isnt fixed in place :/
 			lightType = 'point',
 			pieceName = 'luparm',
-			lightConfig = { posx = -25, posy = 5.5, posz = 0, radius = 13,
+			lightConfig = { posx = 5, posy = 5.5, posz = 0, radius = 13,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.07,
 							modelfactor = 0.2, specular = 1, scattering = 0.6, lensflare = 0,
@@ -84,7 +84,7 @@ local unitLights = {
 		arm2 = {	-- looks like arm movement is different and light isnt fixed in place :/
 			lightType = 'point',
 			pieceName = 'ruparm',
-			lightConfig = { posx = 25, posy = 5.5, posz = 0, radius = 13,
+			lightConfig = { posx = -5, posy = 5.5, posz = 0, radius = 13,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.07,
 							modelfactor = 0.2, specular = 1, scattering = 0.6, lensflare = 0,
