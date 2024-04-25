@@ -21,7 +21,7 @@ return {
 		maxslope = 14,
 		speed = 54.0,
 		maxwaterdepth = 21,
-		movementclass = "5",
+		movementclass = "BOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHRK.s3o",
 		script = "Units/CORHRK.cob",
