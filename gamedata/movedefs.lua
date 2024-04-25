@@ -437,11 +437,25 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr corthud armham
+	--  armfido leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
 		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	-- this movedeff dies when seperation distance is a current feature in bar
+	-- corhrk
+	BOT5 = {
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
