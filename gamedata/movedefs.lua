@@ -454,8 +454,8 @@ local moveDatas = {
 	-- corhrk
 	BOT5 = {
 		crushstrength = 25,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
