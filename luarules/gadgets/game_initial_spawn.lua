@@ -621,6 +621,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- Tom: Here's something odd I found. On 2449 engine once you place - you are ready to play the game automatically, no extra actions required.
+		-- But on 2303 engine you will have _readyState 4 - you are not locked, and not ready. you've simply placed your spawn point. game waits until you press "ready" now.
+		-- In this draft spawn order mod we are hiding "ready" button, instead there is just "lock/unlock", therefore we need to tell everyone you are ready the moment you place.
+		-- For now I'll add this, but as far as I've tested, this may not be required on 2449 engine:
+		if draftMode and draftMode ~= "disabled" and not is_player_ready then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1) -- auto-ready once you place
+			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 0) -- you can still click 'lock in place' button
+		end
+
 		if myTurn then
 			allyTeamSpawnOrderPlaced[allyTeamID] = allyTeamSpawnOrderPlaced[allyTeamID]+1
 			SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])

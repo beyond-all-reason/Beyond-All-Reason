@@ -139,12 +139,12 @@ local function DrawState(playerID, posX, posY)
 		gl_Color(0.1, 0.1, 0.97, 1)
 	else
 		if ready then
-			gl_Color(0.1, 0.95, 0.2, 1)
+			gl_Color(0.1, 0.95, 0.2, 1) -- green
 		else
 			if hasStartPoint then
-				gl_Color(1, 0.65, 0.1, 1)
+				gl_Color(1, 0.65, 0.1, 1) -- yellow
 			else
-				gl_Color(0.8, 0.1, 0.1, 1)
+				gl_Color(0.8, 0.1, 0.1, 1) -- red
 			end
 		end
 	end
@@ -297,6 +297,7 @@ local function buttonTextRefresh()
 				buttonText = Spring.I18N('ui.initialSpawn.ready')
 			end
 		else -- modded
+			locked = Spring.GetGameRulesParam("player_" .. myPlayerID .. "_lockState") -- 2303
 			if canPlayerPlaceNow(myPlayerID) then
 				if startPointChosen then
 					showLockButton = true
