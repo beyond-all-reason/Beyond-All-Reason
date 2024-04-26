@@ -25,7 +25,6 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/armexcalibur.s3o",
-		onoffable = true,
 		script = "Units/armexcalibur.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",

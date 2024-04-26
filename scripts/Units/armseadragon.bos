@@ -83,15 +83,15 @@ CloseSiloDoors()
 
 	turn tube to x-axis <0> speed <15>;
 	wait-for-turn tube around x-axis;
-
-	turn doorl to z-axis <0> speed <15>;
-	turn doorr to z-axis <0> speed <15>;
-	wait-for-turn doorl around z-axis;
-	wait-for-turn doorr around z-axis;
-
 	hide firing;
 	hide firing1;
 	hide firing2;
+
+	turn doorl to z-axis <0> speed <25>;
+	turn doorr to z-axis <0> speed <25>;
+	wait-for-turn doorl around z-axis;
+	wait-for-turn doorr around z-axis;
+
 	silo_state = 0;
 }
 
