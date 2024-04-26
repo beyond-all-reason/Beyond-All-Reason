@@ -37,7 +37,7 @@ return {
 		pushresistant = false,
 		script = "Units/ARMVADER.cob",
 		seismicsignature = 0,
-		selfdestructas = "MISTEXPLO",
+		selfdestructas = "BABYARMVADER_EXP1",
 		selfdestructcountdown = 0,
 		sightdistance = 273,
 		turninplace = true,
