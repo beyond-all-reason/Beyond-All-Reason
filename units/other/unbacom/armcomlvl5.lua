@@ -234,8 +234,8 @@ return {
 				intensity = 24,
 				name = "Lightening Cannon",
 				noselfdamage = true,
-				range = 475,
-				reloadtime = 7,
+				range = 550,
+				reloadtime = 8,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lghthvy2",
 				soundhitwet = "sizzle",
@@ -416,7 +416,7 @@ return {
 					weapontype = "BeamLaser",
 					weaponvelocity = 1000,
 					damage = {
-						default = 20,
+						default = 35,
 					},
 				},
 				rollingbombdrones = {

@@ -234,8 +234,8 @@ return {
 				intensity = 24,
 				name = "Lightening Cannon",
 				noselfdamage = true,
-				range = 475,
-				reloadtime = 7,
+				range = 550,
+				reloadtime = 8,
 				rgbcolor = "0.7 0.7 1",
 				soundhit = "lghthvy2",
 				soundhitwet = "sizzle",
@@ -418,7 +418,7 @@ return {
 					spark_range = "60",
 					},
 					damage = {
-						default = 33,
+						default = 43,
 					},
 			},
 			rollingbombdrones = {
