@@ -1943,7 +1943,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	updateButtons()
+	widget:ViewResize()
 end
 
 function widget:Initialize()
