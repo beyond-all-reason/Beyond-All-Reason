@@ -23,7 +23,7 @@ return {
 		maxdamage = 3000,
 		maxslope = 12,
 		maxvelocity = 1.8,
-		movementclass = "MTANK3",
+		movementclass = "HTANK4",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		onoffable = true,
 		objectname = "Units/CORSIEGEBREAKER.s3o",
