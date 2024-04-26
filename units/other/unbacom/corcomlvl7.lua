@@ -336,7 +336,6 @@ return {
 				allowNonBlockingAim = true,
 				areaofeffect = 50,
 				avoidfeature = false,
-				avoidGround  = false,
 				beamtime = 0.033,
 				camerashake = 0.1,
 				collidefriendly = false,
