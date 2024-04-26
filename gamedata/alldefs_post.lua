@@ -344,6 +344,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "armzapper"
 		elseif name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
+
 			uDef.buildoptions[numBuildoptions + 1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions + 2] = "corforge"
 			uDef.buildoptions[numBuildoptions + 3] = "corftiger"
@@ -351,20 +352,22 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "corvac" --corprinter
 		elseif name == "coravp" then
 			local printerpresent = false
+
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
 					printerpresent = true
 				end
 			end
+
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corgatreap"
-			uDef.buildoptions[numBuildoptions + 2] = "corforge"
-			uDef.buildoptions[numBuildoptions + 3] = "corftiger"
-			uDef.buildoptions[numBuildoptions + 4] = "cortorch"
-			if (printerpresent == false) then
-				-- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions + 5] = "corsala"
-				uDef.buildoptions[numBuildoptions + 6] = "corvac" --corprinter
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corftiger"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker"
+			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
+				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
+
 			end
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions

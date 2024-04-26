@@ -2061,6 +2061,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
+	corsiegebreaker = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	corban = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
