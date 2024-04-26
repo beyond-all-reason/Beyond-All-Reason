@@ -117,7 +117,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			workertimeboost = 5,
+			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
 			stockpileLimit = 3,
 			evolution_announcement = "Legion commanders have upgraded to level 6",

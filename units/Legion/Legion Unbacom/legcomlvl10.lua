@@ -107,7 +107,8 @@ return {
 			[47] = "corhp",
 			[48] = "corfhp",
             [49] = "cormabm",
-            [50] = "legkeres"
+            [50] = "legkeres",
+			[51] = "legpede"
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -120,7 +121,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			workertimeboost = 5,
+			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
 			stockpileLimit = 3
 		},
