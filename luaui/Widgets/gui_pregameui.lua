@@ -275,6 +275,14 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 		fairTimeout = os.clock()
 	end
 end
+local function checkStartPointChosen()
+	if not mySpec then
+		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
+		if x ~= nil and x > 0 and z ~= nil and z > 0 then
+			startPointChosen = true
+		end
+	end
+end
 local function buttonTextRefresh()
 	if mySpec then
 		showLockButton = true
@@ -297,7 +305,8 @@ local function buttonTextRefresh()
 				buttonText = Spring.I18N('ui.initialSpawn.ready')
 			end
 		else -- modded
-			locked = Spring.GetGameRulesParam("player_" .. myPlayerID .. "_lockState") -- 2303
+			checkStartPointChosen()
+			locked = Spring.GetGameRulesParam("player_" .. myPlayerID .. "_lockState")
 			if canPlayerPlaceNow(myPlayerID) then
 				if startPointChosen then
 					showLockButton = true
@@ -322,7 +331,7 @@ end
 local function createButton()
 	buttonTextRefresh()
 	local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
-	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec then
+	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec and not showLockButton then
 		gl.DeleteList(buttonList)
 		gl.DeleteList(buttonHoverList)
 		return
@@ -379,7 +388,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	uiPadding = math.floor(elementPadding * 4.5)
 
 	createButton()
-
 end
 
 local ihavejoined = false
@@ -493,15 +501,6 @@ end
 
 function widget:MouseRelease(sx, sy)
 	return false
-end
-
-local function checkStartPointChosen()
-	if not mySpec then
-		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
-		if x ~= nil and x > 0 and z ~= nil and z > 0 then
-			startPointChosen = true
-		end
-	end
 end
 
 function widget:LanguageChanged()
@@ -710,6 +709,9 @@ function widget:DrawScreen()
 	if draftMode ~= "disabled" and not ihavejoined_fair and fairTimeout and os.clock() >= fairTimeout then
 		Spring.SendLuaRulesMsg("i_have_joined_fair")
 		ihavejoined_fair = true
+	end
+	if startPointChosen and not showLockButton then
+		createButton() -- fixes glitch when you've picked start pos, but 'lock' button doesn't show
 	end
 	-- DOM end
 
