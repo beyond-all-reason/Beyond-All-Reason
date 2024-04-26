@@ -20,7 +20,7 @@ return {
 		usepiececollisionvolumes = 1,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 2300,
+		maxdamage = 3000,
 		maxslope = 12,
 		maxvelocity = 1.8,
 		movementclass = "MTANK3",
@@ -157,7 +157,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 820,
-				reloadtime = 4.5,
+				reloadtime = 3,
 				rgbcolor = "0 1 0.8",
 				rgbcolor2 = "0 0.8 0.6",
 				soundhitdry = "",
@@ -171,8 +171,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3060,
 				damage = {
-					commanders = 500,
-					default = 1000,
+					commanders = 200,
+					default = 500,
 				},
 			},
 			dreadovercharge = {
@@ -200,7 +200,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 910,
-				reloadtime = 9,
+				reloadtime = 12,
 				rgbcolor = "0 1 0.8",
 				rgbcolor2 = "0.3 1 0.9",
 				soundhitdry = "",
@@ -215,7 +215,7 @@ return {
 				weaponvelocity = 1250,
 				damage = {
 					commanders = 700,
-					default = 5000,--at max range is same dps as starlight. isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
+					default = 6666,--at max range is same dps as starlight. isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
 				},
 
 			},

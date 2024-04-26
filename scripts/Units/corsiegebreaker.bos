@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 //piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
-piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, smoke1, aimfromy;
+piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, barrel_glow_overcharge, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, smoke1, aimfromy;
 
 static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading, xoffset, yoffset;
 
