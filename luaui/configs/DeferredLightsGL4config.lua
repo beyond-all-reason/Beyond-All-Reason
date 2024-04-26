@@ -18763,7 +18763,7 @@ unitLights['armdf'] = table.copy(unitLights['armfus'])
 unitLights['armuwfus'] = table.copy(unitLights['armfus'])
 unitLights['armckfus'] = table.copy(unitLights['armfus'])
 
-local unitEventLights = {
+local unitEventLightsNames = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
 	-- WeaponBarrelGlow =  {
 	-- 	['corint'] = {
@@ -19540,6 +19540,22 @@ local unitEventLights = {
 		},
 	},
 }
+
+--AND THE REST
+---unitEventLightsNames -> unitEventLights
+local unitEventLights = {}
+for key, subtables in pairs(unitEventLightsNames) do
+		unitEventLights[key] = {}
+		for subKey, lights in pairs(subtables) do
+			if UnitDefNames[subKey] then
+				unitEventLights[key][UnitDefNames[subKey].id] = lights
+			else
+				unitEventLights[key][subKey] = lights --preserve defaults etc
+			end
+		end
+end
+unitEventLightsNames = nil
+
 
 -- convert unitname -> unitDefID
 local unitDefLights = {}
