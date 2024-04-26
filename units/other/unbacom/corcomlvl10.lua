@@ -124,7 +124,7 @@ return {
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "cylY",
-				damage = 10000,
+				damage = 44000,
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
