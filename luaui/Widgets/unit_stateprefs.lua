@@ -4,8 +4,8 @@
 function widget:GetInfo()
 	return {
 		name = "State Prefs V2",
-		desc = "Sets pre-defined units states. CTRL-click on a unit's state commands to define states for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
-		author = "Errrrrrr, quantum + Doo",
+		desc = "Sets pre-defined units states. Hold bindable action 'stateprefs_record' while clicking a unit's state commands to define the preferred state for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
+		author = "Errrrrrr, quantum + Doo, sneyed",
 		date = "April 21, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1000,
@@ -13,8 +13,14 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+--[[------------------------------------------------------------------------------
+
+Usage:
+Bind stateprefs_record to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
+
+e.g. bind  Ctrl  stateprefs_record
+
+--]]------------------------------------------------------------------------------
 local unitArray = {}
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
