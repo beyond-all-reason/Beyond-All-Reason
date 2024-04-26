@@ -500,9 +500,10 @@ if gadgetHandler:IsSyncedCode() then
 						local allAlliesJoined = true
 						local teamList = Spring.GetTeamList(allyTeamID)
 						for _, team in ipairs(teamList) do
-							if teamPlayerData[team] == nil then
+							local _, _, _, isAI = Spring.GetTeamInfo(team, false)
+							if not isAI and gaiaAllyTeamID ~= allyTeamID and teamPlayerData[team] == nil then
 								allAlliesJoined = false
-								--Spring.Echo("Player missing in team:", team)
+								--Spring.Echo("Player missing in team:".. team)
 								break
 							end
 						end
