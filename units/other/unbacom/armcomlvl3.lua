@@ -401,11 +401,6 @@ return {
 				},
 		},
 		weapons = {
-			[1] = {
-				def = "SHORTGUN",
-				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
-			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
@@ -419,6 +414,11 @@ return {
 				def = "LONGGUN",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
+			},
+			[5] = {
+				def = "SHORTGUN",
+				onlytargetcategory = "NOTSUB",
+                fastautoretargeting = true,
 			},
 		},
 	},

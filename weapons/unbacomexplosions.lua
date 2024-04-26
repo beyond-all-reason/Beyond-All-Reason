@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 6000,
+			default = 10000,
 		},
 	},
 }

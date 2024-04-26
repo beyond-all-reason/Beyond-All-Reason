@@ -7,11 +7,11 @@
 local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, armhexl, armhexl2, armhexl_emit, armhexl2_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "armhexl", "armhexl2", "armhexl_emit", "armhexl2_emit")
 
 local weapons = {
-	[1] = "laser",
+	[1] = "dronepointer",
 	[2] = "uwlaser",
 	[3] = "dgun",
 	[4] = "tachcannon",
-	[5] = "dronepointer",
+	[5] = "laser",
 	[6] = "dgun",
 	[7] = "dgun",
 	[8] = "dgun",
@@ -905,7 +905,6 @@ function script.Create()
 	isAiming = false
 	isAimingDgun = false
     isAimingTach = false
-	isAimingDronePointer = false
 	isBuilding = false
 	isDancing = false
 	bAiming = false
@@ -960,9 +959,8 @@ end
 function script.AimWeapon(weapon, heading, pitch)
   --Spring.Echo("Armcom aiming:",weapons[weapon])
   local reloadingFrameTach =  Spring.GetUnitWeaponState(unitID, 4, 'reloadFrame')
-  local reloadingFrameDronePointer = Spring.GetUnitWeaponState(unitID, 5, 'reloadFrame')
     if weapons[weapon] == "laser" then
-		if isAimingDgun == true or isAimingTach == true or isAimingDronePointer == true then
+		if isAimingDgun == true or isAimingTach == true then
 			return false
 		else
 			leftArm = false
@@ -985,7 +983,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			return true
 		end
 	elseif weapons[weapon] == "uwlaser" then
-		if isAimingDgun == true or isAimingTach == true or isAimingDronePointer == true then
+		if isAimingDgun == true or isAimingTach == true then
 			return false
 		elseif not BelowWater(rloarm) then
 			return false
@@ -1025,12 +1023,7 @@ function script.AimWeapon(weapon, heading, pitch)
 		    return true
         end
     elseif weapons[weapon] == "dronepointer" then
-		if reloadingFrameDronePointer < GetGameFrame() then
-			SetSignalMask(SIG_AIM)
-			Signal(SIG_AIM)
-			StartThread(Restore)
-			return true
-		end
+			return false
 	end
 end
 
@@ -1124,7 +1117,6 @@ function Restore()
 	isAiming = false
 	isAimingDgun = false
     isAimingTach = false
-	isAimingDronePointer = false
 	Sleep(3000)
 	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)

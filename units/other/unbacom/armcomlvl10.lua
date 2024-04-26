@@ -432,7 +432,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "DronePointer",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 0.5,
@@ -442,7 +442,7 @@ return {
 				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -461,7 +461,7 @@ return {
 					dockinghealrate = 16,
 					docktohealthreshold = 100,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
-					holdfireradius = 300,		--defines the radius for drones to wander when "hold fire" firestate issued
+					holdfireradius = 450,		--defines the radius for drones to wander when "hold fire" firestate issued
 					dockingHelperSpeed = 100,
 					dockingpiecestart = 14,		--First model piece to be used for docking.
 					dockingpieceinterval = 0,	--Number of pieces to skip when docking the next unit.
@@ -471,10 +471,9 @@ return {
 			},
 		},
 		weapons = {
+
 			[1] = {
-				def = "SHORTGUN",
-				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				def = "ROLLINGBOMBDRONES",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
@@ -491,7 +490,9 @@ return {
 				fastautoretargeting = true,
 			},
 			[5] = {
-				def = "ROLLINGBOMBDRONES",
+				def = "SHORTGUN",
+				onlytargetcategory = "NOTSUB",
+                fastautoretargeting = true,
 			},
 		},
 	},

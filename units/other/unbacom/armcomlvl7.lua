@@ -439,7 +439,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "DronePointer",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 0.5,
@@ -479,9 +479,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "SHORTGUN",
-				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				def = "ROLLINGBOMBDRONES",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
@@ -498,7 +496,9 @@ return {
 				fastautoretargeting = true,
 			},
 			[5] = {
-				def = "ROLLINGBOMBDRONES",
+				def = "SHORTGUN",
+				onlytargetcategory = "NOTSUB",
+                fastautoretargeting = true,
 			},
 		},
 	},
