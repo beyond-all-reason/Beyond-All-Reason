@@ -54,7 +54,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				boostedtofinish[builderID] = builderID
 			elseif boostedtofinish[builderID] then
 				Spring.SetUnitBuildSpeed(builderID, originalworkertimes[Spring.GetUnitDefID(builderID)]) -- if another unit is created by a boosted builder that isn't a trigger, revert to normal workertime
-				table.remove(boostedtofinish[builderID])
+				boostedtofinish[builderID] = nil
 			end
 		end
 	end
@@ -63,6 +63,6 @@ end
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if boostedtofinish[unitID] then
 		Spring.SetUnitBuildSpeed(unitID, originalworkertimes[unitDefID])
-		table.remove(boostedtofinish[unitID])
+		boostedtofinish[unitID] = nil
 	end
 end
