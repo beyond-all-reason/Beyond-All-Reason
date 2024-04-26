@@ -152,20 +152,16 @@ StopMoving()
 FirePrimary()
 {
 	turn base to x-axis <10.000000> speed <50.000000>;
-	if( gun_1 == 0 )
+}
+Shot1() {
+if( gun_1 == 0 )
 	{
-		sleep 150;
 		gun_1 = 1;
-		start-script RestoreAfterDelay();
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		sleep 150;
+	} else if( gun_1 == 1 )	{
 		gun_1 = 0;
-		start-script RestoreAfterDelay();
-		return (0);
 	}
+	start-script RestoreAfterDelay();
+
 }
 
 AimPrimary(heading, pitch)
