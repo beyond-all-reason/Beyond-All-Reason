@@ -141,7 +141,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- decayrate = 0,				health loss per second while not docked.
 	-- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on.
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
-
+	-- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
 	-- },
 
 	-- Notes:
@@ -184,7 +184,8 @@ for weaponDefID = 1, #WeaponDefs do
 			decayRate = wdcp.decayrate,
 			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
-			carrierdeaththroe = wdcp.carrierdeaththroe
+			carrierdeaththroe = wdcp.carrierdeaththroe,
+			holdfireRadius = wdcp.holdfireradius
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -517,6 +518,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
+					holdfireRadius = spawnDef.holdfireRadius or 0,
 				}
 				carrierMetaList[unitID] = carrierData
 				--spSetUnitRulesParam(unitID, "is_carrier_unit", "enabled", PRIVATE)
@@ -746,7 +748,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
 		if carrierStates.firestate == 0 then
-			idleRadius = 0
+			idleRadius = carrierMetaData.holdfireRadius
 			--activeSpawning = false
 		elseif carrierStates.movestate == 0 then
 			idleRadius = 0
