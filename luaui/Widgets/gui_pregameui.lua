@@ -99,6 +99,7 @@ local auto_ready_disable = false
 local myTeamPlayersOrder = nil
 local currentPlayerIndex = 0
 local hasStartbox = false
+local devUItestMode = false -- flip to true to test UI with fake players
 -- a lot of code copied from advplayerlist...
 local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
 local imageDirectory = ":lc:" .. imgDir
@@ -323,6 +324,27 @@ local function buttonTextRefresh()
 				showLockButton = true
 				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
 			end
+		end
+	end
+end
+local function progressQueueLocally(shift) -- only for dev UI testing
+	currentPlayerIndex = currentPlayerIndex + shift
+	if myTeamPlayersOrder ~= nil then
+		if myTeamPlayersOrder[currentPlayerIndex] and myTeamPlayersOrder[currentPlayerIndex].id ~= nil then
+			current_playerID = myTeamPlayersOrder[currentPlayerIndex].id
+		else
+			current_playerID = -1
+		end
+		if myTeamPlayersOrder[currentPlayerIndex+1] and myTeamPlayersOrder[currentPlayerIndex+1].id ~= nil then
+			next_playerID = myTeamPlayersOrder[currentPlayerIndex+1].id
+		else
+			next_playerID = -1
+		end
+		if current_playerID > -1 then
+			currentTurnTimeout = os.clock() + turnTimeOut
+		end
+		if current_playerID > -1 and next_playerID > -1 then
+			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 		end
 	end
 end
@@ -695,6 +717,12 @@ function widget:DrawScreen()
 					myTurn = false
 				end
 
+				if (devUItestMode) and currentTurnTimeout then -- dev UI testing mode
+					if (os.clock() >= currentTurnTimeout) or (myTurn and startPointChosen) then
+						progressQueueLocally(1)
+					end
+				end
+
 				if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
 					Spring.SendLuaRulesMsg("vote_skip_turn")
 					voteSkipTurnTimeout = nil
@@ -829,12 +857,20 @@ function widget:RecvLuaMsg(msg, playerID)
 		if allyTeamID_about ~= myAllyTeamID then return end
 		if myTeamPlayersOrder == nil then
 			myTeamPlayersOrder = {}
-			--table.insert(myTeamPlayersOrder, {id = 6, name = "Player6" }) -- debug
-			--table.insert(myTeamPlayersOrder, {id = 7, name = "Player5" }) -- debug
+			if devUItestMode then
+				local fakePlayers = math.random(8)
+				for i = 1, fakePlayers do
+					table.insert(myTeamPlayersOrder, {id = 30+i, name = "Player"..tostring(i+9) }) -- debug
+				end
+			end
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+			end
+			if devUItestMode then -- dev UI testing mode		
+				currentPlayerIndex = 1 -- simulating queue progress on local end only
+				progressQueueLocally(0)
 			end
 			buttonPosX = 0.88
 			buttonPosY = 0.80 - (((#myTeamPlayersOrder+4) * 0.02))
@@ -846,11 +882,11 @@ function widget:RecvLuaMsg(msg, playerID)
 	elseif words[1] == "DraftOrderPlayerTurn" then
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
-		current_playerID = tonumber(words[3] or -1)
-		next_playerID = tonumber(words[4] or -1)
-		currentPlayerIndex = tonumber(words[5] or -1)
-		--current_playerID = 6 -- debug
-		--currentPlayerIndex = 1 -- debug
+		if not devUItestMode then -- production: trust the gadget
+			current_playerID = tonumber(words[3] or -1)
+			next_playerID = tonumber(words[4] or -1)
+			currentPlayerIndex = tonumber(words[5] or -1)
+		end
 		if current_playerID == myPlayerID then
 			myTurn = true
 			Spring.PlaySoundFile("beep4", 1, 'ui')
