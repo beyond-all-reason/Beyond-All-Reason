@@ -2879,7 +2879,7 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 		  onload = function()
-			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingLayoutFiles[1])
 			  local value = 1
 
 			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then

@@ -223,18 +223,18 @@ local function sanitizeKey(key, layout)
 end
 
 local keybindingLayouts = {
-	'Default',
-	'Default 60% Keyboard',
 	'Grid Optimized',
 	'Grid Optimized 60% Keyboard',
+	'Legacy',
+	'Legacy 60% Keyboard',
 	'Custom'
 }
 
 local keybindingPresets = {
-	['Default'] = 'luaui/configs/hotkeys/default_keys.txt',
-	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
 	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
 	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
+	['Legacy'] = 'luaui/configs/hotkeys/legacy_keys.txt',
+	['Legacy 60% Keyboard'] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
 	['Custom'] = 'uikeys.txt',
 }
 
