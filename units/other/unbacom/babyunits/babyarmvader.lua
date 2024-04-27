@@ -25,7 +25,7 @@ return {
 		idleautoheal = 400,
 		idletime = 1800,
         initcloaked = true,
-		mass = 1500,
+		mass = 1,
 		health = 5000,
 		maxslope = 32,
 		speed = 100.0,
