@@ -52,6 +52,7 @@ return {
 			techlevel = 2,
 			instantselfd = true,
             paralyzemultiplier = 0.002,
+			i18nfromunit = 'armvader',
 		},
 		featuredefs = {
 			corpse = {
