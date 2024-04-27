@@ -622,7 +622,7 @@ function widget:DrawScreen()
 
 		-- we will draw this basically:	   (y)
 		-- 			  4s				-- 0.26
-		-- 	 Place your Commander		-- 0.23)
+		-- 	 Place your Commander		-- 0.23
 		--     Next is "Player2"		-- 0.205
 		-- 	"Pick a startpos within"    -- I'm not going to touch that just yet (map_startbox.lua) (~0.18)
 
