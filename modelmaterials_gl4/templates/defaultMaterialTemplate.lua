@@ -471,7 +471,7 @@ vertex = [[
 			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
 				#define ATLAS_SIZE 4096.0
 				#define PX_TO_UV(x) (float(x) / ATLAS_SIZE)
-				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(	uv.x >= PX_TO_UV(left),         uv.y <= 1f - PX_TO_UV(top),  uv.x <= PX_TO_UV(left + width), uv.y >= 1f - PX_TO_UV(top + height) 	)))
+				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(	uv.x >= PX_TO_UV(left),         uv.y <= 1.f - PX_TO_UV(top),  uv.x <= PX_TO_UV(left + width), uv.y >= 1.f - PX_TO_UV(top + height) 	)))
 
 				// apply a minimum amount of "speed" when not completely stopped
 				// so that have tracks appear to "spin up/down as they dig into the ground"
