@@ -327,27 +327,6 @@ local function buttonTextRefresh()
 		end
 	end
 end
-local function progressQueueLocally(shift) -- only for dev UI testing
-	currentPlayerIndex = currentPlayerIndex + shift
-	if myTeamPlayersOrder ~= nil then
-		if myTeamPlayersOrder[currentPlayerIndex] and myTeamPlayersOrder[currentPlayerIndex].id ~= nil then
-			current_playerID = myTeamPlayersOrder[currentPlayerIndex].id
-		else
-			current_playerID = -1
-		end
-		if myTeamPlayersOrder[currentPlayerIndex+1] and myTeamPlayersOrder[currentPlayerIndex+1].id ~= nil then
-			next_playerID = myTeamPlayersOrder[currentPlayerIndex+1].id
-		else
-			next_playerID = -1
-		end
-		if current_playerID > -1 then
-			currentTurnTimeout = os.clock() + turnTimeOut
-		end
-		if current_playerID > -1 and next_playerID > -1 then
-			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
-		end
-	end
-end
 -- DraftOrder mod end
 
 local function createButton()
@@ -383,6 +362,37 @@ local function createButton()
 		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
 		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
 	end)
+end
+
+local function progressQueueLocally(shift) -- only for dev UI testing of DOM
+	currentPlayerIndex = currentPlayerIndex + shift
+	if myTeamPlayersOrder ~= nil then
+		if myTeamPlayersOrder[currentPlayerIndex] and myTeamPlayersOrder[currentPlayerIndex].id ~= nil then
+			current_playerID = myTeamPlayersOrder[currentPlayerIndex].id
+		else
+			current_playerID = -1
+		end
+		if myTeamPlayersOrder[currentPlayerIndex+1] and myTeamPlayersOrder[currentPlayerIndex+1].id ~= nil then
+			next_playerID = myTeamPlayersOrder[currentPlayerIndex+1].id
+		else
+			next_playerID = -1
+		end
+		if current_playerID > -1 then
+			currentTurnTimeout = os.clock() + turnTimeOut
+		end
+		if current_playerID > -1 and next_playerID > -1 then
+			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+		end
+		if current_playerID == myPlayerID then
+			myTurn = true
+			Spring.PlaySoundFile("beep4", 1, 'ui')
+		elseif next_playerID == myPlayerID then
+			Spring.PlaySoundFile("beep4", 1, 'ui')
+		elseif myTurn then
+			myTurn = false
+		end
+		createButton()
+	end
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -612,9 +622,9 @@ function widget:DrawScreen()
 
 		-- we will draw this basically:	   (y)
 		-- 			  4s				-- 0.26
-		-- 	 Place your Commander		-- 0.23
-		-- 	"Pick a startpos within"    -- I'm not going to touch that just yet (map_startbox.lua) (~0.20)
-		--     Next is "Player2"		-- 0.18
+		-- 	 Place your Commander		-- 0.23)
+		--     Next is "Player2"		-- 0.205
+		-- 	"Pick a startpos within"    -- I'm not going to touch that just yet (map_startbox.lua) (~0.18)
 
 		-- UI design by Scopa, implemented by Tom Fyuri
 		if myTeamPlayersOrder then
@@ -653,7 +663,7 @@ function widget:DrawScreen()
 					if (current_playerID > -1 and next_playerID > -1) then
 						local tname = findPlayerName(next_playerID)
 						font:Begin()
-						font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.nextIsPlayer', { name = tname}), vsx * 0.5, vsy * 0.20, 15.0 * uiScale, "co")
+						font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.nextIsPlayer', { name = tname}), vsx * 0.5, vsy * 0.205, 15.0 * uiScale, "co")
 						font:End()
 					end
 					if hasStartbox then
