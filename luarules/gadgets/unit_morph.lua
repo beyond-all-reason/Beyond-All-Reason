@@ -1,3 +1,15 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  file:    unit_morph.lua
+--  brief:   Adds unit morphing command
+--  author:  Dave Rodgers (improved by jK, Licho, aegis, CarRepairer & MaDDoX)
+--
+--  Copyright (C) 2007.
+--  Licensed under the terms of the GNU GPL, v2 or later.
+--
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function gadget:GetInfo()
   return {

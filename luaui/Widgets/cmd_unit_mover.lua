@@ -1,3 +1,15 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--	file:		CMD.unit_mover.lua
+--	brief:	 Allows combat engineers to use repeat when building mobile units (use 2 or more build spots)
+--	author:	Owen Martindell
+--
+--	Copyright (C) 2007.
+--	Licensed under the terms of the GNU GPL, v2 or later.
+--
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {

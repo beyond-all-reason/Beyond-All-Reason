@@ -1,3 +1,15 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  file:    gui_ReclaimInfo.lua
+--  brief:   Shows the amount of metal/energy when using area reclaim.
+--  original author:  Janis Lukss
+--
+--  Copyright (C) 2007.
+--  Licensed under the terms of the GNU GPL, v2 or later.
+--
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
