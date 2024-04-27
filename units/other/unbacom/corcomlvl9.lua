@@ -29,6 +29,7 @@ return {
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
+		icontype = "corcom",
 		idleautoheal = 149,
 		idletime = 1800,
 		sightemitheight = 40,

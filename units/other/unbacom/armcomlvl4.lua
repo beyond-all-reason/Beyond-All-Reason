@@ -30,6 +30,7 @@ return {
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
+		icontype = "armcom",
 		idleautoheal = 65,
 		idletime = 900,
 		sightemitheight = 40,
