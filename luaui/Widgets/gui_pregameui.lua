@@ -622,8 +622,8 @@ function widget:DrawScreen()
 				if draftMode ~= "fair" then
 					local tmsg = ""
 					if currentTurnTimeout then
-						tmsg = math.floor(currentTurnTimeout-os.clock())
-						if (tmsg < 0) then tmsg = "?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
+						tmsg = math.floor(currentTurnTimeout-os.clock())+1
+						if (tmsg <= 0) then tmsg = "?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
 							tmsg = tmsg .. "s"
 						end
 					elseif (current_playerID > -1 and next_playerID > -1) then
