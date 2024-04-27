@@ -582,6 +582,12 @@ FirePrimary()
 	move l1 to x-axis 0-xoffset speed [100.000000];
 	move l2 to x-axis 0-xoffset speed [100.000000];
 	move l3 to x-axis 0-xoffset speed [100.000000];
+	move r1 to y-axis 0-yoffset speed [100.000000];
+	move r2 to y-axis 0-yoffset speed [100.000000];
+	move r3 to y-axis 0-yoffset speed [100.000000];
+	move l1 to y-axis 0-yoffset speed [100.000000];
+	move l2 to y-axis 0-yoffset speed [100.000000];
+	move l3 to y-axis 0-yoffset speed [100.000000];
 
 
     call-script lua_UnitScriptLight(1, sshotcount);
@@ -611,6 +617,12 @@ FirePrimary()
 	move l1 to x-axis [0.000000] speed [0.250000];
 	move l2 to x-axis [0.000000] speed [0.400000];
 	move l3 to x-axis [0.000000] speed [0.700000];
+	move r1 to y-axis [0] speed [0.0830000];
+	move r2 to y-axis [0] speed [0.1330000];
+	move r3 to y-axis [0] speed [0.233000];
+	move l1 to y-axis [0] speed [0.083000];
+	move l2 to y-axis [0] speed [0.1330000];
+	move l3 to y-axis [0] speed [0.233000];
 
 	start-script SetMaxReloadTime(6000);
 	sleep 6000;
