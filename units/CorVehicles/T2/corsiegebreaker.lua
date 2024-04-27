@@ -38,7 +38,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.21,
-		turnrate = 300,
+		turnrate = 250,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
@@ -200,7 +200,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 910,
-				reloadtime = 12,
+				reloadtime = 10,
 				rgbcolor = "0 1 0.8",
 				rgbcolor2 = "0.3 1 0.9",
 				soundhitdry = "",
