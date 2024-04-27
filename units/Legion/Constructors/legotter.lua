@@ -26,8 +26,8 @@ return {
 		speed = 40.5,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		objectname = "Units/CORMUSKRAT.s3o",
-		script = "Units/CORMUSKRAT.cob",
+		objectname = "Units/LEGOTTER.s3o",
+		script = "Units/LEGOTTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 260,
@@ -90,8 +90,8 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corvehicles",
 		},
 		featuredefs = {
