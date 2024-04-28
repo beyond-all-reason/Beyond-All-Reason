@@ -415,7 +415,6 @@ return {
             [4] = {
 				def = "LONGGUN",
 				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
 			},
 			[5] = {
 				def = "SHORTGUN",
