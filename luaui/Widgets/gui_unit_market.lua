@@ -379,9 +379,9 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local animationDuration = 7
 local animationFrequency = 3
 function widget:DrawScreen()
-	if spIsGUIHidden() or next(unitsForSale) == nil then
-		return
-	end
+    if spIsGUIHidden() then
+        return
+    end
     local selectedUnits = spGetSelectedUnits()
     if (#selectedUnits <= 0) then
         return
