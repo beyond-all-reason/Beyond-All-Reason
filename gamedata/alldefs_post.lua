@@ -239,6 +239,9 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unbacom then	
 			if uDef.customparams.isunbacom or uDef.customparams.iscommander then
+				uDef.customparams.respawn_condition = "health"
+				uDef.customparams.respawn_health_threshold = uDef.health*0.25
+				Spring.Echo(name..uDef.customparams.respawn_condition..uDef.customparams.respawn_health_threshold)
 				uDef.customparams.evolution_timer = modOptions.unbacomleveluprate*60
 			end
 			if  name == "armcom" then

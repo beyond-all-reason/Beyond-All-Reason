@@ -95,7 +95,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- },
 
-
+    function ReturnToBase(unitID)
+		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
+		local team = spGetUnitTeam(unitID)
+		local ox,oy,oz = Spring.GetTeamStartPosition(team)
+		Spring.SetUnitPosition(unitID, ox, oz, true)
+		Spring.SpawnExplosion(x,y,z, 5, 5, 5, explosionparams)
+    end
+    
+    
 	function Evolve(unitID, newUnit)
 		local x,y,z = spGetUnitPosition(unitID)
 		if not z then
@@ -153,7 +161,9 @@ if gadgetHandler:IsSyncedCode() then
 			evolutionMetaList[unitID] = {
 				evolution_target = udcp.evolution_target,
 				evolution_condition = udcp.evolution_condition or "timer",
+				respawn_condition = udcp.respawn_condition or "none",
 				evolution_timer = tonumber(udcp.evolution_timer) or 600,
+				respawn_health_threshold = tonumber(udcp.respawn_health_threshold) or 600,
 				evolution_announcement = udcp.evolution_announcement,
 				evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
 				combatRadius = tonumber(udcp.combatradius) or 1000,
@@ -197,6 +207,14 @@ if gadgetHandler:IsSyncedCode() then
 
 					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
 						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+					end
+				end
+				
+				if evolutionMetaList[unitID].respawn_condition == "health" then
+					local h, mh = spGetUnitHealth(unitID)
+
+					if h < evolutionMetaList[unitID].respawn_health_threshold then
+						ReturnToBase(unitID)
 					end
 				end
 			end
