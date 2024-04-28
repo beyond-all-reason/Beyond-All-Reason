@@ -175,8 +175,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function isAllyTeamSkillZero(allyTeamID)
-		local teams = Spring.GetTeamList(allyTeamID)
-		for _, teamID in ipairs(teams) do
+		local tteams = Spring.GetTeamList(allyTeamID)
+		for _, teamID in ipairs(tteams) do
 			local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
 			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 				local skill = GetSkillByTeam(teamID)
@@ -189,6 +189,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function sendTeamOrder(teamOrder, allyTeamID_ready, log)
+		if (teamOrder == nil or #teamOrder <= 0) then return end -- do not send empty order ever
 		-- we send to allyTeamID Turn1 Turn2 Turn3 {...}
 		local orderMsg = ""
 		local orderIds = ""
@@ -266,24 +267,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SendDraftMessageToPlayer(allyTeamID, target_num)
-		-- we send allyTeamID currentTurn nextTurn index
-		if target_num + 1 <= #allyTeamSpawnOrder[allyTeamID] then
-			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			local playerID_next_in_queue_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num + 1])
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. playerID_draft .. " " .. playerID_next_in_queue_draft .. " " .. target_num)
-		elseif target_num <= #allyTeamSpawnOrder[allyTeamID] then
-			local playerID_draft = FindPlayerIDFromTeamID(allyTeamSpawnOrder[allyTeamID][target_num])
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. playerID_draft .. " " .. "-1 " .. target_num)
-		else
-			Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " -1 -1 " .. target_num)
-		end
+		-- technically do not care if it overflows here, on the clientside there just won't be anyone in the queue left
+		Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. target_num) -- we send allyTeamID orderIndex
 	end
 
 	-- Tom: order is generated after the entire ally team is in game, tested in a LAN game
 	local function InitDraftOrderData(allyTeamID_ready) -- by this point we have all teamPlayerData we need
 		if draftMode == "random" then
-			local teams = Spring.GetTeamList()
-			for _, teamID in ipairs(teams) do
+			local tteams = Spring.GetTeamList()
+			for _, teamID in ipairs(tteams) do
 				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
@@ -295,10 +287,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
 		elseif draftMode == "skill" then
-			local teams = Spring.GetTeamList()
-			table.sort(teams, compareSkills) -- Sort teams based on skill
+			local tteams = Spring.GetTeamList()
+			table.sort(tteams, compareSkills) -- Sort teams based on skill
 			-- Assign sorted teams to allyTeamSpawnOrder
-			for _, teamID in ipairs(teams) do
+			for _, teamID in ipairs(tteams) do
 				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
@@ -394,8 +386,8 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
 			end
 			if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") then
-				local teams = Spring.GetTeamList()
-				for _, teamID in ipairs(teams) do
+				local tteams = Spring.GetTeamList()
+				for _, teamID in ipairs(tteams) do
 					local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 						teamPlayerData[teamID] = nil

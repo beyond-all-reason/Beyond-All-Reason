@@ -129,9 +129,11 @@ local function RectQuad(px, py, sx, sy)
     gl.TexCoord(o, o)
     gl.Vertex(px, sy, 0)
 end
+
 local function DrawRect(px, py, sx, sy)
     gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy)
 end
+
 local function DrawState(playerID, posX, posY)
 	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
@@ -153,6 +155,7 @@ local function DrawState(playerID, posX, posY)
 	DrawRect(posX, posY - (1*playerScale), posX + (16*playerScale), posY + (16*playerScale))
 	gl_Color(1, 1, 1, 1)
 end
+
 -- we don't have sandclock icon yet so improv time
 local function DrawSandClock(posX, posY)
 	local triangleSize = 4
@@ -175,17 +178,20 @@ local function DrawSandClock(posX, posY)
 	  end)
 	gl.PopMatrix()
 end
+
 local function SetSidePics()
     local playerList = Spring.GetPlayerList()
     for _, playerID in pairs(playerList) do
         playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
     end
 end
+
 local function DrawRankImage(rankImage, posX, posY)
     gl_Color(1, 1, 1, 1)
     gl_Texture(rankImage)
     DrawRect(posX + (3*playerScale), posY + (8*playerScale) - (7.5*playerScale), posX + (17*playerScale), posY + (8*playerScale) + (7.5*playerScale))
 end
+
 local function DrawRank(rank, posX, posY)
     if rank == 0 then
         DrawRankImage(pics["rank0"],  posX, posY)
@@ -207,12 +213,14 @@ local function DrawRank(rank, posX, posY)
 
     end
 end
+
 local function DrawSkill(skill, posX, posY)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
+
 -- advplayerlist end
 local function colourNames(teamID)
 	if teamID == nil then return "\255\210\210\210" end -- debug
@@ -231,6 +239,7 @@ local function colourNames(teamID)
 	end
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
+
 local function canPlayerPlaceNow(playerID) -- returns true if playerID is found before array hits index (currentPlayerIndex)
 	if draftMode == nil or draftMode == "disabled" or draftMode == "fair" then return true end
 	if currentPlayerIndex == nil or currentPlayerIndex <= 0 or myTeamPlayersOrder == nil then
@@ -246,6 +255,7 @@ local function canPlayerPlaceNow(playerID) -- returns true if playerID is found 
     end
     return false
 end
+
 local function findPlayerName(playerID)
 	if myTeamPlayersOrder then
 		for _, player in ipairs(myTeamPlayersOrder) do
@@ -265,6 +275,7 @@ local function findPlayerName(playerID)
 	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected" -- show "unconnected" instead of nil if we don't know the name
 	return tname
 end
+
 local function draftModeInited() -- We want to ensure the player's UI is loaded and seen by the player before proceeding
 	if draftModeLoaded then return end
 	local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
@@ -276,6 +287,7 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 		fairTimeout = os.clock()
 	end
 end
+
 local function checkStartPointChosen()
 	if not mySpec then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
@@ -284,6 +296,7 @@ local function checkStartPointChosen()
 		end
 	end
 end
+
 local function buttonTextRefresh()
 	if mySpec then
 		showLockButton = true
@@ -693,14 +706,14 @@ function widget:DrawScreen()
 						local playerName = findPlayerName(playerID)
 						local playerTeamID = select(4, Spring.GetPlayerInfo(playerID, false))
 						local playerNameText = colourNames(playerTeamID) .. playerName
-						local customtable = select(11, Spring.GetPlayerInfo(playerID))
+						local _, _, _, _, _, _, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID)
 						local playerRank, playerSkill = 0, 0
 						if type(customtable) == 'table' then
 							local tsMu = customtable.skill
 							local tsSigma = customtable.skilluncertainty
 							local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 							if (ts ~= nil) then playerSkill = ts end
-							if (rank ~= nil) then playerRank = customtable.rank end
+							if (rank ~= nil) then playerRank = rank end
 						end
 						-- | indicator/timer/sandclock | rankicon | skill/zero | [playercolor] playername |
 						if (current_playerID == playerID) then
@@ -893,9 +906,19 @@ function widget:RecvLuaMsg(msg, playerID)
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
 		if not devUItestMode then -- production: trust the gadget
-			current_playerID = tonumber(words[3] or -1)
-			next_playerID = tonumber(words[4] or -1)
-			currentPlayerIndex = tonumber(words[5] or -1)
+			currentPlayerIndex = tonumber(words[3] or -1)
+			if myTeamPlayersOrder then
+				if myTeamPlayersOrder[currentPlayerIndex] and myTeamPlayersOrder[currentPlayerIndex].id ~= nil then
+					current_playerID = myTeamPlayersOrder[currentPlayerIndex].id
+				else
+					current_playerID = -1
+				end
+				if myTeamPlayersOrder[currentPlayerIndex+1] and myTeamPlayersOrder[currentPlayerIndex+1].id ~= nil then
+					next_playerID = myTeamPlayersOrder[currentPlayerIndex+1].id
+				else
+					next_playerID = -1
+				end
+			end
 		end
 		if current_playerID == myPlayerID then
 			myTurn = true
