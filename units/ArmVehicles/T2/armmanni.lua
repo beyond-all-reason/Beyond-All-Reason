@@ -24,6 +24,7 @@ return {
 		speed = 42.0,
 		maxwaterdepth = 0,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMANNI.s3o",
 		script = "Units/ARMMANNI.cob",
