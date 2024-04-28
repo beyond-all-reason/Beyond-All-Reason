@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
+	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2
+	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2 corsentinel armtrident
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed corsiegebreaker
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -437,11 +437,25 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr corthud armham
+	--  armfido leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
 		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	-- this movedeff dies when seperation distance is a current feature in bar
+	-- corhrk
+	BOT5 = {
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 22,
 		depthModParams = {

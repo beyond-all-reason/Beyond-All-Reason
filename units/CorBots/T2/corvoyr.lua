@@ -24,6 +24,7 @@ return {
 		speed = 45.0,
 		maxwaterdepth = 0,
 		movementclass = "BOT3",
+		movestate = 0,
 		objectname = "Units/CORVOYR.s3o",
 		onoffable = false,
 		radardistance = 2200,

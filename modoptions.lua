@@ -1217,6 +1217,36 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
+    
+    {
+        key 	= "unbacom",
+        name 	= "Unbalanced Commanders",
+        type 	= "bool",
+        def 	= false,
+        section = "options_experimental",
+    },
+
+    {
+        key    	= "unbacomleveluprate",
+        name   	= "Unbalanced Commanders Levelup Rate",
+        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 15,
+        step   	= 0.1,
+    },
+
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

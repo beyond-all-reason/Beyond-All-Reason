@@ -23,6 +23,7 @@ return {
 		speed = 33.0,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "MOBILE VTOL",
 		objectname = "Units/CORVROC.s3o",
 		script = "Units/CORVROC.cob",

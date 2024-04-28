@@ -7,7 +7,7 @@ function gadget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 1,
         layer     = 5,
-        enabled   = true  --  loaded by default?
+        enabled   = true
     }
 end
 
@@ -239,7 +239,7 @@ else
 	end
 
 	function gadget:PlayerAdded(playerID)
-		if Spring.GetGameFrame() > 0 then
+		if Spring.GetGameFrame() > 0 and not select(3,Spring.GetPlayerInfo(playerID, false)) then
 			BroadcastEvent("EventBroadcast", 'PlayerAdded', tostring(myPlayerID))
 		end
 	end

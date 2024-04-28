@@ -23,6 +23,7 @@ return {
 		speed = 132.0,
 		maxwaterdepth = 16,
 		movementclass = "BOT1",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFLEA.s3o",
 		script = "Units/ARMFLEA.cob",

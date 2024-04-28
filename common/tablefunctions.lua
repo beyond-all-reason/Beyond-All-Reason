@@ -66,36 +66,98 @@ if not table.mergeInPlace then
 end
 
 if not table.toString then
-	function table.toString(data, key)
-		local dataType = type(data)
-		-- Check the type
-		if key then
-			if type(key) == "number" then
-				key = "[" .. key .. "]"
-			end
-		end
-		if dataType == "string" then
-			return key .. [[="]] .. data .. [["]]
-		elseif dataType == "number" then
-			return key .. "=" .. data
-		elseif dataType == "boolean" then
-			return key .. "=" .. ((data and "true") or "false")
-		elseif dataType == "table" then
-			local str
-			if key then
-				str = key .. "={"
-			else
-				str = "{"
-			end
-			for k, v in pairs(data) do
-				str = str .. table.toString(v, k) .. ","
-			end
-			return str .. "}"
-		else
-			error("table.toString Error: unknown data type: " .. dataType)
-		end
-		return ""
+	local stringRep = string.rep
+	local tableSort = table.sort
+	local DEFAULT_INDENT_STEP = 2
+
+	local function tableToString(tbl, options, _seen, _depth)
 	end
+
+	local function keyCmp(a, b)
+		a = tableToString(a)
+		b = tableToString(b)
+		return a < b
+	end
+
+	tableToString = function(tbl, options, _seen, _depth)
+		_seen = _seen or {}
+		_depth = _depth or 0
+
+		local inputType = type(tbl)
+
+		if inputType == "string" then
+			return "\"" .. tbl .. "\""
+		elseif inputType == "userdata" then
+			return tostring(tbl) or "<userdata>"
+		elseif inputType ~= "table" then
+			return tostring(tbl)
+		end
+
+		if _seen[tbl] then
+			return "<recursive_reference>"
+		end
+
+		_seen[tbl] = true
+
+		local keys = {}
+		for key in pairs(tbl) do
+			keys[#keys + 1] = key
+		end
+		tableSort(keys, (options and options.keyCmp) or keyCmp)
+
+		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
+
+		local str = "{"
+		if options and options.pretty then
+			str = str .. "\n"
+		end
+		for i, key in ipairs(keys) do
+			if options and options.pretty then
+				str = str .. stringRep(" ", (_depth + 1) * indent)
+			end
+			if key ~= i then
+				local keyType = type(key)
+				if keyType == "string" then
+					str = str .. key .. "="
+				elseif keyType == "number" then
+					str = str .. "[" .. key .. "]="
+				else
+					str = str .. "[" .. tableToString(key, options, _seen) .. "]="
+				end
+			end
+			str = str .. tableToString(tbl[key], options, _seen, _depth + 1) .. ","
+			if options and options.pretty then
+				str = str .. "\n"
+			end
+		end
+		if #keys > 0 then
+			-- remove the last comma (normal) or newline (pretty)
+			str = str:sub(1, #str - 1)
+		end
+		if options and options.pretty then
+			str = str .. "\n" .. stringRep(" ", _depth * indent)
+		end
+		str = str .. "}"
+
+		return str
+	end
+
+	---Recursively turns a table into a string, suitable for printing.
+	---
+	---All types of keys and values are valid. How some special types are handled:
+	--- * `function` types are turned into "<function>"
+	--- * `userdata` types are turned into "<userdata>", unless they have a `tostring` metamethod, which is used instead
+	--- * cyclic or recursive references are turned into "<recursive_reference>"
+	--- * keys that are not strings or numbers (tables, functions, etc) are first run through table.toString
+	---
+	---In order to keep the output deterministic, keys are sorted.
+	---@param tbl table
+	---@param options table Optional parameters
+	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
+	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
+	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
+	---@return string
+	table.toString = tableToString
 end
 
 if not table.invert then

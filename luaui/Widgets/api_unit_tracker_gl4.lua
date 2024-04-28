@@ -97,7 +97,6 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,

@@ -7,7 +7,7 @@ function widget:GetInfo()
         license   = "The BSD License",
         layer     = 0,
         version   = 5,
-        enabled   = true  -- loaded by default
+        enabled   = true
     }
 end
 

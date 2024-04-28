@@ -39,6 +39,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
+			airfactory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",

@@ -23,6 +23,7 @@ return {
 		speed = 60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMART.s3o",
 		script = "Units/ARMMART.cob",

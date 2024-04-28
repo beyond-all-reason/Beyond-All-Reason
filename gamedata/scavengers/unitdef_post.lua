@@ -80,8 +80,8 @@ local function scavUnitDef_Post(name, uDef)
         end
     end
 
-	-- Wrecks
 	
+	-- Wrecks
 	if uDef.featuredefs then
 		if uDef.buildoptions or (not uDef.canmove) then
 			uDef.corpse = nil
@@ -94,36 +94,64 @@ local function scavUnitDef_Post(name, uDef)
 		end
 	end
 	
-
+	-- Set autoheal of scav units
 	if uDef.health then
 		if not string.find(name, "armscavengerbossv2") then
- 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
- 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+			if not string.find(name, "scavengerdroppodbeacon") then
+				uDef.health = uDef.health * 1.5
+				uDef.hidedamage = true
+			end
+			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		end
 	end
 
-if uDef.turnrate then
-	uDef.turnrate = uDef.turnrate * 1.2
-end
+	-- Buff _scav units turnrate
+	if uDef.turnrate then
+		uDef.turnrate = uDef.turnrate * 1.2
+	end
+	if uDef.turninplaceanglelimit then
+		uDef.turninplaceanglelimit = 360
+	end
 
-if uDef.turninplaceanglelimit then
-	uDef.turninplaceanglelimit = 360
-end
+	-- Buff _scav builders
+	if uDef.builder then
+	 	if uDef.canmove == true then
+	 		uDef.cancapture = true
+	 		if uDef.turnrate then
+	 			uDef.turnrate = uDef.turnrate * 1.5
+	 		end
+	 		if uDef.maxdec  then
+	 			uDef.maxdec  = uDef.maxdec * 3
+	 		end
+	 		if uDef.builddistance then
+	 			uDef.builddistance = uDef.builddistance * 2
+	 		end
+	 	end
+	end
 
-if uDef.builder then
- 	if uDef.canmove == true then
- 		uDef.cancapture = true
- 		if uDef.turnrate then
- 			uDef.turnrate = uDef.turnrate * 1.5
- 		end
- 		if uDef.maxdec  then
- 			uDef.maxdec  = uDef.maxdec  * 3
- 		end
- 		if uDef.builddistance then
- 			uDef.builddistance = uDef.builddistance * 2
- 		end
- 	end
-end
+	-- Remove commander customparams from _scav commanders
+	if uDef.customparams.evolution_target then
+		uDef.customparams.evolution_target = nil
+	end
+	if uDef.customparams.evolution_condition then
+		uDef.customparams.evolution_condition = nil
+	end
+	if uDef.customparams.evolution_timer then
+		uDef.customparams.evolution_timer = nil
+	end
+	if uDef.customparams.iscommander then
+		uDef.customparams.iscommander = nil
+	end
+
+	-- Remove resurrectable wrecks from scavs
+	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
+		uDef.corpse = "HEAP"
+	elseif uDef.corpse then
+		Spring.Echo(name .. " has weird corpse")
+		uDef.corpse = nil
+	end
+	
 	return uDef
 end
 
