@@ -1,6 +1,6 @@
 return {
 	babyarmvader = {
-		autoheal = 1000,
+		autoheal = 250,
         maxacc = 0.5589,
 		activatewhenbuilt = true,
 		maxdec = 0.5589,
@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
         initcloaked = true,
 		mass = 100,
-		health = 5000,
+		health = 7500,
 		maxslope = 32,
 		speed = 100.0,
 		maxwaterdepth = 112,
