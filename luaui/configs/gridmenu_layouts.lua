@@ -966,8 +966,8 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legsco", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, strider
-			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, dragon maw
+			{ "legsco", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
+			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
 			{ "cordl", "legvcarry", "coratl", "legdtm", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
 		},
 		{
@@ -988,9 +988,9 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legsco", "leginf", "legshot", "legpede", },     	-- decurion, belcher, phalanx, strider
-			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, dragon maw
-			{ "cordl", "legvcarry", "coratl", "legdtm", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "legsco", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
+			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
+			{ "cordl", "legvcarry", "coratl", "legpede", },		-- coastal torp launcher, mantis, offshore torp launcher, mukade
 		},
 		{
 			{ "corvoyr", "coreyes", "legforti", "corspec", }, -- radar bot, perimeter camera, t2 wall, jammer bot
