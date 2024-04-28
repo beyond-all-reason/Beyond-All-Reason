@@ -56,9 +56,10 @@ local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ''
-local buttonDrawn = false
 local lockText = ''
 local locked = false
+local showLockButton = true
+local buttonDrawn = false
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
@@ -66,7 +67,6 @@ local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
 --local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
-local showLockButton = true
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
@@ -308,20 +308,18 @@ local function buttonTextRefresh()
 		end
 	else
 		if (draftMode == nil or draftMode == "disabled" or draftMode == "fair") then -- regular
+			showLockButton = true
 			if readied then
-				showLockButton = true
 				if locked then
 					buttonText = Spring.I18N('ui.initialSpawn.unlock')
 				else
 					buttonText = Spring.I18N('ui.initialSpawn.lock')
 				end
 			else
-				showLockButton = true
 				buttonText = Spring.I18N('ui.initialSpawn.ready')
 			end
 		else -- modded
 			checkStartPointChosen()
-			locked = Spring.GetGameRulesParam("player_" .. myPlayerID .. "_lockState")
 			if canPlayerPlaceNow(myPlayerID) then
 				if startPointChosen then
 					showLockButton = true
@@ -336,20 +334,22 @@ local function buttonTextRefresh()
 				end
 			else
 				showLockButton = true
-				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
+				if (next_playerID == nil or next_playerID == -1) then
+					buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+				else
+					buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.turn')})
+				end
 			end
 		end
 	end
 end
 -- DraftOrder mod end
 
-local function createButton()
+local function drawButton()
 	buttonTextRefresh()
 	local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
-	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec and not showLockButton then
-		gl.DeleteList(buttonList)
-		gl.DeleteList(buttonHoverList)
-		return
+	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec and showLockButton then
+		showLockButton = false
 	end
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
@@ -363,19 +363,95 @@ local function createButton()
 	elseif eligibleAsSub then
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
+
+	-- because text can change now
+	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
+	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
+	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+
 	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
 	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
 
-	gl.DeleteList(buttonList)
-	buttonList = gl.CreateList(function()
-		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
-	end)
-	gl.DeleteList(buttonHoverList)
-	buttonHoverList = gl.CreateList(function()
-		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
-	end)
+	if (not showLockButton and buttonDrawn) then
+		if buttonList then
+			gl.DeleteList(buttonList)
+		end
+		if buttonHoverList then
+			gl.DeleteList(buttonHoverList)
+		end
+		buttonList = nil
+		buttonHoverList = nil
+		buttonDrawn = false
+	end
+
+	if showLockButton then
+		if buttonList then
+			gl.DeleteList(buttonList)
+		end
+		buttonList = gl.CreateList(function()
+			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
+		end)
+		if buttonHoverList then
+			gl.DeleteList(buttonHoverList)
+		end
+		buttonHoverList = gl.CreateList(function()
+			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
+		end)
+
+		local playerList = Spring.GetPlayerList()
+		local numPlayers = #playerList
+		local numPlayersReady = 0
+		if numPlayers > 3 then
+			for _, playerID in pairs(playerList) do
+				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+				if readystate == -1 or readystate == 1 or readystate == 2 then
+					numPlayersReady = numPlayersReady + 1
+				end
+			end
+			blinkButton = (numPlayers / numPlayersReady > 0.75)
+		end
+
+		if WG['guishader'] then
+			WG['guishader'].InsertRect(
+				uiElementRect[1],
+				uiElementRect[2],
+				uiElementRect[3],
+				uiElementRect[4],
+				'pregameui'
+			)
+		end
+
+		-- draw ready button and text
+		local x, y = Spring.GetMouseState()
+		local colorString
+		local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
+		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
+			gl.CallList(buttonHoverList)
+			colorString = "\255\210\210\210"
+		else
+			gl.CallList(buttonList)
+			timer2 = timer2 + Spring.GetLastUpdateSeconds()
+			if mySpec then
+				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
+			else
+				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+			end
+			if readied or cantPlaceNow then
+				colorString = "\255\222\222\222"
+			end
+			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+				local mult = 1.33
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
+			end
+		end
+		font:Begin()
+		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
+		font:End()
+		gl.Color(1, 1, 1, 1)
+		buttonDrawn = true
+	end
 end
 
 local function progressQueueLocally(shift) -- only for dev UI testing of DOM
@@ -405,13 +481,10 @@ local function progressQueueLocally(shift) -- only for dev UI testing of DOM
 		elseif myTurn then
 			myTurn = false
 		end
-		createButton()
 	end
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	buttonTextRefresh()
-
 	vsx, vsy = Spring.GetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
 	buttonX = math.floor(vsx * buttonPosX)
@@ -432,8 +505,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
-
-	createButton()
 end
 
 local ihavejoined = false
@@ -489,15 +560,18 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
-	if buttonDrawn and showLockButton then
+	if showLockButton then
 
 		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
 			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
 
-				local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
-				if cantPlaceNow then return false end
+				if not canPlayerPlaceNow(myPlayerID) then
+					if not startPointChosen then
+						return false -- can't place - can't click ready/lock
+					end
+				end
 
 				-- if not pressed on ready
 				if not readied then
@@ -604,8 +678,6 @@ function widget:DrawScreen()
 		WG['guishader'].RemoveRect('pregameui')
 	end
 
-	buttonDrawn = false
-
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
@@ -613,20 +685,6 @@ function widget:DrawScreen()
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
-	end
-
-	local showbutton = false
-	-- ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2
-	if buttonList and Game.startPosType == 2 then
-		if mySpec then
-			if eligibleAsSub then
-				showbutton = true
-			end
-		else
-			if not readied or showLockButton then
-				showbutton = true
-			end
-		end
 	end
 
 	-- DraftOrder mod start
@@ -762,11 +820,21 @@ function widget:DrawScreen()
 		Spring.SendLuaRulesMsg("i_have_joined_fair")
 		ihavejoined_fair = true
 	end
-	if startPointChosen and not showLockButton then
-		createButton() -- fixes glitch when you've picked start pos, but 'lock' button doesn't show
-	end
 	-- DOM end
 
+	local showbutton = false
+	-- ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2
+	if buttonList and Game.startPosType == 2 then
+		if mySpec then
+			if eligibleAsSub then
+				showbutton = true
+			end
+		else
+			if not readied or showLockButton then
+				showbutton = true
+			end
+		end
+	end
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
@@ -774,61 +842,8 @@ function widget:DrawScreen()
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
-
-	elseif showbutton == true and showLockButton == true then
-
-		local playerList = Spring.GetPlayerList()
-		local numPlayers = #playerList
-		local numPlayersReady = 0
-		if numPlayers > 3 then
-			for _, playerID in pairs(playerList) do
-				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
-				if readystate == -1 or readystate == 1 or readystate == 2 then
-					numPlayersReady = numPlayersReady + 1
-				end
-			end
-			blinkButton = (numPlayers / numPlayersReady > 0.75)
-		end
-
-		buttonDrawn = true
-		if WG['guishader'] then
-			WG['guishader'].InsertRect(
-				uiElementRect[1],
-				uiElementRect[2],
-				uiElementRect[3],
-				uiElementRect[4],
-				'pregameui'
-			)
-		end
-
-		-- draw ready button and text
-		local x, y = Spring.GetMouseState()
-		local colorString
-		local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
-		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
-			gl.CallList(buttonHoverList)
-			colorString = "\255\210\210\210"
-		else
-			gl.CallList(buttonList)
-			timer2 = timer2 + Spring.GetLastUpdateSeconds()
-			if mySpec then
-				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
-			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
-			end
-			if readied or cantPlaceNow then
-				colorString = "\255\222\222\222"
-			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
-				local mult = 1.33
-				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
-			end
-		end
-		font:Begin()
-		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
-		font:End()
-		gl.Color(1, 1, 1, 1)
 	end
+	drawButton()
 end
 
 local function removeUnitShape(id)
@@ -900,8 +915,6 @@ function widget:RecvLuaMsg(msg, playerID)
 			buttonPosY = 0.80 - (((#myTeamPlayersOrder+4) * 0.02))
 			buttonX = math.floor(vsx * buttonPosX)
 			buttonY = math.floor(vsy * buttonPosY)
-			buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
-			createButton()
 		end
 	elseif words[1] == "DraftOrderPlayerTurn" then
 		allyTeamID_about = tonumber(words[2] or -1)
@@ -935,7 +948,6 @@ function widget:RecvLuaMsg(msg, playerID)
 		if current_playerID > -1 and next_playerID > -1 then
 			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 		end
-		createButton()
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		reloadedDraftMode = nil
 		draftModeInited()
