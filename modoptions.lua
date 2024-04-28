@@ -1220,7 +1220,7 @@ local options = {
     
     {
         key 	= "unbacom",
-        name 	= "Unbalanced Commanders",
+        name 	= "Evolving Commanders",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
@@ -1228,13 +1228,13 @@ local options = {
 
     {
         key    	= "unbacomleveluprate",
-        name   	= "Unbalanced Commanders Levelup Rate",
-        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
+        name   	= "Commanders Evolution Rate",
+        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
         min    	= 0.1,
-        max    	= 15,
+        max    	= 20,
         step   	= 0.1,
     },
 
