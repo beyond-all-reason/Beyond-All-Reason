@@ -735,10 +735,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local carrierx, carriery, carrierz
 	local targetx, targety, targetz
 	local target
+	local idleTarget
 	local recallDrones = carrierMetaData.activeRecall
 	local attackOrder = false
 	local fightOrder = false
 	local setTargetOrder = false
+	local agressiveDrones = false
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
 	
@@ -750,7 +752,10 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		if carrierStates.firestate == 0 then
 			idleRadius = carrierMetaData.holdfireRadius
 			--activeSpawning = false
-		elseif carrierStates.movestate == 0 then
+		elseif carrierStates.firestate == 2 then
+			agressiveDrones = true
+		end
+		if carrierStates.movestate == 0 then
 			idleRadius = 0
 		elseif carrierStates.movestate == 1 then
 			idleRadius = 200
@@ -973,6 +978,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
 								-- if currently fighting AND not on hold fire
 								engaged = true
+								if agressiveDrones then
+								    idleTarget = cQueue[j].params
+								end
 								break
 							end
 						end
@@ -986,8 +994,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 								rx, rz = RandomPointInUnitCircle(5)
 								UnDockUnit(carrierID, subUnitID)
-								spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
-								spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								if idleTarget then
+								    spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+								else
+								    spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+								    spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								end
 							end
 						end
 					end
