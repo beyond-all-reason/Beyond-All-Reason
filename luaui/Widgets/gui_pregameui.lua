@@ -257,13 +257,14 @@ local function canPlayerPlaceNow(playerID) -- returns true if playerID is found 
 end
 
 local function findPlayerName(playerID)
+	local tname = nil
 	if myTeamPlayersOrder then
 		for _, player in ipairs(myTeamPlayersOrder) do
 			if player.id == playerID then
 				if player.name ~= nil then
 					return player.name
 				else -- try to cache missing player name
-					local tname = select(1, Spring.GetPlayerInfo(playerID, false))
+					tname = select(1, Spring.GetPlayerInfo(playerID, false))
 					if tname ~= nil then
 						player.name = tname
 						return player.name
