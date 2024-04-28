@@ -3,10 +3,10 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32000,
-		energycost = 700,
-		metalcost = 90,
+		energycost = 550,--700
+		metalcost = 70,--90
 		buildpic = "LEGLHT.DDS",
-		buildtime = 2720,
+		buildtime = 2450,--2720
 		canrepeat = false,
 		cantbetransported = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -20,7 +20,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		health = 650,
+		health = 550,--650
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -126,6 +126,7 @@ return {
 				laserflaresize = 7,
 				name = "HeatRay",
 				noselfdamage = true,
+				predictboost = 1,
 				range = 430,
 				reloadtime = 1.1,
 				rgbcolor = "1 0.8 0",
