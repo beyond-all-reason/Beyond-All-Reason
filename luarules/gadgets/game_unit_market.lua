@@ -118,7 +118,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if isAiTeam then
         local discount = getAIdiscount(msgFromTeamID, old_ownerTeamID, price) -- if AI ally owes you metal, you can discount
         price = price - discount
-        Spring.Echo("debug discount: "..discount) -- debug: if AI owes you money...
+        --Spring.Echo("debug discount: "..discount) -- debug: if AI owes you money...
     end
 
     if (current < price) then return end
