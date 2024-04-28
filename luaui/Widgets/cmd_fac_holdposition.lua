@@ -49,7 +49,7 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
-	widget.PlayerChanged()
+	widget:PlayerChanged()
 end
 
 
