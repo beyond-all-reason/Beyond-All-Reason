@@ -20,6 +20,8 @@ local unitMarket   = Spring.GetModOptions().unit_market
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
 
+-- Update: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
+
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetTeamInfo         = Spring.GetTeamInfo
@@ -36,16 +38,8 @@ local spGetUnitHealth       = Spring.GetUnitHealth
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local RPAccess = {allied = true}
-
-function gadget:Initialize()
-    -- if market is disabled globally, exit
-    if not unitMarket or unitMarket ~= true then
-        gadgetHandler:RemoveGadget(self)
-    end
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
-	end
-end
+local AllyAIsalesEverything = true -- does this needs to be a modoption? This seems useful for coop.
+local AllyAItab = {} -- [teamAI_ID][teamID] -- array of teams that this AI team owes metal to
 
 local function setUnitOnSale(unitID, price, toggle)
     if unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 or toggle == false then
@@ -54,13 +48,40 @@ local function setUnitOnSale(unitID, price, toggle)
         return true
     else
         unitsForSale[unitID] = nil
-        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
+        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess) -- we cannot set price lower or equal to zero, zero is going to be "unit is NOT for sale"
         return false
     end
 end
+
 local function removeSale(unitID)
     unitsForSale[unitID] = nil
 end
+
+local function getAIdiscount(newTeamID, oldTeamID, price)
+    if not AllyAIsalesEverything then return 0 end
+
+    local myDiscount = AllyAItab[oldTeamID] and AllyAItab[oldTeamID][newTeamID] or 0
+    local finalDiscount = math.min(price, myDiscount) -- Ensure finalDiscount doesn't exceed price
+
+    if finalDiscount > 0 then
+        if myDiscount > 0 then
+            AllyAItab[oldTeamID][newTeamID] = myDiscount - finalDiscount
+        end
+        return finalDiscount
+    else
+        return 0
+    end
+end
+
+
+local function unitSaleBroadcast(unitID, price, msgFromTeamID)
+    SendToUnsynced("unitSaleBroadcast",  unitID, price, msgFromTeamID)
+end
+
+local function unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+    SendToUnsynced("unitSoldBroadcast", unitID, price, old_ownerTeamID, msgFromTeamID)
+end
+
 local function offerUnitForSale(unitID, msgFromTeamID)
     if not spValidUnitID(unitID) then return end
     local unitDefID = spGetUnitDefID(unitID)
@@ -68,35 +89,47 @@ local function offerUnitForSale(unitID, msgFromTeamID)
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
 	local unitTeamID = spGetUnitTeam(unitID)
-	if msgFromTeamID ~= unitTeamID then return end -- comment this out in local testing
+	if msgFromTeamID ~= unitTeamID then return end -- comment this out in local testing, only owner can set units for sale
     local finished = (select(5,spGetUnitHealth(unitID))==1)
     if not finished then return end
-    if unitDef.metalCost < 0 then return end
-    local selling = setUnitOnSale(unitID, unitDef.metalCost, true)
-    if selling then
-        spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID)
-    else
-        spSendLuaUIMsg("unitForSale " .. unitID .. " 0 " .. " " .. msgFromTeamID)
+    local price = unitDef.metalCost
+    if price <= 0 then return end
+    local selling = setUnitOnSale(unitID, price, true)
+    if not selling then
+        price = 0
     end
+    unitSaleBroadcast(unitID, price, msgFromTeamID)
 end
+
 local function tryToBuyUnit(unitID, msgFromTeamID)
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
+
+    local old_ownerTeamID = spGetUnitTeam(unitID)
+    local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
+    if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
+
     local current,storage = GetTeamResources(msgFromTeamID, "metal")
-    if (current <= 0 or current < unitsForSale[unitID]) then return end
-    local old_ownerID = spGetUnitTeam(unitID)
-    if not spAreTeamsAllied(old_ownerID, msgFromTeamID) then return end
     local price = unitsForSale[unitID]
-    TransferUnit(unitID, msgFromTeamID)
-    if msgFromTeamID ~= old_ownerID then -- don't send resources to yourself
-        ShareTeamResource(msgFromTeamID, old_ownerID, "metal", price)
+
+    if isAiTeam then
+        local discount = getAIdiscount(msgFromTeamID, old_ownerTeamID, price) -- if AI ally owes you metal, you can discount
+        price = price - discount
+        Spring.Echo("debug discount: "..discount) -- debug: if AI owes you money...
     end
-    spSendLuaUIMsg("unitSold " .. unitID .. " " .. price .. " " .. old_ownerID .. " " .. msgFromTeamID)
+
+    if (current < price) then return end
+
+    TransferUnit(unitID, msgFromTeamID)
+    if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
+        ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
+    end
     spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
     removeSale(unitID)
+    unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
@@ -110,11 +143,10 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
     
     if words[1] == "unitOfferToSell" then
-        --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
+        -- at the moment we only support "fair" price, but it is possible here to set unit price by client
         offerUnitForSale(unitID, msgFromTeamID)
     elseif words[1] == "unitTryToBuy" then
-        --Spring.Echo(words) -- debug
         local unitID = tonumber(words[2])
         tryToBuyUnit(unitID, msgFromTeamID)
     end
@@ -132,26 +164,131 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+    if (AllyAIsalesEverything) and spAreTeamsAllied(newTeamID, oldTeamID) then
+        local unitDef = UnitDefs[unitDefID]
+        if unitDef.metalCost <= 0 then return end
+
+        local price = unitDef.metalCost
+        local _, _, _, isAiTeamOld = spGetTeamInfo(oldTeamID) -- player
+        local _, _, _, isAiTeamNew = spGetTeamInfo(newTeamID) -- gives unit to AI
+        if not isAiTeamOld and isAiTeamNew then
+            -- This "ugly" calculation won't be called too much since you are not often giving units to the AI
+            -- But it might be a good idea to pre init arrays if we expand this optional functionality for between players
+            if AllyAItab[newTeamID] == nil then
+                AllyAItab[newTeamID] = {}
+            end
+            if AllyAItab[newTeamID][oldTeamID] == nil then
+                AllyAItab[newTeamID][oldTeamID] = 0
+            end
+            AllyAItab[newTeamID][oldTeamID] = AllyAItab[newTeamID][oldTeamID] + price
+            --Spring.Echo("old team "..oldTeamID.." owes "..newTeamID.." this much: "..AllyAItab[newTeamID][oldTeamID]..".") -- debug
+            -- TODO this is kinda useful but I don't know how to not spam you constantly with this information...
+            -- so need to figure out how to show you how much AI owes you metal for your donations
+
+            -- possible TODO, maybe forbid AI from selling you its metal extractors?
+            setUnitOnSale(unitID, price, false)
+            unitSaleBroadcast(unitID, price, newTeamID)
+
+            return
+        end
+    end
     removeSale(unitID)
+    unitSaleBroadcast(unitID, 0, newTeamID)
 end
 
--- debug/for testing: AI lists for sale ANY unit it finishes building, good enough for single player testing, comment out in production though
--- if you are using inactive AI, just use godmode 3 to control it to order to build something, then godmode 0 to stop control and then try alt+doubleclick to buy
---[[function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
-    local _, _, _, isAiTeam = spGetTeamInfo(teamID)
-    if isAiTeam then
-        local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end
-        local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end
+function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
+    if (AllyAIsalesEverything) then
+        local _, _, _, isAiTeam = spGetTeamInfo(teamID)
+        if isAiTeam then
+            local unitDefID = spGetUnitDefID(unitID)
+            if not unitDefID then return end
+            local unitDef = UnitDefs[unitDefID]
+            if not unitDef then return end
+            if unitDef.metalCost <= 0 then return end
 
-        if unitDef.metalCost < 0 then return end -- should I even test it?
-
-        setUnitOnSale(unitID, unitDef.metalCost, false)
-
-	    local msgFromTeamID = spGetUnitTeam(unitID)
-        spSendLuaUIMsg("unitForSale " .. unitID .. " " .. unitDef.metalCost .. " " .. " " .. msgFromTeamID) -- Announce offer
+            local price = unitDef.metalCost
+            setUnitOnSale(unitID, price, false)
+            unitSaleBroadcast(unitID, price, teamID)
+        end
     end
-end]]
+end
 
+function gadget:Initialize()
+    -- if market is disabled globally, exit
+    if not unitMarket or unitMarket ~= true then
+        gadgetHandler:RemoveGadget(self)
+    end
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
+	end
+    --
+    if (AllyAIsalesEverything) then -- set all AI units for sale
+        for _, unitID in ipairs(Spring.GetAllUnits()) do
+            local teamID = spGetUnitTeam(unitID)
+            local _, _, _, isAiTeam = spGetTeamInfo(teamID)
+            if isAiTeam then
+                local unitDefID = spGetUnitDefID(unitID)
+                if unitDefID then
+                    local unitDef = UnitDefs[unitDefID]
+                    if unitDef and unitDef.metalCost >= 0 then
+                        local price = unitDef.metalCost
+                        setUnitOnSale(unitID, price, false)
+                        unitSaleBroadcast(unitID, price, teamID)
+                    end
+                end
+            end
+        end
+    end
+end
+
+else
+    -- lets only broadcast these trades to allies and spectators
+	local spGetSpectatingState = Spring.GetSpectatingState
+	local spec, _ = spGetSpectatingState()
+    local spGetPlayerInfo = Spring.GetPlayerInfo
+	local myPlayerID = Spring.GetMyPlayerID()
+    local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+    local spAreTeamsAllied = Spring.AreTeamsAllied
+    local myTeamID = Spring.GetMyTeamID()
+    local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+	function gadget:PlayerChanged(playerID)
+        myPlayerID = Spring.GetMyPlayerID()
+        if myTeamID ~= Spring.GetMyTeamID() then
+            myTeamID = Spring.GetMyTeamID()
+        end
+        if myAllyTeamID ~= Spring.GetMyAllyTeamID() then
+            myAllyTeamID = Spring.GetMyAllyTeamID()
+        end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("unitSaleBroadcast", handleSaleEvent)
+		gadgetHandler:AddSyncAction("unitSoldBroadcast", handleSoldEvent)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("unitSaleBroadcast")
+		gadgetHandler:RemoveSyncAction("unitSoldBroadcast")
+	end
+
+	function handleSaleEvent(_, unitID, price, msgFromTeamID)
+		local spec, fullView = spGetSpectatingState()
+		if not spec or not fullView then
+            if not spAreTeamsAllied(msgFromTeamID, myTeamID) then return end
+		end
+		if Script.LuaUI("unitSaleBroadcast") then
+			Script.LuaUI.unitSaleBroadcast(unitID, price, msgFromTeamID)
+		end
+	end
+
+	function handleSoldEvent(_, unitID, price, old_ownerTeamID, msgFromTeamID)
+		local spec, fullView = spGetSpectatingState()
+		if not spec or not fullView then
+            if not spAreTeamsAllied(msgFromTeamID, myTeamID) then return end
+		end
+		if Script.LuaUI("unitSoldBroadcast") then
+			Script.LuaUI.unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+		end
+	end
 end

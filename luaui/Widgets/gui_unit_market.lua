@@ -13,18 +13,21 @@ function widget:GetInfo() return {
 -- 2) Player B should be able to offer to buy the unit. If playerB can afford it then we go to the next step.
 -- 3) Gadget that oversees this takes the metal from the playerA and gives to playerB, and takes the unit from playerB and gives to playerA. That's it!
 -- Why? So you can trade T2 cons without tracking who paid what/what/how much. Just flip the unit for sale and we are good to go.
--- Note: you can set for sale ANYTHING as long as its a finished unit. Hotkey to toggle sale. Just alt + double-click to buy.
+-- Note: you can set for sale ANYTHING as long as its a finished unit. Hotkey/Button to toggle sale. Just alt + double-click to buy.
 -- TODO: develop UI so that you can browse units that are for sale with a buy button maybe?
--- TODO: maybe a button in a unitstate window "this unit is for sale" toggle so you can start selling units without hotkey?
+-- TODO: maybe a button in a unitstate window "this unit is for sale" toggle so you can start selling units without hotkey or separate button?
+-- Extra feature: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
 -- But as it is, it should be fine for the first version.
 
 -- How to use:
 
 -- As a seller:
--- 1) select units and do a) or b) or c):
+-- 1) select units and do a) or b) or c) or d):
 -- a) write in chat: /luaui sell_unit
 -- b) write in chat: /sell_unit
--- c) bind a hotkey before hand: bind alt+c /sell_unit, then just press the hotkey to toggle sellable status.
+-- c) bind a hotkey before hand: bind alt+c /sell_unit, then just press the hotkey.
+-- d) press button "Sell Unit" at the bottom center part of your screen.
+-- It works like a toggle, so you can toggle selling status by using any of the methods above.
 -- Once you are done you (and your allies) will see that the unit is flashing green and is displaying the sign "$" above itself. The price is exactly the same as the unit metalCost.
 
 -- As a buyer:
@@ -45,27 +48,87 @@ local spValidUnitID         = Spring.ValidUnitID
 local spGetCameraState      = Spring.GetCameraState
 local spGetGameSeconds      = Spring.GetGameSeconds
 local spEcho                = Spring.Echo
+local spLog                 = Spring.Log
 local spIsUnitInView        = Spring.IsUnitInView
 local spGetPlayerList       = Spring.GetPlayerList
+local spGetAIInfo           = Spring.GetAIInfo
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spTraceScreenRay      = Spring.TraceScreenRay
 local spGetUnitsInCylinder  = Spring.GetUnitsInCylinder
 local spGetModKeyState      = Spring.GetModKeyState
+local spGetMouseState       = Spring.GetMouseState
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
+local spGetGameRulesParam   = Spring.GetGameRulesParam
 local myTeamID     = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
-local isSpectating = Spring.GetSpectatingState() == true
+local isSpectating, fullview = Spring.GetSpectatingState()
+local myPlayerID   = Spring.GetMyPlayerID()
+local logging    = false -- Logging...
+local see_prices = false -- Set to true for local testing to verify unit prices
+local see_sales  = true  -- Set to false to never see console trade messages
 
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
+
+-- button vars
+local sellUnitText = Spring.I18N('ui.unitMarket.sellUnit') or "Sell Unit"
+local buttonPosX = 0.41
+local buttonPosY = 0.066
+local UiButton, UiElement
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx * vsy / 6200000))
+local fontfileSize = 50
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 1.4
+local textSize = 12
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local uiScale = (0.7 + (vsx * vsy / 6500000))
+local buttonX = math.floor(vsx * buttonPosX)
+local buttonY = math.floor(vsy * buttonPosY)
+local orgbuttonH = 40
+local orgbuttonW = 115
+local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
+local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+local buttonList = nil
+local uiPadding = 20
+local uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+local buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+-- see ViewResize() for more actual size values
+
+local function OfferToSell(unitID)
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return end -- ?
+    local price = unitDef.metalCost
+    spSendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. price) -- Tell gadget we are offering unit for sale
+end
+
+local function OfferToBuy(unitID)
+    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+end
+
+local function ClearUnitData(unitID) -- if unit is no longer sold then remove it from being sold
+    unitsForSale[unitID] = nil
+end
+
+local function Print(msg)
+    if (see_sales) then
+        spEcho(msg)
+    end
+    if (logging) then
+        spLog(widget:GetInfo().name, LOG.INFO, msg)
+    end
+end
 
 local function InitFindSales()
     for _, unitID in ipairs(Spring.GetAllUnits()) do
         if spValidUnitID(unitID) then
             teamID = spGetUnitTeam(unitID)
-            if isSpectating or spAreTeamsAllied(teamID, myTeamID) then
+            if fullview or spAreTeamsAllied(teamID, myTeamID) then
                 local price = spGetUnitRulesParam(unitID, "unitPrice")
                 --Spring.Echo("I see "..unitID.." p:"..price)
                 if (price > 0) then
@@ -78,10 +141,7 @@ local function InitFindSales()
     end
 end
 
--- if we add a button for this, we can call this func
-local function toggleSelectedUnitsForSale()
-	local selectedUnits = spGetSelectedUnits()
-	if #selectedUnits <= 0 then return end
+local function toggleSelectedUnitsForSale(selectedUnits)
 	local anyUnitForSale = false
 	for _, unitID in ipairs(selectedUnits) do
 		if unitsForSale[unitID] then
@@ -96,6 +156,80 @@ local function toggleSelectedUnitsForSale()
 	end
 end
 
+local function FindPlayerIDFromTeamID(teamID)
+    local playerList = spGetPlayerList()
+    for i = 1, #playerList do
+        local playerID = playerList[i]
+        local team = select(6,spGetPlayerInfo(playerID))
+        if team == teamID then
+            return playerID
+        end
+    end
+    return nil
+end
+
+local function getTeamName(teamID)
+    local _, _, _, isAITeam = spGetTeamInfo(teamID)
+    if isAITeam then
+        local _, _, _, aiName = spGetAIInfo(teamID)
+        if aiName then
+            local niceName = spGetGameRulesParam('ainame_' .. teamID)
+            if niceName then
+                return niceName
+            else
+                return aiName
+            end
+        else
+            return "AI Team (" .. tostring(teamID)..")"
+        end
+    else
+        local playerID = FindPlayerIDFromTeamID(teamID)
+        if playerID then
+            local playerName, _ = spGetPlayerInfo(playerID, false)
+            return playerName
+        else
+            return "Unknown Team (" .. tostring(teamID)..")"
+        end
+    end
+end
+
+local function unitSale(unitID, price, msgFromTeamID)
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return end
+    local name = getTeamName(msgFromTeamID)
+    if price > 0 then
+        unitsForSale[unitID] = price
+        local msg = Spring.I18N('ui.unitMarket.sellingUnit', { name = name, unitName = unitDef.translatedHumanName, price = price })
+        Print(msg)
+    else
+        ClearUnitData(unitID)
+    end
+end
+
+local function unitSold(unitID, price, old_ownerID, msgFromTeamID)
+    ClearUnitData(unitID)
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return end
+    local old_owner_name = getTeamName(old_ownerID)
+    local new_owner_name = getTeamName(msgFromTeamID)
+    if (old_owner_name and new_owner_name) then
+        local msg = Spring.I18N('ui.unitMarket.unitSold', { oldName = old_owner_name, name = new_owner_name, unitName = unitDef.translatedHumanName, price = price })
+        Print(msg)
+    end
+end
+
+local function unitSaleBroadcast(unitID, price, msgFromTeamID)
+    unitSale(unitID, price, msgFromTeamID)
+end
+
+local function unitSoldBroadcast(unitID, price, old_ownerID, msgFromTeamID)
+    unitSold(unitID, price, old_ownerID, msgFromTeamID)
+end
+
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
@@ -106,21 +240,34 @@ function widget:Initialize()
     if not(Spring.IsReplay() or spGetSpectatingState()) then
 	    widgetHandler:AddAction("sell_unit", OfferToSellAction, nil, 'p')
     end
+	widgetHandler:RegisterGlobal('unitSaleBroadcast', unitSaleBroadcast)
+	widgetHandler:RegisterGlobal('unitSoldBroadcast', unitSoldBroadcast)
 	InitFindSales()
+
+	UiButton = WG.FlowUI.Draw.Button
+	UiElement = WG.FlowUI.Draw.Element
+	elementPadding = WG.FlowUI.elementPadding
+
+    widget:ViewResize()
+end
+
+function widget:Shutdown()
+    widgetHandler:DeregisterGlobal('unitSaleBroadcast')
+    widgetHandler:DeregisterGlobal('unitSoldBroadcast')
+	gl.DeleteList(buttonList)
+	gl.DeleteFont(font)
 end
 
 function widget:PlayerChanged(playerID)
-	if spGetSpectatingState() ~= isSpectating then
-		isSpectating = spGetSpectatingState()
-		InitFindSales()
-	end
-end
-
-function OfferToSell(unitID)
-    spSendLuaRulesMsg("unitOfferToSell " .. unitID) -- Tell gadget we are offering unit for sale
-end
-function OfferToBuy(unitID)
-    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+    myPlayerID = Spring.GetMyPlayerID()
+	if myTeamID ~= Spring.GetMyTeamID() then
+		myTeamID = Spring.GetMyTeamID()
+    end
+    if myAllyTeamID ~= Spring.GetMyAllyTeamID() then
+        myAllyTeamID = Spring.GetMyAllyTeamID()
+    end
+    isSpectating, fullview = spGetSpectatingState()
+    InitFindSales()
 end
 
 function widget:TextCommand(command)
@@ -134,65 +281,9 @@ end
 
 function widget:TextCommand(command)
     if (string.find(command, 'sell_unit') == 1) then
-		toggleSelectedUnitsForSale()
-    end
-end
-
-function ClearUnitData(unitID)
-    -- if unit is no longer sold then remove it from being sold
-    unitsForSale[unitID] = nil
-end
-
-local function FindPlayerIDFromTeamID(teamID)
-    local playerList = spGetPlayerList()
-    for i = 1, #playerList do
-        local playerID = playerList[i]
-        local team = select(6,spGetPlayerInfo(playerID))
-        if team == teamID then
-            return playerID
-        end
-    end
-    return nil
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-    local msgFromTeamID = select(4,spGetPlayerInfo(playerID))
-
-    -- ignore messages from enemies unless you are spec
-    if not (isSpectating or spAreTeamsAllied(msgFromTeamID, myTeamID)) then return end
-
-    local words = {}
-    for word in msg:gmatch("%S+") do
-        table.insert(words, word)
-    end
-
-    if words[1] == "unitForSale" then
-        --Spring.Echo(words) -- debug
-        local unitID = tonumber(words[2])
-        local selling = tonumber(words[3])
-        local unitDefID = spGetUnitDefID(unitID)
-        if not unitDefID then return end
-        local unitDef = UnitDefs[unitDefID]
-        if not unitDef then return end
-        local name,_ = spGetPlayerInfo(playerID, false)
-        if selling > 0 then
-            unitsForSale[unitID] = unitDef.metalCost
-            spEcho(name.." is selling "..unitDef.translatedHumanName.." for "..unitDef.metalCost.." metal.")
-        else
-            ClearUnitData(unitID)
-        end
-    elseif words[1] == "unitSold" then
-        --Spring.Echo(words) -- debug
-        local unitID = tonumber(words[2])
-        local price  = tonumber(words[3])
-        ClearUnitData(unitID)
-        local old_ownerID = FindPlayerIDFromTeamID(tonumber(words[4]))
-        local new_ownerID = FindPlayerIDFromTeamID(tonumber(words[5]))
-        if (old_ownerID and new_ownerID) then
-            local owner_name = select(1,spGetPlayerInfo(new_ownerID, false)) or "unknown"
-            local old_owner_name = select(1,spGetPlayerInfo(old_ownerID, false)) or "unknown"
-            spEcho(old_owner_name.." sold "..unitDef.translatedHumanName.." for "..price.." metal to "..owner_name..".")
-        end
+        local selectedUnits = spGetSelectedUnits()
+        if #selectedUnits <= 0 then return end
+		toggleSelectedUnitsForSale(selectedUnits)
     end
 end
 
@@ -204,25 +295,39 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	ClearUnitData(unitID)
 end
 
-function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+--[[function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	ClearUnitData(unitID)
 end
 
 --function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	--ClearUnitData(unitID)
---end
+--end]] -- believe gadget broadcasts instead
 
 -------------------------------------------------------- UI code ---
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	uiScale = (0.75 + (vsx * vsy / 6000000))
+	buttonX = math.floor(vsx * buttonPosX)
+	buttonY = math.floor(vsy * buttonPosY)
+	orgbuttonW = font:GetTextWidth(sellUnitText) * textSize * uiScale * 1.4
+	buttonW = math.floor(orgbuttonW * uiScale / 2) * 1.4
+	buttonH = math.floor(orgbuttonH * uiScale / 2) * 1.4
+	uiPadding = math.floor(elementPadding * 1.5)
+end
+
 local doubleClickTime = 1 -- Maximum time in seconds between two clicks for them to be considered a double-click
 local maxDistanceForDoubleClick = 10 -- Maximum distance between two clicks for them to be considered a double-click
 local rangeBuy = 30 -- Maximum range for units to buy over a double-click.
+-- TODO - investigate whether players want to double-click and drag to start drawing a circle to buy everything inside circle for mass buying purposes.
 
 local lastClickCoords = nil
 local lastClickTime = nil
 
 function widget:MousePress(mx, my, button)
+    if isSpectating then return false end
+
     local alt, ctrl, meta, shift = spGetModKeyState()
-    if alt and not isSpectating then
+    if alt then
         if button == 1 then
             local _, coords = spTraceScreenRay(mx, my, true)
             if coords ~= nil then
@@ -244,6 +349,7 @@ function widget:MousePress(mx, my, button)
                                 end
                             end
                         end
+                        return #selectedUnits > 0
                         --
                     end
                 end
@@ -253,11 +359,58 @@ function widget:MousePress(mx, my, button)
             end
         end
     end
+    if not (alt or ctrl or shift) then
+        local selectedUnits = spGetSelectedUnits()
+        if (#selectedUnits <= 0) then
+            return false
+        end
+        -- pressing button element
+        if mx > uiElementRect[1] and mx < uiElementRect[3] and my > uiElementRect[2] and my < uiElementRect[4] then
+            -- pressing actual button
+            if mx > buttonRect[1] and mx < buttonRect[3] and my > buttonRect[2] and my < buttonRect[4] then
+                toggleSelectedUnitsForSale(selectedUnits)
+                return true
+            end
+        end
+    end
 end
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local animationDuration = 7
 local animationFrequency = 3
+function widget:DrawScreen()
+	if spIsGUIHidden() or next(unitsForSale) == nil then
+		return
+	end
+    local selectedUnits = spGetSelectedUnits()
+    if (#selectedUnits <= 0) then
+        return
+    end
+
+    local alt, ctrl, meta, shift = spGetModKeyState()
+    gl.DeleteList(buttonList)
+    --gl.Color(1, 0.5, 0, 0.8) 
+    local color = {1, 0.65, 0, 0.8} -- Orange color for button background
+    local mult = 0.15
+    local x, y = spGetMouseState()
+	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+    if not (alt or ctrl or shift) then
+        if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
+            mult = 0.55
+        end
+    else
+        mult = 0.01
+    end
+    buttonList = gl.CreateList(function()
+		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+        UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*mult, color[2]*mult, color[3]*mult, 1 }, { color[1], color[2], color[3], 0.2 })
+    end)
+    gl.CallList(buttonList)
+
+    gl.Color(1, 1, 1, 1)  -- White color for text
+    gl.Text(sellUnitText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), textSize * uiScale, "co")
+end
 function widget:DrawWorld()
 	if spIsGUIHidden() or next(unitsForSale) == nil then
 		return
@@ -285,13 +438,26 @@ function widget:DrawWorld()
 
             local ux, uy, uz = spGetUnitViewPosition(unitID)
 
-            local yellow	= {1.0, 1.0, 0.3, 0.66}
+            local yellow	 = {1.0, 1.0, 0.3, 0.75}
+            local yellowBold = {1.0, 1.0, 0.3, 1.0}
+
+            if see_prices then
+                local msg = unitsForSale[unitID]..'m'
+                gl.PushMatrix()
+                gl.Translate(ux, uy, uz)
+                gl.Billboard()
+                gl.Color(yellowBold)
+                gl.BeginText()
+                gl.Text(msg, 16.0, -2.0, 10.0)
+                gl.EndText()
+                gl.PopMatrix()
+            end
             gl.PushMatrix()
             gl.Translate(ux, uy, uz)
             gl.Billboard()
             gl.Color(yellow)
             gl.BeginText()
-            gl.Text("$", 12.0, 15.0, 24.0)
+            gl.Text('$', 12.0, 15.0, 24.0)
             gl.EndText()
             gl.PopMatrix()
 
