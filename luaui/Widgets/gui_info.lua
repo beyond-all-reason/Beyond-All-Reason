@@ -254,9 +254,10 @@ local function refreshUnitInfo()
 		local function calculateWeaponDPS(def, damage)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
-			unitDefInfo[unitDefID].mindps = newDps + prevMinDps
-			unitDefInfo[unitDefID].maxdps = newDps + prevMaxDps
+			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
+			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
+			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
 
 
