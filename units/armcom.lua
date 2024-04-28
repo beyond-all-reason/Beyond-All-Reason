@@ -41,6 +41,7 @@ return {
 		metalstorage = 500,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
+		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
 		pushresistant = true,

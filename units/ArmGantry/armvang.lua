@@ -25,6 +25,7 @@ return {
 		speed = 33.0,
 		maxwaterdepth = 0,
 		movementclass = "HTBOT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVANG.s3o",
 		script = "Units/ARMVANG.cob",

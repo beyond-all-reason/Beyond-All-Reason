@@ -22,6 +22,7 @@ return {
 		maxslope = 14,
 		speed = 47.4,
 		movementclass = "ABOT2",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",
 		script = "Units/ARMAAK.cob",

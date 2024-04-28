@@ -24,6 +24,7 @@ return {
 		speed = 63.0,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAS.s3o",
 		script = "Units/ARMAAS.cob",
