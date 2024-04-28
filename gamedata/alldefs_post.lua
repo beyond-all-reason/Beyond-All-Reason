@@ -240,20 +240,19 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unbacom then	
 			if uDef.customparams.isunbacom or uDef.customparams.iscommander then
 				uDef.customparams.evolution_timer = modOptions.unbacomleveluprate*60
-			end
-			if  name == "armcom" then
+			elseif  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-			end
-			if name == "corcom" then
+			elseif name == "corcom" then
 				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-			end
-			if name == "legcomlvl4" then
+			elseif name == "legcomlvl3" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
+			elseif name == "legcomlvl4" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl5"

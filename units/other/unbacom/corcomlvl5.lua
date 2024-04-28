@@ -62,7 +62,7 @@ return {
 		upright = true,
 		workertime = 665,
 		buildoptions = {
-						[1] = "cormex",
+			[1] = "cormex",
 			[2] = "coradvsol",
 			[3] = "corwin",
 			[4] = "corgeo",

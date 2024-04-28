@@ -99,7 +99,7 @@ return {
 			[35] = "corrad",
 			[36] = "corfrad",
             [37] = "legstronghold",
-			[38] = "forfdrag",
+			[38] = "corfdrag",
 			[39] = "leglab",
 			[40] = "legvp",
 			[41] = "legap",
