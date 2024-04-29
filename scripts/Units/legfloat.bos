@@ -72,31 +72,6 @@ Wake()
 }
 
 
-HitByWeapon(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
-{
-	Func_Var_4 = Func_Var_3 / 100 * 4;
-	if( Func_Var_4 < 3 )
-	{
-		return (0);
-	}
-	if( Func_Var_4 > 100 )
-	{
-		Func_Var_4 = 100;
-	}
-	turn hull to z-axis Func_Var_2 * Func_Var_4 / <0.549451> speed <85.0>;
-	turn hull to x-axis <0.0> - Func_Var_1 * Func_Var_4 / <0.549451> speed <85.0>;
-	wait-for-turn hull around z-axis;
-	wait-for-turn hull around x-axis;
-	turn hull to z-axis <0.0> speed <85.0> / <0.021978>;
-	turn hull to x-axis <0.0> speed <85.0> / <0.021978>;
-}
-
-HitByWeaponId(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
-{
-	start-script HitByWeapon(Func_Var_4,Func_Var_2,Func_Var_1);
-	return (100);
-}
-
 StartMoving(reversing)
 {
 	start-script Steering();

@@ -3,7 +3,7 @@
 
 piece  base, ground, wake1, wake2, turret, sleeve, barrel1, flare1, barrel2, flare2, barrel3, flare3;
 		
-static-var  gun_1, restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
+static-var  gun_1, restore_delay, aimDir, oldHead;
 
 // Signal definitions
 #define SIGNAL_AIM1 256

@@ -85,7 +85,7 @@ Create()
 {
 	hide flare;
 	isOpen = 0;
-	restore_delay = 2000;
+	restore_delay = 6000;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 	//start-script Movement();
@@ -103,10 +103,7 @@ StopMoving()
   	signal SIGNAL_MOVE;
 	STOP_TILTBANK;
 }
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 6000;
-}
+
 
 static-var  Stunned;
 

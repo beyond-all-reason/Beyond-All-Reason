@@ -98,39 +98,39 @@ FireWeapon2()
 	return (0);
 }
 
-AimFromWeapon2(Func_Var_1)
+AimFromWeapon2(pieceIndex)
 {
-	Func_Var_1 = turret;
+	pieceIndex = turret;
 	return (0);
 }
 
-QueryWeapon2(Func_Var_1)
+QueryWeapon2(pieceIndex)
 {
 	if( gunStatus == 1 )
 	{
-		Func_Var_1 = flare1;
+		pieceIndex = flare1;
 	}
 	if( gunStatus == 2 )
 	{
-		Func_Var_1 = flare1;
+		pieceIndex = flare1;
 	}
 	return (0);
 }
 
-AimFromWeapon1(Func_Var_1)
+AimFromWeapon1(pieceIndex)
 {
-	Func_Var_1 = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon1(Func_Var_1)
+QueryWeapon1(pieceIndex)
 {
 	if( gunStatus == 1 )
 	{
-		Func_Var_1 = flare1;
+		pieceIndex = flare1;
 	}
 	if( gunStatus == 2 )
 	{
-		Func_Var_1 = flare1;
+		pieceIndex = flare1;
 	}
 }
 

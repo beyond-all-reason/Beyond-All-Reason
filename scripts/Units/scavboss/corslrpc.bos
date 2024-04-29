@@ -3,7 +3,7 @@
 
 piece  base, flare, flareb, turret, gun, bore, cylinder, barrel, wake1;
 
-static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir;
+static-var  restore_delay, aimDir;
 
 // Signal definitions
 #define SIGNAL_MOVE 1

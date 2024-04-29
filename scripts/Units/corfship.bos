@@ -34,7 +34,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 #include "../bar_ships_common.h"
 
 
-PilotLight(Func_Var_1)
+PilotLight()
 {
 	while( TRUE )
 	{
@@ -58,10 +58,6 @@ Create()
 	start-script PilotLight();
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 3000;
-}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

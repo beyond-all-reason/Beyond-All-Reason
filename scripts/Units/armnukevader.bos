@@ -19,12 +19,11 @@ walkscr()
 	}
 }
 
-Movement(Func_Var_1)
+Movement()
 {
 	while( TRUE )
 	{
-		Func_Var_1 = isMoving;
-		if( Func_Var_1 )
+		if( isMoving )
 		{
 			call-script walkscr();
 		}
