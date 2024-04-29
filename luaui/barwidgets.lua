@@ -202,7 +202,8 @@ local callInLists = {
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
 	'AlliedUnitsChanged',
-	'UnitOfferToSell'
+	'UnitOfferToSell',
+	'UnitTryToBuy'
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2428,6 +2429,12 @@ end
 function widgetHandler:UnitOfferToSell(unitID, price)
 	if (unitID ~= nil) then
 		Spring.SendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. (price or 0))
+	end
+end
+
+function widgetHandler:UnitTryToBuy(unitID)
+	if (unitID ~= nil) then
+		Spring.SendLuaRulesMsg("unitTryToBuy " .. unitID)
 	end
 end
 

@@ -137,7 +137,8 @@ CallInsList = {
 
 	"LanguageChanged",
 
-	'UnitOfferToSell'
+	"UnitOfferToSell",
+	"UnitTryToBuy"
 }
 
 CallInsMap = {}

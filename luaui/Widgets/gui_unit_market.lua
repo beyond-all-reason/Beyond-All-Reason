@@ -128,7 +128,9 @@ local function OfferToSellAction()
 end
 
 local function OfferToBuy(unitID)
-    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+    if Script.LuaUI('UnitTryToBuy') then
+        Script.LuaUI.UnitTryToBuy(unitID) -- Tell gadget we are buying (or trying to)
+    end
 end
 
 local function ClearUnitData(unitID) -- if unit is no longer sold then remove it from being sold
