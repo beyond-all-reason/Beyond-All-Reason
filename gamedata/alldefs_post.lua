@@ -237,10 +237,9 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unbacom then	
-			if uDef.customparams.isunbacom or uDef.customparams.iscommander then
-
-				uDef.customparams.evolution_timer = modOptions.unbacomleveluprate*60
+		if modOptions.evocom then	
+			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
 				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5

@@ -1219,7 +1219,7 @@ local options = {
     },
     
     {
-        key 	= "unbacom",
+        key 	= "evocom",
         name 	= "Evolving Commanders",
         type 	= "bool",
         def 	= false,
@@ -1227,7 +1227,7 @@ local options = {
     },
 
     {
-        key    	= "unbacomleveluprate",
+        key    	= "evocomleveluprate",
         name   	= "Commander Evolution Rate",
         desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",

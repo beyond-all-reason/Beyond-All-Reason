@@ -1154,7 +1154,7 @@ addNewSquad({ type = "airLand", minAnger = 65, units = { "40 armfig_scav","40 co
 addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 2, maxAnger = 100}) --T2 Gunships
 
 
--- Unbacoms
+-- evocoms
 addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 armcom_scav",}, weight = 1, maxAnger = 50})
 addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 corcom_scav",}, weight = 1, maxAnger = 50})
 addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 legcom_scav",}, weight = 1, maxAnger = 50})
