@@ -29,6 +29,7 @@
 //  - Recoil: Store the aim directions of weapons from AimWeaponX in static-vars, and pass them into 
 //		- start/call-script RecoilRockBoat(heading,power,sleep); 
 //		- Directly add energy into the system via RB_RECOILBOAT(heading, power)
+//      -- OR set #define RB_ROCKUNIT 100 to recoil on all shots
 //	- Set the usual UNITSIZE (default (WIDTH+LENGTH)/2) and MAXTILT for HitByWeapon
 
 // Notes, Todo etc:
@@ -85,6 +86,12 @@
 #ifndef RB_WIDTH
 	#define RB_WIDTH 3
 #endif
+
+// How strongly the ship will pitch back and forth with high speed travel
+#ifndef RB_PITCH_SPEED
+	#define RB_PITCH_SPEED 100
+#endif
+
 
 // How strongly the ship will pitch back and forth with forward acceleration
 #ifndef RB_PITCH_ACCELERATION
@@ -173,6 +180,10 @@
 	#define RB_IDLE_KICK 5000
 #endif
 
+#ifndef RB_IDLE_THRESHOLD
+    #define RB_IDLE_THRESHOLD 32
+#endif
+
 
 //------------------- OPTIONAL DEFINES ------------------
 
@@ -248,11 +259,9 @@ BoatPhysics(){
 	turn RB_BASE to z-axis RB_roll  now;
 	
 	var currHeading, currSpeed, prevHeading_delta, prevSpeed_delta;	
-	prevSpeed_delta = get (CURRENT_SPEED);
-	prevHeading_delta = get (HEADING);
+	prevSpeed_delta = (1024  * get (CURRENT_SPEED) ) / maxSpeed;
+	prevHeading_delta = WRAPDELTA(get (HEADING));
 
-	var curr_bounce;
-	curr_bounce = 0;
 	var cos_bounce;
 	cos_bounce = 0;
 
@@ -260,9 +269,9 @@ BoatPhysics(){
 	wake_freq = 0;
 
 	while (1){
-		
 		// Get Speed and Heading, store the deltas
-		currSpeed =   get (CURRENT_SPEED); // usually around 100,000
+        // currSpeed is relative, 1024x
+		currSpeed =   (1024 * (get (CURRENT_SPEED))) / maxSpeed; // usually around 100,000
 		prevSpeed_delta = currSpeed - prevSpeed_delta;
 
 		currHeading = get (HEADING);
@@ -270,10 +279,11 @@ BoatPhysics(){
 
 		// Move the pitch target backwards when going fast
 		// And keep it back when going fast
-		torque_pitch = -2 *( RB_PITCH_ACCELERATION* prevSpeed_delta + currSpeed) ;
+		torque_pitch = (-1 * RB_PITCH_SPEED) *( RB_PITCH_ACCELERATION * prevSpeed_delta + currSpeed) ;
 		
 		// Roll the boat more when turning at high speed
-		torque_roll = RB_ROLL_ACCELERATION * (prevHeading_delta/ RB_FRAMES) * ((RB_PRECISION* (currSpeed + maxSpeed)) / maxSpeed);
+		torque_roll = RB_ROLL_ACCELERATION * (prevHeading_delta * currSpeed) / (4 * RB_FRAMES) ;
+        //dbg(torque_roll,prevHeading_delta, currSpeed);
 
 		// Save the curr heading and speed, as we wont be using them again
 		prevHeading_delta = currHeading;
@@ -287,7 +297,7 @@ BoatPhysics(){
 		RB_pitch_velocity = RB_pitch_velocity +  (torque_pitch  / (RB_INERTIA_PITCH * RB_FRAMES ));
 		RB_roll_velocity  = RB_roll_velocity  +  (torque_roll   / (RB_INERTIA_ROLL  * RB_FRAMES )) ;
 		
-        //dbg(torque_pitch, RB_pitch_velocity, RB_pitch);
+
 		// Simple damping to simulate resistance from water and air
 		// OVERFLOW WARNING HERE ON LOW DAMPFACTOR: NEGATIVE SUBTRACTIONS HERE!
 		RB_pitch_velocity =  (RB_pitch_velocity * (256 -  (RB_FRAMES * RB_PITCH_DAMPING) - (get ABS(RB_pitch_velocity))/(RB_DAMPFACTOR/ RB_FRAMES)))/256  ;
@@ -299,7 +309,7 @@ BoatPhysics(){
 		
 		// emit a wakesplash on up and down bounce
 		// increment bounce phase and modulo it
-		if (currSpeed> 0){
+		if (currSpeed != 0){
 			RB_bounce_frame = ((RB_bounce_frame + (RB_FRAMES * RB_BOUNCE_PERIOD)) % <360>);
 
             #ifdef RB_BOWSPLASH_PIECE
@@ -331,18 +341,19 @@ BoatPhysics(){
 			// Start at the -1 point of the cosine with + <180>
 			cos_bounce = (get KCOS(RB_bounce_frame + <180>) + 1024);
 
-			curr_bounce = RB_BOUNCE_HEIGHT * ((256 * currSpeed) / maxSpeed)/ 256;
+            // Weight it with current speed
+			cos_bounce = cos_bounce * ((RB_BOUNCE_HEIGHT / 1024) * currSpeed) ;
 
-			move RB_BASE to y-axis curr_bounce * cos_bounce / 1024 speed [500];
+			move RB_BASE to y-axis cos_bounce / 1024 speed [500];
 		}
 		//If we are stationary, give us a kick
 		else
 		{
-			if (ABSOLUTE_LESS_THAN(RB_pitch_velocity, 16)) {
+			if (ABSOLUTE_LESS_THAN(RB_pitch_velocity, RB_IDLE_THRESHOLD)) {
 				RB_pitch_velocity = Rand(-1 *  RB_IDLE_KICK, RB_IDLE_KICK);
 			}
 
-			if (ABSOLUTE_LESS_THAN(RB_roll_velocity, 16)) {
+			if (ABSOLUTE_LESS_THAN(RB_roll_velocity, RB_IDLE_THRESHOLD)) {
 				RB_roll_velocity =  Rand(-1 * RB_IDLE_KICK, RB_IDLE_KICK);
 			}
 		}
@@ -399,6 +410,16 @@ HitByWeaponId(anglex, anglez, weaponid, damage)
 	return (100); //return damage percent
 }
 
+#ifdef RB_ROCKUNIT
+RockUnit(anglex, anglez)
+{
+    #ifdef RB_ROCKUNIT_SLEEP
+        sleep RB_ROCKUNIT_SLEEP;
+    #endif
+	RB_pitch_velocity = RB_pitch_velocity + (anglex * RB_ROCKUNIT) ;
+	RB_roll_velocity  = RB_roll_velocity  - (anglez * RB_ROCKUNIT) ;
+}
+#endif
 
 DamagedSmoke() 
 {
@@ -411,8 +432,6 @@ DamagedSmoke()
 			isSmoking = 0;
 			return;
 		}
-
-		if (current_health_pct < 4) current_health_pct = 4;
 
 		// Less health means blacker smoke
 		if( Rand(1,65) < current_health_pct ) {
