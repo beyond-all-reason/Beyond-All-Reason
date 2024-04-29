@@ -74,8 +74,8 @@ local unitsForSale = {} -- Array to store units offered for sale {UnitID => meta
 
 -- button vars
 local sellUnitText = Spring.I18N('ui.unitMarket.sellUnit') or "Sell Unit"
-local buttonPosX = 0.41
-local buttonPosY = 0.066
+local buttonPosX = 0.8
+local buttonPosY = 0.94
 local UiButton, UiElement
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -107,6 +107,36 @@ local function OfferToSell(unitID)
     if not unitDef then return end -- ?
     local price = unitDef.metalCost
     spSendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. price) -- Tell gadget we are offering unit for sale
+end
+
+local function toggleSelectedUnitsForSale(selectedUnits)
+	local anyUnitForSale = false
+	for _, unitID in ipairs(selectedUnits) do
+		if unitsForSale[unitID] then
+			anyUnitForSale = true
+			OfferToSell(unitID)
+		end
+	end
+	if not anyUnitForSale then
+		for _, unitID in ipairs(selectedUnits) do
+			OfferToSell(unitID)
+		end
+	end
+end
+
+local function OfferToSellAction()
+    local selectedUnits = spGetSelectedUnits()
+    if #selectedUnits <= 0 then return end
+    toggleSelectedUnitsForSale(selectedUnits)
+end
+
+local function OfferToSellHandle(_, _, args, data) -- Try to sell first param unitID, otherwise try to sell selectedUnits
+    local unitID = args[1]
+    if spValidUnitID(unitID) and spGetUnitTeam(unitID) == myTeamID then
+        OfferToSell(unitID)
+    elseif unitID == nil then
+        OfferToSellAction()
+    end
 end
 
 local function OfferToBuy(unitID)
@@ -141,21 +171,6 @@ local function InitFindSales()
             end
         end
     end
-end
-
-local function toggleSelectedUnitsForSale(selectedUnits)
-	local anyUnitForSale = false
-	for _, unitID in ipairs(selectedUnits) do
-		if unitsForSale[unitID] then
-			anyUnitForSale = true
-			OfferToSell(unitID)
-		end
-	end
-	if not anyUnitForSale then
-		for _, unitID in ipairs(selectedUnits) do
-			OfferToSell(unitID)
-		end
-	end
 end
 
 local function FindPlayerIDFromTeamID(teamID)
@@ -239,7 +254,8 @@ function widget:Initialize()
     end
 	-- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
     if not(Spring.IsReplay() or spGetSpectatingState()) then
-	    widgetHandler:AddAction("sell_unit", OfferToSellAction, nil, 'p')
+	    widgetHandler:AddAction("sell_unit", OfferToSellHandle, nil, 'p')
+	    widgetHandler:AddAction("sell", OfferToSellHandle, nil, 'p')
     end
 	widgetHandler:RegisterGlobal('unitSaleBroadcast', unitSaleBroadcast)
 	widgetHandler:RegisterGlobal('unitSoldBroadcast', unitSoldBroadcast)
@@ -272,19 +288,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, 'sell_unit') == 1) then
-        local selectedUnits = spGetSelectedUnits()
-        for _, unitID in ipairs(selectedUnits) do
-            OfferToSell(unitID)
-        end
-    end
-end
-
-function widget:TextCommand(command)
-    if (string.find(command, 'sell_unit') == 1) then
-        local selectedUnits = spGetSelectedUnits()
-        if #selectedUnits <= 0 then return end
-		toggleSelectedUnitsForSale(selectedUnits)
+    if (string.find(command, 'sell_unit') == 1) or (string.find(command, 'sell') == 1) then
+        OfferToSellAction()
     end
 end
 
