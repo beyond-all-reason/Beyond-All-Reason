@@ -101,9 +101,7 @@ local buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX +
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
 -- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
 local function OfferToSell(unitID)
-    if Script.LuaUI('UnitOfferToSell') then
-        Script.LuaUI.UnitOfferToSell(unitID, _) -- Tell gadget we are offering unit for sale
-    end
+    Spring.SendLuaRulesMsg("unitOfferToSell " .. unitID) -- Tell gadget we are offering unit for sale
 end
 
 local function toggleSelectedUnitsForSale(selectedUnits)
@@ -128,9 +126,7 @@ local function OfferToSellAction()
 end
 
 local function OfferToBuy(unitID)
-    if Script.LuaUI('UnitTryToBuy') then
-        Script.LuaUI.UnitTryToBuy(unitID) -- Tell gadget we are buying (or trying to)
-    end
+    Spring.SendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
 end
 
 local function ClearUnitData(unitID) -- if unit is no longer sold then remove it from being sold
@@ -229,11 +225,11 @@ local function unitSold(unitID, price, old_ownerID, msgFromTeamID)
     end
 end
 
-local function unitSaleBroadcast(unitID, price, msgFromTeamID)
+function widget:UnitSale(unitID, price, msgFromTeamID)
     unitSale(unitID, price, msgFromTeamID)
 end
 
-local function unitSoldBroadcast(unitID, price, old_ownerID, msgFromTeamID)
+function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
 end
 
@@ -241,10 +237,8 @@ function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
         widgetHandler:RemoveWidget() -- not enabled? shutdown
-    end
-	-- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
-	widgetHandler:RegisterGlobal('unitSaleBroadcast', unitSaleBroadcast)
-	widgetHandler:RegisterGlobal('unitSoldBroadcast', unitSoldBroadcast)
+    end -- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
+
 	InitFindSales()
 
 	UiButton = WG.FlowUI.Draw.Button
@@ -255,8 +249,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    widgetHandler:DeregisterGlobal('unitSaleBroadcast')
-    widgetHandler:DeregisterGlobal('unitSoldBroadcast')
 	gl.DeleteList(buttonList)
 	gl.DeleteFont(font)
 end

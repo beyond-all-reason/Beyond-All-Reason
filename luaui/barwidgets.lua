@@ -202,8 +202,8 @@ local callInLists = {
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
 	'AlliedUnitsChanged',
-	'UnitOfferToSell',
-	'UnitTryToBuy'
+	'UnitSale',
+	'UnitSold'
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2426,16 +2426,22 @@ end
 --  Unit Market
 --
 
-function widgetHandler:UnitOfferToSell(unitID, price)
-	if (unitID ~= nil) then
-		Spring.SendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. (price or 0))
+function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSale")
+	for _, w in ipairs(self.UnitSaleList) do
+		w:UnitSale(unitID, price, msgFromTeamID)
 	end
+	tracy.ZoneEnd()
+	return
 end
 
-function widgetHandler:UnitTryToBuy(unitID)
-	if (unitID ~= nil) then
-		Spring.SendLuaRulesMsg("unitTryToBuy " .. unitID)
+function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSold")
+	for _, w in ipairs(self.UnitSoldList) do
+		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
+	tracy.ZoneEnd()
+	return
 end
 
 --------------------------------------------------------------------------------

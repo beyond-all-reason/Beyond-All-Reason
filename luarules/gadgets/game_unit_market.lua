@@ -74,12 +74,12 @@ local function getAIdiscount(newTeamID, oldTeamID, price)
 end
 
 
-local function unitSaleBroadcast(unitID, price, msgFromTeamID)
-    SendToUnsynced("unitSaleBroadcast",  unitID, price, msgFromTeamID)
+local function UnitSale(unitID, price, msgFromTeamID)
+    SendToUnsynced("UnitSale",  unitID, price, msgFromTeamID)
 end
 
-local function unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
-    SendToUnsynced("unitSoldBroadcast", unitID, price, old_ownerTeamID, msgFromTeamID)
+local function UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
+    SendToUnsynced("UnitSold", unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
 local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
@@ -101,7 +101,7 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     if not selling then
         price = 0
     end
-    unitSaleBroadcast(unitID, price, msgFromTeamID)
+    UnitSale(unitID, price, msgFromTeamID)
 end
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
@@ -132,7 +132,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     end
     spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
     removeSale(unitID)
-    unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+    UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
@@ -191,13 +191,13 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 
             -- possible TODO, maybe forbid AI from selling you its metal extractors?
             setUnitOnSale(unitID, price, false)
-            unitSaleBroadcast(unitID, price, newTeamID)
+            UnitSale(unitID, price, newTeamID)
 
             return
         end
     end
     removeSale(unitID)
-    unitSaleBroadcast(unitID, 0, newTeamID)
+    UnitSale(unitID, 0, newTeamID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
@@ -212,7 +212,7 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 
             local price = unitDef.metalCost
             setUnitOnSale(unitID, price, false)
-            unitSaleBroadcast(unitID, price, teamID)
+            UnitSale(unitID, price, teamID)
         end
     end
 end
@@ -237,7 +237,7 @@ function gadget:Initialize()
                     if unitDef and unitDef.metalCost >= 0 then
                         local price = unitDef.metalCost
                         setUnitOnSale(unitID, price, false)
-                        unitSaleBroadcast(unitID, price, teamID)
+                        UnitSale(unitID, price, teamID)
                     end
                 end
             end
@@ -267,13 +267,13 @@ else
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("unitSaleBroadcast", handleSaleEvent)
-		gadgetHandler:AddSyncAction("unitSoldBroadcast", handleSoldEvent)
+		gadgetHandler:AddSyncAction("UnitSale", handleSaleEvent)
+		gadgetHandler:AddSyncAction("UnitSold", handleSoldEvent)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction("unitSaleBroadcast")
-		gadgetHandler:RemoveSyncAction("unitSoldBroadcast")
+		gadgetHandler:RemoveSyncAction("UnitSale")
+		gadgetHandler:RemoveSyncAction("UnitSold")
 	end
 
 	function handleSaleEvent(_, unitID, price, msgFromTeamID)
@@ -281,8 +281,8 @@ else
 		if not spec or not fullView then
             if not spAreTeamsAllied(msgFromTeamID, myTeamID) then return end
 		end
-		if Script.LuaUI("unitSaleBroadcast") then
-			Script.LuaUI.unitSaleBroadcast(unitID, price, msgFromTeamID)
+		if Script.LuaUI("UnitSale") then
+			Script.LuaUI.UnitSale(unitID, price, msgFromTeamID)
 		end
 	end
 
@@ -291,8 +291,8 @@ else
 		if not spec or not fullView then
             if not spAreTeamsAllied(msgFromTeamID, myTeamID) then return end
 		end
-		if Script.LuaUI("unitSoldBroadcast") then
-			Script.LuaUI.unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+		if Script.LuaUI("UnitSold") then
+			Script.LuaUI.UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 		end
 	end
 end
