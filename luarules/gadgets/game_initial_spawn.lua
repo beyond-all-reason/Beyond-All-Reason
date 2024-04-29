@@ -506,10 +506,12 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				elseif msg == "send_me_the_info_again" then -- someone luaui /reload'ed, send them the queue and index again
-					if draftMode ~= "fair" and allyTeamIsInGame[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] then
+					if allyTeamIsInGame[allyTeamID] then
 						Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID)
-						SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
-						sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false)
+						if draftMode ~= "fair" and allyTeamSpawnOrderPlaced[allyTeamID] then
+							SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
+							sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false)
+						end
 					end
 				end
 			end
