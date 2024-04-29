@@ -45,10 +45,12 @@ local immediate = true
 local persist = true
 local verbose = true
 
+local rejectedUnits = {} -- contains units, which didn't load like legion in non-legion games
 
 local presets = {} -- contains ten "presets", which can be used like unit2group
 for i = 0, 9 do
 	presets[i] = {}
+	rejectedUnits[i] = {}
 end
 local unit2group = presets[currPreset] -- list of unit types to group
 
@@ -372,6 +374,9 @@ function widget:GetConfigData()
 			for id, gr in pairs(preset) do
 				table.insert(groups, { UnitDefs[id].name, gr })
 			end
+			for name, gr in pairs(rejectedUnits[i]) do
+				table.insert(groups, { name, gr })
+			end
 		end
 		savePresets[i] = groups
 	end
@@ -426,6 +431,8 @@ function widget:SetConfigData(data)
 						local gr = UnitDefNames[group[1]]
 						if gr then
 							presets[p][gr.id] = tonumber(group[2])
+						else
+							rejectedUnits[p][group[1]] = tonumber(group[2])
 						end
 					end
 				end
