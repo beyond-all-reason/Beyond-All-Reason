@@ -8,73 +8,15 @@ piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake1,
        flare4a, flare4b, flare5, flare6,barrel6,sleeves5,sleeves6,barrel5,barrel2,sleeves2,
        jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, restore_delay, 
-			Static_Var_7, Static_Var_8, aimDir;
+static-var  gun_1, gun_2, gun_3, restore_delay, aimDir;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
 
 
-//RockOnWaves()
-//{
-//	var rockDir, rockAng, rockSpeed;
-//	rockDir = <-0.1>;
-//	rockAng = <-0.1>;
-//	while( TRUE )
-//	{
-//		while( get ABS(rockAng) < <1.11> )
-//		{
-//			rockSpeed = <1.25> - get ABS(rockAng);
-//			turn base to x-axis rockAng speed rockSpeed*2;
-//			wait-for-turn base around x-axis;
-//			rockAng = rockAng + rockDir;
-//		}
-//		rockDir = 0 - rockDir;
-//		rockAng = rockAng + rockDir + rockDir;
-//	}
-//}
 
 
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
 
-//RockZ(Func_Var_1, Func_Var_2)
-//{
-//	signal 16;
-//	set-signal-mask 16;
-//	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-//	Static_Var_8 = Static_Var_8 + Static_Var_7;
-//	Static_Var_7 = get ABS(Static_Var_8);
-//	while( Static_Var_7 > 91 )
-//	{
-//		turn base to z-axis Static_Var_8 speed Static_Var_7 * 2;
-//		wait-for-turn base around z-axis;
-//		Static_Var_8 = Static_Var_8 * -1 / 2;
-//		Static_Var_7 = get ABS(Static_Var_8);
-//	}
-//	turn base to z-axis <0.0> speed <1.5>;
-//}
 
 
 #include "../../damagedsmoke.h"
@@ -105,9 +47,9 @@ Create()
 	turn jetr1 to x-axis <-90.0> now;
 	turn jetl2 to x-axis <-90.0> now;
 	turn jetr2 to x-axis <-90.0> now;
-	Static_Var_1 = 0;
-	Static_Var_3 = 0;
-	Static_Var_2 = 0;
+	gun_1 = 0;
+	gun_3 = 0;
+	gun_2 = 0;
 	restore_delay = 3000;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
@@ -251,7 +193,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = flare1a + Static_Var_1;
+	pieceIndex = flare1a + gun_1;
 }
 
 AimWeapon1(heading, pitch)
@@ -270,38 +212,38 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	//start-script RockZ(-5, aimDir);
-	if( Static_Var_1 == 0 )
+	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1a;
 		move barrel1a to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1a to z-axis [0.0] speed [3.0];
 	}
-	else if( Static_Var_1 == 1 )
+	else if( gun_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1b;
 		move barrel1b to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1b to z-axis [0.0] speed [3.0];
 	}
-	else if( Static_Var_1 == 2 )
+	else if( gun_1 == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare1c;
 		move barrel1c to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1c to z-axis [0.0] speed [3.0];
 	}
-	else if( Static_Var_1 == 3 )
+	else if( gun_1 == 3 )
 	{
 	    emit-sfx 1024 + 0 from flare1d;
 		move barrel1d to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1d to z-axis [0.0] speed [3.0];
 	}
-	++Static_Var_1;
-	if( Static_Var_1 >= 4 )
+	++gun_1;
+	if( gun_1 >= 4 )
 	{
-		Static_Var_1 = 0;
+		gun_1 = 0;
 	}
 }
 
@@ -344,7 +286,7 @@ AimFromWeapon3(pieceIndex)
 
 QueryWeapon3(pieceIndex)
 {
-	pieceIndex = flare3a + Static_Var_2;
+	pieceIndex = flare3a + gun_2;
 }
 
 AimWeapon3(heading, pitch)
@@ -361,7 +303,7 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	Static_Var_2 = !Static_Var_2;
+	gun_2 = !gun_2;
 }
 
 AimFromWeapon4(pieceIndex)
@@ -435,7 +377,7 @@ AimFromWeapon6(pieceIndex)
 
 QueryWeapon6(pieceIndex)
 {
-	pieceIndex = flare4a + Static_Var_3;
+	pieceIndex = flare4a + gun_3;
 }
 
 AimWeapon6(heading, pitch)
@@ -452,7 +394,7 @@ AimWeapon6(heading, pitch)
 
 FireWeapon6()
 {
-	Static_Var_3 = !Static_Var_3;
+	gun_3 = !gun_3;
 }
 
 Killed(severity, corpsetype)

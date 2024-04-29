@@ -3,17 +3,13 @@
 
 piece  base, ground, wake1, wake2, turret, sleeve, flare, mturret, mbarrel, flare1, flare2, flare3;
 		
-static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead, gun_1;
+static-var  restore_delay, aimDir, oldHead, gun_1;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
-{
-	return 0;
-}
 
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
@@ -21,73 +17,22 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
   return 0;
 }
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 3
-#define MAXTILT 200
+#define RB_MASS 30
+#define RB_LENGTH 7
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 100
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 8
+#define RB_ROCKUNIT 5
+#define RB_WAKE_PIECE wake1
+#define RB_WAKE_CEG 1024 + 0
+#define RB_IDLE_KICK 5000
+#define RB_RECOIL_ENERGY_1 100
+#define RB_BOWSPLASH_PIECE wake2
+#define RB_BOWSPLASH_CEG 1024 + 1
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "../bar_ships_common.h"
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 4096;
-	set-signal-mask 4096;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.0> speed <1.5>;
-}
 
 PilotLight(Func_Var_1)
 {
@@ -107,8 +52,9 @@ Create()
 	hide ground;
 	gun_1 = 1;
 	restore_delay = 3000;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script BoatPhysics();
 	start-script PilotLight();
 }
 
@@ -140,43 +86,14 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.32] speed [0.25];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.25];
-		wait-for-turn base around x-axis;
-	}
-}
-
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake1;
-		if (bowtime) emit-sfx 1024 + 1 from wake2;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 10000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.25];
+
 }
 
 AimWeapon1(heading, pitch)
@@ -201,13 +118,11 @@ Shot1()
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = sleeve;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 AimWeapon2(heading, pitch)
@@ -224,12 +139,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	++gun_1;
-	if( gun_1 == 4 )
-	{
-		gun_1 = 1;
-	}
-	return (0);
+	gun_1 = (gun_1 + 1) % 3;
 }
 
 AimFromWeapon2(pieceIndex)
@@ -240,19 +150,7 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon2(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare1;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = flare2;
-	}
-	if( gun_1 == 3 )
-	{
-		pieceIndex = flare3;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
 

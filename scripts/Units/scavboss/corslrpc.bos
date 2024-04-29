@@ -9,97 +9,17 @@ static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir;
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 7
-#define MAXTILT 200
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_PIECE wake1
+#define RB_WAKE_CEG 2
+#define RB_ROCKUNIT 100
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../../bar_ships_common.h"
 
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 4096;
-	set-signal-mask 4096;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.0> speed <1.5>;
-}
-
-
-
-#include "../../damagedsmoke.h"
 
 Create()
 {
@@ -109,8 +29,9 @@ Create()
 	hide flare;
 	hide flareb;
 	restore_delay = 3000;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
+	start-script BoatPhysics();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -143,20 +64,12 @@ RestoreAfterDelay()
 
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 2 from wake1;
-		sleep 300;
-	}
-	return (0);
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	return (0);
+
 }
 
 AimWeapon1(heading, pitch)
@@ -173,7 +86,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	start-script RockZ(-3,aimDir);
 	move barrel to z-axis [-7.500000] speed [500.0];
 	move gun to z-axis [-4.0] speed [500.0];
 	wait-for-move barrel along z-axis;

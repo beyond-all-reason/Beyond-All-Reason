@@ -4,9 +4,9 @@
 piece  flarea, barrelb1, barrelb2, barrelb3, base, guna, turreta, turretb,
        flareb1, flareb2, flareb3, wake, bow, sleeveb1, sleeveb2, sleeveb3, sleevea, barrela1, barrela2, barrela3;
 
-static-var  gun_2, restore_delay, Static_Var_7, Static_Var_8;
+static-var  gun_2, restore_delay;
 static-var reloading_barrel_1, reloading_barrel_2;
-static-var deltaheading, newchassisheading, chassisheading, restore_position;
+static-var deltaheading, newchassisheading, chassisheading, restore_position, aimDir1;
 // Signal definitions
 #define SIGNAL_AIM1	256
 #define SIGNAL_AIM2 512
@@ -14,74 +14,20 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position;
 #define SIGNAL_AIM4 2048
 #define SIGNAL_MOVE 1
 
-#define BASEPIECE base
-#define HITSPEED <20.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 10
-#define MAXTILT 200
+#define RB_MASS 40
+#define RB_LENGTH 10
+#define RB_WIDTH 4
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 16
+#define RB_RECOIL_ENERGY_1 150
+#define RB_RECOIL_ENERGY_2 150
+#define RB_BOWSPLASH_PIECE bow
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.11> )
-		{
-			rockSpeed = <1.25> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*2;
-			wait-for-turn base around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../bar_ships_common.h"
 
 
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 64;
-	set-signal-mask 64;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * 2;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.0> speed <1.5>;
-}
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -133,7 +79,7 @@ AimControl()
 		if (Stunned == 0){
 
 			// apply correction for chassis turning
-			newchassisheading = GET 82; //get heading
+			newchassisheading = get HEADING; //get heading
 			deltaheading = newchassisheading - chassisheading;
 			chassisheading = newchassisheading;
 			aimy1target = aimy1target - deltaheading;
@@ -221,7 +167,7 @@ Create()
 	hide flareb3;
 	gun_2 = 1;
 
-	chassisheading = GET 82; //get heading
+	chassisheading = get HEADING;
 	newchassisheading = chassisheading;
 	deltaheading = 0;
 
@@ -232,8 +178,10 @@ Create()
 	aimy1delta = 0;
 
 	restore_delay = 3000;	
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script BoatPhysics();
+
 	start-script AimControl();
 }
 
@@ -247,12 +195,13 @@ AimWeapon1(heading, pitch)
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	aimDir1 = heading;
 
 	//We can do this any time
 	restore_position = 0;
-	turn sleeveb1 to x-axis <0.0> - pitch speed <30.0>;
-	turn sleeveb2 to x-axis <0.0> - pitch speed <30.0>;
-	turn sleeveb3 to x-axis <0.0> - pitch speed <30.0>;
+	turn sleeveb1 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
+	turn sleeveb2 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
+	turn sleeveb3 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
 	start-script RestoreAfterDelay();
 
 	// let AimControl know what to aim at
@@ -316,43 +265,16 @@ RestoreLaser()
 	turn turreta to y-axis <0.0> speed <100.0>;
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
-	}
-}
+
 
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from bow;
-        bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <1.0>;
-	move base to y-axis [0.0] speed [0.17];
+
 }
 
 AimWeapon4(heading, pitch)
@@ -385,8 +307,7 @@ FireWeapon4()
 		turn guna to z-axis <-120.027473> speed <400.0>;
 		wait-for-turn guna around z-axis;
 	}
-	++gun_2;
-	if( gun_2 >= 3 ) gun_2 = 0;
+	gun_2 = (gun_2 + 1 ) % 3;
 }
 
 FireWeapon1()
@@ -395,11 +316,11 @@ FireWeapon1()
 	get WEAPON_RELOADSTATE(-2,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(2)));
 	get WEAPON_RELOADSTATE(-3,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(3)));
 
-	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb1;
 	move barrelb1 to z-axis [-5.0] now; // [-2.500000]
 	sleep 100;
 	move barrelb1 to z-axis [0.0] speed [2.0];
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 
 }
 
@@ -409,11 +330,11 @@ FireWeapon2()
 	get WEAPON_RELOADSTATE(-1,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(1)));
 	get WEAPON_RELOADSTATE(-3,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(3)));
 
-	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb2;
 	move barrelb2 to z-axis [-5.0] now;
 	sleep 100;
 	move barrelb2 to z-axis [0.0] speed [2.0];
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 
 }
 
@@ -423,11 +344,11 @@ FireWeapon3()
 	get WEAPON_RELOADSTATE(-1,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(1)));
 	get WEAPON_RELOADSTATE(-2,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(2)));
 
-	start-script RockZ(-13, aimy1position);
 	emit-sfx 1024 + 0 from flareb3;
 	move barrelb3 to z-axis [-5.0] now;
 	sleep 100;
 	move barrelb3 to z-axis [0.0] speed [2.0];
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 
 }
 

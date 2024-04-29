@@ -4,40 +4,27 @@
 piece  rflare, lflare, flarea, flareb, base, boxb, boxa, turret,
        turreta, turretb, wake, rbarrel, lbarrel, sleeve ;
 
-static-var  gun_3, restore_delay, gun_2, oldHead;
+static-var  gun_3, restore_delay, gun_2, oldHead, aimDir1;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
-#define BASEPIECE base
-#define HITSPEED <20.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 5
-#define MAXTILT 100
+#define RB_MASS 30
+#define RB_LENGTH 7
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 100
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 8
+#define RB_ROCKUNIT 5
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 1
+#define RB_IDLE_KICK 5000
+#define RB_RECOIL_ENERGY_1 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "../bar_ships_common.h"
 
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn base around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
 
 Create()
@@ -56,8 +43,9 @@ Create()
 	turn boxa to x-axis <-25.0> speed <25.0>;
 	turn boxb to x-axis <-25.0> speed <25.0>;
     spin turret around y-axis speed <25.0>;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script BoatPhysics();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -92,39 +80,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.23] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
 
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 14000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
+
 }
 
 AimWeapon2(heading, pitch)
@@ -185,6 +149,7 @@ FireWeapon3()
 		move rbarrel to z-axis [0.0] speed [3.0];
 	}
 	gun_3 = !gun_3;
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 }
 
 AimFromWeapon1(pieceIndex)
