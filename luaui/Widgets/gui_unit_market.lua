@@ -98,6 +98,8 @@ local uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH 
 local buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
 -- see ViewResize() for more actual size values
 
+-- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
+-- sending price as well doesn't do anything just yet but if players demand different prices we can work on that
 local function OfferToSell(unitID)
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
@@ -236,7 +238,6 @@ function widget:Initialize()
         widgetHandler:RemoveWidget() -- not enabled? shutdown
     end
 	-- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
-    -- TODO, if you restart the widget you will forget who is selling any units, create inline that loops through all units and gets param if they are on sale
     if not(Spring.IsReplay() or spGetSpectatingState()) then
 	    widgetHandler:AddAction("sell_unit", OfferToSellAction, nil, 'p')
     end
@@ -294,14 +295,6 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	ClearUnitData(unitID)
 end
-
---[[function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	ClearUnitData(unitID)
-end
-
---function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	--ClearUnitData(unitID)
---end]] -- believe gadget broadcasts instead
 
 -------------------------------------------------------- UI code ---
 function widget:ViewResize()
