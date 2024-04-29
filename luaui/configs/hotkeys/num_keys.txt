@@ -84,3 +84,14 @@ bind Ctrl+Alt+6 group selecttoggle 6
 bind Ctrl+Alt+7 group selecttoggle 7
 bind Ctrl+Alt+8 group selecttoggle 8
 bind Ctrl+Alt+9 group selecttoggle 9
+
+bind Shift+Alt+0 load_autogroup_preset 0
+bind Shift+Alt+1 load_autogroup_preset 1
+bind Shift+Alt+2 load_autogroup_preset 2
+bind Shift+Alt+3 load_autogroup_preset 3
+bind Shift+Alt+4 load_autogroup_preset 4
+bind Shift+Alt+5 load_autogroup_preset 5
+bind Shift+Alt+6 load_autogroup_preset 6
+bind Shift+Alt+7 load_autogroup_preset 7
+bind Shift+Alt+8 load_autogroup_preset 8
+bind Shift+Alt+9 load_autogroup_preset 9
