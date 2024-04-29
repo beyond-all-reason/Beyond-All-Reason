@@ -89,6 +89,7 @@ local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
 local DMWarnColor = '\255\255\255\255'
 local myTurn = false
+local myAllyTeamJoined = false
 local ihavejoined_fair = false
 local currentTurnTimeout = nil
 local voteSkipTurnTimeout = nil
@@ -240,19 +241,24 @@ local function colourNames(teamID)
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
-local function canPlayerPlaceNow(playerID) -- returns true if playerID is found before array hits index (currentPlayerIndex)
-	if draftMode == nil or draftMode == "disabled" or draftMode == "fair" then return true end
-	if currentPlayerIndex == nil or currentPlayerIndex <= 0 or myTeamPlayersOrder == nil then
-		return false
-	end
-	for i = 1, #myTeamPlayersOrder do
-		if (i > currentPlayerIndex) then
+local function canPlayerPlaceNow(playerID)
+	if draftMode == nil or draftMode == "disabled" then return true end
+	if draftMode == "fair" or not myAllyTeamJoined then
+		return myAllyTeamJoined
+	else -- skill/random
+		if currentPlayerIndex == nil or currentPlayerIndex <= 0 or myTeamPlayersOrder == nil then
 			return false
 		end
-        if myTeamPlayersOrder[i].id == playerID then
-            return true
-        end
-    end
+		 -- returns true if playerID is found before array hits index (currentPlayerIndex)
+		for i = 1, #myTeamPlayersOrder do
+			if (i > currentPlayerIndex) then
+				return false
+			end
+			if myTeamPlayersOrder[i].id == playerID then
+				return true
+			end
+		end
+	end
     return false
 end
 
@@ -311,7 +317,7 @@ local function buttonTextRefresh()
 			showLockButton = false
 		end
 	else
-		if (draftMode == nil or draftMode == "disabled" or draftMode == "fair") then -- regular
+		if (draftMode == nil or draftMode == "disabled") then -- regular
 			showLockButton = true
 			if readied then
 				if locked then
@@ -324,7 +330,10 @@ local function buttonTextRefresh()
 			end
 		else -- modded
 			checkStartPointChosen()
-			if canPlayerPlaceNow(myPlayerID) then
+			if draftMode == "fair" and not myAllyTeamJoined then
+				showLockButton = true
+				buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+			elseif canPlayerPlaceNow(myPlayerID) then
 				if startPointChosen then
 					showLockButton = true
 					if locked then
@@ -430,7 +439,6 @@ local function drawButton()
 		-- draw ready button and text
 		local x, y = Spring.GetMouseState()
 		local colorString
-		local cantPlaceNow = (draftMode == "skill" or draftMode == "random") and not canPlayerPlaceNow(myPlayerID)
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
@@ -571,7 +579,8 @@ function widget:MousePress(sx, sy)
 			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
 
-				if not canPlayerPlaceNow(myPlayerID) then
+				local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
+				if cantPlaceNow then
 					if not startPointChosen then
 						return false -- can't place - can't click ready/lock
 					end
@@ -939,6 +948,11 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 		if current_playerID > -1 and next_playerID > -1 then
 			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+		end
+	elseif words[1] == "DraftOrderAllyTeamJoined" then
+		allyTeamID_about = tonumber(words[2] or -1)
+		if (allyTeamID_about == myAllyTeamID) then
+			myAllyTeamJoined = true
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		reloadedDraftMode = nil

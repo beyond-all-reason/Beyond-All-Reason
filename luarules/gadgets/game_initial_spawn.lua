@@ -273,6 +273,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Tom: order is generated after the entire ally team is in game, tested in a LAN game
 	local function InitDraftOrderData(allyTeamID_ready) -- by this point we have all teamPlayerData we need
+		Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
 		if draftMode == "random" then
 			local tteams = Spring.GetTeamList()
 			for _, teamID in ipairs(tteams) do
@@ -506,6 +507,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif msg == "send_me_the_info_again" then -- someone luaui /reload'ed, send them the queue and index again
 					if draftMode ~= "fair" and allyTeamIsInGame[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] then
+						Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID)
 						SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
 						sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false)
 					end
