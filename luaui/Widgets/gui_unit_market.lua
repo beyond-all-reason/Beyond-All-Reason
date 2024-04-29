@@ -1,11 +1,11 @@
 function widget:GetInfo() return {
-	name    = "Unit Market",
-	desc    = "Allows players to trade units with each other. Allies only. Fair price!",
-	author  = "Tom Fyuri",
-	date    = "2024",
-	license = "GNU GPL v2",
-	layer   = 0,
-	enabled = true,
+    name    = "Unit Market",
+    desc    = "Allows players to trade units with each other. Allies only. Fair price!",
+    author  = "Tom Fyuri",
+    date    = "2024",
+    license = "GNU GPL v2",
+    layer   = 0,
+    enabled = true
 } end
 
 -- What's the general idea, the pitch, the plan, etc:
@@ -99,14 +99,11 @@ local buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX +
 -- see ViewResize() for more actual size values
 
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
--- sending price as well doesn't do anything just yet but if players demand different prices we can work on that
+-- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
 local function OfferToSell(unitID)
-    local unitDefID = spGetUnitDefID(unitID)
-    if not unitDefID then return end
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return end -- ?
-    local price = unitDef.metalCost
-    spSendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. price) -- Tell gadget we are offering unit for sale
+    if Script.LuaUI('UnitOfferToSell') then
+        Script.LuaUI.UnitOfferToSell(unitID, _) -- Tell gadget we are offering unit for sale
+    end
 end
 
 local function toggleSelectedUnitsForSale(selectedUnits)
@@ -128,15 +125,6 @@ local function OfferToSellAction()
     local selectedUnits = spGetSelectedUnits()
     if #selectedUnits <= 0 then return end
     toggleSelectedUnitsForSale(selectedUnits)
-end
-
-local function OfferToSellHandle(_, _, args, data) -- Try to sell first param unitID, otherwise try to sell selectedUnits
-    local unitID = args[1]
-    if spValidUnitID(unitID) and spGetUnitTeam(unitID) == myTeamID then
-        OfferToSell(unitID)
-    elseif unitID == nil then
-        OfferToSellAction()
-    end
 end
 
 local function OfferToBuy(unitID)
@@ -253,10 +241,6 @@ function widget:Initialize()
         widgetHandler:RemoveWidget() -- not enabled? shutdown
     end
 	-- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
-    if not(Spring.IsReplay() or spGetSpectatingState()) then
-	    widgetHandler:AddAction("sell_unit", OfferToSellHandle, nil, 'p')
-	    widgetHandler:AddAction("sell", OfferToSellHandle, nil, 'p')
-    end
 	widgetHandler:RegisterGlobal('unitSaleBroadcast', unitSaleBroadcast)
 	widgetHandler:RegisterGlobal('unitSoldBroadcast', unitSoldBroadcast)
 	InitFindSales()

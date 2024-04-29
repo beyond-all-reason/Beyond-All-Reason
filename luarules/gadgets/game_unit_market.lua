@@ -82,7 +82,7 @@ local function unitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
     SendToUnsynced("unitSoldBroadcast", unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
-local function offerUnitForSale(unitID, msgFromTeamID)
+local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     if not spValidUnitID(unitID) then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
@@ -92,7 +92,10 @@ local function offerUnitForSale(unitID, msgFromTeamID)
 	if msgFromTeamID ~= unitTeamID then return end -- comment this out in local testing, only owner can set units for sale
     local finished = (select(5,spGetUnitHealth(unitID))==1)
     if not finished then return end
-    local price = unitDef.metalCost
+    local price
+    if sale_price > 0 then price = sale_price -- for now we only support fair price, but for future - 0 = set price automatically
+    else price = unitDef.metalCost
+    end
     if price <= 0 then return end
     local selling = setUnitOnSale(unitID, price, true)
     if not selling then
@@ -144,8 +147,9 @@ function gadget:RecvLuaMsg(msg, playerID)
     
     if words[1] == "unitOfferToSell" then
         local unitID = tonumber(words[2])
-        -- at the moment we only support "fair" price, but it is possible here to set unit price by client
-        offerUnitForSale(unitID, msgFromTeamID)
+        --local sale_price = tonumber(words[3])
+        -- at the moment we only support "fair" price, but it is possible here to set unit price by client, for now we send 0 - set price automatically
+        offerUnitForSale(unitID, 0, msgFromTeamID)
     elseif words[1] == "unitTryToBuy" then
         local unitID = tonumber(words[2])
         tryToBuyUnit(unitID, msgFromTeamID)

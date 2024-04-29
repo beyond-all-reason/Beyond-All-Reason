@@ -201,7 +201,8 @@ local callInLists = {
 	'VisibleUnitsChanged',
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
-	'AlliedUnitsChanged'
+	'AlliedUnitsChanged',
+	'UnitOfferToSell'
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2416,6 +2417,18 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+
+--------------------------------------------------------------------------------
+--
+--  Unit Market
+--
+
+function widgetHandler:UnitOfferToSell(unitID, price)
+	if (unitID ~= nil) then
+		Spring.SendLuaRulesMsg("unitOfferToSell " .. unitID .. " " .. (price or 0))
+	end
 end
 
 --------------------------------------------------------------------------------
