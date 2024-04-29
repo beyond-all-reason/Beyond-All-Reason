@@ -271,3 +271,11 @@ bind sc_y settargetnoground
 bind Ctrl+meta+sc_q group unset
 // if WG[bind Auto Group ] then
 bind Alt+sc_q remove_from_autogroup
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind     Alt+Shift+sc_c  blueprint_create_selectionorder
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next
