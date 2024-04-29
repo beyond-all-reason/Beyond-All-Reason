@@ -33,8 +33,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corpun_aoplane.dds",
-			buildinggrounddecalsizey = 4,
-			buildinggrounddecalsizex = 4,
+			buildinggrounddecalsizey = 1,
+			buildinggrounddecalsizex = 1,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",

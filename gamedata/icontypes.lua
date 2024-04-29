@@ -2099,6 +2099,10 @@ local icontypes = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
+	legcluster = {
+		bitmap = "icons/def_t1_arty.png",
+		size = 1.1
+	},
 	legcom = {
 		bitmap = "icons/legcom.png",
 		size = 1.60000002

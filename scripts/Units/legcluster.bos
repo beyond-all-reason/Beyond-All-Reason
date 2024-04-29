@@ -7,7 +7,7 @@
 piece base, turret, sleeve, barrel, flare;
 //piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  nextBarrel, trajectoryMode, lastHeading;
+static-var trajectoryMode, lastHeading;
 
 #define SIGNAL_AIM			1
 #define LOW_TRAJECTORY		0
@@ -123,39 +123,20 @@ AimFromSecondary(piecenum)
 
 fireCommon()
 {
-	if( nextBarrel == 0 )
-	{
-	    emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [25.000000];
-        sleep 100;
-        move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [25.000000];
-        sleep 100;
-        move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [2.5000000];
-
-	}
-	if( nextBarrel == 1 )
-	{
-	    emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [25.000000];
-        sleep 100;
-        move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [25.000000];
-        sleep 100;
-        move barrel to z-axis [-6.250000] now;
-        sleep 100;
-		move barrel to z-axis [0.000000] speed [2.5000000];
-
-	}
-	nextBarrel = !nextBarrel;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-6.250000] now;
+	sleep 100;
+	move barrel to z-axis [0.000000] speed [25.000000];
+	sleep 100;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-6.250000] now;
+	sleep 100;
+	move barrel to z-axis [0.000000] speed [25.000000];
+	sleep 100;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-6.250000] now;
+	sleep 100;
+	move barrel to z-axis [0.000000] speed [2.5000000];
 }
 
 FirePrimary()
@@ -170,26 +151,12 @@ FireSecondary()
 
 QueryPrimary(piecenum)
 {
-	if( nextBarrel == 0 )
-	{
-		piecenum = flare;
-	}
-	if( nextBarrel == 1 )
-	{
-		piecenum = flare;
-	}
+	piecenum = flare;
 }
 
 QuerySecondary(piecenum)
 {
-	if( nextBarrel == 0 )
-	{
-		piecenum = flare;
-	}
-	if( nextBarrel == 1 )
-	{
-		piecenum = flare;
-	}
+	piecenum = flare;
 }
 
 SweetSpot(piecenum)
