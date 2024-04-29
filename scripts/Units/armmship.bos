@@ -11,33 +11,20 @@ static-var  gun_1, gun_3, restore_delay, oldHead;
 #define SIGNAL_MOVE 1
 
 
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_1 700
+#define RB_RECOIL_ENERGY_3 250
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 0
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 1
 
-#define BASEPIECE base
-#define HITSPEED <20.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 5
-#define MAXTILT 100
+#include "../bar_ships_common.h"
 
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
 Create()
 {
@@ -52,8 +39,9 @@ Create()
 	gun_1 = 1;
 	gun_3 = 0;
 	restore_delay = 3000;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RockOnWaves();
+	start-script BoatPhysics();
 }
 
 abaim()
@@ -92,43 +80,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.35] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
 
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from bow;
-        bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
+
 }
 
 AimWeapon1(heading, pitch)
@@ -157,8 +117,9 @@ AimWeapon2(heading, pitch)
 
 FireWeapon1()
 {
-	++gun_1;
-	if( gun_1 >= 3 ) gun_1 = 0;
+	gun_1 = (gun_1 + 1 ) % 3;
+	sleep 100;
+	RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
 }
 
 FireWeapon2()
@@ -178,23 +139,12 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = flare12;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare11;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = flare13;
-	}
+	pieceIndex = flare11 + gun_1;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = gun_3;
+	pieceIndex = flare21 + gun_3;
 }
 
 

@@ -61,8 +61,8 @@
 //-------------------- INTERNAL DEFINES ------------------
 
 
-#define DEBUG
-#include "../debug.h"
+//#define DEBUG
+//#include ".../debug.h"
 
 
 //-------------------- MANDATORY DEFINES ------------------
@@ -225,6 +225,8 @@ InitRockBoat(){
 	RB_pitch = 0;
 	RB_roll = 0;
 	maxSpeed = get MAX( get (MAX_SPEED), 10000);
+	RB_pitch_velocity = 0;
+	RB_roll_velocity = 0; 
 
 	#ifdef DEBUG
 		RB_pitch_velocity = 150000;
@@ -244,9 +246,6 @@ InitRockBoat(){
 			}
 		}
 		*/
-	#else
-		RB_pitch_velocity = 0;
-		RB_roll_velocity = 0; 
 	#endif
 }
 
@@ -391,6 +390,9 @@ HitByWeaponId(anglex, anglez, weaponid, damage)
 {
 	// Dont do anything if we are being built
 	if (get BUILD_PERCENT_LEFT) return (100);
+    #ifdef RB_ONHIT
+        RB_ONHIT
+    #endif
 
 	damage = damage / (100 * UNITSIZE);
 	if (damage < 3  ) return (0);

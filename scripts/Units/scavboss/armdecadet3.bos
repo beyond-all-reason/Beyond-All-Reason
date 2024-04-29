@@ -12,52 +12,19 @@ static-var  gun_1, gun_2, restore_delay, oldHead;
 #define SIGNAL_AIM2 512
 #define SIGNAL_MOVE 1
 
-#define BASEPIECE base
-#define HITSPEED <20.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 2
-#define MAXTILT 200
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 4
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_2 500
+#define RB_WAKE_PIECE ground
+#define RB_WAKE_CEG 2
+#define RB_IDLE_KICK 10000
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*5;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../../bar_ships_common.h"
 
-#include "../../damagedsmoke.h"
 Create()
 {
 	hide flare2;
@@ -70,8 +37,9 @@ Create()
 	gun_2 = flare2;
 	spin flare2 around z-axis speed <250.060440>;
 	restore_delay = 3000;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
+	start-script BoatPhysics();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -103,39 +71,14 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.23] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
-
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	while( TRUE )
-	{
-		emit-sfx 2 from ground;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 9000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
+
 }
 
 AimWeapon1(heading, pitch)
@@ -165,69 +108,62 @@ AimWeapon2(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare1;
-	if( gun_1 == 1 )
+	if( gun_1 == 0 )
 	{
 		move barrel101 to z-axis [-10.0] now;
 		move barrel101 to z-axis [0.0] speed [10.0];
 		turn spindle1 to z-axis <90.0> speed <230.0>;
 	}
-	if( gun_1 == 2 )
+	if( gun_1 == 1 )
 	{
 		move barrel102 to z-axis [-10.0] now;
 		move barrel102 to z-axis [0.0] speed [10.0];
 		turn spindle1 to z-axis <180.0> speed <230.0>;
 	}
-	if( gun_1 == 3 )
+	if( gun_1 == 2 )
 	{
 		move barrel103 to z-axis [-10.0] now;
 		move barrel103 to z-axis [0.0] speed [10.0];
 		turn spindle1 to z-axis <270.0> speed <230.0>;
 	}
-	if( gun_1 == 4 )
+	if( gun_1 == 3 )
 	{
 		move barrel104 to z-axis [-10.0] now;
 		move barrel104 to z-axis [0.0] speed [10.0];
 		turn spindle1 to z-axis <0.0> speed <230.0>;
 	}
-	++gun_1;
-	if( gun_1 == 5 )
-	{
-		gun_1 = 1;
-	}
+	gun_1 = (gun_1 + 1) % 4;
 }
 
 FireWeapon2()
 {
 	emit-sfx 1024 + 0 from flare2;
-	if( gun_2 == 1 )
+	if( gun_2 == 0 )
 	{
 		move barrel201 to z-axis [-10.0] now;
 		move barrel201 to z-axis [0.0] speed [10.0];
 		turn spindle2 to z-axis <90.0> speed <230.0>;
 	}
-	if( gun_2 == 2 )
+	if( gun_2 == 1 )
 	{
 		move barrel202 to z-axis [-10.0] now;
 		move barrel202 to z-axis [0.0] speed [10.0];
 		turn spindle2 to z-axis <180.0> speed <230.0>;
 	}
-	if( gun_2 == 3 )
+	if( gun_2 == 2 )
 	{
 		move barrel203 to z-axis [-10.0] now;
 		move barrel203 to z-axis [0.0] speed [10.0];
 		turn spindle2 to z-axis <270.0> speed <230.0>;
 	}
-	if( gun_2 == 4 )
+	if( gun_2 == 3 )
 	{
 		move barrel204 to z-axis [-10.0] now;
 		move barrel204 to z-axis [0.0] speed [10.0];
 		turn spindle2 to z-axis <0.0> speed <230.0>;
 	}
-	++gun_2;
-	if( gun_2 == 5 )
-	{
-		gun_2 = 1;
-	}
+
+	gun_1 = (gun_1 + 1) % 4;
 }
 
 QueryWeapon1(pieceIndex)

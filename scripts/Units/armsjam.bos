@@ -12,35 +12,26 @@ static-var recently_damaged, desired_activation;
 #define SIGNAL_OFF 8
 
 
+#define RB_MASS 30
+#define RB_LENGTH 6
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 6
+#define RB_WAKE_PIECE ground
+#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_CEG 1024 + 0
+#define RB_ONHIT start-script OffOnHit();
+#include "../bar_ships_common.h"
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-
-#include "../damagedsmoke.h"
 Create()
 {
 	hide ground;
 	recently_damaged = 0;
 	desired_activation = 1;
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
+	start-script BoatPhysics();
 }
 
 Activate()
@@ -106,47 +97,13 @@ OffOnHit()
 	set ACTIVATION to desired_activation;
 }
 
-HitByWeapon(anglex, anglez)
-{
-	start-script OffOnHit();
-}
-
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.35] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
-
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	var waketime;
-	start-script waveSplash();
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from ground;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 14000 / waketime;
-	}
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
 }
-
-
 
 Killed(severity, corpsetype)
 {
