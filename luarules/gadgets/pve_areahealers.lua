@@ -96,6 +96,7 @@ function gadget:GameFrame(frame)
                             for i = 1,#surroundingUnits2 do
                                 if Spring.GetUnitTeam(surroundingUnits2[i]) ~= Spring.GetUnitTeam(unitID) and Spring.GetUnitTeam(surroundingUnits2[i]) ~= Spring.GetGaiaTeamID() then
                                     enemiesNearby = true
+                                    break
                                 end
                             end
                             if not enemiesNearby then
