@@ -215,6 +215,9 @@ end
 
 local function loadAutogroupPreset(_, _, args, data)
 	local pr = args[1]
+	if not presets[tonumber(pr)] then
+		return
+	end
 	local prevGroup = presets[currPreset]
 
 	currPreset = tonumber(pr)
