@@ -953,6 +953,9 @@ function widget:RecvLuaMsg(msg, playerID)
 		allyTeamID_about = tonumber(words[2] or -1)
 		if (allyTeamID_about == myAllyTeamID) then
 			myAllyTeamJoined = true
+			if draftMode == "fair" then
+				Spring.PlaySoundFile("beep4", 1, 'ui')
+			end
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		reloadedDraftMode = nil
