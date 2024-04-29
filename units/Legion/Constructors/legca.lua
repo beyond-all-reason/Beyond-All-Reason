@@ -63,7 +63,7 @@ return {
 			"legdtm",
 			"corllt",
 			"legmg",
-			"corpun",
+			"legsever",
 			"corrl",
 			"cormadsam",
 			"corerad",
