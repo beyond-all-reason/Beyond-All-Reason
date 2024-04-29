@@ -847,7 +847,7 @@ local options = {
     {
         key     = "draft_mode",
         name    = "Draft Spawn Order mod",
-        desc    = "Optional Draft/Skill/Fair based startPosType mods. Default: Disabled.",
+        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
         type    = "list",
         section = "options_extra",
         def     = "disabled",
