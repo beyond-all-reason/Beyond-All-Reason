@@ -234,10 +234,6 @@ function widget:Initialize()
 
 	InitFindSales()
 
-	UiButton = WG.FlowUI.Draw.Button
-	UiElement = WG.FlowUI.Draw.Element
-	elementPadding = WG.FlowUI.elementPadding
-
     --widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 end
