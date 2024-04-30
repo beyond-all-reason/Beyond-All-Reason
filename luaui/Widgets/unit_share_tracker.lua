@@ -241,7 +241,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 
 	local selfShare = (oldTeam == newTeam) -- may happen if took other player
 
-	local bought = Spring.GetUnitRulesParam(unitID, "unitPrice") or 0
+	local bought = (Spring.GetUnitRulesParam(unitID, "unitPrice") > 0)
 
 	if newTeam == GetMyTeamID() and not selfShare and not captured and not bought then
 		if not timeNow then
