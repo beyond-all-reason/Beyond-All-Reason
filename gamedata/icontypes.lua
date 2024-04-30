@@ -2295,6 +2295,10 @@ local icontypes = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
+	legrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
+	},
 	legrail = {
 		bitmap = "icons/vehicle_t1_tank_rail.png",
 		size = 1.35000002

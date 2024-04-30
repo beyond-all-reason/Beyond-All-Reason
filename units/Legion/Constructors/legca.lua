@@ -56,7 +56,7 @@ return {
 			"corhp",
 			"cornanotc",
 			"coreyes",
-			"corrad",
+			"legrad",
 			"legdrag",
 			"legdtl",
 			"legdtf",
