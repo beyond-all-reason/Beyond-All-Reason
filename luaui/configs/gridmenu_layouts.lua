@@ -407,7 +407,7 @@ local unitGrids = {
 			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
 		}
 	},
-	armbeaver = {
+	armcomlvl5 = {
 		{
 			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
@@ -416,34 +416,12 @@ local unitGrids = {
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armptl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", "armnanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-	armcomlvl5 = {
-		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
-		},
-		{
-			{ "armllt", "cormine1", "cormine2", "cormine3", },  -- LLT, L mine, M mine, H mine
-			{ "armrl", "armbeamer", "armhlt", "armclaw", },    	-- basic AA, beamer, heavy laser turret, lightning turret
-			{ "armdl", "armguard", "armptl", "armferret",},     -- coast torpedo launcher, t1 plasma turret, torpedo launcher, ferret
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{	
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -458,14 +436,14 @@ local unitGrids = {
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "cormine1", "cormine2", "cormine3", },  -- LLT, L mine, M mine, H mine
-			{ "armrl", "armbeamer", "armhlt", "armclaw", },    	-- basic AA, beamer, heavy laser turret, lightning turret
-			{ "armdl", "armguard", "armptl", "armferret",},     -- coast torpedo launcher, t1 plasma turret, torpedo launcher, ferret
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{	
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -480,14 +458,14 @@ local unitGrids = {
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "cormine1", "cormine2", "cormine3", },  -- LLT, L mine, M mine, H mine
-			{ "armrl", "armbeamer", "armhlt", "armclaw", },    	-- basic AA, beamer, heavy laser turret, lightning turret
-			{ "armdl", "armguard", "armptl", "armferret",},     -- coast torpedo launcher, t1 plasma turret, torpedo launcher, ferret
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{	
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armjuno", },                                   -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -502,14 +480,14 @@ local unitGrids = {
 			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armbeamer", "cormine1", "cormine2", "cormine3", }, -- beamer, L mine, M mine, H mine
-			{ "armamb", "armanni", "armamd", "armclaw", },        -- flak, long-range AA, anti-nuke
-			{ "armflak", "armmercury", "armatl","armdl" },        -- flak, long-range AA, adv torpedo launcher
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
 			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", },                                     -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -524,14 +502,14 @@ local unitGrids = {
 			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armbeamer", "cormine1", "cormine2", "cormine3", }, -- beamer, L mine, M mine, H mine
-			{ "armamb", "armanni", "armamd", "armclaw", },        -- flak, long-range AA, anti-nuke
-			{ "armflak", "armmercury", "armatl","armdl" },        -- flak, long-range AA, adv torpedo launcher
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
 			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", },                                     -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -546,14 +524,14 @@ local unitGrids = {
 			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armbeamer", "cormine1", "cormine2", "cormine3", }, -- beamer, L mine, M mine, H mine
-			{ "armamb", "armanni", "armamd", "armclaw", },        -- flak, long-range AA, anti-nuke
-			{ "armflak", "armmercury", "armatl","armdl" },        -- flak, long-range AA, adv torpedo launcher
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
 			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", },                                     -- juno
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
