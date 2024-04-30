@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "23 march 2012",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = -99999, -- run before gui_options, so that we can appropriately transform stuff here when keybind changes happen
 		enabled = true,
 		handler = true,
 	}
@@ -14,6 +14,7 @@ end
 local currentLayout
 local currentKeybindingsFile
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+
 
 local function reloadWidgetsBindings()
 	local reloadableWidgets = {'buildmenu', 'ordermenu', 'keybinds'}
@@ -25,12 +26,6 @@ local function reloadWidgetsBindings()
 	end
 end
 
-local function hasOldDefaultKeys(file)
-	if string.find(file, "default") then
-		return true
-	end
-	return false
-end
 
 local function replaceDefaultWithLegacy(file)
 	if file == 'luaui/configs/hotkeys/default_keys.txt' then
@@ -41,44 +36,47 @@ local function replaceDefaultWithLegacy(file)
 	end
 end
 
+
 -- if keybinds are missing, load default hotkeys
 local function fallbackToDefault(currentKeys)
+	local default = keyConfig.keybindingLayoutFiles[1]
 	Spring.Echo("BAR Hotkeys: Did not find keybindings file " .. currentKeys ..". Loading grid keys")
-	Spring.SendCommands("keyreload " .. keyConfig.keybindingLayoutFiles[1])
+	Spring.SendCommands("keyreload " .. default)
+	return default
 end
+
 
 local function reloadBindings()
 	-- Second parameter here is just a fallback if this config is undefined
 	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
 
 	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
-	local usingOldPreset = hasOldDefaultKeys(currentKeybindingsFile)
+
+	-- detect if old "default" settings are present, replace with "legacy"
+	local usingOldPreset = string.find(currentKeybindingsFile, "default") and true or false
 	if usingOldPreset then
 		currentKeybindingsFile = replaceDefaultWithLegacy(currentKeybindingsFile)
 		Spring.Echo("BAR Hotkeys: Found old default key config, replacing with legacy", currentKeybindingsFile)
 	end
 
-	-- resolve upgrading from old "default" to "legacy"
-	if usingOldPreset then
-		if VFS.FileExists(currentKeybindingsFile) then
-			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
-			Spring.Echo("BAR Hotkeys: Loaded preset " .. keyConfig.presetKeybindings[currentKeybindingsFile] .. " from path: " .. currentKeybindingsFile)
+	if not VFS.FileExists(currentKeybindingsFile) then
+		currentKeybindingsFile = fallbackToDefault(currentKeybindingsFile)
+	end
+
+	if VFS.FileExists(currentKeybindingsFile) then
+		Spring.SendCommands("keyreload " .. currentKeybindingsFile)
+		Spring.Echo("BAR Hotkeys: Loaded hotkeys from " .. currentKeybindingsFile)
+		if usingOldPreset then
+			-- resolve upgrading from old "default" to "legacy"
 			Spring.SetConfigString("KeybindingFile", currentKeybindingsFile)
-		else
-			fallbackToDefault(currentKeybindingsFile)
 		end
 	else
-		-- normal path of loading saved keybinds, no upgrading or anything going on here
-		if VFS.FileExists(currentKeybindingsFile) then
-			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
-			Spring.Echo("BAR Hotkeys: Loaded hotkeys from" .. currentKeybindingsFile)
-		else
-			fallbackToDefault(currentKeybindingsFile)
-		end
+		Spring.Echo("BAR Hotkeys: No hotkey file found")
 	end
 
 	reloadWidgetsBindings()
 end
+
 
 function widget:Initialize()
 	reloadBindings()
