@@ -4,7 +4,8 @@ function widget:GetInfo() return {
     author  = "Tom Fyuri",
     date    = "2024",
     license = "GNU GPL v2",
-    layer   = 0,
+    handler = true,
+    layer   = 2, -- I want the command to be last in order queue
     enabled = true
 } end
 
@@ -34,6 +35,8 @@ function widget:GetInfo() return {
 -- 1) hold alt and double-click over an ally unit that your ally is selling. make sure you have resources first. in case you don't have enough metal - nothing will happen.
 
 --------------------------------
+VFS.Include("luarules/configs/customcmds.h.lua")
+
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState  = Spring.GetSpectatingState
 local spGetTeamInfo         = Spring.GetTeamInfo
@@ -41,6 +44,8 @@ local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitTeam			= Spring.GetUnitTeam
 local spGetSelectedUnits    = Spring.GetSelectedUnits
 local spAreTeamsAllied      = Spring.AreTeamsAllied
+local spGetAllyTeamList     = Spring.GetAllyTeamList
+local spGetTeamList         = Spring.GetTeamList
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spSendLuaUIMsg        = Spring.SendLuaUIMsg
 local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
@@ -68,35 +73,12 @@ local myPlayerID   = Spring.GetMyPlayerID()
 local logging    = false -- Logging...
 local see_prices = false -- Set to true for local testing to verify unit prices
 local see_sales  = true  -- Set to false to never see console trade messages
+local loneTeamPlayer = false
+local selectedUnits
+local tooltip = Spring.I18N('ui.unitMarket.toggleForSale')
 
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
-
--- button vars
-local sellUnitText = Spring.I18N('ui.unitMarket.sellUnit') or "Sell Unit"
-local buttonPosX = 0.8
-local buttonPosY = 0.94
-local UiButton, UiElement
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx * vsy / 6200000))
-local fontfileSize = 50
-local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 1.4
-local textSize = 12
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local uiScale = (0.7 + (vsx * vsy / 6500000))
-local buttonX = math.floor(vsx * buttonPosX)
-local buttonY = math.floor(vsy * buttonPosY)
-local orgbuttonH = 40
-local orgbuttonW = 115
-local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
-local buttonList = nil
-local uiPadding = 20
-local uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
-local buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
--- see ViewResize() for more actual size values
 
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
 -- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
@@ -120,7 +102,6 @@ local function toggleSelectedUnitsForSale(selectedUnits)
 end
 
 local function OfferToSellAction()
-    local selectedUnits = spGetSelectedUnits()
     if #selectedUnits <= 0 then return end
     toggleSelectedUnitsForSale(selectedUnits)
 end
@@ -233,11 +214,23 @@ function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
 end
 
+local function DoIhaveAllies()
+    local alliedTeams = spGetTeamList(myAllyTeamID)
+    for i = 1, #alliedTeams do
+        if myTeamID ~= alliedTeams[i] then
+            return true
+        end
+    end
+    return false
+end
+
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
         widgetHandler:RemoveWidget() -- not enabled? shutdown
     end -- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
+
+    loneTeamPlayer = not DoIhaveAllies()
 
 	InitFindSales()
 
@@ -245,7 +238,8 @@ function widget:Initialize()
 	UiElement = WG.FlowUI.Draw.Element
 	elementPadding = WG.FlowUI.elementPadding
 
-    widget:ViewResize()
+    --widget:ViewResize()
+	widget:SelectionChanged(spGetSelectedUnits())
 end
 
 function widget:Shutdown()
@@ -255,13 +249,10 @@ end
 
 function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
-	if myTeamID ~= Spring.GetMyTeamID() then
-		myTeamID = Spring.GetMyTeamID()
-    end
-    if myAllyTeamID ~= Spring.GetMyAllyTeamID() then
-        myAllyTeamID = Spring.GetMyAllyTeamID()
-    end
+	myTeamID = Spring.GetMyTeamID()
+    myAllyTeamID = Spring.GetMyAllyTeamID()
     isSpectating, fullview = spGetSpectatingState()
+    loneTeamPlayer = not DoIhaveAllies()
     InitFindSales()
 end
 
@@ -279,17 +270,40 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	ClearUnitData(unitID)
 end
 
--------------------------------------------------------- UI code ---
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * buttonPosX)
-	buttonY = math.floor(vsy * buttonPosY)
-	orgbuttonW = font:GetTextWidth(sellUnitText) * textSize * uiScale * 1.4
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 1.4
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 1.4
-	uiPadding = math.floor(elementPadding * 1.5)
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
 end
+
+function widget:CommandsChanged()
+	if not loneTeamPlayer then
+		if selectedUnits and #selectedUnits > 0 then
+			local customCommands = widgetHandler.customCommands
+			for i = 1, #selectedUnits do
+                customCommands[#customCommands + 1] = {
+                    id = CMD_SELL_UNIT,
+                    type = CMDTYPE.ICON,
+                    tooltip = tooltip,
+                    name = 'Sell Unit',
+                    cursor = 'sellunit',
+                    action = 'sellunit',
+                }
+                return
+			end
+		end
+	end
+end
+
+function widget:CommandNotify(id, params, options)
+	if id ~= CMD_SELL_UNIT then
+		return
+	end
+	toggleSelectedUnitsForSale(selectedUnits)
+	return true
+end
+
+-------------------------------------------------------- UI code ---
+--function widget:ViewResize()
+--end
 
 local doubleClickTime = 1 -- Maximum time in seconds between two clicks for them to be considered a double-click
 local maxDistanceForDoubleClick = 10 -- Maximum distance between two clicks for them to be considered a double-click
@@ -335,58 +349,12 @@ function widget:MousePress(mx, my, button)
             end
         end
     end
-    if not (alt or ctrl or shift) then
-        local selectedUnits = spGetSelectedUnits()
-        if (#selectedUnits <= 0) then
-            return false
-        end
-        -- pressing button element
-        if mx > uiElementRect[1] and mx < uiElementRect[3] and my > uiElementRect[2] and my < uiElementRect[4] then
-            -- pressing actual button
-            if mx > buttonRect[1] and mx < buttonRect[3] and my > buttonRect[2] and my < buttonRect[4] then
-                toggleSelectedUnitsForSale(selectedUnits)
-                return true
-            end
-        end
-    end
 end
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local animationDuration = 7
 local animationFrequency = 3
-function widget:DrawScreen()
-    if spIsGUIHidden() then
-        return
-    end
-    local selectedUnits = spGetSelectedUnits()
-    if (#selectedUnits <= 0) then
-        return
-    end
 
-    local alt, ctrl, meta, shift = spGetModKeyState()
-    gl.DeleteList(buttonList)
-    --gl.Color(1, 0.5, 0, 0.8) 
-    local color = {1, 0.65, 0, 0.8} -- Orange color for button background
-    local mult = 0.15
-    local x, y = spGetMouseState()
-	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
-	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
-    if not (alt or ctrl or shift) then
-        if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
-            mult = 0.55
-        end
-    else
-        mult = 0.01
-    end
-    buttonList = gl.CreateList(function()
-		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-        UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*mult, color[2]*mult, color[3]*mult, 1 }, { color[1], color[2], color[3], 0.2 })
-    end)
-    gl.CallList(buttonList)
-
-    gl.Color(1, 1, 1, 1)  -- White color for text
-    gl.Text(sellUnitText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), textSize * uiScale, "co")
-end
 function widget:DrawWorld()
 	if spIsGUIHidden() or next(unitsForSale) == nil then
 		return

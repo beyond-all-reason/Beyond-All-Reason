@@ -10,6 +10,8 @@ function gadget:GetInfo()
     }
 end
 
+VFS.Include("luarules/configs/customcmds.h.lua")
+
 if gadgetHandler:IsSyncedCode() then
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 local unitMarket   = Spring.GetModOptions().unit_market
@@ -245,7 +247,8 @@ function gadget:Initialize()
     end
 end
 
-else
+else -- unsynced
+
     -- lets only broadcast these trades to allies and spectators
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spec, _ = spGetSpectatingState()

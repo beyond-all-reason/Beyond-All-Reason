@@ -65,7 +65,8 @@
 		"unitMarket": {
 			"sellUnit": "Sell Unit",
 			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}."
+			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}.",
+			"toggleForSale": "Toggle currently selected units for sale."
 		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
@@ -209,6 +210,8 @@
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
 			"Spawning Enabled": "Spawning enabled",
+			"sellunit": "Sell Unit",
+			"sellunit_tooltip": "Toggle currently selected units for sale",
 			
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
