@@ -70,6 +70,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 local myPlayerID   = Spring.GetMyPlayerID()
+local buyWithoutHoldingAlt = false -- flip to true to buy with just a double-click
 local logging    = false -- Logging...
 local see_prices = false -- Set to true for local testing to verify unit prices
 local see_sales  = true  -- Set to false to never see console trade messages
@@ -238,11 +239,6 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 end
 
-function widget:Shutdown()
-	gl.DeleteList(buttonList)
-	gl.DeleteFont(font)
-end
-
 function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
 	myTeamID = Spring.GetMyTeamID()
@@ -313,7 +309,7 @@ function widget:MousePress(mx, my, button)
     if isSpectating then return false end
 
     local alt, ctrl, meta, shift = spGetModKeyState()
-    if alt then
+    if buyWithoutHoldingAlt or alt then
         if button == 1 then
             local _, coords = spTraceScreenRay(mx, my, true)
             if coords ~= nil then
