@@ -63,10 +63,8 @@
 			}
 		},
 		"unitMarket": {
-			"sellUnit": "Sell Unit",
 			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}.",
-			"toggleForSale": "Toggle currently selected units for sale."
+			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}."
 		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",

@@ -76,7 +76,7 @@ local see_prices = false -- Set to true for local testing to verify unit prices
 local see_sales  = true  -- Set to false to never see console trade messages
 local loneTeamPlayer = false
 local selectedUnits
-local tooltip = Spring.I18N('ui.unitMarket.toggleForSale')
+local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
 
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
