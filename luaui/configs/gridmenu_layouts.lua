@@ -372,13 +372,14 @@ local unitGrids = {
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "cormine1", "cormine2", "cormine3", },  -- LLT, L mine, M mine, H mine
-			{ "armrl", "", "", "armfrt",},    				 -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "", "armptl", "", },     			-- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          -- basic AA, floating AA
+			{ "armdl", },                                    -- coastal torp launcher
 		},
 		{	
 			{ "armrad", "armeyes", "armdrag", "armjamt",},   -- radar, perimeter camera, dragon's teeth
 			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "", "armmine1", "armmine2", "armmine3", }		-- empty, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -393,13 +394,14 @@ local unitGrids = {
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "cormine1", "cormine2", "cormine3", },  -- LLT, L mine, M mine, H mine
-			{ "armrl", "", "", "armfrt",},    				 -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "", "armptl", "", },     			-- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          -- basic AA, floating AA
+			{ "armdl", },                                    -- coastal torp launcher
 		},
 		{	
 			{ "armrad", "armeyes", "armdrag", "armjamt",},   -- radar, perimeter camera, dragon's teeth
 			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "", "armmine1", "armmine2", "armmine3", }		-- empty, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -482,7 +484,7 @@ local unitGrids = {
 		{
 			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
 			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
-			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
@@ -504,7 +506,7 @@ local unitGrids = {
 		{
 			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
 			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
-			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
