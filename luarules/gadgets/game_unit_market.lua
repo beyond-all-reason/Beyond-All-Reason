@@ -261,12 +261,8 @@ else -- unsynced
 
 	function gadget:PlayerChanged(playerID)
         myPlayerID = Spring.GetMyPlayerID()
-        if myTeamID ~= Spring.GetMyTeamID() then
-            myTeamID = Spring.GetMyTeamID()
-        end
-        if myAllyTeamID ~= Spring.GetMyAllyTeamID() then
-            myAllyTeamID = Spring.GetMyAllyTeamID()
-        end
+        myTeamID = Spring.GetMyTeamID()
+        myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()
