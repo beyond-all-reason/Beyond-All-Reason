@@ -638,7 +638,7 @@ local unitGrids = {
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -660,7 +660,7 @@ local unitGrids = {
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -682,7 +682,7 @@ local unitGrids = {
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -702,9 +702,9 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
 		},
 		{
-			{ "corhllt", "corvipe", "cordoom", "cormaw", },   -- twin lasertower, popup rocket turret, bulwark, dragons maw
-			{ "corflak", "corscreamer", "", "corbhmth", }, -- flak, long-range AA, nothing, cerberus
-			{ "cordl", "cortoast", "coratl",},                -- coastal torpedo launcher, popup cannon, adv torpedo launcher
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
@@ -724,9 +724,9 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
 		},
 		{
-			{ "corhllt", "corvipe", "cordoom", "cormaw", },   -- twin lasertower, popup rocket turret, bulwark, dragons maw
-			{ "corflak", "corscreamer", "", "corbhmth", }, -- flak, long-range AA, nothing, cerberus
-			{ "cordl", "cortoast", "coratl",},                -- coastal torpedo launcher, popup cannon, adv torpedo launcher
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
@@ -746,9 +746,9 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
 		},
 		{
-			{ "corhllt", "corvipe", "cordoom", "cormaw", },   -- twin lasertower, popup rocket turret, bulwark, dragons maw
-			{ "corflak", "corscreamer", "", "corbhmth", }, -- flak, long-range AA, nothing, cerberus
-			{ "cordl", "cortoast", "coratl",},                -- coastal torpedo launcher, popup cannon, adv torpedo launcher
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
