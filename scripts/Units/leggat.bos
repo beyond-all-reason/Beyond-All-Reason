@@ -80,7 +80,7 @@ ExecuteRestoreAfterDelay()
 	spin barrel around z-axis speed <150.0>;
 	sleep (restore_delay / 4);
 	stop-spin barrel around z-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 	set-signal-mask 0;
 }
 SetStunned(State)
@@ -102,9 +102,9 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <120.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <65.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}

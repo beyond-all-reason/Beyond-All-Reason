@@ -535,7 +535,7 @@ ExecuteRestoreAfterDelay()
 	//turn turret to x-axis <0.0> speed <150.0>;
 	wait-for-turn turret around y-axis;
 	//wait-for-turn turret around x-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 	open=FALSE;
 	firing=FALSE;
 }
@@ -568,9 +568,9 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	turn turret to y-axis heading speed <150.0>;
 	turn turret to x-axis <0.0> - pitch speed <100.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 		wait-for-turn turret around x-axis;
 	}

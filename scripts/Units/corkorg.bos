@@ -721,8 +721,10 @@ AimWeapon2(heading, pitch) //headlazor
 	//get PRINT(2, heading,wpn1_lasthead,wpn2_lasthead);
 	turn aimy2 to x-axis <0> - (get MAX(<-12>,pitch)) speed <50>;
 	turn aimy2 to y-axis heading - CATT1position speed <100.0>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn aimy2 around y-axis;
 	}
 	wpn2_lasthead = heading;

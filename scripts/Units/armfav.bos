@@ -92,7 +92,7 @@ ExecuteRestoreAfterDelay()
 	turn gun to y-axis <0.0> speed <90.0>;
 	turn gun to x-axis <0.0> speed <50.0>;
 	wait-for-turn gun around y-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
  }
 SetStunned(State)
 {
@@ -117,9 +117,9 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	turn gun to y-axis heading speed <300.0>;
 	turn gun to x-axis <0.0> - pitch speed <300.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn gun around y-axis;
 	}
 	wpn1_lasthead = heading;

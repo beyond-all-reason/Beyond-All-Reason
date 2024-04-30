@@ -526,8 +526,8 @@ RestoreAfterDelay(){
 	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
-	wpn1_lasthead = 1000000;
-	wpn4_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
+	wpn4_lasthead = 0xbadface;
 }
 
 
@@ -623,9 +623,9 @@ AimWeapon1(heading, pitch) //pew pew
 	
 	turn rloarm to  x-axis <-55> speed <50.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <50.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn torso around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -812,9 +812,10 @@ AimWeapon4(heading, pitch)
 	turn railsleever to x-axis <0> - pitch speed <80.0>;
 	turn railturretl to y-axis heading - torsoaim speed <100.0>;
 	turn railsleevel to x-axis <0> - pitch speed <80.0>;
-	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 3000) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
+
+	if ((wpn4_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn4_lasthead), <15>))
 	{
-		wpn4_lasthead = 1000000;
+		wpn4_lasthead = 0xbadface;
 		wait-for-turn railturretr around y-axis;
 		wait-for-turn railsleever around x-axis;
 		wait-for-turn railturretl around y-axis;

@@ -395,7 +395,7 @@ RestoreAfterDelay(){
 	turn Torso_turret_left_hull_2 to x-axis <0> speed <120>;
 	turn Torso_turret_right_hull_2 to x-axis <0> speed <120>;
 	torsoaim = 0;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 
 
@@ -478,9 +478,9 @@ AimWeapon1(heading, pitch)
     //var torsoaim;
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn Main_hull around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -524,9 +524,10 @@ AimWeapon2(heading, pitch) //pew pew
 	set-signal-mask SIGNAL_AIM2;
 	turn Right_turret_main to y-axis heading - torsoaim speed <100.0>; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Right_turret_main to x-axis -1*pitch speed <100.0>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 2500) AND ((get ABS(wpn2_lasthead - heading)) < 64236)))
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <14>))
 	{
-		wpn2_lasthead = 1000000;
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn Right_turret_main around y-axis;
 		wait-for-turn Right_turret_main around x-axis;
 	}
@@ -561,9 +562,10 @@ AimWeapon3(heading, pitch) //pew pew
 	set-signal-mask SIGNAL_AIM3;
 	turn Left_turret_main to y-axis heading - torsoaim speed <100.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Left_turret_main to x-axis -1*pitch speed <100.0> ;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
+
+	if ((wpn3_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn3_lasthead), <14>))
 	{
-		wpn3_lasthead = 1000000;
+		wpn3_lasthead = 0xbadface;
 		wait-for-turn Left_turret_main around y-axis;
 		wait-for-turn Left_turret_main around x-axis;
 	}
@@ -606,9 +608,10 @@ AimWeapon4(heading, pitch)
 	turn Torso_turret_main to y-axis heading - torsoaim speed <200.0>; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn Torso_turret_right_hull_2 to x-axis -1*pitch speed <200.0>;
 	turn Torso_turret_left_hull_2 to x-axis -1*pitch speed <200.0>;
-	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 1300) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
+
+	if ((wpn4_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn4_lasthead), <7>))
 	{
-		wpn4_lasthead = 1000000;
+		wpn4_lasthead = 0xbadface;
 		wait-for-turn Torso_turret_main around y-axis;
 		wait-for-turn Torso_turret_left_hull_1 around x-axis;
 		wait-for-turn Torso_turret_left_hull_2 around x-axis;

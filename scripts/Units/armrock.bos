@@ -298,7 +298,7 @@ ExecuteRestoreAfterDelay()
 	turn aimx1 to x-axis <0.0> speed <90.010989>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -332,9 +332,10 @@ AimWeapon1(heading, pitch)
 
 	turn aimy1 to y-axis heading speed <130.027473>;
 	turn aimx1 to x-axis <-90> - pitch speed <180.021978>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 	}

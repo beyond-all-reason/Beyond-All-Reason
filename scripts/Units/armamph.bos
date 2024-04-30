@@ -312,8 +312,8 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn torso around y-axis;
 	wait-for-turn turret around y-axis;
 	wait-for-turn misbarrel around x-axis;
-	wpn3_lasthead = 1000000;
-	wpn1_lasthead = 1000000;
+	wpn3_lasthead = 0xbadface;
+	wpn1_lasthead = 0xbadface;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -336,9 +336,9 @@ AimWeapon1(heading, pitch)
 	isAiming = TRUE;
 
 	turn torso to y-axis heading speed <150.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn torso around y-axis;
 	}
 	start-script RestoreAfterDelay();
@@ -404,9 +404,10 @@ AimWeapon2(heading, pitch)
 
 	turn turret to y-axis heading speed <300.0>;
 	turn misbarrel to x-axis <0.0> - pitch speed <300.0>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+
+	if ((wpn3_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn3_lasthead), <27>))
 	{
-		wpn3_lasthead = 1000000;
+		wpn3_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 		wait-for-turn misbarrel around x-axis;
 	}

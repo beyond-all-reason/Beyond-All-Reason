@@ -340,7 +340,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn ruparm around x-axis;
 	wait-for-turn rarm around y-axis;
 	wait-for-turn luparm around x-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -381,9 +381,9 @@ AimWeapon1(heading, pitch)
 	turn rarm to x-axis <0.0> speed <200.0>;
 	turn luparm to x-axis <0.0> - pitch speed <200.0>;
 	turn larm to x-axis <0.0> speed <200.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn torso around y-axis;
 		wait-for-turn luparm around x-axis;
 		wait-for-turn ruparm around x-axis;

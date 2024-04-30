@@ -769,7 +769,7 @@ ExecuteRestoreAfterDelay()
 	start-script OpenCloseAnim(0);
 	turn aimy1 to y-axis <0.0> speed <200.038462>;
 	isAiming = FALSE;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -797,9 +797,9 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 	}

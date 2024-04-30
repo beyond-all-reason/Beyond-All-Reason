@@ -575,7 +575,7 @@ ExecuteRestoreAfterDelay()
 	last_primary_pitch = -1000000;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 
 SetStunned(State)

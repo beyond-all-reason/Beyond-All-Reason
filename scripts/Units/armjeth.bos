@@ -319,7 +319,7 @@ ExecuteRestoreAfterDelay()
 	}
 	set-signal-mask 0;
 	turn aimy1 to y-axis <0.0> speed <90.0>;
-	wpn2_lasthead = 1000000;
+	wpn2_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -363,9 +363,10 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 	turn aimy1 to y-axis heading speed <275.0>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
-		wpn2_lasthead = 1000000;
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 	}
 	wpn2_lasthead = heading;

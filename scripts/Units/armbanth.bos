@@ -1,4 +1,5 @@
 
+
 #include "../recoil_common_includes.h"
 
 piece  head, torso, pelvis, missleflare,
@@ -620,8 +621,8 @@ ExecuteRestoreAfterDelay()
 	//wait-for-turn lshoulder around x-axis;
 	//wait-for-turn ruparm around x-axis;
 	//wait-for-turn lshoulder around y-axis;
-	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
+	wpn2_lasthead = 0xbadface;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -665,9 +666,9 @@ AimWeapon1(heading, pitch) //hand cannons
 	turn aimx1 to x-axis 0 - pitch speed <120>;
 	turn aimy1 to y-axis heading speed <100.021978>;
 
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <5>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 	}
@@ -681,9 +682,10 @@ AimWeapon2(heading, pitch) //HEAD LASER
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn turret to y-axis (heading - myHeading) speed <300.071429>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
-		wpn2_lasthead = 1000000;
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 	}
 	wpn2_lasthead = heading;

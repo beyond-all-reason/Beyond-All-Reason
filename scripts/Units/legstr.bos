@@ -272,7 +272,7 @@ ExecuteRestoreAfterDelay()
 	spin rbarrel around z-axis speed <0.0>;
 	spin lbarrel around z-axis speed <0.0>;
 	isAiming = FALSE;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -295,9 +295,9 @@ AimWeapon1(heading, pitch)
 	turn body to y-axis heading speed <180.0>;
 	turn luparm to x-axis 0 - pitch speed <360>;
 	turn ruparm to x-axis 0 - pitch speed <360>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn body around y-axis;
 		wait-for-turn luparm around x-axis;
 	}

@@ -310,9 +310,9 @@ RestoreAfterDelay()
 	turn rturret to x-axis <0.0> speed <120.0>;
 	turn misturret to y-axis <0.0> speed <120.0>;
 	isAiming = FALSE;
-	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
-	wpn3_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
+	wpn2_lasthead = 0xbadface;
+	wpn3_lasthead = 0xbadface;
 }
 
 AimWeapon1(heading, pitch)
@@ -323,9 +323,9 @@ AimWeapon1(heading, pitch)
 	turn lturret to x-axis 0 - pitch speed <360>;
 	turn rturret to x-axis 0 - pitch speed <360>;
 
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn body around y-axis;
 		wait-for-turn lturret around x-axis;
 	}
@@ -338,9 +338,10 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	turn misturret to y-axis heading speed <180.0>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
-		wpn2_lasthead = 1000000;
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn misturret around y-axis;
 	}
 	wpn2_lasthead = heading;

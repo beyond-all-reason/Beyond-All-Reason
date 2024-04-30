@@ -439,7 +439,7 @@ RestoreAfterDelay()
 	turn misturret to y-axis <0.0> speed <120.0>;
 	turn misturret to x-axis <0.0> speed <120.0>;
 	isAiming = FALSE;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 
 AimWeapon1(heading, pitch)

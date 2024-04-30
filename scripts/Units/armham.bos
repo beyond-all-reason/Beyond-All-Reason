@@ -326,7 +326,7 @@ ExecuteRestoreAfterDelay()
     set-signal-mask 0;
     turn aimy1 to y-axis <0.0> speed <90.0>;
     turn aimx1 to x-axis <0.0> speed <45.0>;
-    wpn1_lasthead = 1000000;
+    wpn1_lasthead = 0xbadface;
     if( canAim )
 	{
 		canAim = 0;
@@ -381,8 +381,9 @@ AimWeapon1(heading, pitch)
         {
             return(0);
         }
-		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 2300) AND ((get ABS(wpn1_lasthead - heading)) < 63236)))
+		if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <12>))
 		{
+			wpn1_lasthead = 0xbadface;
 	        wait-for-turn aimy1 around y-axis;
 	        wait-for-turn aimx1 around x-axis;
 		}

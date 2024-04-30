@@ -519,7 +519,7 @@ RestoreAfterDelay(){
 	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 }
 
 
@@ -565,9 +565,9 @@ AimWeapon1(heading, pitch) //pew pew
 	turn torso to  y-axis heading + <10> speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn rloarm to  x-axis <-55> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn torso around y-axis;
 	}
 	wpn1_lasthead = heading;

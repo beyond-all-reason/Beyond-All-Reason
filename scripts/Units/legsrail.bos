@@ -540,7 +540,7 @@ ExecuteRestoreAfterDelay()
 	turn sleeve to x-axis <0.0> speed <30.0>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn sleeve around x-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
 	isAiming = FALSE;
 }
 SetStunned(State)
@@ -573,9 +573,9 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <45.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <70.0>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <2>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}
