@@ -47,7 +47,7 @@ end
 
 function gadget:GameFrame(frame)
     if frame == 1 then
-        for _ = 1,1000 do -- debugging
+        --for _ = 1,1000 do -- debugging
             if math.random(1,30) == 1 then
                 for j = 1,10000 do
                     local posx = math.random(math.floor(Game.mapSizeX*0.02), math.ceil(Game.mapSizeX*0.98))
@@ -73,7 +73,7 @@ function gadget:GameFrame(frame)
                     end
                 end
             end
-        end
+        --end
     end
     
     if frame%5 == 0 then
