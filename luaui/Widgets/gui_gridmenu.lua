@@ -1849,6 +1849,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 	if currentCategory and key == KEYSYMS.ESCAPE then
 		clearCategory()
 		doUpdate = true
+		return true
 	end
 end
 
