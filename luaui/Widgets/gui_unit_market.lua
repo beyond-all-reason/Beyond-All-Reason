@@ -316,11 +316,10 @@ function widget:MousePress(mx, my, button)
             if lastClickTime ~= nil and currentTime - lastClickTime <= doubleClickTime then -- Double-click detected
                 local distance = math.sqrt((mx - lastClickCoords[1])^2 + (my - lastClickCoords[2])^2)
                 if distance <= maxDistanceForDoubleClick then -- Distance OK
-                    if rType == 'unit' and spValidUnitID(cUnitID) then
-                        if spGetUnitTeam(cUnitID) ~= myTeamID then
-                            OfferToBuy(cUnitID)
-                        end
-                    elseif rType == 'ground' then
+                    if rType == 'unit' and spValidUnitID(cUnitID) and spGetUnitTeam(cUnitID) ~= myTeamID then
+						OfferToBuy(cUnitID)
+                    else
+						_, cUnitID = spTraceScreenRay(mx, my, true)
                         local buyingUnits = spGetUnitsInCylinder(cUnitID[1], cUnitID[3], rangeBuy)
                         for _, unitID in ipairs(buyingUnits) do
                             if spValidUnitID(unitID) and spGetUnitTeam(unitID) ~= myTeamID then
