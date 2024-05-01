@@ -45,7 +45,7 @@ local immediate = true
 local persist = true
 local verbose = true
 
-local rejectedUnits = {} -- contains units, which didn't load like legion in non-legion games
+local rejectedUnits = {} -- contains units, which didn't load, like legion in non-legion games
 
 local presets = {} -- contains ten "presets", which can be used like unit2group
 for i = 0, 9 do
@@ -213,14 +213,14 @@ local function RemoveOneUnitFromGroupHandler(_, _, args)
 	return true
 end
 
-local function loadAutogroupPreset(_, _, args, data)
-	local pr = args[1]
-	if not presets[tonumber(pr)] then
+local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
+	local newPreset = tonumber(optWords[1])
+	if not presets[newPreset] then
 		return
 	end
 	local prevGroup = presets[currPreset]
 
-	currPreset = tonumber(pr)
+	currPreset = newPreset
 
 	Echo(Spring.I18N("ui.autogroups.presetSelected", {presetNum = currPreset}))
 	unit2group = presets[currPreset]
@@ -231,13 +231,13 @@ local function loadAutogroupPreset(_, _, args, data)
 
 	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(uID)
-		local gr = unit2group[unitDefID]
+		local group = unit2group[unitDefID]
 		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last 
 			SetUnitGroup(uID, -1)
 		end
 
-		if gr ~= nil and GetUnitGroup(uID) == nil and addall then
-			SetUnitGroup(uID, gr)
+		if group ~= nil and GetUnitGroup(uID) == nil and addall then
+			SetUnitGroup(uID, group)
 		end
 	end
 end
@@ -250,7 +250,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
 	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
 	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPreset, nil, "p") -- Changes the autogroup preset
+	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
