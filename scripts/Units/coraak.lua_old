@@ -25,10 +25,10 @@ local sfxExplode = SFX.EXPLODE
 local restore_delay = 3000
 local pelvis_speed = 100
 
-local SIG_WALK = 1
-local SIG_AIM1 = 2
-local SIG_AIM2 = 4
-local SIG_RESTORE = 8
+local SIGNAL_MOVE = 1
+local SIGNAL_AIM11 = 2
+local SIGNAL_AIM2 = 4
+local SIGNAL_IDLE = 8
 
 local SPEED = 1.9
 
@@ -41,8 +41,8 @@ local gun_1 = 1
 
 -- four-stroke tetrapedal walkscript
 local function Walk()
-	Signal(SIG_WALK)
-	SetSignalMask(SIG_WALK)
+	Signal(SIGNAL_MOVE)
+	SetSignalMask(SIGNAL_MOVE)
 	while true do
 
 		local speedmult = (1 - (Spring.GetUnitRulesParam(unitID,"slowState") or 0))*SPEED
@@ -123,7 +123,7 @@ end
 
 function script.StopMoving()
 	--Spring.Echo("Stopped moving")
-	Signal(SIG_WALK)
+	Signal(SIGNAL_MOVE)
 	ResetLegs()
 end
 
@@ -135,8 +135,8 @@ end
 function script.AimWeapon(num, heading, pitch)
 	--Spring.Echo('Aimweapon',num)
 	if num == 1 then
-		Signal( SIG_AIM2)
-		SetSignalMask( SIG_AIM2)
+		Signal( SIGNAL_AIM2)
+		SetSignalMask( SIGNAL_AIM2)
 		Turn( torso , y_axis, heading, math.rad(360) )
 		WaitForTurn(torso, y_axis)
 		StartThread(RestoreAfterDelay)
@@ -149,7 +149,7 @@ function script.AimWeapon(num, heading, pitch)
 		StartThread(RestoreAfterDelay)
 		return true
 	-- elseif num == 10 then
-		-- Signal( SIG_AIM2)
+		-- Signal( SIGNAL_AIM2)
 		-- SetSignalMask( )
 		-- Turn( torso , y_axis, heading, math.rad(360) )
 		-- Turn( flakgun, x_axis, -pitch, math.rad(180) )

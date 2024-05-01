@@ -1,20 +1,18 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  lturret, rturret, llturret, rrturret, base, lprop, rprop, bprop;
 
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
-#define SIG_AIM				4
-#define SIG_AIM_2			8
-#define SIG_AIM_3			16
-#define SIG_AIM_4			32
-#define SIG_AIM_5			64
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
+#define SIGNAL_AIM5 4096
 
 
 #define BASEPIECE base
@@ -34,8 +32,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -43,73 +41,54 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
-TurnControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
-		turnClock = 1;
-		turnCounter = 1;	
-		if (diffHeading >= 500)
-			{
-			turnClock = <2>;
-			}
-		if (diffHeading <= -500)
-			{
-			turnCounter = <2>;
-			}
-		lastHeading = currHeading;
-		sleep 67;
-	}
-}
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE lprop
+#define TB_WAKE_PIECE2 rprop
+#include "../../tilt_bank_submarine.h"
 
 Propcontrol()
 {
+	var currentSpeed;
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin lprop around z-axis speed (<-1.000000> * currentSpeed ) * turnCounter accelerate <10.000000>;
-		spin rprop around z-axis speed (<1.000000> * currentSpeed ) * turnClock accelerate <10.000000>;
-		spin bprop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
-		sleep 33;
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin lprop around z-axis speed (<-1.0> * currentSpeed )  accelerate <10.0>;
+		spin rprop around z-axis speed (<1.0> * currentSpeed )  accelerate <10.0>;
+		spin bprop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		sleep 100;
 	}
 }
 
 Create()
 {
-	moveSpeed = get MAX_SPEED;
-	start-script Propcontrol();
-	start-script TurnControl();
+	call-script TB_Init();
 }
 
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
 
-	while( TRUE )
-	{
-		emit-sfx 256 | 3 from lprop;
-		emit-sfx 256 | 3 from rprop;
-		emit-sfx 256 | 3 from bprop;
-		sleep 250;
-	}
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	START_TILTBANK;
+	start-script Propcontrol();
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+	stop-spin lprop around z-axis decelerate <10.0>;
+	stop-spin rprop around z-axis decelerate <10.0>;
+	stop-spin bprop around z-axis decelerate <10.0>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -137,15 +116,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -155,20 +134,20 @@ Shot1()
 	return (1);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	move lturret to x-axis [-9] speed [30];
 	move llturret to x-axis [-9] speed [30];
 	wait-for-move lturret along x-axis;
@@ -182,20 +161,20 @@ Shot2()
 	return (1);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = llturret;
+	pieceIndex = llturret;
 }
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	move lturret to x-axis [-9] speed [30];
 	move llturret to x-axis [-9] speed [30];
 	wait-for-move lturret along x-axis;
@@ -209,20 +188,20 @@ Shot3()
 	return (1);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = llturret;
+	pieceIndex = llturret;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = rturret;
+	pieceIndex = rturret;
 }
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 	move rturret to x-axis [9] speed [30];
 	move rrturret to x-axis [9] speed [30];
 	wait-for-move rturret along x-axis;
@@ -236,20 +215,20 @@ Shot4()
 	return (1);
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = rturret;
+	pieceIndex = rturret;
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = rrturret;
+	pieceIndex = rrturret;
 }
 
 AimWeapon5(heading, pitch)
 {
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 	move rturret to x-axis [9] speed [30];
 	move rrturret to x-axis [9] speed [30];
 	wait-for-move rturret along x-axis;
@@ -263,9 +242,9 @@ Shot5()
 	return (1);
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = rrturret;
+	pieceIndex = rrturret;
 }
 
 Killed(severity, corpsetype)

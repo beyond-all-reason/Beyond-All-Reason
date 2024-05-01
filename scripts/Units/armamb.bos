@@ -1,38 +1,33 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint;
 
 static-var  turretOpen, restoreDelay, trajectoryMode, stunned;
 
-#define SIGNAL_AIM			1
+#define SIGNAL_AIM2			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
 openTurret()
 {
-	turn door1 to x-axis <0.000000> speed <227.093407>;
-	turn door2 to z-axis <0.000000> speed <227.093407>;
-	turn door3 to x-axis <0.000000> speed <227.093407>;
-	turn door4 to z-axis <0.000000> speed <227.093407>;
+	turn door1 to x-axis <0.0> speed <227.093407>;
+	turn door2 to z-axis <0.0> speed <227.093407>;
+	turn door3 to x-axis <0.0> speed <227.093407>;
+	turn door4 to z-axis <0.0> speed <227.093407>;
 	wait-for-turn door1 around x-axis;
 
-	move door1 to y-axis [0] speed [45.000000];
-	move door2 to y-axis [0] speed [45.000000];
-	move door3 to y-axis [0] speed [45.000000];
-	move door4 to y-axis [0] speed [45.000000];
+	move door1 to y-axis [0] speed [45.0];
+	move door2 to y-axis [0] speed [45.0];
+	move door3 to y-axis [0] speed [45.0];
+	move door4 to y-axis [0] speed [45.0];
 	move stand to y-axis [0] speed [34];
 	wait-for-move door1 along y-axis;
 	wait-for-move stand along y-axis;
-	sleep 250;
+
 
 	move barrel to z-axis [0] speed [51];
-	sleep 300;
-
-	sleep 25;
-	return (0);
+	wait-for-move barrel along z-axis;
 }
 
 closeTurret()
@@ -40,26 +35,23 @@ closeTurret()
 	turn stand to y-axis <0> speed <100>;
 	turn turret to x-axis <0> speed <50>;
 	move barrel to z-axis [-16] speed [51];
-	sleep 300;
 	wait-for-turn stand around y-axis;
 	wait-for-turn turret around x-axis;
+	wait-for-move barrel along z-axis;
 
-	move door1 to y-axis [15] speed [45.000000];
-	move door2 to y-axis [15] speed [45.000000];
-	move door3 to y-axis [15] speed [45.000000];
-	move door4 to y-axis [15] speed [45.000000];
+	move door1 to y-axis [15] speed [45.0];
+	move door2 to y-axis [15] speed [45.0];
+	move door3 to y-axis [15] speed [45.0];
+	move door4 to y-axis [15] speed [45.0];
 	move stand to y-axis [-16] speed [34];
 	wait-for-move door1 along y-axis;
 	wait-for-move stand along y-axis;
 
-	turn door1 to x-axis <-90.000000> speed <227.093407>;
-	turn door2 to z-axis <-90.000000> speed <227.093407>;
-	turn door3 to x-axis <90.000000> speed <227.093407>;
-	turn door4 to z-axis <90.000000> speed <227.093407>;
+	turn door1 to x-axis <-90.0> speed <227.093407>;
+	turn door2 to z-axis <-90.0> speed <227.093407>;
+	turn door3 to x-axis <90.0> speed <227.093407>;
+	turn door4 to z-axis <90.0> speed <227.093407>;
 	wait-for-turn door1 around x-axis;
-
-	sleep 17;
-	return (0);
 }
 
 
@@ -82,11 +74,6 @@ Stop()
 	return (0);
 }
 
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
-}
-
 ExecuteRestoreAfterDelay()
 {
     if (stunned)
@@ -95,8 +82,8 @@ ExecuteRestoreAfterDelay()
     }
 
 	//set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <100.016484>;
-	turn turret to x-axis <0.000000> speed <50.005495>;
+	turn turret to y-axis <0.0> speed <100.016484>;
+	turn turret to x-axis <0.0> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 
@@ -114,7 +101,7 @@ SetStunned(state)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -127,28 +114,26 @@ Create()
 	turretOpen = 0;
 	restoreDelay = 10000;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script RestoreAfterDelay();
 	return (0);
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
+	signal SIGNAL_AIM2;
+	trajectoryMode = HIGH_TRAJECTORY;
 }
 
 Deactivate()
 {
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
+	signal SIGNAL_AIM2;
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
 aimCommon(heading, pitch)
@@ -158,13 +143,13 @@ aimCommon(heading, pitch)
 		sleep 250;
 	}
 
-	turn stand to y-axis heading speed <50.000000>;
-	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
+	turn stand to y-axis heading speed <50.0>;
+	turn turret to x-axis <0.0> - pitch speed <45.0>;
 	wait-for-turn stand around y-axis;
 	wait-for-turn turret around x-axis;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script Go();
 
@@ -173,8 +158,8 @@ AimPrimary(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -190,7 +175,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	start-script Go();
 
@@ -199,8 +184,8 @@ AimSecondary(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -210,45 +195,42 @@ AimSecondary(heading, pitch)
 fireCommon()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-4.500000] speed [1250.000000];
+	move barrel to z-axis [-4.500000] speed [1250.0];
 	sleep 150;
-	move barrel to z-axis [0.000000] speed [7.500000];
+	move barrel to z-axis [0.0] speed [7.500000];
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	call-script fireCommon();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

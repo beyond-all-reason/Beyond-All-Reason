@@ -1,23 +1,18 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
+piece  base, pad, nano1, nano2, nano3, nano4, dish, blink, blinka, blinkb;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 Standby()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
 	while( TRUE )
 	{
 		hide blinkb;
@@ -29,8 +24,6 @@ Standby()
 		show blinkb;
 		sleep 1975;
 	}
-	sleep 50;
-	start-script Standby();
 }
 
 Lights()
@@ -42,106 +35,19 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 
-activatescr()
-{
-	//start-script Lights();
-	sleep 26;
-}
-
-deactivatescr()
-{
-//	sleep 26;
-}
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-  set BUGGER_OFF to 1;
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-}
-DishSpin()
-{
-	show blink;
-	spin dish around y-axis speed <60>;
-}
-DishStopSpin()
-{
-	hide blink;
-	spin dish around y-axis speed <0.000>;
-}
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
 		hide blink;
-	    call-script DishStopSpin();
+		stop-spin dish around y-axis decelerate <1> ;
 	} else {
-	    call-script DishSpin();
+		show blink;
+		spin dish around y-axis speed <60> accelerate <1>;
 	}
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -151,66 +57,40 @@ Create()
 	hide nano3;
 	hide nano4;
 	hide pad;
-	unitviewer = FALSE;
-	spray = nano1;
-	call-script InitState();
+	spray = 0;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Standby();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
 	spin dish around y-axis speed <60>;
 	start-script Lights();
+	call-script SetStunned(0);
 }
 
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( spray == 2 )
-	{
-		piecenum = nano3;
-	}
-	if( spray == 3 )
-	{
-		piecenum = nano4;
-
-	}
-	spray=spray+1;
-	if (spray >3)
-	{
-		spray=0;
-	}
-}
-
-Demo()
-{
-	unitviewer = TRUE;
+	spray = (spray + 1) % 4;
+	pieceIndex = nano1 + spray;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
     sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -219,7 +99,7 @@ StartBuilding()
 	show nano2;
 	show nano3;
 	show nano4;
-	spin pad around y-axis speed <30.005495>;
+	spin pad around y-axis speed <30.005495> accelerate <1>;
 }
 
 StopBuilding()
@@ -231,15 +111,12 @@ StopBuilding()
 	stop-spin pad around y-axis;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

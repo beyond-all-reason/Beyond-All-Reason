@@ -4,11 +4,11 @@
 static-var animAmplitude, animSpeed;
 
 Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3)) 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:6
 			move body to x-axis (((([0.716533] *MOVESCALE)/100) *animAmplitude)/100) speed (((([21.495981] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([1.053885] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<-3.245854> *animAmplitude)/100) speed ((<97.375627> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<2.900000> *animAmplitude)/100) speed ((<86.999991> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<-4.099999> *animAmplitude)/100) speed ((<122.999985> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -36,14 +36,14 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn tail to y-axis ((<6.100000> *animAmplitude)/100) speed ((<182.999991> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
+	while(isMoving) {
 		//animAmplitude = animAmplitude + 5;
 		//if (animAmplitude > 170) animAmplitude = 40;
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			move body to x-axis (((([1.368846] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.569397] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([2.107771] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-2.756316] *MOVESCALE)/100) *animAmplitude)/100) speed (((([82.696016] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<-0.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<-4.999999> *animAmplitude)/100) speed ((<52.624356> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<11.999999> *animAmplitude)/100) speed ((<272.999967> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<-6.099999> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -55,8 +55,8 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn lthigh to x-axis ((<63.270214> *animAmplitude)/100) speed ((<735.302171> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to z-axis ((<-3.053752> *animAmplitude)/100) speed ((<62.001051> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to y-axis ((<2.631929> *animAmplitude)/100) speed ((<25.117671> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LUHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LLHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LUHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LLHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to x-axis ((<37.775085> *animAmplitude)/100) speed ((<290.314715> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to z-axis ((<-0.225574> *animAmplitude)/100) speed ((<18.537829> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to y-axis ((<2.256788> *animAmplitude)/100) speed ((<12.416772> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -64,20 +64,20 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn rshin to x-axis ((<23.827443> *animAmplitude)/100) speed ((<1316.520448> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to x-axis ((<-39.489763> *animAmplitude)/100) speed ((<356.525527> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to z-axis ((<-7.962845> *animAmplitude)/100) speed ((<52.238627> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RUHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RLHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RUHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RLHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<74.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to x-axis ((<-1.406630> *animAmplitude)/100) speed ((<64.620693> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to y-axis ((<10.599999> *animAmplitude)/100) speed ((<134.999991> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:18
+		if (isMoving) { //Frame:18
 			move body to x-axis (((([0.884679] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.525004] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([2.594179] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.592261] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-1.511768] *MOVESCALE)/100) *animAmplitude)/100) speed (((([37.336428] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<-3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<-3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<-3.457541> *animAmplitude)/100) speed ((<46.273765> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<6.799999> *animAmplitude)/100) speed ((<155.999992> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn head to y-axis ((<-4.000000> *animAmplitude)/100) speed ((<62.999992> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn head to y-axis ((<-4.0> *animAmplitude)/100) speed ((<62.999992> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to x-axis ((<-48.343963> *animAmplitude)/100) speed ((<122.208716> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to z-axis ((<-0.170319> *animAmplitude)/100) speed ((<42.728804> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to y-axis ((<-0.213311> *animAmplitude)/100) speed ((<49.106656> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -102,12 +102,12 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn tail to y-axis ((<5.600000> *animAmplitude)/100) speed ((<149.999983> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
-			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([26.540374] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([77.825382] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
+		if (isMoving) { //Frame:24
+			move body to x-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([26.540374] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
+			move body to z-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([77.825382] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-0.620183] *MOVESCALE)/100) *animAmplitude)/100) speed (((([26.747559] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<-5.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to y-axis ((<-0.000000> *animAmplitude)/100) speed ((<103.726217> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<-5.0> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to y-axis ((<-0.0> *animAmplitude)/100) speed ((<103.726217> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<3.199999> *animAmplitude)/100) speed ((<107.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<0.200000> *animAmplitude)/100) speed ((<125.999986> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to x-axis ((<0.576282> *animAmplitude)/100) speed ((<1467.607337> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -130,15 +130,15 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn rthigh to y-axis ((<-1.190465> *animAmplitude)/100) speed ((<45.999023> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn RUHAND to z-axis ((<5.300000> *animAmplitude)/100) speed ((<158.999991> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn RLHAND to z-axis ((<5.300000> *animAmplitude)/100) speed ((<158.999991> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn tail to x-axis ((<-7.000000> *animAmplitude)/100) speed ((<209.999989> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<167.999986> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn tail to x-axis ((<-7.0> *animAmplitude)/100) speed ((<209.999989> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn tail to y-axis ((<0.0> *animAmplitude)/100) speed ((<167.999986> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			move body to x-axis (((([-1.020784] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.623506] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([1.053885] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([0.012741] *MOVESCALE)/100) *animAmplitude)/100) speed (((([18.987735] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<-3.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<-3.0> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<3.386979> *animAmplitude)/100) speed ((<101.609356> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<7.349999> *animAmplitude)/100) speed ((<124.499997> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<4.400000> *animAmplitude)/100) speed ((<125.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -161,15 +161,15 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn rthigh to y-axis ((<-3.650148> *animAmplitude)/100) speed ((<73.790478> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn RUHAND to z-axis ((<2.100000> *animAmplitude)/100) speed ((<95.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn RLHAND to z-axis ((<2.100000> *animAmplitude)/100) speed ((<95.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn tail to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<209.999989> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn tail to x-axis ((<-0.0> *animAmplitude)/100) speed ((<209.999989> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to y-axis ((<-7.599999> *animAmplitude)/100) speed ((<227.999992> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			move body to x-axis (((([-1.354285] *MOVESCALE)/100) *animAmplitude)/100) speed (((([10.005037] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([2.107771] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-2.756316] *MOVESCALE)/100) *animAmplitude)/100) speed (((([83.071722] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<0.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<0.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<4.899999> *animAmplitude)/100) speed ((<45.390628> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<11.499999> *animAmplitude)/100) speed ((<124.499997> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<7.399999> *animAmplitude)/100) speed ((<89.999990> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -181,8 +181,8 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn lthigh to x-axis ((<-39.280623> *animAmplitude)/100) speed ((<373.711837> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to z-axis ((<7.223171> *animAmplitude)/100) speed ((<26.191927> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to y-axis ((<-1.443272> *animAmplitude)/100) speed ((<7.036768> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LUHAND to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LLHAND to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LUHAND to z-axis ((<-0.0> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LLHAND to z-axis ((<-0.0> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to x-axis ((<-42.036358> *animAmplitude)/100) speed ((<205.764537> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to z-axis ((<-0.424411> *animAmplitude)/100) speed ((<53.818245> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to y-axis ((<-1.185119> *animAmplitude)/100) speed ((<72.842690> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -191,17 +191,17 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn rthigh to x-axis ((<58.506082> *animAmplitude)/100) speed ((<694.939134> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to z-axis ((<2.713115> *animAmplitude)/100) speed ((<101.393232> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to y-axis ((<-2.128098> *animAmplitude)/100) speed ((<45.661482> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RUHAND to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RLHAND to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RUHAND to z-axis ((<-0.0> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RLHAND to z-axis ((<-0.0> *animAmplitude)/100) speed ((<62.999998> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to x-axis ((<2.300000> *animAmplitude)/100) speed ((<68.999995> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to y-axis ((<-10.999999> *animAmplitude)/100) speed ((<101.999996> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:42
+		if (isMoving) { //Frame:42
 			move body to x-axis (((([-1.003146] *MOVESCALE)/100) *animAmplitude)/100) speed (((([10.534172] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([2.594179] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.592261] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-1.502549] *MOVESCALE)/100) *animAmplitude)/100) speed (((([37.613018] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<90.000003> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<3.386979> *animAmplitude)/100) speed ((<45.390628> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<7.499999> *animAmplitude)/100) speed ((<119.999986> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<4.900000> *animAmplitude)/100) speed ((<74.999985> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -225,17 +225,17 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn RUHAND to z-axis ((<11.099999> *animAmplitude)/100) speed ((<332.999973> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn RLHAND to z-axis ((<11.099999> *animAmplitude)/100) speed ((<332.999973> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to x-axis ((<-13.999999> *animAmplitude)/100) speed ((<488.999972> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn tail to y-axis ((<-7.899999> *animAmplitude)/100) speed ((<93.000001> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn tail to y-axis ((<-7.899999> *animAmplitude)/100) speed ((<93.0> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
-			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.094371] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			move body to z-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([77.825382] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
+		if (isMoving) { //Frame:48
+			move body to x-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.094371] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
+			move body to z-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([77.825382] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([-0.551277] *MOVESCALE)/100) *animAmplitude)/100) speed (((([28.538139] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<5.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<5.0> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<-0.141124> *animAmplitude)/100) speed ((<105.843080> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<2.500000> *animAmplitude)/100) speed ((<149.999983> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn head to y-axis ((<0.000000> *animAmplitude)/100) speed ((<146.999997> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn head to y-axis ((<0.0> *animAmplitude)/100) speed ((<146.999997> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to x-axis ((<5.189632> *animAmplitude)/100) speed ((<1209.980741> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to z-axis ((<-1.428018> *animAmplitude)/100) speed ((<123.636399> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lfoot to y-axis ((<1.139851> *animAmplitude)/100) speed ((<67.336875> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -244,8 +244,8 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn lthigh to x-axis ((<1.802795> *animAmplitude)/100) speed ((<620.794451> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to z-axis ((<-3.848457> *animAmplitude)/100) speed ((<207.566606> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn lthigh to y-axis ((<1.798164> *animAmplitude)/100) speed ((<76.726925> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LUHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn LLHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LUHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn LLHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to x-axis ((<-0.825809> *animAmplitude)/100) speed ((<1532.151403> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rfoot to y-axis ((<1.053146> *animAmplitude)/100) speed ((<55.568328> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rknee to x-axis ((<37.626389> *animAmplitude)/100) speed ((<316.553194> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -253,17 +253,17 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 			turn rthigh to x-axis ((<-8.002054> *animAmplitude)/100) speed ((<1404.204735> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to z-axis ((<-3.504265> *animAmplitude)/100) speed ((<144.292617> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn rthigh to y-axis ((<0.913148> *animAmplitude)/100) speed ((<52.158181> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RLHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn RUHAND to z-axis ((<5.000000> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RLHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn RUHAND to z-axis ((<5.0> *animAmplitude)/100) speed ((<182.999978> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to x-axis ((<-7.919867> *animAmplitude)/100) speed ((<182.403958> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn tail to y-axis ((<0.800000> *animAmplitude)/100) speed ((<260.999987> *animAmplitude)/100) / animspeed; //delta=%.2f
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:54
+		if (isMoving) { //Frame:54
 			move body to x-axis (((([0.716533] *MOVESCALE)/100) *animAmplitude)/100) speed (((([21.495981] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to z-axis (((([1.053885] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.616560] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
 			move body to y-axis (((([0.000218] *MOVESCALE)/100) *animAmplitude)/100) speed (((([16.544859] *MOVESCALE)/100) *animAmplitude)/100) / animspeed; //delta=%.2f
-			turn body to z-axis ((<3.000000> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
+			turn body to z-axis ((<3.0> *animAmplitude)/100) speed ((<59.999993> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn body to y-axis ((<-3.245854> *animAmplitude)/100) speed ((<93.141903> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to x-axis ((<2.900000> *animAmplitude)/100) speed ((<11.999994> *animAmplitude)/100) / animspeed; //delta=%.2f
 			turn head to y-axis ((<-4.099999> *animAmplitude)/100) speed ((<122.999985> *animAmplitude)/100) / animspeed; //delta=%.2f
@@ -293,36 +293,36 @@ Walk() {// For N:\animations\Raptors\raptor_2legged_fast_anim_walk_v2.blend Crea
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = MOVESPEED * 5; // tune restore speed here, higher values are slower restore speeds
-	move body to x-axis ([0.000000]*MOVESCALE)/100 speed (([51.039177]*MOVESCALE)/100) / animSpeed;
-	move body to y-axis ([0.000000]*MOVESCALE)/100 speed (([138.452870]*MOVESCALE)/100) / animSpeed;
-	move body to z-axis ([0.000000]*MOVESCALE)/100 speed (([129.708970]*MOVESCALE)/100) / animSpeed;
-	turn body to y-axis <0.000000> speed <176.405134> / animSpeed;
-	turn body to z-axis <0.000000> speed <150.000004> / animSpeed;
-	turn head to x-axis <0.000000> speed <454.999946> / animSpeed;
-	turn head to y-axis <0.000000> speed <244.999995> / animSpeed;
+	move body to x-axis ([0.0]*MOVESCALE)/100 speed (([51.039177]*MOVESCALE)/100) / animSpeed;
+	move body to y-axis ([0.0]*MOVESCALE)/100 speed (([138.452870]*MOVESCALE)/100) / animSpeed;
+	move body to z-axis ([0.0]*MOVESCALE)/100 speed (([129.708970]*MOVESCALE)/100) / animSpeed;
+	turn body to y-axis <0.0> speed <176.405134> / animSpeed;
+	turn body to z-axis <0.0> speed <150.0> / animSpeed;
+	turn head to x-axis <0.0> speed <454.999946> / animSpeed;
+	turn head to y-axis <0.0> speed <244.999995> / animSpeed;
 	turn lfoot to x-axis <3.637960> speed <2701.829669> / animSpeed;
-	turn lfoot to y-axis <0.000000> speed <165.256971> / animSpeed;
-	turn lfoot to z-axis <0.000000> speed <296.841664> / animSpeed;
+	turn lfoot to y-axis <0.0> speed <165.256971> / animSpeed;
+	turn lfoot to z-axis <0.0> speed <296.841664> / animSpeed;
 	turn lknee to x-axis <-1.091820> speed <2505.543309> / animSpeed;
 	turn lshin to x-axis <-5.521617> speed <2221.875318> / animSpeed;
 	turn lthigh to x-axis <3.135603> speed <2383.487722> / animSpeed;
-	turn lthigh to y-axis <0.000000> speed <173.459249> / animSpeed;
-	turn lthigh to z-axis <0.000000> speed <345.944343> / animSpeed;
-	turn LUHAND to z-axis <0.000000> speed <554.999956> / animSpeed;
-	turn LLHAND to z-axis <0.000000> speed <554.999956> / animSpeed;
-	turn rfoot to x-axis <0.000000> speed <2553.585672> / animSpeed;
-	turn rfoot to y-axis <0.000000> speed <126.031366> / animSpeed;
-	turn rfoot to z-axis <0.000000> speed <294.788398> / animSpeed;
-	turn rknee to x-axis <0.000000> speed <2155.678192> / animSpeed;
-	turn rshin to x-axis <0.000000> speed <2194.200747> / animSpeed;
-	turn rthigh to x-axis <0.000000> speed <2340.341225> / animSpeed;
-	turn rthigh to y-axis <0.000000> speed <122.984130> / animSpeed;
-	turn rthigh to z-axis <0.000000> speed <343.316438> / animSpeed;
-	turn RLHAND to z-axis <0.000000> speed <554.999956> / animSpeed;
-	turn RUHAND to z-axis <0.000000> speed <554.999956> / animSpeed;
-	turn tail to x-axis <0.000000> speed <814.999954> / animSpeed;
-	turn tail to y-axis <0.000000> speed <434.999978> / animSpeed;
+	turn lthigh to y-axis <0.0> speed <173.459249> / animSpeed;
+	turn lthigh to z-axis <0.0> speed <345.944343> / animSpeed;
+	turn LUHAND to z-axis <0.0> speed <554.999956> / animSpeed;
+	turn LLHAND to z-axis <0.0> speed <554.999956> / animSpeed;
+	turn rfoot to x-axis <0.0> speed <2553.585672> / animSpeed;
+	turn rfoot to y-axis <0.0> speed <126.031366> / animSpeed;
+	turn rfoot to z-axis <0.0> speed <294.788398> / animSpeed;
+	turn rknee to x-axis <0.0> speed <2155.678192> / animSpeed;
+	turn rshin to x-axis <0.0> speed <2194.200747> / animSpeed;
+	turn rthigh to x-axis <0.0> speed <2340.341225> / animSpeed;
+	turn rthigh to y-axis <0.0> speed <122.984130> / animSpeed;
+	turn rthigh to z-axis <0.0> speed <343.316438> / animSpeed;
+	turn RLHAND to z-axis <0.0> speed <554.999956> / animSpeed;
+	turn RUHAND to z-axis <0.0> speed <554.999956> / animSpeed;
+	turn tail to x-axis <0.0> speed <814.999954> / animSpeed;
+	turn tail to y-axis <0.0> speed <434.999978> / animSpeed;
 }

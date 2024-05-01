@@ -1,43 +1,29 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, doorl, doorr, launcher, flare1, wake, bow, turret, sleeve, flare2, dish ;
 
 static-var  restore_delay, gun_1, oldHead;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_3			4
-#define SIG_MOVE			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 8
-#define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_1 700
+#define RB_RECOIL_ENERGY_3 250
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 0
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 1
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn base around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../bar_ships_common.h"
+
 
 Create()
 {
@@ -47,23 +33,21 @@ Create()
 	hide flare1;
 	gun_1 = flare1;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-	spin dish around y-axis speed <150.000000>;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+	spin dish around y-axis speed <150.0>;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 abaim()
 {
 	sleep 4000;
-	signal SIG_AIM_3;
+	signal SIGNAL_AIM3;
 }
 
 static-var  Stunned;
@@ -72,8 +56,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <70.000000>;
-	turn sleeve to x-axis <0.000000> speed <30.000000>;
+	turn turret to y-axis <0.0> speed <70.0>;
+	turn sleeve to x-axis <0.0> speed <30.0>;
 
 	turn launcher to x-axis <0> speed <90>;
 	wait-for-turn launcher around x-axis;
@@ -97,57 +81,28 @@ RestoreAfterDelay()
 
 Activate()
 {
-	spin dish around y-axis speed <150.000000>;
+	spin dish around y-axis speed <150.0>;
 }
 
 Deactivate()
 {
-	spin dish around y-axis speed <0.000000>;
+	spin dish around y-axis speed <0.0>;
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.35] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
 
-StartMoving()
+
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from bow;
-        bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
-	}
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	turn doorr to z-axis <-90> speed <180>;
 	turn doorl to z-axis <90> speed <180>;
@@ -158,59 +113,52 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	turn turret to y-axis heading speed <170.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <130.000000>;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	turn turret to y-axis heading speed <170.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <130.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script abaim();
 	return (1);
 }
-
-TargetCleared(Func_Var_1)
-{
-	signal SIG_AIM_3;
-}
-
 /*
-FireSecondary()
+FireWeapon2()
 {
 	return (1);
 }
 */
 
-FirePrimary()
+FireWeapon1()
 {
-		gun_1 = flare1;
+	gun_1 = flare1;
+	sleep 100;
+	RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = launcher;
+	pieceIndex = launcher;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -221,12 +169,7 @@ Killed(severity, corpsetype)
 		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
-		//explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -236,12 +179,8 @@ Killed(severity, corpsetype)
 		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorl type FALL | NOHEATCLOUD;
 		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
-		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -251,12 +190,8 @@ Killed(severity, corpsetype)
 		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -264,11 +199,7 @@ Killed(severity, corpsetype)
 		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

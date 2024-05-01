@@ -1,0 +1,156 @@
+
+#include "../recoil_common_includes.h"	
+#include "../factories_common.h"
+
+piece  pad,base,door1,door2,crane1,crane2,turret1,turret2,nano1,nano2,cagelight,cagelight_emit;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+Create()
+{
+	hide nano2;
+	hide nano1;
+	hide pad;
+	hide cagelight_emit;
+	spray = 0;
+}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = (spray + 1) % 2;
+	pieceIndex = nano1 + spray;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move door1 to x-axis [-17.0] speed [17];
+	move door2 to x-axis [17.0] speed [17];
+	wait-for-move door2 along x-axis;
+	
+	move crane1 to x-axis [21.0] speed [42];
+	move crane2 to x-axis [21.0] speed [42];
+	wait-for-move crane1 along x-axis;
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	move crane1 to x-axis [0] speed [42];
+	move crane2 to x-axis [0] speed [42];
+	wait-for-move crane1 along x-axis;
+	
+	move door1 to x-axis [0.0] speed [17];
+	move door2 to x-axis [0.0] speed [17];
+	wait-for-move door2 along x-axis;
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+MoveCranes(){
+	while(TRUE){
+		move crane1 to x-axis [40] speed [10];
+		move crane2 to x-axis [2] speed [10];
+		wait-for-move crane1 along x-axis;
+		wait-for-move crane2 along x-axis;
+		move crane1 to x-axis [2] speed [10];
+		move crane2 to x-axis [40] speed [10];
+		wait-for-move crane1 along x-axis;
+	}
+}
+
+
+StartBuilding()
+{
+	show nano2;
+	show nano1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <200> accelerate <1>;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	start-script MoveCranes();
+}
+
+StopBuilding()
+{
+	hide nano2;
+	hide nano1;
+	hide cagelight_emit;
+	stop-spin cagelight around y-axis decelerate <1>;
+	signal SIGNAL_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode crane1 type BITMAPONLY | NOHEATCLOUD;
+		explode crane2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		explode door1 type BITMAPONLY | NOHEATCLOUD;
+		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode crane1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode crane2 type FALL | NOHEATCLOUD;
+		explode nano1 type FALL | NOHEATCLOUD;
+		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door1 type FALL | NOHEATCLOUD;
+		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode crane1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode crane2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door2 type SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode crane1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode crane2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

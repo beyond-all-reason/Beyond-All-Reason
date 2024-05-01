@@ -1,46 +1,20 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD	4
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
-static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
+static-var  readyToBuild,restore_delay, currentSpeed, moveSpeed, wheelSpeed;
 
 
-activatescr()
-{
-	turn ldoor to z-axis <0.000000> now;
-	turn ldoor to z-axis <-210> speed <360>;
-	turn rdoor to z-axis <0.000000> now;
-	turn rdoor to z-axis <210> speed <360>;
-	sleep 600;
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
-	move loturret to y-axis [7] speed [12];
-	move upturret to y-axis [5] speed [12];
-	sleep 200;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
-	turn loturret to y-axis <0.000000> speed <160.038462>;
-	turn upturret to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn loturret around y-axis;
-
-	move loturret to y-axis [0] speed [12];
-	move upturret to y-axis [0] speed [12];
-	sleep 200;
-	
-	turn ldoor to z-axis <0> speed <240>;
-	turn rdoor to z-axis <0> speed <240>;
-	sleep 200;
-
-}
 
 WheelControl()
 {
@@ -57,106 +31,99 @@ WheelControl()
 	}
 }
 
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script WheelControl();
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
 #define BASEPIECE base
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide beam;
 	hide cagelight_emit;
-	restore_delay = 3000;
-	notBuilding = 1;
+	restore_delay = 6000;
+	readyToBuild = FALSE;
+	call-script TB_Init();
 	moveSpeed = get MAX_SPEED;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script WheelControl();
-	
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+		turn ldoor to z-axis <-210> speed <360>;
+		turn rdoor to z-axis <210> speed <360>;
+		wait-for-turn ldoor around z-axis;
+
+		move loturret to y-axis [7] speed [12];
+		move upturret to y-axis [5] speed [12];
+		wait-for-move upturret along z-axis;
+		readyToBuild = TRUE;
+	}
+
 	show beam;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
 	turn upturret to y-axis heading speed <160.038462>;
 	wait-for-turn upturret around y-axis;
+
 	set INBUILDSTANCE to 1;
+
 	show cagelight_emit;
 	spin cagelight around y-axis speed <250>;
 }
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
 	hide beam;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <1000>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+	
+	turn loturret to y-axis <0.0> speed <160.038462>;
+	turn upturret to y-axis <0.0> speed <160.038462>;
+	wait-for-turn loturret around y-axis;
+
+	move loturret to y-axis [0] speed [12];
+	move upturret to y-axis [0] speed [12];
+	wait-for-move upturret along z-axis;
+	
+	turn ldoor to z-axis <0> speed <240>;
+	turn rdoor to z-axis <0> speed <240>;
+	wait-for-turn ldoor around z-axis;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -164,46 +131,46 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rdoor type BITMAPONLY | NOHEATCLOUD;
-		//explode container type BITMAPONLY | NOHEATCLOUD;
+		
+		
+		
 		explode cabin type BITMAPONLY | NOHEATCLOUD;
 		explode ltyre type BITMAPONLY | NOHEATCLOUD;
-		//explode rtyre type BITMAPONLY | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		
 		explode container type FALL | NOHEATCLOUD;
 		explode cabin type FALL | NOHEATCLOUD;
 		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		
 		explode container type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode cabin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rdoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
+		
 		explode container type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode cabin type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode ltyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 	return corpsetype;
 }
 

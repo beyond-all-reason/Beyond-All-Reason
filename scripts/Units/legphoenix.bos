@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, triparent, x, z, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
@@ -25,7 +23,7 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#define SIG_STRAFE 2
+#define SIGNAL_STRAFE 2
 
 
 
@@ -62,7 +60,7 @@ DoBarrelRoll() {
 	wait-for-turn base around z-axis;
 	turn base to z-axis <120.027473> speed <180.043956>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <0.000000> speed <120.027473>;
+	turn base to z-axis <0.0> speed <120.027473>;
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -114,8 +112,8 @@ Deactivate()
 
 StrafeFire() {
 
-	signal SIG_STRAFE;
-	set-signal-mask SIG_STRAFE;
+	signal SIGNAL_STRAFE;
+	set-signal-mask SIGNAL_STRAFE;
 	
 	
 	//emit-sfx 1024 + 0 from lineflare;
@@ -147,9 +145,9 @@ StrafeFire() {
 
 
 
-FirePrimary() {
+FireWeapon1() {
 
-	//signal SIG_STRAFE;
+	//signal SIGNAL_STRAFE;
 	isfiring = 1;
 	start-script StrafeFire();
 
@@ -170,25 +168,25 @@ Shot1(){
 	return 0;
 }
 
-AimPrimary() {
+AimWeapon1() {
 	return 0;
 }
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = fireline;
+	pieceIndex = fireline;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = fireline;
+	pieceIndex = fireline;
 }
-AimSecondary(h,p) {
+AimWeapon2(h,p) {
 	return (0);
 }
 
 /*
-FireSecondary() {
-	signal SIG_STRAFE;
+FireWeapon2() {
+	signal SIGNAL_STRAFE;
 //deny reaiming during firing?
 //barrel roll?
 	isfiring = 1;
@@ -213,7 +211,7 @@ Shot2() {
 	//start-script StrafeFire();
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if (isfiring==0 OR TRUE) {
 
@@ -227,17 +225,14 @@ AimSecondary(heading, pitch)
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = firecone;
+	pieceIndex = firecone;
 }
 //*/
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 
 

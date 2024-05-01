@@ -41,73 +41,73 @@ print 'Total hits:',hits
 '''//////////////AIR HITBY
 HitByWeapon(anglex, anglez)
 {
-	turn base to z-axis <0> - anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis <0> - anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <15.000000>;
-	turn base to x-axis <0.000000> speed <15.000000>;
+	turn base to z-axis <0.0> speed <15.0>;
+	turn base to x-axis <0.0> speed <15.0>;
 }
 
 
 ////// ground hitby
 HitByWeapon(anglex, anglez)
 {
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <30.000000>;
-	turn base to x-axis <0.000000> speed <30.000000>;
+	turn base to z-axis <0.0> speed <30.0>;
+	turn base to x-axis <0.0> speed <30.0>;
 }
 
 //pelvis hitby:
 
 HitByWeapon(anglex, anglez)
 {
-	turn pelvis to z-axis <0> - anglez speed <105.000000>;
-	turn pelvis to x-axis <0> - anglex speed <105.000000>;
+	turn pelvis to z-axis <0> - anglez speed <105.0>;
+	turn pelvis to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn pelvis around z-axis;
 	wait-for-turn pelvis around x-axis;
-	turn pelvis to z-axis <0.000000> speed <30.000000>;
-	turn pelvis to x-axis <0.000000> speed <30.000000>;
+	turn pelvis to z-axis <0.0> speed <30.0>;
+	turn pelvis to x-axis <0.0> speed <30.0>;
 }
 HitByWeapon(anglex, anglez)
 {
-	turn torso to z-axis <0> - anglez speed <105.000000>;
-	turn torso to x-axis <0> - anglex speed <105.000000>;
+	turn torso to z-axis <0> - anglez speed <105.0>;
+	turn torso to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn torso around z-axis;
 	wait-for-turn torso around x-axis;
-	turn torso to z-axis <0.000000> speed <30.000000>;
-	turn torso to x-axis <0.000000> speed <30.000000>;
+	turn torso to z-axis <0.0> speed <30.0>;
+	turn torso to x-axis <0.0> speed <30.0>;
 }
 HitByWeapon(anglex, anglez)
 {
-	turn body to z-axis anglez speed <105.000000>;
-	turn body to x-axis <0> - anglex speed <105.000000>;
+	turn body to z-axis anglez speed <105.0>;
+	turn body to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn body around z-axis;
 	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <30.000000>;
-	turn body to x-axis <0.000000> speed <30.000000>;
+	turn body to z-axis <0.0> speed <30.0>;
+	turn body to x-axis <0.0> speed <30.0>;
 }
 HitByWeapon(anglex, anglez)
 {
-	turn body to z-axis <0> - anglez speed <105.000000>;
-	turn body to x-axis <0> - anglex speed <105.000000>;
+	turn body to z-axis <0> - anglez speed <105.0>;
+	turn body to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn body around z-axis;
 	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <30.000000>;
-	turn body to x-axis <0.000000> speed <30.000000>;
+	turn body to z-axis <0.0> speed <30.0>;
+	turn body to x-axis <0.0> speed <30.0>;
 }
 
 HitByWeapon(anglex, anglez)
 {
-	turn hip to z-axis <0> - anglez speed <105.000000>;
-	turn hip to x-axis <0> - anglex speed <105.000000>;
+	turn hip to z-axis <0> - anglez speed <105.0>;
+	turn hip to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn hip around z-axis;
 	wait-for-turn hip around x-axis;
-	turn hip to z-axis <0.000000> speed <30.000000>;
-	turn hip to x-axis <0.000000> speed <30.000000>;
+	turn hip to z-axis <0.0> speed <30.0>;
+	turn hip to x-axis <0.0> speed <30.0>;
 }
 
 
@@ -116,12 +116,12 @@ HitByWeapon(anglex, anglez)
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis anglez speed <50.000000>;
+	turn base to x-axis anglex speed <50.0>;
+	turn base to z-axis anglez speed <50.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 
 
@@ -129,32 +129,32 @@ RockUnit(anglex, anglez)
 
 RockUnit(anglex, anglez)
 {
-	turn pelvis to x-axis anglex speed <50.000000>;
-	turn pelvis to z-axis anglez speed <50.000000>;
+	turn pelvis to x-axis anglex speed <50.0>;
+	turn pelvis to z-axis anglez speed <50.0>;
 	wait-for-turn pelvis around z-axis;
 	wait-for-turn pelvis around x-axis;
-	turn pelvis to z-axis <0.000000> speed <20.000000>;
-	turn pelvis to x-axis <0.000000> speed <20.000000>;
+	turn pelvis to z-axis <0.0> speed <20.0>;
+	turn pelvis to x-axis <0.0> speed <20.0>;
 }
 
 
 RockUnit(anglex, anglez)
 {
-	turn body to x-axis anglex speed <50.000000>;
-	turn body to z-axis anglez speed <50.000000>;
+	turn body to x-axis anglex speed <50.0>;
+	turn body to z-axis anglez speed <50.0>;
 	wait-for-turn body around z-axis;
 	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <20.000000>;
-	turn body to x-axis <0.000000> speed <20.000000>;
+	turn body to z-axis <0.0> speed <20.0>;
+	turn body to x-axis <0.0> speed <20.0>;
 }
 RockUnit(anglex, anglez)
 {
-	turn torso to x-axis anglex speed <50.000000>;
-	turn torso to z-axis anglez speed <50.000000>;
+	turn torso to x-axis anglex speed <50.0>;
+	turn torso to z-axis anglez speed <50.0>;
 	wait-for-turn torso around z-axis;
 	wait-for-turn torso around x-axis;
-	turn torso to z-axis <0.000000> speed <20.000000>;
-	turn torso to x-axis <0.000000> speed <20.000000>;
+	turn torso to z-axis <0.0> speed <20.0>;
+	turn torso to x-axis <0.0> speed <20.0>;
 }
 
 '''

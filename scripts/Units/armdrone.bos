@@ -1,12 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, jet, thrustl, thrustr, rflare, lflare;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -77,7 +75,7 @@ Create()
 	hide thrustr;
 	hide thrustl;
 	gun_1 = 0;
-	turn jet to x-axis <-90.000000> now;
+	turn jet to x-axis <-90.0> now;
 	start-script IdleHover();
 }
 
@@ -122,71 +120,68 @@ RestoreAfterDelay()
 
 MoveRate0()
 {
-	turn jet to x-axis <-90.000000> speed <200.000000>;
+	turn jet to x-axis <-90.0> speed <200.0>;
 }
 
 MoveRate1()
 {
-	turn jet to x-axis <-45.000000> speed <100.000000>;
+	turn jet to x-axis <-45.0> speed <100.0>;
 }
 
 MoveRate2()
 {
-	turn jet to x-axis <0> speed <50.000000>;
+	turn jet to x-axis <0> speed <50.0>;
 }
 
 MoveRate3()
 {
-	turn jet to x-axis <0.000000> speed <100.000000>;
+	turn jet to x-axis <0.0> speed <100.0>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1==0)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 		gun_1=1;
 	}
 	else 
 	{
-		piecenum=rflare;
+		pieceIndex=rflare;
 		gun_1=0;
 	}
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 200;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

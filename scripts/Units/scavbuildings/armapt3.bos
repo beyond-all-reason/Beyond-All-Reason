@@ -1,46 +1,21 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
+
+#include "../../opencloseanim.h"
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-				emit-sfx smoketype from pad;
-			
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
-
-Go()
+Open()
 {
 	//get PRINT(get (GAME_FRAME), 11);
 	
@@ -66,7 +41,7 @@ Go()
 	set INBUILDSTANCE to 1;
 }
 
-Stop()
+Close()
 {
 	//get PRINT(get (GAME_FRAME), 22);
 	set INBUILDSTANCE to 0;
@@ -93,37 +68,6 @@ Stop()
 	set BUGGER_OFF to 0;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging ) //we are still in the state changing process
-	{
-		statechg_DesiredState = requestedstate; //make the requested state the one to be in
-		return (0);
-	}
-	statechg_StateChanging = TRUE; // flad that we are gonna change states
-	currentstate = statechg_DesiredState; //
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -133,27 +77,22 @@ Create()
 	hide nano4;
 	hide pad;
 	spray = nano1;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
-	start-script SmokeUnit();
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Activate() // activate first
 {
 	//get PRINT(get (GAME_FRAME), 3333);
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
 	//get PRINT(get (GAME_FRAME), 4444);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	start-script OpenCloseAnim(0);
 }
 
 StartBuilding() // Is only called once INBUILDSTANCE == 1 !
@@ -173,31 +112,31 @@ StopBuilding()
 	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
 
 	if( spray == 0 )
 	{
-		piecenum = nano1;
+		pieceIndex = nano1;
 	}
 	if( spray == 1 )
 	{
-		piecenum = nano2;
+		pieceIndex = nano2;
 	}
 	if( spray == 2 )
 	{
-		piecenum = nano3;
+		pieceIndex = nano3;
 	}	
 
 	if( spray ==3 )
 	{
-		piecenum = nano4;
+		pieceIndex = nano4;
 	}	
 	spray=spray +1;
 	
@@ -207,10 +146,7 @@ QueryNanoPiece(piecenum)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

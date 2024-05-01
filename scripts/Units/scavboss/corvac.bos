@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, tracks, attach, emitnano;
 
@@ -9,8 +7,8 @@ static-var  restore_delay, nano_heading;
 static-var open_state;
 
 // Signal definitions
-#define SIG_AIM			2
-#define SIG_BUILD		4
+#define SIGNAL_AIM1 256
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -18,7 +16,7 @@ static-var open_state;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -40,8 +38,8 @@ SetStunned(State)
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	nano_heading = heading;
 	if (heading > 0) {
 		move emitnano to x-axis [-11.75] now;
@@ -56,23 +54,19 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	//signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	//signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	//start-script Restore_Nano();
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano;
+	pieceIndex = emitnano;
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

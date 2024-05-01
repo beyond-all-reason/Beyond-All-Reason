@@ -3,13 +3,15 @@ import argparse
 import re
 import os
 import bos2cob
+import importlib
+import sys
 
-LINEAR_CONSTANT = 65536.000000
+LINEAR_CONSTANT = 65536.0
 ANGULAR_CONSTANT = 182.00000
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--bosfile", type = str, help= "The bos file to optimize")#, default = "../units/armcrus.bos")
-parser.add_argument("-d", "--directory", type = str, help= "the directory of bos files to work on") #, default = '../units/')
+parser.add_argument("-d", "--directory", type = str, help= "the directory of bos files to work on", default = '../units/')
 
 args = parser.parse_args()
 
@@ -35,6 +37,7 @@ def decomment_lines(inlines):
 	return outlines
 
 def assemble_bos(bosfile): # recursive?
+	print(os.getcwd())
 	output = []
 	boslines = open(bosfile).readlines()
 	boslines = decomment_lines(boslines)
@@ -53,7 +56,9 @@ def get_defined_tokens(boslines):
 			line = line.strip().split()
 			try:
 				k = line[1]
-				v = line[2]
+				v = ""
+				if len(line)>2:
+					v = line[2]
 
 				if k in tokens:
 					if tokens[k] != v:
@@ -64,7 +69,7 @@ def get_defined_tokens(boslines):
 				print ("Cannot parse value for token key", line, k,v)
 			except IndexError:
 				print ("Cannot find value!", line)
-
+	print (tokens)
 	return tokens
 
 ### REGEXES
@@ -114,9 +119,9 @@ def performmath(expression):
 			result = str(int(float(eval(expression[0:delta])))) + ')'*delta
 		else:
 			result = str(int(float(eval(expression))))
-		#print ("Success! ",expression, '=', result)
+		print ("Success! ",expression, '=', result)
 	except:
-		print ("[info] Failed to eval() expression", expression)
+		print ("[info] Failed to eval() expression", expression, origexpression)
 		#raise
 		return origexpression
 	return ' '+ result +' '+ resultstr+ ' '
@@ -126,15 +131,25 @@ print (test_num.findall("<0.1>, <.1>, <-90>, <6.> 90 <7  > 90.0"))
 
 ANGULAR = re.compile(r"<-?\d*\.?\d*>")
 LINEAR = re.compile(r"\[-?\d*\.?\d*\]")
-TURN = re.compile(r"turn +[A-z_-]+ +to +[xyzXZY]-axis +(.*) +speed +(.*).*;")
-MOVE = re.compile(r"move +[A-z_-]+ +to +[xyzXZY]-axis +(.*) +speed +(.*).*;")
+TURN = re.compile(r"turn +[A-z0-9_]+ +to +[xyzXZY]-axis +(.*) +speed +(.*).*;")
+MOVE = re.compile(r"move +[A-z0-9_]+ +to +[xyzXZY]-axis +(.*) +speed +(.*).*;")
 CWORDS = re.compile(r"[A-z_]+")
 
 valid_mathexpression = re.compile(r" [0-9\.\-\+\*/\)\( ]+[\-\+\*\/][0-9\.\-\+\*/\)\( ]+[ \;]")
 
 
 def optimize_bos(bosfile):
-	reload(bos2cob)
+	# set paths
+	print(os.getcwd())
+	abspath = os.path.abspath(bosfile)
+	dirname, fname = os.path.split(abspath)
+	os.chdir(dirname)
+	bosfile = fname
+
+	if sys.version_info[0] == 2:
+		reload(bos2cob)
+	else:
+		importlib.reload(bos2cob)
 	parsedlines = assemble_bos(bosfile)
 	tokens = get_defined_tokens(parsedlines)
 
@@ -163,17 +178,19 @@ def optimize_bos(bosfile):
 
 if args.bosfile:
 	optimize_bos(args.bosfile)
-if args.directory:
-	os.chdir(args.directory)
-	for file in os.listdir(os.getcwd()):
-		if (not file.lower().endswith(".bos")) or "_optimized" in file:
-			continue
-		print (file)
-		try:
-			optimize_bos(file)
-		except:
-			print("Failed to optimize", file)
-			raise
+else:
+	if args.directory:
+		os.chdir(args.directory)
+		print ("Working on directory", args.directory, 'from', os.getcwd())
+		for file in os.listdir(os.getcwd()):
+			if (not file.lower().endswith(".bos")) or "_optimized" in file:
+				continue
+			print (file)
+			try:
+				optimize_bos(file)
+			except:
+				print("Failed to optimize", file)
+				raise
 
 # TODO:
 # maths - compile- replace-compare-benchmark

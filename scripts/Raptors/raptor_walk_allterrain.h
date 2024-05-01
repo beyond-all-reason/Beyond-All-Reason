@@ -9,13 +9,13 @@
 //#define RUHAND rsack  
 //#define LLHAND lsack  //define these as the left and right head thingies
 //#define RLHAND rsack  
-//#define SIG_WALK 64 //these defines are needed before includes!
+//#define SIGNAL_MOVE 1
 
 Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
-			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
-			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
+			move body to x-axis (((([-1.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
+			turn body to x-axis ((<-1.0> *animAmplitude)/100) speed ((<30.0> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<3.866804> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=-3.87
 			turn head to x-axis ((<-1.497920> *animAmplitude)/100) speed ((<44.937601> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to z-axis ((<2.995840> *animAmplitude)/100) speed ((<89.875202> *animAmplitude)/100) / animSpeed; //delta=-3.00
@@ -65,15 +65,15 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to z-axis ((<0.380573> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=-0.38
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
-			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
+	while(isMoving) {
+		if (isMoving) { //Frame:8
+			move body to x-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([-1.060000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.06
-			turn body to x-axis ((<2.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
-			turn body to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=3.87
+			turn body to x-axis ((<2.0> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
+			turn body to z-axis ((<-0.0> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=3.87
 			turn body to y-axis ((<-4.077731> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=-4.08
 			turn head to x-axis ((<2.995840> *animAmplitude)/100) speed ((<134.812803> *animAmplitude)/100) / animSpeed; //delta=-4.49
-			turn head to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<89.875202> *animAmplitude)/100) / animSpeed; //delta=3.00
+			turn head to z-axis ((<-0.0> *animAmplitude)/100) speed ((<89.875202> *animAmplitude)/100) / animSpeed; //delta=3.00
 			turn head to y-axis ((<4.957617> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=4.96
 			turn lbfoot to x-axis ((<-24.859732> *animAmplitude)/100) speed ((<714.649462> *animAmplitude)/100) / animSpeed; //delta=23.82
 			turn lbfoot to z-axis ((<-3.599897> *animAmplitude)/100) speed ((<67.564919> *animAmplitude)/100) / animSpeed; //delta=2.25
@@ -124,14 +124,14 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to z-axis ((<-2.048593> *animAmplitude)/100) speed ((<37.797173> *animAmplitude)/100) / animSpeed; //delta=1.26
 			turn rfthigh to y-axis ((<2.378334> *animAmplitude)/100) speed ((<100.919544> *animAmplitude)/100) / animSpeed; //delta=3.36
 			turn tail to x-axis ((<7.124266> *animAmplitude)/100) speed ((<320.591987> *animAmplitude)/100) / animSpeed; //delta=-10.69
-			turn tail to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=0.38
+			turn tail to z-axis ((<-0.0> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=0.38
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
-			move body to x-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
-			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.06
-			turn body to x-axis ((<1.000000> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
+		if (isMoving) { //Frame:12
+			move body to x-axis (((([1.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
+			move body to y-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([31.799998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.06
+			turn body to x-axis ((<1.0> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<-3.866804> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=3.87
 			turn body to y-axis ((<-6.116596> *animAmplitude)/100) speed ((<61.165970> *animAmplitude)/100) / animSpeed; //delta=-2.04
 			turn head to x-axis ((<1.497920> *animAmplitude)/100) speed ((<44.937598> *animAmplitude)/100) / animSpeed; //delta=1.50
@@ -186,13 +186,13 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			move body to x-axis (((([1.650000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.499999] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.65
-			move body to y-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
-			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<30.000003> *animAmplitude)/100) / animSpeed; //delta=1.00
+			move body to y-axis (((([1.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
+			turn body to x-axis ((<-0.0> *animAmplitude)/100) speed ((<30.0> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<-5.800206> *animAmplitude)/100) speed ((<58.002060> *animAmplitude)/100) / animSpeed; //delta=1.93
 			turn body to y-axis ((<-4.077731> *animAmplitude)/100) speed ((<61.165970> *animAmplitude)/100) / animSpeed; //delta=2.04
-			turn head to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<44.937604> *animAmplitude)/100) / animSpeed; //delta=1.50
+			turn head to x-axis ((<-0.0> *animAmplitude)/100) speed ((<44.937604> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to z-axis ((<-4.493760> *animAmplitude)/100) speed ((<44.937595> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to y-axis ((<4.957617> *animAmplitude)/100) speed ((<74.364252> *animAmplitude)/100) / animSpeed; //delta=-2.48
 			turn lbfoot to x-axis ((<-23.380246> *animAmplitude)/100) speed ((<42.569256> *animAmplitude)/100) / animSpeed; //delta=1.42
@@ -241,20 +241,20 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to x-axis ((<-2.298727> *animAmplitude)/100) speed ((<600.783708> *animAmplitude)/100) / animSpeed; //delta=-20.03
 			turn rfthigh to z-axis ((<0.011521> *animAmplitude)/100) speed ((<50.813125> *animAmplitude)/100) / animSpeed; //delta=-1.69
 			turn rfthigh to y-axis ((<1.809004> *animAmplitude)/100) speed ((<40.628204> *animAmplitude)/100) / animSpeed; //delta=-1.35
-			turn tail to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<106.864009> *animAmplitude)/100) / animSpeed; //delta=3.56
+			turn tail to x-axis ((<-0.0> *animAmplitude)/100) speed ((<106.864009> *animAmplitude)/100) / animSpeed; //delta=3.56
 			turn tail to z-axis ((<-0.570859> *animAmplitude)/100) speed ((<5.708584> *animAmplitude)/100) / animSpeed; //delta=0.19
 			turn tail to y-axis ((<8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			move body to x-axis (((([0.990000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([19.800001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.66
-			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
-			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
+			move body to y-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
+			turn body to x-axis ((<-1.0> *animAmplitude)/100) speed ((<30.0> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<-3.866804> *animAmplitude)/100) speed ((<58.002060> *animAmplitude)/100) / animSpeed; //delta=-1.93
-			turn body to y-axis ((<0.000000> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=4.08
+			turn body to y-axis ((<0.0> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=4.08
 			turn head to x-axis ((<-1.497920> *animAmplitude)/100) speed ((<44.937601> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to z-axis ((<-2.995840> *animAmplitude)/100) speed ((<44.937595> *animAmplitude)/100) / animSpeed; //delta=-1.50
-			turn head to y-axis ((<0.000000> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=-4.96
+			turn head to y-axis ((<0.0> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=-4.96
 			turn lbfoot to x-axis ((<-3.324097> *animAmplitude)/100) speed ((<601.684467> *animAmplitude)/100) / animSpeed; //delta=-20.06
 			turn lbfoot to z-axis ((<0.243361> *animAmplitude)/100) speed ((<85.050336> *animAmplitude)/100) / animSpeed; //delta=-2.84
 			turn lbknee to x-axis ((<23.098043> *animAmplitude)/100) speed ((<550.894581> *animAmplitude)/100) / animSpeed; //delta=-18.36
@@ -304,17 +304,17 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to y-axis ((<-1.076057> *animAmplitude)/100) speed ((<86.551840> *animAmplitude)/100) / animSpeed; //delta=-2.89
 			turn tail to x-axis ((<-3.562133> *animAmplitude)/100) speed ((<106.863996> *animAmplitude)/100) / animSpeed; //delta=3.56
 			turn tail to z-axis ((<-0.380573> *animAmplitude)/100) speed ((<5.708584> *animAmplitude)/100) / animSpeed; //delta=-0.19
-			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
+			turn tail to y-axis ((<0.0> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
-			move body to x-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([29.699998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.99
-			move body to y-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
-			turn body to x-axis ((<2.000000> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
-			turn body to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=-3.87
+		if (isMoving) { //Frame:24
+			move body to x-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([29.699998] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.99
+			move body to y-axis (((([-1.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.00
+			turn body to x-axis ((<2.0> *animAmplitude)/100) speed ((<89.999999> *animAmplitude)/100) / animSpeed; //delta=-3.00
+			turn body to z-axis ((<-0.0> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=-3.87
 			turn body to y-axis ((<4.077731> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=4.08
 			turn head to x-axis ((<2.995840> *animAmplitude)/100) speed ((<134.812803> *animAmplitude)/100) / animSpeed; //delta=-4.49
-			turn head to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<89.875202> *animAmplitude)/100) / animSpeed; //delta=-3.00
+			turn head to z-axis ((<-0.0> *animAmplitude)/100) speed ((<89.875202> *animAmplitude)/100) / animSpeed; //delta=-3.00
 			turn head to y-axis ((<-4.957617> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=-4.96
 			turn lbfoot to x-axis ((<26.664656> *animAmplitude)/100) speed ((<899.662590> *animAmplitude)/100) / animSpeed; //delta=-29.99
 			turn lbfoot to z-axis ((<4.841198> *animAmplitude)/100) speed ((<137.935095> *animAmplitude)/100) / animSpeed; //delta=-4.60
@@ -365,14 +365,14 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to z-axis ((<-3.090682> *animAmplitude)/100) speed ((<137.886593> *animAmplitude)/100) / animSpeed; //delta=4.60
 			turn rfthigh to y-axis ((<1.857428> *animAmplitude)/100) speed ((<88.004564> *animAmplitude)/100) / animSpeed; //delta=2.93
 			turn tail to x-axis ((<7.124266> *animAmplitude)/100) speed ((<320.591987> *animAmplitude)/100) / animSpeed; //delta=-10.69
-			turn tail to z-axis ((<-0.000000> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=-0.38
+			turn tail to z-axis ((<-0.0> *animAmplitude)/100) speed ((<11.417184> *animAmplitude)/100) / animSpeed; //delta=-0.38
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=-8.69
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			move body to x-axis (((([-1.069000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.070000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.07
-			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
-			turn body to x-axis ((<1.000000> *animAmplitude)/100) speed ((<30.000003> *animAmplitude)/100) / animSpeed; //delta=1.00
+			move body to y-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
+			turn body to x-axis ((<1.0> *animAmplitude)/100) speed ((<30.0> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<3.866804> *animAmplitude)/100) speed ((<116.004134> *animAmplitude)/100) / animSpeed; //delta=-3.87
 			turn body to y-axis ((<6.116596> *animAmplitude)/100) speed ((<61.165970> *animAmplitude)/100) / animSpeed; //delta=2.04
 			turn head to x-axis ((<1.497920> *animAmplitude)/100) speed ((<44.937604> *animAmplitude)/100) / animSpeed; //delta=1.50
@@ -428,13 +428,13 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn tail to y-axis ((<-13.042306> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=-4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			move body to x-axis (((([-1.478000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([12.270001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-0.41
 			move body to y-axis (((([1.090000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.09
-			turn body to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
+			turn body to x-axis ((<-0.0> *animAmplitude)/100) speed ((<29.999997> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<5.800206> *animAmplitude)/100) speed ((<58.002060> *animAmplitude)/100) / animSpeed; //delta=-1.93
 			turn body to y-axis ((<4.077731> *animAmplitude)/100) speed ((<61.165970> *animAmplitude)/100) / animSpeed; //delta=-2.04
-			turn head to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<44.937598> *animAmplitude)/100) / animSpeed; //delta=1.50
+			turn head to x-axis ((<-0.0> *animAmplitude)/100) speed ((<44.937598> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to z-axis ((<4.493760> *animAmplitude)/100) speed ((<44.937595> *animAmplitude)/100) / animSpeed; //delta=-1.50
 			turn head to y-axis ((<-4.957617> *animAmplitude)/100) speed ((<74.364252> *animAmplitude)/100) / animSpeed; //delta=2.48
 			turn lbfoot to x-axis ((<29.148372> *animAmplitude)/100) speed ((<129.114037> *animAmplitude)/100) / animSpeed; //delta=4.30
@@ -485,20 +485,20 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to x-axis ((<-4.747068> *animAmplitude)/100) speed ((<1144.141269> *animAmplitude)/100) / animSpeed; //delta=38.14
 			turn rfthigh to z-axis ((<0.538404> *animAmplitude)/100) speed ((<45.910882> *animAmplitude)/100) / animSpeed; //delta=-1.53
 			turn rfthigh to y-axis ((<-1.827440> *animAmplitude)/100) speed ((<32.895263> *animAmplitude)/100) / animSpeed; //delta=-1.10
-			turn tail to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<106.863989> *animAmplitude)/100) / animSpeed; //delta=3.56
+			turn tail to x-axis ((<-0.0> *animAmplitude)/100) speed ((<106.863989> *animAmplitude)/100) / animSpeed; //delta=3.56
 			turn tail to z-axis ((<0.570859> *animAmplitude)/100) speed ((<5.708584> *animAmplitude)/100) / animSpeed; //delta=-0.19
 			turn tail to y-axis ((<-8.694870> *animAmplitude)/100) speed ((<130.423077> *animAmplitude)/100) / animSpeed; //delta=4.35
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
-			move body to x-axis (((([-1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.340001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.48
-			move body to y-axis (((([0.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.09
-			turn body to x-axis ((<-1.000000> *animAmplitude)/100) speed ((<30.000000> *animAmplitude)/100) / animSpeed; //delta=1.00
+		if (isMoving) { //Frame:36
+			move body to x-axis (((([-1.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.340001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.48
+			move body to y-axis (((([0.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([32.700001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.09
+			turn body to x-axis ((<-1.0> *animAmplitude)/100) speed ((<30.0> *animAmplitude)/100) / animSpeed; //delta=1.00
 			turn body to z-axis ((<3.866804> *animAmplitude)/100) speed ((<58.002060> *animAmplitude)/100) / animSpeed; //delta=1.93
-			turn body to y-axis ((<0.000000> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=-4.08
+			turn body to y-axis ((<0.0> *animAmplitude)/100) speed ((<122.331915> *animAmplitude)/100) / animSpeed; //delta=-4.08
 			turn head to x-axis ((<-1.497920> *animAmplitude)/100) speed ((<44.937601> *animAmplitude)/100) / animSpeed; //delta=1.50
 			turn head to z-axis ((<2.995840> *animAmplitude)/100) speed ((<44.937595> *animAmplitude)/100) / animSpeed; //delta=1.50
-			turn head to y-axis ((<0.000000> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=4.96
+			turn head to y-axis ((<0.0> *animAmplitude)/100) speed ((<148.728518> *animAmplitude)/100) / animSpeed; //delta=4.96
 			turn lbfoot to x-axis ((<-1.038083> *animAmplitude)/100) speed ((<905.593652> *animAmplitude)/100) / animSpeed; //delta=30.19
 			turn lbfoot to z-axis ((<-1.347733> *animAmplitude)/100) speed ((<127.564073> *animAmplitude)/100) / animSpeed; //delta=4.25
 			turn lbfoot to y-axis ((<-0.015610> *animAmplitude)/100) speed ((<15.338440> *animAmplitude)/100) / animSpeed; //delta=-0.51
@@ -507,7 +507,7 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn lbknee to y-axis ((<0.023593> *animAmplitude)/100) speed ((<34.958854> *animAmplitude)/100) / animSpeed; //delta=1.17
 			turn lbshin to x-axis ((<-2.423438> *animAmplitude)/100) speed ((<436.637396> *animAmplitude)/100) / animSpeed; //delta=14.55
 			turn lbshin to z-axis ((<-1.828183> *animAmplitude)/100) speed ((<146.005680> *animAmplitude)/100) / animSpeed; //delta=4.87
-			turn lbshin to y-axis ((<-0.000918> *animAmplitude)/100) speed ((<140.257704> *animAmplitude)/100) / animSpeed; //delta=4.68
+			turn lbshin to y-axis ((<-0.0> *animAmplitude)/100) speed ((<140.257704> *animAmplitude)/100) / animSpeed; //delta=4.68
 			turn lbthigh to x-axis ((<-1.979248> *animAmplitude)/100) speed ((<540.092395> *animAmplitude)/100) / animSpeed; //delta=-18.00
 			turn lbthigh to z-axis ((<-1.586812> *animAmplitude)/100) speed ((<52.741658> *animAmplitude)/100) / animSpeed; //delta=-1.76
 			turn lbthigh to y-axis ((<-0.042964> *animAmplitude)/100) speed ((<118.259330> *animAmplitude)/100) / animSpeed; //delta=3.94
@@ -549,72 +549,72 @@ Walk() {// For N:\animations\raptor_allterrain_walk_v3.blend Created by https://
 			turn rfthigh to y-axis ((<-0.985651> *animAmplitude)/100) speed ((<25.253674> *animAmplitude)/100) / animSpeed; //delta=0.84
 			turn tail to x-axis ((<-3.562133> *animAmplitude)/100) speed ((<106.863996> *animAmplitude)/100) / animSpeed; //delta=3.56
 			turn tail to z-axis ((<0.380573> *animAmplitude)/100) speed ((<5.708584> *animAmplitude)/100) / animSpeed; //delta=0.19
-			turn tail to y-axis ((<0.000000> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=8.69
+			turn tail to y-axis ((<0.0> *animAmplitude)/100) speed ((<260.846103> *animAmplitude)/100) / animSpeed; //delta=8.69
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move body to x-axis ([0.000000]*MOVESCALE)/100 speed (([80.175000]*MOVESCALE)/100) / animSpeed;
-	move body to y-axis ([0.000000]*MOVESCALE)/100 speed (([81.750003]*MOVESCALE)/100) / animSpeed;
-	turn body to x-axis <0.000000> speed <224.999998> / animSpeed;
-	turn body to y-axis <0.000000> speed <305.829788> / animSpeed;
-	turn body to z-axis <0.000000> speed <290.010334> / animSpeed;
-	turn head to x-axis <0.000000> speed <337.032008> / animSpeed;
-	turn head to y-axis <0.000000> speed <371.821294> / animSpeed;
-	turn head to z-axis <0.000000> speed <224.688005> / animSpeed;
-	turn lbfoot to x-axis <0.000000> speed <2263.984131> / animSpeed;
-	turn lbfoot to y-axis <0.000000> speed <61.021202> / animSpeed;
-	turn lbfoot to z-axis <0.000000> speed <344.837738> / animSpeed;
-	turn lbknee to x-axis <0.000000> speed <3837.941693> / animSpeed;
-	turn lbknee to y-axis <0.000000> speed <1084.574895> / animSpeed;
-	turn lbknee to z-axis <0.000000> speed <1951.645914> / animSpeed;
-	turn lbshin to x-axis <0.000000> speed <2082.390534> / animSpeed;
-	turn lbshin to y-axis <0.000000> speed <440.207987> / animSpeed;
-	turn lbshin to z-axis <0.000000> speed <871.800506> / animSpeed;
-	turn lbthigh to x-axis <0.000000> speed <3229.933984> / animSpeed;
-	turn lbthigh to y-axis <0.000000> speed <693.564210> / animSpeed;
-	turn lbthigh to z-axis <0.000000> speed <1088.598282> / animSpeed;
-	turn lffoot to x-axis <0.000000> speed <2184.932089> / animSpeed;
-	turn lffoot to y-axis <0.000000> speed <128.753628> / animSpeed;
-	turn lffoot to z-axis <0.000000> speed <199.259819> / animSpeed;
-	turn lfknee to x-axis <0.000000> speed <4662.163501> / animSpeed;
-	turn lfknee to y-axis <0.000000> speed <159.338589> / animSpeed;
-	turn lfknee to z-axis <0.000000> speed <130.743828> / animSpeed;
-	turn lfshin to x-axis <0.000000> speed <2643.058405> / animSpeed;
-	turn lfshin to y-axis <0.000000> speed <258.524912> / animSpeed;
-	turn lfshin to z-axis <0.000000> speed <118.453810> / animSpeed;
-	turn lfthigh to x-axis <0.000000> speed <2867.576611> / animSpeed;
-	turn lfthigh to y-axis <0.000000> speed <252.832960> / animSpeed;
-	turn lfthigh to z-axis <0.000000> speed <343.139158> / animSpeed;
-	turn rbfoot to x-axis <0.000000> speed <2264.816184> / animSpeed;
-	turn rbfoot to y-axis <0.000000> speed <70.058415> / animSpeed;
-	turn rbfoot to z-axis <0.000000> speed <334.430154> / animSpeed;
-	turn rbknee to x-axis <0.000000> speed <3858.309957> / animSpeed;
-	turn rbknee to y-axis <0.000000> speed <1081.416626> / animSpeed;
-	turn rbknee to z-axis <0.000000> speed <1954.238587> / animSpeed;
-	turn rbshin to x-axis <0.000000> speed <2090.471990> / animSpeed;
-	turn rbshin to y-axis <0.000000> speed <437.583321> / animSpeed;
-	turn rbshin to z-axis <0.000000> speed <876.129190> / animSpeed;
-	turn rbthigh to x-axis <0.000000> speed <3230.828269> / animSpeed;
-	turn rbthigh to y-axis <0.000000> speed <661.462774> / animSpeed;
-	turn rbthigh to z-axis <0.000000> speed <1025.683339> / animSpeed;
-	turn rffoot to x-axis <0.000000> speed <2188.468169> / animSpeed;
-	turn rffoot to y-axis <0.000000> speed <125.265029> / animSpeed;
-	turn rffoot to z-axis <0.000000> speed <208.315602> / animSpeed;
-	turn rfknee to x-axis <0.000000> speed <4636.437209> / animSpeed;
-	turn rfknee to y-axis <0.000000> speed <160.666918> / animSpeed;
-	turn rfknee to z-axis <0.000000> speed <131.641879> / animSpeed;
-	turn rfshin to x-axis <0.000000> speed <2626.440987> / animSpeed;
-	turn rfshin to y-axis <0.000000> speed <258.672840> / animSpeed;
-	turn rfshin to z-axis <0.000000> speed <117.637972> / animSpeed;
-	turn rfthigh to x-axis <0.000000> speed <2860.353173> / animSpeed;
-	turn rfthigh to y-axis <0.000000> speed <252.298861> / animSpeed;
-	turn rfthigh to z-axis <0.000000> speed <344.716483> / animSpeed;
-	turn tail to x-axis <0.000000> speed <801.479968> / animSpeed;
-	turn tail to y-axis <0.000000> speed <652.115257> / animSpeed;
-	turn tail to z-axis <0.000000> speed <28.542960> / animSpeed;
+	move body to x-axis ([0.0]*MOVESCALE)/100 speed (([80.175000]*MOVESCALE)/100) / animSpeed;
+	move body to y-axis ([0.0]*MOVESCALE)/100 speed (([81.750003]*MOVESCALE)/100) / animSpeed;
+	turn body to x-axis <0.0> speed <224.999998> / animSpeed;
+	turn body to y-axis <0.0> speed <305.829788> / animSpeed;
+	turn body to z-axis <0.0> speed <290.010334> / animSpeed;
+	turn head to x-axis <0.0> speed <337.032008> / animSpeed;
+	turn head to y-axis <0.0> speed <371.821294> / animSpeed;
+	turn head to z-axis <0.0> speed <224.688005> / animSpeed;
+	turn lbfoot to x-axis <0.0> speed <2263.984131> / animSpeed;
+	turn lbfoot to y-axis <0.0> speed <61.021202> / animSpeed;
+	turn lbfoot to z-axis <0.0> speed <344.837738> / animSpeed;
+	turn lbknee to x-axis <0.0> speed <3837.941693> / animSpeed;
+	turn lbknee to y-axis <0.0> speed <1084.574895> / animSpeed;
+	turn lbknee to z-axis <0.0> speed <1951.645914> / animSpeed;
+	turn lbshin to x-axis <0.0> speed <2082.390534> / animSpeed;
+	turn lbshin to y-axis <0.0> speed <440.207987> / animSpeed;
+	turn lbshin to z-axis <0.0> speed <871.800506> / animSpeed;
+	turn lbthigh to x-axis <0.0> speed <3229.933984> / animSpeed;
+	turn lbthigh to y-axis <0.0> speed <693.564210> / animSpeed;
+	turn lbthigh to z-axis <0.0> speed <1088.598282> / animSpeed;
+	turn lffoot to x-axis <0.0> speed <2184.932089> / animSpeed;
+	turn lffoot to y-axis <0.0> speed <128.753628> / animSpeed;
+	turn lffoot to z-axis <0.0> speed <199.259819> / animSpeed;
+	turn lfknee to x-axis <0.0> speed <4662.163501> / animSpeed;
+	turn lfknee to y-axis <0.0> speed <159.338589> / animSpeed;
+	turn lfknee to z-axis <0.0> speed <130.743828> / animSpeed;
+	turn lfshin to x-axis <0.0> speed <2643.058405> / animSpeed;
+	turn lfshin to y-axis <0.0> speed <258.524912> / animSpeed;
+	turn lfshin to z-axis <0.0> speed <118.453810> / animSpeed;
+	turn lfthigh to x-axis <0.0> speed <2867.576611> / animSpeed;
+	turn lfthigh to y-axis <0.0> speed <252.832960> / animSpeed;
+	turn lfthigh to z-axis <0.0> speed <343.139158> / animSpeed;
+	turn rbfoot to x-axis <0.0> speed <2264.816184> / animSpeed;
+	turn rbfoot to y-axis <0.0> speed <70.058415> / animSpeed;
+	turn rbfoot to z-axis <0.0> speed <334.430154> / animSpeed;
+	turn rbknee to x-axis <0.0> speed <3858.309957> / animSpeed;
+	turn rbknee to y-axis <0.0> speed <1081.416626> / animSpeed;
+	turn rbknee to z-axis <0.0> speed <1954.238587> / animSpeed;
+	turn rbshin to x-axis <0.0> speed <2090.471990> / animSpeed;
+	turn rbshin to y-axis <0.0> speed <437.583321> / animSpeed;
+	turn rbshin to z-axis <0.0> speed <876.129190> / animSpeed;
+	turn rbthigh to x-axis <0.0> speed <3230.828269> / animSpeed;
+	turn rbthigh to y-axis <0.0> speed <661.462774> / animSpeed;
+	turn rbthigh to z-axis <0.0> speed <1025.683339> / animSpeed;
+	turn rffoot to x-axis <0.0> speed <2188.468169> / animSpeed;
+	turn rffoot to y-axis <0.0> speed <125.265029> / animSpeed;
+	turn rffoot to z-axis <0.0> speed <208.315602> / animSpeed;
+	turn rfknee to x-axis <0.0> speed <4636.437209> / animSpeed;
+	turn rfknee to y-axis <0.0> speed <160.666918> / animSpeed;
+	turn rfknee to z-axis <0.0> speed <131.641879> / animSpeed;
+	turn rfshin to x-axis <0.0> speed <2626.440987> / animSpeed;
+	turn rfshin to y-axis <0.0> speed <258.672840> / animSpeed;
+	turn rfshin to z-axis <0.0> speed <117.637972> / animSpeed;
+	turn rfthigh to x-axis <0.0> speed <2860.353173> / animSpeed;
+	turn rfthigh to y-axis <0.0> speed <252.298861> / animSpeed;
+	turn rfthigh to z-axis <0.0> speed <344.716483> / animSpeed;
+	turn tail to x-axis <0.0> speed <801.479968> / animSpeed;
+	turn tail to y-axis <0.0> speed <652.115257> / animSpeed;
+	turn tail to z-axis <0.0> speed <28.542960> / animSpeed;
 }
 

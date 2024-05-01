@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, cover1, cover2, light;
 
@@ -13,58 +11,35 @@ static-var  mmState, Active;
 #define UNITSIZE 1
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+
+#define WATER_ROCK_UNITSIZE 10
+#include "../floatmotion.h"
 
 MMStatus(State)
 {
 	Active = State;
 	if (State) {
 		show light;
-		turn cover1 to x-axis <75.000000> speed <60.000000>;
-		turn cover2 to x-axis <-75.000000> speed <60.000000>;
+		turn cover1 to x-axis <75.0> speed <60.0>;
+		turn cover2 to x-axis <-75.0> speed <60.0>;
 	}else{
 		hide light;
-		turn cover1 to x-axis <0.000000> speed <60.000000>;
-		turn cover2 to x-axis <0.000000> speed <60.000000>;
+		turn cover1 to x-axis <0.0> speed <60.0>;
+		turn cover2 to x-axis <0.0> speed <60.0>;
 	}
 	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

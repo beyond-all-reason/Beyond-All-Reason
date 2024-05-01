@@ -1,43 +1,11 @@
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD 4	
-#define SIG_MOVE 2
+#define SIGNAL_BUILD 2
+#define SIGNAL_MOVE 1
 
 piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
-
-
-activatescr()
-{
-	turn ldoor to z-axis <90> speed <180>;
-	turn rdoor to z-axis <-90> speed <180>;
-	move lplate to x-axis [7.5] speed [15];
-	move rplate to x-axis [-7.5] speed [15];
-	sleep 400;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	//turn cagelight to z-axis <0> speed <1000>;
-	//turn cagelight2 to z-axis <0> speed <1000>;
-
-	turn rturret to x-axis <0> speed <160.038462>;
-	turn lturret to x-axis <0> speed <160.038462>;
-	wait-for-turn lturret around x-axis;
-	wait-for-turn rturret around x-axis;
-	sleep 300;
-	turn ldoor to z-axis <0> speed <180>;
-	turn rdoor to z-axis <0> speed <180>;
-	move lplate to x-axis [0] speed [15];
-	move rplate to x-axis [0] speed [15];
-	sleep 400;
-
-}
+static-var  nano;
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -45,66 +13,18 @@ deactivatescr()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1800 / currentSpeed;
-		sleep 142;
-	}
-}
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#include "../vehicle_dirt_cegs.h"
 
-Smoke()
-{
-	while( TRUE )
-	{
-		if ( bMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 0 from smoke1;
-				emit-sfx 1024 + 0 from smoke2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-			show cagelight_emit;
-			show cagelight_emit2;
-			spin cagelight_emit around x-axis speed <200>;
-			spin cagelight_emit2 around x-axis speed <200>;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <10.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
@@ -114,88 +34,90 @@ Create()
 	hide smoke2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	bMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	call-script TB_Init();
 }
 
-setSFXoccupy(state)
+
+StartMoving(reversing)
 {
-	terrain = state;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	START_TILTBANK;
 }
-
-StartMoving()
-{
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
-	bMoving = TRUE;
-  start-script UnitSpeed();
-	start-script Smoke();
-}
-
 
 StopMoving()
 {
-  signal SIG_MOVE;
-	bMoving = FALSE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
-	show lnano;
-	show rnano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn rturret to x-axis heading speed <160.038462>;
-	turn lturret to x-axis <0> - heading speed <160.038462>;
-	set INBUILDSTANCE to 1;
+	
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	turn ldoor to z-axis <90> speed <180>;
+	turn rdoor to z-axis <-90> speed <180>;
+	move lplate to x-axis [7.5] speed [15];
+	move rplate to x-axis [-7.5] speed [15];
+	wait-for-move lplate along x-axis;
+
+	turn rturret to x-axis heading speed <160>;
+	turn lturret to x-axis <0> - heading speed <160>;
 	wait-for-turn rturret around x-axis;
+
+	set INBUILDSTANCE to 1;
+
+	show cagelight_emit;
+	show cagelight_emit2;
+	spin cagelight_emit around x-axis speed <200> accelerate <20>;
+	spin cagelight_emit2 around x-axis speed <200> accelerate <20>;
+
 }
 
 StopBuilding()
 {
 	hide lnano;
 	hide rnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	hide cagelight_emit2;
+
+	stop-spin cagelight_emit around x-axis decelerate <2>;
+	stop-spin cagelight_emit2 around x-axis decelerate <2>;
+
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+
+	set INBUILDSTANCE to 0;
+	
+	turn rturret to x-axis <0> speed <160>;
+	turn lturret to x-axis <0> speed <160>;
+	wait-for-turn lturret around x-axis;
+	wait-for-turn rturret around x-axis;
+	turn ldoor to z-axis <0> speed <180>;
+	turn rdoor to z-axis <0> speed <180>;
+	move lplate to x-axis [0] speed [15];
+	move rplate to x-axis [0] speed [15];
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if (nano == 1)
-	{
-		piecenum = lnano;
-	}
-	else
-	{
-		piecenum = rnano;
-	}
+	pieceIndex = lnano + nano;
 	nano= !nano;
 }
 
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -203,14 +125,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode rdoor type BITMAPONLY | NOHEATCLOUD;
 		explode rplate type BITMAPONLY | NOHEATCLOUD;
 		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rnano type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type BITMAPONLY | NOHEATCLOUD;
-		//explode lplate type BITMAPONLY | NOHEATCLOUD;
-		//explode lturret type BITMAPONLY | NOHEATCLOUD;
-		//explode lnano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -218,13 +134,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rturret type FALL | NOHEATCLOUD;
-		//explode rnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lturret type FALL | NOHEATCLOUD;
-		//explode lnano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -234,11 +144,6 @@ Killed(severity, corpsetype)
 		explode rdoor type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lplate type SMOKE | FALL | NOHEATCLOUD;
-		//explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -246,10 +151,5 @@ Killed(severity, corpsetype)
 		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rplate type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lplate type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

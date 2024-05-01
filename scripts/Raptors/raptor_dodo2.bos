@@ -1,9 +1,8 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack,rblade,lblade,mblade,spike1,spike2,spike3,aimy1;
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying;
+static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 47 //Higher values are bigger, 100 is default
@@ -13,7 +12,7 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying;
 #define RUHAND rsack  
 #define LLHAND lsack  //define these as the left and right head thingies
 #define RLHAND rsack  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 

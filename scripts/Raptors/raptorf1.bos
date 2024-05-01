@@ -1,20 +1,19 @@
 piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 // For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3))
 #define MOVESCALE 200
 #define MOVESPEED 5
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var  maxSpeed, animFramesPerKeyframe, bMoving, deltaSpeed;
-#define SIG_WALK 1
+static-var  maxSpeed, animFramesPerKeyframe, isMoving, deltaSpeed;
+#define SIGNAL_MOVE 1
 
 #define BASEPIECE body //needed for HitByWeapon
 #define HITSPEED <45.0>
@@ -53,14 +52,14 @@ UnitSpeed(){
 	
 	//animSpeed = 3;
 }
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -75,24 +74,20 @@ Create()
 	start-script UnitSpeed();
 }
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
 
-QueryPrimary(piecenum)
-	{	piecenum=head; }
+
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 RestoreAfterDelay()
 	{
 	sleep 1000;
 	}
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn head to x-axis 0 -pitch speed <200>;
 	wait-for-turn head around y-axis;
 	start-script RestoreAfterDelay();

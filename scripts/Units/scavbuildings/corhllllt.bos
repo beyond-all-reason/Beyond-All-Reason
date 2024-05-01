@@ -1,44 +1,19 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, body, turret1, flare1, turret2, flare2, turret3, flare3, turret4, flare4;
 
-static-var  restore_delay, unitviewer;
+static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
-#define SIG_AIM_4			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -47,36 +22,27 @@ Create()
 	hide flare2;
 	hide flare1;
 	hide base;
-	unitviewer = FALSE;
 	restore_delay = 2000;
 	hide flare1;
 	hide flare2;
 	hide flare3;
 	hide flare4;
-	start-script SmokeUnit();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret1 to y-axis heading speed <200.000000>;
-	turn turret1 to x-axis <0.0> - pitch speed <200.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret1 to y-axis heading speed <200.0>;
+	turn turret1 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret1 around x-axis;
 	return (1);
@@ -84,10 +50,10 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn turret2 to y-axis heading speed <200.000000>;
-	turn turret2 to x-axis <0.000000> - pitch speed <200.000000>;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn turret2 to y-axis heading speed <200.0>;
+	turn turret2 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn turret2 around x-axis;
 	return (1);
@@ -95,10 +61,10 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	turn turret3 to y-axis heading speed <200.000000>;
-	turn turret3 to x-axis <0.000000> - pitch speed <200.000000>;
+signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	turn turret3 to y-axis heading speed <200.0>;
+	turn turret3 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret3 around y-axis;
 	wait-for-turn turret3 around x-axis;
 	return (1);
@@ -106,10 +72,10 @@ signal SIG_AIM_3;
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-	turn turret4 to y-axis heading speed <200.000000>;
-	turn turret4 to x-axis <0.0> - pitch speed <200.000000>;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
+	turn turret4 to y-axis heading speed <200.0>;
+	turn turret4 to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turret4 around y-axis;
 	wait-for-turn turret4 around x-axis;
 	return (1);
@@ -135,44 +101,44 @@ FireWeapon4()
 	sleep 150;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret1;
+	pieceIndex = turret1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret2;
+	pieceIndex = turret2;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turret3;
+	pieceIndex = turret3;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = turret4;
+	pieceIndex = turret4;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare3;
+	pieceIndex = flare3;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flare4;
+	pieceIndex = flare4;
 }
 
 Killed(severity, corpsetype)

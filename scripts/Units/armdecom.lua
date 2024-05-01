@@ -40,8 +40,8 @@
 	heavy		=	true;
 
 -- Signal definitions
-local SIG_AIM			=	2
-local SIG_WALK			=	4
+local SIGNAL_AIM1			=	2
+local SIGNAL_MOVE			=	4
 
 function script.StartMoving()
 	isMoving = true
@@ -170,8 +170,8 @@ function script.AimWeapon(weaponID, heading, pitch)
 	Turn(base, x_axis, 0, math.rad(395))
 	Turn(cod, x_axis, 0, math.rad(395))
 
-	Signal(SIG_AIM)
-	SetSignalMask(SIG_AIM)
+	Signal(SIGNAL_AIM1)
+	SetSignalMask(SIGNAL_AIM1)
 	isAiming = true
 
 	if weaponID == 3 then

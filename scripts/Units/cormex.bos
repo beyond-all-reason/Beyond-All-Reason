@@ -1,109 +1,48 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base,stand;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, Stunned;
 
-
-Go()
-{
-	if (Stunned) {
-		return(0);
-	}
-	set ARMORED to 0;
-	move stand to y-axis [3.000000] speed [10.000000];
-	wait-for-move stand along y-axis;
-	spin stand around y-axis speed Static_Var_1 accelerate Static_Var_2;
-}
-
-Stop()
-{
-	stop-spin stand around y-axis decelerate Static_Var_3;
-	wait-for-turn stand around y-axis;
-	move stand to y-axis [0.000000] speed [10.000000];
-	set ARMORED to 1;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 SetStunned(State)
 {
 	Stunned = State;
 	if (State) {
-	    call-script Stop();
+	    call-script Deactivate();
 	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
+	    call-script Activate();
 	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
-	Static_Var_1 = 500;
-	Static_Var_2 = 80;
-	Static_Var_3 = 160;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	resourceRate = 500;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	set ARMORED to 0;
+	move stand to y-axis [3.0] speed [10.0];
+	spin stand around y-axis speed resourceRate accelerate 90;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin stand around y-axis decelerate 180;
+	move stand to y-axis [0.0] speed [10.0];
+	set ARMORED to 1;
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_1 = Func_Var_1 * 20;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	resourceRate = windOrMetal * 20;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
 Killed(severity, corpsetype)

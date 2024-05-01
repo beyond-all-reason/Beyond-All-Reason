@@ -40,44 +40,14 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 6;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 6;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 6;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 6;
 }
-
-// static-var isSmoking;
-// SmokeUnit(healthpercent, randpiece) // ah yes, clever use of stack variables 
-// {
-// 	while( TRUE )
-// 	{
-// 		healthpercent = get HEALTH;
-		
-// 		if( healthpercent < 66 )
-// 		{
-// 			randpiece = RAND(1, 3);
-// 			if (randpiece == 1) emit-sfx 1024 from BASEPIECE;
-// 			if (randpiece == 2) emit-sfx 1024 from head;
-// 			if (randpiece == 3) emit-sfx 1024 from tail;
-// 		} 
-// 		else {
-// 			isSmoking = 0;
-// 			return;
-// 			//break; // bos2cob.py does not like this one!
-// 		}
-// 		if (healthpercent < 4) healthpercent = 4; 
-// 		sleep healthpercent * 50;
-// 	}
-// 	sleep 97;
-// 	isSmoking = 0;
-// }
 
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	if( get BUILD_PERCENT_LEFT) return (100);
-	// if (isSmoking == 0)	{ 
-	// 	isSmoking = 1;
-	// 	start-script SmokeUnit();
-	// }
-	//get PRINT(anglex, anglez, weaponid, dmg);
+
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }

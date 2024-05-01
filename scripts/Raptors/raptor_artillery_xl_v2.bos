@@ -1,17 +1,16 @@
 piece base,torso, thigh1l, thigh1r, thigh2l, thigh2r, thigh3l, thigh3r, leg1l, leg1r, leg2l, leg2r, leg3l, leg3r, foot1l, foot1r, foot2l, foot2r, foot3l, foot3r, thor1, thor2, thor3, thor4, thor5, thor6, wingl, wingr, flare;
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying, gun_1;
+static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 200 // Higher values are bigger, 100 is default, for bigger/smaller units
 #define MOVESPEED 12 // At this movespeed and animamplitude, the ideal maxvelocity is 2.1 
 #define animAmplitude 100
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_6legged.h"
 
 /*
@@ -66,43 +65,16 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 6;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 6;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 6;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 6;
 }
 
-static-var isSmoking;
-SmokeUnit(healthpercent, randpiece) // ah yes, clever use of stack variables 
-{
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		
-		if( healthpercent < 66 )
-		{
-			randpiece = RAND(1, 3);
-			if (randpiece == 1) emit-sfx 1024 from BASEPIECE;
-			if (randpiece == 2) emit-sfx 1024 from wingl;
-			if (randpiece == 3) emit-sfx 1024 from wingr;
-		} 
-		else {
-			isSmoking = 0;
-			return;
-			//break; // bos2cob.py does not like this one!
-		}
-		if (healthpercent < 4) healthpercent = 4; 
-		sleep healthpercent * 50;
-	}
-	sleep 97;
-	isSmoking = 0;
-}
+#define SMOKE_SFX 1024
+#include "../damagedsmoke.h"
 
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	if( get BUILD_PERCENT_LEFT) return (100);
-	if (isSmoking == 0)	{ 
-		isSmoking = 1;
-		start-script SmokeUnit();
-	}
 	//get PRINT(anglex, anglez, weaponid, dmg);
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
@@ -136,17 +108,17 @@ UnitSpeed(){
 }
 
 
-StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		//start-script Idle();
@@ -176,7 +148,8 @@ Create()
 		emit-sfx 1024 + 2 from torso;
 	}
 	gun_1 = 1;
-	return (0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 }
 
 	
@@ -197,20 +170,16 @@ RestoreAfterDelay()
 }
 
 
-SweetSpot(piecenum)
-	{	piecenum=torso;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=torso;	}
-
-QueryPrimary(piecenum)
-	{	piecenum=flare; }
 
 
-AimPrimary(heading,pitch)
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=flare; }
+
+
+AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	var tailspeed;
 	tailspeed = 5;
@@ -249,7 +218,7 @@ Killed( severity, corpsetype )
 {
 	isDying = TRUE;
 	corpsetype = 1;
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	emit-sfx 1025 from torso;
 	if (RAND(0,100)<severity) explode torso type FALL | NOHEATCLOUD;
 	if (RAND(0,100)<severity) explode leg1l type FALL | NOHEATCLOUD;

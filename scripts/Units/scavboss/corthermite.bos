@@ -1,19 +1,16 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, turretr, borer, barrelr, flameflarer;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
+static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM2				128
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
-#define SIG_MOVE 8
-#define SIG_PUFF 16
-#define SIG_CHILL 32
+#define SIGNAL_MOVE 1
+#define SIGNAL_PUFF 32
 
 
 #define FRONT_RIGHT_UP\
@@ -217,10 +214,10 @@ StopWalk()
 	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script DoTheWalking();
 	moving=TRUE;
@@ -228,9 +225,9 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	moving=FALSE;
-	set-signal-mask SIG_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script StopWalk();
 }
 
@@ -241,7 +238,7 @@ StopMoving()
 #define UNITSIZE 8
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -250,7 +247,6 @@ Create()
 	hide aimy1;
 	rand = 0;
 	moving = FALSE;
-	//firing = FALSE;
 	isreset = TRUE;
 	rollingchill = FALSE;
 	chillshots = 0;
@@ -278,8 +274,6 @@ lua_UnitScriptLight(lightIndex, count)
 
 
 chilltime(current) {
-		//signal SIG_CHILL;
-		//set-signal-mask SIG_CHILL;
 
 		if (moving==FALSE AND isreset) {
 			
@@ -302,7 +296,7 @@ chilltime(current) {
 puff() {
 
 		if(isreset) {
-			set-signal-mask SIG_PUFF;
+			set-signal-mask SIGNAL_PUFF;
 			emit-sfx 1024 + 1 from flameflarer;
 			sleep 5000;
 			rand = Rand( 3, 5 );
@@ -315,14 +309,11 @@ puff() {
 
 
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-}
 
-SetMaxReloadTime(Func_Var_1)
+
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -336,10 +327,10 @@ ExecuteRestoreAfterDelay()
 	turn head to x-axis <0.000000> speed <55.000000>;
 	turn turretr to y-axis <0.000000> speed <55.000000>;
 	turn turretr to x-axis <0.000000> speed <55.000000>;
+
 	wait-for-turn head around y-axis;
-	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
-	Static_Var_2 = 0;
+	wpn1_lasthead = 0xbadface;
+	wpn2_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -350,19 +341,19 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	turn head to y-axis heading speed <180.000000>;
-	turn head to x-axis <0.000000> - pitch speed <110.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	signal SIGNAL_AIM1;
+	turn head to y-axis heading speed <180.0>;
+	turn head to x-axis <0.0> - pitch speed <110.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn head around y-axis;
 		wait-for-turn head around x-axis;
 	}
@@ -371,7 +362,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	
 	isreset = FALSE;
@@ -380,46 +371,46 @@ FirePrimary()
 	gun_1 = !gun_1;
 	if( gun_1 == 0 )
 	{
-		move barrel1 to z-axis [-3.000000] speed [400.000000];
+		move barrel1 to z-axis [-3.0] speed [400.0];
 		call-script lua_UnitScriptLight(1, shotcount);
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [0.0] speed [3.0];
 	}
 	if( gun_1 == 1 )
 	{
-		move barrel2 to z-axis [-3.000000] speed [400.000000];
+		move barrel2 to z-axis [-3.0] speed [400.0];
 		call-script lua_UnitScriptLight(2, shotcount);
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
+		move barrel2 to z-axis [0.0] speed [3.0];
 	}
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
 	return(0);
 	if( gun_1 == 0 )
 	{
-		piecenum = barrel1;
+		pieceIndex = barrel1;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = barrel2;
+		pieceIndex = barrel2;
 		return (0);
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 		return (0);
 	}
 
@@ -428,7 +419,7 @@ QueryPrimary(piecenum)
 
 
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	
 	isreset = FALSE;
@@ -446,9 +437,9 @@ AimSecondary(heading, pitch)
 		
 
 
-	signal SIG_AIM2;
-	turn turretr to y-axis heading speed <180.000000>;
-	turn turretr to x-axis <0.000000> - pitch speed <110.000000>;
+	signal SIGNAL_AIM2;
+	turn turretr to y-axis heading speed <180.0>;
+	turn turretr to x-axis <0.0> - pitch speed <110.0>;
 
 
 	start-script RestoreAfterDelay();
@@ -457,7 +448,7 @@ AimSecondary(heading, pitch)
 	
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if (rollingchill==FALSE) {
 		rollingchill = TRUE;
@@ -468,16 +459,16 @@ FireSecondary()
 
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
 
-		piecenum = barrelr;
+		pieceIndex = barrelr;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
 
-		piecenum = flameflarer;
+		pieceIndex = flameflarer;
 
 
 }
@@ -507,89 +498,35 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg3b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg2a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg2b type BITMAPONLY | NOHEATCLOUD;
 		explode head type BITMAPONLY | NOHEATCLOUD;
 		explode barrel1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode barrel2 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5a type FALL | NOHEATCLOUD;
-		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2b type FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg5b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

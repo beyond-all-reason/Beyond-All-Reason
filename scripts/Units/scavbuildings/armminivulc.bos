@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
        housing01, housing02, housing03, housing04, spindle, neck;
@@ -9,95 +7,60 @@ piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare;
 	hide flare;
-	dont-cache flare;
-	dont-cache barrel01;
-	dont-cache barrel02;
-	dont-cache barrel03;
-	dont-cache barrel04;
-	dont-cache housing01;
-	dont-cache housing02;
-	dont-cache housing03;
-	dont-cache housing04;
-	dont-cache spindle;
-	dont-cache neck;
-	dont-cache turret;
 	gun_1 = flare;
 	spin flare around z-axis speed <250.060440>;
-	start-script SmokeUnit();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <15.000000>;
-	turn neck to x-axis <0.000000> - pitch speed <6.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <15.0>;
+	turn neck to x-axis <0.0> - pitch speed <6.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn neck around x-axis;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	
 	if( gun_1 == 1 )
 	{
-		move barrel01 to z-axis [-10.000000] now;
-		move barrel01 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <90.000000> speed <230.000000>;
+		move barrel01 to z-axis [-10.0] now;
+		move barrel01 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <90.0> speed <230.0>;
 	}
 	if( gun_1 == 2 )
 	{
-		move barrel02 to z-axis [-10.000000] now;
-		move barrel02 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <180.000000> speed <230.000000>;
+		move barrel02 to z-axis [-10.0] now;
+		move barrel02 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <180.0> speed <230.0>;
 	}
 	if( gun_1 == 3 )
 	{
-		move barrel03 to z-axis [-10.000000] now;
-		move barrel03 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <270.000000> speed <230.000000>;
+		move barrel03 to z-axis [-10.0] now;
+		move barrel03 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <270.0> speed <230.0>;
 	}
 	if( gun_1 == 4 )
 	{
-		move barrel04 to z-axis [-10.000000] now;
-		move barrel04 to z-axis [0.000000] speed [10.000000];
-		turn spindle to z-axis <0.000000> speed <230.000000>;
+		move barrel04 to z-axis [-10.0] now;
+		move barrel04 to z-axis [0.0] speed [10.0];
+		turn spindle to z-axis <0.0> speed <230.0>;
 	}
 	++gun_1;
 	if( gun_1 == 5 )
@@ -106,30 +69,17 @@ FirePrimary()
 	}
 }
 
-TargetCleared(Func_Var_1)
+QueryWeapon1(pieceIndex)
 {
-	if( Func_Var_1 == 1 )
-	{
-		signal SIG_AIM;
-		stop-spin turret around y-axis;
-		stop-spin neck around x-axis;
-	}
+	pieceIndex = flare;
 }
 
-QueryPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = spindle;
 }
 
-AimFromPrimary(piecenum)
-{
-	piecenum = spindle;
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

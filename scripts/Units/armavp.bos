@@ -1,116 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
 piece  base, pad, head1, head2, head3, nano1, nano2, nano3, cagelight, cagelight2, cagelight_emit, cagelight2_emit;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn head2 to y-axis <-90> speed <90>;
-		turn head3 to y-axis <90> speed <90>;
-
-		sleep 1000;
-	}
-
-	sleep 17;
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn head2 to y-axis <0> speed <90>;
-		turn head3 to y-axis <0> speed <90>;
-		sleep 388;
-	}
-
-	sleep 20;
-	return (0);
-}
-
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -120,61 +18,38 @@ Create()
 	hide nano1;
 	hide cagelight_emit;
 	hide cagelight2_emit;
-	spray = nano1;
-	call-script InitState();
+	spray = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	//get PRINT(get GAME_FRAME,piecenum, spray);
-
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( spray >= 2 )
-	{
-		piecenum = nano3;
-	}	
-	
-	if (spray >=2)
-	{
-	
-		spray = 0;
-	}
-	else {
-		spray = spray + 1;
-	}
-	return (0);
-}
-
-Demo()
-{
-	return (0);
+	spray = (spray + 1) % 3;
+	pieceIndex = nano1 + spray;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
-	return (0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	turn head2 to y-axis <-90> speed <90>;
+	turn head3 to y-axis <90> speed <90>;
+	sleep 500;
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+
+	turn head2 to y-axis <0> speed <90>;
+	turn head3 to y-axis <0> speed <90>;
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -184,9 +59,8 @@ StartBuilding()
 	show nano3;
 	show cagelight_emit;
 	show cagelight2_emit;
-	spin cagelight_emit around y-axis speed <250>;
-	spin cagelight2_emit around y-axis speed <250>;
-	spin pad around y-axis speed <0.000000>;
+	spin cagelight_emit around y-axis speed <250> accelerate <1>;
+	spin cagelight2_emit around y-axis speed <250>accelerate <1>;
 	return (0);
 }
 
@@ -195,25 +69,17 @@ StopBuilding()
 	hide nano1;
 	hide nano2;
 	hide nano3;
-	stop-spin pad around y-axis;
 	hide cagelight_emit;
 	hide cagelight2_emit;
-	turn cagelight_emit to y-axis <0> speed <1000>;
-	turn cagelight2_emit to y-axis <0> speed <1000>;
-	return (0);
+	stop-spin cagelight_emit around y-axis decelerate <1>;
+	stop-spin cagelight2_emit around y-axis decelerate <1>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
-	return (0);
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

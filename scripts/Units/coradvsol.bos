@@ -1,19 +1,18 @@
 
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, fan, emit;
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
     show emit;
-	spin fan around y-axis speed <-70.0000> accelerate <15.0>;
+	spin fan around y-axis speed <-70.0> accelerate <15.0>;
 }
 
 Deactivate()
@@ -22,10 +21,7 @@ Deactivate()
 	stop-spin fan around y-axis decelerate <0.2>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum =base;
-}
+
 
 Killed(severity, corpsetype)
 {

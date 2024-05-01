@@ -1,12 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
-static-var  bMoving, bAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
+static-var  isMoving, isAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
 
 static-var  Stunned;
 
@@ -15,13 +13,13 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_3			8
-#define SIG_MOVE			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
+#define SIGNAL_MOVE 1
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\coramph_anim_walk.blend 
-	if (bMoving) {
+	if (isMoving) {
 			turn lfoot to x-axis <-19.212779> speed <58.412461> / animSpeed; 
 			turn lfoot to z-axis <-11.999811> speed <11.729620> / animSpeed; 
 			turn lfoot to y-axis <-0.871378> speed <22.713900> / animSpeed; 
@@ -41,14 +39,14 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to z-axis <-4.341707> speed <130.251212> / animSpeed; 
 			turn rthigh to y-axis <7.019140> speed <210.574211> / animSpeed; 
 			move torso to z-axis [-1.053090] speed [31.592710] / animSpeed; 
-			move torso to y-axis [1.000000] speed [30.000000] / animSpeed; 
+			move torso to y-axis [1.0] speed [30.0] / animSpeed; 
 			turn torso to x-axis <-5.955115> speed <178.653442> / animSpeed; 
 			turn torso to z-axis <7.038173> speed <211.145181> / animSpeed; 
 			turn torso to y-axis <-0.733862> speed <22.015845> / animSpeed; 
 		sleep 164;
 	}
-	while(bMoving) {
-		if (bMoving) {
+	while(isMoving) {
+		if (isMoving) {
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-41.595104> speed <671.469750> / animSpeed; 
 			turn lfoot to z-axis <-10.694907> speed <39.147127> / animSpeed; 
@@ -71,14 +69,14 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rtoe to x-axis <25.062944> speed <751.888312> / animSpeed; 
 			turn rtoe to z-axis <0.892703> speed <26.781080> / animSpeed; 
 			turn rtoe to y-axis <1.684877> speed <50.546305> / animSpeed; 
-			move torso to z-axis [0.000000] speed [31.592710] / animSpeed; 
-			move torso to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn torso to x-axis <0.000000> speed <178.653446> / animSpeed; 
+			move torso to z-axis [0.0] speed [31.592710] / animSpeed; 
+			move torso to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn torso to x-axis <0.0> speed <178.653446> / animSpeed; 
 			turn torso to z-axis <10.575411> speed <106.117140> / animSpeed; 
-			turn torso to y-axis <-0.000001> speed <22.015803> / animSpeed; 
+			turn torso to y-axis <-0.0> speed <22.015803> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <-30.923924> speed <320.135406> / animSpeed; 
 			turn lfoot to z-axis <-0.496717> speed <305.945696> / animSpeed; 
 			turn lfoot to y-axis <5.680271> speed <160.496154> / animSpeed; 
@@ -109,7 +107,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <0.733860> speed <22.015833> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <-6.470975> speed <733.588455> / animSpeed; 
 			turn lfoot to z-axis <-0.319948> speed <5.303065> / animSpeed; 
 			turn lfoot to y-axis <1.292647> speed <131.628716> / animSpeed; 
@@ -119,8 +117,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to x-axis <-18.230132> speed <794.197390> / animSpeed; 
 			turn lthigh to z-axis <-0.451354> speed <55.017473> / animSpeed; 
 			turn lthigh to y-axis <-0.459061> speed <25.418285> / animSpeed; 
-			turn neck to x-axis <7.000000> speed <43.674710> / animSpeed; 
-			turn neck to y-axis <0.000000> speed <18.999787> / animSpeed; 
+			turn neck to x-axis <7.0> speed <43.674710> / animSpeed; 
+			turn neck to y-axis <0.0> speed <18.999787> / animSpeed; 
 			turn rfoot to x-axis <-0.059978> speed <560.447874> / animSpeed; 
 			turn rfoot to z-axis <11.365723> speed <255.109839> / animSpeed; 
 			turn rfoot to y-axis <-1.317479> speed <32.150100> / animSpeed; 
@@ -130,17 +128,17 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to x-axis <1.011818> speed <446.539985> / animSpeed; 
 			turn rthigh to z-axis <-6.936976> speed <38.747522> / animSpeed; 
 			turn rthigh to y-axis <3.531519> speed <24.040417> / animSpeed; 
-			turn rtoe to x-axis <-0.000000> speed <292.847042> / animSpeed; 
-			turn rtoe to z-axis <0.000000> speed <26.243009> / animSpeed; 
-			turn rtoe to y-axis <-0.000000> speed <19.255223> / animSpeed; 
-			move torso to z-axis [0.000000] speed [33.753548] / animSpeed; 
-			move torso to y-axis [0.000000] speed [31.738815] / animSpeed; 
-			turn torso to x-axis <0.000000> speed <178.653442> / animSpeed; 
-			turn torso to z-axis <-0.000000> speed <211.145181> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <22.015791> / animSpeed; 
+			turn rtoe to x-axis <-0.0> speed <292.847042> / animSpeed; 
+			turn rtoe to z-axis <0.0> speed <26.243009> / animSpeed; 
+			turn rtoe to y-axis <-0.0> speed <19.255223> / animSpeed; 
+			move torso to z-axis [0.0] speed [33.753548] / animSpeed; 
+			move torso to y-axis [0.0] speed [31.738815] / animSpeed; 
+			turn torso to x-axis <0.0> speed <178.653442> / animSpeed; 
+			turn torso to z-axis <-0.0> speed <211.145181> / animSpeed; 
+			turn torso to y-axis <0.0> speed <22.015791> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <25.796130> speed <968.013175> / animSpeed; 
 			turn lfoot to z-axis <-5.665878> speed <160.377916> / animSpeed; 
 			turn lfoot to y-axis <10.132430> speed <265.193497> / animSpeed; 
@@ -150,8 +148,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to x-axis <-22.478204> speed <127.442160> / animSpeed; 
 			turn lthigh to z-axis <5.419694> speed <176.131439> / animSpeed; 
 			turn lthigh to y-axis <-9.169354> speed <261.308775> / animSpeed; 
-			turn ltoe to x-axis <-0.000000> speed <94.792842> / animSpeed; 
-			turn ltoe to y-axis <0.000000> speed <19.687629> / animSpeed; 
+			turn ltoe to x-axis <-0.0> speed <94.792842> / animSpeed; 
+			turn ltoe to y-axis <0.0> speed <19.687629> / animSpeed; 
 			turn neck to x-axis <7.260533> speed <7.815973> / animSpeed; 
 			turn neck to y-axis <0.368664> speed <11.059926> / animSpeed; 
 			turn rfoot to x-axis <-24.585831> speed <735.775591> / animSpeed; 
@@ -166,13 +164,13 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rtoe to x-axis <3.159761> speed <94.792842> / animSpeed; 
 			turn rtoe to y-axis <-0.656254> speed <19.687629> / animSpeed; 
 			move torso to z-axis [-1.000436] speed [30.013075] / animSpeed; 
-			move torso to y-axis [1.000000] speed [30.000000] / animSpeed; 
+			move torso to y-axis [1.0] speed [30.0] / animSpeed; 
 			turn torso to x-axis <-5.869647> speed <176.089419> / animSpeed; 
 			turn torso to z-axis <-12.007560> speed <360.226789> / animSpeed; 
 			turn torso to y-axis <1.246064> speed <37.381925> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <48.203114> speed <672.209511> / animSpeed; 
 			turn lfoot to z-axis <0.242779> speed <177.259717> / animSpeed; 
@@ -197,14 +195,14 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to x-axis <46.360011> speed <759.827946> / animSpeed; 
 			turn rthigh to z-axis <-5.212039> speed <141.897483> / animSpeed; 
 			turn rthigh to y-axis <10.166775> speed <183.912999> / animSpeed; 
-			move torso to z-axis [0.000000] speed [30.013075] / animSpeed; 
-			move torso to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn torso to x-axis <0.000000> speed <176.089422> / animSpeed; 
+			move torso to z-axis [0.0] speed [30.013075] / animSpeed; 
+			move torso to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn torso to x-axis <0.0> speed <176.089422> / animSpeed; 
 			turn torso to z-axis <-10.102087> speed <57.164175> / animSpeed; 
-			turn torso to y-axis <0.000001> speed <37.381885> / animSpeed; 
+			turn torso to y-axis <0.0> speed <37.381885> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <22.342705> speed <775.812279> / animSpeed; 
 			turn lfoot to z-axis <-3.674592> speed <117.521132> / animSpeed; 
 			turn lfoot to y-axis <0.899928> speed <41.377006> / animSpeed; 
@@ -236,7 +234,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-1.252837> speed <37.585165> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <0.003638> speed <670.171989> / animSpeed; 
 			turn lfoot to z-axis <-11.368280> speed <230.810619> / animSpeed; 
 			turn lfoot to y-axis <1.319427> speed <12.584983> / animSpeed; 
@@ -246,11 +244,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn lthigh to x-axis <1.069603> speed <345.822234> / animSpeed; 
 			turn lthigh to z-axis <6.943315> speed <102.294778> / animSpeed; 
 			turn lthigh to y-axis <-3.568577> speed <68.870424> / animSpeed; 
-			turn ltoe to x-axis <-0.000000> speed <292.847042> / animSpeed; 
-			turn ltoe to z-axis <-0.000000> speed <26.243009> / animSpeed; 
-			turn ltoe to y-axis <0.000000> speed <19.255223> / animSpeed; 
-			turn neck to x-axis <14.000001> speed <97.204588> / animSpeed; 
-			turn neck to y-axis <0.000000> speed <5.782540> / animSpeed; 
+			turn ltoe to x-axis <-0.0> speed <292.847042> / animSpeed; 
+			turn ltoe to z-axis <-0.0> speed <26.243009> / animSpeed; 
+			turn ltoe to y-axis <0.0> speed <19.255223> / animSpeed; 
+			turn neck to x-axis <14.0> speed <97.204588> / animSpeed; 
+			turn neck to y-axis <0.0> speed <5.782540> / animSpeed; 
 			turn rfoot to x-axis <-6.205179> speed <833.711310> / animSpeed; 
 			turn rfoot to z-axis <0.341469> speed <7.358602> / animSpeed; 
 			turn rfoot to y-axis <-1.233146> speed <142.630313> / animSpeed; 
@@ -259,14 +257,14 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rleg to y-axis <-0.963116> speed <240.961761> / animSpeed; 
 			turn rthigh to x-axis <-18.155269> speed <785.116815> / animSpeed; 
 			turn rthigh to z-axis <0.036646> speed <38.380702> / animSpeed; 
-			move torso to z-axis [0.000000] speed [35.333183] / animSpeed; 
-			move torso to y-axis [0.000000] speed [31.738815] / animSpeed; 
-			turn torso to x-axis <0.000000> speed <176.046286> / animSpeed; 
-			turn torso to z-axis <-0.000000> speed <362.214938> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <37.585124> / animSpeed; 
+			move torso to z-axis [0.0] speed [35.333183] / animSpeed; 
+			move torso to y-axis [0.0] speed [31.738815] / animSpeed; 
+			turn torso to x-axis <0.0> speed <176.046286> / animSpeed; 
+			turn torso to z-axis <-0.0> speed <362.214938> / animSpeed; 
+			turn torso to y-axis <0.0> speed <37.585124> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			turn lfoot to x-axis <-20.341830> speed <610.364051> / animSpeed; 
 			turn lfoot to z-axis <-12.139081> speed <23.124041> / animSpeed; 
 			turn lfoot to y-axis <0.945481> speed <11.218371> / animSpeed; 
@@ -289,10 +287,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rthigh to x-axis <-26.126997> speed <239.151817> / animSpeed; 
 			turn rthigh to z-axis <-4.341707> speed <131.350596> / animSpeed; 
 			turn rthigh to y-axis <7.019140> speed <192.014262> / animSpeed; 
-			turn rtoe to x-axis <-0.000000> speed <94.792842> / animSpeed; 
-			turn rtoe to y-axis <-0.000000> speed <19.687629> / animSpeed; 
+			turn rtoe to x-axis <-0.0> speed <94.792842> / animSpeed; 
+			turn rtoe to y-axis <-0.0> speed <19.687629> / animSpeed; 
 			move torso to z-axis [-1.053090] speed [31.592710] / animSpeed; 
-			move torso to y-axis [1.000000] speed [30.000000] / animSpeed; 
+			move torso to y-axis [1.0] speed [30.0] / animSpeed; 
 			turn torso to x-axis <-5.955115> speed <178.653442> / animSpeed; 
 			turn torso to z-axis <7.038173> speed <211.145181> / animSpeed; 
 			turn torso to y-axis <-0.733862> speed <22.015845> / animSpeed; 
@@ -300,7 +298,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move torso to y-axis [0] speed [6.347763];
 	move torso to z-axis [0] speed [7.066637];
@@ -359,7 +357,7 @@ Create()
 	hide aimy1;
 	hide tflare;
 	hide pelvis;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	animSpeed = 4;
 	restore_delay = 3000;
 	hide pelvis;
@@ -376,33 +374,30 @@ Create()
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
-	bMoving = TRUE;
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	isMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
-	signal SIG_MOVE;
+	isMoving = FALSE;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 SetStunned(State)
 {
@@ -416,19 +411,19 @@ RestoreAfterDelayGun()
     }
 	gun_lasthead = -1000000;
 	gun_lastpitch = -1000000;
-	turn head to y-axis <0.000000> speed <90.000000>;
-	turn head to x-axis <0.000000> speed <50.000000>;
+	turn head to y-axis <0.0> speed <90.0>;
+	turn head to x-axis <0.0> speed <50.0>;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn head to y-axis heading speed <200.000000>;
-	turn head to x-axis <0.000000> - pitch speed <100.000000>;
+	turn head to y-axis heading speed <200.0>;
+	turn head to x-axis <0.0> - pitch speed <100.0>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( (get ABS(gun_lasthead - heading)<1200) AND (get ABS(gun_lastpitch - pitch)<600) )
 	{
@@ -449,7 +444,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( !gun_1 )
 	{
@@ -462,20 +457,20 @@ FireSecondary()
 	gun_1 = !gun_1;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( !gun_1 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if( gun_1 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 }
 
@@ -486,21 +481,21 @@ RestoreAfterDelayTorp()
         return (1);
     }
 	torp_lasthead = -1000000;
-	turn lancher to y-axis <0> speed <200.000000>;
+	turn lancher to y-axis <0> speed <200.0>;
 	wait-for-turn lancher around y-axis;
 	// torpedo tube has started moving down, set variable to FALSE to redeploy on next aim call
 	torp_deploy = FALSE;
 	move lancher to y-axis [0] speed [25];
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if ( get IN_WATER(0) == 0 )
     {
      return (0);
     }	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// checks if the torpedo launcher is deployed
 	if (torp_deploy == FALSE)
 	{
@@ -513,7 +508,7 @@ AimPrimary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn lancher to y-axis heading speed <200.000000>;
+	turn lancher to y-axis heading speed <200.0>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if (get ABS(torp_lasthead - heading) < 1200)
 	{
@@ -532,19 +527,19 @@ AimPrimary(heading, pitch)
 
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	
-	piecenum = tflare;
+	pieceIndex = tflare;
 
 }
 
@@ -556,21 +551,6 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
 		explode lancher type BITMAPONLY | NOHEATCLOUD;
-		//explode tflare type BITMAPONLY | NOHEATCLOUD;
-		//explode neck type BITMAPONLY | NOHEATCLOUD;
-		//explode head type BITMAPONLY | NOHEATCLOUD;
-		//explode rbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode rflare type BITMAPONLY | NOHEATCLOUD;
-		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode ltoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode rtoe type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )

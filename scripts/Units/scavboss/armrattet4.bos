@@ -1,52 +1,27 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, flare, turret, barrel, smoke1, smoke2;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <5.000000>;
-	turn base to z-axis <0> - anglez speed <5.000000>;
+	turn base to x-axis anglex speed <5.0>;
+	turn base to z-axis <0> - anglez speed <5.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <2.000000>;
-	turn base to x-axis <0.000000> speed <2.000000>;
+	turn base to z-axis <0.0> speed <2.0>;
+	turn base to x-axis <0.0> speed <2.0>;
 }
 
 
@@ -59,9 +34,8 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 3000;
-	start-script SmokeUnit();
 }
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-7> speed <7>;
 	move base to y-axis [1] speed [1];
@@ -72,9 +46,9 @@ StartMoving()
 }
 
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -94,41 +68,38 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	turn turret to y-axis <0.000000> speed <20.0>;
+	turn turret to y-axis <0.0> speed <20.0>;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <30.0>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-10.400000] speed [500.000000];
+	move barrel to z-axis [-10.400000] speed [500.0];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [7.500000];
+	move barrel to z-axis [0.0] speed [7.500000];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

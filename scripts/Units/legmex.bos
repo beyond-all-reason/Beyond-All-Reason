@@ -1,109 +1,64 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base,fan,top,column;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, Stunned;
 
 
-Go()
+#include "../opencloseanim.h"
+
+Open()
 {
 	if (Stunned) {
 		return(0);
 	}
 	set ARMORED to 0;
-	move fan to y-axis [3.000000] speed [10.000000];
+	move fan to y-axis [3.0] speed [10.0];
 	wait-for-move fan along y-axis;
-	spin fan around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin fan around y-axis speed resourceRate accelerate 90;
 }
 
-Stop()
+Close()
 {
-	stop-spin fan around y-axis decelerate Static_Var_3;
+	stop-spin fan around y-axis decelerate 180;
 	wait-for-turn fan around y-axis;
-	move fan to y-axis [0.000000] speed [10.000000];
+	move fan to y-axis [0.0] speed [10.0];
 	set ARMORED to 1;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 SetStunned(State)
 {
 	Stunned = State;
-	if (State) {
-	    call-script Stop();
-	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
-	}
+	start-script OpenCloseAnim(!Stunned);
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
-	Static_Var_1 = 1500;
-	Static_Var_2 = 240;
-	Static_Var_3 = 480;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	resourceRate = 1500;
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 #define SMOKEPIECE base
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_1 = Func_Var_1 * 60;
+	resourceRate = windOrMetal * 60;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

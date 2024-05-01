@@ -1,55 +1,34 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, launcher, turret, doorl, doorr;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
+#define WATER_ROCK_UNITSIZE 5
+// Otherwise it wont move up!
+//#define WATER_ROCK_FREQ_Y 0
+#include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
-#define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
+#define MAXTILT 200
+#define RECOIL_POWER -50000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
 static-var  Stunned;
@@ -58,8 +37,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn launcher to x-axis <0.000000> speed <50.010989>;
+	turn turret to y-axis <0.0> speed <90.021978>;
+	turn launcher to x-axis <0.0> speed <50.010989>;
 
 	turn doorl to y-axis <0> speed <270>;
 
@@ -80,10 +59,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn doorl to y-axis <135> speed <270>;
 	
 	turn doorr to y-axis <-135> speed <270>;
@@ -93,29 +72,25 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 256 | 3 from flare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = launcher;
+	pieceIndex = launcher;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

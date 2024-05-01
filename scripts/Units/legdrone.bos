@@ -1,11 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, thrust, base2, lloarm, lgun, lfire;
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
@@ -22,10 +20,7 @@ Create()
 {
 	hide flare;
 	hide thrust;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -39,29 +34,29 @@ Deactivate()
 	hide thrust;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	 	while( 255 > heading )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (0 - 1500 + get HEADING);
 			heading = heading + 1500;
 			sleep 1;
 		}
 		while( heading > 255 )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (1500 + get HEADING);
 			heading = heading - 1500;
 			sleep 1;
 		}	
@@ -70,14 +65,12 @@ AimPrimary(heading, pitch)
 
 PostFire()
 {
-    show flare;
-	move lgun to z-axis [-1.00000] speed [50.000000];
+	move lgun to z-axis [-1.0] speed [50.0];
 	sleep 200;
-	move lgun to z-axis [0] speed [10.000000];
-	hide flare;
+	move lgun to z-axis [0] speed [10.0];
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script PostFire();
 	return (1);

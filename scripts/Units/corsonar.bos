@@ -1,100 +1,25 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     9
-// NumberOfPieces                      2
-// LengthOfScripts                     100
-// NumberOfStaticVars                  2
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        42c
-// OffsetToScriptNameOffsetArray       450
-// OffsetToPieceNameOffsetArray        474
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   47c
 
-// OffsetToFirstName                   47c
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dish;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
-Go()
-/*     0:*/{
-/*     4:*/	spin dish around y-axis speed <60.010989>;
-/*     9:*/	return (0);
-/*     a:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    37:*/}
-
-Stop()
-/*    2f:*/{
-/*    33:*/	spin dish around y-axis speed <0.000000>;
-/*    38:*/	return (0);
-/*    39:*/}
-
-InitState()
-/*    39:*/{
-/*    3b:*/	statechg_DesiredState = TRUE;
-/*    3f:*/	statechg_StateChanging = FALSE;
-/*    43:*/	return (0);
-/*    44:*/}
-
-RequestState(requestedstate, currentstate)
-/*    46:*/{
-/*    48:*/	if( statechg_StateChanging )
-/*    4a:*/	{
-/*    4c:*/		statechg_DesiredState = requestedstate;
-/*    50:*/		return (0);
-/*    51:*/	}
-/*    53:*/	statechg_StateChanging = TRUE;
-/*    57:*/	currentstate = statechg_DesiredState;
-/*    5b:*/	statechg_DesiredState = requestedstate;
-/*    62:*/	while( statechg_DesiredState != currentstate )
-/*    64:*/	{
-/*    69:*/		if( statechg_DesiredState == 0 )
-/*    6b:*/		{
-/*    6b:*/			call-script Go();
-/*    70:*/			currentstate = 0;
-/*    72:*/		}
-/*    77:*/		if( statechg_DesiredState == 1 )
-/*    79:*/		{
-/*    79:*/			call-script Stop();
-/*    7e:*/			currentstate = 1;
-/*    80:*/		}
-/*    82:*/	}
-/*    84:*/	statechg_StateChanging = FALSE;
-/*    88:*/	return (0);
-/*    89:*/}
 
 Create()
-/*    89:*/{
-/*    89:*/	dont-shade dish;
-/*    8b:*/	dont-cache dish;
-/*    8d:*/	call-script InitState();
-/*    92:*/	return (0);
-/*    93:*/}
+{
+
+}
 
 Activate()
-/*    93:*/{
-/*    95:*/	start-script RequestState(0);
-/*    9a:*/	return (0);
-/*    9b:*/}
+{
+	spin dish around y-axis speed <60.010989>;
+}
 
 Deactivate()
-/*    9b:*/{
-/*    9d:*/	start-script RequestState(1);
-/*    a2:*/	return (0);
-/*    a3:*/}
+{
+	spin dish around y-axis speed <0.0>;
+}
 
-SweetSpot(piecenum)
-/*    a4:*/{
-/*    a6:*/	piecenum = base;
-/*    aa:*/	return (0);
-/*    ab:*/}
+
 
 Killed(severity, corpsetype)
 {

@@ -2,9 +2,9 @@ local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, sid
 
 local spray = 0;
 
-local SIG_ACTIVATE = 2;
+local SIGNAL_TURNON = 2;
 local SIG_OPENCLOSE = 4;
-local SIG_BUILD = 8;
+local SIGNAL_BUILD = 8;
 
 include("include/util.lua");
 
@@ -49,28 +49,28 @@ function script.Create()
 end
 
 function script.QueryNanoPiece()
-	local piecenum;
+	local pieceIndex;
 	if (spray == 0) then
-		piecenum = nano1;
+		pieceIndex = nano1;
 	end
 	if (spray == 1) then
-		piecenum = nano2;
+		pieceIndex = nano2;
 	end
 	if (spray == 2) then
-		piecenum = nano3;
+		pieceIndex = nano3;
 	end
 	if (spray == 3) then
-		piecenum = nano4;
+		pieceIndex = nano4;
 	end
 	spray = spray + 1;
 	if(spray == 4) then
 		spray = 0;
 	end
-	return piecenum;
+	return pieceIndex;
 end
 
 function Activate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
 	UnitScript.StartThread(open);
 end
 
@@ -79,8 +79,8 @@ function script.Activate()
 end
 
 function Deactivate_real()
-	UnitScript.Signal(SIG_ACTIVATE);
-	UnitScript.SetSignalMask(SIG_ACTIVATE);
+	UnitScript.Signal(SIGNAL_TURNON);
+	UnitScript.SetSignalMask(SIGNAL_TURNON);
 	Sleep(5000);
 	UnitScript.StartThread(close);
 end
@@ -90,7 +90,7 @@ function script.Deactivate()
 end
 
 function Build()
-	UnitScript.SetSignalMask(SIG_BUILD);
+	UnitScript.SetSignalMask(SIGNAL_BUILD);
 	while true do
 		if math.random() > 0.5 then
 			local t = math.random(0,48);
@@ -116,7 +116,7 @@ function script.StartBuilding()
 	Show(cagelight_emit2);
 	Spin(cagelight_emit, y_axis,4);
 	Spin(cagelight_emit2, y_axis,4);
-	UnitScript.Signal(SIG_BUILD);
+	UnitScript.Signal(SIGNAL_BUILD);
 	UnitScript.StartThread(Build)
 end
 
@@ -127,7 +127,7 @@ function script.StopBuilding()
 	Hide(nano2);
 	Hide(nano3);
 	Hide(nano4);
-	UnitScript.Signal(SIG_BUILD);
+	UnitScript.Signal(SIGNAL_BUILD);
 	Hide(cagelight_emit);
 	Hide(cagelight_emit2);
 	Turn(cagelight_emit, y_axis,0,15);

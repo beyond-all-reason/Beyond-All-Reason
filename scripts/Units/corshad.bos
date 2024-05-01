@@ -1,19 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  bombbay, base, thrusta1, thrusta2, thrustb;
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-Go()
-{
-}
-
-Stop()
-{
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -21,46 +9,12 @@ Stop()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide bombbay;
 	hide thrustb;
 	hide thrusta2;
 	hide thrusta1;
-	call-script InitState();
 }
 
 Activate()
@@ -68,7 +22,6 @@ Activate()
 	show thrustb;
 	show thrusta2;
 	show thrusta1;
-	start-script RequestState(0);
 }
 
 Deactivate()
@@ -76,18 +29,14 @@ Deactivate()
 	hide thrustb;
 	hide thrusta2;
 	hide thrusta1;
-	start-script RequestState(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = bombbay;
+	pieceIndex = bombbay;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

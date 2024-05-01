@@ -1,20 +1,19 @@
 piece body,head,tail,lthighf,lkneef,lshinf,lfootf,rthighf,rkneef,rshinf,rfootf,lthighb,lkneeb,lshinb,lfootb,rthighb,rkneeb,rshinb,rfootb,lforearml,lbladel,rforearml,rbladel,lforearmu,lbladeu,rforearmu,rbladeu,spike1,spike2,spike3,spike1emit,spike2emit,spike3emit,firepoint,aimy1;
 
-static-var aMoving, bMoving, gun_1, shot5pitch, shot5heading;
+static-var aMoving, isMoving, gun_1, shot5pitch, shot5heading;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
 #define MOVESPEED 9.7
 #define animAmplitude 105
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 
 #include "raptor_queen_walk_v2.h"
 
@@ -34,14 +33,14 @@ UnitSpeed(){
 		sleep 164;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -55,45 +54,41 @@ Create()
 	start-script UnitSpeed();
 }
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-AimFromPrimary(piecenum)
-	{	piecenum=aimy1;	}
 
-QueryPrimary(piecenum)
-	{	piecenum=firepoint; }
 
-AimFromWeapon2(piecenum)
-	{	piecenum=spike1emit;	}
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=firepoint; }
 
-QueryWeapon2(piecenum)
-	{	piecenum=spike1emit; }
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=spike1emit;	}
 
-AimFromWeapon3(piecenum)
-	{	piecenum=spike2emit;	}
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=spike1emit; }
 
-QueryWeapon3(piecenum)
-	{	piecenum=spike2emit; }
+AimFromWeapon3(pieceIndex)
+	{	pieceIndex=spike2emit;	}
 
-AimFromWeapon4(piecenum)
-	{	piecenum=spike3emit;	}
+QueryWeapon3(pieceIndex)
+	{	pieceIndex=spike2emit; }
 
-QueryWeapon4(piecenum)
-	{	piecenum=spike3emit; }
+AimFromWeapon4(pieceIndex)
+	{	pieceIndex=spike3emit;	}
 
-AimFromWeapon5(piecenum)
-	{	piecenum=aimy1;	}
+QueryWeapon4(pieceIndex)
+	{	pieceIndex=spike3emit; }
 
-QueryWeapon5(piecenum)
-	{	piecenum=firepoint; }
+AimFromWeapon5(pieceIndex)
+	{	pieceIndex=aimy1;	}
+
+QueryWeapon5(pieceIndex)
+	{	pieceIndex=firepoint; }
 
 	
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
 	//get PRINT(1, heading,pitch);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;	
 	if (heading > <60> ) heading = <60>;
 	if (heading < <-60> ) heading = <-60>;
 	if (pitch > <60> ) pitch = <60>;

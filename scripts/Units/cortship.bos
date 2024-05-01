@@ -1,49 +1,26 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, arm, tower, wake, bow, rdoor, ldoor, boom1, boom2, boom3,
        boom4, magnet, link, boom5, boom6;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, oldHead, Static_Var_5;
+
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 9
-#define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 1
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 2
 
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	oldHead = heading;
-}
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*3;
-			wait-for-turn base around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../bar_ships_common.h"
 
 
 Create()
@@ -51,11 +28,9 @@ Create()
 	hide bow;
 	hide link;
 	hide wake;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
 }
 
 waveSplash()
@@ -71,164 +46,31 @@ waveSplash()
 	}
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-       bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from bow;
-        	bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 10000 / waketime;
-	}
+
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.25];
+
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-StartDoorOpen()
-{
-	signal 4;
-	set-signal-mask 4;
-	turn rdoor to z-axis <-90.> speed <100.>;
-	turn ldoor to z-axis <90.> speed <100.>;
-	wait-for-turn rdoor around z-axis;
-	wait-for-turn ldoor around z-axis;
-	sleep 5000;
-	turn rdoor to z-axis <0.> speed <100.>;
-	turn ldoor to z-axis <0.> speed <100.>;
-	wait-for-turn rdoor around z-axis;
-	wait-for-turn ldoor around z-axis;
-	return(0);
-}
 
-BoomCalc(posxz, posy)
-{
-	var Func_Var_3, Func_Var_4, Func_Var_5;
-	Func_Var_3 = get PIECE_XZ(tower) - posxz;
-	Func_Var_4 = posy - get PIECE_Y(tower);
-	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	Static_Var_2 = get HYPOT(Func_Var_5,Func_Var_4) -[32];
-	Static_Var_3 = get XZ_ATAN(Func_Var_3);
-	Static_Var_4 = get ATAN(Func_Var_4,Func_Var_5);
-	Static_Var_5 = Static_Var_2 < 14745600;
-	return (0);
-}
-
-BoomExtend()
-{
-	start-script StartDoorOpen();
-	turn tower to y-axis Static_Var_3 speed <200.>;
-	wait-for-turn tower around y-axis;
-	move boom1 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom2 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom3 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom4 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom5 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom6 to z-axis Static_Var_2 / 6 speed [60.];
-	wait-for-move boom1 along z-axis;
-	wait-for-move boom2 along z-axis;
-	wait-for-move boom3 along z-axis;
-	wait-for-move boom4 along z-axis;
-	wait-for-move boom5 along z-axis;
-	wait-for-move boom6 along z-axis;
-	turn magnet to x-axis Static_Var_4 speed <80.>;
-	turn arm to x-axis <0.> - Static_Var_4 speed <80.>;
-	wait-for-turn arm around x-axis;
-	wait-for-turn magnet around x-axis;
-	return (0);
-}
-
-BoomReset()
-{
-	turn arm to x-axis <0.> speed <60.>;
-	turn magnet to x-axis <0.> speed <60.>;
-	wait-for-turn arm around x-axis;
-	wait-for-turn magnet around x-axis;
-	turn tower to y-axis <0.> speed <200.>;
-	move boom1 to z-axis [0.] speed [50.];
-	move boom2 to z-axis [0.] speed [50.];
-	move boom3 to z-axis [0.] speed [50.];
-	move boom4 to z-axis [0.] speed [50.];
-	move boom5 to z-axis [0.] speed [50.];
-	move boom6 to z-axis [0.] speed [50.];
-	return (0);
-}
-
-BoomToPad()
-{
-	start-script StartDoorOpen();
-	turn magnet to x-axis <0.> speed <60.>;
-	turn arm to x-axis <0.> speed <60.>;
-	wait-for-turn magnet around x-axis;
-	wait-for-turn arm around x-axis;
-	turn tower to y-axis <0.> speed <200.>;
-	move boom1 to z-axis [0.] speed [60.];
-	move boom2 to z-axis [0.] speed [60.];
-	move boom3 to z-axis [0.] speed [60.];
-	move boom4 to z-axis [0.] speed [60.];
-	move boom5 to z-axis [0.] speed [60.];
-	move boom6 to z-axis [0.] speed [60.];
-	wait-for-turn tower around y-axis;
-	wait-for-turn arm around x-axis;
-	wait-for-move boom1 along z-axis;
-	wait-for-move boom2 along z-axis;
-	wait-for-move boom3 along z-axis;
-	wait-for-move boom4 along z-axis;
-	wait-for-move boom5 along z-axis;
-	wait-for-move boom6 along z-axis;
-	turn magnet to x-axis <-30.> speed <60.>;
-	turn arm to x-axis <30.> speed <60.>;
-	wait-for-turn arm around x-axis;
-	return (0);
-}
 
 TransportPickup(unitid)
 {
-	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
-	if( Static_Var_4 AND get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
-	{
-		set BUSY to 1;
-		call-script BoomExtend();
-		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
-		attach-unit unitid to link;
-		call-script BoomToPad();
-		attach-unit unitid to 0 - 1;
-		call-script BoomReset();
-		set BUSY to 0;
-	}
+	set BUSY to 1;
+	attach-unit unitid to link;
+	set BUSY to 0;
 }
 
 TransportDrop(unitid, position)
 {
-	call-script BoomCalc(position,get GROUND_HEIGHT(position) + get UNIT_HEIGHT(unitid));
-	if( Static_Var_4 )
-	{
-		set BUSY to 1;
-		call-script BoomToPad();
-		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
-		attach-unit unitid to link;
-		call-script BoomExtend();
-		drop-unit unitid;
-		call-script BoomReset();
-		set BUSY to 0;
-	}
+	set BUSY to 1;
+	drop-unit unitid;
+	set BUSY to 0;
 }
 
 Killed(severity, corpsetype)
@@ -239,17 +81,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tower type BITMAPONLY | NOHEATCLOUD;
 		explode arm type BITMAPONLY | NOHEATCLOUD;
-		//explode boom1 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom2 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom3 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom4 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom5 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom6 type BITMAPONLY | NOHEATCLOUD;
-		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type BITMAPONLY | NOHEATCLOUD;
 		explode rdoor type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -258,17 +90,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tower type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom1 type FALL | NOHEATCLOUD;
-		//explode boom2 type FALL | NOHEATCLOUD;
-		//explode boom3 type FALL | NOHEATCLOUD;
-		//explode boom4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type FALL | NOHEATCLOUD;
 		explode rdoor type FALL | NOHEATCLOUD;
-		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -277,33 +99,15 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tower type SMOKE | FALL | NOHEATCLOUD;
 		explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rdoor type SMOKE | FALL | NOHEATCLOUD;
 		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tower type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode arm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode boom1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode boom2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode boom4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rdoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

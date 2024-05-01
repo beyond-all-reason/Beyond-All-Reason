@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, emit;
 
@@ -11,10 +9,8 @@ Create()
 {
 	hide emit;
 	hide base;
-	dont-shade base;
-	dont-cache base;
-	move emit to y-axis [700.000000] now;
-	turn emit to x-axis <90.000000> now;
+	move emit to y-axis [700.0] now;
+	turn emit to x-axis <90.0> now;
 	sleep 100;
 	emit-sfx 1024 from emit;
 	sleep 2200;
@@ -27,7 +23,7 @@ Create()
 	    ++counter;
 	}
 	sleep 1000;
-	move emit to y-axis [0.000000] now;
+	move emit to y-axis [0.0] now;
 }
 
 Killed(severity, corpsetype)
@@ -35,17 +31,17 @@ Killed(severity, corpsetype)
 
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }

@@ -1,23 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  missilea, missileb, base, thrustb1, thrustb2, nose,
        thrusta;
 
-static-var  statechg_DesiredState, statechg_StateChanging, gun_1;
-
-
-activatescr()
-{
-	sleep 15;
-}
-
-deactivatescr()
-{
-	sleep 9;
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -25,59 +11,7 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
+#include "air_barrelroll.h"
 
 Create()
 {
@@ -86,57 +20,29 @@ Create()
 	hide missileb;
 	hide thrustb2;
 	hide missilea;
-	gun_1 = 1;
-	call-script InitState();
 	start-script BarrelRoll();
 }
 
 Activate()
 {
 	show thrusta;
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide thrusta;
-	start-script RequestState(1);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
-QueryPrimary(piecenum)
+
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = nose;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = nose;
-	}
-}
-FirePrimary()
-{
-	if( gun_1 == 1 )
-	{
-	    gun_1 = nose;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-	    gun_1 = nose;
-		return (0);
-	}
+	pieceIndex = nose;
 }
 
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

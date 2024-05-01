@@ -1,62 +1,36 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  lflare, rflare, turret, base, rsleeve, lsleeve, rbarrel, lbarrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1;
+static-var  restore_delay, gun_1, timeLeft;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE      4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1800 / currentSpeed;
-		sleep 142;
-	}
-}
 
-Smoke()
-{
-	while( TRUE )
-	{
-		if ( bMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 1 from smoke1;
-				emit-sfx 1024 + 1 from smoke2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
-
+#define VD_PIECE1 smoke1;
+#define VD_PIECE2 smoke2;
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
 
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
 #define MAXTILT 100
+#define RECOIL_POWER 100000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
 
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <12.0> 
+#define TB_TILT_X <0.20>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
@@ -64,44 +38,37 @@ Create()
 	hide rflare;
 	hide lflare;
 	hide smoke2;
-	bMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
 	gun_1 = lflare;
 	restore_delay = 3000;
+	timeLeft = 0;
+	call-script TB_Init();
 }
 
-setSFXoccupy(state)
+SetMaxReloadTime(reloadMS)
 {
-	terrain = state;
+	restore_delay = reloadMS * 2;
 }
 
-SetMaxReloadTime(Func_Var_1)
+StartMoving(reversing)
 {
-	restore_delay = Func_Var_1 * 2;
-}
-
-StartMoving()
-{
-	bMoving = TRUE;
 	spin lwheel around x-axis speed <110> accelerate <5>;
 	spin rwheel around x-axis speed <110> accelerate <5>;
-  
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
-  start-script UnitSpeed();
-	start-script Smoke();
+
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	START_TILTBANK;
 }
 
 
 StopMoving()
 {
-	bMoving = FALSE;
-  signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;
+	STOP_TILTBANK;
 }
-
+#if 0
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -109,9 +76,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <50.000000>;
-	turn rsleeve to x-axis <0.000000> speed <25.000000>;
-	turn lsleeve to x-axis <0.000000> speed <25.000000>;
+	turn turret to y-axis <0.0> speed <50.0>;
+	turn rsleeve to x-axis <0.0> speed <25.0>;
+	turn lsleeve to x-axis <0.0> speed <25.0>;
 }
 SetStunned(State)
 {
@@ -126,63 +93,108 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <105.000000>;
-	turn rsleeve to x-axis <0.000000> - pitch speed <65.000000>;
-	turn lsleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <105.0>;
+	turn rsleeve to x-axis <0.0> - pitch speed <65.0>;
+	turn lsleeve to x-axis <0.0> - pitch speed <65.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rsleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
+#else
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+}
 
-FirePrimary()
+
+TimeToRestore(addTime){
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;
+    }
+    // The restore section must be atomic :/
+    timeLeft = 0;
+
+	turn turret to y-axis <0.0> speed <50.0>;
+	turn rsleeve to x-axis <0.0> speed <25.0>;
+	turn lsleeve to x-axis <0.0> speed <25.0>;
+}
+
+
+AimWeapon1(heading, pitch)
+{
+    if (timeLeft == 0)
+    {
+        start-script TimeToRestore();
+    }
+    timeLeft = restore_delay;
+   
+    signal SIGNAL_AIM1;
+    set-signal-mask SIGNAL_AIM1;
+
+	turn turret to y-axis heading speed <105.0>;
+	turn rsleeve to x-axis <0.0> - pitch speed <65.0>;
+	turn lsleeve to x-axis <0.0> - pitch speed <65.0>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn rsleeve around x-axis;
+
+    return (1);
+}
+
+#endif
+
+FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
-		move lbarrel to z-axis [-2.400000] speed [500.000000];
+		move lbarrel to z-axis [-2.400000] speed [500.0];
 		emit-sfx 1024 + 0 from lflare;
 		sleep 150;
 		wait-for-move lbarrel along z-axis;
-		move lbarrel to z-axis [0.000000] speed [3.000000];
+		move lbarrel to z-axis [0.0] speed [3.0];
 		gun_1 = rflare;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		move rbarrel to z-axis [-2.400000] speed [500.000000];
+		move rbarrel to z-axis [-2.400000] speed [500.0];
 		emit-sfx 1024 + 0 from rflare;
 		sleep 150;
 		wait-for-move rbarrel along z-axis;
-		move rbarrel to z-axis [0.000000] speed [3.000000];
+		move rbarrel to z-axis [0.0] speed [3.0];
 		gun_1 = lflare;
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -192,15 +204,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode raxle type BITMAPONLY | NOHEATCLOUD;
 		explode rwheel type BITMAPONLY | NOHEATCLOUD;
-		//explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode rsleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type BITMAPONLY | NOHEATCLOUD;
-		//explode lsleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode laxle type BITMAPONLY | NOHEATCLOUD;
-		//explode lwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -210,14 +213,6 @@ Killed(severity, corpsetype)
 		explode raxle type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rsleeve type FALL | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type FALL | NOHEATCLOUD;
-		//explode lsleeve type FALL | NOHEATCLOUD;
-		//explode lbarrel type FALL | NOHEATCLOUD;
-		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode laxle type FALL | NOHEATCLOUD;
-		//explode lwheel type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -227,14 +222,6 @@ Killed(severity, corpsetype)
 		explode raxle type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rsleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type SMOKE | FALL | NOHEATCLOUD;
-		//explode lsleeve type SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type SMOKE | FALL | NOHEATCLOUD;
-		//explode laxle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -244,11 +231,5 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rsleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lsleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode laxle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

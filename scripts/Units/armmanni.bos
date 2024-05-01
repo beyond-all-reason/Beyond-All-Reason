@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, turret, sensor, sleeve;
 
@@ -9,9 +7,8 @@ static-var  restore_delay;
 static-var  out_of_arc_count;
 
 // Signal definitions
-#define SIG_AIM				2
-
-
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -19,31 +16,41 @@ static-var  out_of_arc_count;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
 #define MAXTILT 100
+#define RECOIL_POWER 100000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <8.0> 
+#define TB_TILT_X <0.20>
+#define TB_BANK_Z <0.20> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.010989>;
-	turn base to z-axis <0> - anglez speed <50.010989>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-	return (0);
-}
+
 
 Create()
 {
 	hide flare;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
-	return (0);
+	call-script TB_Init();
+}
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
-SetMaxReloadTime(Func_Var_1)
+StopMoving()
 {
-	restore_delay = Func_Var_1 * 4;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 4;
 	return (0);
 }
 
@@ -53,8 +60,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50.010989>;
-	turn sleeve to x-axis <0.000000> speed <50.010989>;
+	turn turret to y-axis <0.0> speed <50.010989>;
+	turn sleeve to x-axis <0.0> speed <50.010989>;
 }
 SetStunned(State)
 {
@@ -69,10 +76,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	// out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
@@ -91,36 +98,32 @@ AimPrimary(heading, pitch)
 	out_of_arc_count = 0;
 
 	turn turret to y-axis heading speed <50.010989>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.010989>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.010989>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 150;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -130,7 +133,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		explode sensor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -140,7 +142,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sensor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -150,7 +151,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
 		explode sensor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -158,7 +158,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode sensor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

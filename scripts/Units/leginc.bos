@@ -1,21 +1,19 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  aimy1, turret, flare, barrel, pelvis, rfhip, rfthigh, rfleg, rbhip, rbthigh, rbleg, lfhip, lfthigh, lfleg, lbhip, lbthigh, lbleg;
 
-static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, oldhead, 
+static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, oldhead, 
 targetswap, isfiring, timer;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4 
 			move lfleg to z-axis [-1.47] speed [43] / animSpeed; 
 			move lfhip to z-axis [-1.80000] speed [54] / animSpeed; 
 			move rbleg to z-axis [-1.47] speed [43] / animSpeed; 
@@ -27,22 +25,22 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move lbhip to y-axis [0] speed [300] / animSpeed;	
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			move pelvis to y-axis [2] speed [60] / animSpeed;
-			move lfleg to z-axis [0.000000] speed [43] / animSpeed; 
-			move lfhip to z-axis [0.000000] speed [54] / animSpeed; 
-			move rbleg to z-axis [0.000000] speed [43] / animSpeed; 
-			move rbhip to z-axis [0.000000] speed [54] / animSpeed; 
-			move rfleg to z-axis [0.000000] speed [54] / animSpeed; 
-			move rfhip to z-axis [0.000000] speed [61] / animSpeed; 
+			move lfleg to z-axis [0.0] speed [43] / animSpeed; 
+			move lfhip to z-axis [0.0] speed [54] / animSpeed; 
+			move rbleg to z-axis [0.0] speed [43] / animSpeed; 
+			move rbhip to z-axis [0.0] speed [54] / animSpeed; 
+			move rfleg to z-axis [0.0] speed [54] / animSpeed; 
+			move rfhip to z-axis [0.0] speed [61] / animSpeed; 
 			move rfhip to y-axis [-2] speed [60] / animSpeed; 
-			move lbleg to z-axis [0.000000] speed [54] / animSpeed; 
-			move lbhip to z-axis [0.000000] speed [61] / animSpeed; 
+			move lbleg to z-axis [0.0] speed [54] / animSpeed; 
+			move lbhip to z-axis [0.0] speed [61] / animSpeed; 
 			move lbhip to y-axis [-2] speed [60] / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			move pelvis to y-axis [0] speed [60] / animSpeed;
 			move lfleg to z-axis [1.8] speed [54] / animSpeed; 
 			move lfhip to z-axis [2.03] speed [61] / animSpeed;			
@@ -56,21 +54,21 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move lbhip to y-axis [0] speed [60] / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
+		if (isMoving) {
 			move pelvis to y-axis [2] speed [60] / animSpeed;
-			move lfleg to z-axis [0.000000] speed [54] / animSpeed; 
-			move lfhip to z-axis [0.000000] speed [61] / animSpeed; 
+			move lfleg to z-axis [0.0] speed [54] / animSpeed; 
+			move lfhip to z-axis [0.0] speed [61] / animSpeed; 
 			move lfhip to y-axis [-2] speed [60] / animSpeed; 
-			move rbleg to z-axis [0.000000] speed [54] / animSpeed; 
-			move rbhip to z-axis [0.000000] speed [61] / animSpeed; 
+			move rbleg to z-axis [0.0] speed [54] / animSpeed; 
+			move rbhip to z-axis [0.0] speed [61] / animSpeed; 
 			move rbhip to y-axis [-2] speed [60] / animSpeed; 
-			move rfleg to z-axis [0.000000] speed [43] / animSpeed; 
-			move rfhip to z-axis [0.000000] speed [54] / animSpeed; 
-			move lbleg to z-axis [0.000000] speed [43] / animSpeed; 
-			move lbhip to z-axis [0.000000] speed [54] / animSpeed; 
+			move rfleg to z-axis [0.0] speed [43] / animSpeed; 
+			move rfhip to z-axis [0.0] speed [54] / animSpeed; 
+			move lbleg to z-axis [0.0] speed [43] / animSpeed; 
+			move lbhip to z-axis [0.0] speed [54] / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			move pelvis to y-axis [0] speed [60] / animSpeed;
 			move lfleg to z-axis [-1.47] speed [43] / animSpeed; 
 			move lfhip to z-axis [-1.8] speed [54] / animSpeed; 
@@ -86,17 +84,17 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move pelvis to y-axis [0.000000] speed [20.250000];
-	move lfleg to z-axis [0.000000] speed [20.250000];
-	move lfhip to z-axis [0.000000] speed [30.481575];
-	move lbleg to z-axis [0.000000] speed [20.250000];
-	move lbhip to z-axis [0.000000] speed [30.481575];
-	move rfleg to z-axis [0.000000] speed [20.250000];
-	move rfhip to z-axis [0.000000] speed [30.481575];
-	move rbleg to z-axis [0.000000] speed [20.250000];
-	move rbhip to z-axis [0.000000] speed [30.481575];
+	move pelvis to y-axis [0.0] speed [20.250000];
+	move lfleg to z-axis [0.0] speed [20.250000];
+	move lfhip to z-axis [0.0] speed [30.481575];
+	move lbleg to z-axis [0.0] speed [20.250000];
+	move lbhip to z-axis [0.0] speed [30.481575];
+	move rfleg to z-axis [0.0] speed [20.250000];
+	move rfhip to z-axis [0.0] speed [30.481575];
+	move rbleg to z-axis [0.0] speed [20.250000];
+	move rbhip to z-axis [0.0] speed [30.481575];
 	move lbhip to y-axis [0] speed [300] / animSpeed;
 	move lfhip to y-axis [0] speed [300] / animSpeed;
 	move rbhip to y-axis [0] speed [300] / animSpeed;
@@ -126,40 +124,40 @@ UnitSpeed(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
-	signal SIG_WALK;
+	isMoving = FALSE;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    signal SIG_AIM;
+    signal SIGNAL_AIM1;
     isfiring = 0;
 	oldhead = -1000000;
 	if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.000000> speed <20.000000>;
-	turn barrel to x-axis <0.000000> speed <20.000000>;
+	turn aimy1 to y-axis <0.0> speed <20.0>;
+	turn barrel to x-axis <0.0> speed <20.0>;
 	timer = 0;
 	targetswap = 0;
 }
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -175,7 +173,7 @@ SweepFire()
 		}
 		if (timer > 150)
 		{
-			//signal SIG_AIM;
+			//signal SIGNAL_AIM1;
 			//timer = 0;
 			start-script ExecuteRestoreAfterDelay();
 		}
@@ -192,30 +190,22 @@ Create()
 	hide flare;
 	hide aimy1;
 	restore_delay = 1000;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	animSpeed = 20;
 	start-script SweepFire();
 	start-script StopMoving();
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
 	restore_delay = 1000;
 }
 
-SweetSpot(piecenum)
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = pelvis;
+	pieceIndex = aimy1;
 }
 
-AimFromPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = aimy1;
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 SetStunned(State)
@@ -226,10 +216,10 @@ SetStunned(State)
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <25>;
 	turn barrel to x-axis -1*pitch speed <5>;
 	if (get ABS(oldhead - heading) > 500)
@@ -251,7 +241,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script RestoreAfterDelay();
 	targetswap = 0;
