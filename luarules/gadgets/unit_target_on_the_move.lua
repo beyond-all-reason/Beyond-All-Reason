@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
@@ -99,7 +98,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- fastpass for units that don't have an attack command for other reasons
-	validUnits[UnitDefNames.legpede.id]=true
+	if UnitDefNames.legpede then
+		validUnits[UnitDefNames.legpede.id] = true
+	end
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
@@ -302,7 +303,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitTargets[unitID] = nil
 	end
 
-	function removeTarget(unitID, index)
+	local function removeTarget(unitID, index)
 		tremove(unitTargets[unitID].targets, index)
 		if #unitTargets[unitID].targets == 0 then
 			removeUnit(unitID)
@@ -542,10 +543,11 @@ if gadgetHandler:IsSyncedCode() then
 		pausedTargets[unitID] = nil
 	end
 
+	local emptyCmdOptions = {}
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 		if type(cmdOptions) ~= 'table' then
 			-- does UnitCmdDone always returns number instead of table?
-			cmdOptions = {}
+			cmdOptions = emptyCmdOptions
 		end
 		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_STOP then
@@ -601,21 +603,23 @@ if gadgetHandler:IsSyncedCode() then
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
 
-		for unitID, unitData in pairs(unitTargets) do
-			local targetIndex
-			for index, targetData in ipairs(unitData.targets) do
-				if not checkTarget(unitID, targetData.target) then
-					removeTarget(unitID, index)
-				else
-					if setTarget(unitID, targetData) then
-						targetIndex = index
-						break
+		if n % 5 == 4 then
+			for unitID, unitData in pairs(unitTargets) do
+				local targetIndex
+				for index, targetData in ipairs(unitData.targets) do
+					if not checkTarget(unitID, targetData.target) then
+						removeTarget(unitID, index)
+					else
+						if setTarget(unitID, targetData) then
+							targetIndex = index
+							break
+						end
 					end
 				end
-			end
-			if unitData.currentIndex ~= targetIndex then
-				unitData.currentIndex = targetIndex
-				SendToUnsynced("targetIndex", unitID, targetIndex)
+				if unitData.currentIndex ~= targetIndex then
+					unitData.currentIndex = targetIndex
+					SendToUnsynced("targetIndex", unitID, targetIndex)
+				end
 			end
 		end
 
@@ -628,7 +632,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
 	end
 
 

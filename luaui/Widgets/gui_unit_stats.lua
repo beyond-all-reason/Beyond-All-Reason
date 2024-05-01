@@ -8,13 +8,20 @@ function widget:GetInfo()
 		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
 		layer     = -999990,
-		enabled   = true,  --  loaded by default?
+		enabled   = true,
 	}
 end
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
+
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
@@ -140,7 +147,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
@@ -159,6 +165,7 @@ local textBufferCount = 0
 local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
@@ -221,6 +228,11 @@ local function GetTeamName(teamID)
     if Spring.GetGameRulesParam('ainame_'..teamID) then
         leaderName = Spring.GetGameRulesParam('ainame_'..teamID)
     end
+
+	if not spec and anonymousMode ~= 'disabled' then
+		return anonymousName
+	end
+
 	return leaderName or 'Error:NoName'
 end
 
@@ -257,11 +269,6 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
-
-	if Spring.GetModOptions().unba then
-		VFS.Include("unbaconfigs/stats.lua")
-		unba = true
-	end
 end
 
 function widget:Shutdown()
@@ -338,13 +345,13 @@ local function drawStats(uDefID, uID)
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
 	local uTeam = Spring.GetMyTeamID()
-	local losRadius = uDef.losRadius
-	local airLosRadius = uDef.airLosRadius
-	local radarRadius = uDef.radarRadius
-	local sonarRadius = uDef.sonarRadius
-	local jammingRadius = uDef.jammerRadius
-	local sonarJammingRadius = uDef.sonarJamRadius
-	local seismicRadius = uDef.seismicRadius
+	local losRadius = uDef.sightDistance
+	local airLosRadius = uDef.airSightDistance
+	local radarRadius = uDef.radarDistance
+	local sonarRadius = uDef.sonarDistance
+	local jammingRadius = uDef.radarDistanceJam
+	local sonarJammingRadius = uDef.sonarDistanceJam
+	local seismicRadius = uDef.seismicDistance
 	local armoredMultiple = uDef.armoredMultiple
 	local paralyzeMult = 1
 	if uDef.customParams.paralyzemultiplier then
@@ -353,11 +360,10 @@ local function drawStats(uDefID, uID)
 	local transportable = not (uDef.cantBeTransported and uDef.cantBeTransported or false)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
-	local buildProg, uExp
+	local isBuilding, buildProg, uExp
 	local level = 1
-	local unbacom
 	if uID then
-		_, _, _, _, buildProg = spGetUnitHealth(uID)
+		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, 'los') or 0
@@ -369,17 +375,6 @@ local function drawStats(uDefID, uID)
 		seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
 		uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
-
-		unbacom = unba and (UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(uID)].name == "corcom")
-		local _, xp = Spring.GetUnitExperience(uID)
-		if unbacom then
-			if xp then
-				level = math.floor(xp*10) + 1
-				if xp*10 >= 9.9 then level = 11 end
-			else
-				level = "unknown"
-			end
-		end
 	end
 
 	maxWidth = 0
@@ -399,7 +394,7 @@ local function drawStats(uDefID, uID)
 	------------------------------------------------------------------------------------
 	-- Units under construction
 	------------------------------------------------------------------------------------
-	if buildProg and buildProg < 1 then
+	if isBuilding then
 
 		local myTeamID = spGetMyTeamID()
 		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = spGetTeamResources(myTeamID, 'metal')
@@ -444,18 +439,8 @@ local function drawStats(uDefID, uID)
 	end
 
 	if uDef.buildSpeed > 0 then
-	end
-
-	if unbacom then
-		local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
-		DrawText(texts.build..':', yellow .. buildSpeed)
-		if uID then
-			DrawText('Level:', green .. level)
-		end
-	elseif uDef.buildSpeed > 0 then
 		DrawText(texts.build..':', yellow .. uDef.buildSpeed)
 	end
-
 
 	cY = cY - fontSize
 
@@ -549,16 +534,7 @@ local function drawStats(uDefID, uID)
 	------------------------------------------------------------------------------------
 	-- Weapons
 	------------------------------------------------------------------------------------
-	local uWeps
-	if unbacom then
-		if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
-			uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
-		else
-			uWeps = uDef.weapons
-		end
-	else
-		uWeps = uDef.weapons
-	end
+	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
 	local weaponNums = {}
@@ -572,10 +548,6 @@ local function drawStats(uDefID, uID)
 			wepsCompact[#wepsCompact + 1] = wDefID
 			weaponNums[#wepsCompact] = i
 		end
-	end
-
-	if unbacom then
-		weaponNums = { level, level + 11, 30}
 	end
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
@@ -619,7 +591,7 @@ local function drawStats(uDefID, uID)
 				oRld = 1
 			elseif i == selfDWeaponIndex then
 				wpnName = texts.selfdestruct
-				oRld = uDef.selfDCountdown
+				oRld = uDef.selfDestructCountdown
 			end
 			if wepCount > 1 then
 				DrawText(texts.weap..":", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
@@ -630,21 +602,6 @@ local function drawStats(uDefID, uID)
 			local accuracy = uWep.accuracy
 			local moveError = uWep.targetMoveError
 			local range = uWep.range
-			if unbacom then
-				if i == 1 then
-					if UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" then
-						range = armRange[level]
-					else
-						range = corRange[level]
-					end
-				elseif i == 2 then
-					if UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" then
-						range = armRange2[level]
-					else
-						range = corRange2[level]
-					end
-				end
-			end
 			--local reload = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or uWep.reload
 			--local accuracy = spGetUnitWeaponState(uID,weaponNums[i] or -1,"accuracy") or uWep.accuracy
 			--local moveError = spGetUnitWeaponState(uID,weaponNums[i] or -1,"targetMoveError") or uWep.targetMoveError
@@ -789,11 +746,7 @@ local function drawStats(uDefID, uID)
 	-- title
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
-		local playername = ''
-		if (not anonymousMode ~= "disabled") or spec then
-			playername = GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
-		end
-		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. playername .. grey .. effectivenessRate
+		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
 	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))

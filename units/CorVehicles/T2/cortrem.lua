@@ -1,9 +1,9 @@
 return {
 	cortrem = {
-		acceleration = 0.0098,
-		brakerate = 0.0196,
-		buildcostenergy = 49000,
-		buildcostmetal = 1850,
+		maxacc = 0.0098,
+		maxdec = 0.0196,
+		energycost = 49000,
+		metalcost = 1850,
 		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
@@ -20,12 +20,12 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 5001,
-		maxdamage = 3000,
-		--maxreversevelocity = 0.762,
+		health = 3000,
 		maxslope = 14,
-		maxvelocity = 1.35,
+		speed = 40.5,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
 		onoffable = true,
@@ -58,18 +58,13 @@ return {
 				collisionvolumescales = "55.5426483154 42.2261505127 61.5749359131",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 8,
-				hitdensity = 100,
 				metal = 1006,
 				object = "Units/cortrem_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -77,18 +72,13 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 2,
-				hitdensity = 100,
 				metal = 474,
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -124,7 +114,7 @@ return {
 		},
 		weapondefs = {
 			tremor_focus_fire = {
-					
+
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -134,7 +124,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,
@@ -152,21 +141,16 @@ return {
 					speceffect = "sector_fire",
 					when = "always",
 					max_range_reduction = "0.25",
-					--active_range = "1275",
-					--active_accuracy = "0",
 					spread_angle = "15",
 				},
 				damage = {
-					bombers = 19,
 					default = 150,
-					fighters = 19,
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 			tremor_spread_fire = {
-				
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -176,7 +160,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				--impulseboost = 0.123,
 				impulsefactor = 1.8,
 				name = "RapidArtillery",
 				noselfdamage = true,
@@ -193,17 +176,15 @@ return {
 				customparams = {
 					speceffect = "sector_fire",
 					when = "always",
-					max_range_reduction = "0.35", 
+					max_range_reduction = "0.35",
 					spread_angle = "24",
 				},
 				damage = {
-					bombers = 19,
 					default = 150,
-					fighters = 19,
 					subs = 75,
 					vtol = 19,
 				},
-				
+
 			},
 		},
 		weapons = {

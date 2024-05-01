@@ -169,6 +169,16 @@ return {
     -- Awareness
 
 
+	['MaxUnitsReached'] = {
+		sound = {
+			[1] = {
+				--file = 'MaxUnitsReached.wav',
+				text = 'tips.notifications.maxUnitsReached',
+			},
+		},
+		length = 3,
+		delay = 90,
+	},
     ['UnitsReceived'] = {
        sound = {
            [1] = {
@@ -375,7 +385,7 @@ return {
            },
        },
        length = 4.8,
-       delay = 30,
+       delay = 55,
     },
     ['LrpcDetected'] = {
        sound = {

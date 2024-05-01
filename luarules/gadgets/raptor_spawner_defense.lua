@@ -1,3 +1,11 @@
+
+if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
+else
+	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	return false
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Spawner",
@@ -8,13 +16,6 @@ function gadget:GetInfo()
 		layer = 0,
 		enabled = true
 	}
-end
-
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
-	return false
 end
 
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
@@ -30,12 +31,12 @@ if gadgetHandler:IsSyncedCode() then
 	if tracy == nil then
 		--Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
-		tracy.ZoneBeginN = function () return end 
-		tracy.ZoneBegin = function () return end 
-		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end 
-		tracy.Message = function () return end 
-		tracy.ZoneName = function () return end 
-		tracy.ZoneText = function () return end 
+		tracy.ZoneBeginN = function () return end
+		tracy.ZoneBegin = function () return end
+		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end
+		tracy.Message = function () return end
+		tracy.ZoneName = function () return end
+		tracy.ZoneText = function () return end
 	end
 	--
 
@@ -136,8 +137,7 @@ if gadgetHandler:IsSyncedCode() then
 	local aliveEggsTable = {}
 	local squadsTable = {}
 	local unitSquadTable = {}
-	local squadPotentialTarget = {}
-	local squadPotentialHighValueTarget = {}
+	local squadTargetsByEcoWeight = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
@@ -220,7 +220,8 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Utility
-	--
+
+	local SetListUtilities = VFS.Include('common/SetList.lua')
 
 	function SetToList(set)
 		local list = {}
@@ -248,29 +249,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function getRandomEnemyPos()
+		-- Pre-opt: 224 us, sigma 105 us!
+		-- Post-opt: 3 us, sigma 1us
 		tracy.ZoneBeginN("Raptors:getRandomEnemyPos")
-		local loops = 0
-		local targetCount = SetCount(squadPotentialTarget)
-		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
-		repeat
-			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= 0.75 then
-				for target in pairs(squadPotentialHighValueTarget) do
-					if mRandom(1,highValueTargetCount) == 1 then
+
+		local ecoTierMaxProbability = 1
+
+		for weight,units in pairs(squadTargetsByEcoWeight) do
+			ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+		end
+
+		local random = mRandom(1, ecoTierMaxProbability)
+		ecoTierMaxProbability = 1
+
+		-- 10 tries to find a valid target
+		for try = 1, 10 do
+
+			for weight,units in pairs(squadTargetsByEcoWeight) do
+				if units.count then
+					ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+
+					if random <= ecoTierMaxProbability then
+						local target = units:GetRandom()
 						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-							local x,y,z = Spring.GetUnitPosition(target)
-							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-							pickedTarget = target
-							break
-						end
-					end
-				end
-			else
-				for target in pairs(squadPotentialTarget) do
-					if mRandom(1,targetCount) == 1 then
-						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
+
 							local x,y,z = Spring.GetUnitPosition(target)
 							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
 							pickedTarget = target
@@ -280,7 +285,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-		until pos.x or loops >= 10
+			if pos.x then
+				break
+			end
+		end
 
 		if not pos.x then
 			pos = getRandomMapPos()
@@ -765,7 +773,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if config.burrowSpawnType == "avoid" then -- Last Resort for Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range
-				
+
 				for _ = 1,100 do -- Attempt #1 Avoid all sensors
 					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
@@ -830,7 +838,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
 		tracy.ZoneEnd()
@@ -950,7 +958,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,25)
-		waveParameters.waveAirPercentage = mRandom(5,25)
+		waveParameters.waveAirPercentage = mRandom(5,33)
 
 		waveParameters.waveSizeMultiplier = mRandom(5,20)*0.1
 		waveParameters.waveTimeMultiplier = mRandom(5,20)*0.1
@@ -963,7 +971,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = mRandom(5,25)
-				waveParameters.waveAirPercentage = 50
+				waveParameters.waveAirPercentage = 75
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
 
@@ -973,7 +981,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.specialWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 50
-				waveParameters.waveAirPercentage = mRandom(5,25)
+				waveParameters.waveAirPercentage = mRandom(5,33)
 
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
@@ -1031,7 +1039,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSpecialPercentage = mRandom(5,10)
 
 			end
-			
+
 		end
 
 		waveParameters.waveSizeMultiplier = waveParameters.waveSizeMultiplier*waveParameters.firstWavesBoost
@@ -1236,25 +1244,93 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 
+	local WALLS = {
+		"armdrag",
+		"armfort",
+		"cordrag",
+		"corfort",
+		"scavdrag",
+		"scavfort",
+	}
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+
+		local unitDef = UnitDefs[unitDefID]
+
 		if unitTeam == raptorTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
-			if UnitDefs[unitDefID].canCloak then
+			if unitDef.canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			end
 			return
 		end
-		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
-			squadPotentialTarget[unitID] = nil
-			squadPotentialHighValueTarget[unitID] = nil
+
+		-- For each squadTargetsByEcoWeight, remove them
+		for _,unitList in pairs(squadTargetsByEcoWeight) do
+			unitList:Remove(unitID)
 		end
-		if not UnitDefs[unitDefID].canMove then
-			squadPotentialTarget[unitID] = true
-			if config.highValueTargets[unitDefID] then
-				squadPotentialHighValueTarget[unitID] = true
+
+		-- If a wall
+		for _, wallName in pairs(WALLS) do
+			if unitDef.name == wallName then
+				return
 			end
 		end
+
+		if not unitDef.canMove or (unitDef.customParams and unitDef.customParams.iscommander) then
+			-- Calculate an eco value based on energy and metal production
+			local ecoValue = 1
+			if unitDef.energyMake then
+				ecoValue = ecoValue + unitDef.energyMake
+			end
+			if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
+				ecoValue = ecoValue - unitDef.energyUpkeep
+			end
+			if unitDef.windGenerator then
+				ecoValue = ecoValue + unitDef.windGenerator*0.75
+			end
+			if unitDef.tidalGenerator then
+				ecoValue = ecoValue + unitDef.tidalGenerator*15
+			end
+			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
+				ecoValue = ecoValue + 200
+			end
+			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
+				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
+			end
+
+			-- Decoy fusion support
+			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
+				ecoValue = ecoValue + 1000
+			end
+
+			-- Make it extra risky to build T2 eco
+			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
+			end
+
+			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
+			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
+				ecoValue = 1000
+			end
+			-- Spring.Echo("Built units eco value: " .. ecoValue)
+
+			-- Ends up building an object like:
+			-- {
+			--  0: [non-eco]
+			--	25: [t1 windmill, t1 solar, t1 mex],
+			--	75: [adv solar]
+			--	1000: [fusion]
+			--	3000: [adv fusion]
+			-- }
+
+			if not squadTargetsByEcoWeight[ecoValue] then
+				squadTargetsByEcoWeight[ecoValue] = SetListUtilities.NewSetListNoTable()
+			end
+
+			squadTargetsByEcoWeight[ecoValue]:Add(unitID)
+		end
+
 		if config.ecoBuildingsPenalty[unitDefID] then
 			playerAggressionEcoValue = playerAggressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
@@ -1594,31 +1670,43 @@ if gadgetHandler:IsSyncedCode() then
 
 		local unit = UnitDefNames[name]
 
-		local featureValueMetal = math.ceil(unit.metalCost*0.25)
-		local featureValueEnergy = featureValueMetal*10
+		local featureValueMetal = math.ceil(unit.metalCost)
+		local featureValueEnergy = featureValueMetal
 
 		local size
 		local color
+		local chance
 
-		if featureValueMetal <= 500 then
+		if featureValueMetal <= 1500 then
 			size = "s"
-		elseif featureValueMetal <= 3000 then
+			chance = 0.33
+		elseif featureValueMetal <= 7500 then
 			size = "m"
+			chance = 0.66
+			featureValueMetal = math.ceil(featureValueMetal*0.66)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.66)
 		else
 			size = "l"
+			chance = 1
+			featureValueMetal = math.ceil(featureValueMetal*0.33)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.33)
 		end
 
-		if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
-			color = config.raptorEggs[name]
-		else
-			color = raptorEggColors[mRandom(1,#raptorEggColors)]
-		end
+		if mRandom() <= chance then
 
-		local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
-		if egg then
-			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-			Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
-			Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
+			if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
+				color = config.raptorEggs[name]
+			else
+				color = raptorEggColors[mRandom(1,#raptorEggColors)]
+			end
+
+			local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
+			if egg then
+				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+				Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
+				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
+			end
+
 		end
 
 	end
@@ -1626,9 +1714,9 @@ if gadgetHandler:IsSyncedCode() then
 	function decayRandomEggs()
 		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
-			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
-				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
-				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
+			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 1 and half minutes +/- RNG
+				--local fx, fy, fz = Spring.GetFeaturePosition(eggID)
+				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 40)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
 				end
@@ -1658,7 +1746,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local raptorTeamUnitCount = GetTeamUnitCount(raptorTeamID) or 0
-		if raptorTeamUnitCount < raptorUnitCap and n%5 == 4 then
+		if raptorTeamUnitCount < raptorUnitCap and (n%5 == 4 or waveParameters.firstWavesBoost > 1) then
 			tracy.ZoneBeginN("Raptors:SpawnRaptors")
 			SpawnRaptors()
 			tracy.ZoneEnd()
@@ -1804,7 +1892,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == raptorTeamID then
-			if config.useEggs and (not (gameIsOver or queenID)) then
+			if config.useEggs and (not gameIsOver) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
@@ -1828,8 +1916,10 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		squadPotentialTarget[unitID] = nil
-		squadPotentialHighValueTarget[unitID] = nil
+		for _,unitList in pairs(squadTargetsByEcoWeight) do
+			unitList:Remove(unitID)
+		end
+
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)

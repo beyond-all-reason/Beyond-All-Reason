@@ -6,26 +6,34 @@ function widget:GetInfo()
 		date      = "2022.12.29",
 		license   = "GNU GPL, v2 or later",
 		layer     = -99999,
-		enabled   = true  -- loaded by default
+		enabled   = true
 	}
 end
 
 -- defaults
-local unitdefConfig = {
-	[UnitDefNames["armjamt"].id] = true,
-	[UnitDefNames["armdecom"].id] = false,
-	[UnitDefNames["cordecom"].id] = false,
-	[UnitDefNames["armferret"].id] = false,
-	[UnitDefNames["armamb"].id] = false,
-	[UnitDefNames["armpb"].id] = false,
-	[UnitDefNames["armsnipe"].id] = false,
-	[UnitDefNames["corsktl"].id] = false,
-	[UnitDefNames["armgremlin"].id] = false,
-	[UnitDefNames["armamex"].id] = true,
-	[UnitDefNames["armckfus"].id] = true,
-	[UnitDefNames["armspy"].id] = true,
-	[UnitDefNames["corspy"].id] = true,
+local unitdefConfigNames = {
+	['armjamt'] = true,
+	['armdecom'] = false,
+	['cordecom'] = false,
+	['armferret'] = false,
+	['armamb'] = false,
+	['armpb'] = false,
+	['armsnipe'] = false,
+	['corsktl'] = false,
+	['armgremlin'] = false,
+	['armamex'] = true,
+	['armckfus'] = true,
+	['armspy'] = true,
+	['corspy'] = true,
 }
+-- convert unitname -> unitDefID
+local unitdefConfig = {}
+for unitName, params in pairs(unitdefConfigNames) do
+	if UnitDefNames[unitName] then
+		unitdefConfig[UnitDefNames[unitName].id] = params
+	end
+end
+unitdefConfigNames = nil
 
 local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var

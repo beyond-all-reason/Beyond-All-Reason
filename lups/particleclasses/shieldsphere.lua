@@ -1,4 +1,3 @@
--- $Id: ShieldSphere.lua 3171 2008-11-06 09:06:29Z det $
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -53,12 +52,14 @@ local glMultiTexCoord = gl.MultiTexCoord
 local glCallList = gl.CallList
 
 local gameFrame = 0
+local timeOffset = 0
 
 function ShieldSphereParticle:BeginDraw()
 	gl.DepthMask(false)
 	gl.UseShader(shieldShader)
 	gl.Culling(false)
 	gameFrame = Spring.GetGameFrame()
+	timeOffset = Spring.GetFrameTimeOffset()
 end
 
 function ShieldSphereParticle:EndDraw()
@@ -90,7 +91,7 @@ function ShieldSphereParticle:Draw()
 	glMultiTexCoord(2, color[1], color[2], color[3], color[4] or 1)
 	local pos = self.pos
 	glMultiTexCoord(3, pos[1], pos[2], pos[3], self.technique or 0)
-	glMultiTexCoord(4, self.margin, self.size, gameFrame, self.unit / 65535.0)
+	glMultiTexCoord(4, self.margin, self.size, gameFrame + timeOffset, self.unit / 65535.0)
 
 	glCallList(sphereList)
 end

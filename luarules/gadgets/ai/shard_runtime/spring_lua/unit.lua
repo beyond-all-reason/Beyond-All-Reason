@@ -20,7 +20,10 @@ function ShardUnit:Unit_to_id( unit )
 	return gid
 end
 
-function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
+--[[
+
+function ShardUnit:SyncOrder1(id,cmd,pos,opts,timeout)
+-- 	local RAM = gcinfo()
 	local uName = self.type:Name()
 	timeout = timeout or 2000
 	if type(id) ~= 'number' then
@@ -74,8 +77,8 @@ function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
 -- 	else
 -- 		Spring.Echo('incorrect ST GOTU OPTS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
 -- 	end
-	
-	tracy.ZoneBeginN("StGiveOrderToSync")
+
+-- 	tracy.ZoneBeginN("StGiveOrderToSync")
 	msg = 'StGiveOrderToSync'
 	msg = msg .. '*' .. id .. '*'
 	msg = msg .. '_' .. cmd .. '_'
@@ -83,12 +86,113 @@ function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
 	msg = msg .. ';' .. opts .. ';'
 	msg = msg .. '#' .. timeout .. '#'
 	msg = msg .. '!' .. uName .. '!'  ..'StEndGOTS'
-	Spring.SendLuaRulesMsg(msg)
-	
-	tracy.ZoneEnd()
+ 	Spring.SendLuaRulesMsg(msg)
+
+--	tracy.ZoneEnd()
+-- 	end
+-- 			RAM = gcinfo() - RAM
+-- 			if RAM > 0 then
+-- 				print ('sendluaRulesMsg',id,	cmd,uName,RAM)
+-- 			end
+end
+
+]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function ShardUnit:SyncOrder(id,cmd,pos,opts--[[,timeout]])
+-- 	local RAM = gcinfo()
+	local uName = self.type:Name()
+	--timeout = timeout or 2000
+	if type(id) ~= 'number' then
+		Spring.Echo('ST GOTS ID TYPE','name',self.type:Name(),'id',id,'cmd',cmd)
+		return
+	end
+	if not Spring.ValidUnitID ( id )  then
+		Spring.Echo('ST GOTS ID INVALID','name',self.type:Name(),'id',id,'cmd',cmd)
+		return
+	end
+
+	if type(cmd) ~= 'number'then
+		Spring.Echo('ST GOTS CMD TYPE format','name',self.type:Name(),'id',id,'cmd',cmd)
+		return
+	end
+	if type(pos) ~='table' then
+		Spring.Echo('ST GOTS POS TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos,type(pos))
+		return
+	end
+	if opts ~= 0 and type(opts) ~= 'table' then--because can be bitmasked with 0 for performance
+		Spring.Echo('ST GOTS OPTS TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'opts',opts,type(opts))
+		return
+	end
+-- 	if type(timeout) ~= 'number' then
+-- 		Spring.Echo('ST GOTS TIMEOUT TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'timeout',timeout)
+-- 		return
+-- 	end
+	if type(uName) ~= 'string' then
+		Spring.Echo('ST GOTS uName TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'uName',uName)
+		return
+	end
+	pos = table.concat(pos,',')
+	if opts ~= 0 then
+		opts = table.concat(opts,',') or opts
+	end
+
+-- 	if type(id) ~= 'number' or type( cmd) ~= 'number' or type(pos) ~='table' or not pos[1] or not opts then
+-- 		Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos,type(pos),'opts',opts,type(opts))
+-- 		Spring.Echo('incomplete luarules message')
+-- 		return
+-- 	else
+-- 	Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos1',pos,pos[1],type(pos[1]),'opts',opts)
+--
+-- 	if type(pos) == 'table'  then
+--
+-- 	else
+-- 		Spring.Echo('incorrect ST GOTU POS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
+-- 	end
+-- 	if type(opts) == 'table' then
+--
+-- 	else
+-- 		Spring.Echo('incorrect ST GOTU OPTS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
 -- 	end
 
+-- 	tracy.ZoneBeginN("StGiveOrderToSync")
+	msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'--[[..timeout..';']]..uName..';'..'StEndGOTS'
+ 	Spring.SendLuaRulesMsg(msg)
+
+--	tracy.ZoneEnd()
+-- 	end
+-- 			RAM = gcinfo() - RAM
+-- 			if RAM > 0 then
+-- 				print ('sendluaRulesMsg',id,	cmd,uName,RAM)
+-- 			end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function ShardUnit:ID()
 	return self.id
@@ -206,12 +310,7 @@ function ShardUnit:CanMorph()
 end
 
 function ShardUnit:IsBeingBuilt()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	if buildProgress then -- add a scavenger workaround, but this function is better to return the complete output instead a simple true/false
-		return buildProgress < 1
-	else
-		return false
-	end
+	return Spring.GetUnitIsBeingBuilt( self.id )
 end
 
 function ShardUnit:IsMorphing()
@@ -278,6 +377,12 @@ function ShardUnit:FactoryUnWait()
 
 end
 ]]
+
+function ShardUnit:GetUnitCommands(count)
+	count = count or 1
+	local currentOrder = Spring.GetUnitCommands(self.id,count)
+	return currentOrder
+end
 
 function ShardUnit:Stop()
 	local order = self:SyncOrder( self.id, CMD.STOP, {}, 0 )
@@ -520,7 +625,7 @@ function ShardUnit:GetPosition()
 		Spring.Echo(self:Name(), self.id, "nil position")
 		return
 	end
-	if self.position == nil then 
+	if self.position == nil then
 		self.position = {}
 	end
 	local position = self.position
@@ -529,6 +634,11 @@ function ShardUnit:GetPosition()
 	position.z = bpz
 
 	return position
+end
+
+function ShardUnit:GetRawPos()
+	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
+	return bpx, bpy, bpz
 end
 
 function ShardUnit:GetHealtsParams()
@@ -558,7 +668,7 @@ function ShardUnit:CaptureProgress()
 end
 
 function ShardUnit:BuildProgress()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local isBuilding, buildProgress = Spring.GetUnitIsBeingBuilt( self.id )
 	return buildProgress
 end
 
@@ -580,6 +690,13 @@ function ShardUnit:CanBuild( uType )
 	return self:Type():CanBuild(uType)
 end
 
+function ShardUnit:GetFacing(id)
+	return Spring.GetUnitBuildFacing ( id )
+-- 	0, "s", "south"
+--     1, "e", "east"
+--     2, "n", "north"
+--     3, "w", "west"
+end
 
 function ShardUnit:GetResourceUsage( idx )
 	local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(self.id)

@@ -1,4 +1,3 @@
--- $Id: distortionFBO.lua 4396 2009-04-15 21:42:33Z jk $
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -137,24 +136,37 @@ local glTexture       = gl.Texture
 
 function PostDistortion:BeginDraw()
   if depthTex then
+    if tracy then tracy.ZoneBeginN("LUPS:PostDistortion:BeginDraw") end 
+    
+    if tracy then tracy.ZoneBeginN("LUPS:PostDistortion:BeginDraw:glActiveFBOClear") end
     glActiveFBO(fbo, gl.Clear, GL_COLOR_BUFFER_BIT, 0,0,0,0) --//clear jitterTex
+    
+    if tracy then tracy.ZoneEnd() end 
 
     --// copy depthbuffer to a seperated depth texture, so we can use it in the MRT
     if (pd.copyDepthBuffer) then
-      glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
+      if tracy then tracy.ZoneBeginN("LUPS:PostDistortion:BeginDraw:copyDepthBuffer") end
+        glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
+      --Spring.Echo("Lups Depth Copy")
+      if tracy then tracy.ZoneEnd() end 
     end
 
     --// update screen copy
-    glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
+    if tracy then tracy.ZoneBeginN("LUPS:PostDistortion:BeginDraw:screenCopyTex") end
+        glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
+    if tracy then tracy.ZoneEnd() end 
+    if tracy then tracy.ZoneEnd() end 
   end
 end
 
 function PostDistortion:EndDraw()
+  if tracy then tracy.ZoneBeginN("LUPS:PostDistortion:EndDraw") end
   glCallList(enterIdentity);
   if (pd.texRectangle) then glUniform(screenSizeLoc,vsx,vsy) end
   glTexture(0,jitterTex);
   glTexture(1,screenCopyTex); 
   glCallList(postDrawAndLeaveIdentity);
+  if tracy then tracy.ZoneEnd() end 
 end
 
 -----------------------------------------------------------------------------------------------------------------

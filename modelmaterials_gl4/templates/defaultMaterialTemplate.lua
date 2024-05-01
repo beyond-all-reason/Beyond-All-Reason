@@ -13,8 +13,14 @@ vertex = [[
 		layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
 		#define pieceIndex (bonesInfo.x & 0x000000FFu)
 	#endif
+	#ifndef STATICMODEL
+		layout (location = 6) in uvec4 instData;
+	#else
+		layout (location = 6) in vec4 offsetpos_targetpiece;
+		layout (location = 7) in vec4 offsetrot;
+		layout (location = 8) in uvec4 instData;
+	#endif
 
-	layout (location = 6) in uvec4 instData;
 	// u32 matOffset
 	// u32 uniOffset
 	// u32 {teamIdx, drawFlag, unused, unused}
@@ -66,8 +72,8 @@ vertex = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
+	#define OPTION_TREADS_ARM 5
+	#define OPTION_TREADS_CORE 6
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
@@ -270,6 +276,104 @@ vertex = [[
 		//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 	}
 
+	#ifdef USESKINNING
+		uint GetUnpackedValue(uint packedValue, uint byteNum) {
+			return (packedValue >> (8u * byteNum)) & 0xFFu;
+		}
+		// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
+
+		// The only difference is that displacedPos is passed in, and we always assume staticModel = false
+		void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
+		{
+			#ifndef STATICMODEL
+				bool staticModel = false;// (matrixMode > 0);
+			#else
+				bool staticModel = true;// (matrixMode > 0);
+			#endif
+
+			vec4 piecePos = vec4(displacedPos, 1.0);
+
+			vec4 weights = vec4(
+				float(GetUnpackedValue(bonesInfo.y, 0)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 1)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 2)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 3)) / 255.0
+			);
+
+			uint b0 = GetUnpackedValue(bonesInfo.x, 0); //first boneID
+			mat4 b0BoneMat = mat[instData.x + b0 + uint(!staticModel)];
+			mat3 b0NormMat = mat3(b0BoneMat);
+
+			weights[0] *= b0BoneMat[3][3];
+
+			msPosition = b0BoneMat * piecePos;
+			msNormal   = b0NormMat * normal;
+
+			if (staticModel || weights[0] == 1.0)
+				return;
+
+			float wSum = 0.0;
+
+			msPosition *= weights[0];
+			msNormal   *= weights[0];
+			wSum       += weights[0];
+
+			uint numPieces = GetUnpackedValue(instData.z, 3);
+			mat4 bposeMat    = mat[instData.w + b0];
+
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi);
+
+				if (bID == 0xFFu || weights[bi] == 0.0)
+					continue;
+
+				mat4 bposeInvMat = mat[instData.w + numPieces + bID];
+				mat4 boneMat     = mat[instData.x +        1u + bID];
+
+				weights[bi] *= boneMat[3][3];
+
+				mat4 skinMat = boneMat * bposeInvMat * bposeMat;
+				mat3 normMat = mat3(skinMat);
+
+				msPosition += skinMat * piecePos * weights[bi];
+				msNormal   += normMat * normal   * weights[bi];
+				wSum       += weights[bi];
+			}
+
+			msPosition /= wSum;
+			msNormal   /= wSum;
+		}
+	#endif
+
+	mat4 rotationMatrix(vec3 rot) {
+		float c1 = cos(rot.x);
+		float s1 = sin(rot.x);
+		float c2 = cos(rot.y);
+		float s2 = sin(rot.y);
+		float c3 = cos(rot.z);
+		float s3 = sin(rot.z);
+
+		// Rotation matrices for each axis
+		mat4 rx = mat4(1.0, 0.0, 0.0, 0.0,
+					   0.0, c1, -s1, 0.0,
+					   0.0, s1, c1, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+
+		mat4 ry = mat4(c2, 0.0, s2, 0.0,
+					   0.0, 1.0, 0.0, 0.0,
+					   -s2, 0.0, c2, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+
+		mat4 rz = mat4(c3, -s3, 0.0, 0.0,
+					   s3, c3, 0.0, 0.0,
+					   0.0, 0.0, 1.0, 0.0,
+					   0.0, 0.0, 0.0, 1.0);
+
+		// Combined rotation matrix, order is important
+		return rz * ry * rx;
+	}
+
 
 	/***********************************************************************/
 	// Vertex shader main()
@@ -280,8 +384,24 @@ vertex = [[
 	{
 		unitID = int(UNITID);
 		userDefined2 = UNITUNIFORMS.userDefined[2];
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
-		mat4 worldMatrix = mat[instData.x];
+		#ifndef STATICMODEL
+			// pieceMatrix looks up the model-space transform matrix for unit being drawn
+			mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+
+			// Then it places it in the world
+			mat4 worldMatrix = mat[instData.x];
+		#else
+			// First lets orient the
+
+			// pieceMatrix looks up the model-space transform matrix for the unit we are drawing onto!
+			uint targetPieceIndex = uint(offsetpos_targetpiece.w);
+			mat4 pieceMatrix = mat[instData.x + targetPieceIndex + 1u];
+
+			// Then it places it in the world
+			mat4 worldMatrix = mat[instData.x];
+
+		#endif
+
 
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
@@ -328,9 +448,15 @@ vertex = [[
 		}
 		#endif
 
-
-		vec4 modelPos = pieceMatrix * piecePos;
-		vec4 worldPos = worldPieceMatrix * piecePos;
+		#ifdef USESKINNING
+			// What in the lords name do we have to do here?
+			vec4 modelPos; // model-space positision
+			GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
+			vec4 worldPos = worldMatrix * modelPos;
+		#else
+			vec4 modelPos = pieceMatrix * piecePos;
+			vec4 worldPos = worldPieceMatrix * piecePos;
+		#endif
 		//worldPos.x += 64; // for dem debuggins
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
@@ -340,48 +466,65 @@ vertex = [[
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
 			%%VERTEX_UV_TRANSFORM%%
-			#ifdef ENABLE_OPTION_THREADS
-			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_ARM)) {
-				const float atlasSize = 4096.0;
-				const float gfMod = 8.0;
-				const float texSpeed = 4.0;
+
+			#ifdef ENABLE_OPTION_TREADS
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
+				#define ATLAS_SIZE 4096.0
+				#define PX_TO_UV(x) (float(x) / ATLAS_SIZE)
+				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(	uv.x >= PX_TO_UV(left),         uv.y <= 1.f - PX_TO_UV(top),  uv.x <= PX_TO_UV(left + width), uv.y >= 1.f - PX_TO_UV(top + height) 	)))
+
+				// apply a minimum amount of "speed" when not completely stopped
+				// so that have tracks appear to "spin up/down as they dig into the ground"
+				// instead of jittering strangly at low speed
 				float unitSpeed = uni[instData.y].speed.w;
-				float texOffset = unitSpeed * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
 
-				// note, invert we invert Y axis
-				const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
-				if (all(bvec4(
-						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
-						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
-					uvCoords.x += texOffset;
-				}
-			}
-
-			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_CORE)) {
-				const float atlasSize = 2048.0;
-				const float gfMod = 6.0;
-				const float texSpeed = -6.0;
-				float unitSpeed = uni[instData.y].speed.w;
-				float baseOffset =  unitSpeed * mod(float(simFrame), gfMod) / atlasSize;
-				float texOffset = baseOffset * texSpeed;
-
-				// note, invert we invert Y axis
-				const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
-				if (all(bvec4(
-						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
-						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
-					uvCoords.x += texOffset;
+				if (unitSpeed > 0.5) {
+					unitSpeed = max(3, unitSpeed);
 				}
 
-				const float texSpeed2 = 3.0;
-				const vec4 treadBoundaries2 = vec4(93.0, 349.0, atlasSize - 400.0, atlasSize - 316.0) / atlasSize;
-				texOffset = baseOffset * texSpeed2;
+				// unitSpeed gets multiplied by [0, 1, 2, 3, ..., loop end)
+				// keep this low or else track animation will vary too much based on abritary frame count
+				// applies a sort of "jitter" effect to the track UVs based on unit speed
 
-				if (all(bvec4(
-						uvCoords.x >= treadBoundaries2.x, uvCoords.x <= treadBoundaries2.y,
-						uvCoords.y >= treadBoundaries2.z, uvCoords.y <= treadBoundaries2.w))) {
-					uvCoords.x += texOffset;
+				// it is a very poor estimation of "distance traveled"
+				// but...
+				// as long as the end result looks like the tracks are moving it is good enough for now
+
+				float loopingFrameCount = mod(simFrame, 8.0); // Greatest Common Factor (12, 20, 56, ...) = 4
+				float baseOffset = loopingFrameCount * unitSpeed;
+
+				// ################# ARMADA ##################
+				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM)) {
+					const float texSpeedMult = 4.0;
+					if (IN_PIXEL_RECT(uvCoords, 2573, 1548, 498, 82)) {
+						// Arm small (top) width 12px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 12.0));
+					} else if (IN_PIXEL_RECT(uvCoords, 2572, 1631, 500, 132)) {
+						// Arm big (bot) width 20px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 20.0));
+					}
 				}
+
+				// ################# CORTEX ##################
+				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
+					const float texSpeedMult = -6.0;
+					const float texSpeedMult2 = 3.0;
+
+					if (IN_PIXEL_RECT(uvCoords, 3042, 3839, (ATLAS_SIZE - 3042), (ATLAS_SIZE - 3839))) {
+						// tracks are right up against the bottom right of the texture
+						// Cor big (right bot) width 56px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 56.0));
+					} else if (IN_PIXEL_RECT(uvCoords, 192, 636, 511, 68)) {
+						// Cor small (top) width 24px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 24.0));
+					} else if (IN_PIXEL_RECT(uvCoords, 189, 705, 506, 94)) {
+						// Cor small (bot) width 28px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 28.0));
+					}
+				}
+				#undef ATLAS_SIZE
+				#undef IN_PIXEL_RECT
+				#undef PIXELS_TO_UV
 			}
 			#endif
 
@@ -489,8 +632,8 @@ fragment = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
+	#define OPTION_TREADS_ARM 5
+	#define OPTION_TREADS_CORE 6
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
@@ -578,15 +721,12 @@ fragment = [[
 	// Options
 	uniform int bitOptions;
 
-	uniform float hasAlphaShadows = 0.0;
-
 	uniform float brightnessFactor = 1.5;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
-
 
 	//uniform float pbrParams[8];
 
@@ -1600,7 +1740,7 @@ fragment = [[
 		#endif
 
 		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
-		
+
 		//iblDiffuse, iblSpecular
 		//outColor.rgb = iblSpecular;
 
@@ -1635,6 +1775,7 @@ fragment = [[
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
 
 			#ifndef HASALPHASHADOWS
+				// This seems to be a silly way of forcing no bloom on trees, as only trees HASALPHASHADOWS
 				fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 			#endif
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
@@ -1766,8 +1907,8 @@ local defaultMaterialTemplate = {
 		flashlights       = false,
 		shift_rgbhsv    = false,
 
-		threads_arm       = false,
-		threads_core      = false,
+		treads_arm       = false,
+		treads_core      = false,
 
 		health_displace  = false,
 		health_texturing = false,
@@ -1789,8 +1930,8 @@ local defaultMaterialTemplate = {
 		flashlights      = false,
 		shift_rgbhsv   = false,
 
-		threads_arm      = false,
-		threads_core     = false,
+		treads_arm      = false,
+		treads_core     = false,
 
 		modelsfog        = true,
 
@@ -1818,175 +1959,21 @@ local defaultMaterialTemplate = {
 		[10] = "modelmaterials_gl4/envlut_0.png",
 	},
 
-	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
-	postdl = nil, -- `postdl` is replaced with `postlist` later in api_cus
+	--predl = nil, -- predl is replaced with prelist later in api_cus
+	--postdl = nil, -- postdl is replaced with postlist later in api_cus
 
-	uuid = nil, -- currently unused (not sent to engine)
-	order = nil, -- currently unused (not sent to engine)
+	--uuid = nil, -- uuid currently unused (not sent to engine)
+	--order = nil, -- currently unused (not sent to engine)
 
-	culling = GL.BACK, -- usually GL.BACK is default, except for 3do
-	shadowCulling = GL.BACK,
-	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
+	--culling = GL.BACK, -- usually GL.BACK is default, except for 3do
+	-- shadowCulling = GL.BACK,
+	-- usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }
 
 local shaderPlugins = {
+	-- Inserted between %%TARGET%% blocks via InsertPlugin
 }
 
-
-
-
---[[
-	#define OPTION_SHADOWMAPPING 0
-	#define OPTION_NORMALMAPPING 1
-	#define OPTION_SHIFT_RGBHSV 2
-	#define OPTION_VERTEX_AO 3
-	#define OPTION_FLASHLIGHTS 4
-
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
-
-	#define OPTION_HEALTH_TEXTURING 7
-	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXRAPTORS 9
-
-	#define OPTION_MODELSFOG 10
-
-	#define OPTION_TREEWIND 11
-	#define OPTION_PBROVERRIDE 12
-
-]]--
-
--- bit = (index - 1)
-local knownBitOptions = {
-	["shadowmapping"] = 0,
-	["normalmapping"] = 1,
-	["shift_rgbhsv"] = 2,
-	["vertex_ao"] = 3,
-	["flashlights"] = 4,
-
-	["threads_arm"] = 5,
-	["threads_core"] = 6,
-
-	["health_texturing"] = 7,
-	["health_displace"] = 8,
-	["health_texraptors"] = 9,
-
-	["modelsfog"] = 10,
-
-	["treewind"] = 11,
-}
-
-local knownIntOptions = {
-	["shadowsQuality"] = 1,
-	["materialIndex"] = 1,
-
-}
-local knownFloatOptions = {
-}
-
-local allOptions = nil
-
--- Lua limitations only allow to send 24 bits. Should be enough for now.
-local function EncodeBitmaskField(bitmask, option, position)
-	return math.bit_or(bitmask, ((option and 1) or 0) * math.floor(2 ^ position))
-end
-
-local function ProcessOptions(materialDef, optName, optValues)
-	local handled = false
-
-	if not materialDef.originalOptions then
-		materialDef.originalOptions = {}
-		materialDef.originalOptions[1] = table.copy(materialDef.shaderOptions)
-		materialDef.originalOptions[2] = table.copy(materialDef.deferredOptions)
-		materialDef.originalOptions[3] = table.copy(materialDef.shadowOptions)
-	end
-
-	for id, optTable in ipairs({materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions}) do
-		if knownBitOptions[optName] then --boolean
-			local optValue = unpack(optValues or {})
-			local optOriginalValue = materialDef.originalOptions[id][optName]
-
-			if optOriginalValue then
-				if optValue ~= nil then
-					if type(optValue) == "boolean" then
-						optTable[optName] = optValue
-					elseif type(tonumber(optValue)) == "number" then
-						optTable[optName] = ((tonumber(optValue) > 0) and true) or false
-					end
-				else
-					optTable[optName] = not optTable[optName] -- apparently `not nil` == true
-				end
-
-				handled = true
-			end
-		elseif knownIntOptions[optName] then --integer
-			--TODO
-			--handled = true
-		elseif knownFloatOptions[optName] then --float
-			--TODO
-			--handled = true
-		end
-	end
-
-	return handled
-end
-
-local function ApplyOptions(luaShader, materialDef, key)
-
-	local optionsTbl
-	if key == 1 then
-		optionsTbl = materialDef.shaderOptions
-	elseif key == 2 then
-		optionsTbl = materialDef.deferredOptions
-	elseif key == 3 then
-		optionsTbl = materialDef.shadowOptions
-	end
-
-	local intOption = 0
-
-	for optName, optValue in pairs(optionsTbl) do
-		if knownBitOptions[optName] then --boolean
-
-			intOption = EncodeBitmaskField(intOption, optValue, knownBitOptions[optName]) --encode options into Int.
-
-		elseif knownIntOptions[optName] then --integer
-
-			if type(optValue) == "number" and knownIntOptions[optName] == 1 then
-				luaShader:SetUniformInt(optName, optValue)
-			elseif type(optValue) == "table" and knownIntOptions[optName] == #optValue then
-				luaShader:SetUniformInt(optName, unpack(optValue))
-			end
-
-		elseif knownFloatOptions[optName] then --float
-			if type(optValue) == "number" and knownFloatOptions[optName] == 1 then
-				luaShader:SetUniformFloat(optName, optValue)
-			elseif type(optValue) == "table" and knownFloatOptions[optName] == #optValue then
-				luaShader:SetUniformFloat(optName, unpack(optValue))
-			end
-
-		end
-	end
-
-	luaShader:SetUniformInt("bitOptions", intOption)
-end
-
-local function GetAllOptions()
-	if not allOptions then
-		allOptions = {}
-		for k, _ in pairs(knownBitOptions) do
-			allOptions[k] = true
-		end
-
-		for k, _ in pairs(knownIntOptions) do
-			allOptions[k] = true
-		end
-
-		for k, _ in pairs(knownFloatOptions) do
-			allOptions[k] = true
-		end
-	end
-	return allOptions
-end
 
 local function SunChanged(luaShader)
 
@@ -2002,10 +1989,6 @@ local function SunChanged(luaShader)
 	})
 	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
 end
-
-defaultMaterialTemplate.ProcessOptions = ProcessOptions
-defaultMaterialTemplate.ApplyOptions = ApplyOptions
-defaultMaterialTemplate.GetAllOptions = GetAllOptions
 
 defaultMaterialTemplate.SunChangedOrig = SunChanged
 defaultMaterialTemplate.SunChanged = SunChanged

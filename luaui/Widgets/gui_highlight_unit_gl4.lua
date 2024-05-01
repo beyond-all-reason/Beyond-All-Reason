@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "January 2022",
 		license = "GNU GPL, v2 or later",
 		layer = -10000,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -146,8 +146,8 @@ end
 
 function widget:Update()
 	if WG.StopHighlightUnitGL4 then
-		local mx, my, _, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
-		if mouseOffScreen or cameraPanMode or mmb then
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
+		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			removeUnitShape()
 		else
 			local type, data = spTraceScreenRay(mx, my)

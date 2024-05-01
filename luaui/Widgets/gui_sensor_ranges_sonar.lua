@@ -198,12 +198,12 @@ local chobbyInterface
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.sonarRadius and unitDef.sonarRadius > minSonarDistance then	-- save perf by excluding low radar range units
+	if unitDef.sonarDistance and unitDef.sonarDistance > minSonarDistance then	-- save perf by excluding low radar range units
 		if string.find(unitDef.name, "raptor", nil, true) then
 			-- skip raptors from sonar
 		else
 			if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-			unitRange[unitDefID]['range'] = unitDef.sonarRadius
+			unitRange[unitDefID]['range'] = unitDef.sonarDistance
 
 			if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 				isBuilding[unitDefID] = true
@@ -369,10 +369,8 @@ function widget:DrawWorld()
 	glDepthTest(false)
 
 	gl.Texture(0, "$heightmap")
-	circleShader:Activate()
-	circleShader:SetUniform("circleopacity", opacity)
 
-		glColorMask(false, false, false, false) -- disable color drawing
+	glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
 	glDepthTest(false)
 
@@ -395,6 +393,9 @@ function widget:DrawWorld()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	
+	--gl.DepthMask(false)
+	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	glStencilMask(255) -- enable all bits for future drawing

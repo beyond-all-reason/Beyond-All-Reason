@@ -22,13 +22,14 @@ else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
-local nukeDefs = {
-    [UnitDefNames["raptor_turretxl_meteor"].id] = true,
-    [UnitDefNames["corsilo_scav"].id] = true,
-    [UnitDefNames["armsilo_scav"].id] = true,
-    [UnitDefNames["corjuno_scav"].id] = true,
-    [UnitDefNames["armjuno_scav"].id] = true,
-}
+
+local nukeDefs = {}
+for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav","corjuno_scav", "armjuno_scav"}) do 
+	if UnitDefNames[unitDefName] then 
+		nukeDefs[UnitDefNames[unitDefName].id] = true
+	end
+end
+
 local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)

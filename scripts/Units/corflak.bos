@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, gun, barrel, base;
+piece  flare1, flare2, mount, gunbase, guna, gunb, base;
 
 static-var  gun_1;
 
@@ -20,8 +20,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn barrel to x-axis <-30> speed <25.00000>;
-    spin gun around y-axis speed <25.0>;
+    turn gunbase to x-axis <-30> speed <25.00000>;
+    spin mount around y-axis speed <25.0>;
 }
 SetStunned(State)
 {
@@ -40,7 +40,7 @@ Create()
 {
 	hide flare2;
 	hide flare1;
-	gun_1 = flare1;
+	gun_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -52,10 +52,11 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn gun to y-axis heading speed <1200.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <950.000000>;
-	wait-for-turn gun around y-axis;
-	wait-for-turn barrel around x-axis;
+	stop-spin mount around y-axis;
+	turn mount to y-axis heading speed <1200.000000>;
+	turn gunbase to x-axis <0.000000> - pitch speed <950.000000>;
+	wait-for-turn mount around y-axis;
+	wait-for-turn gunbase around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -64,41 +65,43 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-	    emit-sfx 1024 + 0 from flare2;
-		move barrel to z-axis [-2.00000] now;
-		move barrel to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare2;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
 	    emit-sfx 1024 + 0 from flare1;
-		move barrel to z-axis [-2.00000] now;
-		move barrel to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare1;
+		move guna to z-axis [-3.999994] now;
+		wait-for-move guna along z-axis;
+		move guna to z-axis [0.000000] speed [15.000000];
+		gun_1 = 1;
+	} else {
+	    emit-sfx 1024 + 0 from flare2;
+		move gunb to z-axis [-3.999994] now;
+		wait-for-move gunb along z-axis;
+		move gunb to z-axis [0.000000] speed [15.000000];
+		gun_1 = 0;
 	}
+	
+	return (1);
+	
 }
 
 QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare1;
+		piecenum = flare2;//inverse, but needed
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare2;
+		piecenum = flare1;
 	}
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = gun;
+	piecenum = mount;
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = gun;
+	piecenum = mount;
 }
 
 Killed(severity, corpsetype)
@@ -107,8 +110,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gun type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type BITMAPONLY | NOHEATCLOUD;
+		explode gunbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -117,8 +120,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gun type FALL | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type FALL | NOHEATCLOUD;
+		explode gunbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -127,16 +130,16 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type SMOKE | FALL | NOHEATCLOUD;
-		explode gun type SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type SMOKE | FALL | NOHEATCLOUD;
+		explode gunbase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gunbase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;

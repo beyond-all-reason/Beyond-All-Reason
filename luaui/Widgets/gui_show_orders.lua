@@ -8,7 +8,7 @@ function widget:GetInfo()
 		version   = 1.0,
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -47,7 +47,7 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spWorldToScreenCoords	= Spring.WorldToScreenCoords
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitStates = Spring.GetUnitStates
 
 local glColor			= gl.Color
@@ -124,13 +124,13 @@ function widget:DrawScreen()
 
 					local ux, uy, uz = spGetUnitPosition(uID)
 					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
-					local _, _, _, _, buildProg = spGetUnitHealth(uID)
+					local isBuilding, progress = spGetUnitIsBeingBuilt(uID)
 					local uCmds = spGetFactoryCommands(uID,-1)
 
 					local cells = {}
 
-					if (buildProg < 1.0) then
-						cells[1] = { texture = "#" .. uDefID, text = floor(buildProg * 100) .. "%" }
+					if (isBuilding) then
+						cells[1] = { texture = "#" .. uDefID, text = floor(progress * 100) .. "%" }
 					else
 						if (#uCmds == 0) then
 							cells[1] = { texture = "#" .. uDefID, text = "IDLE" }

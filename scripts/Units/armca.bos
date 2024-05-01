@@ -5,6 +5,7 @@
 
 
 #define SIG_BUILD		4	
+#define SIG_FOLD		8	
 
 piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doorbr, doortl, doortr, thrust, nanolight;
 
@@ -13,6 +14,8 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
+	signal SIG_FOLD;
+	set-signal-mask SIG_FOLD;
 
 	show thrust;
 	if( TRUE )
@@ -21,7 +24,7 @@ activatescr()
 		turn wingbl to x-axis <-90> speed <90>;
 		turn wingfr to z-axis <-90> speed <90>;
 		turn wingfl to z-axis <90> speed <90>;
-		sleep 908;
+		sleep 108;
 	}
 	sleep 40;
 	return (0);
@@ -29,6 +32,9 @@ activatescr()
 
 deactivatescr()
 {
+	signal SIG_FOLD;
+	set-signal-mask SIG_FOLD;
+
 	hide thrust;
 	hide nanolight;
 	if( TRUE )
@@ -43,7 +49,7 @@ deactivatescr()
 		turn arm2 to x-axis <0> speed <-500>;
 		turn nano to x-axis <0> speed <300>;  
 		wait-for-turn arm1 around x-axis;
-		sleep 908;
+		sleep 108;
 	}
 	sleep 40;
 	return (0);
@@ -90,6 +96,7 @@ HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angle
 #define IDLEBASEPIECE base
 #include "idlehover.h"
 
+
 InitState()
 {
 	statechg_DesiredState = TRUE;
@@ -99,6 +106,7 @@ InitState()
 
 RequestState(requestedstate, currentstate)
 {
+
 	if( statechg_StateChanging )
 	{
 		statechg_DesiredState = requestedstate;
@@ -135,8 +143,30 @@ Create()
 	{
 		sleep 400;
 	}
-	start-script IdleHover();
+	//start-script IdleHover();
 }
+
+
+//seems not always called when movement starts.
+StartMoving() {
+	start-script RequestState(0);
+	return (0);
+}
+StopMoving() {
+	start-script RequestState(1);
+	return (0);
+}
+
+///moving. quite what or how is up for debate but /something/ is happening.
+MoveRate1() {
+	start-script RequestState(0);
+	return (0);
+}
+MoveRate2() {
+	start-script RequestState(0);
+	return (0);
+}
+
 
 Activate()
 {

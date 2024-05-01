@@ -19,10 +19,6 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spIsGUIHidden = Spring.IsGUIHidden
 
-local existingGroups = GetGroupList()
-local existingGroupsFrame = 0
-local gameStarted = (Spring.GetGameFrame() > 0)
-
 local crashing = {}
 
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -139,28 +135,31 @@ end
 
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
-function widget:GameStart()
-	gameStarted = true
-	widget:PlayerChanged()
-end
-
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
 end
 
 function widget:Initialize()
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initGL4()
 	for i = 0,9 do grouptounitID[i] = {} end
 	unitIDtoGroup = {}
 end
 
 function widget:Shutdown()
-	if unitGroupShader then unitGroupShader:Finalize() end 
-	if unitGroupVBO.VBO then unitGroupVBO:Delete() end 
-	if unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end 
+	if unitGroupShader then unitGroupShader:Finalize() end
+	if unitGroupVBO and unitGroupVBO.VBO then unitGroupVBO:Delete() end
+	if unitGroupVBO and unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)

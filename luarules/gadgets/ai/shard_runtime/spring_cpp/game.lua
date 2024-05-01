@@ -147,16 +147,4 @@ local game = {}
 		end
 	end
 
-	function game:UsesControlPoints()
-		return map:AreControlPoints()
-	end
-
-	function game:ControlPointCaptureRadius()
-		return 500
-	end
-
-	function game:ControlPointNonCapturingUnits()
-		return {}
-	end
-
 return game

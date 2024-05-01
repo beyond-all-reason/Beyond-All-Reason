@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date			= "2021.04.06",
 		license   = "GNU GPL, v2 or later",
 		layer		 = 1,		 --	after the normal widgets
-		enabled	 = false	--	loaded by default?
+		enabled	 = false
 	}
 end
 ---------------------INFO------------------------
@@ -73,7 +73,7 @@ local function XiaomiWireless()
 	LStickButton = {'buttons',15,1} -- delect all? TODO
 	DeadZone = 0
 end
-
+--XiaomiWireless()
 
 ---------------------X-Box 360 Controller ----------------------------------------
 local function XBox360()
@@ -192,8 +192,8 @@ local buttonCommands = { -- key is button number, value is command like you woul
 	[Xbutton[2]] = function() Spring.SendCommands("togglelos") end,
 	[LShoulderbutton[2]] = function() Spring.SendCommands("slowdown") end,
 	[RShoulderbutton[2]] = function() Spring.SendCommands("speedup") end,
-	[RStickButton[2]] = function() Spring.SendCommands("MiniMap Maximize") end,
-	[LStickButton[2]] = function() Spring.SendCommands("luaui togglewidget Defense Range GL4") end,
+	--[RStickButton[2]] = function() Spring.SendCommands("MiniMap Maximize") end,
+	--[LStickButton[2]] = function() Spring.SendCommands("luaui togglewidget Defense Range GL4") end,
 	--[SelectButton[2]] = function() Spring.SendCommands("SpecFullView") end,
 	--[StartButton[2]] = function() Spring.SendCommands("option dof") end,
 	[SelectButton[2]] = function() toggleRecording() end,
@@ -213,13 +213,13 @@ local client
 local set
 local isConnected = false
 local mincameraheight = 32 -- min camera Y in elmos
-local movemult = 10.0 -- move speed multiplier
-local rotmult = 1.0	-- rotation speed multiplier
+local movemult = 3.0 -- move speed multiplier
+local rotmult = 0.2	-- rotation speed multiplier
 local movechangefactor = 1.01
 local smoothchangefactor = 0.01
 local joystate = {}
-local smoothing = 0.9	--amount of smoothing
-local analogexponent = 1.8 -- amount of analog stick exponentiation
+local smoothing = 0.97	--amount of smoothing
+local analogexponent = 1.4 -- amount of analog stick exponentiation
 local debugMode = false
 
 local isrecording = false
@@ -355,7 +355,7 @@ function widget:Initialize()
 	Spring.Echo("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
 	if debugMode then dumpConfig() end
 	local connected = SocketConnect(host, port)
-	if connected then 
+	if connected then
 		Spring.SetConfigInt("RotOverheadClampMap",0)
 	end
 end
@@ -462,6 +462,7 @@ local function axesexponent(axin)
 	end
 end
 
+local frameSpeed = 1.0 -- this tries to work around fps dips
 
 function widget:Update(dt) -- dt in seconds
 	if isplayingback then
@@ -530,9 +531,11 @@ function widget:Update(dt) -- dt in seconds
 			Spring.Echo("Smoothing decreased to ",smoothing)
 		end
 
-		local frameSpeed = 1.0 -- this tries to work around fps dips
 		if (dt>0)	and (dt < 1.0/75 or dt > 1.0/45) then -- correct for <45 fps and >75fps as there is some jitter in frames
-			frameSpeed = 60* dt
+			--frameSpeed = 60* dt
+			--frameSpeed = 1 * 0.9 + 60 * dt * 0.1 -- some exponential smoothing
+			frameSpeed = 1 -- no smoothing
+
 			if debugMode then Spring.Echo("speed correction",dt,frameSpeed) end
 		end
 		local ndx, ndz = norm2d(cs.dx, cs.dz)
@@ -592,7 +595,9 @@ function widget:Update(dt) -- dt in seconds
 		cs.py = math.max(mincameraheight, math.max(cs.py , gh + 32))
 		--if cs.py < gh + 32 then cs.py =gh + 32 end
 
-		spSetCameraState(cs)
+		spSetCameraState(cs,0)
+		spSetCameraState(cs,0)
+		spSetCameraState(cs,0)
 		if isrecording then
 			storedCameraSequence[#storedCameraSequence + 1] = cs
 		end

@@ -33,21 +33,24 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
-	local changeStartUnitRegex = '^\138(%d+)$'
+	local changeStartUnitRegex = 'changeStartUnit(%d+)$'
 	local startUnitParamName = 'startUnit'
 	local closeSpawnDist = 350
 
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
-	local armcomDefID = UnitDefNames.armcom.id
-	local corcomDefID = UnitDefNames.corcom.id
-	local legcomDefID = UnitDefNames.legcom.id
-	local validStartUnits = {
-		[armcomDefID] = true,
-		[corcomDefID] = true,
-	}
-	if Spring.GetModOptions().experimentallegionfaction then
+	local validStartUnits = {}
+	local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+	if armcomDefID then
+		validStartUnits[armcomDefID] = true
+	end
+	local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+	if corcomDefID then
+		validStartUnits[corcomDefID] = true
+	end
+	local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+	if legcomDefID then
 		validStartUnits[legcomDefID] = true
 	end
 	local teams = {} -- teams[teamID] = allyID
@@ -182,7 +185,10 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
-		local startUnit = tonumber(msg:match(changeStartUnitRegex))
+		local startUnit = false
+		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
+			startUnit = tonumber(msg:match(changeStartUnitRegex))
+		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
 			if not playerIsSpec then
@@ -468,24 +474,22 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
-				if n == 60 then
-					for i = 1, #startUnitList do
-						local x = startUnitList[i].x
-						local y = startUnitList[i].y
-						local z = startUnitList[i].z
-						Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-					end
-				end
-				if n == 90 then
-					for i = 1, #startUnitList do
-						local unitID = startUnitList[i].unitID
-						Spring.MoveCtrl.Disable(unitID)
-						Spring.SetUnitNoDraw(unitID, false)
-						Spring.SetUnitHealth(unitID, { paralyze = 0 })
-					end
-				end
-			end
+            if n == 60 then
+                for i = 1, #startUnitList do
+                    local x = startUnitList[i].x
+                    local y = startUnitList[i].y
+                    local z = startUnitList[i].z
+                    Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+                end
+            end
+            if n == 90 then
+                for i = 1, #startUnitList do
+                    local unitID = startUnitList[i].unitID
+                    Spring.MoveCtrl.Disable(unitID)
+                    Spring.SetUnitNoDraw(unitID, false)
+                    Spring.SetUnitHealth(unitID, { paralyze = 0 })
+                end
+            end
 		end
 		if n > 90 then
 			gadgetHandler:RemoveGadget(self)

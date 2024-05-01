@@ -30,25 +30,25 @@ local labGrids = {
 	},
 	legalab = {
 		"legack", "corfast", "legstr", "corspy",               -- T2 con, freaker, strider, spy
-		"corvoyr", "corspec", "legshot", "legsrail",              -- radar bot, jammer bot, shotgun, dominator
-		"legbart", "corroach", "coraak", "leginc",             -- belcher, skuttle, AA bot, sumo
+		"corvoyr", "corspec", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
+		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
 	},
 	-- T1 vehicle
 	armvp = {
 		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armbeaver", "armpincer", "armsam", "armsam2",        -- amphib con, amphib tank, missile truck
 	},
 
 	corvp = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"cormuskrat", "corgarp", "cormist", "cormist2",       -- amphib con, amphib tank, missile truck
 	},
 	legvp = {
 		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
 		"leggat", "leghelios", "legbar", "",         -- raider, leveler, art
-		"", "", "legrail", "",       -- amphib con, amphib tank, missile truck
+		"legotter", "", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
 	armavp = {
@@ -65,7 +65,7 @@ local labGrids = {
 	legavp = {
 		"legacv", "legmrv", "legsco", "cormart",              -- T2 con, Quickshot, scorpion, pillager
 		"corvrad", "coreter", "corgol", "leginf",             -- radar, jammer, goli, inferno
-		"corseal", "corban", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+		"legfloat", "legmed", "corsent", "corvroc",           -- croc, poison arrow, AA, diplomat
 	},
 	-- T1 air
 	armap = {
@@ -83,19 +83,19 @@ local labGrids = {
 	-- T2 air
 	armaap = {
 		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "",                -- radar, transport, torpedo,
+		"armawac", "armdfly", "armlance", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
 		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
 	},
 
 	coraap = {
 		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "",                 -- radar, transport, torpedo,
-		"corcrw",                                              -- krow
+		"corawac", "corseah", "cortitan", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
+		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
-		"legaca", "corvamp", "corape", "legnap",              -- T2 con, fig, gunship, bomber
-		"corawac", "", "cortitan", "legmineb",                 -- radar, transport, torpedo, mine bomber
-		"legfort",                                              -- krow
+	"legaca","legionnaire","legvenator","",					--T2 con, defensive fig, interceptor
+	"legmineb","legnap","legphoenix","cortitan",			--minebomber, napalmbomber, 'heavy bomber', torpedo
+	"legfort","legstronghold","legwhisper",	""			--knockoff krow, (well armed)transport, radar
 	},
 	-- seaplanes
 	armplat = {
@@ -176,6 +176,11 @@ local labGrids = {
 	corgant = {
 		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
+	},
+	leggant = {
+		"corcat", "corkarg", "corshiva", "corkorg",
+		"corjugg", "corsok", "legpede", "leegmech",
+		"legkeres","",""
 	}
 }
 local unitGrids = {
@@ -183,7 +188,7 @@ local unitGrids = {
 	armassistdrone = {
 		{
 			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "armtide", "armuwms", },             -- T1 converter, tidal, uw m storage
+			{ "armmakr", "", "armuwms", "armtide"},             -- T1 converter, uw m storage, tidal
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
@@ -206,7 +211,7 @@ local unitGrids = {
 	corassistdrone = {
 		{
 			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1 converter, tidal, uw m storage
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -227,8 +232,8 @@ local unitGrids = {
 	},
 	legassistdrone = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1.5 mex, tidal, uw m storage
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -250,8 +255,8 @@ local unitGrids = {
 	-- Land assist drones (mini amphibs)
 	armassistdrone_land = {
 		{
-			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "armtide", "armuwms", },             -- T1 converter, tidal, uw m storage
+			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},            -- T1 converter, uw m storage, tidal
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
@@ -274,7 +279,7 @@ local unitGrids = {
 	corassistdrone_land = {
 		{
 			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1 converter, tidal, uw m storage
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -295,8 +300,8 @@ local unitGrids = {
 	},
 	legassistdrone_land = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1.5 mex, tidal, uw m storage
+			{ "legmex", "corsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -319,7 +324,7 @@ local unitGrids = {
 	armcom = {
 		{
 			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "armtide", "armuwms", },             -- T1 converter, tidal, uw m storage
+			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
@@ -338,11 +343,208 @@ local unitGrids = {
 			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
 		}
 	},
-
+	armcomlvl2 = {
+		{
+			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+		},
+		{
+			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          -- basic AA, floating AA
+			{ "armdl", },                                    -- coastal torp launcher
+		},
+		{
+			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ },                                             -- empty
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	armcomlvl3 = {
+		{
+			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+		},
+		{
+			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          -- basic AA, floating AA
+			{ "armdl", },                                    -- coastal torp launcher
+		},
+		{	
+			{ "armrad", "armeyes", "armdrag", "armjamt",},   -- radar, perimeter camera, dragon's teeth
+			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "", "armmine1", "armmine2", "armmine3", }		-- empty, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	armcomlvl4 = {
+		{
+			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+		},
+		{
+			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          -- basic AA, floating AA
+			{ "armdl", },                                    -- coastal torp launcher
+		},
+		{	
+			{ "armrad", "armeyes", "armdrag", "armjamt",},   -- radar, perimeter camera, dragon's teeth
+			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
+			{ "", "armmine1", "armmine2", "armmine3", }		-- empty, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	armcomlvl5 = {
+		{
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+		},
+		{	
+			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
+	armcomlvl6 = {
+		{
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+		},
+		{	
+			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
+	armcomlvl7 = {
+		{
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armdl", "armguard", "armptl", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+		},
+		{	
+			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
+	armcomlvl8 = {
+		{
+			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
+			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
+			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+		},
+		{
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
+		},
+		{
+			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
+	armcomlvl9 = {
+		{
+			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
+			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
+			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+		},
+		{
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
+		},
+		{
+			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
+	armcomlvl10 = {
+		{
+			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
+			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
+			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+		},
+		{
+			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
+		},
+		{
+			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+		},
+		{
+			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
+			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
+		}
+	},
 	corcom = {
 		{
 			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1 converter, tidal, uw m storage
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -361,11 +563,210 @@ local unitGrids = {
 			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
 		}
 	},
+	corcomlvl2 = {
+		{
+			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+		},
+		{
+			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          -- basic AA, floating AA
+			{ "cordl", },                                    -- coastal torp launcher
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ },                                             -- empty
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	corcomlvl3 = {
+		{
+			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+		},
+		{
+			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          -- basic AA, floating AA
+			{ "cordl", },                                    -- coastal torp launcher
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ },                                             -- empty
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	corcomlvl4 = {
+		{
+			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+		},
+		{
+			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          -- basic AA, floating AA
+			{ "cordl", },                                    -- coastal torp launcher
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ },                                             -- empty
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ },                                             -- empty row
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	corcomlvl5 = {
+		{
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	corcomlvl6 = {
+		{
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	corcomlvl7 = {
+		{
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "cordl", "corpun", "corptl", "", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	corcomlvl8 = {
+		{
+			{ "cormoho", "corfus", "corwin", "coradvsol",},  -- moho, fusion, afus, adv solar
+			{ "cormmkr", "corageo", "cormexp", "cortide" }, -- T2 converter, T2 geo, armed moho, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
+		},
+		{
+			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
+			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corjuno", },                                     -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	corcomlvl9 = {
+		{
+			{ "cormoho", "corfus", "corwin", "coradvsol",},  -- moho, fusion, afus, adv solar
+			{ "cormmkr", "corageo", "cormexp", "cortide" }, -- T2 converter, T2 geo, armed moho, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
+		},
+		{
+			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
+			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corjuno", },                                     -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	corcomlvl10 = {
+		{
+			{ "cormoho", "corfus", "corwin", "coradvsol",},  -- moho, fusion, afus, adv solar
+			{ "cormmkr", "corageo", "cormexp", "cortide" }, -- T2 converter, T2 geo, armed moho, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme","coruwmmm",}, -- hardened energy storage, hardened metal storage, uw metal extractor, floating metalmaker
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cormaw", },   -- pop-up gauss, DDM, pop-up artillery, dragon maw
+			{ "corflak", "corscreamer", "corhllt", "cornaa", }, -- flak, long-range AA, twin guard, floating flak
+			{ "cordl", "", "coratl", },                			-- coastal torpedo launcher, empty, adv torpedo launcher
+		},
+		{
+			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
+			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corjuno", },                                     -- juno
+		},
+		{
+			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "", "cornanotcplat", },      -- nano, floating nano
+			{ "corhp", "corfhp", "", "corplat", },    -- hover lab, floating hover lab, seaplane lab
+		}
+	},
+	
 	-- legion commanders
     legcom = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1.5 mex, tidal, uw m storage
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -386,8 +787,8 @@ local unitGrids = {
 	},
 	legcomlvl2 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },               -- T1.5 mex, tidal, uw m storage
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -408,8 +809,8 @@ local unitGrids = {
 	},
 	legcomlvl3 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "legmext15", "coruwms", },  -- T1 converter, tidal, T1.5 mex, uw m storage
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -430,8 +831,8 @@ local unitGrids = {
 	},
 	legcomlvl4 = {
 		{
-			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "cortide", "legmext15", "coruwms", },  -- T1 converter, tidal, T1.5 mex, uw m storage
+			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
+			{ "cormakr", "legmext15", "coruwms", "cortide", },  -- T1 converter, T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
@@ -450,6 +851,138 @@ local unitGrids = {
 			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
 		}
 	},
+	legcomlvl5 = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "legmext15", "cortide", },   -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leggat", "legbar", "legkark", "legcen", },     -- decurion, barrage, karkinos, centaur
+			{ "corrl", "legrail", "legmg", "legdtf", },       -- basic AA, lance, cacophony, dragon maw
+			{ "cordl", "legdefcarryt1", "corptl", "legdtm", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
+		},
+		{
+			{ "corvoyr", "coreyes", "legdrag", "corspec", }, -- radar bot, perimeter camera, dragon's teeth, jammer bot
+			{ "corfrad", "corfdrag",},                       -- floating radar, shark's teeth
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor", },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	legcomlvl6 = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "legmext15", "cortide", },   -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leggat", "legbar", "legkark", "legcen", },     -- decurion, barrage, karkinos, centaur
+			{ "corrl", "legrail", "legmg", "legdtf", },       -- basic AA, lance, cacophony, dragon maw
+			{ "cordl", "legdefcarryt1", "corptl", "legdtm", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
+		},
+		{
+			{ "corvoyr", "coreyes", "legdrag", "corspec", }, -- radar bot, perimeter camera, dragon's teeth, jammer bot
+			{ "corfrad", "corfdrag",},                       -- floating radar, shark's teeth
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor" },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	legcomlvl7 = {
+		{
+			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "cormmkr", "corageo", "", "cortide", },   			-- adv metalmaker, adv geo, empty, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "leggat", "legbart", "legshot", "legstr", },     	-- decurion, belcher, phalanx, strider
+			{ "corsent", "legmed", "legmg", "legdtf", },       	-- aa vehicle, medusa, cacophony, dragon maw
+			{ "cordl", "legvcarry", "coratl", "legdtm", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+		},
+		{
+			{ "corvoyr", "coreyes", "legforti", "corspec", }, -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor", },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	legcomlvl8 = {
+		{
+			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "cormmkr", "corageo", "", "cortide", },   			-- adv metalmaker, adv geo, empty, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "leggat", "legbart", "legshot", "legstr", },     	-- decurion, belcher, phalanx, strider
+			{ "corsent", "legmed", "legmg", "legdtf", },       	-- aa vehicle, medusa, cacophony, dragon maw
+			{ "cordl", "legvcarry", "coratl", "legdtm", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+		},
+		{
+			{ "corvoyr", "coreyes", "legforti", "corspec", }, -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor", },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	legcomlvl9 = {
+		{
+			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "cormmkr", "corageo", "", "cortide", },   			-- adv metalmaker, adv geo, empty, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "legsco", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
+			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
+			{ "cordl", "legvcarry", "coratl", "legdtm", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+		},
+		{
+			{ "corvoyr", "coreyes", "legforti", "corspec", }, -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor", },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
+	legcomlvl10 = {
+		{
+			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "cormmkr", "corageo", "", "cortide", },   			-- adv metalmaker, adv geo, empty, tidal generator
+			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "legsco", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
+			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
+			{ "cordl", "legvcarry", "coratl", "legpede", },		-- coastal torp launcher, mantis, offshore torp launcher, mukade
+		},
+		{
+			{ "corvoyr", "coreyes", "legforti", "corspec", }, -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "corrad", "legstronghold"},         -- juno, radar, t2 transport
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leginfestor", },								-- nano, infestor, floating nano
+			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+		}
+	},
 	-- T1 bot con
 	armck = {
 		{
@@ -464,7 +997,8 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -486,7 +1020,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -496,7 +1031,7 @@ local unitGrids = {
 	},
    legck = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -507,7 +1042,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -530,7 +1066,8 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -552,7 +1089,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -562,7 +1100,7 @@ local unitGrids = {
 	},
     legcv = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -573,7 +1111,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -595,7 +1134,8 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", "armasp", },                         -- juno, air repair pad aircon only
+			{ "", "", "armasp", "armfasp" },                  -- air repair pad, floating air repair pad
+			{ "armjuno", }									  -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -617,7 +1157,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", "corasp", },                         -- juno, air repair pad aircon only
+			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "corjuno", }									  -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -627,7 +1168,7 @@ local unitGrids = {
 	},
     legca = {
 		{
-			{ "legmex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
@@ -638,7 +1179,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ },
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -654,13 +1196,13 @@ local unitGrids = {
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "armfhlt", "", "armclaw", },                          -- offshore torp launcher, floating HLT
+			{ "armtl", "armfhlt", "", "armclaw", },           -- offshore torp launcher, floating HLT
 			{ "armfrt", },                                    -- floating AA
-			{ "armdl", "armguard", },              -- coastal torp launcher, guardian, lightning turret
+			{ "armdl", "armguard", },              			  -- coastal torp launcher, guardian, lightning turret
 		},
 		{
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armeyes", "armdrag", },                        -- perimeter camera, dragon's teeth
+			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
+			{ "", "armdrag", "armasp", "armfasp"},                        	      -- dragon's teeth
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -676,13 +1218,13 @@ local unitGrids = {
 			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "cortl", "corfhlt", "", "cormaw" },                          -- offshore torp launcher, floating HLT
+			{ "cortl", "corfhlt", "", "cormaw" },             -- offshore torp launcher, floating HLT
 			{ "corfrt", },                                    -- floating AA
-			{ "cordl", "corpun", },                 -- coastal torp launcher, punisher, flame turret
+			{ "cordl", "corpun", },                 		  -- coastal torp launcher, punisher, flame turret
 		},
 		{
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-			{ "coreyes", "cordrag", },                        -- perimeter camera, dragon's teeth
+			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
+			{ "", "cordrag", "corasp", "corfasp" },           -- dragon's teeth
 		},
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
@@ -705,8 +1247,8 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -728,8 +1270,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -752,8 +1294,8 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armfrad", "armfdrag", "armasp", "armfasp" },                       -- floating radar, shark's teeth
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -775,8 +1317,8 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corfrad", "corfdrag", "corasp", "corfasp" },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -799,12 +1341,12 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", "armnanotcplat", },     -- nano, T2 veh lab, floating nano
+			{ "armnanotc", "armavp", "armnanotcplat", },      -- nano, T2 veh lab, floating nano
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -822,12 +1364,35 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coravp", "cornanotcplat", },     -- nano, T2 veh lab, floating nano
+			{ "cornanotc", "coravp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
+			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	},
+
+    legotter = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "legmext15", "cortide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+		},
+		{
+			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "corjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "coravp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -845,8 +1410,8 @@ local unitGrids = {
 			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
+			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -869,7 +1434,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -886,13 +1451,13 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -916,7 +1481,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
+			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -939,7 +1504,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -956,13 +1521,13 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -986,8 +1551,8 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
-			{ "armgate", },                                     -- shield
+			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armgate", },                                      -- shield
 		},
 		{
 			{ "armap", },                                       -- T1 lab,
@@ -999,17 +1564,17 @@ local unitGrids = {
 	coraca = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corvipe", "cordoom", "cortoast", "cortron" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo" },                 -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1021,17 +1586,17 @@ local unitGrids = {
 	legaca = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1045,7 +1610,7 @@ local unitGrids = {
 	armacsub = {
 		{
 			{ "armuwmme", "armuwfus", },                       -- uw moho, uw fusion,
-			{ "armuwmmm", },                                   -- floating T2 converter
+			{ "armuwmmm", "armuwageo" },                       -- floating T2 converter, adv geo powerplant
 			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
@@ -1054,8 +1619,8 @@ local unitGrids = {
 			{ },                                               --
 		},
 		{
-			{ "armason", "armfatf", },                         -- adv sonar, floating targeting facility
-			{ },                                               --
+			{ "armason", "armfatf" },                		   -- adv sonar, floating targeting facility
+			{ "", "", "", "armfasp" },                         -- Floating air repair pad
 			{ },                                               --
 		},
 		{
@@ -1068,7 +1633,7 @@ local unitGrids = {
 	coracsub = {
 		{
 			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "coruwmmm", },                                   -- floating T2 converter
+			{ "coruwmmm", "coruwageo" },                       -- floating T2 converter, adv geo powerplant
 			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
@@ -1077,8 +1642,8 @@ local unitGrids = {
 			{ },                                               --
 		},
 		{
-			{ "corason", "corfatf", },                         -- adv sonar, floating targeting facility
-			{ },                                               --
+			{ "corason", "corfatf",  },                         -- adv sonar, floating targeting facility
+			{ "", "", "", "corfasp" },                          -- Floating air repair pad
 		},
 		{
 			{ "corsy", },                                      -- T1 shipyard
@@ -1100,7 +1665,7 @@ local unitGrids = {
 			{ },                                    --
 		},
 		{
-			{ "armeyes", "armdrag", },                  -- camera, dragon's teeth
+			{ "", "armeyes", "armdrag", },                  -- camera, dragon's teeth
 			{ },                                        --
 			{ "armmine1", "armmine2", "armmine3", },    -- light mine, med mine, heavy mine
 		},
@@ -1123,7 +1688,7 @@ local unitGrids = {
 			{ },                                    --
 		},
 		{
-			{ "coreyes", "cordrag", },                 -- camera, dragon's teeth
+			{ "", "coreyes", "cordrag", },                 -- camera, dragon's teeth
 			{ },                                       --
 			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
 		},
@@ -1138,7 +1703,7 @@ local unitGrids = {
 	armdecom = {
 		{
 			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
-			{ "armmakr", "armtide", "armuwms", },              -- T1 converter, tidal, uw ms storage
+			{ "armmakr", "", "armuwms", "armtide"},              -- T1 converter, uw ms storage, tidal
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
@@ -1161,7 +1726,7 @@ local unitGrids = {
 	cordecom = {
 		{
 			{ "cormex", "corsolar", "corwin", },               -- mex, solar, wind
-			{ "cormakr", "cortide", "coruwms", },              -- T1 converter, tidal, uw ms storage
+			{ "cormakr", "", "coruwms", "cortide" },           -- T1 converter, uw ms storage, tidal
 			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
@@ -1215,7 +1780,7 @@ local unitGrids = {
 		{
 			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
 			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
-			{ "cordl", "corroy", "coramph", },                        -- coastal torp launcher, destroyer, gimp
+			{ "cordl", "corroy", "cortermite", "coramph", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
@@ -1237,9 +1802,9 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "armbeamer", "armfido", "armamb", "armmav", },          -- beamer, fido, ambusher, maverick
+			{ "armbeamer", "armfast", "armamb", "armmav", },          -- beamer, sprinter, ambusher, maverick
 			{ "armflak", "armferret", "armjeth", "armpw", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armsptk", },                        -- coastal torp launcher, destroyer, missile spider
+			{ "armdl", "armroy", "armspid", "armamph", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer
@@ -1247,9 +1812,9 @@ local unitGrids = {
 			{ "armmine2" },                                           -- med. mine
 		},
 		{
-			{ "armvp", "armcv", },                                    -- vehicle lab, T1 veh con
-			{ "armnanotc", "armcs", },                                -- nano, sea con
-			{ },                                                      --
+			{ "armcv", "armvp" },                             	 	  -- T1 veh con, vehicle lab
+			{ "armnanotc" },                                		  -- nano
+			{ "armcs" },                                              -- sea con
 		}
 	},
 
@@ -1276,28 +1841,28 @@ local unitGrids = {
 			{ },                          --
 		}
 	},
-	
+
 	--corprinter
 	corprinter = {
 		{
-			{'corsolar', 'cormex' },        
-			{ },                                             
+			{'corsolar', 'cormex' },
+			{ },
 			{ },                          -- solar, mex
 		},
 		{
-			{ },        
-			{ },                                             
-			{ },                          
+			{ },
+			{ },
+			{ },
 		},
 		{
-			{ 'corrad','', 'corfort'},        
-			{ },                                             
+			{ 'corrad','', 'corfort'},
+			{ },
 			{ },                          --radar, t2 wall
 		},
 		{
-			{ },        
-			{ },                                             
-			{ },                          
+			{ },
+			{ },
+			{ },
 		}
 	},
 

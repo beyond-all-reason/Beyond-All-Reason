@@ -61,7 +61,6 @@ local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
 
-local cusMult = 1.4
 local strengthMult = 1
 
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
@@ -223,6 +222,10 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['ssao'] = {}
 	WG['ssao'].getPreset = function()
 		return preset
@@ -426,24 +429,6 @@ function widget:Initialize()
 
 end
 
-local sec = 0
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > 1 then
-		sec = 0
-		if Spring.GetConfigInt("cus", 1) == 1 then
-			if WG.disabledCus then
-				strengthMult = 1
-			else
-				strengthMult = cusMult
-			end
-		else
-			strengthMult = 1
-		end
-	end
-end
-
-
 function widget:Shutdown()
 
 	-- restore unit lighting settings
@@ -475,15 +460,17 @@ function widget:Shutdown()
 		gl.DeleteTexture(ssaoBlurTexes[i])
 	end
 
-	gl.DeleteFBO(ssaoFBO)
-	gl.DeleteFBO(gbuffFuseFBO)
-	for i = 1, 2 do
-		gl.DeleteFBO(ssaoBlurFBOs[i])
+	if gl.DeleteFBO then
+		gl.DeleteFBO(ssaoFBO)
+		gl.DeleteFBO(gbuffFuseFBO)
+		for i = 1, 2 do
+			gl.DeleteFBO(ssaoBlurFBOs[i])
+		end
 	end
 
-	ssaoShader:Finalize()
-	gbuffFuseShader:Finalize()
-	gaussianBlurShader:Finalize()
+	if ssaoShader then ssaoShader:Finalize() end
+	if gbuffFuseShader then gbuffFuseShader:Finalize() end
+	if gaussianBlurShader then gaussianBlurShader:Finalize() end
 end
 
 local function DoDrawSSAO(isScreenSpace)

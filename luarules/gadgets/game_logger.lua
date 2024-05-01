@@ -72,12 +72,29 @@ else
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-		if not mySpec and attackerTeam == myTeamID and (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) then
-			local msg = string.format("l0g%s:%d:%s:%d:%d:%d", validation,
-				Spring.GetGameFrame(), 'ud',
-				unitTeam, attackerTeam, unitDefID)
+		--Spring.Echo("gadget:UnitDestroyed", unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		-- Only send a message from the attacker, when attacking a different team
+		if (not mySpec and attackerTeam == myTeamID) and (unitTeam ~= attackerTeam) then 
+			-- Check if its a commander doing shenanigan to others eco units
+			if (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) and isCommander[attackerDefID] then
+				-- This is an 'only attack friendlies with commander' type thing
+				local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation,
+					Spring.GetGameFrame(), 'ud',
+					unitTeam, attackerTeam, unitDefID)
+				--Spring.Echo(msg)
+				spSendLuaRulesMsg(msg)
+			end
+		end
+	end
+	
+	function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+		if not mySpec and transportTeam == myTeamID and unitTeam ~= transportTeam and isCommander[unitDefID] then 
+			local _, _, _, isAiTeam = Spring.GetTeamInfo(unitTeam, false)
+			if isAiTeam then return end
+			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation,
+			Spring.GetGameFrame(), 'ud',
+			unitTeam, transportTeam, unitDefID)
 			spSendLuaRulesMsg(msg)
 		end
 	end
-
 end

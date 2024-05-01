@@ -183,10 +183,10 @@ mat4 mat4mix(mat4 a, mat4 b, float alpha) {
 
 // Additional helper functions useful in Spring
 
-vec2 heighmapUVatWorldPos(vec2 worldpos){
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+vec2 heightmapUVatWorldPos(vec2 worldpos){
+	vec2 inverseMapSize = vec2(1.0) / mapSize.xy;
 	// Some texel magic to make the heightmap tex perfectly align:
-	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	vec2 heightmaptexel = vec2(8.0, 8.0);
 	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
 	vec2 uvhm = clamp(worldpos, heightmaptexel, mapSize.xy - heightmaptexel);
 	uvhm = uvhm	* inverseMapSize;
@@ -194,10 +194,10 @@ vec2 heighmapUVatWorldPos(vec2 worldpos){
 }
 
 // This does 'mirror' style tiling of UVs like the way the map edge extension works
-vec2 heighmapUVatWorldPosMirrored(vec2 worldpos) { 
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
+	vec2 inverseMapSize = vec2(1.0) / mapSize.xy;
 	// Some texel magic to make the heightmap tex perfectly align:
-	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	vec2 heightmaptexel = vec2(8.0, 8.0);
 	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
 	vec2 uvhm = worldpos * inverseMapSize;
 	
@@ -765,32 +765,40 @@ LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
 
 --INTEGER UNIFORMS
-local function setUniformIntAlwaysImpl(uniform, ...)
-	glUniformInt(uniform.location, ...)
+local function setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
+	if u4 ~= nil then 
+		glUniformInt(uniform.location, u1, u2, u3, u4)
+	elseif u3 ~= nil then 
+		glUniformInt(uniform.location, u1, u2, u3)
+	elseif u2 ~= nil then 
+		glUniformInt(uniform.location, u1, u2)
+	else
+		glUniformInt(uniform.location, u1)
+	end
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformIntAlways(name, ...)
+function LuaShader:SetUniformIntAlways(name,  u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntAlwaysImpl(uniform, ...)
+	return setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
 end
 
-local function setUniformIntImpl(uniform, ...)
-	if isUpdateRequired(uniform, {...}) then
-		return setUniformIntAlwaysImpl(uniform, ...)
+local function setUniformIntImpl(uniform, u1, u2, u3, u4)
+	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
+		return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 	end
 	return true
 end
 
-function LuaShader:SetUniformInt(name, ...)
+function LuaShader:SetUniformInt(name,  u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntImpl(uniform, ...)
+	return setUniformIntImpl(uniform,  u1, u2, u3, u4)
 end
 
 

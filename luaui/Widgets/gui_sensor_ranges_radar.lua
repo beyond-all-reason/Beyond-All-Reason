@@ -194,9 +194,9 @@ local chobbyInterface
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.radarRadius and unitDef.radarRadius > minRadarDistance then	-- save perf by excluding low radar range units
+	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then	-- save perf by excluding low radar range units
 		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-		unitRange[unitDefID]['range'] = unitDef.radarRadius
+		unitRange[unitDefID]['range'] = unitDef.radarDistance
 
 		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 			isBuilding[unitDefID] = true
@@ -342,7 +342,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
     if chobbyInterface then return end
     if spec and fullview then return end
     if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
@@ -374,6 +374,8 @@ function widget:DrawWorldPreUnit()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	
+	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	glStencilMask(255) -- enable all bits for future drawing

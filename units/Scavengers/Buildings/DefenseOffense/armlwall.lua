@@ -1,8 +1,8 @@
 return {
 	armlwall = {
-		acceleration = 0,
-		buildcostenergy = 4800, --3x armclaw
-		buildcostmetal = 1020, --3x armclaw
+		maxacc = 0,
+		energycost = 4800, --3x armclaw
+		metalcost = 1020, --3x armclaw
 		buildpic = "ARMLWALL.DDS",
 		buildtime = 14000, --3x armclaw
 		canrepeat = false,
@@ -18,12 +18,11 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		icontype = "building",
 		idleautoheal = 10,
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 5320, --4x armclaw
+		health = 5320, --4x armclaw
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -60,18 +59,13 @@ return {
 				collisionvolumescales = "32 50 32",
 				collisionvolumetype = "CylY",
 				damage = 540,
-				energy = 0,
 				featuredead = "ROCKTEETH",
-				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 205,
 				object = "Units/armfort.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			rockteeth = {
 				animating = 0,
@@ -84,13 +78,11 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 2,
 				object = "Units/arm1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

@@ -64,7 +64,6 @@
               "needMetal":"我需要金属!",
               "giveMetal":"我给了 %{name} %{amount} 金属",
               "giveEnergy":"我给了 %{name} %{amount} 电力",
-              "giveUnits":"我给了 %{name} %{count} 个单位",
               "needEnergy":"我需要电力!",
               "needEnergyAmount":"我需要 %{amount} 电力!",
               "takeTeamAmount":"我接管了 %{name}: %{units} 个单位, %{energy} 电力和 %{metal} 金属",
@@ -211,7 +210,9 @@
             "tidalStrength":"浪涌速度",
             "size":"大小",
             "hardness":"硬度",
-            "engine":"引擎"
+            "engine":"引擎",
+            "reclaimableMetal": "可回收金属",
+            "reclaimableEnergy": "可回收能源"
           },
           "forceResignMessage":"你已经被强制投降: 当你仍有队友在场时,不要自毁所有单位",
           "factionPicker":{
@@ -492,7 +493,6 @@
             "owncomends":"失去指挥官=失去对单位的控制/投降",
             "killAllUnits":"杀死所有敌方单位",
             "victoryCondition":"胜利条件",
-            "unbalancedCommanders":"不平衡的指挥官被启用。指挥官等级提高并获得升级"
           },
           "mapinfo":{
             "author":"作者"
@@ -584,13 +584,14 @@
             "setpriority_tooltip":"设置目标优先级:战斗机/轰炸机/无优先级",
             "Low traj":"低抛",
             "trajectory_tooltip":"设置炮台射击模式(向上射击或是向前射击)",
+            "hound_weapon_plasma": "重型等离子炮",
+            "hound_weapon_gauss": "高斯炮",
+            "hound_weapon_toggle_tooltip": "在高斯炮和重型等离子炮之间进行切换",
+
             "customOnOff":{
-              "gaussCannon":"高斯炮",
               "highTrajectory":"高弹道",
-              "gauss_tooltip":"在高斯炮和重型等离子炮之间进行切换",
               "lowTrajectory":"低弹道",
               "trajectory_tooltip":"在低弹道和高弹道之间切换炮台射击角度",
-              "heavyPlasma":"重型等离子炮"
             },
             "Cloaked":"隐形",
             "hotkeyTooltip":"%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",

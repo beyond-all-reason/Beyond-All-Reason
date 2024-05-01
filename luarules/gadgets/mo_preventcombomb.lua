@@ -1,4 +1,4 @@
-local gadgetEnabled = true	--not Spring.GetModOptions().unba
+local gadgetEnabled = true
 
 function gadget:GetInfo()
 	return {
@@ -45,9 +45,13 @@ for udefID, def in pairs(UnitDefs) do
 		end
 	end
 end
-local armcomDefID = UnitDefNames["armcom"].id
-local corcomDefID = UnitDefNames["corcom"].id
-local legcomDefID = UnitDefNames["legcom"].id
+
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 local function CommCount(unitTeam)
 	local teamsInAllyID = {}
@@ -58,7 +62,9 @@ local function CommCount(unitTeam)
 	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
 	local count = 0
 	for _, teamID in pairs(teamsInAllyID[select(6,GetTeamInfo(unitTeam,false))]) do -- [_] = teamID,
-		count = count + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID) + Spring.GetTeamUnitDefCount(teamID, legcomDefID)
+		for unitDefID,_ in pairs(isCommander) do
+			count = count + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		end
 	end
 	-- Spring.Echo(currentAllyTeamID..","..count)
 	return count

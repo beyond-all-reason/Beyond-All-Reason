@@ -10,8 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+local titlecolor = "\255\190\190\190"
+
 -- dont show vote buttons for specs when containing the following keywords (use lowercase)
-local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
+local globalVoteWords =  { 'forcestart', 'stop', 'joinas', 'kickban', 'gkick', 'bkick', 'nospecchat' }
+
+local INDIVIDUAL_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+)\""
+local TEAM_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+) TEAM\""
 
 local voteEndDelay = 4
 local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
@@ -36,7 +41,7 @@ local slower = string.lower
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
 local voteDlist, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
-local voteEndTime, voteEndText, voteOwnerPlayername
+local voteEndTime, voteEndText
 
 local eligibleToVote = false
 
@@ -143,19 +148,21 @@ local function StartVote(name)	-- when called without params its just to refresh
 		if votesEligible then
 			if votesRequired then
 				-- progress bar: required for
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesRequired)
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesRequired)
 				color1 = { 0, 0.6, 0, 0.1 }
 				color2 = { 0, 1, 0, 0.1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
-				-- progress bar: required minority against
-				color1 = { 0.6, 0, 0, 0.1 }
-				color2 = { 1, 0, 0, 0.1 }
-				RectRound(windowArea[1] + bgpadding + w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
+				if votesEligible ~= votesRequired then
+					-- progress bar: required minority against
+					color1 = { 0.6, 0, 0, 0.1 }
+					color2 = { 1, 0, 0, 0.1 }
+					RectRound(windowArea[1] + bgpadding + w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
+				end
 			end
 
 			-- progress bar: for
 			if votesCountYes > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesCountYes)
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountYes)
 				color1 = { 0, 0.33, 0, 1 }
 				color2 = { 0, 0.6, 0, 1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
@@ -169,7 +176,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 			end
 			-- progress bar: against
 			if votesCountNo > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesCountNo)
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountNo)
 				color1 = { 0.33, 0, 0, 1 }
 				color2 = { 0.6, 0, 0, 1 }
 				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
@@ -194,14 +201,9 @@ local function StartVote(name)	-- when called without params its just to refresh
 		fontSize = fontSize * 0.85
 		gl.Color(0, 0, 0, 1)
 
-		-- vote owner playername
-		--font:Begin()
-		--font:Print(voteOwnerPlayername, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
-		--font:End()
-
 		-- vote name
 		font:Begin()
-		font:Print("\255\190\190\190" .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
+		font:Print(titlecolor .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
 		font:End()
 
 		if eligibleToVote and not minimized and not voteEndText then
@@ -262,7 +264,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		if voteEndText then
 			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 			font:Begin()
-			font:Print("\255\190\190\190" .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
+			font:Print(titlecolor .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
 			font:End()
 		end
 
@@ -318,7 +320,7 @@ function widget:Update(dt)
 		if debugSec > 2 and debugStep < 2 then
 			debugStep = 2
 			--widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:1/4, n:1/3] (43s remaining)", false)
-			widget:AddConsoleLine("> [teh]cluster2[00] * Vote in progress: \"resign [teh]Teddy TEAM\" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)", false)
+			widget:AddConsoleLine("> [teh]cluster2[00] * Vote in progress: \"resign PyroTech TEAM\" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)", false)
 		end
 		if debugSec > 2.75 and debugStep < 3 then
 			debugStep = 3
@@ -362,6 +364,30 @@ function widget:GameFrame(n)
 	end
 end
 
+local function colourNames(teamID, returnRgbToo)
+	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
+	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	--end
+	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+	local G255 = math.floor(nameColourG * 255)
+	local B255 = math.floor(nameColourB * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	if returnRgbToo then
+		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255), R255, G255, B255 --works thanks to zwzsg
+	else
+		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+	end
+end
+
 function widget:AddConsoleLine(lines, priority)
 
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
@@ -377,15 +403,13 @@ function widget:AddConsoleLine(lines, priority)
 				-- > [teh]cluster2[06] * [ur]mum called a vote for command "stop please" [!vote y, !vote n, !vote b]
 				if sfind(line, " called a vote ", nil, true) then
 
-					voteOwnerPlayername = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " called a vote ", nil, true)-1)
-
 					-- find who started the vote, and see if we're allied
 					local ownerPlayername = false
 					local alliedWithVoteOwner = false
 					local players = Spring.GetPlayerList()
 					for _, playerID in ipairs(players) do
 						local playerName, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ", nil, true) then
+						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ") then
 							ownerPlayername = playerName
 							if allyTeamID == myAllyTeamID then
 								alliedWithVoteOwner = true
@@ -413,7 +437,30 @@ function widget:AddConsoleLine(lines, priority)
 						end
 					end
 
-					if not sfind(line, '"resign ', nil, true) or isTeamPlayer(ssub(line, sfind(line, '"resign ', nil, true) + 8, sfind(line, ' TEAM', nil, true) - 1)) then
+					local individualResignTarget = string.match(line, INDIVIDUAL_RESIGN_VOTE_PATTERN)
+					local teamResignTarget = string.match(line, TEAM_RESIGN_VOTE_PATTERN)
+
+					local isIndividualResignVote = individualResignTarget ~= nil
+					local isTeamResignVote = teamResignTarget ~= nil
+
+					local isResignVote = isIndividualResignVote or isTeamResignVote
+					local isResignVoteMyTeam = (isIndividualResignVote and isTeamPlayer(individualResignTarget))
+						or (isTeamResignVote and isTeamPlayer(teamResignTarget))
+
+					-- colorize playername
+					if isResignVote or isResignVoteMyTeam then
+						local players = Spring.GetPlayerList()
+						for _, pID in ipairs(players) do
+							local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
+							local pos = sfind(title, ' '..name..' ', nil, true)
+							if pos then
+								title = ssub(title, 1, pos-1).. colourNames(teamID) ..' '.. name ..' '.. titlecolor .. ssub(title, pos + string.len(' '..name..' '))
+								break
+							end
+						end
+					end
+
+					if not isResignVote or isResignVoteMyTeam then
 						eligiblePlayers = {}
 						votesRequired = nil
 						votesEligible = nil
@@ -474,7 +521,7 @@ function widget:AddConsoleLine(lines, priority)
 					if yesVotesNeeded and sfind(yesVotesNeeded, "(", nil, true) then
 						yesVotesNeeded = ssub(yesVotesNeeded, 1, sfind(yesVotesNeeded, "(", nil, true)-1)
 					end
-					-- no notes
+					-- no votes
 					str = ssub(text, sfind(text, "n:", nil, true)+2)
 					local noVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local noVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1)

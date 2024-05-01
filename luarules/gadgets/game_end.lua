@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "June, 2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -35,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) or Spring.GetModOptions().scoremode ~= "disabled" then
+		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
@@ -360,8 +360,8 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local winners
 			if fixedallies then
-				if gf < 30 or gf % 60 == 1 then
-					CheckAllPlayers()	-- checking for activity
+				if gf < 30 or gf % 30 == 1 then
+					CheckAllPlayers()
 				end
 				winners = CheckSingleAllyVictoryEnd()
 			else
@@ -400,14 +400,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:PlayerRemoved(playerID, reason)
-		CheckAllPlayers()
-	end
-
-	function gadget:PlayerChanged(playerID) -- not all events that we want to test call gadget:PlayerChanged (e.g. allying)
-		CheckAllPlayers()
-	end
-
 	function gadget:TeamChanged(teamID)
 		CheckAllPlayers()
 	end
@@ -436,25 +428,22 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitCaptured = gadget.UnitCreated
 
 
-	local notScoremode = Spring.GetModOptions().scoremode == "disabled" or not Spring.GetModOptions().scoremode_chess
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			if notScoremode then
-				local allyTeamID = teamToAllyTeam[unitTeamID]
-				local allyTeamInfo = allyTeamInfos[allyTeamID]
-				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-				local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-				allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
-				allyTeamInfo.unitCount = allyTeamUnitCount
-				if unitDecoration[unitDefID] then
-					allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
-				end
-				allyTeamInfos[allyTeamID] = allyTeamInfo
-				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
-					for teamID in pairs(allyTeamInfo.teams) do
-						KillTeam(teamID)
-						killTeamQueue[teamID] = nil
-					end
+			local allyTeamID = teamToAllyTeam[unitTeamID]
+			local allyTeamInfo = allyTeamInfos[allyTeamID]
+			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
+			allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+			allyTeamInfo.unitCount = allyTeamUnitCount
+			if unitDecoration[unitDefID] then
+				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
+			end
+			allyTeamInfos[allyTeamID] = allyTeamInfo
+			if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
+				for teamID in pairs(allyTeamInfo.teams) do
+					KillTeam(teamID)
+					killTeamQueue[teamID] = nil
 				end
 			end
 		end

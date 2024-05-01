@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date	= "december 2019",
 		license	= "GNU GPL, v2 or later",
 		layer	= -3,
-		enabled	= false,	--	loaded by default?
+		enabled	= false,
 	}
 end
 
@@ -22,8 +22,10 @@ local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
 
-local RectRound, UiElement, elementCorner
+local math_isInRect = math.isInRect
+local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
+local RectRound, UiElement, elementCorner
 local font, chobbyInterface, hovering
 
 local drawlist = {}
@@ -33,23 +35,16 @@ local top, left, bottom, right = 0,0,0,0
 
 -- calc actual player max unit limit = 32000 / (players+gaia)
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
-
 local totalUnits = 0
-local totalGaiaUnits = 0
-
 local passedTime = 0
 local passedTime2 = 0
 
-local math_isInRect = math.isInRect
-
-function widget:Initialize()
-	widget:ViewResize()
-	updatePosition()
-	WG['unittotals'] = {}
-	WG['unittotals'].GetPosition = function()
-		return {top,left,bottom,right,widgetScale}
-	end
+local allyTeamList = Spring.GetAllyTeamList()
+local allyTeamTeamList = {}
+for i = 1, #allyTeamList do
+	allyTeamTeamList[allyTeamList[i]] = Spring.GetTeamList(allyTeamList[i])
 end
+
 
 local function updateValues()
 	local textsize = 11*widgetScale
@@ -59,10 +54,8 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local titleColor = '\255\210\210\210'
-		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
-		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = titleColor, textColor = valueColor, units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
+		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
 
 		if displayFeatureCount then
 			local features = Spring.GetAllFeatures()
@@ -71,8 +64,8 @@ local function updateValues()
 
 		font:Begin()
 		font:Print(text, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
-        font:End()
-    end)
+		font:End()
+	end)
 end
 
 local function createList()
@@ -94,6 +87,35 @@ local function createList()
 	updateValues()
 end
 
+local function updatePosition(force)
+	local prevPos = advplayerlistPos
+	if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
+		advplayerlistPos = WG['music'].GetPosition()
+	elseif WG['advplayerlist_api'] ~= nil then
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	left = advplayerlistPos[2]
+	bottom = advplayerlistPos[1]
+	right = advplayerlistPos[4]
+	top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
+	widgetScale = advplayerlistPos[5]
+	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		createList()
+	end
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	updatePosition()
+	WG['unittotals'] = {}
+	WG['unittotals'].GetPosition = function()
+		return {top,left,bottom,right,widgetScale}
+	end
+end
+
 function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('unittotals')
@@ -111,43 +133,17 @@ function widget:Update(dt)
 		passedTime = passedTime - 0.1
 		updatePosition()
 	end
-	if passedTime2 > 1 then
+	if passedTime2 > 1 and Spring.GetGameFrame() > 0 then
 		totalUnits = 0
-		totalGaiaUnits = 0
-		local allyTeamList = Spring.GetAllyTeamList()
 		local numberOfAllyTeams = #allyTeamList
 		for allyTeamListIndex = 1, numberOfAllyTeams do
 			local allyID = allyTeamList[allyTeamListIndex]
-			local teamList = Spring.GetTeamList(allyID)
-			for _,teamID in pairs(teamList) do
-				totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
-				if teamID == GaiaTeamID then
-					totalGaiaUnits = totalGaiaUnits + Spring.GetTeamUnitCount(teamID)
-				end
+			for _,teamID in pairs(allyTeamTeamList[allyID]) do
+				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
 			end
 		end
 		updateValues()
 		passedTime2 = passedTime2 - 1
-	end
-end
-
-function updatePosition(force)
-	local prevPos = advplayerlistPos
-	if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
-		advplayerlistPos = WG['music'].GetPosition()
-	elseif WG['advplayerlist_api'] ~= nil then
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
-	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
-	end
-	left = advplayerlistPos[2]
-	bottom = advplayerlistPos[1]
-	right = advplayerlistPos[4]
-	top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
-	widgetScale = advplayerlistPos[5]
-	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-		createList()
 	end
 end
 

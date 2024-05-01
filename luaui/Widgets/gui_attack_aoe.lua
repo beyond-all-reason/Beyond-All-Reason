@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "26 September 2008",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -311,7 +311,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 			weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 		end
 	elseif weaponType == "AircraftBomb" then
-		weaponTable[unitDefID] = { type = "dropped", scatter = scatter, v = unitDef.speed, h = unitDef.wantedHeight, salvoSize = maxWeaponDef.salvoSize, salvoDelay = maxWeaponDef.salvoDelay }
+		weaponTable[unitDefID] = { type = "dropped", scatter = scatter, v = unitDef.speed, h = unitDef.cruiseAltitude, salvoSize = maxWeaponDef.salvoSize, salvoDelay = maxWeaponDef.salvoDelay }
 	elseif weaponType == "StarburstLauncher" then
 		if maxWeaponDef.tracks then
 			weaponTable[unitDefID] = { type = "tracking", range = maxWeaponDef.range }

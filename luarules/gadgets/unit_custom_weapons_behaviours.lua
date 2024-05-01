@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "Sept 19th 2017",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -121,13 +121,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		--vx_new = vx
 		--vz_new = vz
-		velocity_reduction = 1-math.sqrt(1-tonumber(infos.max_range_reduction))
-		velocity_floor = (1-velocity_reduction)^2
-		velocity_factor = random()*(1-velocity_floor)
-		velocity_factor = math.sqrt(velocity_floor+velocity_factor)
+		--velocity_reduction = 1-math.sqrt(1-tonumber(infos.max_range_reduction))
+		--velocity_floor = (1-velocity_reduction)^2
+		--velocity_factor = random()*(1-velocity_floor)
+		--velocity_factor = math.sqrt(velocity_floor+velocity_factor)
+		velocity_factor = 1-(random()) ^(1+tonumber(infos.max_range_reduction))*tonumber(infos.max_range_reduction) 		
 		vx = vx_new*velocity_factor
-		vy = vy*velocity_factor
+		--vy = vy*velocity_factor
 		vz = vz_new*velocity_factor
+
 		SpSetProjectileVelocity(proID,vx,vy,vz)
 		--end
     end

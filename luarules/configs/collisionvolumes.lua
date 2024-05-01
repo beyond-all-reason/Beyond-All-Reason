@@ -119,6 +119,17 @@ unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
 }
+unitCollisionVolume['legsolar'] = {
+
+	on={70,70,70,0,-12,1,0,1,0},
+
+	off={40,76,40,0,-10,1,0,1,0},
+
+}
+
+
+
+
 
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
@@ -177,9 +188,10 @@ pieceCollisionVolume['corgator'] = {
 	['1']={15,5,25,0,0,2,2,1},
 }
 pieceCollisionVolume['corsala'] = {
-	['0']={31,17,31,0,3.5,0,2,1},
-	['1']={12,5.75,15,0,1.875,1.5,2,1},
+	['0']={34,20,34,0,3.5,0,2,1},
+	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }
+
 
 pieceCollisionVolume['correap'] = {
 	['0']={36,20,46,0,3.5,0,2,1},
@@ -286,12 +298,25 @@ pieceCollisionVolume['armmanni'] = {
 	['1']={24,52,24,0,0,0,2,1},
 }
 
+--{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
+--		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
+
+pieceCollisionVolume['corsiegebreaker'] = {
+['0']={36,18,64,0,4,8,2,2},
+['1']={19,12,24,0,-2.5,-2.5,2,1},
+}
+--['1']={18,14,24,0,-1,1.5,0,4},
+
+
 
 pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
     ['0']={60,65,60,0,20,0,1,1,0},
 }
-
+pieceCollisionVolume['leginfestor'] = {
+	['0']={38,23,45,0,7,0,1,1},
+	['16']={12,10,20,2,0,1,1,2},
+}
 
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do

@@ -25,29 +25,29 @@ end
 
 local aliveHealers = {}
 local healersTable = {
-    [UnitDefNames["raptorhealer1"].id] = {
-        healingpower = UnitDefNames["raptorhealer1"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer1"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer2"].id] = {
-        healingpower = UnitDefNames["raptorhealer2"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer2"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer3"].id] = {
-        healingpower = UnitDefNames["raptorhealer3"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer3"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer4"].id] = {
-        healingpower = UnitDefNames["raptorhealer4"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer4"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptor_miniqueen_healer"].id] = {
-        healingpower = UnitDefNames["raptor_miniqueen_healer"].repairSpeed,
-        healingrange = UnitDefNames["raptor_miniqueen_healer"].buildDistance*2,
+    [UnitDefNames["raptor_matriarch_healer"].id] = {
+        healingpower = UnitDefNames["raptor_matriarch_healer"].repairSpeed,
+        healingrange = UnitDefNames["raptor_matriarch_healer"].buildDistance*2,
         canbehealed = false,
     },
 }
@@ -90,12 +90,22 @@ function gadget:GameFrame(frame)
                     if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(healedUnitID)) == true then
                         local oldHP, maxHP = Spring.GetUnitHealth(healedUnitID)
                         if oldHP < maxHP then
-                            local healedUnitDefID = Spring.GetUnitDefID(healedUnitID)
-                            local healedUnitBuildTime = UnitDefs[healedUnitDefID].buildTime
-                            local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
-                            Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
                             local x2, y2, z2 = Spring.GetUnitPosition(healedUnitID)
-                            Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
+                            local surroundingUnits2 = Spring.GetUnitsInSphere(x2, y2, z2, math.ceil(statsTable.healingrange))
+                            local enemiesNearby = false
+                            for i = 1,#surroundingUnits2 do
+                                if Spring.GetUnitTeam(surroundingUnits2[i]) ~= Spring.GetUnitTeam(unitID) and Spring.GetUnitTeam(surroundingUnits2[i]) ~= Spring.GetGaiaTeamID() then
+                                    enemiesNearby = true
+                                    break
+                                end
+                            end
+                            if not enemiesNearby then
+                                local healedUnitDefID = Spring.GetUnitDefID(healedUnitID)
+                                local healedUnitBuildTime = UnitDefs[healedUnitDefID].buildTime
+                                local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
+                                Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
+                                Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
+                            end
                         end
                     end
                 end

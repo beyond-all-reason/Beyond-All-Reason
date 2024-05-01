@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true, --enabled by default
+		enabled = true,
 		handler = true, --can use widgetHandler:x()
 	}
 end
@@ -45,7 +45,10 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
 local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
-local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
+local comTexture = ":n:Icons/corcom.png"
+if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
+	comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
+end
 
 local math_floor = math.floor
 local math_min = math.min
@@ -56,7 +59,7 @@ local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
-local displayTidalSpeed = true
+local displayTidalSpeed = not (Spring.GetModOptions().map_waterislava or Game.waterDamage > 0)
 local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
@@ -91,8 +94,6 @@ local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-
-comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
@@ -138,8 +139,7 @@ if riskWindValue == nil then
 		riskWindValue = "100"
 	end
 end
-
-local tidalSpeed = Game.tidal
+local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamiccally changed
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 
@@ -496,7 +496,19 @@ end
 
 -- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local mapMinHeight = 0
+	-- account for invertmap to the best of our abiltiy
+	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+		if string.find(Spring.GetModOptions().debugcommands,"wet") then
+			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+			return true
+		--else
+		--	mapMinHeight = 0
+		end
+	else
+		mapMinHeight = select(3,Spring.GetGroundExtremes())
+	end
+	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
@@ -1414,7 +1426,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showButtons and dlistButtons1 then
+	if showButtons and dlistButtons1 and buttonsArea['buttons'] then
 		glCallList(dlistButtons1)
 
 		-- changelog changes highlight
@@ -1931,7 +1943,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	updateButtons()
+	widget:ViewResize()
 end
 
 function widget:Initialize()
@@ -1962,6 +1974,11 @@ function widget:Initialize()
 	end
 	WG['topbar'].getShowButtons = function()
 		return showButtons
+	end
+
+	WG['topbar'].updateTopBarEnergy = function(value)
+		mmLevel = value
+		updateResbar('energy')
 	end
 
 	widget:ViewResize()
@@ -2040,7 +2057,7 @@ function shutdown()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("resbar 1")
+	--Spring.SendCommands("resbar 1")
 	shutdown()
 	WG['topbar'] = nil
 end

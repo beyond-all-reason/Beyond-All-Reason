@@ -2,7 +2,6 @@
 shard_include(  "taskqueues" )
 shard_include(  "taskqueuebehaviour" )
 shard_include(  "attackerbehaviour" )
-shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
 
 function defaultBehaviours(unit, ai)
@@ -15,9 +14,6 @@ function defaultBehaviours(unit, ai)
 	if u:CanBuild() then
 		table.insert(b,TaskQueueBehaviour)
 	else
-		if IsPointCapturer(unit, ai) then
-			table.insert(b,PointCapturerBehaviour)
-		end
 		if IsAttacker(unit) then
 			table.insert(b,AttackerBehaviour)
 		end

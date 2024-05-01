@@ -60,24 +60,31 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['raptor_hive'].id] = {radius = 1536, growthrate = 0.8}
-		scumSpawnerIDs[UnitDefNames['raptor_turretl'].id] = {radius = 1024, growthrate = 0.4}
-		scumSpawnerIDs[UnitDefNames['raptor_turrets'].id] = {radius = 512, growthrate = 0.2}
-		scumSpawnerIDs[UnitDefNames['raptor_turretxl'].id] = {radius = 1536, growthrate = 0.8}
-		scumSpawnerIDs[UnitDefNames['raptor_turretl_antiair'].id] = {radius = 1024, growthrate = 0.4}
-		scumSpawnerIDs[UnitDefNames['raptor_turrets_antiair'].id] = {radius = 512, growthrate = 0.2}
-		scumSpawnerIDs[UnitDefNames['raptor_turretxl_antiair'].id] = {radius = 1536, growthrate = 0.8}
-		scumSpawnerIDs[UnitDefNames['raptor_turretl_acid'].id] = {radius = 1024, growthrate = 0.4}
-		scumSpawnerIDs[UnitDefNames['raptor_turrets_acid'].id] = {radius = 512, growthrate = 0.2}
-		scumSpawnerIDs[UnitDefNames['raptor_turretxl_acid'].id] = {radius = 1536, growthrate = 0.8}
-		scumSpawnerIDs[UnitDefNames['raptor_turretl_electric'].id] = {radius = 1024, growthrate = 0.4}
-		scumSpawnerIDs[UnitDefNames['raptor_turrets_electric'].id] = {radius = 512, growthrate = 0.2}
-		scumSpawnerIDs[UnitDefNames['raptor_turretxl_electric'].id] = {radius = 1536, growthrate = 0.8}
-		scumSpawnerIDs[UnitDefNames['raptor_turretl_antinuke'].id] = {radius = 1024, growthrate = 0.4}
-		scumSpawnerIDs[UnitDefNames['raptor_turrets_antinuke'].id] = {radius = 512, growthrate = 0.2}
-		scumSpawnerIDs[UnitDefNames['raptor_turretxl_meteor'].id] = {radius = 1536, growthrate = 0.8}
+		local scumGenerators = {
+				raptor_hive = {radius = 1536, growthrate = 0.8},
+				raptor_turret_basic_t3_v1 = {radius = 1024, growthrate = 0.4},
+				raptor_turret_basic_t2_v1 = {radius = 512, growthrate = 0.2},
+				raptor_turret_basic_t4_v1 = {radius = 1536, growthrate = 0.8},
+				raptor_turret_antiair_t3_v1 = {radius = 1024, growthrate = 0.4},
+				raptor_turret_antiair_t2_v1 = {radius = 512, growthrate = 0.2},
+				raptor_turret_antiair_t4_v1 = {radius = 1536, growthrate = 0.8},
+				raptor_turret_acid_t3_v1 = {radius = 1024, growthrate = 0.4},
+				raptor_turret_acid_t2_v1 = {radius = 512, growthrate = 0.2},
+				raptor_turret_acid_t4_v1 = {radius = 1536, growthrate = 0.8},
+				raptor_turret_emp_t3_v1 = {radius = 1024, growthrate = 0.4},
+				raptor_turret_emp_t2_v1 = {radius = 512, growthrate = 0.2},
+				raptor_turret_emp_t4_v1 = {radius = 1536, growthrate = 0.8},
+				raptor_turret_antinuke_t3_v1 = {radius = 1024, growthrate = 0.4},
+				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
+				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-		scumSpawnerIDs[UnitDefNames['scavengerdroppodbeacon_scav'].id] = {radius = 800, growthrate = 0.8}
+				scavengerdroppodbeacon_scav = {radius = 800, growthrate = 0.8},
+			}
+		for unitDefName, scumParams in pairs(scumGenerators) do 
+			if UnitDefNames[unitDefName] then
+				scumSpawnerIDs[UnitDefNames[unitDefName].id] = scumParams
+			end
+		end
 
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] then
@@ -343,7 +350,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		mapPos.xz += xyworld_xyfract.xy *  worldposradius.w;
 
 		// Sample the heightmap to get reasonable world depth
-		vec2 uvhm = heighmapUVatWorldPos(mapPos.xz);
+		vec2 uvhm = heightmapUVatWorldPos(mapPos.xz);
 		mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 3.0;
 
 		// sample the map normals and pass it on for later use:
@@ -467,13 +474,20 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		outcolor = outcolor * (  loslevel * (lightamount ) * 0.5) + outcolor * specular * shadow;
 		fragColor.rgba = vec4(outcolor, 1.0 );
 
-		// do hermitian interpolation on 0.1 of this shit
-
-
+		
 		// darken outside
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
+		
+		// emulate linear fog
+		// vec4 fogParams; //fog {start, end, 0.0, scale}
+		float fogFactor = 1.0;
+		float fogDist = length(worldtocam.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+		fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,fogFactor);
+
 		
 		fragColor.rgb *= nightFactor.rgb;
 
@@ -801,6 +815,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 				)
 	end
 
+	local scumModulo = 1
 	function gadget:GameFrame(n)
 		if scumRemoveQueue[n] then
 			for scumID, _ in pairs(scumRemoveQueue[n]) do
@@ -809,9 +824,10 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 			scumRemoveQueue[n] = nil
 		end
 
-		if n % 37 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+		if n % 39 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+			scumModulo = (scumModulo + 1) % 4
 			for scumID, scum in pairs(scums) do
-				if scum.growthrate > 0 then
+				if ((scumID % 4) == scumModulo) and scum.growthrate > 0 then
 					local currentRadius = GetScumCurrentRadius(scum, n)
 					if currentRadius < scum.radius then
 						Script.LuaUI.GadgetRemoveGrass(scum.posx, scum.posz, currentRadius * 0.87)

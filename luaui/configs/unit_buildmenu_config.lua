@@ -65,28 +65,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local unbaStartBuildoptions = {}
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	for unitname,level in pairs(ArmBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	ArmBuildOptions = nil
-	for unitname,level in pairs(CorBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	CorBuildOptions = nil
-	ArmDefsBuildOptions = nil
-	CorDefsBuildOptions = nil
-	ArmBuildOptionsStop = nil
-	CorBuildOptionsStop = nil
-else
-	unbaStartBuildoptions = nil
-end
 
 local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
@@ -95,7 +73,6 @@ local function restrictWindUnits(disable)
 end
 
 local function restrictGeothermalUnits(disable)
-	Spring.Echo("restricting geo units", disable)
 	for unitDefID,_ in pairs(isGeothermal) do
 		unitRestricted[unitDefID] = disable
 	end
@@ -130,57 +107,45 @@ end
 -- UNIT ORDER ----------------------
 ------------------------------------
 
+-- At the end of this 'UNIT ORDER' section, unitOrder is an array with unitIDs
+-- sorted by their value specified in unitOrderManualOverrideTable. If no
+-- value is specified, the unit will be placed at the end of the array.
 local unitOrder = {}
 local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
-for unitDefID, _ in pairs(UnitDefs) do
-	if unitOrderManualOverrideTable[unitDefID] then
-		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
-	else
-		unitOrder[unitDefID] = 9999999
+-- Populate unitOrder with unit IDs.
+local count = 1
+for id, _ in pairs(UnitDefs) do
+	unitOrder[count] = id
+	count = count + 1
+end
+
+-- maxOrder is the largest order value found in unitOrderManualOverrideTable.
+-- Units with no value in unitOrderManualOverrideTable will implicitly take the
+-- maxOrder value when sorting unitOrder below.
+local maxOrder = 0
+for _, order in pairs(unitOrderManualOverrideTable) do
+	if order > maxOrder then
+		maxOrder = order
 	end
 end
+maxOrder = maxOrder + 1
 
-local function getHighestOrderedUnit()
-	local highest = { 0, 0, false }
-	local firstOrderTest = true
-	local newSortingUnit = {}
-	for unitDefID, orderValue in pairs(unitOrder) do
+-- Sorts unitIDs by their order value (if one exists) specified in
+-- unitOrderManualOverrideTable. All units who do not have an order value
+-- specified in unitOrderManualOverrideTable are considered to have an order
+-- value of maxOrder.
+-- For units who have the same order value we compare the unit's IDs.
+-- This sort is always stable, as no two units should have the same ID.
+table.sort(unitOrder, function(aID, bID)
+			local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
+			local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-		if unitOrderManualOverrideTable[unitDefID] then
-			newSortingUnit[unitDefID] = true
-		else
-			newSortingUnit[unitDefID] = false
-		end
-
-		if firstOrderTest == true then
-			firstOrderTest = false
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			--elseif orderValue > highest[2] then
-		elseif highest[3] == false and newSortingUnit[unitDefID] == true then
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-		elseif highest[3] == false and newSortingUnit[unitDefID] == false then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+			if (aOrder == bOrder) then
+			  return aID < bID
 			end
-		elseif highest[3] == true and newSortingUnit[unitDefID] == true then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			end
-		end
-	end
-	return highest[1]
-end
-
-local unitsOrdered = {}
-for _, _ in pairs(UnitDefs) do
-	local uDefID = getHighestOrderedUnit()
-	unitsOrdered[#unitsOrdered + 1] = uDefID
-	unitOrder[uDefID] = nil
-end
-
-unitOrder = unitsOrdered
-unitsOrdered = nil
+			return aOrder < bOrder
+		end)
 
 local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
@@ -196,7 +161,6 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
-	unbaStartBuildoptions = unbaStartBuildoptions,
 
 	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,

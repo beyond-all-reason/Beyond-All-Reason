@@ -1,4 +1,60 @@
-﻿# August 2023
+﻿# March 2024
+• [Proposed Units Rework Modoption] Rework to Whistler and Lasher added to modoption, which has the units switch between longer range tracking aa missiles and non-tracking ground missiles.  Mauser, Quaker, Stiletto changes removed from modoption.  
+• [Mauser + Quaker] Rework from proposed_unit_reworks modoption moved to main game with a few additional changes.  This rework aims to give these units a more mobile and aggressive role, which reduces the role overlap with the heavier T2 veh artillery options.  Their ranges are reduced by 120, speed increased by 20%, acceleration increased 50%, health increased 20%, and accuracy is improved.  
+• [Stiletto] Rework from proposed_unit_reworks modoption moved to main game.  This rework aims to give the stiletto a more specialized role for disabling specific targets while being less efficient as a defensive option against groups.  The unit's metal and energy costs are doubled, buildpower cost increased 50%, health increased by 30%, paralyze time increased from 10s->20s, bomb count reduced from 5->3, aoe reduced from 240->200, emp damage per bomb increased 4000->6000
+• [Banshee] Reloadtime reduced by 10% (DPS 34->38)
+• [Dragon Claw] DPS reduced by 14% (185->159)
+• [Razorback] Laser damage vs air reduced from 75% to 50%
+• [Demon] Health reduced from 20000->18000
+• [Crocodile and Cayman (T1 hovertanks)] Crocodile cost reduced 290m2600E->270m2400E, Cayman cost reduced 320m3300E->300m3100E
+• [Salamander] EMP resist reduced from 95%->90%
+• [Epoch and Black Hydra] Projectiles for main cannons increased in size, damage, and aoe, with a reduced fire rate  
+
+# February 2024
+• [Grunt] Speed reduced from 84->81
+• [Pawn] Speed increased from 84->87
+• [Demon] Buildtime cost increased from 90000->120000
+• [Thug/Mace] movement footprint increased to prevent them blocking each other's turrets when attacking
+• [New Units] Demon (T3 cortex flamethrower mech), Salamander (T2 cortex amphibious tank, replacing Alligator) moved from release candidate modoption into the base game.  Dragon rework (new model, flamethrower, light aa) moved to the base game.  Flamethrower ship and Lightning ship moved from expandedT2sea modoption into the base game
+• [Dragon] Fire rate of anti-air weapon reduced by half
+• [Demon] DPS reduced from 2000->1600, unit no longer has amphibious
+• [Lightning ship and Flamethrower ship] Light aa added so they can protect themselves from light air while raiding
+
+# January 2024
+• [Turtle] Added a weak anti-air turret so that an amphibious turtle attack is more difficult to counter
+• [T1 subs] Eel (arm sub) speed increased 63->66, Orca (cor sub) speed reduced 60->57
+• [T1 frigates] Ellysaw (arm frigate) cost reduced 390m2600E->380m2550E, Riptide (cor frigate) cost increased 410m2700E->420m2800E
+• [Mauser] Cost increased from 270m4100E -> 320m4900E
+• [Quaker] Cost increased from 360m4000E -> 400m4400E
+• [Supporter] Line of sight increased 500 -> 600
+• [Skater and Herring] 1000 range radar added to both units.  The goal is to give players better intel surrounding their fleets when playing t1 sea, where the short range radar can help to create a middle ground between fighting blind and having full vision.  
+
+# November 2023
+• [Release Candidate Modoption] Dragon rework is added to the list of units in the release candidates modoption.  This updates the dragon model and changes its weapons.  An anti-air turret is added so that the unit can deal with small amounts of T1 fighters, the front weapon is changed from a laser to a flamethrower, and the side turrets have been split from 2 medium to 4 smaller laser turrets.  
+• [Consul] Recluse removed from build list, Webber added to build list.
+• [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
+	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
+	- T1 fighters will kill T2 fighters in 3 shots instead of 2
+	- Flak will kill T2 fighters in 2 shots instead of 1
+	- To make up for the extra durability, the cost of T2 fighters is increased
+	- Nighthawk (Cor T2 fighter) cost increased from 105m3700E -> 135m4750E, and weapon damage set to 500/shot
+	- Highwind (Arm T2 fighter) cost increased from 120m4900E -> 140m5700E, and weapon damage set to 750/shot
+	- The commander no longer deals extra damage against bombers
+	- Chainsaw and Eradicator damage per shot against fighters and gunships increased to match with previous damage against bombers
+• [Quaker] Reworked to be larger with a heavier weapon, so that the T2 veh artillery has a similar asymmetry to the T1 veh artillery.  Cost changed from 280m 3300E -> 360m 4000E, health increased 830 -> 1000, max speed reduced 54 -> 48, Damage per shot increased 300 -> 420, aoe increased 129 -> 144, reloadtime increased 4.25s -> 5s
+• [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
+• [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
+• [Consul] Hound removed from build list, Sprinter and Platypus added to build list
+• [Twitcher] Termite added to build list
+• [Termite] Cost reduced from 700m 12000E -> 600m 9000E
+• [Turtle] Cost reduced from 750m 18000E -> 750m 15000E
+• [T2 Amphib Tanks] Paralyze damage taken reduced to 25%
+• [T2 Cruisers] Fires 1 depthcharge at a time instead of 2 round bursts, projectile sped up and tracking improved
+
+# October 2023
+• [Webber] Reclaim speed increased from 100->150.
+
+# August 2023
 • [Shellshocker] Reworked to be the lighter version of t1 veh artillery while cor remains the heavy version.  Reloadtime decreased 6.1 -> 4.3, damage per shot decreased 260 -> 182, inaccuracy reduced to 50% current area, area of effect reduced to 50% current area (-30% radius).  Model size and collision volume decreased by 10%
 • [Wolverine] Cost increased from 155m 2300E -> 170m 2500E.  Model size and collision volume increased by 15%.  Max health 640->750, max velocity 51->48.
 • [Rocketeer] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)

@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date	= "april 2017",
 		license	= "GNU GPL, v2 or later",
 		layer	= -3,
-		enabled	= true,	--	loaded by default?
+		enabled	= true,
 	}
 end
 
@@ -37,18 +37,6 @@ local textWidthClock = 0
 local vsx, vsy = Spring.GetViewGeometry()
 
 local RectRound, UiElement, elementCorner
-
-function widget:Initialize()
-	widget:ViewResize()
-	updatePosition()
-	WG['displayinfo'] = {}
-	WG['displayinfo'].GetPosition = function()
-		return {top,left,bottom,right,widgetScale}
-	end
-	Spring.SendCommands("fps 0")
-	Spring.SendCommands("clock 0")
-	Spring.SendCommands("speed 0")
-end
 
 local function updateValues()
 
@@ -121,6 +109,43 @@ local function createList()
 end
 
 
+local function updatePosition(force)
+	local prevPos = advplayerlistPos
+	if WG['unittotals'] ~= nil then
+		advplayerlistPos = WG['unittotals'].GetPosition()
+	elseif WG['music'] ~= nil then
+		advplayerlistPos = WG['music'].GetPosition()
+	elseif WG['advplayerlist_api'] then
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	if advplayerlistPos[5] ~= nil then
+		left = advplayerlistPos[2]
+		bottom = advplayerlistPos[1]
+		right = advplayerlistPos[4]
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
+		widgetScale = advplayerlistPos[5]
+		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+			createList()
+		end
+	end
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	updatePosition()
+	WG['displayinfo'] = {}
+	WG['displayinfo'].GetPosition = function()
+		return {top,left,bottom,right,widgetScale}
+	end
+	Spring.SendCommands("fps 0")
+	Spring.SendCommands("clock 0")
+	Spring.SendCommands("speed 0")
+end
+
+
 function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('displayinfo')
@@ -144,31 +169,6 @@ function widget:Update(dt)
 	if passedTime2 > 1 then
 		updateValues()
 		passedTime2 = passedTime2 - 1
-	end
-end
-
-
-function updatePosition(force)
-	local prevPos = advplayerlistPos
-	if WG['unittotals'] ~= nil then
-		advplayerlistPos = WG['unittotals'].GetPosition()
-	elseif WG['music'] ~= nil then
-		advplayerlistPos = WG['music'].GetPosition()
-	elseif WG['advplayerlist_api'] then
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
-	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
-	end
-	if advplayerlistPos[5] ~= nil then
-		left = advplayerlistPos[2]
-		bottom = advplayerlistPos[1]
-		right = advplayerlistPos[4]
-		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
-		widgetScale = advplayerlistPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-			createList()
-		end
 	end
 end
 
