@@ -660,7 +660,7 @@
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",
 			"unitRemoved": "Removed %{unit} from autogroups.",
-			"presetSelected": "Selected preset #%{presetNum}."
+			"presetSelected": "Selected autogroup preset #%{presetNum}."
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} is being attacked!",
