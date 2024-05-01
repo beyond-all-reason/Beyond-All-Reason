@@ -298,9 +298,6 @@ function widget:CommandNotify(id, params, options)
 end
 
 -------------------------------------------------------- UI code ---
---function widget:ViewResize()
---end
-
 local doubleClickTime = 1 -- Maximum time in seconds between two clicks for them to be considered a double-click
 local maxDistanceForDoubleClick = 10 -- Maximum distance between two clicks for them to be considered a double-click
 local rangeBuy = 30 -- Maximum range for units to buy over a double-click.
@@ -308,41 +305,39 @@ local rangeBuy = 30 -- Maximum range for units to buy over a double-click.
 
 local lastClickCoords = nil
 local lastClickTime = nil
-
 function widget:MousePress(mx, my, button)
     if isSpectating then return false end
 
     local alt, ctrl, meta, shift = spGetModKeyState()
     if buyWithoutHoldingAlt or alt then
         if button == 1 then
-            local _, coords = spTraceScreenRay(mx, my, true)
-            if coords ~= nil then
-                local currentTime = spGetGameSeconds()
-                -- Check for a double-click
-                if lastClickCoords ~= nil and lastClickTime ~= nil then
-                    local distance = math.floor(math.sqrt((lastClickCoords[1] - coords[1])^2 + (lastClickCoords[2] - coords[2])^2 + (lastClickCoords[3] - coords[3])^2))
-                    if currentTime - lastClickTime <= doubleClickTime and distance <= maxDistanceForDoubleClick then
-                        -- Double-click detected
-                        --Spring.Echo("Double-click detected!")
-
-                        local selectedUnits = spGetUnitsInCylinder(coords[1],coords[3],rangeBuy)
-                        for _, unitID in ipairs(selectedUnits) do
-                            if (unitID and unitsForSale[unitID]) then
-                                -- ignore your own units?
-                                local unitTeamID = spGetUnitTeam(unitID)
-                                if unitTeamID ~= myTeamID then -- comment this if if you are debugging
-                                    OfferToBuy(unitID)
-                                end
+            local currentTime = spGetGameSeconds()
+            local rType, cUnitID = spTraceScreenRay(mx, my)
+            if lastClickTime ~= nil and currentTime - lastClickTime <= doubleClickTime then -- Double-click detected
+                local distance = math.sqrt((mx - lastClickCoords[1])^2 + (my - lastClickCoords[2])^2)
+                if distance <= maxDistanceForDoubleClick then -- Distance OK
+                    if rType == 'unit' and spValidUnitID(cUnitID) then
+                        if spGetUnitTeam(cUnitID) ~= myTeamID then
+                            OfferToBuy(cUnitID)
+                        end
+                        lastClickTime = currentTime
+                        lastClickCoords = {mx, my} -- Update last click coordinates
+                        return true
+                    elseif rType == 'ground' then
+                        local buyingUnits = spGetUnitsInCylinder(cUnitID[1], cUnitID[3], rangeBuy)
+                        for _, unitID in ipairs(buyingUnits) do
+                            if spValidUnitID(unitID) and spGetUnitTeam(unitID) ~= myTeamID then
+                                OfferToBuy(unitID)
                             end
                         end
-                        return #selectedUnits > 0
-                        --
+                        lastClickTime = currentTime
+                        lastClickCoords = {mx, my}
+                        return #buyingUnits > 0
                     end
                 end
-                -- Store the current click as the last click
-                lastClickCoords = coords
-                lastClickTime = currentTime
             end
+            lastClickTime = currentTime
+            lastClickCoords = {mx, my}
         end
     end
 end
