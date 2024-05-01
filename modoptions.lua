@@ -847,9 +847,9 @@ local options = {
     {
         key 	= "unit_market",
         name 	= "Unit Market",
-        desc 	= "Allow players to trade units. (Select unit, press "Sell Unit" or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
+        desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
         type   	= "bool",
-        def    	= true,
+        def    	= false,
         section = "options_extra",
     },
 

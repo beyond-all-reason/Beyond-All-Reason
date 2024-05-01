@@ -1,3 +1,7 @@
+if not Spring.GetModOptions().unit_market then
+    return
+end
+
 function gadget:GetInfo()
     return {
         name    = "Unit Market - Backend",
@@ -9,12 +13,12 @@ function gadget:GetInfo()
         enabled = true
     }
 end
+-- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
+local unitMarket   = Spring.GetModOptions().unit_market
 
 VFS.Include("luarules/configs/customcmds.h.lua")
 
 if gadgetHandler:IsSyncedCode() then
--- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
-local unitMarket   = Spring.GetModOptions().unit_market
 
 -- We just have a state which holds unit price. (zero or nil - can't trade it)
 -- We support only one price - the fair price - no tips - no discount - no markups.
@@ -266,6 +270,10 @@ else -- unsynced
 	end
 
 	function gadget:Initialize()
+        -- if market is disabled globally, exit
+        if not unitMarket or unitMarket ~= true then
+            gadgetHandler:RemoveGadget(self)
+        end
 		gadgetHandler:AddSyncAction("UnitSale", handleSaleEvent)
 		gadgetHandler:AddSyncAction("UnitSold", handleSoldEvent)
 	end

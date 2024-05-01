@@ -1,3 +1,7 @@
+if not Spring.GetModOptions().unit_market then
+    return
+end
+
 function widget:GetInfo() return {
     name    = "Unit Market",
     desc    = "Allows players to trade units with each other. Allies only. Fair price!",
