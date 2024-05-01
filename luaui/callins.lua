@@ -135,7 +135,10 @@ CallInsList = {
 	"DownloadFailed",
 	"DownloadProgress",
 
-	"LanguageChanged"
+	"LanguageChanged",
+
+	"UnitSale",
+	"UnitSold"
 }
 
 CallInsMap = {}

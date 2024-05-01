@@ -62,6 +62,10 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
+		"unitMarket": {
+			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
+			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}."
+		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
@@ -204,6 +208,8 @@
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
 			"Spawning Enabled": "Spawning enabled",
+			"sellunit": "Sell Unit",
+			"sellunit_tooltip": "Toggle currently selected units for sale",
 			
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
