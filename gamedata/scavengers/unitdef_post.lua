@@ -81,16 +81,12 @@ local function scavUnitDef_Post(name, uDef)
     end
 
 	
-	-- Wrecks
-	if uDef.featuredefs then
-		if uDef.buildoptions or (not uDef.canmove) then
+	-- Remove wrecks of units you shouldn't be able to capture
+	if uDef.featuredefs and uDef.buildoptions or (not uDef.canmove) then
+		if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
+			uDef.corpse = "HEAP"
+		elseif uDef.corpse then
 			uDef.corpse = nil
-			if uDef.featuredefs.dead then
-				uDef.featuredefs.dead = nil
-			end
-			if uDef.featuredefs.heap then
-				uDef.corpse = "HEAP"
-			end
 		end
 	end
 	
@@ -144,14 +140,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.customparams.iscommander = nil
 	end
 
-	-- Remove resurrectable wrecks from scavs
-	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
-		uDef.corpse = "HEAP"
-	elseif uDef.corpse then
-		Spring.Echo(name .. " has weird corpse")
-		uDef.corpse = nil
-	end
-	
 	return uDef
 end
 
