@@ -84,6 +84,7 @@ local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
 
 local unitMarket = Spring.GetModOptions().unit_market
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
+local advertise, unitsForSaleAmount = true, 0
 
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
 -- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
@@ -143,6 +144,14 @@ local function InitFindSales()
             end
         end
     end
+    advertise = true
+    for _ in pairs(unitsForSale) do
+        unitsForSaleAmount = unitsForSaleAmount + 1
+        if (unitsForSaleAmount > 100) then
+            advertise = false
+			break
+        end
+    end
 end
 
 local function FindPlayerIDFromTeamID(teamID)
@@ -194,6 +203,14 @@ local function unitSale(unitID, price, msgFromTeamID)
         Print(msg)
     else
         ClearUnitData(unitID)
+    end
+    advertise = true
+    for _ in pairs(unitsForSale) do
+        unitsForSaleAmount = unitsForSaleAmount + 1
+        if (unitsForSaleAmount > 100) then
+            advertise = false
+			break
+        end
     end
 end
 
@@ -297,6 +314,7 @@ function widget:CommandNotify(id, params, options)
 	return true
 end
 
+local math_sqrt = math.sqrt
 -------------------------------------------------------- UI code ---
 local doubleClickTime = 1 -- Maximum time in seconds between two clicks for them to be considered a double-click
 local maxDistanceForDoubleClick = 10 -- Maximum distance between two clicks for them to be considered a double-click
@@ -314,12 +332,12 @@ function widget:MousePress(mx, my, button)
             local currentTime = spGetGameSeconds()
             local rType, cUnitID = spTraceScreenRay(mx, my)
             if lastClickTime ~= nil and currentTime - lastClickTime <= doubleClickTime then -- Double-click detected
-                local distance = math.sqrt((mx - lastClickCoords[1])^2 + (my - lastClickCoords[2])^2)
+                local distance = math_sqrt((mx - lastClickCoords[1])^2 + (my - lastClickCoords[2])^2)
                 if distance <= maxDistanceForDoubleClick then -- Distance OK
                     if rType == 'unit' and spValidUnitID(cUnitID) and spGetUnitTeam(cUnitID) ~= myTeamID then
 						OfferToBuy(cUnitID)
                     else
-						_, cUnitID = spTraceScreenRay(mx, my, true)
+                        _, cUnitID = spTraceScreenRay(mx, my, true)
                         local buyingUnits = spGetUnitsInCylinder(cUnitID[1], cUnitID[3], rangeBuy)
                         for _, unitID in ipairs(buyingUnits) do
                             if spValidUnitID(unitID) and spGetUnitTeam(unitID) ~= myTeamID then
@@ -339,70 +357,101 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local animationDuration = 7
 local animationFrequency = 3
 
+local spGetCameraDirection = Spring.GetCameraDirection
+local gl_PushMatrix = gl.PushMatrix
+local gl_Billboard = gl.Billboard
+local gl_Translate = gl.Translate
+local gl_Color = gl.Color
+local gl_BeginText = gl.BeginText
+local gl_Text = gl.Text
+local gl_EndText = gl.EndText
+local gl_Vertex = gl.Vertex
+local gl_PopMatrix = gl.PopMatrix
+local gl_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local gl_DrawGroundCircle = gl.DrawGroundCircle
+local gl_BeginEnd = gl.BeginEnd
+local gl_CreateList = gl.CreateList
+local gl_DeleteList = gl.DeleteList
+local gl_DrawListAtUnit = gl.DrawListAtUnit
+local math_sin = math.sin
+local math_cos = math.cos
+local math_pi = math.pi
+local drawLists = {}
+local drawListsP = {}
+local yellow	 = {1.0, 1.0, 0.3, 0.75}
+local yellowBold = {1.0, 1.0, 0.3, 1.0}
+local function DrawIcon(text)
+    gl_PushMatrix()
+    gl_Billboard()
+    gl_Color(yellow)
+    gl_BeginText()
+    gl_Text('$', 12.0, 15.0, 24.0)
+    gl_EndText()
+    if see_prices then
+        gl_Color(yellowBold)
+        gl_BeginText()
+        gl_Text(text, 16.0, -2.0, 10.0)
+        gl_EndText()
+    end
+    gl_PopMatrix()
+end
+-- platters eat fps, so don't show them if too many units are on sale...
+-- TODO optimize platter drawing, can we do it with gl createlist as well?
 function widget:DrawWorld()
-	if spIsGUIHidden() or next(unitsForSale) == nil then
-		return
-	end
-
-	local cameraState = spGetCameraState()
-	local camHeight = cameraState and cameraState.dist or nil
-
-	if camHeight > 9000 then
-		return
-	end
-
-	for unitID, _ in pairs(unitsForSale) do
+    if spIsGUIHidden() or next(unitsForSale) == nil then
+        return
+    end
+    local cameraState = spGetCameraState()
+    local camHeight = cameraState and cameraState.dist or nil
+    if camHeight > 9000 then
+        return
+    end
+    local currentTime = spGetGameSeconds() % animationDuration
+    local animationProgress = math_sin((currentTime / animationDuration) * (2 * math_pi * animationFrequency))
+    local radiusSize = 15 + animationProgress * 10
+    local greenColorA = {0.3, 1.0, 0.3, 1.0}
+	for unitID, price in pairs(unitsForSale) do
 		local x, y, z = spGetUnitPosition(unitID)
-
-		if spIsUnitInView(unitID) and x then
-            local currentTime = spGetGameSeconds() % animationDuration
-            local animationProgress = math.sin((currentTime / animationDuration) * (2 * math.pi * animationFrequency))
-
-            local greenColorA	= {0.3, 1.0, 0.3, 1.0}
-            local redColor = 1
-            local greenColor = (0.8 + animationProgress * 0.2)
-
-            local radiusSize = 15 + animationProgress * 10
-
-            local ux, uy, uz = spGetUnitViewPosition(unitID)
-
-            local yellow	 = {1.0, 1.0, 0.3, 0.75}
-            local yellowBold = {1.0, 1.0, 0.3, 1.0}
-
-            if see_prices then
-                local msg = unitsForSale[unitID]..'m'
-                gl.PushMatrix()
-                gl.Translate(ux, uy, uz)
-                gl.Billboard()
-                gl.Color(yellowBold)
-                gl.BeginText()
-                gl.Text(msg, 16.0, -2.0, 10.0)
-                gl.EndText()
-                gl.PopMatrix()
+		if x and spIsUnitInView(unitID) then
+            if not drawLists[unitID] then
+                drawLists[unitID] = gl_CreateList(DrawIcon, price)
             end
-            gl.PushMatrix()
-            gl.Translate(ux, uy, uz)
-            gl.Billboard()
-            gl.Color(yellow)
-            gl.BeginText()
-            gl.Text('$', 12.0, 15.0, 24.0)
-            gl.EndText()
-            gl.PopMatrix()
-
-            gl.Color(greenColorA)
-            gl.DrawGroundCircle(x, y, z, radiusSize, 32)  -- Increase the radius based on animation progress
-
-            local numSegments = 32
-            local angleStep = (2 * math.pi) / numSegments
-            gl.BeginEnd(GL.TRIANGLE_FAN, function()
-                --gl.Color(1, greenColor, 0, (0.5 + animationProgress * 0.5))
-                gl.Color(0.1, 1.0, 0.3, (0.1 + animationProgress * 0.05))
-                gl.Vertex(x, y+25, z)
-                for i = 0, numSegments do
-                    local angle = i * angleStep
-                    gl.Vertex(x + math.sin(angle) * radiusSize, y + 0, z + math.cos(angle) * radiusSize)
-                end
-            end) -- animmation part of the code was inspired by ally t2 lab flashing widget
+            gl_DrawListAtUnit(unitID, drawLists[unitID], false, 1, 1, 1)
+            if advertise then
+                gl_Color(greenColorA)
+                gl_DrawGroundCircle(x, y, z, radiusSize, 32)
+                local numSegments = 32
+                local angleStep = (2 * math_pi) / numSegments
+                gl_BeginEnd(gl_TRIANGLE_FAN, function()
+                    gl_Color(0.1, 1.0, 0.3, (0.1 + animationProgress * 0.05))
+                    gl_Vertex(x, y+25, z)
+                    for i = 0, numSegments do
+                        local angle = i * angleStep
+                        gl_Vertex(x + math_sin(angle) * radiusSize, y + 0, z + math_cos(angle) * radiusSize)
+                    end
+                end)
+            end
         end
+	end
+end
+function widget:Shutdown()
+	for k,_ in pairs(drawLists) do
+		gl_DeleteList(drawLists[k])
+	end
+end
+local sec = 0
+local prevCam = {spGetCameraDirection()}
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.15 then
+		sec = 0
+		local camX, camY, camZ = spGetCameraDirection()
+		if camX ~= prevCam[1] or camY ~= prevCam[2] or camZ ~= prevCam[3] then
+			for k,_ in pairs(drawLists) do
+				gl_DeleteList(drawLists[k])
+				drawLists[k] = nil
+			end
+		end
+		prevCam = {camX,camY,camZ}
 	end
 end
