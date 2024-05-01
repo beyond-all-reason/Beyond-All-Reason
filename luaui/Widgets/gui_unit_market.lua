@@ -320,9 +320,6 @@ function widget:MousePress(mx, my, button)
                         if spGetUnitTeam(cUnitID) ~= myTeamID then
                             OfferToBuy(cUnitID)
                         end
-                        lastClickTime = currentTime
-                        lastClickCoords = {mx, my} -- Update last click coordinates
-                        return true
                     elseif rType == 'ground' then
                         local buyingUnits = spGetUnitsInCylinder(cUnitID[1], cUnitID[3], rangeBuy)
                         for _, unitID in ipairs(buyingUnits) do
@@ -330,9 +327,6 @@ function widget:MousePress(mx, my, button)
                                 OfferToBuy(unitID)
                             end
                         end
-                        lastClickTime = currentTime
-                        lastClickCoords = {mx, my}
-                        return #buyingUnits > 0
                     end
                 end
             end
