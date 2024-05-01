@@ -1,12 +1,20 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, thrustfl, thrustfr, thrustbl, thrustbr,  flarefl, flarefr, flarebl, flarebr, 
 	bomb3l, bomb3r, bomb2l, bomb2r, bomb1l, bomb1r, bay3l, bay3r, bay2l, bay2r, bay1l, bay1r;
 
-static-var  currbomb;
+static-var  statechg_DesiredState, statechg_StateChanging, currbomb;
 
+Go()
+{
+}
 
+Stop()
+{
+}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -14,9 +22,39 @@ static-var  currbomb;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "../units/unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
 
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create(){
 
@@ -31,25 +69,27 @@ Create(){
 	hide flarebr;
 	
 	currbomb = 0;
+	//call-script InitState();
 }
 
 Activate()
 {
-	//get PRINT(1);
+
 	show flarefl;
 	show flarefr;
 	show flarebl;
 	show flarebr;
+	//start-script RequestState(0);
 }
 
 Deactivate()
 {
 	
-	//get PRINT(0);
 	hide flarefl;
 	hide flarefr;
 	hide flarebl;
 	hide flarebr;
+	//start-script RequestState(1);
 }
 
 Reload(){
@@ -67,20 +107,20 @@ Reload(){
 	}
 }
 
-QueryWeapon1(pieceIndex) // called third, and all the fucking time
+QueryPrimary(piecenum) // called third, and all the fucking time
 {
 	//get PRINT(3, currbomb);
-	pieceIndex = bay3l + currbomb - 1;
-	//pieceIndex = bomb3l;
+	piecenum = bay3l + currbomb - 1;
+	//piecenum = bomb3l;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
 
-AimWeapon1(heading,pitch){
+AimPrimary(heading,pitch){
 	//turn bay3l to y-axis <90> now;
 	//turn bomb3l to y-axis <90> now;
 	return 1;
@@ -99,23 +139,26 @@ Shot1(){ // called second, and after each bomb
 	currbomb = currbomb + 1;
 }
 
-FireWeapon1(){ //called first and once only
+FirePrimary(){ //called first and once only
 	//get PRINT(1, currbomb);
 	currbomb = 0;
 	signal 32;
 	start-script Reload();
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {
 	// drop all undropped ones
 	if (currbomb <=0) explode bomb3l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	
-	
+	//if (currbomb <=1) explode bomb3r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//if (currbomb <=2) explode bomb2l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	if (currbomb <=3) explode bomb2r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	
+	//if (currbomb <=4) explode bomb1l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	if (currbomb <=5) explode bomb1r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 
 	if( severity <= 25 )

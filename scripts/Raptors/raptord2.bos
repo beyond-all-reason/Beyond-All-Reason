@@ -1,11 +1,13 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  body, firepoint;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 512
+#define SIG_AIM				2
+#define SIG_AIM_LASER		4
 
 
 Create()
@@ -16,44 +18,47 @@ Create()
 	move body to y-axis [0] speed [8];
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	sleep 15;
 	return (TRUE);
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	signal SIG_AIM_LASER;
+	set-signal-mask SIG_AIM_LASER;
 	sleep 30;
 	return (TRUE);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = firepoint;
+	piecenum = firepoint;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = firepoint;
+	piecenum = firepoint;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = firepoint;
+	piecenum = firepoint;
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = firepoint;
+	piecenum = firepoint;
 }
 
 
-
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
 
 HitByWeaponId()
 {
@@ -68,11 +73,15 @@ Killed( severity, corpsetype )
 	return( 0 );
 }
 
+StartBuilding(Func_Var_1, Func_Var_2)
+{
+}
+
 StopBuilding()
 {
 }
 
-QueryNanoPiece(pieceIndex)
+QueryNanoPiece(piecenum)
 {
-	pieceIndex = firepoint;
+	piecenum = firepoint;
 }

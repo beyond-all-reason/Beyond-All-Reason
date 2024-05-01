@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece base, parts, track, turret, sleeve, lbarrel, lflare, rbarrel, rflare;
 
@@ -7,9 +9,8 @@ static-var  restore_delay, gun_1, fire_count;
 static-var  last_primary_heading, last_primary_pitch;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
-#define SIGNAL_SHOOT1 16
+#define SIG_AIM				2
+#define SIG_FIRE1			4
 
 
 
@@ -18,14 +19,8 @@ static-var  last_primary_heading, last_primary_pitch;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-//#define RECOIL_POWER 3000 // not worth it
-#include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <25.0> 
-#define TB_TILT_X <0.15>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -38,24 +33,7 @@ Create()
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
 	restore_delay = 3000;
-	call-script TB_Init();
 }
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-
-	START_TILTBANK;
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-
-	STOP_TILTBANK;
-}
-
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -63,8 +41,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.0> speed <90.016484>;
-	turn sleeve to x-axis <0.0> speed <50.005495>;
+	turn turret to y-axis <0.000000> speed <90.016484>;
+	turn sleeve to x-axis <0.000000> speed <50.005495>;
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -84,15 +62,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <250.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <240.0>;
+	turn turret to y-axis heading speed <250.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <240.000000>;
 	// if the turret cannot turn to its new heading in three frames, wait for turn
 	if ( (get ABS(last_primary_heading - heading) > 4500) OR (get ABS(last_primary_pitch - pitch) > 4320) )
 	{
@@ -110,20 +88,20 @@ Restorelbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move lbarrel to z-axis [0.0] speed [7.0];
+	move lbarrel to z-axis [0.000000] speed [7.000000];
 }
 
 Restorerbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move rbarrel to z-axis [0.0] speed [7.0];
+	move rbarrel to z-axis [0.000000] speed [7.000000];
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 
 	if(fire_count==0)
 	{
@@ -176,21 +154,31 @@ Shot1(zero)
 	return(1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = turret;
+	piecenum = turret;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = lflare + gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = lflare;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = rflare;
+	}
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = turret;
+}
 
 Killed(severity, corpsetype)
 {

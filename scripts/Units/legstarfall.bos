@@ -1,18 +1,18 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, cog, cog1, cog2, cog3, cog4, stand, tubes, f11,f12,f13,f14,f15,f21,f22,f23,f24,f25,f26,f31,f32,f33,f34,f35,f36,f37,f41,f42,f43,f44,f45,f46,f47,f48,f51,f52,f53,f54,f55,f56,f57,f58,f59,f61,f62,f63,f64,f65,f66,f67,f68,f71,f72,f73,f74,f75,f76,f77,f81,f82,f83,f84,f85,f86,f91,f92,f93,f94,f95;
 
 static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_SHOOT1 16
+#define SIG_AIM				2
+#define SIG_FIRE			4
 
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Create()
 {
@@ -41,12 +41,12 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 
-	turn cog to y-axis heading speed <15.0>;
+	turn cog to y-axis heading speed <15.000000>;
 
 	//turn other cogs
 	//thanks to Zecrus for wrangling the maths for the spinny blighters
@@ -63,10 +63,10 @@ AimWeapon1(heading, pitch)
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		//wait-for-turn cog around y-axis;
-		spin cog1 around y-axis speed <80.0>;
-		spin cog2 around y-axis speed <80.0>;
-		spin cog3 around y-axis speed <80.0>;
-		spin cog4 around y-axis speed <80.0>;
+		spin cog1 around y-axis speed <80.000000>;
+		spin cog2 around y-axis speed <80.000000>;
+		spin cog3 around y-axis speed <80.000000>;
+		spin cog4 around y-axis speed <80.000000>;
 		wait-for-turn cog around y-axis;
 		stop-spin cog1 around y-axis;
 		stop-spin cog2 around y-axis;
@@ -77,10 +77,10 @@ AimWeapon1(heading, pitch)
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		//wait-for-turn cog around y-axis;
-		spin cog1 around y-axis speed <-80.0>;
-		spin cog2 around y-axis speed <-80.0>;
-		spin cog3 around y-axis speed <-80.0>;
-		spin cog4 around y-axis speed <-80.0>;
+		spin cog1 around y-axis speed <-80.000000>;
+		spin cog2 around y-axis speed <-80.000000>;
+		spin cog3 around y-axis speed <-80.000000>;
+		spin cog4 around y-axis speed <-80.000000>;
 		wait-for-turn cog around y-axis;
 		stop-spin cog1 around y-axis;
 		stop-spin cog2 around y-axis;
@@ -94,7 +94,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1() {
+FirePrimary() {
 	guncount = 0;
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -103,11 +103,11 @@ FireWeapon1() {
 
 
 
-	// FireWeapon1 controls animation right after firing
-	// but after 1 second, AimWeapon1 should regain control over spindle animation
+	// FirePrimary controls animation right after firing
+	// but after 1 second, AimPrimary should regain control over spindle animation
 	// and last_primary_heading and last_primary_pitch should be reset
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal SIG_FIRE;
+	set-signal-mask SIG_FIRE;
 	sleep 1000;
 	fire_rotation = FALSE;
 	last_primary_heading = -1000000;
@@ -125,19 +125,22 @@ Shot1(heading,pitch) {
 
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 
-		pieceIndex = guncount+7;
+		piecenum = guncount+7;
 
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = stand;
+	piecenum = stand;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = stand;
+}
 
 Killed(severity, corpsetype)
 {

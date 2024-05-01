@@ -1,15 +1,17 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;
+piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;;
 
-static-var  oldHead;
+static-var  Static_Var_1, oldHead;
 static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
+#define SIG_MOVE			2
 
-#define SIGNAL_AIM1 256
+#define SIG_AIM				4
 
 
 #define BASEPIECE base
@@ -18,7 +20,7 @@ static-var  Stunned;
 #define UNITSIZE 8
 #define MAXTILT 200
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -41,7 +43,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.0>;
+	spin radar around y-axis speed <0.000000>;
 	return (0);
 }
 
@@ -78,43 +80,46 @@ Create()
 	hide thrustr1;
 	hide thrustl2;
 	hide thrustl1;
-	turn jetl1 to x-axis <-90.0> now;
-	turn jetr1 to x-axis <-90.0> now;
-	turn jetl2 to x-axis <-90.0> now;
-	turn jetr2 to x-axis <-90.0> now;
-	SLEEP_UNTIL_UNITFINISHED;
+	turn jetl1 to x-axis <-90.000000> now;
+	turn jetr1 to x-axis <-90.000000> now;
+	turn jetl2 to x-axis <-90.000000> now;
+	turn jetr2 to x-axis <-90.000000> now;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
 }
 
 MoveRate0()
 {
-	turn jetl1 to x-axis <-92.0> speed <25.0>;
-	turn jetr1 to x-axis <-92.0> speed <25.0>;
-	turn jetl2 to x-axis <-90.0> speed <25.0>;
-	turn jetr2 to x-axis <-90.0> speed <25.0>;
+	turn jetl1 to x-axis <-92.000000> speed <25.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <25.000000>;
+	turn jetl2 to x-axis <-90.000000> speed <25.000000>;
+	turn jetr2 to x-axis <-90.000000> speed <25.000000>;
 }
 
 MoveRate1()
 {
-	turn jetl1 to x-axis <-92.0> speed <15.0>;
-	turn jetr1 to x-axis <-92.0> speed <15.0>;
-	turn jetl2 to x-axis <-83.0> speed <15.0>;
-	turn jetr2 to x-axis <-83.0> speed <15.0>;
+	turn jetl1 to x-axis <-92.000000> speed <15.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <15.000000>;
+	turn jetl2 to x-axis <-83.000000> speed <15.000000>;
+	turn jetr2 to x-axis <-83.000000> speed <15.000000>;
 }
 
 MoveRate2()
 {
-	turn jetl1 to x-axis <-92.0> speed <10.0>;
-	turn jetr1 to x-axis <-92.0> speed <10.0>;
-	turn jetl2 to x-axis <-76.0> speed <10.0>;
-	turn jetr2 to x-axis <-76.0> speed <10.0>;
+	turn jetl1 to x-axis <-92.000000> speed <10.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <10.000000>;
+	turn jetl2 to x-axis <-76.000000> speed <10.000000>;
+	turn jetr2 to x-axis <-76.000000> speed <10.000000>;
 }
 
 MoveRate3()
 {
-	turn jetl1 to x-axis <0.0> speed <20.0>;
-	turn jetr1 to x-axis <0.0> speed <20.0>;
-	turn jetl2 to x-axis <0.0> speed <20.0>;
-	turn jetr2 to x-axis <0.0> speed <20.0>;
+	turn jetl1 to x-axis <0.000000> speed <20.000000>;
+	turn jetr1 to x-axis <0.000000> speed <20.000000>;
+	turn jetl2 to x-axis <0.000000> speed <20.000000>;
+	turn jetr2 to x-axis <0.000000> speed <20.000000>;
 }
 
 Activate()
@@ -149,43 +154,46 @@ waveSplash()
 	}
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
+	signal SIG_MOVE;
 	turn base to x-axis <0.0> speed <1.0>;
 	move base to y-axis [0.0] speed [0.17];
 }
 
-
-
-AimWeapon1(heading, pitch)
+SweetSpot(piecenum)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	piecenum = base;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 150;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = radar;
+	piecenum = radar;
 	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = radar;
+	piecenum = radar;
 	return (0);
 }
 

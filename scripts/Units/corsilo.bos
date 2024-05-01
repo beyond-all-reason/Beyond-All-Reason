@@ -1,7 +1,9 @@
 
 
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, door1, door2, flare, cagelight1, cagelight2, cagelight3, cagelight4, cagelight_emit1, cagelight_emit2, cagelight_emit3, cagelight_emit4;
 
@@ -14,12 +16,11 @@ static-var  silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 Create()
 {
@@ -88,7 +89,7 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIGNAL_AIM1; // kill any OpenSilo threads
+	signal SIG_AIM; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
@@ -103,10 +104,10 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	start-script OpenSilo();
 	start-script RestoreAfterDelay();
 	if (silo_state == 2)
@@ -116,7 +117,7 @@ AimWeapon1(heading, pitch)
 	return (0);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -125,13 +126,17 @@ FireWeapon1()
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

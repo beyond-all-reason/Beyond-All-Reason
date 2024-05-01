@@ -1,12 +1,9 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, pad1, pad2, pad3,pad0,nano;
-
-
-#define WATER_ROCK_UNITSIZE 22
-#include "../floatmotion.h"
-
 
 Create()
 {
@@ -15,8 +12,6 @@ Create()
 	hide pad2;
 	hide pad1;
 	hide pad0;
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script FloatMotion();
 }
 
 
@@ -30,25 +25,27 @@ StopBuilding()
 	hide nano;
 }
 
-#define BASEPIECE base
-#define MAXTILT 100
-#define HITSPEED <10.0>
-#define UNITSIZE 10
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
-
-QueryLandingPad(pieceIndex1, pieceIndex2, pieceIndex3, pieceIndex4)
+SweetSpot(piecenum)
 {
-	pieceIndex1 = 1;
-	pieceIndex2 = 2;
-	pieceIndex3 = 3;
-	pieceIndex4 = 4;
+	piecenum = base;
 	return (0);
 }
 
-QueryNanoPiece(pieceIndex)
+QueryLandingPad(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
 {
-	pieceIndex = nano;
+	Func_Var_1 = 1;
+	Func_Var_2 = 2;
+	Func_Var_3 = 3;
+	Func_Var_4 = 4;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nano;
 	return (0);
 }
 

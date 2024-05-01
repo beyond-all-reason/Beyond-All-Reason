@@ -1,25 +1,44 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  flare1, flare2, base, gunl, gunr, turret;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
-
-#define WATER_ROCK_UNITSIZE 10
-#include "../floatmotion.h"
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*5;
+			turn base to z-axis rockAng speed rockSpeed*5;
+			wait-for-turn base around x-axis;
+			wait-for-turn base around z-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
 
 
 #define BASEPIECE base
-#define HITSPEED <10.0>
+#define HITSPEED <20.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
-#define MAXTILT 200
-#define RECOIL_POWER 35000
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define MAXTILT 100
+
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -29,35 +48,58 @@ Create()
 	hide flare1;
 	hide flare2;
 	gun_1 = flare1;
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script FloatMotion();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <150.0>;
-	turn gunl to x-axis <0.0> - pitch speed <150.0>;
-	turn gunr to x-axis <0.0> - pitch speed <150.0>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <150.000000>;
+	turn gunl to x-axis <0.000000> - pitch speed <150.000000>;
+	turn gunr to x-axis <0.000000> - pitch speed <150.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gunl around x-axis;
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
-	gun_1 = !gun_1;
+	if( gun_1 == 0 )
+	{
+		gun_1 = flare2;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		gun_1 = flare1;
+	}
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare1 + gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flare2;
+	}
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = gunr;
+	piecenum = gunr;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)

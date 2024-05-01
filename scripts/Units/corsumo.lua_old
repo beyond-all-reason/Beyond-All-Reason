@@ -4,9 +4,9 @@ local torso, turret = piece('torso', 'turret')
 local rbarrel, lbarrel, rflare, lflare = piece('rbarrel','lbarrel', 'rflare', 'lflare')
 local rfleg, rffoot, lfleg, lffoot, rbleg, rbfoot, lbleg, lbfoot =  piece('rfleg', 'rffoot', 'lfleg', 'lffoot', 'rbleg', 'rbfoot', 'lbleg', 'lbfoot')
 
-local SIGNAL_MOVE = 1
-local SIGNAL_AIM1 = 2
-local SIGNAL_IDLE = 4
+local SIG_WALK = 1
+local SIG_AIM = 2
+local SIG_RESTORE = 4
 
 --------------------------------------------------------------------------------------
 local sfxNone=SFX.NONE
@@ -26,8 +26,8 @@ local gun_1 = 0
 local SPEED = 1.9
 
 local function Walk()
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)
 
 	--Turn(torso, x_axis, 0, math.rad(20))
 	--Turn(torso, z_axis, 0, math.rad(20))
@@ -125,7 +125,7 @@ function script.StartMoving()
 end
 
 function script.StopMoving()
-	Signal(SIGNAL_MOVE)
+	Signal(SIG_WALK)
 
 	Turn( rfleg, x_axis, math.rad(0),math.rad(60))
 	Turn( rffoot, x_axis, math.rad(0),math.rad(60))
@@ -168,15 +168,15 @@ function script.AimFromWeapon(num)
 end
 
 local function RestoreAfterDelay()
-    Signal(SIGNAL_IDLE)
-    SetSignalMask(SIGNAL_IDLE)
+    Signal(SIG_RESTORE)
+    SetSignalMask(SIG_RESTORE)
     Sleep(6000)
     Turn(turret, y_axis, 0, math.rad(90))
 end
 
 function script.AimWeapon(num, heading, pitch)
-		Signal(SIGNAL_AIM1)
-		SetSignalMask(SIGNAL_AIM1)
+		Signal(SIG_AIM)
+		SetSignalMask(SIG_AIM)
 		Turn(turret, y_axis, heading, math.rad(180))
 		WaitForTurn(turret, y_axis)
 		StartThread(RestoreAfterDelay)

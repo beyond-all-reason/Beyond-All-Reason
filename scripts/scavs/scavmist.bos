@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 
 // One sixth of the full cycle duration, in millisecond
@@ -9,11 +11,11 @@
 
 piece	flare;
 
-// static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+// static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
-#define SIGNAL_AIM1 256
-//#define SIGNAL_SHOOT1 16
-//#define SIGNAL_MOVE 1
+#define SIG_AIM 2
+//#define SIG_FIRE1 4
+//#define SIG_WALK 8
 //#define SMOKEPIECE1 body
 
 
@@ -37,22 +39,26 @@ Emitsmoke()
 Create()
 {
 	hide flare;
+	dont-shade flare;
+	dont-cache flare;
 	set ARMORED to 0;
+	//emit-sfx 1024 + 0 from flare;
 	sleep 500;
+	//show flare;
 	start-script Emitsmoke();
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex=flare;
+	piecenum=flare;
 }
 
-AimWeapon1()
+AimPrimary()
 {
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
 	return(1);

@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, door, tracks, nanotower, aim, emitnano;
 
@@ -7,8 +9,8 @@ static-var  restore_delay, last_primary_heading;
 static-var open_state;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_BUILD 2
+#define SIG_AIM			2
+#define SIG_BUILD		4
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -16,7 +18,7 @@ static-var open_state;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "../../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -25,15 +27,21 @@ Create()
 	return (0);
 }
 
+// need this for terrain-specific effects, like dust
+//setSFXoccupy(state)
+//{
+//	terrain = state;
+//}
+
 static-var  Stunned;
 Restore_Nano()
 {
-	set-signal-mask SIGNAL_BUILD;
+	set-signal-mask SIG_BUILD;
 	sleep restore_delay;
 
 	set-signal-mask 0;
-	signal SIGNAL_BUILD;
-	set-signal-mask SIGNAL_BUILD;
+	signal SIG_BUILD;
+	set-signal-mask SIG_BUILD;
 
     if (Stunned) {
         return (1);
@@ -69,7 +77,7 @@ Restore_Nano()
 
 Deploy_Nano(heading)
 {
-	set-signal-mask SIGNAL_BUILD;
+	set-signal-mask SIG_BUILD;
 	if ( (open_state == 0) OR (open_state == 1) )
 	{
 		open_state = 1;
@@ -114,26 +122,30 @@ SetStunned(State)
 
 StartBuilding(heading, pitch)
 {
-	signal SIGNAL_BUILD;
-	set-signal-mask SIGNAL_BUILD;
+	signal SIG_BUILD;
+	set-signal-mask SIG_BUILD;
 	start-script Deploy_Nano(heading);
 	// set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	//signal SIGNAL_BUILD;
-	set-signal-mask SIGNAL_BUILD;
+	//signal SIG_BUILD;
+	set-signal-mask SIG_BUILD;
 	start-script Restore_Nano();
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(pieceIndex)
+QueryNanoPiece(piecenum)
 {
-	pieceIndex = emitnano;
+	piecenum = emitnano;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

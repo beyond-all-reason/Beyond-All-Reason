@@ -1,18 +1,79 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, disc;
 
-static-var  resourceRate;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, statechg_DesiredState,
+            statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_TURNON 4
+#define SIG_ACTIVATE			2
+
+
+Go()
+{
+	if (Stunned) {
+		return(0);
+	}
+	spin disc around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	set ARMORED to 0;
+	Static_Var_4 = 1;
+}
+
+Stop()
+{
+	stop-spin disc around y-axis decelerate Static_Var_3;
+	Static_Var_4 = 0;
+	set ARMORED to 1;
+
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
-	resourceRate = 0;
-	SLEEP_UNTIL_UNITFINISHED;
+	Static_Var_4 = 0;
+	Static_Var_1 = 0;
+	Static_Var_2 = 91;
+	Static_Var_3 = 910;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
 	set ARMORED to 1;
 }
 
@@ -20,37 +81,41 @@ SetStunned(State)
 {
 	Stunned = State;
 	if (Stunned) {
-	    call-script Deactivate();
+	    call-script Stop();
 	} else {
-	    call-script Activate();
+	    call-script Go();
 	}
 }
 
 Activate()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;	
-	
-	spin disc around y-axis speed resourceRate accelerate 90;
-	set ARMORED to 0;
+	start-script RequestState(0);
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
 	while( TRUE )
 	{
-		emit-sfx 259 from disc;
+		if( Static_Var_4 )
+		{
+			emit-sfx 259 from disc;
+		}
 		sleep 250;
 	}
 }
 
 Deactivate()
 {
-	signal SIGNAL_TURNON;
-	stop-spin disc around y-axis decelerate 180;
-	set ARMORED to 1;
+	start-script RequestState(1);
+	signal SIG_ACTIVATE;
 }
 
-SetSpeed(windOrMetal)
+SweetSpot(piecenum)
 {
-	resourceRate = windOrMetal * 10;
-	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
+	piecenum = base;
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 10;
 }
 
 Killed(severity, corpsetype)

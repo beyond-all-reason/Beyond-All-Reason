@@ -1,7 +1,35 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, link, flare, barrel, fan1,fan2,fan3,fan4,thrusta,thrustb;
+
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		spin fan1 around y-axis speed <360> accelerate <10>;
+		spin fan2 around y-axis speed <360> accelerate <10>;
+		spin fan3 around y-axis speed <360> accelerate <10>;
+		spin fan4 around y-axis speed <360> accelerate <10>;
+	}
+	sleep 44;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		
+		stop-spin fan1 around y-axis decelerate <20>;
+
+	}
+}
+
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -14,13 +42,51 @@ piece  base, link, flare, barrel, fan1,fan2,fan3,fan4,thrusta,thrustb;
 #define IDLEBASEPIECE base
 #include "idlehover.h"
 
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
 Create()
 {
 	hide flare;
 	hide link;
 	hide thrusta;
 	hide thrustb;
-	SLEEP_UNTIL_UNITFINISHED;
+	Static_Var_1 = 0;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script IdleHover();
 }
 
@@ -28,63 +94,61 @@ Activate()
 {
 	show thrusta;
 	show thrustb;
-
-	spin fan1 around y-axis speed <360> accelerate <10>;
-	spin fan2 around y-axis speed <360> accelerate <10>;
-	spin fan3 around y-axis speed <360> accelerate <10>;
-	spin fan4 around y-axis speed <360> accelerate <10>;
+	start-script RequestState(0);
+	return (0);
 }
 
 Deactivate()
 {
 	hide thrusta;
 	hide thrustb;
-
-	stop-spin fan1 around y-axis decelerate <20>;
-	stop-spin fan2 around y-axis decelerate <20>;
-	stop-spin fan3 around y-axis decelerate <20>;
-	stop-spin fan4 around y-axis decelerate <20>;
+	start-script RequestState(1);
+	return (0);
 }
 
-
-QueryTransport(pieceIndex)
+SweetSpot(piecenum)
 {
-	pieceIndex = 1;
+	piecenum = base;
 }
 
-BeginTransport(targetHeight)
+QueryTransport(Func_Var_1)
 {
-	move link to y-axis [0.0] - targetHeight now;
-	start-script Activate();
+	Func_Var_1 = 1;
+}
+
+BeginTransport(Func_Var_1)
+{
+	move link to y-axis [0.000000] - Func_Var_1 now;
+	start-script RequestState(0);
 }
 
 EndTransport()
 {
-	move link to y-axis [0.0] now;
-	start-script Deactivate();
+	start-script RequestState(1);
 }
 
 
-AimWeapon1(heading,pitch)
+
+AimPrimary(heading,pitch)
 {
 	turn barrel to x-axis -1 * pitch speed <100>;
 	wait-for-turn barrel around x-axis;
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 100;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 }
 
 Killed(severity, corpsetype)

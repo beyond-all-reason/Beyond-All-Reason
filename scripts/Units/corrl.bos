@@ -1,10 +1,30 @@
-#include "../recoil_common_includes.h"
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     8
+// NumberOfPieces                      8
+// LengthOfScripts                     268
+// NumberOfStaticVars                  1
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        9cc
+// OffsetToScriptNameOffsetArray       9ec
+// OffsetToPieceNameOffsetArray        a0c
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   a2c
+
+// OffsetToFirstName                   a2c
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, flare1, flare2, flare3, turret;
 
 static-var  gun_1;
 static-var  Stunned;
 
+
+#define SIG_AIM				2
 
 
 #define BASEPIECE base
@@ -13,7 +33,7 @@ static-var  Stunned;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -22,8 +42,11 @@ Create()
 	hide flare3;
 	hide flare2;
 	gun_1 = flare1;
-	SLEEP_UNTIL_UNITFINISHED;
-	turn turret to x-axis <-25> speed <25.0>;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	turn turret to x-axis <-25> speed <25.00000>;
 	spin turret around y-axis speed <25.0>;
 }
 Stop()
@@ -35,7 +58,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn turret to x-axis <-25> speed <25.0>;
+    turn turret to x-axis <-25> speed <25.00000>;
     spin turret around y-axis speed <25.0>;
 }
 
@@ -54,10 +77,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	stop-spin turret around y-axis;
 	turn turret to y-axis heading speed <450.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <450.000000>;
@@ -67,7 +90,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	++gun_1;
 	if( gun_1 == 4 )
@@ -77,30 +100,34 @@ FireWeapon1()
 	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = turret;
+	piecenum = turret;
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare1;
+		piecenum = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		pieceIndex = flare2;
+		piecenum = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		pieceIndex = flare3;
+		piecenum = flare3;
 	}
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

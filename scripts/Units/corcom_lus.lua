@@ -41,8 +41,8 @@ local weapons = {
 
 
 
-local SIGNAL_AIM1 = 2
-local SIGNAL_MOVE = 4
+local SIG_AIM = 2
+local SIG_WALK = 4
 local PlaySoundFile 	= Spring.PlaySoundFile
 local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
@@ -81,11 +81,11 @@ local function move(piece, axis, goal, speed)
 end
 
 function walk()
-	SetSignalMask(SIGNAL_MOVE)
-		if (isMoving) then --Frame:6
-			if (rightArm) then turn(biggun, 1, 7.0, 474.333919 / animSpeed) end
-			if (rightArm) then turn(biggun, 3, -0.0, 59.118463 / animSpeed)  end
-			if (rightArm) then turn(biggun, 2, 0.0, 4.555160 / animSpeed)  end
+	SetSignalMask(SIG_WALK)
+		if (bMoving) then --Frame:6
+			if (rightArm) then turn(biggun, 1, 7.000000, 474.333919 / animSpeed) end
+			if (rightArm) then turn(biggun, 3, -0.000000, 59.118463 / animSpeed)  end
+			if (rightArm) then turn(biggun, 2, 0.000000, 4.555160 / animSpeed)  end
 			turn(head, 1, -0.927302, 27.819048 / animSpeed)
 			turn(head, 2, 9.458549, 283.756478 / animSpeed)
 			turn(l_foot, 1, -10.561878, 244.413750 / animSpeed)
@@ -99,12 +99,12 @@ function walk()
 			turn(lthigh, 2, -9.494972, 729.974777 / animSpeed)
 			if (leftArm) then turn(luparm, 1, -8.891101, 475.860825 / animSpeed)  end
 			if (leftArm) then turn(luparm, 2, -9.391724, 738.230529 / animSpeed)  end
-			if (leftArm) then turn(nanolathe, 1, -7.0, 413.857033 / animSpeed)  end
-			if (leftArm) then turn(nanolathe, 3, -0.0, 55.718905 / animSpeed)  end
-			if (leftArm) then turn(nanolathe, 2, 0.0, 3.308265 / animSpeed)  end
-			move(pelvis, 2, 0.0, 9.036713 / animSpeed)
-			turn(pelvis, 1, 0.500000, 15.0 / animSpeed)
-			turn(pelvis, 2, 10.0, 299.999991 / animSpeed)
+			if (leftArm) then turn(nanolathe, 1, -7.000000, 413.857033 / animSpeed)  end
+			if (leftArm) then turn(nanolathe, 3, -0.000000, 55.718905 / animSpeed)  end
+			if (leftArm) then turn(nanolathe, 2, 0.000000, 3.308265 / animSpeed)  end
+			move(pelvis, 2, 0.000000, 9.036713 / animSpeed)
+			turn(pelvis, 1, 0.500000, 15.000000 / animSpeed)
+			turn(pelvis, 2, 10.000000, 299.999991 / animSpeed)
 			turn(r_foot, 1, -13.659087, 362.223883 / animSpeed)
 			turn(r_foot, 3, -1.655717, 49.672541 / animSpeed)
 			turn(r_foot, 2, -10.105174, 303.223681 / animSpeed)
@@ -120,9 +120,9 @@ function walk()
 			turn(torso, 2, -16.999999, 509.999980 / animSpeed)
 			Sleep(197)
 		end
-	while (isMoving) do
-		if (isMoving) then --Frame:12
-			if (rightArm) then turn(biggun, 1, -0.0, 210.000014 / animSpeed)  end
+	while (bMoving) do
+		if (bMoving) then --Frame:12
+			if (rightArm) then turn(biggun, 1, -0.000000, 210.000014 / animSpeed)  end
 			turn(head, 1, -2.018726, 32.742739 / animSpeed)
 			turn(head, 2, 6.502752, 88.673904 / animSpeed)
 			turn(l_foot, 3, 0.690912, 89.511375 / animSpeed)
@@ -138,7 +138,7 @@ function walk()
 			if (leftArm) then turn(nanolathe, 1, -4.812500, 65.625000 / animSpeed)  end
 			move(pelvis, 1, 1.424151, 42.600518 / animSpeed)
 			move(pelvis, 2, -1.300000, 38.999999 / animSpeed)
-			turn(pelvis, 1, 3.0, 75.000003 / animSpeed)
+			turn(pelvis, 1, 3.000000, 75.000003 / animSpeed)
 			turn(pelvis, 2, 6.875000, 93.749994 / animSpeed)
 			turn(r_foot, 1, 2.905055, 496.924251 / animSpeed)
 			turn(r_foot, 3, 0.000162, 49.676377 / animSpeed)
@@ -155,11 +155,11 @@ function walk()
 			turn(torso, 2, -11.687500, 159.374994 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:18
+		if (bMoving) then --Frame:18
 
 			if (rightArm) then turn(biggun, 1, 14.962093, 448.862786 / animSpeed)  end
 			turn(head, 1, 6.002970, 240.650875 / animSpeed)
-			turn(head, 2, -0.0, 195.082586 / animSpeed)
+			turn(head, 2, -0.000000, 195.082586 / animSpeed)
 			turn(l_foot, 1, -13.296228, 81.595514 / animSpeed)
 			turn(l_foot, 3, -0.003109, 20.820630 / animSpeed)
 			turn(lleg, 1, 76.570164, 1231.612198 / animSpeed)
@@ -170,12 +170,12 @@ function walk()
 			turn(lthigh, 2, -3.398772, 86.660360 / animSpeed)
 			if (leftArm) then turn(luparm, 1, -5.933402, 271.998004 / animSpeed)  end
 			if (leftArm) then turn(luparm, 2, -5.390060, 50.101832 / animSpeed)  end
-			if (leftArm) then turn(nanolathe, 1, 0.0, 144.375003 / animSpeed)  end
+			if (leftArm) then turn(nanolathe, 1, 0.000000, 144.375003 / animSpeed)  end
 			move(pelvis, 1, 0.676773, 22.421322 / animSpeed)
 			move(pelvis, 3, 0.677474, 20.324208 / animSpeed)
-			move(pelvis, 2, -2.0, 21.000001 / animSpeed)
+			move(pelvis, 2, -2.000000, 21.000001 / animSpeed)
 			turn(pelvis, 1, 1.500000, 45.000001 / animSpeed)
-			turn(pelvis, 2, 0.0, 206.249997 / animSpeed)
+			turn(pelvis, 2, 0.000000, 206.249997 / animSpeed)
 			turn(r_foot, 1, 17.020208, 423.454591 / animSpeed)
 			turn(r_foot, 3, -0.952274, 28.573097 / animSpeed)
 			turn(r_foot, 2, 1.028123, 30.696158 / animSpeed)
@@ -192,7 +192,7 @@ function walk()
 			turn(torso, 2, 0.000001, 350.625002 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:24
+		if (bMoving) then --Frame:24
 			if not Spring.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(r_foot, 1024 + 2)
 			end
@@ -212,9 +212,9 @@ function walk()
 			if (leftArm) then turn(luparm, 2, 2.367461, 232.725648 / animSpeed)  end
 			if (leftArm) then turn(nanolathe, 1, 4.812500, 144.375000 / animSpeed)  end
 			move(pelvis, 1, 0.378759, 8.940423 / animSpeed)
-			move(pelvis, 3, 0.0, 20.324208 / animSpeed)
-			move(pelvis, 2, -0.700000, 39.0 / animSpeed)
-			turn(pelvis, 1, -1.0, 75.000001 / animSpeed)
+			move(pelvis, 3, 0.000000, 20.324208 / animSpeed)
+			move(pelvis, 2, -0.700000, 39.000000 / animSpeed)
+			turn(pelvis, 1, -1.000000, 75.000001 / animSpeed)
 			turn(pelvis, 2, -6.874999, 206.249972 / animSpeed)
 			turn(r_foot, 1, -4.390164, 642.311173 / animSpeed)
 			turn(r_foot, 3, -0.230726, 21.646450 / animSpeed)
@@ -232,8 +232,8 @@ function walk()
 			turn(torso, 2, 11.687500, 350.624996 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:30
-			if (rightArm) then turn(biggun, 1, -7.0, 165.0 / animSpeed)  end
+		if (bMoving) then --Frame:30
+			if (rightArm) then turn(biggun, 1, -7.000000, 165.000000 / animSpeed)  end
 			turn(head, 1, -1.322678, 97.888103 / animSpeed)
 			turn(head, 2, -9.458549, 88.673879 / animSpeed)
 			turn(l_foot, 1, -1.066570, 70.537812 / animSpeed)
@@ -248,8 +248,8 @@ function walk()
 			if (leftArm) then turn(luparm, 2, 4.673861, 69.191991 / animSpeed)  end
 			if (leftArm) then turn(nanolathe, 1, 9.511417, 140.967523 / animSpeed)  end
 			move(pelvis, 1, 0.004134, 11.238773 / animSpeed)
-			move(pelvis, 2, 0.0, 21.0 / animSpeed)
-			turn(pelvis, 1, 0.500000, 45.0 / animSpeed)
+			move(pelvis, 2, 0.000000, 21.000000 / animSpeed)
+			turn(pelvis, 1, 0.500000, 45.000000 / animSpeed)
 			turn(pelvis, 2, -9.999998, 93.749968 / animSpeed)
 			turn(r_foot, 1, -9.321513, 147.940450 / animSpeed)
 			turn(r_foot, 3, -3.660134, 102.882224 / animSpeed)
@@ -263,11 +263,11 @@ function walk()
 			if (rightArm) then turn(ruparm, 1, -13.287716, 482.791638 / animSpeed)  end
 			if (rightArm) then turn(ruparm, 2, 9.299999, 72.333317 / animSpeed)  end
 			turn(torso, 1, 0.614511, 61.414985 / animSpeed)
-			turn(torso, 3, -0.0, 10.342095 / animSpeed)
+			turn(torso, 3, -0.000000, 10.342095 / animSpeed)
 			turn(torso, 2, 16.999999, 159.374968 / animSpeed)
 			Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:36
+		if (bMoving) then --Frame:36
 			if (rightArm) then turn(biggun, 1, -4.812500, 65.625000 / animSpeed)  end
 			turn(head, 1, -2.018726, 20.881451 / animSpeed)
 			turn(head, 2, -6.502752, 88.673904 / animSpeed)
@@ -285,7 +285,7 @@ function walk()
 			if (leftArm) then turn(nanolathe, 1, 7.246843, 67.937245 / animSpeed)  end
 			move(pelvis, 1, -1.440796, 43.347901 / animSpeed)
 			move(pelvis, 2, -1.300000, 38.999999 / animSpeed)
-			turn(pelvis, 1, 3.0, 75.000003 / animSpeed)
+			turn(pelvis, 1, 3.000000, 75.000003 / animSpeed)
 			turn(pelvis, 2, -6.874998, 93.750007 / animSpeed)
 			turn(r_foot, 1, -11.212004, 56.714740 / animSpeed)
 			turn(r_foot, 3, -0.692164, 89.039097 / animSpeed)
@@ -298,15 +298,15 @@ function walk()
 			turn(rthigh, 2, 5.974292, 100.056158 / animSpeed)
 			if (rightArm) then turn(ruparm, 1, -15.000002, 51.368598 / animSpeed)  end
 			if (rightArm) then turn(ruparm, 2, 8.332799, 29.016001 / animSpeed)  end
-			turn(torso, 1, -0.0, 18.435316 / animSpeed)
+			turn(torso, 1, -0.000000, 18.435316 / animSpeed)
 			turn(torso, 3, 2.154603, 64.638097 / animSpeed)
 			turn(torso, 2, 11.687500, 159.374994 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:42
-			if (rightArm) then turn(biggun, 1, 0.0, 144.375003 / animSpeed)  end
+		if (bMoving) then --Frame:42
+			if (rightArm) then turn(biggun, 1, 0.000000, 144.375003 / animSpeed)  end
 			turn(head, 1, 5.974242, 239.789054 / animSpeed)
-			turn(head, 2, 0.0, 195.082586 / animSpeed)
+			turn(head, 2, 0.000000, 195.082586 / animSpeed)
 			turn(l_foot, 1, 18.425190, 466.661591 / animSpeed)
 			turn(l_foot, 3, 0.957857, 28.737983 / animSpeed)
 			turn(l_foot, 2, -1.046884, 31.404727 / animSpeed)
@@ -321,7 +321,7 @@ function walk()
 			if (leftArm) then turn(nanolathe, 1, 15.006779, 232.798102 / animSpeed)  end
 			move(pelvis, 1, -0.668506, 23.168705 / animSpeed)
 			move(pelvis, 3, 0.587918, 17.637532 / animSpeed)
-			move(pelvis, 2, -2.0, 21.000001 / animSpeed)
+			move(pelvis, 2, -2.000000, 21.000001 / animSpeed)
 			turn(pelvis, 1, 1.500000, 45.000001 / animSpeed)
 			turn(pelvis, 2, 0.000002, 206.250000 / animSpeed)
 			turn(r_foot, 1, -14.533147, 99.634283 / animSpeed)
@@ -339,7 +339,7 @@ function walk()
 			turn(torso, 2, -0.000001, 350.625002 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:48
+		if (bMoving) then --Frame:48
 			if not Spring.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(l_foot, 1024 + 2)
 			end
@@ -359,9 +359,9 @@ function walk()
 			if (leftArm) then turn(luparm, 2, -6.888889, 303.565158 / animSpeed)  end
 			if (leftArm) then turn(nanolathe, 1, -1.500000, 495.203383 / animSpeed)  end
 			move(pelvis, 1, -0.247683, 12.624712 / animSpeed)
-			move(pelvis, 3, 0.0, 17.637532 / animSpeed)
-			move(pelvis, 2, -0.700000, 39.0 / animSpeed)
-			turn(pelvis, 1, -1.0, 75.000001 / animSpeed)
+			move(pelvis, 3, 0.000000, 17.637532 / animSpeed)
+			move(pelvis, 2, -0.700000, 39.000000 / animSpeed)
+			turn(pelvis, 1, -1.000000, 75.000001 / animSpeed)
 			turn(pelvis, 2, 6.875002, 206.249994 / animSpeed)
 			turn(r_foot, 1, -5.256663, 278.294500 / animSpeed)
 			turn(r_foot, 3, -0.935032, 28.163964 / animSpeed)
@@ -379,8 +379,8 @@ function walk()
 			turn(torso, 2, -11.687500, 350.624996 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
-		if (isMoving) then --Frame:54
-			if (rightArm) then turn(biggun, 1, 7.0, 65.625012 / animSpeed)  end
+		if (bMoving) then --Frame:54
+			if (rightArm) then turn(biggun, 1, 7.000000, 65.625012 / animSpeed)  end
 			turn(head, 1, -0.920485, 83.236809 / animSpeed)
 			turn(head, 2, 9.458549, 88.673879 / animSpeed)
 			turn(l_foot, 1, -10.560809, 195.068730 / animSpeed)
@@ -394,11 +394,11 @@ function walk()
 			turn(lthigh, 2, -9.099435, 41.255581 / animSpeed)
 			if (leftArm) then turn(luparm, 1, -8.891101, 586.612163 / animSpeed)  end
 			if (leftArm) then turn(luparm, 2, -9.299999, 72.333317 / animSpeed)  end
-			if (leftArm) then turn(nanolathe, 1, -7.0, 165.0 / animSpeed)  end
+			if (leftArm) then turn(nanolathe, 1, -7.000000, 165.000000 / animSpeed)  end
 			move(pelvis, 1, 0.004134, 7.554485 / animSpeed)
-			move(pelvis, 2, 0.0, 21.0 / animSpeed)
-			turn(pelvis, 1, 0.500000, 45.0 / animSpeed)
-			turn(pelvis, 2, 10.0, 93.749930 / animSpeed)
+			move(pelvis, 2, 0.000000, 21.000000 / animSpeed)
+			turn(pelvis, 1, 0.500000, 45.000000 / animSpeed)
+			turn(pelvis, 2, 10.000000, 93.749930 / animSpeed)
 			turn(r_foot, 1, -13.659087, 252.072695 / animSpeed)
 			turn(r_foot, 3, -1.655717, 21.620542 / animSpeed)
 			turn(r_foot, 2, -10.105174, 120.868044 / animSpeed)
@@ -411,7 +411,7 @@ function walk()
 			if (rightArm) then turn(ruparm, 1, 27.254234, 658.466782 / animSpeed)  end
 			if (rightArm) then turn(ruparm, 2, -7.659001, 327.978017 / animSpeed)  end
 			turn(torso, 1, 0.527975, 66.830393 / animSpeed)
-			turn(torso, 3, -0.0, 7.756572 / animSpeed)
+			turn(torso, 3, -0.000000, 7.756572 / animSpeed)
 			turn(torso, 2, -16.999999, 159.374968 / animSpeed)
 		Sleep((33*animSpeed) -1)
 		end
@@ -419,7 +419,7 @@ function walk()
 end
 
 function SprayNano(heading, pitch)
-	SetSignalMask(SIGNAL_AIM1)
+	SetSignalMask(SIG_AIM)
 	Sleep(1000)
 	while (true) do
 		Sleep(1000)
@@ -427,48 +427,48 @@ function SprayNano(heading, pitch)
 end
 
 function StopWalking()
-	move(pelvis, 1, 0.0, 7.224650)
+	move(pelvis, 1, 0.000000, 7.224650)
 	move(pelvis, 2, -0.301224, 6.500000)
-	move(pelvis, 3, 0.0, 3.387368)
+	move(pelvis, 3, 0.000000, 3.387368)
 	if (rightArm) then turn(biggun, 1, -8.811130, 82.310465) end
 	if (rightArm) then turn(biggun, 2, 0.151839, 0.759193) end
 	if (rightArm) then turn(biggun, 3, -1.970615, 9.853077) end
-	turn(head, 1, 0.0, 40.108479)
-	turn(head, 2, 0.0, 47.292746)
+	turn(head, 1, 0.000000, 40.108479)
+	turn(head, 2, 0.000000, 47.292746)
 	turn(l_foot, 1, -2.414753, 112.418542)
 	turn(l_foot, 2, -0.240266, 49.963893)
 	turn(l_foot, 3, -0.525861, 21.002426)
-	turn(lleg, 1, 0.0, 411.690139)
-	turn(lleg, 2, 0.0, 49.997525)
-	turn(lleg, 3, 0.0, 71.520276)
-	turn(lthigh, 1, 0.0, 241.307004)
+	turn(lleg, 1, 0.000000, 411.690139)
+	turn(lleg, 2, 0.000000, 49.997525)
+	turn(lleg, 3, 0.000000, 71.520276)
+	turn(lthigh, 1, 0.000000, 241.307004)
 	turn(lthigh, 2, 14.837520, 121.662463)
-	turn(lthigh, 3, 0.0, 109.161052)
+	turn(lthigh, 3, 0.000000, 109.161052)
 	if (leftArm) then turn(luparm, 1, 6.970926, 116.358546) end
 	if (leftArm) then turn(luparm, 2, 15.215961, 123.038422) end
 	if (leftArm) then turn(nanolathe, 1, 6.795234, 82.533897) end
 	if (leftArm) then turn(nanolathe, 2, -0.110275, 0.551377) end
 	if (leftArm) then turn(nanolathe, 3, -1.857297, 9.286484) end
-	turn(pelvis, 1, 0.0, 12.500000)
-	turn(pelvis, 2, 0.0, 49.999999)
+	turn(pelvis, 1, 0.000000, 12.500000)
+	turn(pelvis, 2, 0.000000, 49.999999)
 	turn(r_foot, 1, -1.584957, 107.051862)
-	turn(r_foot, 2, 0.0, 50.550458)
-	turn(r_foot, 3, 0.0, 17.147037)
-	turn(rleg, 1, 0.0, 363.366858)
-	turn(rleg, 2, 0.0, 95.731755)
-	turn(rleg, 3, 0.0, 123.722036)
-	turn(rthigh, 1, 0.0, 306.324559)
+	turn(r_foot, 2, 0.000000, 50.550458)
+	turn(r_foot, 3, 0.000000, 17.147037)
+	turn(rleg, 1, 0.000000, 363.366858)
+	turn(rleg, 2, 0.000000, 95.731755)
+	turn(rleg, 3, 0.000000, 123.722036)
+	turn(rthigh, 1, 0.000000, 306.324559)
 	turn(rthigh, 2, -25.608481, 144.663917)
-	turn(rthigh, 3, 0.0, 113.472665)
+	turn(rthigh, 3, 0.000000, 113.472665)
 	if (rightArm) then turn(ruparm, 1, 8.674858, 110.217349) end
 	if (rightArm) then turn(ruparm, 2, -12.507997, 60.683891) end
-	turn(torso, 1, 0.0, 36.480655)
-	turn(torso, 2, 0.0, 84.999997)
-	turn(torso, 3, 0.0, 13.020986)
+	turn(torso, 1, 0.000000, 36.480655)
+	turn(torso, 2, 0.000000, 84.999997)
+	turn(torso, 3, 0.000000, 13.020986)
 end
 
 function AmIBored()
-	if isMoving == false and isAiming == false and isBuilding == false then
+	if bMoving == false and isAiming == false and isBuilding == false then
 		return true
 	else
 		return false
@@ -507,8 +507,8 @@ end
 function ResumeBuilding()
 	Sleep(800)
 	if isBuilding and not isAiming then
-		Turn(aimy1, 2, buildheading - rad(20), rad(300.0))
-		Turn(aimx1, 1, rad(-20.0) - buildpitch, rad(90.0))
+		Turn(aimy1, 2, buildheading - rad(20), rad(300.000000))
+		Turn(aimx1, 1, rad(-20.000000) - buildpitch, rad(90.000000))
 	end
 	return (0)
 end
@@ -525,7 +525,7 @@ function script.Create()
 	isAiming = false
 	isAimingDgun = false
 	isBuilding = false
-	isAiming = false
+	bAiming = false
 	buildHeading = 0
 	buildPitch = 0
 	leftArm = true
@@ -549,13 +549,13 @@ function ShowMedalBronze()
 end
 
 function script.StartMoving()
-	isMoving = true
+	bMoving = true
 	StartThread(walk)
 end
 
 function script.StopMoving()
-	Signal(SIGNAL_MOVE)
-	isMoving = false
+	Signal(SIG_WALK)
+	bMoving = false
 	StartThread(StopWalking)
 end
 
@@ -575,10 +575,10 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIGNAL_AIM1)
-			Signal(SIGNAL_AIM1)
-			Turn(aimy1, 2, heading, rad(300.0))
-			Turn(aimx1, 1, rad(-5.0) - pitch, rad(250.0))
+			SetSignalMask(SIG_AIM)
+			Signal(SIG_AIM)
+			Turn(aimy1, 2, heading, rad(300.000000))
+			Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 			WaitForTurn(aimy1,2)
 			isAiming = true
 			if isBuilding == true then
@@ -594,10 +594,10 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false
 		else
 			leftArm = false
-			SetSignalMask(SIGNAL_AIM1)
-			Signal(SIGNAL_AIM1)
-			Turn(aimy1, 2, heading, rad(300.0))
-			Turn(aimx1, 1, rad(-5.0) - pitch, rad(250.0))
+			SetSignalMask(SIG_AIM)
+			Signal(SIG_AIM)
+			Turn(aimy1, 2, heading, rad(300.000000))
+			Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 			WaitForTurn(aimy1,2)
 			isAiming = true
 			if isBuilding == true then
@@ -610,8 +610,8 @@ function script.AimWeapon(weapon, heading, pitch)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
-		Turn(aimy1, 2, heading, rad(300.0))
-		Turn(aimx1, 1, rad(-5.0) - pitch, rad(250.0))
+		Turn(aimy1, 2, heading, rad(300.000000))
+		Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 		WaitForTurn(aimy1,2)
 		return true
 	end
@@ -642,11 +642,11 @@ function script.QueryWeapon(weapon)
 end
 
 function script.StartBuilding(heading, pitch)
-	Signal(SIGNAL_AIM1)
+	Signal(SIG_AIM)
 	isBuilding = true
 	leftArm = false
-		Turn(aimy1, 2, heading, rad(300.0))
-		Turn(aimx1, 1, rad(-5.0) - pitch, rad(250.0))
+		Turn(aimy1, 2, heading, rad(300.000000))
+		Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 		WaitForTurn(aimy1,2)
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	buildHeading = heading
@@ -659,14 +659,14 @@ function script.StopBuilding()
 	leftArm = true
 	isBuilding = false
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
-	Signal(SIGNAL_AIM1)
-	SetSignalMask(SIGNAL_AIM1)
+	Signal(SIG_AIM)
+	SetSignalMask(SIG_AIM)
 	StartThread(Restore)
 	return true
 end
 
 function Restore()
-	SetSignalMask(SIGNAL_AIM1)
+	SetSignalMask(SIG_AIM)
 	Sleep(3000)
 	turn(aimy1, 2, 0, 90)
 	turn(aimx1, 1, 0, 90)
@@ -677,9 +677,9 @@ function Restore()
 end
 
 function script.QueryNanoPiece()
-	local pieceIndex;
-	pieceIndex = nanospray;
-	return pieceIndex
+	local piecenum;
+	piecenum = nanospray;
+	return piecenum
 end
 
 function script.Killed()

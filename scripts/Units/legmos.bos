@@ -1,37 +1,39 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, lflare, rflare, lwingd, lwingu, rwingd, rwingu, thrusta, thrustb, rlauncher, llauncher;
 
-static-var gun_1, speedwings, isMoving;
+static-var gun_1, speedwings, bMoving;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
+#define SIG_MOVE			2
 
 IdleHover()
 {
 	while(TRUE){
-		if(isMoving == 1)
+		if(bMoving == 1)
 		{
-			turn lwingd to z-axis <20.0> speed <800>;
-			turn lwingu to z-axis <0.0> speed <800>;
-			turn rwingd to z-axis <-20.0> speed <800>;
-			turn rwingu to z-axis <0.0> speed <800>;
+			turn lwingd to z-axis <20.000000> speed <800>;
+			turn lwingu to z-axis <0.000000> speed <800>;
+			turn rwingd to z-axis <-20.000000> speed <800>;
+			turn rwingu to z-axis <0.000000> speed <800>;
 			sleep 25;
-			turn lwingd to z-axis <0.0> speed <800>;
-			turn lwingu to z-axis <40.0> speed <1600>;
-			turn rwingd to z-axis <0.0> speed <800>;
-			turn rwingu to z-axis <-40.0> speed <1600>;
+			turn lwingd to z-axis <0.000000> speed <800>;
+			turn lwingu to z-axis <40.000000> speed <1600>;
+			turn rwingd to z-axis <0.000000> speed <800>;
+			turn rwingu to z-axis <-40.000000> speed <1600>;
 			sleep 25;
-			turn lwingd to z-axis <-25.0> speed <1000>;
-			turn lwingu to z-axis <0.0> speed <1600>;
-			turn rwingd to z-axis <25.0> speed <1000>;
-			turn rwingu to z-axis <0.0> speed <1600>;
+			turn lwingd to z-axis <-25.000000> speed <1000>;
+			turn lwingu to z-axis <0.000000> speed <1600>;
+			turn rwingd to z-axis <25.000000> speed <1000>;
+			turn rwingu to z-axis <0.000000> speed <1600>;
 			sleep 25;
-			turn lwingd to z-axis <0.0> speed <1000>;
-			turn lwingu to z-axis <-20.0> speed <800>;
-			turn rwingd to z-axis <0.0> speed <1000>;
-			turn rwingu to z-axis <20.0> speed <800>;
+			turn lwingd to z-axis <0.000000> speed <1000>;
+			turn lwingu to z-axis <-20.000000> speed <800>;
+			turn rwingd to z-axis <0.000000> speed <1000>;
+			turn rwingu to z-axis <20.000000> speed <800>;
 			sleep 25;
 		}
 		else sleep 200;
@@ -46,8 +48,11 @@ Create()
 	hide thrustb;
 	gun_1=0;
 	speedwings=200;
-	isMoving = 0;
-	SLEEP_UNTIL_UNITFINISHED;
+	bMoving = 0;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script IdleHover();
 }
 
@@ -67,7 +72,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIG_MOVE;
 	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -79,92 +84,95 @@ RestoreAfterDelay()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
 	return (1);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if (gun_1==0)
 	{
-		pieceIndex = lflare;
+		piecenum = lflare;
 		gun_1=1;
 	}
 	else 
 	{
-		pieceIndex=rflare;
+		piecenum=rflare;
 		gun_1=0;
 	}
 }
 
-FireWeapon1()
+FirePrimary()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	sleep 200;
 	
 	start-script RestoreAfterDelay();
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	isMoving = 1;
+	bMoving = 1;
 	start-script RestoreAfterDelay();
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 StopMoving()
 {
-	isMoving = 0;
-	turn lwingd to z-axis <0.0> speed <50.0>;
-	turn lwingu to z-axis <0.0> speed <50.0>;
-	turn rwingd to z-axis <0.0> speed <50.0>;
-	turn rwingu to z-axis <0.0> speed <50.0>;
+	bMoving = 0;
+	turn lwingd to z-axis <0.000000> speed <50.000000>;
+	turn lwingu to z-axis <0.000000> speed <50.000000>;
+	turn rwingd to z-axis <0.000000> speed <50.000000>;
+	turn rwingu to z-axis <0.000000> speed <50.000000>;
 	start-script RestoreAfterDelay();
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate0()
 {
-	isMoving = 0;
-	turn lwingd to z-axis <0.0> speed <50.0>;
-	turn lwingu to z-axis <0.0> speed <50.0>;
-	turn rwingd to z-axis <0.0> speed <50.0>;
-	turn rwingu to z-axis <0.0> speed <50.0>;
+	bMoving = 0;
+	turn lwingd to z-axis <0.000000> speed <50.000000>;
+	turn lwingu to z-axis <0.000000> speed <50.000000>;
+	turn rwingd to z-axis <0.000000> speed <50.000000>;
+	turn rwingu to z-axis <0.000000> speed <50.000000>;
 }
 
 MoveRate1()
 {
 	start-script RestoreAfterDelay();
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate2()
 {
-	isMoving = 1;
+	bMoving = 1;
 	start-script RestoreAfterDelay();
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate3()
 {
-	isMoving = 1;
+	bMoving = 1;
 	start-script RestoreAfterDelay();
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

@@ -1,31 +1,129 @@
+#define TA			// This is a TA script
 
-#include "../../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, flare, turret, sleeve, barrel, smoke1, smoke2, lflare, rflare, lball, rball, lbarrel, rbarrel, flag;
 
-static-var  restore_delay, last_lball_heading, last_rball_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc;
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lball_heading, last_rball_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM2 512
-#define SIGNAL_AIM3	1024
-#define SIGNAL_TICKLE 32
+#define SIG_AIM				2
+#define SIG_MOVE				4
+#define SIG_AIML				8
+#define SIG_AIMR				16
+#define SIG_TICKLE				32
 
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		if (currentSpeed<4) currentSpeed=4;
+		animSpeed = 1800 / currentSpeed;
+		sleep 142;
+	}
+}
 
-#define VD_PIECE1 smoke1
-#define VD_PIECE2 smoke2
-#define VD_AMPHIBIOUS
-#define VD_DIRTCEG 1024 + 1
-#include "../../vehicle_dirt_cegs.h"
+Smoke()
+{
+	while( TRUE )
+	{
+		if ( bMoving )
+		{
+			emit-sfx 1024 + 1 from smoke1;
+			emit-sfx 1024 + 1 from smoke2;
+		}
+		sleep animSpeed;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RockUnit(anglex, anglez)
+{
+	if (lastfired==1) {
+		turn base to x-axis anglex speed <50.005495>;
+		turn base to z-axis <0> - anglez speed <50.005495>;
+		wait-for-turn base around z-axis;
+		wait-for-turn base around x-axis;
+		turn base to z-axis <0.000000> speed <20.000000>;
+		turn base to x-axis <0.000000> speed <20.000000>;
+	}
+}
 
 #define BASEPIECE base
-#define HITSPEED <25.0>
+#define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
-#define RECOIL_POWER 50000
-#include "../../unit_hitbyweaponid_and_smoke.h"
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+
+	
+	
+}
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	
+		
+	//get PRINT(dmg, waslaughing, islaughing, willlaughing);
+	if ((dmg<5000) AND (waslaughing==0) AND (islaughing==0) AND (willlaughing==0)) {
+		//get PRINT(123);
+		start-script startLaughing();
+	}
+	
+	if ((dmg>90000) AND (willlaughing==0) AND (islaughing==1)) {
+		start-script stopLaughing();
+	}
+	
+	healthperc = get HEALTH;
+	if ((islaughing==1) AND (healthperc < 5)) {
+		start-script stopLaughing();
+	}
+	
+	
+	
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	return (100); //return damage percent
+}
 
 
 startLaughing (){
@@ -47,7 +145,7 @@ stopLaughing (){
 		waslaughing = 1;
 		
 		//animate flag out
-		move flag to y-axis [0] speed [200.0];//start is 14 abs, 0 rel...
+		move flag to y-axis [0] speed [200.000000];//start is 14 abs, 0 rel...
 		sleep 1000;		
 		hide flag;
 		
@@ -58,8 +156,8 @@ stopLaughing (){
 //tickled logic, rolling 10s reset every light damage, cancel the reset if more happens
 
 tickle() {
-	signal SIGNAL_TICKLE;
-	set-signal-mask SIGNAL_TICKLE;
+	signal SIG_TICKLE;
+	set-signal-mask SIG_TICKLE;
 	sleep 10000;
 	start-script stopLaughing();
 }
@@ -79,9 +177,14 @@ Create()
 	hide flare;
 	hide smoke1;
 	hide smoke2;
+	bMoving = FALSE;
+	moveSpeed = get (MAX_SPEED);
+	animSpeed = 100;
 	lastfired = 0;
+	hide flare;
 	hide flag;
 	restore_delay = 3000;
+	start-script SmokeUnit();
 	last_lball_heading = -1000000;
 	last_rball_heading = -1000000;
 	willlaughing=0;
@@ -89,22 +192,25 @@ Create()
 	waslaughing=0;
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	start-script Vehicle_Dirt_Ceg();
+	bMoving = TRUE;
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+	start-script Smoke();
+	start-script UnitSpeed();
 }
 
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
+  signal SIG_MOVE;
+	bMoving = FALSE;
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -113,8 +219,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.0> speed <35.005495>;
-	turn sleeve to x-axis <0.0> speed <15.0>;	
+	turn turret to y-axis <0.000000> speed <35.005495>;
+	turn sleeve to x-axis <0.000000> speed <15.000000>;	
 	
 }
 
@@ -134,68 +240,68 @@ RestoreAfterDelay()
 
 RestoreAfterDelay_lspon()
 {
-	set-signal-mask SIGNAL_AIM2; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIG_AIML; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_lball_heading = -1000000;
 	turn lball to y-axis <0> speed <90>;
-	turn lbarrel to x-axis <0.0> speed <15>;
+	turn lbarrel to x-axis <0.000000> speed <15>;
 }
 
 RestoreAfterDelay_rspon()
 {
-	set-signal-mask SIGNAL_AIM3; //ensures restore animation is killed if this weapon is aimed
+	set-signal-mask SIG_AIMR; //ensures restore animation is killed if this weapon is aimed
 	sleep restore_delay;
 	//large negative values to let wait-for-turn happen on first target
 	last_rball_heading = -1000000;
 	turn rball to y-axis <0> speed <90>;
-	turn rbarrel to x-axis <0.0> speed <15>;
+	turn rbarrel to x-axis <0.000000> speed <15>;
 }
 
 
 
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <40.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <45.0>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <40.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);//*/
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	lastfired = 1;
 
 
 
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.0];
+	move barrel to z-axis [-2.400000] speed [500.000000];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.0] speed [3.0];//*/
+	move barrel to z-axis [0.000000] speed [3.000000];//*/
 
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = turret;
+	piecenum = turret;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 }
 
 
 
 
 //left
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
 
 
@@ -207,8 +313,8 @@ AimWeapon2(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	signal SIG_AIML;
+	set-signal-mask SIG_AIML;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
@@ -224,36 +330,36 @@ AimWeapon2(heading, pitch)
 	//return (1);	
 	//get PRINT(get GAME_FRAME, heading, pitch);
 
-	turn lbarrel to x-axis <0.0> - pitch speed <80.0>;
+	turn lbarrel to x-axis <0.000000> - pitch speed <80.000000>;
 	wait-for-turn lbarrel around x-axis;
 	//get PRINT(321);
 	start-script RestoreAfterDelay_lspon();
 	return (1);
 }
 
-FireWeapon2()
+FireSecondary()
 {
 	lastfired = 2;
 	move lbarrel to z-axis [-1] speed [62.500000];
 	wait-for-move lbarrel along z-axis;
-	move lbarrel to z-axis [0.0] speed [4.0];
+	move lbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = lball;
+	piecenum = lball;
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = lflare;
+	piecenum = lflare;
 }
 
 
 
 
 
-AimWeapon3(heading, pitch)
+AimTertiary(heading, pitch)
 {
 
 //get PRINT(heading);
@@ -265,8 +371,8 @@ AimWeapon3(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
+	signal SIG_AIMR;
+	set-signal-mask SIG_AIMR;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
@@ -281,7 +387,7 @@ AimWeapon3(heading, pitch)
 
 
 	//get PRINT(get GAME_FRAME, heading, pitch);
-	turn rbarrel to x-axis <0.0> - pitch speed <80.0>;
+	turn rbarrel to x-axis <0.000000> - pitch speed <80.000000>;
 	wait-for-turn rbarrel around x-axis;
 
 	
@@ -292,22 +398,22 @@ AimWeapon3(heading, pitch)
 	
 
 
-FireWeapon3()
+FireTertiary()
 {
 	lastfired=3;
 	move rbarrel to z-axis [-1] speed [62.500000];
 	wait-for-move rbarrel along z-axis;
-	move rbarrel to z-axis [0.0] speed [4.0];
+	move rbarrel to z-axis [0.000000] speed [4.000000];
 }
 
-AimFromWeapon3(pieceIndex)
+AimFromTertiary(piecenum)
 {
-	pieceIndex = rball;
+	piecenum = rball;
 }
 
-QueryWeapon3(pieceIndex)
+QueryTertiary(piecenum)
 {
-	pieceIndex = rflare;
+	piecenum = rflare;
 }
 
 
@@ -324,7 +430,10 @@ QueryWeapon3(pieceIndex)
 
 
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {
@@ -337,6 +446,7 @@ Killed(severity, corpsetype)
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -350,6 +460,7 @@ Killed(severity, corpsetype)
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lball type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rball type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -363,6 +474,7 @@ Killed(severity, corpsetype)
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lball type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rball type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -370,5 +482,6 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

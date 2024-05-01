@@ -1,15 +1,17 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  body, turret, sleeve, barrel1, flare1,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy, aimfromy, nanof;
 
 static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
-#define SIGNAL_MOVE 1
-#define SIGNAL_BUILD 2
+#define SIG_MOVE 8
+#define SIG_BUILD 16
 
 #define FRONT_RIGHT_UP\
 	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
@@ -212,10 +214,10 @@ StopWalk()
 	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	start-script UnitSpeed();
 	start-script DoTheWalking();
 	moving=TRUE;
@@ -223,9 +225,9 @@ StartMoving(reversing)
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
+	signal SIG_MOVE;
 	moving=FALSE;
-	set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIG_MOVE;
 	start-script StopWalk();
 }
 
@@ -236,7 +238,7 @@ StopMoving()
 #define UNITSIZE 8
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -254,15 +256,15 @@ Create()
 }
 
 
-QueryNanoPiece(pieceIndex)
+QueryNanoPiece(piecenum)
 {
-	pieceIndex = nanof;
+	piecenum = nanof;
 }
 
 
 
 BuildAnim(){
-	set-signal-mask SIGNAL_BUILD;
+	set-signal-mask SIG_BUILD;
 
 }
 
@@ -270,7 +272,7 @@ BuildAnim(){
 StartBuilding(heading, pitch)
 {
     show nanof;
-	signal SIGNAL_BUILD;
+	signal SIG_BUILD;
 	set INBUILDSTANCE to 1;
 	start-script BuildAnim();	
 }
@@ -278,8 +280,8 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
     hide nanof;
-	signal SIGNAL_BUILD;	
-	set-signal-mask SIGNAL_BUILD;
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
 
 }
 
@@ -287,11 +289,14 @@ StopBuilding()
 
 
 
-
-
-SetMaxReloadTime(reloadMS)
+SweetSpot(piecenum)
 {
-	restore_delay = reloadMS * 2;
+	piecenum = body;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -300,11 +305,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.0> speed <55.0>;
-	turn sleeve to x-axis <0.0> speed <55.0>;
+	turn turret to y-axis <0.000000> speed <55.000000>;
+	turn sleeve to x-axis <0.000000> speed <55.000000>;
 	wait-for-turn sleeve around y-axis;
-	wpn1_lasthead = 0xbadface;
-	//wpn2_lasthead = 0xbadface;
+	wpn1_lasthead = 1000000;
+	//wpn2_lasthead = 1000000;
 }
 SetStunned(State)
 {
@@ -315,19 +320,19 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed <180.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <110.0>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	signal SIG_AIM;
+	turn turret to y-axis heading speed <180.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <110.000000>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
-		wpn1_lasthead = 0xbadface;
+		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}
@@ -336,35 +341,35 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1() {
+FirePrimary() {
 
 	//gun_1 = !gun_1;
 	//if( gun_1 == 0 )
 	//{
-		move barrel1 to z-axis [-2.0] speed [400.0];
+		move barrel1 to z-axis [-2.000000] speed [400.000000];
 		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.0] speed [3.0];
+		move barrel1 to z-axis [0.000000] speed [3.000000];
 	//}
 	//if( gun_1 == 1 )
 	//{
-		//move barrel2 to z-axis [-3.0] speed [400.0];
+		//move barrel2 to z-axis [-3.000000] speed [400.000000];
 		//wait-for-move barrel2 along z-axis;
-		//move barrel2 to z-axis [0.0] speed [3.0];
+		//move barrel2 to z-axis [0.000000] speed [3.000000];
 	//}
 	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
 
-	pieceIndex = aimfromy;
+	piecenum = aimfromy;
 
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 
-		pieceIndex = flare1;
+		piecenum = flare1;
 		return (0);
 
 
@@ -376,22 +381,63 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
+		//explode leg5a type BITMAPONLY | NOHEATCLOUD;
+		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg6a type BITMAPONLY | NOHEATCLOUD;
+		//explode leg6b type BITMAPONLY | NOHEATCLOUD;
+		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg4b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg3a type BITMAPONLY | NOHEATCLOUD;
+		//explode leg3b type BITMAPONLY | NOHEATCLOUD;
+		//explode leg1a type BITMAPONLY | NOHEATCLOUD;
+		//explode leg1b type BITMAPONLY | NOHEATCLOUD;
+		//explode leg2a type BITMAPONLY | NOHEATCLOUD;
+		//explode leg2b type BITMAPONLY | NOHEATCLOUD;
 		explode barrel1 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
+		//explode leg5a type FALL | NOHEATCLOUD;
+		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg4b type FALL | NOHEATCLOUD;
+		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg2a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg2b type FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg5a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg5b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg4a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg4b type SMOKE | FALL | NOHEATCLOUD;
+		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg3b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg1a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg2a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode leg2b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -410,5 +456,6 @@ Killed(severity, corpsetype)
 		explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -1,29 +1,95 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, ground, wake1, wake2, turret, sleeve, flare, turretmis, misbox, misflare;
 		
-static-var  restore_delay;
+static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 512
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			4096
 
 
-#define RB_MASS 30
-#define RB_LENGTH 7
-#define RB_WIDTH 3
-#define RB_PITCH_SPEED 100
-#define RB_PITCH_ACCELERATION 20
-#define RB_ROLL_ACCELERATION 8
-#define RB_ROCKUNIT 5
-#define RB_WAKE_PIECE wake1
-#define RB_WAKE_CEG 1024 + 0
-#define RB_BOWSPLASH_PIECE wake2
-#define RB_BOWSPLASH_CEG 1024 + 1
-#define RB_IDLE_KICK 10000
 
-#include "../bar_ships_common.h"
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 200
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*4;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+ProjXPW(Func_Var_1, Func_Var_2)
+{
+	if( Func_Var_2 < -21840 )
+	{
+		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
+	}
+	else if( Func_Var_2 > 21840 )
+	{
+		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
+	}
+	else if( Func_Var_2 < -10920 )
+	{
+		Static_Var_7 = 0 - Func_Var_1;
+	}
+	else if( Func_Var_2 > 10920 )
+	{
+		Static_Var_7 = Func_Var_1;
+	}
+	else
+	{
+		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
+	}
+}
+
+RockZ(Func_Var_1, Func_Var_2)
+{
+	signal 4096;
+	set-signal-mask 4096;
+	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
+	Static_Var_8 = Static_Var_8 + Static_Var_7;
+	Static_Var_7 = get ABS(Static_Var_8);
+	while( Static_Var_7 > 91 )
+	{
+		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
+		wait-for-turn base around z-axis;
+		Static_Var_8 = Static_Var_8 * -1 / 2;
+		Static_Var_7 = get ABS(Static_Var_8);
+	}
+	turn base to z-axis <0.000000> speed <1.5>;
+}
 
 
 Create()
@@ -33,14 +99,16 @@ Create()
 	hide flare;
 	hide ground;
 	restore_delay = 3000;
-	start-script InitRockBoat();
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script BoatPhysics();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -50,8 +118,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.0> speed <180.0>;
-	turn sleeve to x-axis <0.0> speed <90.0>;
+	turn turret to y-axis <0.000000> speed <180.000000>;
+	turn sleeve to x-axis <0.000000> speed <90.000000>;
 }
 SetStunned(State)
 {
@@ -66,67 +134,110 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-StartMoving(reversing)
+waveSplash()
 {
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.32] speed [0.25];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.25];
+		wait-for-turn base around x-axis;
+	}
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from wake1;
+		if (bowtime) emit-sfx 1024 + 1 from wake2;
+		bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 10000 / waketime;
+	}
 }
 
 StopMoving()
 {
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.25];
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <150.0>;
-	turn sleeve to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <150.0>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <150.000000>;
+	turn sleeve to x-axis -1*pitch speed <150.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	turn turretmis to y-axis heading speed <300.0>;
-	turn misbox to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <300.0>;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn turretmis to y-axis heading speed <300.000000>;
+	turn misbox to x-axis <0.000000> - pitch speed <300.000000>;
 	wait-for-turn turretmis around y-axis;
 	wait-for-turn misbox around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	emit-sfx 1024 + 2 from flare;
+	sleep 100;
+	return (0);
 }
 
-FireWeapon2()
+FireSecondary()
 {
+	sleep 100;
+	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = sleeve;
+	piecenum = sleeve;
+	return (0);
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = turretmis;
+	piecenum = turretmis;
+	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
+	return (0);
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = misflare;
+	piecenum = misflare;
+	return (0);
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

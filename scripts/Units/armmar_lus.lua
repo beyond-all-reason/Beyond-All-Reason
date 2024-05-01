@@ -35,7 +35,7 @@ include("units/"..unitName.."_lus/weaponsdata.lua")
 isMoving, isAiming, isBuilding, counter, canAim, isInLoop, isUW = false, false, false, 0, false, false, false
 step = 1
 	
-function Movement()
+function MotionControl()
 	local justmoved = true
 	while true do
 		step = 1
@@ -150,11 +150,11 @@ function WeaponControl()
 					curPitch = wtdPitch
 					pitchReady = true
 				end
-				for id,pieceIndex in pairs (aimy) do
-					Turn(pieceIndex, 2, curHead)
+				for id,piecenum in pairs (aimy) do
+					Turn(piecenum, 2, curHead)
 				end
-				for id,pieceIndex in pairs (aimx) do
-					Turn(pieceIndex, 1, curPitch)
+				for id,piecenum in pairs (aimx) do
+					Turn(piecenum, 1, curPitch)
 				end
 				weapons[weaponID].curHead = curHead
 				weapons[weaponID].curPitch = curPitch
@@ -178,7 +178,7 @@ end
 
 function script.Create()
 	InitialPiecesSetup()
-	StartThread(Movement)
+	StartThread(MotionControl)
 	StartThread(ypos)
 	if hasWpn then
 		StartThread(WeaponControl)

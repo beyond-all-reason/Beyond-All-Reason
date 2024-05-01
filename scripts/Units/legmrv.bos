@@ -1,15 +1,18 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, gun_1, gun_2, oldHeading;
+static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_1, gun_2, statechg_DesiredState, 
+			statechg_StateChanging, oldHeading;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
-#define SIGNAL_SHOOT1 16
+#define SIG_MOVE 			2
+#define SIG_AIM				4
+#define SIG_FIRE1			8
 
 RockUnit(anglex, anglez)
 {
@@ -17,15 +20,15 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0> - anglez speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.0> speed <20.0>;
-	turn base to x-axis <0.0> speed <20.0>;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
 	return (0);
 }
 
 Steering(heading, steery, currentSpeed)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -46,7 +49,7 @@ Steering(heading, steery, currentSpeed)
 #define UNITSIZE 1
 #define MAXTILT 100
 
-//#include "../unit_hitbyweaponid_and_smoke.h"
+//#include "unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -54,25 +57,33 @@ Create()
 	hide flarer2;
 	hide flarel;
 	hide flarel2;
+	Static_Var_1 = 0;
 	gun_1 = 0;
 	gun_2 = 0;
 	oldheading = get HEADING;
-	restore_delay = 4000;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 }
 
-StartMoving(reversing)
+StartMoving()
 {
     start-script Steering();
 }
 
 StopMoving()
 {
-    signal SIGNAL_MOVE;
+    signal SIG_MOVE;
     stop-spin fwheel around x-axis;
     stop-spin bwheel around x-axis;
 }
 
 //following block returns weapon in straight position after firing
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = 4000;
+	return (0);
+}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -82,9 +93,9 @@ ExecuteRestoreAfterDelay()
     }
 	gun_1 = 0;
 	gun_2 = 0;
-	turn turret to y-axis <0.0> speed <90.0>;
-	turn gunr to x-axis <0.0> speed <50.0>;
-	turn gunl to x-axis <0.0> speed <50.0>;
+	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn gunr to x-axis <0.000000> speed <50.000000>;
+	turn gunl to x-axis <0.000000> speed <50.000000>;
  }
  
 SetStunned(State)
@@ -101,13 +112,13 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.0>;
-	turn gunr to x-axis <0.0> - pitch speed <200.0>;
-	turn gunl to x-axis <0.0> - pitch speed <200.0>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <200.000000>;
+	turn gunr to x-axis <0.000000> - pitch speed <200.000000>;
+	turn gunl to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gunr around x-axis;
 	start-script RestoreAfterDelay();
@@ -124,15 +135,15 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	return (1);
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	if (gun_1 == 0){
 		move barrelr to z-axis [-3] now;
 		move barrelr to z-axis [0] speed [1];
@@ -158,35 +169,39 @@ Shot1(zero)
 	return(1);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
 	if (gun_1 == 0 or gun_1 == 1){
-		pieceIndex = gunr;
+		piecenum = gunr;
 	}
 	if (gun_1 >= 2){
-		pieceIndex = gunl;
+		piecenum = gunl;
 	}
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if (gun_1 <= 1){
-		pieceIndex = flarer;
+		piecenum = flarer;
 	}
 	if (gun_1 == 2){
-		pieceIndex = flarer2;
+		piecenum = flarer2;
 	}
 	if (gun_1 == 3){
-		pieceIndex = flarel;
+		piecenum = flarel;
 	}
 	if (gun_1 >= 4){
-		pieceIndex = flarel2;
+		piecenum = flarel2;
 	}
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

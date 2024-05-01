@@ -24,7 +24,7 @@ return {
 		maxdamage = 1780,
 		minwaterdepth = 5,
 		objectname = "Units/CORFASP.s3o",
-		script = "Units/CORFASP.cob",
+		script = "Units/CORASP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,

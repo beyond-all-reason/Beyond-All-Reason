@@ -1,12 +1,14 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;
 
-static-var  moveSpeed, currentSpeed, animSpeed,  restore_delay;
+static-var  moveSpeed, currentSpeed, animSpeed, terrain, restore_delay;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 UnitSpeed()
 {
@@ -33,9 +35,14 @@ Create()
 	restore_delay = 200;
 }
 
-SetMaxReloadTime(reloadMS)
+setSFXoccupy(state)
 {
-	restore_delay = reloadMS * 2;
+	terrain = state;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -59,30 +66,33 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	return (1);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = plate;
+	piecenum = plate;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = plate;
+	piecenum = plate;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

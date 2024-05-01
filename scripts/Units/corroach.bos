@@ -1,13 +1,15 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,
        lega1, lega4, legb1, legb4, base;
 
-static-var  isMoving;
+static-var  bMoving;
 
 movelegs(){
-	if (isMoving){
+	if (bMoving){
 		move lega6 to z-axis [-0.83] now;
 		move lega5 to z-axis [-0.83] now;
 		move legb6 to z-axis [-0.83] now;
@@ -64,8 +66,8 @@ movelegs(){
 
 walkscr()
 {
-	while (isMoving){
-		if (isMoving){ 
+	while (bMoving){
+		if (bMoving){ 
 			turn base to y-axis <-18> speed <60>;
 			move base to x-axis [0] speed [10];
 			
@@ -74,7 +76,7 @@ walkscr()
 			call-script movelegs();
 			}
 		
-		if (isMoving){ 
+		if (bMoving){ 
 			turn base to y-axis <0> speed <60>;
 			move base to x-axis [3] speed [10];
 			
@@ -83,7 +85,7 @@ walkscr()
 			call-script movelegs();
 			call-script movelegs();
 			}
-		if (isMoving){ 
+		if (bMoving){ 
 			turn base to y-axis <18> speed <60>;
 			move base to x-axis [0] speed [10];
 			
@@ -91,7 +93,7 @@ walkscr()
 			call-script movelegs();
 			call-script movelegs();
 		}
-		if (isMoving){ 
+		if (bMoving){ 
 			turn base to y-axis <0> speed <60>;
 			move base to x-axis [-3] speed [10];
 			
@@ -107,16 +109,16 @@ walkscr()
 }
 
 
-Movement(myMoving)
+MotionControl(Func_Var_1)
 {
 	while( TRUE )
 	{
-		myMoving = isMoving;
-		if( myMoving )
+		Func_Var_1 = bMoving;
+		if( Func_Var_1 )
 		{
 			call-script walkscr();
 		}
-		if( !myMoving )
+		if( !Func_Var_1 )
 		{
 			sleep 100;
 		}
@@ -125,22 +127,21 @@ Movement(myMoving)
 
 Create()
 {
-	isMoving = FALSE;
-	start-script Movement();
+	bMoving = FALSE;
+	start-script MotionControl();
 }
 
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
-#define BASEPIECE base
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-StartMoving(reversing)
+StartMoving()
 {
-	isMoving = TRUE;
+	bMoving = TRUE;
 }
 
 StopMoving()
 {
-	isMoving = FALSE;
+	bMoving = FALSE;
 }
 
 AimWeapon1()
@@ -158,31 +159,34 @@ FireWeapon1()
 	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
 }
 
-QueryWeapon1(pieceIndex)
+QueryWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-QueryWeapon2(pieceIndex)
+QueryWeapon2(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromWeapon2(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
 FireWeapon2()
 {
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = lega2;
+}
 
 Killed(severity, corpsetype)
 {
@@ -190,12 +194,36 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode lega6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lega4 type BITMAPONLY | NOHEATCLOUD;
+		//explode lega3 type BITMAPONLY | NOHEATCLOUD;
+		//explode lega1 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb6 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb4 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb3 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb1 type BITMAPONLY | NOHEATCLOUD;
+		//explode lega5 type BITMAPONLY | NOHEATCLOUD;
+		//explode lega2 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb5 type BITMAPONLY | NOHEATCLOUD;
+		//explode legb2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode lega6 type FALL | NOHEATCLOUD;
+		//explode lega4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lega3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lega1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode legb6 type FALL | NOHEATCLOUD;
+		//explode legb4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode legb3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode legb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lega5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lega2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode legb5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode legb2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )

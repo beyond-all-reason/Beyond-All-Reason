@@ -1,28 +1,30 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot, lfoot, lsleeve, rsleeve, lbarrel, luparm, ruparm, 
 	 rbarrel, lflare, rflare, aimx1, aimy1;
 
-static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, miniguncount, animspeed;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_SHOOT1 16
+#define SIG_AIM				2
+#define SIG_FIRE1 			4
 
 
 walk()
 {
 	//step 1, foot back a bit
 	
-	turn rthigh to x-axis <22> speed <220.0>/animspeed;
-	turn rleg to x-axis <10> speed <100.0>/animspeed;
-	turn rfoot to x-axis <-22> speed <220.0>/animspeed;
-	turn lthigh to x-axis <-45> speed <770.0>/animspeed;
-	turn lleg to x-axis <0> speed <280.0>/animspeed;
-	turn lfoot to x-axis <0> speed <510.0>/animspeed;
+	turn rthigh to x-axis <22> speed <220.000000>/animspeed;
+	turn rleg to x-axis <10> speed <100.000000>/animspeed;
+	turn rfoot to x-axis <-22> speed <220.000000>/animspeed;
+	turn lthigh to x-axis <-45> speed <770.000000>/animspeed;
+	turn lleg to x-axis <0> speed <280.000000>/animspeed;
+	turn lfoot to x-axis <0> speed <510.000000>/animspeed;
 	turn pelvis to z-axis <2> speed <40>/animspeed;
-	move pelvis to y-axis [1] speed [10.0]/animspeed;
+	move pelvis to y-axis [1] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
@@ -31,22 +33,22 @@ walk()
 	
 	
 	//turn rthigh to z-axis <-2> now;
-	turn rleg to x-axis <30> speed <200.0>/animspeed;
-	turn lthigh to x-axis <-60> speed <150.0>/animspeed;
-	turn lleg to x-axis <35> speed <350.0>/animspeed;
-	turn lfoot to x-axis <20> speed <200.0>/animspeed;
+	turn rleg to x-axis <30> speed <200.000000>/animspeed;
+	turn lthigh to x-axis <-60> speed <150.000000>/animspeed;
+	turn lleg to x-axis <35> speed <350.000000>/animspeed;
+	turn lfoot to x-axis <20> speed <200.000000>/animspeed;
 	turn pelvis to z-axis <4> speed <20>/animspeed;
-	move pelvis to y-axis [1] speed [20.0]/animspeed;
+	move pelvis to y-axis [1] speed [20.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
 	//step 3, foot lifted, knee bent
-	turn rthigh to x-axis <15> speed <70.0>/animspeed;
-	turn rleg to x-axis <0> speed <300.0>/animspeed;
-	turn rfoot to x-axis <-51> speed <290.0>/animspeed;
-	turn lthigh to x-axis <-30> speed <300.0>/animspeed;
-	turn lleg to x-axis <25> speed <100.0>/animspeed;
-	turn lfoot to x-axis <5> speed <150.0>/animspeed;
+	turn rthigh to x-axis <15> speed <70.000000>/animspeed;
+	turn rleg to x-axis <0> speed <300.000000>/animspeed;
+	turn rfoot to x-axis <-51> speed <290.000000>/animspeed;
+	turn lthigh to x-axis <-30> speed <300.000000>/animspeed;
+	turn lleg to x-axis <25> speed <100.000000>/animspeed;
+	turn lfoot to x-axis <5> speed <150.000000>/animspeed;
 	turn pelvis to z-axis <2> speed <20>/animspeed;
 	move pelvis to y-axis [1] now;
 	
@@ -54,55 +56,56 @@ walk()
 	
 	//step 4 foot lifted, knee extended
 	
-	turn lthigh to x-axis <22> speed <520.0>/animspeed;
-	turn lleg to x-axis <10> speed <350.0>/animspeed;
-	turn lfoot to x-axis <-22> speed <270.0>/animspeed;
-	turn rthigh to x-axis <-45> speed <600.0>/animspeed;
-	turn rleg to x-axis <0> speed <10.0>/animspeed;
-	turn rfoot to x-axis <0> speed <510.0>/animspeed;
+	turn lthigh to x-axis <22> speed <520.000000>/animspeed;
+	turn lleg to x-axis <10> speed <350.000000>/animspeed;
+	turn lfoot to x-axis <-22> speed <270.000000>/animspeed;
+	turn rthigh to x-axis <-45> speed <600.000000>/animspeed;
+	turn rleg to x-axis <0> speed <10.000000>/animspeed;
+	turn rfoot to x-axis <0> speed <510.000000>/animspeed;
 	turn pelvis to z-axis <-2> speed <40>/animspeed;
-	move pelvis to y-axis [1] speed [10.0]/animspeed;
+	move pelvis to y-axis [1] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
 	//step 5, foot on ground, knee extended
 	
 	
-	turn lleg to x-axis <30> speed <200.0>/animspeed;
-	turn rthigh to x-axis <-60> speed <150.0>/animspeed;
-	turn rleg to x-axis <35> speed <350.0>/animspeed;
-	turn rfoot to x-axis <20> speed <200.0>/animspeed;
+	turn lleg to x-axis <30> speed <200.000000>/animspeed;
+	turn rthigh to x-axis <-60> speed <150.000000>/animspeed;
+	turn rleg to x-axis <35> speed <350.000000>/animspeed;
+	turn rfoot to x-axis <20> speed <200.000000>/animspeed;
 	turn pelvis to z-axis <-4> speed <20>/animspeed;
-	move pelvis to y-axis [1] speed [20.0]/animspeed;
+	move pelvis to y-axis [1] speed [20.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
-	turn lthigh to x-axis <15> speed <70.0>/animspeed;
-	turn lleg to x-axis <0> speed <300.0>/animspeed;
-	turn lfoot to x-axis <-51> speed <290.0>/animspeed;
-	turn rthigh to x-axis <-30> speed <300.0>/animspeed;
-	turn rleg to x-axis <25> speed <100.0>/animspeed;
-	turn rfoot to x-axis <5> speed <150.0>/animspeed;
+	turn lthigh to x-axis <15> speed <70.000000>/animspeed;
+	turn lleg to x-axis <0> speed <300.000000>/animspeed;
+	turn lfoot to x-axis <-51> speed <290.000000>/animspeed;
+	turn rthigh to x-axis <-30> speed <300.000000>/animspeed;
+	turn rleg to x-axis <25> speed <100.000000>/animspeed;
+	turn rfoot to x-axis <5> speed <150.000000>/animspeed;
 	turn pelvis to z-axis <-2> speed <20>/animspeed;
 	
 	sleep 100*animspeed;
 	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 walklegs()
 {
 	//step 1, foot back a bit
 	
-	turn rthigh to z-axis <-2> speed <20.0>/animspeed;
-	turn rthigh to x-axis <22> speed <220.0>/animspeed;
-	turn rleg to x-axis <1> speed <10.0>/animspeed;
-	turn rfoot to x-axis <-23> speed <230.0>/animspeed;
+	turn rthigh to z-axis <-2> speed <20.000000>/animspeed;
+	turn rthigh to x-axis <22> speed <220.000000>/animspeed;
+	turn rleg to x-axis <1> speed <10.000000>/animspeed;
+	turn rfoot to x-axis <-23> speed <230.000000>/animspeed;
 	
-	turn lthigh to z-axis <2> speed <20.0>/animspeed;
-	turn lthigh to x-axis <-42> speed <740.0>/animspeed;
-	turn lleg to x-axis <-22> speed <500.0>/animspeed;
-	turn lfoot to x-axis <14> speed <650.0>/animspeed;
-	move pelvis to y-axis [1] speed [10.0]/animspeed;
+	turn lthigh to z-axis <2> speed <20.000000>/animspeed;
+	turn lthigh to x-axis <-42> speed <740.000000>/animspeed;
+	turn lleg to x-axis <-22> speed <500.000000>/animspeed;
+	turn lfoot to x-axis <14> speed <650.000000>/animspeed;
+	move pelvis to y-axis [1] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
@@ -111,44 +114,44 @@ walklegs()
 	
 	
 	//turn rthigh to z-axis <-2> now;
-	turn rthigh to x-axis <34> speed <120.0>/animspeed;
-	turn rleg to x-axis <23> speed <220.0>/animspeed;
-	turn rfoot to x-axis <-32> speed <90.0>/animspeed;
+	turn rthigh to x-axis <34> speed <120.000000>/animspeed;
+	turn rleg to x-axis <23> speed <220.000000>/animspeed;
+	turn rfoot to x-axis <-32> speed <90.000000>/animspeed;
 	
-	turn lthigh to x-axis <10> speed <520.0>/animspeed;
-	turn lleg to x-axis <-48> speed <260.0>/animspeed;
-	turn lfoot to x-axis <43> speed <290.0>/animspeed;
-	move pelvis to y-axis [0] speed [10.0]/animspeed;
+	turn lthigh to x-axis <10> speed <520.000000>/animspeed;
+	turn lleg to x-axis <-48> speed <260.000000>/animspeed;
+	turn lfoot to x-axis <43> speed <290.000000>/animspeed;
+	move pelvis to y-axis [0] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
 	//step 3, foot lifted, knee bent
 	
-	turn rthigh to z-axis <0> speed <20.0>/animspeed;
-	turn rthigh to x-axis <16> speed <180.0>/animspeed;
-	turn rleg to x-axis <28> speed <50.0>/animspeed;
-	turn rfoot to x-axis <-51> speed <190.0>/animspeed;
+	turn rthigh to z-axis <0> speed <20.000000>/animspeed;
+	turn rthigh to x-axis <16> speed <180.000000>/animspeed;
+	turn rleg to x-axis <28> speed <50.000000>/animspeed;
+	turn rfoot to x-axis <-51> speed <190.000000>/animspeed;
 	
-	turn lthigh to z-axis <0> speed <20.0>/animspeed;
-	turn lthigh to x-axis <0> speed <100.0>/animspeed;
-	turn lleg to x-axis <0> speed <480.0>/animspeed;
-	turn lfoot to x-axis <0> speed <430.0>/animspeed;
+	turn lthigh to z-axis <0> speed <20.000000>/animspeed;
+	turn lthigh to x-axis <0> speed <100.000000>/animspeed;
+	turn lleg to x-axis <0> speed <480.000000>/animspeed;
+	turn lfoot to x-axis <0> speed <430.000000>/animspeed;
 	move pelvis to y-axis [0] now;
 	
 	sleep 100*animspeed;
 	
 	//step 4 foot lifted, knee extended
 	
-	turn rthigh to z-axis <2> speed <20.0>/animspeed;
-	turn rthigh to x-axis <-21> speed <370.0>/animspeed;
-	turn rleg to x-axis <-22> speed <500.0>/animspeed;
-	turn rfoot to x-axis <14> speed <650.0>/animspeed;
+	turn rthigh to z-axis <2> speed <20.000000>/animspeed;
+	turn rthigh to x-axis <-21> speed <370.000000>/animspeed;
+	turn rleg to x-axis <-22> speed <500.000000>/animspeed;
+	turn rfoot to x-axis <14> speed <650.000000>/animspeed;
 	
-	turn lthigh to z-axis <-2> speed <20.0>/animspeed;
-	turn lthigh to x-axis <44> speed <440.0>/animspeed;
-	turn lleg to x-axis <1> speed <10.0>/animspeed;
-	turn lfoot to x-axis <-23> speed <230.0>/animspeed;
-	move pelvis to y-axis [1] speed [10.0]/animspeed;
+	turn lthigh to z-axis <-2> speed <20.000000>/animspeed;
+	turn lthigh to x-axis <44> speed <440.000000>/animspeed;
+	turn lleg to x-axis <1> speed <10.000000>/animspeed;
+	turn lfoot to x-axis <-23> speed <230.000000>/animspeed;
+	move pelvis to y-axis [1] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
@@ -156,68 +159,71 @@ walklegs()
 	
 	
 	// turn rthigh to z-axis <5> now;
-	turn rthigh to x-axis <5> speed <260.0>/animspeed;
-	turn rleg to x-axis <-48> speed <260.0>/animspeed;
-	turn rfoot to x-axis <43> speed <290.0>/animspeed;
+	turn rthigh to x-axis <5> speed <260.000000>/animspeed;
+	turn rleg to x-axis <-48> speed <260.000000>/animspeed;
+	turn rfoot to x-axis <43> speed <290.000000>/animspeed;
 	
 	//turn lthigh to z-axis <-2> now;
-	turn lthigh to x-axis <68> speed <240.0>/animspeed;
-	turn lleg to x-axis <23> speed <220.0>/animspeed;
-	turn lfoot to x-axis <-32> speed <90.0>/animspeed;
-	move pelvis to y-axis [0] speed [10.0]/animspeed;
+	turn lthigh to x-axis <68> speed <240.000000>/animspeed;
+	turn lleg to x-axis <23> speed <220.000000>/animspeed;
+	turn lfoot to x-axis <-32> speed <90.000000>/animspeed;
+	move pelvis to y-axis [0] speed [10.000000]/animspeed;
 	
 	sleep 100*animspeed;
 	
 	//Step 0, all back to default
 	
-	turn rthigh to z-axis <0> speed <20.0>/animspeed;
-	turn rthigh to x-axis <0> speed <50.0>/animspeed;
-	turn rleg to x-axis <0> speed <480.0>/animspeed;
-	turn rfoot to x-axis <0> speed <430.0>/animspeed;
+	turn rthigh to z-axis <0> speed <20.000000>/animspeed;
+	turn rthigh to x-axis <0> speed <50.000000>/animspeed;
+	turn rleg to x-axis <0> speed <480.000000>/animspeed;
+	turn rfoot to x-axis <0> speed <430.000000>/animspeed;
 	
-	turn lthigh to z-axis <0> speed <20.0>/animspeed;
-	turn lthigh to x-axis <32> speed <360.0>/animspeed;
-	turn lleg to x-axis <28> speed <50.0>/animspeed;
-	turn lfoot to x-axis <-51> speed <190.0>/animspeed;
+	turn lthigh to z-axis <0> speed <20.000000>/animspeed;
+	turn lthigh to x-axis <32> speed <360.000000>/animspeed;
+	turn lleg to x-axis <28> speed <50.000000>/animspeed;
+	turn lfoot to x-axis <-51> speed <190.000000>/animspeed;
 	move pelvis to y-axis [0] now;
 	
 	sleep 100*animspeed;
 
 }
 
-Movement(moving, aiming, justmoved)
+MotionControl(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
 	while( TRUE )
 	{
-		moving = isMoving;
-		aiming = isAiming;
+		moving = bMoving;
+		aiming = bAiming;
 		if( moving )
 		{
 			if( aiming )
 			{
+				Static_Var_3 = 1;
 				call-script walk();
 			}
 			if( !aiming )
 			{
+				Static_Var_3 = 0;
 				call-script walk();
 			}
 			justmoved = TRUE;
 		}
 		if( !moving )
 		{
+			Static_Var_3 = 1;
 			if( justmoved )
 			{
 						
-				turn rthigh to z-axis <0> speed <20.0>;
-				turn rthigh to x-axis <0> speed <50.0>;
-				turn rleg to x-axis <0> speed <480.0>;
-				turn rfoot to x-axis <0> speed <430.0>;
+				turn rthigh to z-axis <0> speed <20.000000>;
+				turn rthigh to x-axis <0> speed <50.000000>;
+				turn rleg to x-axis <0> speed <480.000000>;
+				turn rfoot to x-axis <0> speed <430.000000>;
 						
-				turn lthigh to z-axis <0> speed <20.0>;
-				turn lthigh to x-axis <0> speed <100.0>;
-				turn lleg to x-axis <0> speed <480.0>;
-				turn lfoot to x-axis <0> speed <430.0>;
+				turn lthigh to z-axis <0> speed <20.000000>;
+				turn lthigh to x-axis <0> speed <100.000000>;
+				turn lleg to x-axis <0> speed <480.000000>;
+				turn lfoot to x-axis <0> speed <430.000000>;
 				justmoved = FALSE;
 			}
 			sleep 100;
@@ -238,26 +244,30 @@ Create()
 	hide rflare;
 	hide aimx1;
 	hide aimy1;
-	isMoving = FALSE;
-	isAiming = FALSE;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	Static_Var_3 = 1;
 	miniguncount = 0;
 	restore_delay = 3000;
 	animspeed = 2.5;
 	turn rsleeve to y-axis <5> now;
 	turn lsleeve to y-axis <-5> now;
-	restore_delay = 3000;
-	start-script Movement();
+	start-script MotionControl();
 }
 
-
-StartMoving(reversing)
+SetMaxReloadTime(Func_Var_1)
 {
-	isMoving = TRUE;
+	restore_delay = 3000;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
 }
 
 StopMoving()
 {
-	isMoving = FALSE;
+	bMoving = FALSE;
 }
 
 static-var  Stunned;
@@ -266,13 +276,13 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn body to y-axis <0.0> speed <120.0>;
-	turn luparm to x-axis <0.0> speed <120.0>;
-	turn ruparm to x-axis <0.0> speed <120.0>;
-	spin rbarrel around z-axis speed <0.0>;
-	spin lbarrel around z-axis speed <0.0>;
-	isAiming = FALSE;
-	wpn1_lasthead = 0xbadface;
+	turn body to y-axis <0.000000> speed <120.000000>;
+	turn luparm to x-axis <0.000000> speed <120.000000>;
+	turn ruparm to x-axis <0.000000> speed <120.000000>;
+	spin rbarrel around z-axis speed <0.000000>;
+	spin lbarrel around z-axis speed <0.000000>;
+	bAiming = FALSE;
+	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
 {
@@ -283,21 +293,25 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	isAiming = TRUE;
-	turn body to y-axis heading speed <180.0>;
+	signal SIG_AIM;
+	bAiming = TRUE;
+	turn body to y-axis heading speed <180.000000>;
 	turn luparm to x-axis 0 - pitch speed <360>;
 	turn ruparm to x-axis 0 - pitch speed <360>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	//while( !Static_Var_3 )
+	//{
+	//	return(0);
+	//}
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
-		wpn1_lasthead = 0xbadface;
+		wpn1_lasthead = 1000000;
 		wait-for-turn body around y-axis;
 		wait-for-turn luparm around x-axis;
 	}
@@ -306,17 +320,17 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
-	spin rbarrel around z-axis speed <900.0>;
-	spin lbarrel around z-axis speed <-900.0>;
+	spin rbarrel around z-axis speed <900.000000>;
+	spin lbarrel around z-axis speed <-900.000000>;
 	return(1);
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	
 	if(miniguncount == 0)
 	{
@@ -335,25 +349,28 @@ Shot1(zero)
 	return(1);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = body;
+	piecenum = body;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if(miniguncount == 0)
 	{
-		pieceIndex = rflare;
+		piecenum = rflare;
 	}
 	if(miniguncount == 1)
 	{
-		pieceIndex = lflare;
+		piecenum = lflare;
 	}
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
 
 Killed(severity, corpsetype)
 {
@@ -364,8 +381,16 @@ Killed(severity, corpsetype)
 		explode rthigh type BITMAPONLY | NOHEATCLOUD;
 		explode rleg type BITMAPONLY | NOHEATCLOUD;
 		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
 		explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		explode body type BITMAPONLY | NOHEATCLOUD;
+		//explode lturret type BITMAPONLY | NOHEATCLOUD;
+		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
+		//explode lflare type BITMAPONLY | NOHEATCLOUD;
+		//explode rturret type BITMAPONLY | NOHEATCLOUD;
+		//explode rbarrel type BITMAPONLY | NOHEATCLOUD;
+		//explode rflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -375,8 +400,15 @@ Killed(severity, corpsetype)
 		explode rthigh type FALL | NOHEATCLOUD;
 		explode rleg type FALL | NOHEATCLOUD;
 		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type FALL | NOHEATCLOUD;
 		explode lleg type FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type FALL | NOHEATCLOUD;
+		//explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -387,8 +419,13 @@ Killed(severity, corpsetype)
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lthigh type SMOKE | FALL | NOHEATCLOUD;
+		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode body type BITMAPONLY | NOHEATCLOUD;
+		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
+		//explode rflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -396,8 +433,13 @@ Killed(severity, corpsetype)
 		explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode body type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

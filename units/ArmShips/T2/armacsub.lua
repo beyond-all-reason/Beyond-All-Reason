@@ -36,8 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 405,
-		upright = true,
-		waterline = 80, --35,
+		waterline = 80,
 		workertime = 300,
 		buildoptions = {
 			[1] = "armuwfus",

@@ -1,17 +1,19 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  flare1, flare6, flare5, flare4, flare3, flare2, base, turret, ring, spindle, aimy1, aimx1;
 
 static-var  gun_1, last_fire, firstaim;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 #define DELAY_UNIT_VAR 1024
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -47,14 +49,17 @@ Create()
 	hide flare1;
 	gun_1 = flare1;
 	firstaim = 1;
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-    signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+    signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	stop-spin aimy1 around y-axis;
 	turn aimy1 to y-axis heading speed <250>;
 	turn aimx1 to x-axis 0 - pitch speed <250>;
@@ -63,7 +68,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	spin spindle around z-axis speed <-240>;
 	
@@ -101,17 +106,20 @@ FireWeapon1()
 	}
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = gun_1;
+	piecenum = gun_1;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = turret;
+	piecenum = spindle;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

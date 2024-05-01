@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, emit, launcher;
 
@@ -7,8 +9,8 @@ piece  base, emit, launcher;
 Create()
 {
 	hide base;
-	move launcher to y-axis [6000.0] now; // how high to emit from
-	turn launcher to x-axis <90.0> now; // turn launcher down
+	move launcher to y-axis [6000.000000] now; // how high to emit from
+	turn launcher to x-axis <90.000000> now; // turn launcher down
 	sleep 33;
 	//spin arm around y-axis speed <21.978022>; // useless
 	emit-sfx 2048 from launcher;
@@ -22,22 +24,22 @@ Killed(severity, corpsetype)
 	emit-sfx 1025 from emit;
 }
 
-QueryNanoPiece(pieceIndex)
+QueryNanoPiece(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-QueryWeapon1(pieceIndex)
+QueryWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-QueryLandingPad(pieceIndex)
+QueryLandingPad(Func_Var_1)
 {
-	pieceIndex = 1;
+	Func_Var_1 = 1;
 }

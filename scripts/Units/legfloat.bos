@@ -1,14 +1,16 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  hull, lankle, lwheel, rankle, rwheel, turret, gun, barrel,
        flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater;
 
-static-var  restore_delay, oldheading, isAiming, Stunned, moving;
+static-var  restore_delay, oldheading, bAiming, Stunned, moving;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 512
+#define SIG_AIM				2
+#define SIG_AIM_2			4
 
 
 Steering(heading, steery, currentspeed)
@@ -19,12 +21,12 @@ Steering(heading, steery, currentspeed)
 	{
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > 0 )
 		{
-			turn rankle to x-axis <0.0> speed <100.0>;
-			turn lankle to x-axis <0.0> speed <100.0>;
+			turn rankle to x-axis <0.000000> speed <100.000000>;
+			turn lankle to x-axis <0.000000> speed <100.000000>;
 			heading = get HEADING;
 			steery = ( heading - oldheading ) * 3;
-			turn rankle to y-axis steery speed <75.0>;
-			turn lankle to y-axis steery speed <75.0>;
+			turn rankle to y-axis steery speed <75.000000>;
+			turn lankle to y-axis steery speed <75.000000>;
 			currentspeed = <5.5> * ((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 			if( currentspeed < <100> )
 			{
@@ -37,13 +39,13 @@ Steering(heading, steery, currentspeed)
 		}
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) <= 0 )
 		{
-			turn rankle to y-axis <0.0> speed <75.0>;
-			turn lankle to y-axis <0.0> speed <75.0>;
-			stop-spin rwheel around x-axis decelerate <5.0>;
-			stop-spin lwheel around x-axis decelerate <5.0>;
+			turn rankle to y-axis <0.000000> speed <75.000000>;
+			turn lankle to y-axis <0.000000> speed <75.000000>;
+			stop-spin rwheel around x-axis decelerate <5.000000>;
+			stop-spin lwheel around x-axis decelerate <5.000000>;
 			sleep 50;
-			turn rankle to x-axis <-30.0> speed <50.0>;
-			turn lankle to x-axis <-30.0> speed <50.0>;
+			turn rankle to x-axis <-30.000000> speed <50.000000>;
+			turn lankle to x-axis <-30.000000> speed <50.000000>;
 		}
 	}
 }
@@ -71,42 +73,91 @@ Wake()
     }
 }
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from smoke;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
 
-StartMoving(reversing)
+HitByWeapon(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+{
+	Func_Var_4 = Func_Var_3 / 100 * 4;
+	if( Func_Var_4 < 3 )
+	{
+		return (0);
+	}
+	if( Func_Var_4 > 100 )
+	{
+		Func_Var_4 = 100;
+	}
+	turn hull to z-axis Func_Var_2 * Func_Var_4 / <0.549451> speed <85.000000>;
+	turn hull to x-axis <0.000000> - Func_Var_1 * Func_Var_4 / <0.549451> speed <85.000000>;
+	wait-for-turn hull around z-axis;
+	wait-for-turn hull around x-axis;
+	turn hull to z-axis <0.000000> speed <85.000000> / <0.021978>;
+	turn hull to x-axis <0.000000> speed <85.000000> / <0.021978>;
+}
+
+HitByWeaponId(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+{
+	start-script HitByWeapon(Func_Var_4,Func_Var_2,Func_Var_1);
+	return (100);
+}
+
+StartMoving()
 {
 	start-script Steering();
 	moving = 1;
-	turn hull to x-axis <-7.0> speed <11.0>;
+	turn hull to x-axis <-7.000000> speed <11.000000>;
 	wait-for-turn hull around x-axis;
-	turn hull to x-axis <0.0> speed <11.0>;
+	turn hull to x-axis <0.000000> speed <11.000000>;
 }
 
 StopMoving()
 {
 	moving = 0;
-	turn hull to x-axis <1.0> speed <5.0>;
+	turn hull to x-axis <1.000000> speed <5.000000>;
 	wait-for-turn hull around x-axis;
-	turn hull to x-axis <0.0> speed <5.0>;
+	turn hull to x-axis <0.000000> speed <5.000000>;
 	signal 8;
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
 }
-#define SMOKE_PIECE hull
-#include "../damagedsmoke.h"
+
 Create()
 {
 	hide flare;
 	hide fwater;
 	moving= 0;
 	restore_delay = 3000;
+	start-script SmokeUnit();
 	start-script Wake();
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
 ExecuteRestoreAfterDelay()
@@ -116,11 +167,11 @@ ExecuteRestoreAfterDelay()
 		return (1);
 	}
 	set-signal-mask 0;
-	turn turret to y-axis <0.0> speed <90.0>;
-	turn gun to x-axis <0.0> speed <50.0>;
-	turn aaturret to y-axis <0.0> speed <120.0>;
-	turn aagun to x-axis <0.0> speed <70.0>;
-	stop-spin aabarrel around z-axis decelerate <5.0>;
+	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn gun to x-axis <0.000000> speed <50.000000>;
+	turn aaturret to y-axis <0.000000> speed <120.000000>;
+	turn aagun to x-axis <0.000000> speed <70.000000>;
+	stop-spin aabarrel around z-axis decelerate <5.000000>;
 }
 
 SetStunned(State)
@@ -134,20 +185,20 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	stop-spin aabarrel around z-axis decelerate <5.0>;
+	stop-spin aabarrel around z-axis decelerate <5.000000>;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <60.0>;
-	turn gun to x-axis <0.0> - pitch speed <30.0>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <60.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <30.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
-	isAiming = heading;
+	bAiming = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -156,25 +207,25 @@ Rock_Main_Cannon()
 {
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) >= 0 )
 	{
-		turn hull to z-axis <0.0> - (GET KSIN(isAiming)) * 3 / 2 speed <125.0>;
-		turn hull to x-axis <0.0> - (GET KCOS(isAiming)) * 9 / 10 speed <75.0>;
+		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 / 2 speed <125.000000>;
+		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 10 speed <75.000000>;
 		wait-for-turn hull around z-axis;
 		wait-for-turn hull around x-axis;
-		turn hull to z-axis <0.0> speed <45.0>;
-		turn hull to x-axis <0.0> speed <27.0>;
+		turn hull to z-axis <0.000000> speed <45.000000>;
+		turn hull to x-axis <0.000000> speed <27.000000>;
 	}
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 )
 	{
-		turn hull to z-axis <0.0> - (GET KSIN(isAiming)) * 3 speed <125.0>;
-		turn hull to x-axis <0.0> - (GET KCOS(isAiming)) * 9 / 5 speed <75.0>;
+		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 speed <125.000000>;
+		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 5 speed <75.000000>;
 		wait-for-turn hull around z-axis;
 		wait-for-turn hull around x-axis;
-		turn hull to z-axis <0.0> speed <15.0>;
-		turn hull to x-axis <0.0> speed <9.0>;
+		turn hull to z-axis <0.000000> speed <15.000000>;
+		turn hull to x-axis <0.000000> speed <9.000000>;
 	}
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 { 
     var gun_xz;
     gun_xz = get PIECE_XZ(gun);                                //get packed gun coordinates
@@ -223,53 +274,56 @@ AimWeapon2(heading, pitch)
     var trueaim;
     trueaim = cauaim - cauface;                                //calculate angle of turret relative to the hull
     
-    signal SIGNAL_AIM2;
-    set-signal-mask SIGNAL_AIM2;
-    turn aaturret to y-axis heading + trueaim speed <300.0>;    //add the result to the y axis heading
-    turn aagun to x-axis <0.0> - pitch speed <65.0>;        //the rest of the AimWeapon2 script
+    signal SIG_AIM_2;
+    set-signal-mask SIG_AIM_2;
+    turn aaturret to y-axis heading + trueaim speed <300.000000>;    //add the result to the y axis heading
+    turn aagun to x-axis <0.000000> - pitch speed <65.000000>;        //the rest of the AimSecondary script
     wait-for-turn aaturret around y-axis;
     wait-for-turn aagun around x-axis;
     start-script RestoreAfterDelay();
     return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	start-script Rock_Main_Cannon();
 	emit-sfx 1024 + 0 from flare;
 	emit-sfx 1024 + 3 from fwater;
-	move barrel to z-axis [-3.0] speed [500.0];
+	move barrel to z-axis [-3.0000] speed [500.000000];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.0] speed [3.0];
+	move barrel to z-axis [0.000000] speed [3.000000];
 }
 
-FireWeapon2()
+FireSecondary()
 {
-	spin aabarrel around z-axis speed <900.0>;
+	spin aabarrel around z-axis speed <900.000000>;
 	return (1);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = gun;
+	piecenum = gun;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = aagun;
+	piecenum = aagun;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = aaflare;
+	piecenum = aaflare;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = hull;
+}
 
 Killed(severity, corpsetype)
 {

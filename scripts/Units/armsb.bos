@@ -1,7 +1,27 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base,thrusta, thrustb,thrustc,doorl,doorr,drop;
+
+static-var  Static_Var_1, bMoving, statechg_DesiredState, statechg_StateChanging;
+
+Go()
+{
+
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+Stop()
+{
+	turn doorl to z-axis <0.000000> speed <25.000000>;
+	turn doorr to z-axis <0.000000> speed <25.000000>;
+	wait-for-turn doorr around z-axis;
+}
+
+
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -9,7 +29,45 @@ piece  base,thrusta, thrustb,thrustc,doorl,doorr,drop;
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+
+MotionControl()
+{
+
+}
 
 Create()
 {
@@ -17,13 +75,19 @@ Create()
 	hide thrustc;
 	hide thrustb;
 	hide thrusta;
+	Static_Var_1 = 0;
+	bMoving = FALSE;
+	call-script InitState();
+	start-script MotionControl();
 }
+
 
 Activate()
 {
 	show thrustc;
 	show thrustb;
 	show thrusta;
+	start-script RequestState(0);
 }
 
 Deactivate()
@@ -31,25 +95,39 @@ Deactivate()
 	hide thrustc;
 	hide thrustb;
 	hide thrusta;
+	start-script RequestState(1);
 }
 
-QueryWeapon1(pieceIndex)
+setSFXoccupy(Func_Var_1)
 {
-	pieceIndex = drop;
+	Static_Var_1 = Func_Var_1;
 }
 
-AimWeapon1()
+StartMoving()
 {
-	turn doorl to z-axis <-90.0> speed <25.0>;
-	turn doorr to z-axis <90.0> speed <25.0>;
+	bMoving = TRUE;
 }
 
-FireWeapon1(){
-	sleep 500;
-	turn doorl to z-axis <0.0> speed <25.0>;
-	turn doorr to z-axis <0.0> speed <25.0>;
+StopMoving()
+{
+	bMoving = FALSE;
 }
 
+QueryPrimary(piecenum)
+{
+	piecenum = drop;
+}
+
+AimPrimary()
+{
+	turn doorl to z-axis <-90.000000> speed <25.000000>;
+	turn doorr to z-axis <90.000000> speed <25.000000>;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

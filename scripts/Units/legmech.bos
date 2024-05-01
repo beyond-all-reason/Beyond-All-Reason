@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull, AA_turret_gun_1, 
 			AA_turret_gun_2, AA_turret_radar, Left_turret_main, Left_turret_gun, Right_turret_main, Right_turret_gun, 
@@ -8,17 +10,17 @@ piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull
 			Torso_turret_left_gun_flare, Torso_turret_right_gun_flare, Ref_Point, mis1, mis2, mis3, mis4;  
 
 static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
-            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, isMoving, animSpeed, maxspeed, missile_count;
+            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, animSpeed, maxspeed, missile_count;
 
 // Signal definitions
-#define SIGNAL_AIM1	256
-#define SIGNAL_AIM2 512
-#define SIGNAL_AIM3 1024
-#define SIGNAL_AIM4 2048
-#define SIGNAL_SHOOT1 16
-#define SIGNAL_AIM5 4096
-#define SIGNAL_MOVE 1
-#define SIGNAL_SHOOT2 32
+#define SIG_AIM_1	2
+#define SIG_AIM_2 	4
+#define SIG_AIM_3 	8
+#define SIG_AIM_4 	16
+#define SIG_FIRE1 	32
+#define SIG_AIM_5 	64
+#define SIG_WALK	128
+#define SIG_FIRE2 	256
 
 // REMEMBER TO animspeed = 4 in Create() !!
 //--------------------------------------------------------
@@ -27,7 +29,7 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
 
 walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 {
-	set-signal-mask SIGNAL_MOVE;	if (isMoving) { //Frame:4
+	set-signal-mask SIG_WALK;	if (bMoving) { //Frame:4
 			//turn lfoot to x-axis <-45.174461> speed <1339.883614> / animSpeed; 
 			//turn lfoot to z-axis <-8.711228> speed <587.665429> / animSpeed; 
 			//turn lfoot to y-axis <-2.849490> speed <76.187203> / animSpeed; 
@@ -40,7 +42,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <25> speed <393> / animSpeed; 
 			turn lthigh to z-axis <3.2> speed <191.5> / animSpeed; 
 			turn lthigh to y-axis <-0.56> speed <61.8> / animSpeed; 
-			turn pelvis to x-axis <-0.0> speed <149.999983> / animSpeed; 
+			turn pelvis to x-axis <-0.000000> speed <149.999983> / animSpeed; 
 			//turn rfoot to x-axis <38.546265> speed <1128.417134> / animSpeed; 
 			//turn rfoot to z-axis <-6.897524> speed <101.979838> / animSpeed; 
 			//turn rfoot to y-axis <-1.430482> speed <57.160004> / animSpeed; 
@@ -55,8 +57,8 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <1.017> speed <71.8> / animSpeed; 
 		sleep 131;
 	}
-	while(isMoving) {
-		if (isMoving) { //Frame:8
+	while(bMoving) {
+		if (bMoving) { //Frame:8
 			//turn lfoot to x-axis <-39.050804> speed <183.709720> / animSpeed; 
 			//turn lfoot to z-axis <-3.901796> speed <144.282974> / animSpeed; 
 			//turn lfoot to y-axis <-0.770642> speed <62.365451> / animSpeed; 
@@ -71,7 +73,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to y-axis <0.44> speed <30.19> / animSpeed; 
 			move pelvis to y-axis [-0.870000] speed [26] / animSpeed; 
 			turn pelvis to x-axis <4.568749> speed <137.062482> / animSpeed; 
-			turn pelvis to y-axis <-4.0> speed <119.999986> / animSpeed; 
+			turn pelvis to y-axis <-4.000000> speed <119.999986> / animSpeed; 
 			//turn rfoot to x-axis <5.633654> speed <987.378323> / animSpeed; 
 			//turn rfoot to z-axis <0.002615> speed <207.004152> / animSpeed; 
 			//turn rfoot to y-axis <-0.002489> speed <42.839816> / animSpeed; 
@@ -80,13 +82,13 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rknee to y-axis <-0.903029> speed <17.539158> / animSpeed; 
 			turn rleg to x-axis <60> speed <1996.137709> / animSpeed; 
 			turn rleg to z-axis <-2.989707> speed <65.145727> / animSpeed; 
-			turn rleg to y-axis <5.0> speed <92.860037> / animSpeed; 
+			turn rleg to y-axis <5.000039> speed <92.860037> / animSpeed; 
 			turn rthigh to x-axis <-45> speed <449.5> / animSpeed; 
 			turn rthigh to z-axis <-1.83> speed <33.38> / animSpeed; 
 			turn rthigh to y-axis <2.71> speed <50.75> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:12
+		if (bMoving) { //Frame:12
 			//turn lfoot to x-axis <-41.708304> speed <79.725007> / animSpeed; 
 			//turn lfoot to z-axis <-0.001299> speed <117.014899> / animSpeed; 
 			//turn lfoot to y-axis <-0.002305> speed <23.050116> / animSpeed; 
@@ -116,7 +118,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.9> speed <53.8> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:16
+		if (bMoving) { //Frame:16
 			//turn lfoot to x-axis <-3.910388> speed <1133.937479> / animSpeed; 
 			turn lknee to x-axis <25.256626> speed <395.785377> / animSpeed; 
 			turn lknee to z-axis <-1.943760> speed <74.640670> / animSpeed; 
@@ -144,7 +146,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.81> speed <3.14> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:20
+		if (bMoving) { //Frame:20
 			//turn lfoot to x-axis <38.552084> speed <1273.874173> / animSpeed; 
 			turn lknee to x-axis <-3.971019> speed <876.829355> / animSpeed; 
 			turn lknee to z-axis <1.007743> speed <88.545099> / animSpeed; 
@@ -155,9 +157,9 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <-23> speed <562> / animSpeed; 
 			turn lthigh to z-axis <0.69> speed <53.29> / animSpeed; 
 			turn lthigh to y-axis <-0.985> speed <53.47> / animSpeed; 
-			move pelvis to y-axis [0.0] speed [13.0] / animSpeed; 
-			turn pelvis to x-axis <-0.0> speed <88.499997> / animSpeed; 
-			turn pelvis to y-axis <0.0> speed <163.593733> / animSpeed; 
+			move pelvis to y-axis [0.000000] speed [13.00000] / animSpeed; 
+			turn pelvis to x-axis <-0.000000> speed <88.499997> / animSpeed; 
+			turn pelvis to y-axis <0.000000> speed <163.593733> / animSpeed; 
 			//turn rfoot to x-axis <-45.601082> speed <1486.777649> / animSpeed; 
 			//turn rfoot to z-axis <8.777723> speed <72.755435> / animSpeed; 
 			//turn rfoot to y-axis <2.942875> speed <14.622197> / animSpeed; 
@@ -172,7 +174,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.525> speed <8.57> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:24
+		if (bMoving) { //Frame:24
 			//turn lfoot to x-axis <5.205345> speed <1000.402167> / animSpeed; 
 			turn lknee to x-axis <-38.112097> speed <1024.232325> / animSpeed; 
 			turn lknee to z-axis <0.216327> speed <23.742493> / animSpeed; 
@@ -200,7 +202,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <0.0675> speed <13.77> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:28
+		if (bMoving) { //Frame:28
 			//turn lfoot to x-axis <47.099178> speed <1256.814981> / animSpeed; 
 			//turn lfoot to z-axis <-8.698515> speed <260.859201> / animSpeed; 
 			//turn lfoot to y-axis <0.555569> speed <16.591946> / animSpeed; 
@@ -230,7 +232,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-0.975> speed <31.25> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:32
+		if (bMoving) { //Frame:32
 			//turn lfoot to x-axis <3.635010> speed <1303.925050> / animSpeed; 
 			//turn lfoot to z-axis <-6.350171> speed <70.450323> / animSpeed; 
 			//turn lfoot to y-axis <-2.491368> speed <91.408108> / animSpeed; 
@@ -244,7 +246,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to z-axis <1.75> speed <35.8> / animSpeed; 
 			turn lthigh to y-axis <-.757> speed <4.7> / animSpeed; 
 			move pelvis to y-axis [-0.430000] speed [26] / animSpeed; 
-			turn pelvis to x-axis <3.299998> speed <99.0> / animSpeed; 
+			turn pelvis to x-axis <3.299998> speed <99.000036> / animSpeed; 
 			turn pelvis to y-axis <3.749998> speed <112.500029> / animSpeed; 
 			//turn rfoot to x-axis <-2.631426> speed <1150.192505> / animSpeed; 
 			turn rknee to x-axis <25.001153> speed <390.905062> / animSpeed; 
@@ -258,7 +260,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn rthigh to y-axis <-0.791> speed <5.479> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:36
+		if (bMoving) { //Frame:36
 			//turn lfoot to x-axis <-45.174461> speed <1464.284129> / animSpeed; 
 			//turn lfoot to z-axis <-8.711228> speed <70.831730> / animSpeed; 
 			//turn lfoot to y-axis <-2.849490> speed <10.743672> / animSpeed; 
@@ -271,9 +273,9 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 			turn lthigh to x-axis <14.23> speed <474.6> / animSpeed; 
 			turn lthigh to z-axis <3.207> speed <43.6> / animSpeed; 
 			turn lthigh to y-axis <-0.564> speed <5.8> / animSpeed; 
-			move pelvis to y-axis [0.0] speed [13] / animSpeed; 
-			turn pelvis to x-axis <-0.0> speed <98.999946> / animSpeed; 
-			turn pelvis to y-axis <0.0> speed <112.499952> / animSpeed; 
+			move pelvis to y-axis [0.000000] speed [13] / animSpeed; 
+			turn pelvis to x-axis <-0.000000> speed <98.999946> / animSpeed; 
+			turn pelvis to y-axis <0.000000> speed <112.499952> / animSpeed; 
 			//turn rfoot to x-axis <38.366183> speed <1229.928296> / animSpeed; 
 			turn rknee to x-axis <-3.925581> speed <867.802018> / animSpeed; 
 			turn rknee to z-axis <-1.245253> speed <55.816170> / animSpeed; 
@@ -288,9 +290,9 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		}
 	}
 }
-// Call this from StopMoving()!
+// Call this from MotionControl()!
 StopWalking() {
-	move pelvis to y-axis [0.0] speed [2.2];
+	move pelvis to y-axis [0.000000] speed [2.2];
 	//turn lfoot to x-axis <-0.511674> speed <366.071032>;
 	//turn lfoot to y-axis <-0.309917> speed <22.852027>;
 	//turn lfoot to z-axis <10.877619> speed <146.916357>;
@@ -304,7 +306,7 @@ StopWalking() {
 	turn lthigh to y-axis <1.495> speed <5.15>;
 	turn lthigh to z-axis <-3.177> speed <16>;
 	turn pelvis to x-axis <-4.999999> speed <12.5>;
-	turn pelvis to y-axis <0.0> speed <13.6>;
+	turn pelvis to y-axis <0.000000> speed <13.6>;
 	//turn rfoot to x-axis <0.932360> speed <371.694412>;
 	//turn rfoot to y-axis <0.474851> speed <22.005134>;
 	//turn rfoot to z-axis <-10.296852> speed <64.797402>;
@@ -341,21 +343,21 @@ UnitSpeed(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	isMoving = 1;
+	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
+	bMoving = 1;
 	start-script UnitSpeed();
 	start-script walk();
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	isMoving = 0;
+	signal SIG_WALK;
+	bMoving = 0;
 	start-script StopWalking();
 }
 
@@ -382,9 +384,9 @@ Create(){
 }
 
 RestoreAfterDelay(){
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIG_AIM_1;
 	sleep 3000;
-	turn Main_hull to  y-axis <0> speed <105.0> ; //-- Turn(torso, y-axis, 0, math.rad(305))
+	turn Main_hull to  y-axis <0> speed <105.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	turn AA_turret_main to y-axis <0> speed <180>;
 	turn AA_turret_gun_hull to x-axis <0> speed <180>;
 	turn Left_turret_main to y-axis <0> speed <120>;
@@ -395,42 +397,46 @@ RestoreAfterDelay(){
 	turn Torso_turret_left_hull_2 to x-axis <0> speed <120>;
 	turn Torso_turret_right_hull_2 to x-axis <0> speed <120>;
 	torsoaim = 0;
-	wpn1_lasthead = 0xbadface;
+	wpn1_lasthead = 1000000;
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = Main_hull;
+	return (0);
+}
 
-
-QueryWeapon1(pieceIndex) //Hull Rotation
+QueryWeapon1(piecenum) //Hull Rotation
 {
 	if(missile_count==0)
 	{
-		pieceIndex=mis1;	
+		piecenum=mis1;	
 	}
 	if(missile_count==1)
 	{
-		pieceIndex=mis2;
+		piecenum=mis2;
 	}
 	if(missile_count==2)
 	{
-		pieceIndex=mis3;
+		piecenum=mis3;
 	}
 	if(missile_count==3)
 	{
-		pieceIndex=mis4;
+		piecenum=mis4;
 	}
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromWeapon1(piecenum)
 {
-	pieceIndex = Main_hull;
+	piecenum = Main_hull;
 	return (0);
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn Main_hull to y-axis heading speed <90.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	signal SIG_AIM_1;
+	set-signal-mask SIG_AIM_1;
+	turn Main_hull to y-axis heading speed <90.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	var gun_xz;
     gun_xz = get PIECE_XZ(Main_hull);                                //get packed gun coordinates
     var gun_x;
@@ -472,15 +478,15 @@ AimWeapon1(heading, pitch)
 	
 	var cauaim;
     var cauface;
-    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180ï¿½), positive or negative depending on direction
-    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180ï¿½), positive or negative depending on direction
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
     //var torsoaim;
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
-		wpn1_lasthead = 0xbadface;
+		wpn1_lasthead = 1000000;
 		wait-for-turn Main_hull around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -495,8 +501,8 @@ FireWeapon1()
 
 Shot1(zero)
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	sleep 32;
 	++missile_count;
 	if(missile_count>=4)
@@ -506,28 +512,27 @@ Shot1(zero)
 	return(1);
 }
 
-QueryWeapon2(pieceIndex) //R Shotgun
+QueryWeapon2(piecenum) //R Shotgun
 {
-	pieceIndex = Right_turret_gun_flare;
+	piecenum = Right_turret_gun_flare;
 	return (0);
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromWeapon2(piecenum)
 {
-	pieceIndex = Right_turret_main;
+	piecenum = Right_turret_main;
 	return (0);
 }
 
 AimWeapon2(heading, pitch) //pew pew
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	turn Right_turret_main to y-axis heading - torsoaim speed <100.0>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn Right_turret_main to x-axis -1*pitch speed <100.0>;
-
-	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <14>))
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn Right_turret_main to y-axis heading - torsoaim speed <100.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn Right_turret_main to x-axis -1*pitch speed <100.0000>;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 2500) AND ((get ABS(wpn2_lasthead - heading)) < 64236)))
 	{
-		wpn2_lasthead = 0xbadface;
+		wpn2_lasthead = 1000000;
 		wait-for-turn Right_turret_main around y-axis;
 		wait-for-turn Right_turret_main around x-axis;
 	}
@@ -544,28 +549,27 @@ FireWeapon2()
 	return (1);
 }
 
-QueryWeapon3(pieceIndex) //L Railgun
+QueryWeapon3(piecenum) //L Railgun
 {
-	pieceIndex = Left_turret_gun_flare;
+	piecenum = Left_turret_gun_flare;
 	return (0);
 }
 
-AimFromWeapon3(pieceIndex)
+AimFromWeapon3(piecenum)
 {
-	pieceIndex = Left_turret_main;
+	piecenum = Left_turret_main;
 	return (0);
 }
 
 AimWeapon3(heading, pitch) //pew pew
 {
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
-	turn Left_turret_main to y-axis heading - torsoaim speed <100.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn Left_turret_main to x-axis -1*pitch speed <100.0> ;
-
-	if ((wpn3_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn3_lasthead), <14>))
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn Left_turret_main to y-axis heading - torsoaim speed <100.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn Left_turret_main to x-axis -1*pitch speed <100.0000> ;
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
 	{
-		wpn3_lasthead = 0xbadface;
+		wpn3_lasthead = 1000000;
 		wait-for-turn Left_turret_main around y-axis;
 		wait-for-turn Left_turret_main around x-axis;
 	}
@@ -582,36 +586,35 @@ FireWeapon3()
 	return (1);
 }
 
-QueryWeapon4(pieceIndex) //Mid Guns
+QueryWeapon4(piecenum) //Mid Guns
 {
 	if(miniguncount == 0)
 	{
-		pieceIndex = Torso_turret_Right_gun;
+		piecenum = Torso_turret_Right_gun;
 	}
 	if(miniguncount == 1)
 	{
-		pieceIndex = Torso_turret_left_gun;
+		piecenum = Torso_turret_left_gun;
 	}
 	return (0);
 }
 
-AimFromWeapon4(pieceIndex)
+AimFromWeapon4(piecenum)
 {
-	pieceIndex = Torso_turret_main;
+	piecenum = Torso_turret_main;
 	return (0);
 }
 
 AimWeapon4(heading, pitch)
 {
-	signal SIGNAL_AIM4;
-	set-signal-mask SIGNAL_AIM4;
-	turn Torso_turret_main to y-axis heading - torsoaim speed <200.0>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn Torso_turret_right_hull_2 to x-axis -1*pitch speed <200.0>;
-	turn Torso_turret_left_hull_2 to x-axis -1*pitch speed <200.0>;
-
-	if ((wpn4_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn4_lasthead), <7>))
+	signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
+	turn Torso_turret_main to y-axis heading - torsoaim speed <200.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn Torso_turret_right_hull_2 to x-axis -1*pitch speed <200.0000>;
+	turn Torso_turret_left_hull_2 to x-axis -1*pitch speed <200.0000>;
+	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 1300) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
 	{
-		wpn4_lasthead = 0xbadface;
+		wpn4_lasthead = 1000000;
 		wait-for-turn Torso_turret_main around y-axis;
 		wait-for-turn Torso_turret_left_hull_1 around x-axis;
 		wait-for-turn Torso_turret_left_hull_2 around x-axis;
@@ -627,8 +630,8 @@ FireWeapon4()
 
 Shot4(zero)
 {
-	signal SIGNAL_SHOOT2;
-	set-signal-mask SIGNAL_SHOOT2;
+	signal SIG_FIRE2;
+	set-signal-mask SIG_FIRE2;
 	
 	if(miniguncount == 0)
 	{
@@ -647,30 +650,30 @@ Shot4(zero)
 	return(1);
 }
 
-QueryWeapon5(pieceIndex) //top AA
+QueryWeapon5(piecenum) //top AA
 {
 	if(gun_1 == 0)
 	{
-		pieceIndex = AA_turret_gun_1;
+		piecenum = AA_turret_gun_1;
 	}
 	if(gun_1 == 1)
 	{
-		pieceIndex = AA_turret_gun_2;
+		piecenum = AA_turret_gun_2;
 	}
 	return (0);
 }
 
-AimFromWeapon5(pieceIndex)
+AimFromWeapon5(piecenum)
 {
-	pieceIndex = Torso_turret_main;
+	piecenum = Torso_turret_main;
 	return (0);
 }
 
 AimWeapon5(heading, pitch) //pew pew
 {
-	signal SIGNAL_AIM5;
-	set-signal-mask SIGNAL_AIM5;
-	turn AA_turret_main to  y-axis heading - torsoaim speed <200.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	turn AA_turret_main to  y-axis heading - torsoaim speed <200.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn AA_turret_gun_hull to x-axis -1*pitch speed <200>;
 	wait-for-turn AA_turret_main around y-axis;
 	wait-for-turn AA_turret_gun_hull around x-axis;

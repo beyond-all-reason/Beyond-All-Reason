@@ -1,7 +1,7 @@
-# Written by ashdnazg https://github.com/ashdnazg/bos2cob
-# Extended by Beherith to https://github.com/beyond-all-reason/BARScriptCompiler
+# written by ashdnazg https://github.com/ashdnazg/bos2cob
 # released under the GNU GPL v3 license
 
+import sys
 import sys
 import os.path
 from glob import glob
@@ -114,9 +114,7 @@ OPS = {
 	'&&' : OPCODES['LOGICAL_AND'],
 	'||' : OPCODES['LOGICAL_OR'],
 	'AND' : OPCODES['LOGICAL_AND'],
-	'and' : OPCODES['LOGICAL_AND'],
 	'OR' : OPCODES['LOGICAL_OR'],
-	'or' : OPCODES['LOGICAL_OR'],
 }
 
 OPS_PRECEDENCE = {
@@ -134,10 +132,8 @@ OPS_PRECEDENCE = {
 	'|' : 6,
 	'&&' : 7,
 	'AND' : 7,
-	'and' : 7,
 	'||' : 8,
 	'OR' : 8,
-	'or' : 8,
 }
 
 UNARY_OPS = {
@@ -222,8 +218,6 @@ class Node(object):
 
 def parse_string(pump, node):
 	token = pump.next()
-	if type(token) == tuple:
-		token = token[0]
 	if len(token) == 0:
 		return False
 	if token.startswith("\""):
@@ -233,8 +227,6 @@ def parse_string(pump, node):
 
 def parse_int(pump, node):
 	token = pump.next()
-	if type(token) == tuple:
-		token = token[0]
 	if len(token) == 0:
 		return False
 	if token.startswith("0x"):
@@ -252,8 +244,6 @@ def parse_int(pump, node):
 
 def parse_identifier(pump, node):
 	token = pump.next()
-	if type(token) == tuple:
-		token = token[0]
 	if len(token) == 0:
 		return False
 	if token[0].isalpha() or token[0] == '_':
@@ -263,8 +253,6 @@ def parse_identifier(pump, node):
 
 def parse_float(pump, node):
 	token = pump.next()
-	if type(token) == tuple:
-		token = token[0]
 	if len(token) == 0:
 		return False
 	if token.count(".") > 1:
@@ -773,33 +761,13 @@ class Compiler(object):
 
 class Pump(object):
 	def __init__(self, generator):
-		leftovers = []
-		for token, idx in generator:
-			#For some godforsaken reason, the generator sometimes returns nested tuples, 
-			while(type(token) == tuple):
-				token = token[0]
-			#if type(token) == type((1,1)):
-			#	token, idx = token[0], token[1]
-
-
-			leftovers.append((token,idx))
-			#print ("__init__(self, generator):",token,idx)
-			if type(token) == type((1,1)):
-				print(generator, token, idx)
-				#print(generator.gi_frame.f_locals['context'])
-				#raise ValueError("returned a tuple", token, idx)
-				#exit(1)
-		self._leftovers = leftovers
-		#self._leftovers = [(token, idx) for token, idx in generator]
+		self._leftovers = [token for token in generator]
 		self._index = 0
 		self._max_index = 0
-		self.trace_tokens = {} # A list of lines?
 
 	def next(self):
 		if self._index < len(self._leftovers):
-			token, idx = self._leftovers[self._index]
-
-			#print(token,idx)
+			token = self._leftovers[self._index]
 			self._index += 1
 			self._max_index = max(self._max_index, self._index)
 			return token
@@ -821,10 +789,6 @@ def parse(pump, node, block_type):
 	for element_type in ELEMENTS_DICT:
 		if block_type.lower() in ELEMENTS_DICT[element_type]:
 			next = pump.next()
-			#print ("parse", next, pump)
-			if type(next) == type((1,1)):
-				print ("Fixing next", next)
-				next = next[0]
 			if next.lower() == block_type.lower():
 				node.add_child(Node(element_type, next))
 				return True
@@ -881,7 +845,6 @@ def token_generator(code):
 	prev_idx = 0
 
 	while (idx < len(code)):
-		print(idx, code[prev_idx:idx])
 		if not is_line_comment and not is_multi_line_comment and not is_in_quotation and code[idx] == '"':
 			is_in_quotation = True
 			prev_idx = idx
@@ -891,9 +854,7 @@ def token_generator(code):
 		if not is_line_comment and not is_multi_line_comment and is_in_quotation and code[idx] == '"':
 			is_in_quotation = False
 			idx+=1
-			
-			#print(1,  code[prev_idx:idx], idx)
-			yield code[prev_idx:idx], idx
+			yield code[prev_idx:idx]
 			prev_idx = idx
 			continue
 
@@ -901,13 +862,10 @@ def token_generator(code):
 			is_line_comment = True
 			s = code[prev_idx:idx].strip()
 			if len(s) > 0:
-				
-				#print(2,  s, idx)
-				yield s, idx
+				yield s
 			if is_preprocessor:
 				is_preprocessor = False
-				#print(3,  '$', idx)
-				yield '$', idx
+				yield '$'
 			idx+=2
 			prev_idx = idx
 			continue
@@ -916,8 +874,7 @@ def token_generator(code):
 			is_multi_line_comment = True
 			s = code[prev_idx:idx].strip()
 			if len(s) > 0:
-				#print(4,  s, idx)
-				yield s, idx
+				yield s
 			idx+=2
 			prev_idx = idx
 			continue
@@ -926,11 +883,8 @@ def token_generator(code):
 			is_preprocessor = True
 			s = code[prev_idx:idx].strip()
 			if len(s) > 0:
-				
-				#print(5,  s, idx)
-				yield s, idx
-			#print(6,  "#", idx)
-			yield '#', idx
+				yield s
+			yield '#'
 			idx+=1
 			prev_idx = idx
 			continue
@@ -939,12 +893,8 @@ def token_generator(code):
 			is_preprocessor = False
 			s = code[prev_idx:idx].strip()
 			if len(s) > 0:
-				
-				#print(7,  s, idx)
-				yield s, idx
-			
-			#print(8,  '$', idx)
-			yield '$', idx #mark end of preprocessor directive
+				yield s
+			yield '$' #mark end of preprocessor directive
 			idx+=1
 			prev_idx = idx
 			continue
@@ -965,13 +915,11 @@ def token_generator(code):
 		if not skip and (code[idx] in symbol_delimiters):
 			token = code[prev_idx:idx].strip().strip('\\')
 			if len(token) > 0:
-				#print(9, token,idx)
-				yield token, idx
+				yield token
 
 			symbol_token = code[idx:idx+1].strip().strip('\\')
 			if len(symbol_token) > 0:
-				#print(10, symbol_token,idx)
-				yield symbol_token, idx
+				yield symbol_token
 
 			idx+=1
 			prev_idx=idx
@@ -983,13 +931,12 @@ def token_generator(code):
 		token = code[prev_idx:idx].strip()
 		prev_idx = idx
 		if len(token) > 0:
-			#print(11, token,idx)
-			yield token, idx
+			yield token
 
 
 def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN_UNIT_VALUE" : ""}, recursion = 0):
 	if recursion > 10:
-		print ("Error: recursion limit reached")
+		print "Error: recursion limit reached"
 		exit(1)
 
 	gen = token_generator(code)
@@ -998,16 +945,14 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 	ifs = 0
 	while True:
 		try:
-			token, idx = gen.next()
-			print (token)
-		except Exception as e:
+			token = gen.next()
+		except:
 			if ifs > 0:
-				print ("Error: Missing #endif at %d"%(idx))
+				print "Error: Missing #endif"
 				exit(1)
 			if is_preprocessor_directive:
-				print ("Preprocessor error at %d"%(idx))
+				print "Preprocessor error"
 				exit(1)
-			raise e
 			break
 
 		if token == '#':
@@ -1021,11 +966,11 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 			if skip > 0:
 				continue
 			if token not in defs:
-				yield token, idx
+				yield token
 				continue
 
 			for prep_tokens in preprocess(defs[token], include_path, defs, recursion + 1):
-				yield prep_tokens, idx
+				yield prep_tokens
 			continue
 
 		is_preprocessor_directive = False
@@ -1033,31 +978,30 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 		if token.lower() == 'include':
 			if skip > 0:
 				continue
-			included, idx = gen.next()
-			included = included.strip('"')
+			included = gen.next().strip('"')
 			try:
 				if not os.path.exists(included):
 					alt_path = os.path.join(include_path, included)
 					if not os.path.exists(alt_path):
-						print ('Error: can\'t find %s at %d' %( included, idx))
+						print 'Error: can\'t find %s' % included
 						exit(1)
 					included = alt_path
 
 				content = open(included, 'rb').read()
 				for prep_tokens in preprocess(content, include_path, defs, recursion + 1):
-					yield prep_tokens, idx
+					yield prep_tokens
 			except:
-				print ('Error: Couldn\'t include %s, at token %s at %d' % (included, token, idx))
+				print 'Error: Couldn\'t include %s' % (included,)
 				exit(1)
 			continue
 
 		if token.lower() == 'define':
 			if skip > 0:
 				continue
-			current_definition, idx = gen.next()
+			current_definition = gen.next()
 			defs[current_definition] = ""
 			while True:
-				token, idx = gen.next()
+				token = gen.next()
 				if token == '$':
 					break
 				defs[current_definition] += " " + token
@@ -1066,7 +1010,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 		if token.lower() == 'undef':
 			if skip > 0:
 				continue
-			current_definition, idx = gen.next()
+			current_definition = gen.next()
 			del defs[current_definition]
 			continue
 
@@ -1075,7 +1019,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 			if skip > 0:
 				skip += 1
 				continue
-			current_definition, idx = gen.next()
+			current_definition = gen.next()
 			if current_definition not in defs:
 				skip += 1
 
@@ -1087,7 +1031,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 				skip += 1
 				continue
 
-			current_definition, idx = gen.next()
+			current_definition = gen.next()
 			if current_definition in defs:
 				skip += 1
 
@@ -1100,7 +1044,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 				continue
 			query = ""
 			while True:
-				token, idx = gen.next()
+				token = gen.next()
 				if token == '$':
 					break
 				else:
@@ -1121,14 +1065,14 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 
 		if token.lower() == 'endif':
 			if ifs == 0:
-				print ("Error: extraneous #endif at %d" % (idx))
+				print "Error: extraneous #endif"
 				exit(1)
 			ifs -= 1
 			if skip > 0:
 				skip -= 1
 			continue
 
-		print ("Error: unhandled token %s at %d" % (token,idx))
+		print "Error: unhandled token %s" % (token,)
 		exit(1)
 
 
@@ -1141,7 +1085,7 @@ def main(path, output_path = None):
 	else:
 		input_path = path
 	if not os.path.exists(input_path):
-		print ("File %s doesn't exist" % (input_path,))
+		print "File %s doesn't exist" % (input_path,)
 		exit()
 	if os.path.isdir(input_path):
 		include_path = input_path
@@ -1151,26 +1095,14 @@ def main(path, output_path = None):
 		files = [input_path]
 		input_path = os.path.split(input_path)[0]
 	for bos_file_path in files:
-		print ("processing %s" % (bos_file_path,))
+		print "processing %s" % (bos_file_path,)
 		root = Node('root')
-		content = open(bos_file_path, 'r').read() # why rb binary?
+		content = open(bos_file_path, 'rb').read()
 		pump = Pump(preprocess(content, input_path))
 		result = try_parse(pump, root, '_file')
 		if len(pump.next()) != 0:
-			print("Leftovers while parsing:")
-			print (pump._leftovers[pump._index - 1:pump._max_index], pump._index, pump._max_index)
-			print ("Syntax Error!")
-			lines = content.splitlines()
-			for j in range(pump._max_index -4, pump._max_index):
-				word, offset = pump._leftovers[j]
-				searchpos = 0
-				for i,line in enumerate(lines):
-					#print (len(line))
-					searchpos += len(line) + 1
-					if searchpos > offset:
-						print("%d: At line %d (offset = %d) with token %s "%(j, i+1, offset, word ))
-						break
-
+			print "Syntax Error!"
+			print pump._leftovers[pump._index - 1:pump._max_index], pump._index, pump._max_index
 			exit(1)
 
 		# root.print_node()
@@ -1184,7 +1116,6 @@ def main(path, output_path = None):
 		print (len(data))
 		if output_path == None:
 			output_path = "%s.%s" % (os.path.splitext(bos_file_path)[0], COB_EXT)
-		print("bos2cob Writing", output_path)
 		output_file = open(output_path, "wb")
 		output_file.write(data)
 
@@ -1219,8 +1150,4 @@ def main(path, output_path = None):
 
 
 if __name__ == '__main__':
-	if len(sys.argv)>1:
-		main(sys.argv[1])
-	else:
-		print ("Specify a path to a .%s file, or a path to a directory containing .%s files"%(BOS_EXT,BOS_EXT))
-		main("armaap.bos")
+	main(sys.argv[1])

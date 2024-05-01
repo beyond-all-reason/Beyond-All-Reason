@@ -1,28 +1,27 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, aimpoint, hat, aimy1, aimx1;
 
-static-var  isOpen, gun1, restore_delay;
+static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_DesiredState,
+            statechg_StateChanging;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 
-Activate()
+Activatescr()
 {
-	if (!isOpen){
-		move aimy1 to y-axis [0] speed [40];
-		wait-for-move aimy1 along y-axis;
-		move barrel2 to z-axis [0] speed [28];
-		move barrel1 to z-axis [0] speed [28];
-		sleep 200;
-		isOpen = 1;
-		set ARMORED to 0;
-	}
+	move aimy1 to y-axis [0] speed [40];
+	wait-for-move aimy1 along y-axis;
+	move barrel2 to z-axis [0] speed [28];
+	move barrel1 to z-axis [0] speed [28];
+	sleep 200;
 }
 
-Deactivate()
+Deactivatescr()
 {
 	move barrel1 to z-axis [-7] speed [28];
 	move barrel2 to z-axis [-7] speed [28];
@@ -33,7 +32,50 @@ Deactivate()
 	turn aimx1 to x-axis <0> speed <120>;
 	turn hat to x-axis <0> speed <60>;
 	sleep 200;
+}
+
+
+Go()
+{
+	if( !Static_Var_1 )
+	{
+		call-script Activatescr();
+	}
+	Static_Var_1 = 1;
+	set ARMORED to 0;
+}
+
+Stop()
+{
 	set ARMORED to 1;
+	Static_Var_1 = 0;
+	call-script Deactivatescr();
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
 }
 
 static-var  Stunned;
@@ -42,9 +84,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script Deactivate();
+	set-signal-mask 0;
+	start-script RequestState(1);
 }
-
 SetStunned(State)
 {
     Stunned = State;
@@ -64,31 +106,35 @@ Create()
 	hide flare1;
 	hide flare2;
 
-	isOpen = 1;
-	gun1 = 0;
+	Static_Var_1 = 1;
+	Static_Var_2 = 0;
+	Static_Var_4 = 1;
 	restore_delay = 3000;
-	start-script Activate();
-	set-signal-mask SIGNAL_AIM1;
-	SLEEP_UNTIL_UNITFINISHED;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script RequestState(0);
+	set-signal-mask SIG_AIM;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
 	start-script RestoreAfterDelay();
 }
 
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	start-script Activate();
-	while( !isOpen )
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
 	{
 		sleep 250;
 	}
@@ -100,20 +146,25 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	
-	pieceIndex = flare1 + gun1;
+	piecenum = flare1 + Static_Var_2;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = aimpoint;
+	piecenum = aimpoint;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
 }
 
 Shot1()
 {
-	gun1 = !gun1;
+	Static_Var_2 = !Static_Var_2;
 }
 
 Killed(severity, corpsetype)

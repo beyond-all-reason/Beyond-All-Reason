@@ -7,8 +7,8 @@ local	inStance	= false
 local gravFactor = Game.gravity / 120
 
 function walk()
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)	
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)	
 	
 	Turn(right_l, z_axis, 0, math.rad(135))
 	Turn(left_l, z_axis, 0, math.rad(130))
@@ -96,8 +96,8 @@ function walk()
 end
 
 function poser()
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)	
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)	
 	Turn(cod, y_axis, math.rad(0), math.rad(20))
 	Turn(base, x_axis, math.rad(0), math.rad(20))
 	Turn(base, y_axis, math.rad(0), math.rad(20))
@@ -118,8 +118,8 @@ function StandStance()
 	Sleep(200)
 	Move(cod, y_axis, 0, now)
 	Turn(base, z_axis, 0, now)
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)	
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)	
 	
 	Move(cod, y_axis, math.rad(-0.5), math.rad(8000))
 	
@@ -166,8 +166,8 @@ function SquatStance ()
 	Sleep(200)
 	Move(cod, y_axis, -1.5, now)
 	Turn(base, z_axis, 0, now)
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)	
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)	
 	
 	Turn(base, x_axis, math.rad(5), math.rad(395))
 	Turn(cod, x_axis, math.rad(-5), math.rad(395))

@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, flare, turret, barrel, launcher, sleeve;
 
@@ -7,7 +9,7 @@ static-var  gun_1;
 static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 
 #define BASEPIECE base
@@ -16,15 +18,18 @@ static-var  Stunned;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
 {
 	hide flare;
 	gun_1 = flare;
-	SLEEP_UNTIL_UNITFINISHED;
-	turn launcher to x-axis <-25> speed <25.0>;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	turn launcher to x-axis <-25> speed <25.00000>;
 	spin turret around y-axis speed <25.0>;
 }
 Stop()
@@ -37,7 +42,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn launcher to x-axis <-25> speed <25.0>;
+	turn launcher to x-axis <-25> speed <25.00000>;
 	spin turret around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -55,26 +60,25 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	stop-spin turret around y-axis;
 	if( gun_1 == 1 )
 	{
-		turn sleeve to z-axis <0.0> speed <400.0>;
+		turn sleeve to z-axis <0.000000> speed <400.000000>;
 	}
 	if( gun_1 == 2 )
 	{
-		turn sleeve to z-axis <120.027473> speed <400.0>;
+		turn sleeve to z-axis <120.027473> speed <400.000000>;
 	}
 	if( gun_1 == 3 )
 	{
-		turn sleeve to z-axis <-120.027473> speed <400.0>;
+		turn sleeve to z-axis <-120.027473> speed <400.000000>;
 	}
-	turn turret to y-axis heading speed <450.0>;
-	turn launcher to x-axis <0.0> - pitch speed <450.0>;
+	turn turret to y-axis heading speed <450.000000>;
+	turn launcher to x-axis <0.000000> - pitch speed <450.000000>;
 	wait-for-turn sleeve around z-axis;
 	wait-for-turn turret around y-axis;
 	wait-for-turn launcher around x-axis;
@@ -82,7 +86,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	++gun_1;
 	if( gun_1 == 4 )
@@ -92,19 +96,23 @@ FireWeapon1()
 	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = turret;
+	piecenum = turret;
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

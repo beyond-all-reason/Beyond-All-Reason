@@ -1,11 +1,14 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, dbl, dbr, dtr, dtl, dummy, turret;
 
+static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 
 #define BASEPIECE base
@@ -13,36 +16,78 @@ piece  base, dbl, dbr, dtr, dtl, dummy, turret;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 8
 #define MAXTILT 100
-#include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <10.0> 
-#define TB_TILT_X <0.15>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
-static-var  Stunned;
+Go()
+{
+	Static_Var_1 = 1;
+	return (0);
+}
+
+Stop()
+{
+	Static_Var_1 = 0;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
 {
-	call-script TB_Init();
+	hide dummy;
+	Static_Var_1 = 0;
+	Static_Var_2 = 10000;
+	call-script InitState();
+	return (0);
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	START_TILTBANK;
+	start-script RequestState(0);
+	return (0);
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	start-script RequestState(1);
+	return (0);
 }
 
-
+static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -58,7 +103,6 @@ ExecuteRestoreAfterDelay()
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
 }
-
 SetStunned(State)
 {
     Stunned = State;
@@ -68,14 +112,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep 5000;
+	sleep Static_Var_2;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	move dbl to x-axis [-3] speed [8];
 	move dbl to z-axis [-3] speed [8];
 	move dbr to x-axis [3] speed [8];
@@ -89,15 +133,21 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 100;
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = dummy;
+	piecenum = dummy;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
 	return (0);
 }
 
@@ -109,6 +159,10 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
+		//explode dummy type BITMAPONLY | NOHEATCLOUD;
+		//explode dbr type BITMAPONLY | NOHEATCLOUD;
+		//explode dtl type BITMAPONLY | NOHEATCLOUD;
+		//explode dtr type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -117,6 +171,10 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -126,6 +184,9 @@ Killed(severity, corpsetype)
 		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -133,5 +194,8 @@ Killed(severity, corpsetype)
 		explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

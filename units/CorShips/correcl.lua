@@ -36,8 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 525,
-		upright = true,
-		waterline = 80, --22,
+		waterline = 80,
 		workertime = 150,
 		customparams = {
 			unitgroup = 'builder',

@@ -1,72 +1,122 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, shield;
 
-static-var  shieldEnabled;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+
+
+ShieldOn()
+{
+	Static_Var_1 = 1;
+}
+
+ShieldOff()
+{
+	Static_Var_1 = 0;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script ShieldOn();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script ShieldOff();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
 	hide shield;
-	shieldEnabled = 1;
+
+	Static_Var_1 = 1;
+	call-script InitState();
 }
 
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Activate()
 {
-	shieldEnabled = 1;
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	shieldEnabled = 0;
+	start-script RequestState(1);
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	return (shieldEnabled);
+	sleep 100;
+	return (Static_Var_1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 100;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = shield;
+	piecenum = shield;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
-	return (shieldEnabled);
+	sleep 100;
+	return (Static_Var_1);
 }
 
-FireWeapon2()
+FireSecondary()
 {
 	sleep 100;
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

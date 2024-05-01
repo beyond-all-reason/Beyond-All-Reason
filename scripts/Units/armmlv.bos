@@ -1,25 +1,30 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel, 
  		nanosleeve, lnano, rnano, lflare, rflare; 
 
 
-static-var  gun_2, oldHeading;
+static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
+			oldHeading;
 
-#define SIGNAL_MOVE 1
-#define SIGNAL_BUILD 2
+#define SIG_MOVE	2
+#define SIG_BUILD	4
 
 Steering(heading, steer, currentSpeed)
 {
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
 		steer = (heading - oldheading)*3;  //3
 		turn rankle to y-axis steer speed <75>;	
 		turn lankle to y-axis steer speed <75>;
-		steer = (heading - oldheading)*1.0; 
-		turn turret to y-axis steer speed <75>;	
+		steer = (heading - oldheading)*1.5; 
+		turn turret to y-axis steer speed <30>;	
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rwheel around x-axis speed currentSpeed;
@@ -36,25 +41,17 @@ Steering(heading, steer, currentSpeed)
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
-
-
-
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide rflare;
 	hide lflare;
+	Static_Var_1 = 0;
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
-	call-script TB_Init();
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 }
 
 DetonateMines()
@@ -66,16 +63,28 @@ DetonateMines()
 	}
 }
 
+/*
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+*/
+
 StartBuilding(heading, pitch)
 {
 	show rflare;
 	show lflare;
-	signal SIGNAL_BUILD;
-	turn lwheel to y-axis <90> speed <120.0>;
-	turn rwheel to y-axis <90> speed <120.0>;
+	signal SIG_BUILD;
+	turn lwheel to y-axis <90> speed <120.000000>;
+	turn rwheel to y-axis <90> speed <120.000000>;
 	spin lwheel around x-axis speed <120>;  //how to turn wheels in right direction?
 	spin rwheel around x-axis speed <120>;  //how to turn wheels in right direction?
-	turn turret to y-axis heading speed <60.0>;
+	turn turret to y-axis heading speed <60.000000>;
 	turn lnano to y-axis heading speed <160>;  //nanos pointing in wrong direction in the end => probably sth to do with aiming in combination with turret
 	turn rnano to y-axis heading speed <160>;
 	wait-for-turn turret around y-axis;
@@ -83,8 +92,8 @@ StartBuilding(heading, pitch)
 	wait-for-turn rnano around y-axis;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;	
-	turn lwheel to y-axis <0> speed <120.0>;
-	turn rwheel to y-axis <0> speed <120.0>;
+	turn lwheel to y-axis <0> speed <120.000000>;
+	turn rwheel to y-axis <0> speed <120.000000>;
 	
 	set INBUILDSTANCE to 1;
 }
@@ -93,82 +102,58 @@ StopBuilding()
 {
 	hide rflare;
 	hide lflare;
-	signal SIGNAL_BUILD;	
-	set-signal-mask SIGNAL_BUILD;
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIGNAL_BUILD;	
+	signal SIG_BUILD;	
 	set INBUILDSTANCE to 0;
-	turn lwheel to y-axis <90> speed <120.0>;
-	turn rwheel to y-axis <90> speed <120.0>;
+	turn lwheel to y-axis <90> speed <120.000000>;
+	turn rwheel to y-axis <90> speed <120.000000>;
 	spin lwheel around x-axis speed <120>; 
 	spin rwheel around x-axis speed <120>;
-	turn lnano to y-axis <0.0> speed <160.0>;
-	turn rnano to y-axis <0.0> speed <160.0>;
-	turn turret to y-axis <0.0> speed <60.0>;
+	turn lnano to y-axis <0.000000> speed <160.000000>;
+	turn rnano to y-axis <0.000000> speed <160.000000>;
+	turn turret to y-axis <0.000000> speed <60.000000>;
 	wait-for-turn lnano around y-axis;  //how to turn wheels in right direction?
 	wait-for-turn lnano around y-axis;  //how to turn wheels in right direction?
 	wait-for-turn turret around y-axis;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;
-	turn lwheel to y-axis <0> speed <120.0>;
-	turn rwheel to y-axis <0> speed <120.0>;
+	turn lwheel to y-axis <0> speed <120.000000>;
+	turn rwheel to y-axis <0> speed <120.000000>;
 }
 
-StartMoving(reversing)
+StartMoving()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
 	start-script Steering();
-
-	START_TILTBANK;
 }
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
+	signal SIG_MOVE;
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
-	
-	STOP_TILTBANK;
 }
 
-QueryNanoPiece(pieceIndex)
+QueryNanoPiece(piecenum)
 {
-	pieceIndex = nanosleeve;
+	piecenum = nanosleeve;
 }
 
-
-
-AimWeapon1(heading, pitch)
+/*
+TargetHeading(Func_Var_1)
 {
-	while( !gun_2 )
-	{
-		sleep 250;
-	}
-	return (1);
+	Static_Var_1 = 0 - Func_Var_1;
 }
+*/
 
-FireWeapon1()
+SweetSpot(piecenum)
 {
-	gun_2 = base;
-	sleep 3000;
-	gun_2 = nanosleeve;
+	piecenum = base;
 }
 
-QueryWeapon1(pieceIndex)
-{
-	pieceIndex = turret;
-	pieceIndex = lnano;
-	pieceIndex = rnano;
-}
-
-AimFromWeapon1(pieceIndex)
-{
-	pieceIndex = base;
-}
-
-AimWeapon2(heading, pitch)
+AimPrimary(heading, pitch)
 {
 	while( !gun_2 )
 	{
@@ -177,21 +162,49 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
+FirePrimary()
 {
 	gun_2 = base;
 	sleep 3000;
 	gun_2 = nanosleeve;
 }
 
-QueryWeapon2(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = turret;
+	piecenum = lnano;
+	piecenum = rnano;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
+}
+
+AimSecondary(heading, pitch)
+{
+	while( !gun_2 )
+	{
+		sleep 250;
+	}
+	return (1);
+}
+
+FireSecondary()
+{
+	gun_2 = base;
+	sleep 3000;
+	gun_2 = nanosleeve;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)
