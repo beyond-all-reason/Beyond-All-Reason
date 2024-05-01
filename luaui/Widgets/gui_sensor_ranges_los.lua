@@ -103,7 +103,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitHealth = Spring.GetUnitHealth
 local glColor = gl.Color
 local glColorMask = gl.ColorMask
 local glDepthTest = gl.DepthTest
@@ -202,9 +201,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
-	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress < 0.99 then return end
+
+	if Spring.GetUnitIsBeingBuilt(unitID) then return end
 
 	instanceCache[1] =  unitRange[unitDefID] 
 	pushElementInstance(circleInstanceVBO,

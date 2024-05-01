@@ -88,7 +88,7 @@ local glBlending = gl.Blending
 local math_floor = math.floor
 local GetUnitDefID = Spring.GetUnitDefID
 local GetMouseState = Spring.GetMouseState
-local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local GetUnitStates = Spring.GetUnitStates
 local DrawUnitCommands = Spring.DrawUnitCommands
 local GetFullBuildQueue = Spring.GetFullBuildQueue
@@ -291,8 +291,7 @@ local function updateFactoryList()
 		if unitBuildOptions[unitDefID] then
 			count = count + 1
 			facs[count] = { unitID = unitID, unitDefID = unitDefID, buildList = unitBuildOptions[unitDefID] }
-			local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-			if buildProgress and buildProgress < 1 then
+			if GetUnitIsBeingBuilt(unitID) then
 				unfinished_facs[unitID] = true
 			end
 		end
@@ -518,7 +517,7 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, '#' ..unitDefID , {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
 
 	-- Progress
-	if (options.progress or -1) > -1 then
+	if (options.progress and options.progress < 1) then
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, options.progress, { 1, 1, 1, 0.22 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -618,12 +617,13 @@ function widget:Update(dt)
 			unitBuildID = GetUnitIsBuilding(facInfo.unitID)
 			if unitBuildID then
 				unitBuildDefID = GetUnitDefID(unitBuildID)
-				_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
+				local _, progress = GetUnitIsBeingBuilt(unitBuildID)
+				options.progress = progress
 				unitDefID = unitBuildDefID
 			elseif (unfinished_facs[facInfo.unitID]) then
-				_, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
-				if options.progress >= 1 then
-					options.progress = -1
+				local isBeingBuilt, progress = GetUnitIsBeingBuilt(facInfo.unitID)
+				options.progress = progress
+				if not isBeingBuilt then
 					unfinished_facs[facInfo.unitID] = nil
 				end
 			end
@@ -755,7 +755,8 @@ function widget:DrawScreen()
 					-- building?
 
 					if unitDefID == unitBuildDefID then
-						_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
+						local _, progress = GetUnitIsBeingBuilt(unitBuildID)
+						options.progress = progress
 					end
 					-- amount
 					options.amount = buildQueue[unitDefID]

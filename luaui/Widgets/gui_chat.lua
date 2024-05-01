@@ -409,20 +409,27 @@ local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
 local uniqueHumanNames = {}
 local unitTranslatedHumanName = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if not uniqueHumanNames[unitDef.translatedHumanName] then
-		uniqueHumanNames[unitDef.translatedHumanName] = true
-		autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+local function refreshUnitDefs()
+	autocompleteUnitNames = {}
+	autocompleteUnitCodename = {}
+	uniqueHumanNames = {}
+	unitTranslatedHumanName = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if not uniqueHumanNames[unitDef.translatedHumanName] then
+			uniqueHumanNames[unitDef.translatedHumanName] = true
+			autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+		end
+		if not string.find(unitDef.name, "_scav", nil, true) then
+			autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+		end
+		unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 	end
-	if not string.find(unitDef.name, "_scav", nil, true) then
-		autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+	uniqueHumanNames = nil
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
 	end
-	unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 end
-uniqueHumanNames = nil
-for featureDefID, featureDef in pairs(FeatureDefs) do
-	autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
-end
+refreshUnitDefs()
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
@@ -1187,10 +1194,6 @@ local function processLines(clearConsole)
 	chatLines = {}
 	if clearConsole then
 		consoleLines = {}
-	else
-		--for i, params in ipairs(consoleLines) do
-		--	processConsoleLine(i)
-		--end
 	end
 	for _, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], false, not initialized)
@@ -2139,6 +2142,11 @@ end
 function widget:PlayerAdded(playerID)
 	local name = Spring.GetPlayerInfo(playerID, false)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
+end
+
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
 end
 
 function widget:Initialize()

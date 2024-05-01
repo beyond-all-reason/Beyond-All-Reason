@@ -23,6 +23,7 @@ return {
 		speed = 88.5,
 		maxwaterdepth = 0,
 		movementclass = "HOVER2",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAH.s3o",
 		script = "Units/ARMAH.cob",

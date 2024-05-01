@@ -35,6 +35,7 @@ return {
 		speed = 63.0,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
+		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCARRY.s3o",
 		radardistance = 2950,

@@ -25,6 +25,7 @@ return {
 		speed = 57.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
+		movestate = 0,
 		objectname = "Units/ARMSEER.s3o",
 		onoffable = false,
 		radardistance = 2300,

@@ -6,36 +6,43 @@ function gadget:GetInfo()
 		date      = "July 13, 2008",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
 
 if not gadgetHandler:IsSyncedCode() then
 
-function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-  -- remove self d commands on shared units
-  if Spring.GetUnitSelfDTime(unitID) > 0 then
-    Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-  end
-end
+	function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		-- remove self d commands on shared units
+		if Spring.GetUnitSelfDTime(unitID) > 0 then
+			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+		end
+	end
+
+	function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+		-- remove self d commands on shared units
+		if Spring.GetUnitSelfDTime(unitID) > 0 then
+			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+		end
+	end
 
 else
 
--- remove self d orders from empty teams
-function gadget:PlayerChanged(playerID)
-	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID,false)
-	if active and not spec then return end
-	local team = Spring.GetPlayerList(teamID)
+	local monitorPlayers = {}
+	local spGetPlayerInfo = Spring.GetPlayerInfo
 
-	if team then
+	local function removeSelfdOrders(teamID)
 		-- check team is empty
-		for _,pID in pairs(team) do
-			_,active,spec = Spring.GetPlayerInfo(pID,false)
-			if active and not spec then
-				return
-			end
-		end
+		--local team = Spring.GetPlayerList(teamID)
+		--if team then
+		--	for _,pID in pairs(team) do
+		--		local _,active,spec = Spring.GetPlayerInfo(pID,false)
+		--		if active and not spec then
+		--			return
+		--		end
+		--	end
+		--end
 
 		-- cancel any self d orders
 		local units = Spring.GetTeamUnits(teamID)
@@ -46,7 +53,35 @@ function gadget:PlayerChanged(playerID)
 			end
 		end
 	end
-end
 
+	function gadget:Initialize()
+		local players = Spring.GetPlayerList()
+		for _, playerID in pairs(players) do
+			local _,active,spec,teamID = spGetPlayerInfo(playerID,false)
+			local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
+			if isDead == 0 and not isAiTeam then
+				--_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
+				if active and not spec then
+					monitorPlayers[playerID] = true
+				end
+			end
+		end
+	end
+
+	function gadget:GameFrame(gameFrame)
+		local active,spec,teamID
+		for playerID, prevActive in pairs(monitorPlayers) do
+			_,active,spec,teamID = spGetPlayerInfo(playerID,false)
+			if spec then
+				removeSelfdOrders(teamID)
+				monitorPlayers[playerID] = nil
+			elseif active ~= prevActive then
+				if not active then
+					removeSelfdOrders(teamID)
+				end
+				monitorPlayers[playerID] = active	-- dont nil cause player could reconnect
+			end
+		end
+	end
 
 end

@@ -22,6 +22,7 @@ return {
 		speed = 47.7,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
 		script = "Units/CORSTORM.cob",

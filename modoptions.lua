@@ -858,6 +858,15 @@ local options = {
             { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
+  
+    {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
+        type   	= "bool",
+        def    	= false,
+        section = "options_extra",
+    },
 
     {
         key 	= "map_waterlevel",
@@ -1232,6 +1241,36 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
+    
+    {
+        key 	= "evocom",
+        name 	= "Evolving Commanders",
+        type 	= "bool",
+        def 	= false,
+        section = "options_experimental",
+    },
+
+    {
+        key    	= "evocomleveluprate",
+        name   	= "Commander Evolution Rate",
+        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 20,
+        step   	= 0.1,
+    },
+
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

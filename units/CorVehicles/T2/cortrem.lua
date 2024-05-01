@@ -25,6 +25,7 @@ return {
 		speed = 40.5,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
 		onoffable = true,

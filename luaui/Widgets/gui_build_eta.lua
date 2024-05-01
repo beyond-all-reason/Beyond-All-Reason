@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2007",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -15,7 +15,7 @@ local lastGameUpdate = Spring.GetGameSeconds()
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
@@ -47,8 +47,8 @@ local function makeETA(unitID, unitDefID)
 	if unitDefID == nil then
 		return nil
 	end
-	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-	if buildProgress == nil or buildProgress >= 1  then
+	local isBuilding, buildProgress = spGetUnitIsBeingBuilt(unitID)
+	if not isBuilding  then
 		return nil
 	end
 
@@ -89,8 +89,8 @@ function widget:Update(dt)
 	local killTable = {}
 	local count = 0
 	for unitID, bi in pairs(etaTable) do
-		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-		if not buildProgress or buildProgress >= 1.0 then
+		local isBuilding, buildProgress = spGetUnitIsBeingBuilt(unitID)
+		if not isBuilding then
 			count = count + 1
 			killTable[count] = unitID
 		else

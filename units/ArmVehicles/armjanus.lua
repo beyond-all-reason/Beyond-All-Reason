@@ -23,6 +23,7 @@ return {
 		speed = 54.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMJANUS.s3o",
 		script = "Units/ARMJANUS.cob",
