@@ -303,7 +303,7 @@ local function refreshUnitInfo()
 					end
 
 				elseif 
-				unitDef.customParams.isunbacom or --for unbalanced commanders
+				unitDef.customParams.isevocom or --for evolving commanders
 				unitDef.name == 'armcom' or 
 				unitDef.name == 'corcom' or 
 				unitDef.name == 'armvang' or 

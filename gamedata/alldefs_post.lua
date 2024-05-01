@@ -237,29 +237,29 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unbacom then	
-			if uDef.customparams.isunbacom or uDef.customparams.iscommander then
-				uDef.customparams.evolution_timer = modOptions.unbacomleveluprate*60
-			end
-			if  name == "armcom" then
+		if modOptions.evocom then	
+			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-			end
-			if name == "corcom" then
+				elseif name == "corcom" then
 				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
-			end
-			if name == "legcomlvl4" then
+				elseif name == "legcomlvl3" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
+				elseif name == "legcomlvl4" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl5"
 				uDef.customparams.evolution_condition = "timer"
 				uDef.customparams.workertimeboost = 5
 				uDef.customparams.wtboostunittype = "MOBILE"
+				end
 			end
 		end
 

@@ -114,14 +114,14 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			iscommander = true,
-			isunbacom = true,
+			isevocom = true,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			evolution_announcement = "Armada commanders have upgraded to level 10 (UnBaCom max)",
+			evolution_announcement = "Armada commanders have upgraded to level 10 (max)",
 			evolution_announcement_size = 18.5,
 			evolution_target = "armcomlvl10",
 			evolution_condition = "timer",
@@ -466,7 +466,7 @@ return {
 					carrierdeaththroe = "control",
 					dockingarmor = 0,
 					dockinghealrate = 16,
-					docktohealthreshold = 100,
+					docktohealthreshold = 0,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					holdfireradius = 300,		--defines the radius for drones to wander when "hold fire" firestate issued
 					dockingHelperSpeed = 100,
@@ -493,7 +493,6 @@ return {
             [4] = {
 				def = "LONGGUN",
 				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
 			},
 			[5] = {
 				def = "SHORTGUN",

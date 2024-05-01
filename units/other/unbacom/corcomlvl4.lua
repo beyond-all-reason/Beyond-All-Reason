@@ -95,7 +95,7 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
-			isunbacom = true,
+			isevocom = true,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",
