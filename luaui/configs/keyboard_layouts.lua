@@ -223,7 +223,7 @@ local function sanitizeKey(key, layout)
 end
 
 local keybindingLayouts = {
-	'Grid',
+	'Grid', -- the first element will be the default value if a fallback is ever needed
 	'Grid (60% Keyboard)',
 	'Legacy',
 	'Legacy (60% Keyboard)',
@@ -231,7 +231,7 @@ local keybindingLayouts = {
 }
 
 local keybindingPresets = {
-	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt',
+	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
 	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
 	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
 	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
