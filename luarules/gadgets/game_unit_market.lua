@@ -176,30 +176,29 @@ end
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
     if (AllyAIsalesEverything) and spAreTeamsAllied(newTeamID, oldTeamID) then
         local unitDef = UnitDefs[unitDefID]
-        if unitDef.metalCost <= 0 then return end
-
-        local price = unitDef.metalCost
         local _, _, _, isAiTeamOld = spGetTeamInfo(oldTeamID) -- player
         local _, _, _, isAiTeamNew = spGetTeamInfo(newTeamID) -- gives unit to AI
-        if not isAiTeamOld and isAiTeamNew then
-            -- This "ugly" calculation won't be called too much since you are not often giving units to the AI
-            -- But it might be a good idea to pre init arrays if we expand this optional functionality for between players
-            if AllyAItab[newTeamID] == nil then
-                AllyAItab[newTeamID] = {}
+        if not isAiTeamOld and isAiTeamNew and unitDef.metalCost>0 then
+            local finished = (select(5,spGetUnitHealth(unitID))==1) -- AI tab only accepts finished units
+            if finished then
+                local price = unitDef.metalCost
+                -- This "ugly" calculation won't be called too much since you are not often giving units to the AI
+                -- But it might be a good idea to pre init arrays if we expand this optional functionality for between players
+                if AllyAItab[newTeamID] == nil then
+                    AllyAItab[newTeamID] = {}
+                end
+                if AllyAItab[newTeamID][oldTeamID] == nil then
+                    AllyAItab[newTeamID][oldTeamID] = 0
+                end
+                AllyAItab[newTeamID][oldTeamID] = AllyAItab[newTeamID][oldTeamID] + price
+                --Spring.Echo("old team "..oldTeamID.." owes "..newTeamID.." this much: "..AllyAItab[newTeamID][oldTeamID]..".") -- debug
+                -- TODO this is kinda useful but I don't know how to not spam you constantly with this information...
+                -- so need to figure out how to show you how much AI owes you metal for your donations
+                -- possible TODO, maybe forbid AI from selling you its metal extractors?
+                setUnitOnSale(unitID, price, false)
+                UnitSale(unitID, price, newTeamID)
+                return
             end
-            if AllyAItab[newTeamID][oldTeamID] == nil then
-                AllyAItab[newTeamID][oldTeamID] = 0
-            end
-            AllyAItab[newTeamID][oldTeamID] = AllyAItab[newTeamID][oldTeamID] + price
-            --Spring.Echo("old team "..oldTeamID.." owes "..newTeamID.." this much: "..AllyAItab[newTeamID][oldTeamID]..".") -- debug
-            -- TODO this is kinda useful but I don't know how to not spam you constantly with this information...
-            -- so need to figure out how to show you how much AI owes you metal for your donations
-
-            -- possible TODO, maybe forbid AI from selling you its metal extractors?
-            setUnitOnSale(unitID, price, false)
-            UnitSale(unitID, price, newTeamID)
-
-            return
         end
     end
     removeSale(unitID)
