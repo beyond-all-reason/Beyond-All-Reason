@@ -68,7 +68,7 @@ return {
 			"cormadsam",
 			"corerad",
 			"cordl",
-			"corjamt",
+			"legjam",
 			"corjuno",
 			"corsy",
 			"legdefcarryt1",

@@ -1,4 +1,3 @@
-
 return {
 	legcv = {
 		maxacc = 0.03049,
@@ -73,7 +72,7 @@ return {
 			"cormadsam",
 			"corerad",
 			"cordl",
-			"corjamt",
+			"legjam",
 			"corjuno",
 			"corsy",
 			"legdefcarryt1",

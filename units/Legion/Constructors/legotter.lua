@@ -73,7 +73,7 @@ return {
 			[28] = "corerad",
 			[29] = "corjuno",
 			[30] = "cordl",
-			[31] = "corjamt",
+			[31] = "legjam",
 			[32] = "corfhp",
 			[33] = "coramsub",
 			[34] = "corplat",

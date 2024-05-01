@@ -90,7 +90,7 @@ return {
 			--[28] = "armmg",
 			--[29] = "armclaw",
 			--[30] = "armferret",
-			--[31] = "corjamt",
+			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',

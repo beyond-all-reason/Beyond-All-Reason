@@ -1,4 +1,3 @@
-
 return {
 	legck = {
 		maxacc = 0.5244,
@@ -68,7 +67,7 @@ return {
 			"cormadsam",
 			"corerad",
 			"cordl",
-			"corjamt",
+			"legjam",
 			"corjuno",
 			"corsy",
 			"legdefcarryt1",
