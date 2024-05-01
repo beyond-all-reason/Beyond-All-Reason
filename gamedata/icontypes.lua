@@ -2203,6 +2203,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
 	},
+	legjam ={
+		bitmap ="icons/jammer.png",
+		size = 0.94499993
+	},
 	leginc = {
 		bitmap = "icons/corsumo.png",
 		size = 1.85000002
