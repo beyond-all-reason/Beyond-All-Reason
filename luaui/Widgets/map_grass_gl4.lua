@@ -64,7 +64,6 @@ end
 -- 	anisotropic transparency - where quads viewed from their edge should be transparent :)
 -- 	fix darkening on distort to be better?
 
-
 --------- HOW TO CONFIGURE GRASS (also important!) -------------------------
 local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
@@ -195,6 +194,8 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local removedBelowHeight
+
+local processChanges = false	-- auto enabled when map has grass or editmode toggles
 
 local mousepos = {0,0,0}
 local cursorradius = 50
@@ -662,7 +663,7 @@ local function clearMetalspotGrass()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
+	if processChanges and not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
 		local isBuilding = Spring.GetUnitIsBeingBuilt(unitID)
 		if isBuilding then
 			removeUnitGrassQueue[unitID] = removeUnitGrassFrames
@@ -673,20 +674,24 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
+	if processChanges and not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
 		removeUnitGrassQueue[unitID] = removeUnitGrassFrames
 	end
 end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if not placementMode and buildingRadius[unitDefID] then
+	if processChanges and not placementMode and buildingRadius[unitDefID] then
 		removeUnitGrassQueue[unitID] = nil
 		unitGrassRemovedHistory[unitID] = nil
 	end
 end
 
 function widget:GameFrame(gf)
+	if not processChanges then
+		return
+	end
+
 	if not placementMode then
 		for unitID, count in pairs(removeUnitGrassQueue) do
 			adjustUnitGrass(unitID, (not unitGrassRemovedHistory[unitID] and 1/removeUnitGrassQueue[unitID]) )
@@ -723,6 +728,10 @@ end
 
 local firstUpdate = true
 function widget:Update(dt)
+	if not processChanges then
+		return
+	end
+
 	if firstUpdate then
 		firstUpdate = false
 		clearGeothermalGrass()	-- uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
@@ -832,9 +841,9 @@ local function makeGrassInstanceVBO()
 		MakeAndAttachToVAO()
 	else -- try to load builtin grass type
 
-		local maphasgrass = mapHasSMFGrass()
-		--Spring.Echo("mapHasSMFGrass",maphasgrass, placementMode)
-		if (maphasgrass == 0 or maphasgrass == 255) and (not placementMode) then return nil end -- bail if none specified at all anywhere
+		local mapprocessChanges = mapHasSMFGrass()
+		--Spring.Echo("mapHasSMFGrass",mapprocessChanges, placementMode)
+		if (mapprocessChanges == 0 or mapprocessChanges == 255) and (not placementMode) then return nil end -- bail if none specified at all anywhere
 
 		local rowIndex = 1
 		for z = patchResolution / 2, mapSizeZ, patchResolution do
@@ -847,7 +856,7 @@ local function makeGrassInstanceVBO()
 					local lz = z + (math.random() -0.5) * patchResolution/1.5
 					local grasssize = localgrass
 					if grasssize > 0 then
-						if maphasgrass == 1 then
+						if mapprocessChanges == 1 then
 							grasssize = grassConfig.grassMinSize + math.random() * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
 						else
 							grasssize = grassConfig.grassMinSize + (localgrass/254.0) * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
@@ -1231,6 +1240,9 @@ for i=1, #WeaponDefs do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	if not processChanges then
+		return
+	end
 	if not placementMode and weaponConf[weaponID] ~= nil and py - 10 < spGetGroundHeight(px, pz) then
 		adjustGrass(px, pz, weaponConf[weaponID][1], math.min(1, (weaponConf[weaponID][1]*weaponConf[weaponID][2])/45))
 	end
@@ -1293,6 +1305,12 @@ function widget:Initialize()
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
+
+	processChanges = false
+	for k, v in pairs(grassInstanceData) do
+		processChanges = true
+		break
+	end
 end
 
 function widget:Shutdown()
@@ -1304,6 +1322,7 @@ function widget:TextCommand(command)
 	--Spring.Echo(command)
 	if string.find(command,"placegrass", nil, true ) == 1 then
 		placementMode = not placementMode
+		processChanges = true
 		Spring.Echo("Grass placement mode toggle to:",placementMode)
 	end
 
@@ -1412,7 +1431,6 @@ local function mapcoordtorow(mapz, offset) -- is this even worth it?
 end
 
 local spIsAABBInView = Spring.IsAABBInView
-local spTraceScreenRay = Spring.TraceScreenRay
 
 local viewtables = {{0,0},{vsx-1,0},{0,vsy-1},{vsx-1,vsy-1}}
 
@@ -1473,6 +1491,9 @@ local smoothGrassFadeExp = 1
 
 
 function widget:DrawWorldPreUnit()
+	if not processChanges then
+		return
+	end
   if #grassInstanceData == 0 then return end
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
