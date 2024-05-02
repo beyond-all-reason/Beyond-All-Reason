@@ -108,7 +108,6 @@ CallInsList = {
 
 	"SunChanged",
 
-	"Explosion",
 	"ShockFront",
 
 	"RecvSkirmishAIMessage",
@@ -138,7 +137,10 @@ CallInsList = {
 	"LanguageChanged",
 
 	"UnitSale",
-	"UnitSold"
+	"UnitSold",
+
+	"VisibleExplosion",
+	"Barrelfire",
 }
 
 CallInsMap = {}

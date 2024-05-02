@@ -519,7 +519,7 @@ local function world2grassmap(wx, wz) -- returns an index into the elements of a
 	return index
 end
 
-local gCT = {} -- Grass Cache Table 
+local gCT = {} -- Grass Cache Table
 local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	-- we are assuming that we can do this
 	--Spring.Echo(wx, wz, sizemod)
@@ -554,7 +554,7 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	grassInstanceData[vboOffset + 4] = size
 	--Spring.Echo("updateGrassInstanceVBO:",oldpx, "x", wx, oldpz ,"z", wz, oldsize, "s", size)
 	--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luastartInstanceIndexndexOpt, const sol::optional<int> luaFinishIndexOpt)
-	gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, size 
+	gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, size
 	grassInstanceVBO:Upload(gCT, 7, vboOffset/4) -- We _must_ upload whole instance params at once
 end
 
@@ -1168,10 +1168,10 @@ void main() {
 	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);
 	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
 	fragColor.rgb *= nightFactor.rgb;
-	
-	if (fragColor.a < ALPHATHRESHOLD) 
+
+	if (fragColor.a < ALPHATHRESHOLD)
 		discard;// needed for depthmask
-		
+
 }
 ]]
 
@@ -1230,9 +1230,8 @@ for i=1, #WeaponDefs do
 	end
 end
 
-local function GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if not placementMode and weaponConf[weaponID] ~= nil and py - 10 < spGetGroundHeight(px, pz) then
-		--Spring.Echo(weaponConf[weaponID])
 		adjustGrass(px, pz, weaponConf[weaponID][1], math.min(1, (weaponConf[weaponID][1]*weaponConf[weaponID][2])/45))
 	end
 end
@@ -1294,12 +1293,10 @@ function widget:Initialize()
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
-	widgetHandler:RegisterGlobal('GadgetWeaponExplosionGrass', GadgetWeaponExplosionGrass)
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
-	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionGrass')
 end
 
 function widget:TextCommand(command)
@@ -1488,17 +1485,17 @@ function widget:DrawWorldPreUnit()
   local newGameSeconds = os.clock()
   local timePassed = newGameSeconds - oldGameSeconds
   oldGameSeconds = newGameSeconds
-  
+
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
-  
+
   local globalgrassfade = math.max(0.0,math.min(1.0,
 		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
 
   local expFactor = math.min(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
-  smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor 
-  --Spring.Echo(smoothGrassFadeExp, globalgrassfade)  
-  
+  smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor
+  --Spring.Echo(smoothGrassFadeExp, globalgrassfade)
+
 
   if cy  < ((grassConfig.grassShaderParams.FADEEND*distanceMult) + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
@@ -1532,7 +1529,7 @@ function widget:DrawWorldPreUnit()
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
-    
+
 
 
     grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
@@ -1551,20 +1548,20 @@ function widget:DrawWorldPreUnit()
   end
 end
 
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("widget:SunChanged", df)
 	if df == lastSunChanged then return end
 	lastSunChanged = df
-	
+
 	-- Do the math:
-	if WG['NightFactor'] then 
+	if WG['NightFactor'] then
 		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 		nightFactor[1] = WG['NightFactor'].red * altitudefactor
 		nightFactor[2] = WG['NightFactor'].green * altitudefactor
-		nightFactor[3] = WG['NightFactor'].blue * altitudefactor 
-		nightFactor[4] = WG['NightFactor'].shadow 
+		nightFactor[3] = WG['NightFactor'].blue * altitudefactor
+		nightFactor[4] = WG['NightFactor'].shadow
 	end
 	--Spring.Debug.TableEcho(WG['NightFactor'])
 end

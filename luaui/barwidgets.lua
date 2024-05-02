@@ -203,7 +203,9 @@ local callInLists = {
 	'AlliedUnitRemoved',
 	'AlliedUnitsChanged',
 	'UnitSale',
-	'UnitSold'
+	'UnitSold',
+	'VisibleExplosion',
+	'Barrelfire',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2396,6 +2398,29 @@ function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneEnd()
 end
 
+
+--------------------------------------------------------------------------------
+--
+--  GFX
+--
+
+function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:VisibleExplosion")
+	for _, w in ipairs(self.VisibleExplosionList) do
+		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:Barrelfire")
+	for _, w in ipairs(self.BarrelfireList) do
+		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --
