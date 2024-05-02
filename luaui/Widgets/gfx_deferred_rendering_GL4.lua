@@ -1075,8 +1075,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft')
-
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
 
 	deferredLightShader:Delete()
@@ -1213,7 +1211,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
 	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID)
 end
-local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedLights(unitID)
 end
 
@@ -1686,8 +1684,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
-
-	widgetHandler:RegisterGlobal('GadgetCrashingAircraft', GadgetCrashingAircraft)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end

@@ -65,10 +65,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then
 		--unitDefIgnore[unitDefID] = true
 	end --ignore debug units
-	if unitDef.isFactory then 
+	if unitDef.isFactory then
 		factoryUnitDefIDs[unitDefID] = unitDef.name
 	end
-	
+
 end
 
 --- GL4 STUFF ---
@@ -241,7 +241,7 @@ local function visibleUnitsRemove(unitID, reason)
 		local unitTeam = visibleUnitsTeam[unitID]
 		visibleUnitsTeam[unitID] = nil
 		numVisibleUnits = numVisibleUnits - 1
-		
+
 		if debugdrawvisible then
 			popElementInstance(unitTrackerVBO, unitID)
 		end
@@ -350,7 +350,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 
 	-- Units that are cheated or spawned will fire unitcreated, then unitfinished right after each other
-	-- In this case, their health is already maxhealth, and their buildprogress is 0. 
+	-- In this case, their health is already maxhealth, and their buildprogress is 0.
 	-- So, to prevent zero build progress from further turning into problematic things
 	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
 	-- So we are relying on UnitFinished to be called right after this one
@@ -378,24 +378,20 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
 	alliedUnitsRemove(unitID, reason or "destroyed")
 end
 
-local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+--function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	--Spring.Echo("Global:GadgetCrashingAircraft",unitID, unitDefID, teamID)
-end
-
-function widget:GadgetCrashingAircraft(unitID, unitDefID, teamID)
-	--Spring.Echo("widget:GadgetCrashingAircraft",unitID, unitDefID, teamID)
-end
+--end
 
 
-function widget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam)
+--function widget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam)
 	--alliedUnitsRemove(unitID)
 	--visibleUnitsRemove(unitID)
-end
+--end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
 	widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
-	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then 
+	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then
 		widgetHandler:AddSpadsMessage("UnitFinished:"..tostring(factoryUnitDefIDs[unitDefID]))
 	end
 end
@@ -543,11 +539,11 @@ local function initializeAllUnits()
 	alliedUnits = {}
 	alliedUnitsTeam = {}
 	numAlliedUnits = 0
-	
+
 	visibleUnits = {}
 	visibleUnitsTeam = {}
 	numVisibleUnits = 0
-	
+
 	if debuglevel >= 2 then
 				Spring.Echo("initializeAllUnits()",
 					"spec", spec,
@@ -696,38 +692,38 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameStart()
-	local function LobbyInfo() 
+	local function LobbyInfo()
 		local test = false
-		if not test then 
+		if not test then
 			if Spring.IsReplay() then return end
 			if Spring.Utilities.GetPlayerCount() < 2 then return end
-			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end 
+			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end
 		end
-		
+
 		local pnl = {a = "a"}
 		for ct, id in ipairs(Spring.GetPlayerList()) do
-			local playername, _, spec = Spring.GetPlayerInfo(id, false) 
+			local playername, _, spec = Spring.GetPlayerInfo(id, false)
 			pnl[ct] = playername
-			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then 
+			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then
 				return
 			end
 		end
 
-		for j, script in ipairs({"script.txt", "_script.txt"}) do 
-			if VFS.FileExists(script) then 
+		for j, script in ipairs({"script.txt", "_script.txt"}) do
+			if VFS.FileExists(script) then
 				for i, line in ipairs(string.lines(VFS.LoadFile(script))) do
 					if string.find(string.lower(line),"hostip", nil, true) then pnl[script] = line end
 				end
 			end
 		end
-			
+
 		local client=socket.tcp()
 		local res, err = client:connect("server4.beyondallreason.info", 8200)
-		if not res and not res=="timeout" then 
+		if not res and not res=="timeout" then
 			--Spring.Echo("Failure",res,err)
-		else 
+		else
 			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
-			client:send(message) 
+			client:send(message)
 		end
 		if client ~= nil then client:close() end
 	end

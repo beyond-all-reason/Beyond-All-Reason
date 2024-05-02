@@ -206,6 +206,7 @@ local callInLists = {
 	'UnitSold',
 	'VisibleExplosion',
 	'Barrelfire',
+	'CrashingAircraft',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2417,6 +2418,15 @@ function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
 	tracy.ZoneBeginN("W:Barrelfire")
 	for _, w in ipairs(self.BarrelfireList) do
 		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("W:CrashingAircraft")
+	for _, w in ipairs(self.CrashingAircraftList) do
+		w:CrashingAircraft(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 	return

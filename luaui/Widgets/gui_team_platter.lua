@@ -170,7 +170,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	RemoveUnit(unitID)
 end
 
-local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnit(unitID)
 end
 
@@ -211,12 +211,10 @@ function widget:Initialize()
 		skipOwnTeam = value
 		init()
 	end
-	widgetHandler:RegisterGlobal('GadgetCrashingAircraft3', GadgetCrashingAircraft)
 end
 
 function widget:Shutdown()
 	WG['teamplatter'] = nil
-	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft3')
 end
 
 function widget:GetConfigData(data)
