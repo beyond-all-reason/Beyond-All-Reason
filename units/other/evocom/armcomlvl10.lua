@@ -1,15 +1,15 @@
 return {
-	armcomlvl9	= {
+	armcomlvl10	= {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 124,
+		autoheal = 137,
 		maxdec = 1.125,
-		energycost = 26000,
-		metalcost = 2700,
-		builddistance = 209,
+		energycost = 110000,
+		metalcost = 11000,
+		builddistance = 217,
 		builder = true,
 		buildpic = "ARMCOM.DDS",
-		buildtime = 178000,
+		buildtime = 195600,
 		cancapture = true,
 		cancloak = true,
 		canmanualfire = true,
@@ -31,11 +31,11 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 124,
+		idleautoheal = 137,
 		idletime = 450,
 		sightemitheight = 40,
 		mass = 99999,
-		health = 20000,
+		health = 22000,
 		maxslope = 20,
 		speed = 60,
 		maxwaterdepth = 35,
@@ -62,7 +62,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 1148,
 		upright = true,
-		workertime = 1472,
+		workertime = 1800,
 		buildoptions = {
 			[1] = "armmoho",
 			[2] = "armadvsol",
@@ -121,12 +121,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			evolution_announcement = "Armada commanders have upgraded to level 10 (max)",
-			evolution_announcement_size = 18.5,
-			evolution_target = "armcomlvl10",
-			evolution_condition = "timer",
-			evolution_timer = 99999,
-			combatradius = 500,
 			stockpileLimit = 30,
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",
@@ -138,7 +132,7 @@ return {
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "CylY",
-				damage = 40000,
+				damage = 44000,
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -228,7 +222,6 @@ return {
 				energypershot = 5,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
-				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 24,
@@ -253,7 +246,7 @@ return {
 					spark_range = "150",
 				},
 				damage = {
-					default = 1600,
+					default = 2000,
 				},
 			},
 			armcomsealaser = {
@@ -261,7 +254,7 @@ return {
 				avoidfeature = false,
 				beamtime = 0.16,
 				camerashake = 0,
-				corethickness = 0.4,
+				corethickness = 0.6,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -278,7 +271,7 @@ return {
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 0.3,
-				rgbcolor = "0.2 0.3 0.8",
+				rgbcolor = "0.5 0.7 0.10",
 				rgbcolor2 = "1 1 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -292,8 +285,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				damage = {
-					default = 1750,
-					subs = 1000,
+					default = 1900,
+					subs = 1150,
 				},
 			},
 			disintegrator = {
@@ -391,7 +384,6 @@ return {
 				energypershot = 5,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
-				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 24,
@@ -418,7 +410,7 @@ return {
 					spark_range = "75",
 					},
 					damage = {
-						default = 93,
+						default = 133,
 					},
 			},
 			rollingbombdrones = {
@@ -449,7 +441,7 @@ return {
 				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -457,8 +449,8 @@ return {
 					carried_unit = "babyarmvader",  --Name of the unit spawned by this carrier unit.
 					engagementrange = 450,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 20, 			--Spawnrate roughly in seconds.
-					maxunits = 4,				--Will spawn units until this amount has been reached.
+					spawnrate = 15, 			--Spawnrate roughly in seconds.
+					maxunits = 5,				--Will spawn units until this amount has been reached.
 					energycost = 3000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 550,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
@@ -468,7 +460,7 @@ return {
 					dockinghealrate = 16,
 					docktohealthreshold = 0,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
-					holdfireradius = 300,		--defines the radius for drones to wander when "hold fire" firestate issued
+					holdfireradius = 450,		--defines the radius for drones to wander when "hold fire" firestate issued
 					dockingHelperSpeed = 100,
 					dockingpiecestart = 14,		--First model piece to be used for docking.
 					dockingpieceinterval = 0,	--Number of pieces to skip when docking the next unit.
@@ -478,6 +470,7 @@ return {
 			},
 		},
 		weapons = {
+
 			[1] = {
 				def = "ROLLINGBOMBDRONES",
 			},

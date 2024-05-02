@@ -1,15 +1,15 @@
 return {
-	armcomlvl3 = {
+	armcomlvl4 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 54,
+		autoheal = 65,
 		maxdec = 1.125,
-		energycost = 26000,
-		metalcost = 2700,
-		builddistance = 161,
+		energycost = 50000,
+		metalcost = 5000,
+		builddistance = 169,
 		builder = true,
 		buildpic = "ARMCOM.DDS",
-		buildtime = 85000,
+		buildtime = 94800,
 		cancapture = true,
 		cancloak = true,
 		canmanualfire = true,
@@ -31,11 +31,11 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 54,
-		idletime = 1800,
+		idleautoheal = 65,
+		idletime = 900,
 		sightemitheight = 40,
 		mass = 4900,
-		health = 8000,
+		health = 10000,
 		maxslope = 20,
 		speed = 60,
 		maxwaterdepth = 35,
@@ -62,7 +62,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 1148,
 		upright = true,
-		workertime = 447,
+		workertime = 545,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armwin",
@@ -108,9 +108,9 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			evolution_announcement = "Armada commanders have upgraded to level 4",
+			evolution_announcement = "Armada commanders have upgraded to level 5",
 			evolution_announcement_size = 18.5,
-			evolution_target = "armcomlvl4",
+			evolution_target = "armcomlvl5",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
 			combatradius = 500,
@@ -123,7 +123,7 @@ return {
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "CylY",
-				damage = 16000,
+				damage = 20000,
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -200,7 +200,7 @@ return {
 		},
 		weapondefs = {
 			longgun = {
-				areaofeffect = 60,
+				areaofeffect = 100,
 				avoidfeature = false,
 				beamtime = 0.3,
 				corethickness = 0.23,
@@ -233,7 +233,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 4000,
+					default = 6500,
 				},
 			},
 			armcomsealaser = {
@@ -251,7 +251,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-blue",
 				firestarter = 35,
 				firesubmersed = true,
-				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.3,
@@ -259,7 +258,7 @@ return {
 				name = "J7NSLaser",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 0.25,
+				reloadtime = 0.178,
 				rgbcolor = "0.2 0.8 0.3",
 				rgbcolor2 = "0.2 0.2 0.2",
 				soundhitdry = "",
@@ -274,8 +273,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 300,
-					subs = 150,
+					default = 400,
+					subs = 200,
 				},
 			},
 			disintegrator = {
@@ -383,7 +382,7 @@ return {
 					laserflaresize = 9.35,
 					name = "Scatter Beamer",
 					noselfdamage = true,
-					projectiles = 12,
+					projectiles = 16,
 					range = 250,
 					reloadtime = 0.1,
 					rgbcolor = "0 0 1",
@@ -398,11 +397,69 @@ return {
 					weapontype = "BeamLaser",
 					weaponvelocity = 1000,
 					damage = {
-						default = 13,
+						default = 27,
 					},
+				},
+				rollingbombdrones = {
+					allowNonBlockingAim  = true,
+					areaofeffect = 4,
+					avoidfeature = false,
+					avoidfriendly = false,
+					avoidground = false,
+					collidefriendly = false,
+					collidefeature = false,
+					collideground = false,
+					craterareaofeffect = 0,
+					craterboost = 0,
+					cratermult = 0,
+					edgeeffectiveness = 0.15,
+					explosiongenerator = "custom:genericshellexplosion-large-lightning-thor",
+					gravityaffected = "true",
+					hightrajectory = 1,
+					impulseboost = 0.123,
+					impulsefactor = 0.123,
+					name = "DronePointer",
+					noselfdamage = true,
+					range = 400,
+					reloadtime = 0.5,
+					size = 0,
+					soundhit = "",
+					soundhitwet = "",
+					soundstart = "",
+					turret = true,
+					weapontype = "Cannon",
+					weaponvelocity = 360,
+					damage = {
+						default = 0,
+					},
+					customparams = {
+						carried_unit = "babyarmvader",  --Name of the unit spawned by this carrier unit.
+						engagementrange = 400,
+						spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
+						spawnrate = 45, 			--Spawnrate roughly in seconds.
+						maxunits = 2,				--Will spawn units until this amount has been reached.
+						energycost = 3000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+						metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+						controlradius = 500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+						decayrate = 1,
+						carrierdeaththroe = "control",
+						dockingarmor = 0,
+						dockinghealrate = 16,
+						docktohealthreshold = 0,
+						enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+						holdfireradius = 300,		--defines the radius for drones to wander when "hold fire" firestate issued
+						dockingHelperSpeed = 100,
+						dockingpiecestart = 14,		--First model piece to be used for docking.
+						dockingpieceinterval = 0,	--Number of pieces to skip when docking the next unit.
+						dockingpieceend = 14,		--Last model piece used for docking. Will loop back to first when exceeded.
+						dockingradius = 1,			--The range at which the units snap to the carrier unit when docking.
+					}
 				},
 		},
 		weapons = {
+					[1] = {
+				def = "ROLLINGBOMBDRONES",
+			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
