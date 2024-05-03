@@ -250,9 +250,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 999,
 				damage = {
-					commanders = 40,
-					default = 52,
-					vtol = 52,
+					default = 115,
 				},
 			},
 			torpedo = {
@@ -396,6 +394,7 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
