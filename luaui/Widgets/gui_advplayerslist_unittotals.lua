@@ -33,8 +33,7 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
--- calc actual player max unit limit = 32000 / (players+gaia)
-local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+local myTeamID = Spring.GetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
 local passedTime2 = 0
@@ -54,8 +53,8 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
-		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
+		local myTotalUnits = Spring.GetTeamUnitCount(myTeamID)
+		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = myTotalUnits, maxUnits = Spring.GetTeamMaxUnits(myTeamID), totalUnits = totalUnits })
 
 		if displayFeatureCount then
 			local features = Spring.GetAllFeatures()
@@ -114,6 +113,10 @@ function widget:Initialize()
 	WG['unittotals'].GetPosition = function()
 		return {top,left,bottom,right,widgetScale}
 	end
+end
+
+function widget:PlayerChanged()
+	myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Shutdown()
