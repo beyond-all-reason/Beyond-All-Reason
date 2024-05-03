@@ -116,7 +116,7 @@ local pics = {
     rank7 = imageDirectory .. "ranks/8.png",
 }
 local playerReadyState = {}
-local playerScale = 1
+local playerScale = 1.5
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
 local function RectQuad(px, py, sx, sy)
@@ -165,8 +165,8 @@ local function DrawSandClock(posX, posY)
 	gl.Translate(posX, posY-2.1, 0)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 		gl.Vertex(0, triangleSize, 0)
-		gl.Vertex(-triangleSize * 2 * math.sin(math.rad(30)), -triangleSize * 2 * math.cos(math.rad(30)), 0)
-		gl.Vertex(triangleSize * 2 * math.sin(math.rad(30)), -triangleSize * 2 * math.cos(math.rad(30)), 0)
+		gl.Vertex(-triangleSize * 1.75 * math.sin(math.rad(30)), -triangleSize * 1.75 * math.cos(math.rad(30)), 0)
+		gl.Vertex(triangleSize * 1.75 * math.sin(math.rad(30)), -triangleSize * 1.75 * math.cos(math.rad(30)), 0)
 	  end)
 	gl.PopMatrix()
 	gl.PushMatrix()
@@ -174,8 +174,8 @@ local function DrawSandClock(posX, posY)
 	gl.Translate(posX, posY+2.1, 0)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 	gl.Vertex(0, -triangleSize, 0)
-	gl.Vertex(-triangleSize * 2 * math.sin(math.rad(30)), triangleSize * 2 * math.cos(math.rad(30)), 0)
-	gl.Vertex(triangleSize * 2 * math.sin(math.rad(30)), triangleSize * 2 * math.cos(math.rad(30)), 0)
+	gl.Vertex(-triangleSize * 1.75 * math.sin(math.rad(30)), triangleSize * 1.75 * math.cos(math.rad(30)), 0)
+	gl.Vertex(triangleSize * 1.75 * math.sin(math.rad(30)), triangleSize * 1.75 * math.cos(math.rad(30)), 0)
 	  end)
 	gl.PopMatrix()
 end
@@ -216,7 +216,7 @@ local function DrawRank(rank, posX, posY)
 end
 
 local function DrawSkill(skill, posX, posY)
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 11 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
@@ -729,7 +729,7 @@ function widget:DrawScreen()
 					local amIunlocked = canPlayerPlaceNow(myPlayerID)
 					if not startPointChosen and next_playerID > -1 and ((amIunlocked and current_playerID == myPlayerID) or (not amIunlocked and current_playerID ~= myPlayerID)) then
 						font:Begin()
-						font:Print(DMDefaultColorString .. tmsg, vsx * 0.5, vsy * 0.26, 22.0 * uiScale, "co")
+						font:Print(DMDefaultColorString .. tmsg, vsx * 0.5, vsy * 0.26 - 10, 22.0 * uiScale, "co")
 						font:End()
 					end
 					if not amIunlocked and (current_playerID ~= myPlayerID) then
@@ -767,8 +767,9 @@ function widget:DrawScreen()
 					local total_height_maybe = (((#myTeamPlayersOrder+3) * 20 * uiScale))
 					gl.Rect(x - 70 * uiScale, y + 50 * uiScale, x + 180 * uiScale, y - total_height_maybe) -- longest player name can probably get away outside rectangle width
 					gl_Color(1, 1, 1, 1)
+					x = x - 20
 					font:Begin()
-					font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x-10, y, 16 * uiScale, "lo")
+					font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x, y, 16 * uiScale, "lo")
 					font:End()
 					for i, data in ipairs(myTeamPlayersOrder) do
 						local y_offset = i * 0.02
@@ -790,17 +791,17 @@ function widget:DrawScreen()
 						-- | indicator/timer/sandclock | rankicon | skill/zero | [playercolor] playername |
 						if (current_playerID == playerID) then
 							font:Begin()
-							font:Print(DMDefaultColorString .. tmsg, x, y_shift, 12 * uiScale, "lo")
+							font:Print(DMDefaultColorString .. tmsg, x - 1, y_shift + 1, 12 * uiScale, "lo")
 							font:End()
 						elseif (canPlayerPlaceNow(playerID)) then
-							DrawState(playerID, x, y_shift)
+							DrawState(playerID, x - 5, y_shift - 5)
 						else
-							DrawSandClock(x+10, y_shift+5)
+							DrawSandClock(x + 5, y_shift + 5)
 						end
-						DrawRank(playerRank, x+20, y_shift)
-						DrawSkill(playerSkill, x+40, y_shift)
+						DrawRank(playerRank, x + 22, y_shift - 5)
+						DrawSkill(playerSkill, x + 55, y_shift - 5)
 						font:Begin()
-						font:Print(DMDefaultColorString .. playerNameText, x+60, y_shift, 16 * uiScale, "lo")
+						font:Print(DMDefaultColorString .. playerNameText, x+90, y_shift + 2, 16 * uiScale, "lo")
 						font:End()
 					end
 				end
