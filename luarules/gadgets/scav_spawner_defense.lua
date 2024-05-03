@@ -1255,6 +1255,8 @@ if gadgetHandler:IsSyncedCode() then
 	local createUnitQueue = {}
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == scavTeamID then
+			local _, maxH = Spring.GetUnitHealth(unitID)
+			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
 				Spring.DestroyUnit(unitID, true, true)
@@ -1564,9 +1566,10 @@ if gadgetHandler:IsSyncedCode() then
 		if #createUnitQueue > 0 then
 			for i = 1,#createUnitQueue do
 				local unitID = Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
-				if unitID then
-					Spring.SetUnitHealth(unitID, 10)
-				end
+				--if unitID then
+				--	local _, maxH = Spring.GetUnitHealth(unitID)
+				--	Spring.SetUnitHealth(unitID, maxH*0.5)
+				--end
 			end
 			createUnitQueue = {}
 		end
