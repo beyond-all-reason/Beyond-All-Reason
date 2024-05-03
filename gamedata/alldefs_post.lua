@@ -239,6 +239,11 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				if uDef.power then
+					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
+				else
+					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+				end
 				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
 				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
