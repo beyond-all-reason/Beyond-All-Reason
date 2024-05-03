@@ -130,9 +130,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					def = "cormort_cluster_munition",
 					number = 8,
-					cegtag = "arty-fast",
 				},
 				damage = {
 					default = 105,
@@ -155,7 +153,7 @@ return {
 				range = 100,
 				reloadtime = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 350,
 				damage = {
 					default = 105,
 					vtol = 14,
