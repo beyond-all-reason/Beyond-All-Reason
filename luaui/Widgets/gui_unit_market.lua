@@ -158,7 +158,7 @@ local function FindPlayerIDFromTeamID(teamID)
     local playerList = spGetPlayerList()
     for i = 1, #playerList do
         local playerID = playerList[i]
-        local team = select(6,spGetPlayerInfo(playerID))
+        local team = select(4,spGetPlayerInfo(playerID))
         if team == teamID then
             return playerID
         end

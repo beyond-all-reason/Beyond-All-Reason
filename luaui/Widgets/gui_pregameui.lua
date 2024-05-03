@@ -222,6 +222,11 @@ local function DrawSkill(skill, posX, posY)
     font:End()
 end
 
+local function round(num, idp)
+    local mult = 10 ^ (idp or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
 -- advplayerlist end
 local function colourNames(teamID)
 	if teamID == nil then return "\255\210\210\210" end -- debug
@@ -785,7 +790,7 @@ function widget:DrawScreen()
 							local tsMu = customtable.skill
 							local tsSigma = customtable.skilluncertainty
 							local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
-							if (ts ~= nil) then playerSkill = ts end
+							if (ts ~= nil) then playerSkill = round(ts, 0) end
 							if (rank ~= nil) then playerRank = rank end
 						end
 						-- | indicator/timer/sandclock | rankicon | skill/zero | [playercolor] playername |
