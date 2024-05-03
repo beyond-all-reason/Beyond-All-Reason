@@ -27,13 +27,13 @@ function gadget:TeamDied(teamID)
 	local teams = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamID)))
 	local aliveTeams = 0
 	for i = 1, #teams do
-		if teams[i] ~= teams[i] and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
+		if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
 			aliveTeams = aliveTeams + 1
 		end
 	end
 	local portionSize = math.floor(redistributionAmount / aliveTeams)
 	for i = 1, #teams do
-		if teams[i] ~= teams[i] and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
+		if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
 			Spring.TransferUnitLimit(teamID, teams[i], portionSize)
 		end
 	end
@@ -42,13 +42,13 @@ function gadget:TeamDied(teamID)
 	if aliveTeams == 0 then
 		teams = Spring.GetTeamList()
 		for i = 1, #teams do
-			if teams[i] ~= teams[i] and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
+			if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
 				aliveTeams = aliveTeams + 1
 			end
 		end
 		local portionSize = math.floor(redistributionAmount / aliveTeams)
 		for i = 1, #teams do
-			if teams[i] ~= teams[i] and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
+			if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i])) then	-- not dead
 				Spring.TransferUnitLimit(teamID, teams[i], portionSize)
 			end
 		end
