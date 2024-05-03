@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-if not Spring.TransferTeamMaxUnits then
+if not Spring.TransferUnitLimit then
 	return
 end
 
