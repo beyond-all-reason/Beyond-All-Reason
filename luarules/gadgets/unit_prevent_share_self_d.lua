@@ -60,7 +60,7 @@ else
 			local _,active,spec,teamID = spGetPlayerInfo(playerID,false)
 			local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
 			if isDead == 0 and not isAiTeam then
-				--_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
+				_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
 				if active and not spec then
 					monitorPlayers[playerID] = true
 				end
