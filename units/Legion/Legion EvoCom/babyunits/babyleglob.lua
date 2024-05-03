@@ -27,6 +27,7 @@ return {
 		movestate = 2,
 		nochasecategory = "VTOL",
 		objectname = "Units/leglob.s3o",
+		power = 66,
 		script = "Units/leglob.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
