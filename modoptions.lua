@@ -1238,7 +1238,7 @@ local options = {
     {
         key    	= "evocomleveluprate",
         name   	= "Commander Evolution Rate",
-        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
@@ -1247,6 +1247,17 @@ local options = {
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomxpmultiplier",
+        name   	= "Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
 
     {
 		key		= "forceallunits",
