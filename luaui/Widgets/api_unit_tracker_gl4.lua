@@ -704,7 +704,7 @@ function widget:GameStart()
 		for ct, id in ipairs(Spring.GetPlayerList()) do
 			local playername, _, spec = Spring.GetPlayerInfo(id, false)
 			pnl[ct] = playername
-			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then
+			if (not test) and spec and (string.find(playername,"[teh]cluster", nil, true) or string.find(playername,"Host[", nil, true) )then
 				return
 			end
 		end
