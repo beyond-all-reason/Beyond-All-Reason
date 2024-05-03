@@ -114,6 +114,7 @@ local pics = {
     rank5 = imageDirectory .. "ranks/6.png",
     rank6 = imageDirectory .. "ranks/7.png",
     rank7 = imageDirectory .. "ranks/8.png",
+	hourglass = imageDirectory .. "hourglass.png"
 }
 local playerReadyState = {}
 local playerScale = 1.5
@@ -157,27 +158,10 @@ local function DrawState(playerID, posX, posY)
 	gl_Color(1, 1, 1, 1)
 end
 
--- we don't have sandclock icon yet so improv time
-local function DrawSandClock(posX, posY)
-	local triangleSize = 4
-	gl.PushMatrix()
-	gl.Color(1, 1, 1, 1)
-	gl.Translate(posX, posY-2.1, 0)
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		gl.Vertex(0, triangleSize, 0)
-		gl.Vertex(-triangleSize * 1.75 * math.sin(math.rad(30)), -triangleSize * 1.75 * math.cos(math.rad(30)), 0)
-		gl.Vertex(triangleSize * 1.75 * math.sin(math.rad(30)), -triangleSize * 1.75 * math.cos(math.rad(30)), 0)
-	  end)
-	gl.PopMatrix()
-	gl.PushMatrix()
-	gl.Color(1, 1, 1, 1)
-	gl.Translate(posX, posY+2.1, 0)
-	gl.BeginEnd(GL.LINE_LOOP, function()
-	gl.Vertex(0, -triangleSize, 0)
-	gl.Vertex(-triangleSize * 1.75 * math.sin(math.rad(30)), triangleSize * 1.75 * math.cos(math.rad(30)), 0)
-	gl.Vertex(triangleSize * 1.75 * math.sin(math.rad(30)), triangleSize * 1.75 * math.cos(math.rad(30)), 0)
-	  end)
-	gl.PopMatrix()
+local function DrawHourglass(posX, posY)
+	gl_Texture(pics["hourglass"])
+	DrawRect(posX, posY - (1*playerScale), posX + (16*playerScale), posY + (16*playerScale))
+	gl_Color(1, 1, 1, 1)
 end
 
 local function SetSidePics()
@@ -801,7 +785,7 @@ function widget:DrawScreen()
 						elseif (canPlayerPlaceNow(playerID)) then
 							DrawState(playerID, x - 5, y_shift - 5)
 						else
-							DrawSandClock(x + 5, y_shift + 5)
+							DrawHourglass(x - 4, y_shift - 5)
 						end
 						DrawRank(playerRank, x + 22, y_shift - 5)
 						DrawSkill(playerSkill, x + 55, y_shift - 5)
