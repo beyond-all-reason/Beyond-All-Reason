@@ -637,6 +637,17 @@
 			"choosePoint": "Please choose a start point!",
 			"tooClose": "You cannot place your start position too close to another player"
 		},
+		"draftOrderMod": {
+			"teamPlacement": "Team Placement",
+			"placeYourCom": "Place your commmander",
+			"waitingFor": "Waiting for %{name}",
+			"turn": "turn",
+			"players": "players",
+			"nextIsPlayer": "Next is %{name}",
+			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
+			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
+			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"
+		},
 		"substitutePlayers": {
 			"offer": "Offer to play",
 			"withdraw": "Withdraw offer",

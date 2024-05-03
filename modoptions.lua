@@ -845,6 +845,21 @@ local options = {
 	--},
 
     {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
+        type    = "list",
+        section = "options_extra",
+        def     = "disabled",
+        items 	= {
+            { key = "disabled", name = "Disabled",  desc = "No changes." },
+            { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+        },
+    },
+  
+    {
         key 	= "unit_market",
         name 	= "Unit Market",
         desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
