@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 // piece  flare1, flare2, flare3, flare4, base, xturret, barrel1, barrel2, barrel3, barrel4, yturret1, yturret2;
-piece base, turret, strut, barrel, radarBase, flare, dishA;
+piece base, turret, strut, barrel, flare, radar, radarSpinEMPTY;
 
 static-var  gun_1;
 
@@ -22,7 +22,6 @@ ExecuteRestoreAfterDelay()
     }
 
 	spin turret around y-axis speed <25.0>;
-	// turn barrel to x-axis <-30> speed <25.0>;
 	turn strut to x-axis <-30> speed <25.0>;
 
 }
@@ -42,12 +41,12 @@ RestoreAfterDelay()
 Create()
 {
 	hide flare;
+	turn radarSpinEMPTY to x-axis <31.2> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
-	spin radarBase around y-axis speed <-50.0>;
-	spin dishA around z-axis speed <100.0>;
+	spin radar around y-axis speed <-50.0>;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -95,7 +94,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode strut type BITMAPONLY | NOHEATCLOUD;
-		explode radarBase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -104,7 +103,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode strut type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode radarBase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -113,14 +112,14 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode strut type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode radarBase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode strut type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode radarBase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

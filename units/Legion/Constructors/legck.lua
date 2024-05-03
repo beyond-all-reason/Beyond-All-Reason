@@ -65,7 +65,7 @@ return {
 			"corpun",
 			"corrl",
 			"cormadsam",
-			"corerad",
+			"leglupara",
 			"cordl",
 			"corjamt",
 			"corjuno",

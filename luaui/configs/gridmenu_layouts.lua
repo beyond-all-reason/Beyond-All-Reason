@@ -1037,7 +1037,7 @@ local unitGrids = {
 		},
 		{
 			{ "corllt", "legmg", "corhlt", "cormaw", },       -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1106,7 +1106,7 @@ local unitGrids = {
 		},
 		{
 			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1174,7 +1174,7 @@ local unitGrids = {
 		},
 		{
 			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1382,7 +1382,7 @@ local unitGrids = {
 		},
 		{
 			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{

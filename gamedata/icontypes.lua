@@ -2239,6 +2239,10 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
 	},
+	leglupara = {
+		bitmap = "icons/aa_flak_t2.png",
+		size = 1.3
+	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
 		size = 1.85

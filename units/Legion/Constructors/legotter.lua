@@ -69,7 +69,7 @@ return {
 			[25] = "corpun",
 			[26] = "corrl",
 			[27] = "cormadsam",
-			[28] = "corerad",
+			[28] = "leglupara",
 			[29] = "corjuno",
 			[30] = "cordl",
 			[31] = "corjamt",
