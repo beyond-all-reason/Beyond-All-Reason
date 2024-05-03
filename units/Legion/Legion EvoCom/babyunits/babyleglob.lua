@@ -30,6 +30,7 @@ return {
 		script = "Units/leglob.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructcountdown = 1,
 		sightdistance = 380,
 		turninplace = true,
 		turninplaceanglelimit = 90,
