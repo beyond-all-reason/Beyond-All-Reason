@@ -67,11 +67,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
     end
 
-else
 
--------------------------------------------------------------------------------
--- Unsynced
--------------------------------------------------------------------------------
+else	-- Unsynced
+
 
     local myAllyID = Spring.GetMyAllyTeamID()
     local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -90,25 +88,6 @@ else
 				Script.LuaUI.VisibleExplosion(px, py, pz, weaponID, ownerID)
 			end
 		end
-        --if Script.LuaUI("GadgetWeaponExplosion") or Script.LuaUI("GadgetWeaponExplosionGrass") then
-        --    if ownerID ~= nil then
-        --        if select(2, spGetSpectatingState()) or spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
-		--			if Script.LuaUI("GadgetWeaponExplosion") then
-		--				Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
-		--			end
-		--			if Script.LuaUI("GadgetWeaponExplosionGrass") then
-		--				Script.LuaUI.GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
-		--			end
-		--
-		--			if Script.LuaUI("GadgetWeaponExplosionDecal") then
-		--				Script.LuaUI.GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
-		--			end
-        --        end
-        --    elseif Script.LuaUI("GadgetWeaponExplosion") then
-        --        -- dont know when this happens and if we should show the explosion...
-        --        Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
-        --    end
-        --end
     end
 
     local function SpawnBarrelfire(_,px,py,pz, weaponID, ownerID)
