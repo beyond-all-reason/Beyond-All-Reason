@@ -323,10 +323,17 @@ local function buttonTextRefresh()
 			end
 		else -- modded
 			checkStartPointChosen()
-			if draftMode == "fair" and not myAllyTeamJoined then
+			if not myAllyTeamJoined then -- all draftModes
 				showLockButton = true
-				buttonText = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
-			elseif canPlayerPlaceNow(myPlayerID) then
+				local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
+				if (voteConTimeout) then
+					vcttimer = math.floor(voteConTimeout-os.clock())+1
+					if (vcttimer > 0) then
+						text = text .. " " .. vcttimer .. "s"
+					end
+				end
+				buttonText = text
+			elseif canPlayerPlaceNow(myPlayerID) or draftMode == "fair" then
 				if startPointChosen then
 					showLockButton = true
 					if locked then
@@ -338,21 +345,10 @@ local function buttonTextRefresh()
 					showLockButton = false
 					buttonText = ""
 				end
-			else
+			elseif myAllyTeamJoined then -- allyTeamJoined and draftMode is random/skill
 				showLockButton = true
-				if (next_playerID == nil or next_playerID == -1) then
-					local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
-					if (voteConTimeout) then
-						vcttimer = math.floor(voteConTimeout-os.clock())+1
-						if (vcttimer > 0) then
-							text = text .. " " .. vcttimer .. "s"
-						end
-					end
-					buttonText = text
-				else
-					buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.turn')})
-				end
-			end
+				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
+			end -- else do not show?
 		end
 	end
 end
@@ -832,7 +828,7 @@ function widget:DrawScreen()
 		end
 	end
 	if not mySpec and draftMode ~= "disabled" then
-		if draftMode ~= "fair" and not myTeamPlayersOrder then
+		if not myAllyTeamJoined then
 			local text = Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
 			if (voteConTimeout) then
 				vcttimer = math.floor(voteConTimeout-os.clock())+1
@@ -840,11 +836,6 @@ function widget:DrawScreen()
 					text = text .. " " .. vcttimer .. "s"
 				end
 			end
-			font:Begin()
-			font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
-			font:End()
-		elseif draftMode == "fair" and not myAllyTeamJoined then
-			local text = Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
 			font:Begin()
 			font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
 			font:End()
