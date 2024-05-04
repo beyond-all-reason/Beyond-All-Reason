@@ -852,7 +852,7 @@ function widget:DrawScreen()
 		if fairTimeout and os.clock() >= fairTimeout and not ihavejoined_fair then
 			Spring.SendLuaRulesMsg("i_have_joined_fair")
 			ihavejoined_fair = true
-			if draftMode ~= "fair" then
+			if draftMode ~= "fair" and not myTeamPlayersOrder then
 				voteConTimeout = os.clock() + connectionTimeOut
 			end
 		end
