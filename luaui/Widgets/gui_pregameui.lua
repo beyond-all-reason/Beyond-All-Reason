@@ -412,7 +412,7 @@ local function drawButton()
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
 		local numPlayersReady = 0
-		if numPlayers > 3 then
+		if numPlayers > 3 and not cantPlaceNow then
 			for _, playerID in pairs(playerList) do
 				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
 				if readystate == -1 or readystate == 1 or readystate == 2 then
