@@ -125,6 +125,7 @@ return {
 			subfolder = "",
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
+			wtinheritxprate = 0.01,
 			stockpileLimit = 4,
 		},
 		featuredefs = {

@@ -118,6 +118,10 @@ local function SpawnUnit(spawnData)
 			local ownerID = spawnData.ownerID
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
+				Spring.Echo("unit_explosion_spawner 1")
+				Spring.Echo(unitID)
+				Spring.Echo(ownerID)
+				Spring.Echo(Spring.GetUnitRulesParam(unitID, "parent_unit_id"))
 			end
       
 			if ownerID then
