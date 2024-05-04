@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "Mar 23, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --loaded by default?
+		enabled = true
 	}
 end
 
@@ -80,6 +80,7 @@ local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local GetMouseState = Spring.GetMouseState
 local SelectUnitArray = Spring.SelectUnitArray
 local TraceScreenRay = Spring.TraceScreenRay
@@ -100,6 +101,16 @@ function widget:PlayerChanged(playerID)
 		return
 	end
 	myTeam = Spring.GetMyTeamID()
+end
+
+local function addAllUnits()
+	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+		local unitDefID = GetUnitDefID(unitID)
+		local gr = unit2group[unitDefID]
+		if gr ~= nil and GetUnitGroup(unitID) == nil then
+			SetUnitGroup(unitID, gr)
+		end
+	end
 end
 
 local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
@@ -148,8 +159,8 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-					local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-					if buildProgress == 1 then
+					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
+					if finishedBuilding then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end
@@ -213,6 +224,9 @@ function widget:Initialize()
 	end
 	WG['autogroup'].getGroups = function()
 		return unit2group
+	end
+	if GetGameFrame() > 0 then
+		addAllUnits()
 	end
 end
 

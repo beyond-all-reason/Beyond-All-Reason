@@ -20,7 +20,6 @@ local postProcFile = 'gamedata/unitdefs_post.lua'
 local DownloadBuilds = VFS.Include('gamedata/download_builds.lua')
 
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 
 local section = 'unitdefs.lua'
 
@@ -46,7 +45,8 @@ end
 --  (these will override the SWU versions)
 --
 
-local luaFiles = RecursiveFileSearch('units/', '*.lua')
+
+local luaFiles = VFS.DirList('units/', '*.lua', nil, true)
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 local scavengersEnabled = true
@@ -65,7 +65,40 @@ if Spring.GetTeamList then
 			end
 		end
 	end
+
+	-- Load all unitdefs when Singleplayer and in DevMode
+	--local playerCount = 0
+	--for _, team in ipairs(teamList) do
+	--	if not select (4, Spring.GetTeamInfo(team, false)) then
+	--		local teamPlayers = Spring.GetPlayerList(team)
+	--		for _, playerID in ipairs(teamPlayers) do
+	--			playerCount = playerCount + 1
+	--		end
+	--	end
+	--end
+	--if playerCount <= 1 and Spring.GetConfigInt("DevMode", 0) == 1 then		-- ERRORS: Spring.GetConfigInt is not available here
+	--	scavengersEnabled = true
+	--	raptorsEnabled = true
+	--	legionEnabled = true
+	--end
 end
+if Spring.GetModOptions().ruins == "enabled" then
+	legionEnabled = true
+	scavengersEnabled = true
+elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
+	legionEnabled = true
+end
+
+if Spring.GetModOptions().experimentalextraunits == true then
+	scavengersEnabled = true
+end
+
+if Spring.GetModOptions().forceallunits == true then
+	raptorsEnabled = true
+	scavengersEnabled = true
+	legionEnabled = true
+end
+
 for _, filename in ipairs(luaFiles) do
 	if legionEnabled or not filename:find('legion') then
 		if scavengersEnabled or not filename:find('scavengers') then

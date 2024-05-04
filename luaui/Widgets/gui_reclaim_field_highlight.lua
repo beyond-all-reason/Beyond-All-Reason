@@ -7,12 +7,9 @@ function widget:GetInfo()
 		date      = "2022",
 		license   = "public",
 		layer     = 1000,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
-
-VFS.Include("LuaRules/Configs/customcmds.h.lua")
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -417,7 +414,7 @@ local spGetCameraVectors = Spring.GetCameraVectors
 
 local screenx, screeny
 local gaiaTeamId = spGetGaiaTeamID()
-local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed 
+local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed
 
 local minDistance = 300
 local minSqDistance = minDistance^2
@@ -426,7 +423,7 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 30 
+local checkFrequency = 30
 
 local drawEnabled = true
 local actionActive = false
@@ -594,6 +591,9 @@ local function UpdateFeatures()
 					end
 				end
 			end
+		else
+			knownFeatures[fID] = nil
+			clusterizingNeeded = true
 		end
 	end
 
@@ -876,16 +876,7 @@ local function DrawFeatureClusterText()
 		fontSize = max(fontSize, fontSizeMin)
 		fontSize = min(fontSize, fontSizeMax)
 
-		local metal = featureClusters[i].metal
-		local metalText
-
-		if metal < 1000 then
-			metalText = string.format("%.0f", metal) --exact number
-		elseif metal < 10000 then
-			metalText = string.format("%.1fK", math.floor(metal / 100) / 10) --4.5K
-		else
-			metalText = string.format("%.0fK", math.floor(metal / 1000)) --40K
-		end
+		local metalText = string.formatSI(featureClusters[i].metal)
 
 		glColor(numberColor)
 
@@ -908,7 +899,7 @@ function widget:Update(dt)
 		cameraScale = sqrt((cameraDist / 600)) --number is an "optimal" view distance
 	else
 		cameraScale = 1.0
-	end	
+	end
 end
 
 function widget:GameFrame(frame)

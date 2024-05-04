@@ -6,7 +6,7 @@ function widget:GetInfo()
       date      = "05.08.2022",
 	  license   = "GNU GPL, v2 or later",
       layer     = 0,
-      enabled   = true  --  loaded by default?
+      enabled   = true
     }
   end
 
@@ -29,7 +29,6 @@ local glGetViewSizes = gl.GetViewSizes
 local glDeleteList = gl.DeleteList
 
 local floor = math.floor
-local round = math.round
 
 local gameStarted = false
 
@@ -45,19 +44,7 @@ local eConvertedMax
 --How many converters are active 0 - 100%
 local converterUse
 
-local function formatRes(number)
-    local label
-    if number > 10000 then
-        label = table.concat({ math.floor(round(number / 1000)), "k" })
-    elseif number > 1000 then
-        label = table.concat({ string.sub(round(number / 1000, 1), 1, 2 + (string.find(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-    elseif number > 10 then
-        label = string.sub(round(number, 0), 1, 3 + (string.find(round(number, 0), ".", nil, true) or 0))
-    else
-        label = string.sub(round(number, 1), 1, 2 + (string.find(round(number, 1), ".", nil, true) or 0))
-    end
-    return tostring(label)
-end
+local formatOptions = { showSign = true }
 
 local function updateUI()
     local freeArea = WG['topbar'].GetFreeArea()
@@ -117,10 +104,10 @@ local function updateUI()
         fontSize = fontSize * 0.75
 
         -- energy used
-		font2:Print("\255\255\255\000" .. "-" .. formatRes(eConverted), area[3] - (fontSize * 0.42), area[2] + 3.2 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+		font2:Print("\255\255\255\000" .. string.formatSI(-eConverted, formatOptions), area[3] - (fontSize * 0.42), area[2] + 3.2 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
 
         -- metal produced
-		font2:Print("\255\240\255\240" .. "+" .. formatRes(mConverted), area[3]  -(fontSize * 0.42), area[2] + 0.8 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+		font2:Print("\255\240\255\240" .. string.formatSI(mConverted, formatOptions), area[3]  -(fontSize * 0.42), area[2] + 0.8 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
 		font2:End()
 
         if WG['tooltip'] ~= nil then

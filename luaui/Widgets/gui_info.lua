@@ -273,7 +273,6 @@ local function refreshUnitInfo()
 
 
 		local unitExempt = false
-
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
@@ -303,7 +302,12 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
+				elseif 
+				unitDef.customParams.isevocom or --for evolving commanders
+				unitDef.name == 'armcom' or 
+				unitDef.name == 'corcom' or 
+				unitDef.name == 'armvang' or 
+				unitDef.name == 'corkarg' then
 					unitExempt = true
 					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)
@@ -1952,10 +1956,16 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
+	local activeCmdID = select(2, Spring.GetActiveCommand())
+
 	-- buildmenu unitdef
 	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
 		displayMode = 'unitdef'
 		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+
+	elseif activeCmdID and activeCmdID < 0 then
+		displayMode = 'unitdef'
+		displayUnitDefID = -activeCmdID
 
 	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
 		displayMode = 'unit'

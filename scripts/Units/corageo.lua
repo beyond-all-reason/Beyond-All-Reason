@@ -3,6 +3,9 @@
         local fan1 = piece "fan1"
         local fan2 = piece "fan2"
         local fan3 = piece "fan3"
+        local rod1 = piece "rod1"
+        local rod2 = piece "rod2"
+        local rod3 = piece "rod3"
 	
         local smokespot = piece "smokespot"
 	local dmgPieces = { piece "base" }
@@ -25,8 +28,26 @@ function script.Create()
 	StartThread(animSpin, unitID, fan1, z_axis, math.rad(90.000000))
 	StartThread(animSpin, unitID, fan2, z_axis, math.rad(90.000000))
 	StartThread(animSpin, unitID, fan3, z_axis, math.rad(90.000000))
+	StartThread(rods)
 end
 
+
+
+function rods()
+	isInLoop = true
+	while (true) do
+		Move(rod1, y_axis, 5, 2)
+		Sleep (1000)
+		Move(rod2, y_axis, 5, 2)
+		Sleep (1000)
+		Move(rod3, y_axis, 5, 2)
+		Move(rod1, y_axis, 0, 2)
+		Sleep (1000)
+		Move(rod2, y_axis, 0, 2)
+		Sleep (1000)
+		Move(rod3, y_axis, 0, 2)
+	end
+end
         
 function script.Killed(recentDamage, maxHealth)
 	local severity = recentDamage / maxHealth

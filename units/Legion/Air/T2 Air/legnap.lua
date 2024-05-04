@@ -26,7 +26,7 @@ return {
 		maxpitch = 0.625,
 		maxrudder = 0.00448,
 		maxslope = 10,
-		speed = 198.6,
+		speed = 215,
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",

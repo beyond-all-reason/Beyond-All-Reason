@@ -24,14 +24,22 @@ local types = {
 local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
-local languageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode'}
-languageCodes = table.merge(languageCodes, table.invert(languageCodes))
-
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+
+local languageCodes = { 'en', 'fr', }
+languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
+end
+
+local devLanguageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode', }
+devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
+
+local devLanguageNames = {}
+for key, code in ipairs(devLanguageCodes) do
+	devLanguageNames[key] = Spring.I18N.languages[code]
 end
 
 -- detect potatos
@@ -758,10 +766,19 @@ function DrawWindow()
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
 							local text = option.name
-							local width = font2:GetTextWidth(text) * math.floor(15 * widgetScale)
+							local width = font:GetTextWidth(text) * math.floor(15 * widgetScale)
 							local maxWidthMult = 1
-							if width > (xPosMax - xPos - 45) * maxWidthMult then
-								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > (math.floor(xPosMax - xPos - 50))  do
+							if option.type == 'bool' then
+								maxWidthMult = 0.85
+							elseif option.type == 'select' then
+								maxWidthMult = 0.5
+							elseif option.type == 'slider' then
+								maxWidthMult = 0.55
+							end
+							local maxWidth = (xPosMax - xPos - 45) * maxWidthMult
+							if width > maxWidth then
+								maxWidth = (xPosMax - xPos - 50) * maxWidthMult
+								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > maxWidth do
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
@@ -1873,6 +1890,8 @@ function init()
 			shadowslider = 1,
 			grass = false,
 			cusgl4 = false,
+			losrange = false,
+			attackrange_numrangesmult = 0.3,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1891,6 +1910,8 @@ function init()
 			shadowslider = 3,
 			grass = false,
 			cusgl4 = true,
+			losrange = false,
+			attackrange_numrangesmult = 0.5,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1909,6 +1930,8 @@ function init()
 			shadowslider = 4,
 		 	grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.7,
 		},
 		high = {
 			bloomdeferred = true,
@@ -1927,6 +1950,8 @@ function init()
 			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 0.9,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1945,6 +1970,8 @@ function init()
 			shadowslider = 6,
 			grass = true,
 			cusgl4 = true,
+			losrange = true,
+			attackrange_numrangesmult = 1,
 		},
 		custom = {},
 	}
@@ -2852,12 +2879,11 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 		  onload = function()
-			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local keyFile = Spring.GetConfigString("KeybindingFile")
 			  local value = 1
 
 			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
 				  keyFile = keyLayouts.keybindingLayoutFiles[1]
-				  Spring.SetConfigString("KeybindingFile", keyFile)
 			  end
 
 			  for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
@@ -2931,6 +2957,13 @@ function init()
 		  end,
 		  onchange = function(_, value)
 			  saveOptionValue('Grid menu', 'gridmenu', 'setAutoSelectFirst', { 'autoSelectFirst' }, value)
+		  end,
+		},
+		{ id = "gridmenu_labbuildmode", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_labbuildmode'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getUseLabBuildMode ~= nil and WG['gridmenu'].getUseLabBuildMode()), description = Spring.I18N('ui.settings.option.gridmenu_labbuildmode_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setUseLabBuildMode', { 'useLabBuildMode' }, value)
 		  end,
 		},
 
@@ -3192,6 +3225,12 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
+		{ id = "language", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+			onchange = function(i, value)
+				local language = languageCodes[value]
+				WG['language'].setLanguage(language)
+			end
+		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -3462,6 +3501,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
+		  end,
+		},
+		{ id = "advplayerlist_resources", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_resources'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_resources_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_resources", { 'm_active_Table', 'resources' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'resources' }, value, { 'resources', value })
 		  end,
 		},
 		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_income'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_income_descr'),
@@ -4047,6 +4094,14 @@ function init()
 			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
 		  end,
 		},
+		{ id = "attackrange_numrangesmult", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
+		  onload = function(i)
+			  loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { 'selectionDisableThresholdMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Attack Range GL4', 'attackrange', 'setNumRangesMult', { 'selectionDisableThresholdMult' }, value)
+		  end,
+		},
 
 		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.defrange_descr') },
 		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = Spring.I18N('ui.settings.option.defrange_allyair_descr'),
@@ -4275,10 +4330,9 @@ function init()
 			end,
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
+		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
-
 
 		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 
@@ -4498,10 +4552,10 @@ function init()
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
-		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+		{ id = "language_dev", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = devLanguageNames, value = devLanguageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
-				local language = languageCodes[value]
-				WG['language'].setLanguage(language)
+				local devLanguage = devLanguageCodes[value]
+				WG['language'].setLanguage(devLanguage)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
@@ -5505,6 +5559,7 @@ function init()
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
+		options[getOptionByID('gridmenu_labbuildmode')] = nil
 	end
 
 
@@ -5784,7 +5839,7 @@ function init()
 				for k, v in pairs(soundList) do
 					if type(v) == 'table' then
 						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 							  onchange = function(i, value)
 								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 							  end,
@@ -5911,7 +5966,7 @@ function init()
 		options[getOptionByID('springcamheightmode')] = nil
 	end
 
-	if Spring.GetConfigString("KeybindingFile", "uikeys.txt") ~= "uikeys.txt" then
+	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID('gridmenu')] = nil
 	end
 

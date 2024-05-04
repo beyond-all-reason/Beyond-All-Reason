@@ -8,8 +8,8 @@ function widget:GetInfo()
 		author = "Errrrrrr, quantum + Doo",
 		date = "April 21, 2023",
 		license = "GNU GPL, v2 or later",
-		layer = 999999,
-		enabled = false, --  loaded by default?
+		layer = 1000,
+		enabled = false,
 	}
 end
 
@@ -28,6 +28,8 @@ if chunk then
 	setfenv(chunk, tmp)
 	unitArray = chunk()
 end
+
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -76,40 +78,32 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not ctrl then
 		return false
 	end
+
+	local index = Spring.GetCmdDescIndex(cmdID)
+	local command = Spring.GetActiveCmdDesc(index)
 	-- need to filter only state commands!
-	if cmdID > 1000 or cmdID < 0 then
-		--Spring.Echo("Not a state change command!")
-		return false
-	end
-	local cmdName = CMD[cmdID].name
-	if cmdName and not cmdName.find("STATE") then
-		--Spring.Echo("Not a state change command!")
-		return false
+	if type(command) ~= "table" or command.type ~= CMDTYPE_ICON_MODE then
+		return
 	end
 
 	local selectedUnits = Spring.GetSelectedUnits()
 	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
 		local name = unitName[unitDefID]
 		unitSet[name] = unitSet[name] or {}
 		if #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
 			unitSet[name][cmdID] = cmdParams[1]
-			Spring.Echo("State pref changed:  " .. name .. ",  " .. CMD[cmdID] .. " " .. cmdParams[1])
+			Spring.Echo("State pref changed:  " .. name .. ",  " .. command.name .. " " .. cmdParams[1])
 			table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
-
-			-- Spring.PlaySoundFile('LuaUI/sounds/volume_osd/pop.wav', 1.0, 'ui')
 		end
 	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local cmdOpts = GetCmdOpts(false, false, false, true, false)
-	--local altOpts = GetCmdOpts(true, false, false, false, false)
 
 	local name = unitName[unitDefID]
-	--local unitDef = UnitDefs[unitDefID]
 
 	unitSet[name] = unitSet[unitName[unitDefID]] or {}
 	if unitTeam == Spring.GetMyTeamID() then

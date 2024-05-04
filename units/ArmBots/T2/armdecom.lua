@@ -71,13 +71,11 @@ return {
 			[13] = "armtide",
 			[14] = "armuwms",
 			[15] = "armuwes",
-			--[16] = "armuwmex",
 			[16] = "armfmkr",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
 			decoyfor = "armcom",
-			area_mex_def = "armmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,

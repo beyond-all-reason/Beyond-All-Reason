@@ -57,7 +57,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -75,7 +74,6 @@ return {
 			raptorparalyzersmall = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -102,8 +100,6 @@ return {
 				range = 250,
 				reloadtime = 1.5,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric",
 				soundstartvolume = 42,
 				soundtrigger = true,

@@ -3,26 +3,36 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, solarbase;
+piece  base, solarbase, container;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, sunheading, unitheading;
 
 
-Go()
-{
-	set ARMORED to 0;
-	return (0);
+lua_solarpoint() {
+	return(0);
 }
 
-Stop()
-{
-	set ARMORED to 1;
-	return (0);
+solarreturn(status, sunheading) {
+
+	unitheading = get(HEADING);
+	if (status==1) {
+		turn container to y-axis 0-unitheading now;
+		turn solarbase to x-axis <30> speed <12>;
+		turn solarbase to y-axis sunheading*182 speed <25>;
+	}
+
 }
+
+
 
 Create()
 {
 	dont-cache solarbase;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	call-script lua_solarpoint();
 	return (0);
 }
 

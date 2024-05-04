@@ -6,7 +6,7 @@ function widget:GetInfo()
     date      = "May 2018",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false --  loaded by default?
+    enabled   = false
   }
 end
 
@@ -19,6 +19,20 @@ local function round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
     if num >= 0 then return math.floor(num * mult + 0.5) / mult
     else return math.ceil(num * mult - 0.5) / mult end
+end
+
+local function buildTree(conDefID, tree)
+    local buildOptions = UnitDefs[conDefID].buildOptions
+    for _, option in ipairs(buildOptions) do
+        if not tree[option] then
+            tree[option] = true
+            if UnitDefs[option].buildOptions then
+                tree = buildTree(option, tree)
+            end
+        end
+    end
+
+    return tree
 end
 
 function widget:Initialize()
@@ -85,15 +99,8 @@ function widget:Initialize()
         end
     end
 
-    -- gather all units that any builder has in its buildoptions
-    local inBuildoptions = {}
-    for udid, unitDef in pairs(UnitDefs) do
-        if unitDef.buildOptions then
-            for id, optionDefID in pairs(unitDef.buildOptions) do
-                inBuildoptions[optionDefID] = true
-            end
-        end
-    end
+    local inBuildoptions = buildTree(UnitDefNames["armcom"].id, {})
+    inBuildoptions = buildTree(UnitDefNames["corcom"].id, inBuildoptions)
 
     for udid, unitDef in pairs(UnitDefs) do
         if inBuildoptions[udid] or unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'legcom' then

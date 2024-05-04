@@ -61,7 +61,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray", --cob 1024
+				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
@@ -79,7 +79,6 @@ return {
 			raptorparalyzerbig = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -107,8 +106,6 @@ return {
 				range = 400,
 				reloadtime = 4.5,
 				rgbcolor = "0.5 0.5 1",
-				--soundhit = "xplomed3",
-				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
 				soundstartvolume = 65,
 				soundtrigger = true,

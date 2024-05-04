@@ -55,6 +55,7 @@ local convertedUnitsNames = {
 	['armvang'] = 3,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
+  
 	['armflash'] = 6,
 	['corgator'] = 6,
 	['armdecade'] = 6,
@@ -108,7 +109,11 @@ local convertedUnitsNames = {
 	['leegmech'] = 5,
 	['legionnaire'] = 5,
 	['legvenator'] = 5,
+  ['legmed'] = 5,
 }
+--if Spring.GetModOptions().emprework then
+	--convertedUnitsNames['armdfly'] = 50
+--end
 -- convert unitname -> unitDefID
 local convertedUnits = {}
 for name, params in pairs(convertedUnitsNames) do

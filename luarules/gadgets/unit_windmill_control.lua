@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date = "June 29, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -18,7 +18,7 @@ end
 
 local windDefs = {}
 
-for _, unitDefName in ipairs({'armwint2', 'corwint2', 'armwint2_scav', 'corwint2_scav'}) do 
+for _, unitDefName in ipairs({'armwint2', 'corwint2', 'armwint2_scav', 'corwint2_scav', 'legwint2'}) do
 	if UnitDefNames[unitDefName] then
 		windDefs[UnitDefNames[unitDefName].id] = true
 	end
@@ -26,7 +26,7 @@ end
 
 
 if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then -- Only apply these when resource multipliers are active, to save performance
-	for _, unitDefName in ipairs({'armwin', 'corwin', 'armwin_scav', 'corwin_scav'}) do 
+	for _, unitDefName in ipairs({'armwin', 'corwin', 'armwin_scav', 'corwin_scav', 'legwin'}) do
 		if UnitDefNames[unitDefName] then
 			windDefs[UnitDefNames[unitDefName].id] = true
 		end
