@@ -922,7 +922,6 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 
 	if words[1] == "DraftOrderPlayersOrder" then
-		Spring.Echo("DraftOrderPlayersOrder")
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
 		if myTeamPlayersOrder == nil then
@@ -937,7 +936,6 @@ function widget:RecvLuaMsg(msg, playerID)
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
-				--Spring.Echo("order is: "..playerid.." ".. tname)
 			end
 			if devUItestMode then -- dev UI testing mode		
 				currentPlayerIndex = 1 -- simulating queue progress on local end only
@@ -977,9 +975,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 		if current_playerID > -1 then
 			currentTurnTimeout = os.clock() + turnTimeOut
-		end
-		if current_playerID > -1 --[[and next_playerID > -1]] then -- skip last turn anyway if they don't place AND they are NOT connected
-			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
+			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay -- skip last turn anyway if they don't place AND they are NOT connected
 		end
 	elseif words[1] == "DraftOrderAllyTeamJoined" then
 		allyTeamID_about = tonumber(words[2] or -1)
