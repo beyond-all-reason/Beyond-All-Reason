@@ -949,6 +949,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			buttonPosY = 0.80 - (((#myTeamPlayersOrder+4) * 0.02))
 			buttonX = math.floor(vsx * buttonPosX)
 			buttonY = math.floor(vsy * buttonPosY)
+			voteConTimeout = nil
 		end
 	elseif words[1] == "DraftOrderPlayerTurn" then
 		allyTeamID_about = tonumber(words[2] or -1)
