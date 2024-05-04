@@ -333,7 +333,7 @@ local function buttonTextRefresh()
 					end
 				end
 				buttonText = text
-			elseif canPlayerPlaceNow(myPlayerID) or draftMode == "fair" then
+			elseif canPlayerPlaceNow(myPlayerID) then -- "fair" mode will always this block
 				if startPointChosen then
 					showLockButton = true
 					if locked then
@@ -348,7 +348,7 @@ local function buttonTextRefresh()
 			elseif myAllyTeamJoined then -- allyTeamJoined and draftMode is random/skill
 				showLockButton = true
 				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
-			end -- else do not show?
+			else showLockButton = false end -- how did we get here?
 		end
 	end
 end
