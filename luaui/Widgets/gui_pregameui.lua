@@ -325,7 +325,7 @@ local function buttonTextRefresh()
 			checkStartPointChosen()
 			if draftMode == "fair" and not myAllyTeamJoined then
 				showLockButton = true
-				buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+				buttonText = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
 			elseif canPlayerPlaceNow(myPlayerID) then
 				if startPointChosen then
 					showLockButton = true
@@ -341,7 +341,7 @@ local function buttonTextRefresh()
 			else
 				showLockButton = true
 				if (next_playerID == nil or next_playerID == -1) then
-					local text = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+					local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
 					if (voteConTimeout) then
 						vcttimer = math.floor(voteConTimeout-os.clock())+1
 						if (vcttimer > 0) then
@@ -831,17 +831,24 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	if not mySpec and draftMode ~= "disabled" and draftMode ~= "fair" and not myTeamPlayersOrder then
-		local text = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.teamToLoad')})
-		if (voteConTimeout) then
-			vcttimer = math.floor(voteConTimeout-os.clock())+1
-			if (vcttimer > 0) then
-				text = text .. " " .. vcttimer .. "s"
+	if not mySpec and draftMode ~= "disabled" then
+		if draftMode ~= "fair" and not myTeamPlayersOrder then
+			local text = Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
+			if (voteConTimeout) then
+				vcttimer = math.floor(voteConTimeout-os.clock())+1
+				if (vcttimer > 0) then
+					text = text .. " " .. vcttimer .. "s"
+				end
 			end
+			font:Begin()
+			font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+			font:End()
+		elseif draftMode == "fair" and not myAllyTeamJoined then
+			local text = Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
+			font:Begin()
+			font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+			font:End()
 		end
-		font:Begin()
-		font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
-		font:End()
 	end
 	if draftMode ~= "disabled" then
 		if (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
