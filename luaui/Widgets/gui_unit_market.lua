@@ -74,18 +74,22 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 local myPlayerID   = Spring.GetMyPlayerID()
+local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
+local unitMarket = Spring.GetModOptions().unit_market
+local selectedUnits
+local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
+local loneTeamPlayer = false
+local advertise, unitsForSaleAmount = true, 0 -- Platters fps saver
+local ignoreTeam = {} -- Ignore teams that do not have human allies
+-- settings
 local buyWithoutHoldingAlt = false -- flip to true to buy with just a double-click
-local logging    = false -- Logging...
 local see_prices = false -- Set to true for local testing to verify unit prices
 local see_sales  = true  -- Set to false to never see console trade messages
-local loneTeamPlayer = false
-local selectedUnits
-local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
+local spec_sale_offers = false -- Disables spectators hearing about sale offers
+local platterLimit = 100 -- Hide platters if more than this units are being on sale at the same time
+--
 
-local unitMarket = Spring.GetModOptions().unit_market
-local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
-local advertise, unitsForSaleAmount = true, 0
-
+--------------------------------
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
 -- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
 local function OfferToSell(unitID)
@@ -124,8 +128,16 @@ local function Print(msg)
     if (see_sales) then
         spEcho(msg)
     end
-    if (logging) then
-        spLog(widget:GetInfo().name, LOG.INFO, msg)
+end
+
+local function AdvertCheck() -- platters
+    advertise = true
+    for _ in pairs(unitsForSale) do
+        unitsForSaleAmount = unitsForSaleAmount + 1
+        if (unitsForSaleAmount > platterLimit) then
+            advertise = false
+            break
+        end
     end
 end
 
@@ -135,7 +147,6 @@ local function InitFindSales()
             teamID = spGetUnitTeam(unitID)
             if fullview or spAreTeamsAllied(teamID, myTeamID) then
                 local price = spGetUnitRulesParam(unitID, "unitPrice")
-                --Spring.Echo("I see "..unitID.." p:"..price)
                 if (price > 0) then
                     unitsForSale[unitID] = price
 		        else
@@ -144,14 +155,7 @@ local function InitFindSales()
             end
         end
     end
-    advertise = true
-    for _ in pairs(unitsForSale) do
-        unitsForSaleAmount = unitsForSaleAmount + 1
-        if (unitsForSaleAmount > 100) then
-            advertise = false
-			break
-        end
-    end
+    AdvertCheck()
 end
 
 local function FindPlayerIDFromTeamID(teamID)
@@ -192,6 +196,7 @@ local function getTeamName(teamID)
 end
 
 local function unitSale(unitID, price, msgFromTeamID)
+    if ignoreTeam[msgFromTeamID] then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
@@ -200,18 +205,13 @@ local function unitSale(unitID, price, msgFromTeamID)
     if price > 0 then
         unitsForSale[unitID] = price
         local msg = Spring.I18N('ui.unitMarket.sellingUnit', { name = name, unitName = unitDef.translatedHumanName, price = price })
-        Print(msg)
+        if (not isSpectating or spec_sale_offers) then
+            Print(msg)
+        end
     else
         ClearUnitData(unitID)
     end
-    advertise = true
-    for _ in pairs(unitsForSale) do
-        unitsForSaleAmount = unitsForSaleAmount + 1
-        if (unitsForSaleAmount > 100) then
-            advertise = false
-			break
-        end
-    end
+    AdvertCheck()
 end
 
 local function unitSold(unitID, price, old_ownerID, msgFromTeamID)
@@ -249,15 +249,31 @@ end
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
-        widgetHandler:RemoveWidget() -- not enabled? shutdown
-    end -- TODO, in 1vs1 or if you are alone in a team, unless for debug purposes - widget should auto-shutdown
+        widgetHandler:RemoveWidget()
+    end
 
+    -- if you are debugging, comment this section
     loneTeamPlayer = not DoIhaveAllies()
+    for _, allyTeamID in ipairs(spGetAllyTeamList()) do
+        local allyTeamTeams = spGetTeamList(allyTeamID)
+        local hasHumanPlayers = false
+        for _, teamID in ipairs(allyTeamTeams) do
+            local _, _, _, isAITeam = spGetTeamInfo(teamID)
+            if not isAITeam then
+                hasHumanPlayers = true
+                break
+            end
+        end
+        if not hasHumanPlayers then
+            for _, teamID in ipairs(allyTeamTeams) do
+                ignoreTeam[teamID] = true
+            end
+        end
+    end
+    --
 
 	InitFindSales()
-
-    --widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
+    widget:SelectionChanged(spGetSelectedUnits())
 end
 
 function widget:PlayerChanged(playerID)
