@@ -64,7 +64,7 @@
 		},
 		"unitMarket": {
 			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{oldName} sold %{unitName} for %{price} metal to %{name}."
+			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal."
 		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
