@@ -2879,12 +2879,11 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 		  onload = function()
-			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local keyFile = Spring.GetConfigString("KeybindingFile")
 			  local value = 1
 
 			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
 				  keyFile = keyLayouts.keybindingLayoutFiles[1]
-				  Spring.SetConfigString("KeybindingFile", keyFile)
 			  end
 
 			  for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
@@ -5967,7 +5966,7 @@ function init()
 		options[getOptionByID('springcamheightmode')] = nil
 	end
 
-	if Spring.GetConfigString("KeybindingFile", "uikeys.txt") ~= "uikeys.txt" then
+	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID('gridmenu')] = nil
 	end
 

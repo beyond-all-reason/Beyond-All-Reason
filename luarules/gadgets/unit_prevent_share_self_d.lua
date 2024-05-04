@@ -22,6 +22,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	if Spring.GetUnitSelfDTime(unitID) > 0 then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
+	return true
 end
 
 local function removeSelfdOrders(teamID)

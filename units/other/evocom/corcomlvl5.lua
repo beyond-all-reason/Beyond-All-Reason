@@ -337,7 +337,7 @@ return {
 			corcomeyelaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
-				beamtime = 0.12,
+				beamtime = 0.20,
 				corethickness = 0.175,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -357,7 +357,7 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrfir3",
+				soundstart = "beamershot2",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
 				thickness = 2,
