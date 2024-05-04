@@ -127,7 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 	local allyTeamIsInGame = {} -- [allyTeam] = true/false - fully joined ally teams
 	local votedToForceSkipTurn = {} -- [allyTeam][teamID] - if more than 50% vote for it, the current player turn is force-skipped
 	local votedToForceStartDraft = {} -- [allyTeam][teamID] - if more than 50% vote for it, the draft will be initiated early, all late-joiners get last spots
-	local VOTE_QUARUM = 2 -- if there is less than 2 players in the game - the votes don't count -- TODO consider making it 3, can't have proper quarum with just two nodes, but it might be ok for now.
+	local VOTE_QUORUM = 2 -- if there is less than 2 players in the game - the votes don't count -- TODO consider making it 3, can't have proper quorum with just two nodes, but it might be ok for now.
 	local VOTE_YES_PRCTN_REQ = 51 -- default: 51
 	local announceVoteResults = false -- "secret" voting
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
