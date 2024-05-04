@@ -84,7 +84,7 @@ local blinkButton = false
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
 local turnTimeOut = 5 -- This controls timeout for random/skill mode placement turns
-local connectionTimeOut = 75 -- How many seconds to wait for allies before placing them at the tail end of the queue in random/skill draft
+local connectionTimeOut = 45 -- How many seconds to wait for allies before placing them at the tail end of the queue in random/skill draft
 local VoteSkipTurnDelay = turnTimeOut+3
 local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
