@@ -644,6 +644,7 @@
 			"waitingFor": "Waiting for %{name}",
 			"turn": "turn",
 			"players": "players",
+			"teamToLoad": "team to load",
 			"nextIsPlayer": "Next is %{name}",
 			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
 			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",

@@ -126,13 +126,42 @@ if gadgetHandler:IsSyncedCode() then
 	local teamPlayerData = {} -- [teamID] = {id, name, skill} of that team's player
 	local allyTeamIsInGame = {} -- [allyTeam] = true/false - fully joined ally teams
 	local votedToForceSkipTurn = {} -- [allyTeam][teamID] - if more than 50% vote for it, the current player turn is force-skipped
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
+	local votedToForceStartDraft = {} -- [allyTeam][teamID] - if more than 50% vote for it, the draft will be initiated early, all late-joiners get last spots
+	local VOTE_QUARUM = 2 -- if there is less than 2 players in the game - the votes don't count -- TODO consider making it 3, can't have proper quarum with just two nodes, but it might be ok for now.
+	local VOTE_YES_PRCTN_REQ = 51 -- default: 51
+	local announceVoteResults = false -- "secret" voting
+	local gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local draftMode = Spring.GetModOptions().draft_mode
+	local canVoteSkipTurn = false
+	local canVoteForceStartDraft = false
 
-	local function FindPlayerIDFromTeamID(teamID)
+	local function FindPlayerID(teamID)
 		if teamPlayerData and teamPlayerData[teamID] and teamPlayerData[teamID].id then
 			return teamPlayerData[teamID].id
 		else
+			-- Fallback: Search for player ID using Spring functions (no skill data available)
+			local players = Spring.GetPlayerList()
+			for _, playerID in ipairs(players) do
+				local playerTeamID = select(4,spGetPlayerInfo(playerID, false))
+				if playerTeamID == teamID then
+					return playerID
+				end
+			end
+			return nil
+		end
+	end
+
+	local function FindPlayerName(teamID)
+		if teamPlayerData and teamPlayerData[teamID] and teamPlayerData[teamID].name then
+			return teamPlayerData[teamID].name
+		else
+			local players = Spring.GetPlayerList()
+			for _, playerID in ipairs(players) do
+				local name,_,_,playerTeamID = spGetPlayerInfo(playerID, false)
+				if playerTeamID == teamID and name then
+					return name
+				end
+			end
 			return nil
 		end
 	end
@@ -145,7 +174,6 @@ if gadgetHandler:IsSyncedCode() then
 			local j = random(i, n)
 			array[i], array[j] = array[j], array[i]
 		end
-		return array
 	end
 
 	local function GetSkillByTeam(teamID)
@@ -158,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function GetSkillByPlayer(playerID)
 		if playerID == nil then return 0 end -- uhh
-		local customtable = select(11, Spring.GetPlayerInfo(playerID))
+		local customtable = select(11, spGetPlayerInfo(playerID))
 		if type(customtable) == 'table' then
 			local tsMu = customtable.skill
 			local tsSigma = customtable.skilluncertainty
@@ -177,7 +205,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function isAllyTeamSkillZero(allyTeamID)
 		local tteams = Spring.GetTeamList(allyTeamID)
 		for _, teamID in ipairs(tteams) do
-			local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
+			local _, _, _, isAiTeam = spGetTeamInfo(teamID)
 			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 				local skill = GetSkillByTeam(teamID)
 				if skill ~= 0 then
@@ -195,14 +223,17 @@ if gadgetHandler:IsSyncedCode() then
 		local orderIds = ""
 		local alone = true
 		for i, teamID in ipairs(teamOrder) do
-			local tname = teamPlayerData[teamID].name or "unknown" -- "unknown" should not happen if we create the order after everyone connects, so we are good
-			if i == 1 then
-				orderMsg = tname
-				orderIds = FindPlayerIDFromTeamID(teamID)
-			else
-				if alone then alone = false end
-				orderMsg = orderMsg .. ", " .. tname
-				orderIds = orderIds .. " " .. FindPlayerIDFromTeamID(teamID)
+			local playerID = FindPlayerID(teamID)
+			local tname = FindPlayerName(teamID) or "unknown" -- "unknown" should not happen if we create the order after everyone connects, so we are good in the most cases
+			if (playerID) then
+				if i == 1 then
+					orderMsg = tname
+					orderIds = playerID
+				else
+					if alone then alone = false end
+					orderMsg = orderMsg .. ", " .. tname
+					orderIds = orderIds .. " " .. playerID
+				end
 			end
 		end
 		if log and not alone then
@@ -211,22 +242,33 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
 	end
 
-	local function calculateVotedPercentage(allyTeamID)
-		local totalPlayers = Spring.GetTeamCount(allyTeamID)
+	local function calculateVotedPercentage(allyTeamID, votesArray)
+		local totalPlayers = 0
 		local votedPlayers = 0
-		for teamID, _ in pairs(votedToForceSkipTurn[allyTeamID]) do
-			if votedToForceSkipTurn[allyTeamID][teamID] then
+		for teamID, _ in pairs(votesArray[allyTeamID]) do
+			if teamPlayerData[teamID] ~= nil then -- because if not connected = can't vote
+				totalPlayers = totalPlayers + 1
+			end
+			if votesArray[allyTeamID][teamID] then
 				votedPlayers = votedPlayers + 1
 			end
 		end
+		if totalPlayers < VOTE_QUARUM then return 0 end -- auto-fail
 		return (votedPlayers / totalPlayers) * 100
 	end
 
+	local function SendDraftMessageToPlayer(allyTeamID, target_num)
+		-- technically do not care if it overflows here, on the clientside there just won't be anyone in the queue left
+		Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. target_num) -- we send allyTeamID orderIndex
+	end
+
 	local function checkVotesAndAdvanceTurn(allyTeamID)
-		if allyTeamSpawnOrderPlaced[allyTeamID] >= #allyTeamSpawnOrder[allyTeamID] then return end
-		local votedPercentage = calculateVotedPercentage(allyTeamID)
-		if votedPercentage > 50 then
-			--Spring.Echo("Over 50% of players on ally team " .. allyTeamID .. " have voted.")
+		if allyTeamSpawnOrderPlaced[allyTeamID] > #allyTeamSpawnOrder[allyTeamID] then return end -- allow skip last one, but no more
+		local votedPercentage = calculateVotedPercentage(allyTeamID, votedToForceSkipTurn)
+		if votedPercentage >= VOTE_YES_PRCTN_REQ then
+			if announceVoteResults then
+				Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip current player turn.")
+			end
 			for teamID, _ in pairs(votedToForceSkipTurn[allyTeamID]) do
 				votedToForceSkipTurn[allyTeamID][teamID] = false -- reset vote
 			end -- and advance turn
@@ -266,39 +308,89 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function SendDraftMessageToPlayer(allyTeamID, target_num)
-		-- technically do not care if it overflows here, on the clientside there just won't be anyone in the queue left
-		Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. target_num) -- we send allyTeamID orderIndex
+	-- Tom: order is generated after the entire ally team is in game,
+	-- now we can force it to generate before everyone connects too! (late-joiners get last spots)
+	local function PreInitDraftOrderData()
+		local tteams = Spring.GetTeamList()
+		for _, teamID in ipairs(tteams) do
+			local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
+			if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
+				teamPlayerData[teamID] = nil
+				if allyTeamIsInGame[allyTeamID] == nil then
+					allyTeamSpawnOrder[allyTeamID] = {} -- won't be used in fair mode
+					allyTeamIsInGame[allyTeamID] = false
+				end
+			end
+		end
+		if draftMode == "random" or draftMode == "skill" then
+			for _, teamID in ipairs(tteams) do
+				local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
+				if not votedToForceSkipTurn[allyTeamID] then
+					votedToForceSkipTurn[allyTeamID] = {}
+				end
+				votedToForceSkipTurn[allyTeamID][teamID] = false
+				if not votedToForceStartDraft[allyTeamID] then
+					votedToForceStartDraft[allyTeamID] = {}
+				end
+				votedToForceStartDraft[allyTeamID][teamID] = false
+			end
+			canVoteForceStartDraft = true
+		end
 	end
 
-	-- Tom: order is generated after the entire ally team is in game, tested in a LAN game
-	local function InitDraftOrderData(allyTeamID_ready) -- by this point we have all teamPlayerData we need
-		Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
+	local function putLateJoinersLast(array)
+		local lateJoiners = false
+		for _, teamID in ipairs(array) do
+			if not teamPlayerData[teamID] then
+				lateJoiners = true
+				break
+			end
+		end
+		if not lateJoiners then return end
+
+		local teamsWithPlayerData = {}
+		local teamsWithoutPlayerData = {}
+		for _, teamID in ipairs(array) do
+			if teamPlayerData[teamID] then
+				table.insert(teamsWithPlayerData, teamID)
+			else
+				table.insert(teamsWithoutPlayerData, teamID)
+			end
+		end
+		local newOrder = {}
+		for _, teamID in ipairs(teamsWithPlayerData) do
+			table.insert(newOrder, teamID)
+		end
+		for _, teamID in ipairs(teamsWithoutPlayerData) do
+			table.insert(newOrder, teamID)
+		end
+
+		for i = 1, #array do
+			array[i] = newOrder[i]
+		end
+	end
+
+	local function InitDraftOrderData(allyTeamID_ready)
+		if allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
+		allyTeamIsInGame[allyTeamID_ready] = true
 		if draftMode == "random" then
 			local tteams = Spring.GetTeamList()
 			for _, teamID in ipairs(tteams) do
-				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+				local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
-					if not votedToForceSkipTurn[allyTeamID] then
-						votedToForceSkipTurn[allyTeamID] = {}
-					end
-					votedToForceSkipTurn[allyTeamID][teamID] = false
 				end
 			end
 			shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
+			putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 		elseif draftMode == "skill" then
 			local tteams = Spring.GetTeamList()
 			table.sort(tteams, compareSkills) -- Sort teams based on skill
 			-- Assign sorted teams to allyTeamSpawnOrder
 			for _, teamID in ipairs(tteams) do
-				local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+				local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 				if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
 					table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
-					if not votedToForceSkipTurn[allyTeamID] then
-						votedToForceSkipTurn[allyTeamID] = {}
-					end
-					votedToForceSkipTurn[allyTeamID][teamID] = false
 				end
 			end
 			-- If the entire ally team has zero skill players, random shuffle then
@@ -317,11 +409,27 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 		end
+		Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
 		if draftMode == "skill" or draftMode == "random" then
+			canVoteSkipTurn = true
 			allyTeamSpawnOrderPlaced[allyTeamID_ready] = 1 -- First team in the order queue must place now
+			sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready, true) -- Send order FIRST
 			SendDraftMessageToPlayer(allyTeamID_ready, 1) -- We send the team a message notifying them it's their turn to place
-			sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready, true)
+		end
+	end
+
+	local function checkVotesAndStartDraft(allyTeamID)
+		local votedPercentage = calculateVotedPercentage(allyTeamID, votedToForceStartDraft)
+		if votedPercentage >= VOTE_YES_PRCTN_REQ then
+			if announceVoteResults then
+				Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to force start draft queue.")
+			end
+			for teamID, _ in pairs(votedToForceStartDraft[allyTeamID]) do
+				votedToForceStartDraft[allyTeamID][teamID] = false -- reset vote
+			end -- and force start draft queue
+			InitDraftOrderData(allyTeamID)
 		end
 	end
 
@@ -379,24 +487,15 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			initState = 0 -- players will be allowed to place startpoints
 
-			if draftMode == "random" then -- Random draft
-				Spring.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
-			elseif draftMode == "skill" then -- Skill-based placement order
-				Spring.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
-			elseif draftMode == "fair" then -- Fair mod
-				Spring.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
-			end
-			if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") then
-				local tteams = Spring.GetTeamList()
-				for _, teamID in ipairs(tteams) do
-					local _, _, _, isAiTeam, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-					if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
-						teamPlayerData[teamID] = nil
-						if allyTeamIsInGame[allyTeamID] == nil then
-							allyTeamSpawnOrder[allyTeamID] = {} -- won't be used in fair mode
-							allyTeamIsInGame[allyTeamID] = false
-						end
-					end
+			if (draftMode ~= nil and draftMode ~= "disabled") then
+				PreInitDraftOrderData()
+
+				if draftMode == "random" then -- Random draft
+					Spring.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
+				elseif draftMode == "skill" then -- Skill-based placement order
+					Spring.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
+				elseif draftMode == "fair" then -- Fair mod
+					Spring.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
 				end
 			end
 		end
@@ -421,7 +520,7 @@ if gadgetHandler:IsSyncedCode() then
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
-		local _, _, playerIsSpec, playerTeam, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
 		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
@@ -445,7 +544,7 @@ if gadgetHandler:IsSyncedCode() then
 			local playerList = Spring.GetPlayerList()
 			local all_players_joined = true
 			for _, PID in pairs(playerList) do
-				local _, _, spectator_flag = Spring.GetPlayerInfo(PID)
+				local _, _, spectator_flag = spGetPlayerInfo(PID)
 				if spectator_flag == false then
 					if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
 						all_players_joined = false
@@ -468,7 +567,10 @@ if gadgetHandler:IsSyncedCode() then
 		if not playerIsSpec then
 			if (draftMode ~= "disabled") then
 				if (draftMode == "skill" or draftMode == "random") then
-					if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
+					if canVoteForceStartDraft and msg == "vote_wait_too_long" and votedToForceStartDraft[allyTeamID][playerTeam] ~= nil then
+						votedToForceStartDraft[allyTeamID][playerTeam] = true
+						checkVotesAndStartDraft(allyTeamID)
+					elseif allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
 						if msg == "skip_my_turn" then
 							if allyTeamIsInGame[allyTeamID] and playerTeam and allyTeamID then
 								local turnCheck = isTurnToPlace(allyTeamID, playerTeam)
@@ -477,31 +579,29 @@ if gadgetHandler:IsSyncedCode() then
 									SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
 								end
 							end
-						elseif msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil and allyTeamSpawnOrderPlaced[allyTeamID] < #allyTeamSpawnOrder[allyTeamID] then
+						elseif canVoteSkipTurn and msg == "vote_skip_turn" and votedToForceSkipTurn[allyTeamID][playerTeam] ~= nil then
 							votedToForceSkipTurn[allyTeamID][playerTeam] = true
 							checkVotesAndAdvanceTurn(allyTeamID)
 						end
 					end
 				end
 				if msg == "i_have_joined_fair" then
-					local playerName = select(1,Spring.GetPlayerInfo(playerID, false))
+					local playerName = select(1,spGetPlayerInfo(playerID, false))
 					if playerID > -1 and playerName ~= nil then
 						teamPlayerData[playerTeam] = {id = playerID, name = playerName, skill = GetSkillByPlayer(playerID)} -- Save data
 					end
-					-- Check if all allies have joined
+					-- Check if all allies have joined and start the draft automatically
 					if allyTeamIsInGame[allyTeamID] ~= true then
 						local allAlliesJoined = true
 						local teamList = Spring.GetTeamList(allyTeamID)
 						for _, team in ipairs(teamList) do
-							local _, _, _, isAI = Spring.GetTeamInfo(team, false)
+							local _, _, _, isAI = spGetTeamInfo(team, false)
 							if not isAI and gaiaAllyTeamID ~= allyTeamID and teamPlayerData[team] == nil then
 								allAlliesJoined = false
-								--Spring.Echo("Player missing in team:".. team)
 								break
 							end
 						end
 						if allAlliesJoined then
-							allyTeamIsInGame[allyTeamID] = true
 							InitDraftOrderData(allyTeamID)
 						end
 					end
@@ -509,8 +609,8 @@ if gadgetHandler:IsSyncedCode() then
 					if allyTeamIsInGame[allyTeamID] then
 						Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID)
 						if draftMode ~= "fair" and allyTeamSpawnOrderPlaced[allyTeamID] then
+							sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false) -- Send order FIRST
 							SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])
-							sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false)
 						end
 					end
 				end
@@ -544,7 +644,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		if select(4, Spring.GetTeamInfo(teamID)) then -- isAiTeam
+		if select(4, spGetTeamInfo(teamID)) then -- isAiTeam
 			return false
 		end
 
@@ -554,7 +654,7 @@ if gadgetHandler:IsSyncedCode() then
 		end --fail
 
 		local myTurn = false
-		local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+		local _, _, _, isAI = spGetTeamInfo(teamID, false)
 		if not isAI then
 			if allyTeamIsInGame[allyTeamID] == false then return false end -- Wait for everyone
 			if draftMode == "skill" or draftMode == "random" then
@@ -596,7 +696,7 @@ if gadgetHandler:IsSyncedCode() then
 			local sx, sz = startpoint[1], startpoint[2]
 			local tooClose = ((x - sx) ^ 2 + (z - sz) ^ 2 <= closeSpawnDist ^ 2)
 			local sameTeam = (teamID == otherTeamID)
-			local sameAllyTeam = (allyTeamID == select(6, Spring.GetTeamInfo(otherTeamID, false)))
+			local sameAllyTeam = (allyTeamID == select(6, spGetTeamInfo(otherTeamID, false)))
 			if (sx > 0) and tooClose and sameAllyTeam and not sameTeam then
 				SendToUnsynced("PositionTooClose", playerID)
 				return false
@@ -655,7 +755,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
-		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
+		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
 		if sideName == "random" then
 			if math.random() > 0.5 then
 				startUnit = corcomDefID
@@ -760,15 +860,8 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- otherwise default to spawning regularly
 			if Game.startPosType == 2 then
-				if draftMode == "skill" then -- https://discord.com/channels/549281623154229250/1134886429361713252
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, skill based draft order") -- similar to next if section but order is based on ts
-				elseif draftMode == "random" then -- https://discord.com/channels/549281623154229250/1163844303735500860
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, random draft order")
-				elseif draftMode == "fair" then -- https://discord.com/channels/549281623154229250/1123310748236529715
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes, fair mode")
-				else
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
-				end
+				Spring.Log(gadget:GetInfo().name, LOG.INFO,
+					"manual spawning based on positions chosen by players in start boxes")
 			elseif Game.startPosType == 1 then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in random order")

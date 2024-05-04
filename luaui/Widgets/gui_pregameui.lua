@@ -83,7 +83,8 @@ local blinkButton = false
 
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
-local turnTimeOut = 5 -- This controls timeout for random/skill mode
+local turnTimeOut = 5 -- This controls timeout for random/skill mode placement turns
+local connectionTimeOut = 60 -- How many seconds to wait for allies before placing them at the tail end of the queue in random/skill draft
 local VoteSkipTurnDelay = turnTimeOut+3
 local draftModeLoaded = false
 local DMDefaultColorString = '\255\200\200\200'
@@ -93,6 +94,7 @@ local myAllyTeamJoined = false
 local ihavejoined_fair = false
 local currentTurnTimeout = nil
 local voteSkipTurnTimeout = nil
+local voteConTimeout = nil
 local fairTimeout = nil
 local current_playerID = -1
 local next_playerID = -1
@@ -212,12 +214,14 @@ local function round(num, idp)
 end
 
 -- advplayerlist end
-local function colourNames(teamID)
+local function colourNames(teamID, blink)
 	if teamID == nil then return "\255\210\210\210" end -- debug
+	local mult = 1
+	if blink then mult = 0.66 end
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
-	local R255 = math.floor(nameColourR * 255)
-	local G255 = math.floor(nameColourG * 255)
-	local B255 = math.floor(nameColourB * 255)
+	local R255 = math.floor(nameColourR * mult * 255)
+	local G255 = math.floor(nameColourG * mult * 255)
+	local B255 = math.floor(nameColourB * mult * 255)
 	if R255 % 10 == 0 then
 		R255 = R255 + 1
 	end
@@ -285,7 +289,7 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 end
 
 local function checkStartPointChosen()
-	if not mySpec then
+	if not mySpec and not startPointChosen then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
 		if x ~= nil and x > 0 and z ~= nil and z > 0 then
 			startPointChosen = true
@@ -337,7 +341,14 @@ local function buttonTextRefresh()
 			else
 				showLockButton = true
 				if (next_playerID == nil or next_playerID == -1) then
-					buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+					local text = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.players')})
+					if (voteConTimeout) then
+						vcttimer = math.floor(voteConTimeout-os.clock())+1
+						if (vcttimer > 0) then
+							text = text .. " " .. vcttimer .. "s"
+						end
+					end
+					buttonText = text
 				else
 					buttonText = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.turn')})
 				end
@@ -655,7 +666,7 @@ function widget:Initialize()
 
 	if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") then
 		-- auto_ready_disable = true -- if we want to disable auto ready using this mod, otherwise do not uncomment
-		auto_ready_timer = auto_ready_timer * 2 -- extra time to place, just to be safe
+		-- auto_ready_timer = auto_ready_timer * 2 -- if you want to double the wait time, otherwise do not uncomment
 	end
 
 	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
@@ -701,13 +712,13 @@ function widget:DrawScreen()
 		-- 	"Pick a startpos within"    -- I'm not going to touch that just yet (map_startbox.lua) (~0.18)
 
 		-- UI design by Scopa, implemented by Tom Fyuri
-		if myTeamPlayersOrder then
-			if not mySpec then
-				if draftMode ~= "fair" then
+		if not mySpec then
+			if draftMode ~= "fair" then
+				if myTeamPlayersOrder then
 					local tmsg = ""
 					if currentTurnTimeout then
 						tmsg = math.floor(currentTurnTimeout-os.clock())+1
-						if (tmsg <= 0) then tmsg = "?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
+						if (tmsg <= 0) then tmsg = " ?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
 							tmsg = tmsg .. "s"
 						end
 					elseif (current_playerID > -1 and next_playerID > -1) then
@@ -766,9 +777,7 @@ function widget:DrawScreen()
 
 						local playerID = data.id
 						local playerName = findPlayerName(playerID)
-						local playerTeamID = select(4, Spring.GetPlayerInfo(playerID, false))
-						local playerNameText = colourNames(playerTeamID) .. playerName
-						local _, _, _, _, _, _, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID)
+						local _, active, _, playerTeamID, _, ping, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID, true)
 						local playerRank, playerSkill = 0, 0
 						if type(customtable) == 'table' then
 							local tsMu = customtable.skill
@@ -777,7 +786,7 @@ function widget:DrawScreen()
 							if (ts ~= nil) then playerSkill = round(ts, 0) end
 							if (rank ~= nil) then playerRank = rank end
 						end
-						-- | indicator/timer/sandclock | rankicon | skill/zero | [playercolor] playername |
+						-- | indicator/timer/hourglass | rankicon | skill/zero | [playercolor] playername |
 						if (current_playerID == playerID) then
 							font:Begin()
 							font:Print(DMDefaultColorString .. tmsg, x - 1, y_shift + 1, 12 * uiScale, "lo")
@@ -787,19 +796,31 @@ function widget:DrawScreen()
 						else
 							DrawHourglass(x - 4, y_shift - 5)
 						end
-						DrawRank(playerRank, x + 22, y_shift - 5)
-						DrawSkill(playerSkill, x + 55, y_shift - 5)
+						local colorMod = colourNames(playerTeamID)
+						if (not active) then
+							if os.clock() % 0.75 <= 0.375 then
+								colorMod = colourNames(playerTeamID, true)
+							end
+						else
+							DrawRank(playerRank, x + 22, y_shift - 5)
+							DrawSkill(playerSkill, x + 55, y_shift - 5)
+						end
 						font:Begin()
-						font:Print(DMDefaultColorString .. playerNameText, x+90, y_shift + 2, 16 * uiScale, "lo")
+						font:Print(colorMod .. playerName, x+90, y_shift + 2, 16 * uiScale, "lo")
 						font:End()
 					end
 				end
 			end
-			-- non UI part
+			-- non-UI part
 			if draftMode ~= "fair" then
 				if myTurn and currentTurnTimeout and os.clock() >= currentTurnTimeout and not startPointChosen then
 					Spring.SendLuaRulesMsg("skip_my_turn")
 					myTurn = false
+				end
+
+				if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
+					Spring.SendLuaRulesMsg("vote_skip_turn")
+					voteSkipTurnTimeout = nil
 				end
 
 				if (devUItestMode) and currentTurnTimeout then -- dev UI testing mode
@@ -807,21 +828,41 @@ function widget:DrawScreen()
 						progressQueueLocally(1)
 					end
 				end
-
-				if voteSkipTurnTimeout and os.clock() >= voteSkipTurnTimeout then
-					Spring.SendLuaRulesMsg("vote_skip_turn")
-					voteSkipTurnTimeout = nil
-				end
 			end
 		end
-	elseif (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
-		reloadedDraftMode = nil
-		Spring.SendLuaRulesMsg("send_me_the_info_again")
-		draftModeInited()
 	end
-	if draftMode ~= "disabled" and not ihavejoined_fair and fairTimeout and os.clock() >= fairTimeout then
-		Spring.SendLuaRulesMsg("i_have_joined_fair")
-		ihavejoined_fair = true
+	if not mySpec and draftMode ~= "disabled" and draftMode ~= "fair" and not myTeamPlayersOrder then
+		local text = Spring.I18N('ui.draftOrderMod.waitingFor', { name = Spring.I18N('ui.draftOrderMod.teamToLoad')})
+		if (voteConTimeout) then
+			vcttimer = math.floor(voteConTimeout-os.clock())+1
+			if (vcttimer > 0) then
+				text = text .. " " .. vcttimer .. "s"
+			end
+		end
+		font:Begin()
+		font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+		font:End()
+	end
+	if draftMode ~= "disabled" then
+		if (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
+			reloadedDraftMode = nil
+			Spring.SendLuaRulesMsg("send_me_the_info_again")
+			draftModeInited()
+		end
+		if fairTimeout and os.clock() >= fairTimeout and not ihavejoined_fair then
+			Spring.SendLuaRulesMsg("i_have_joined_fair")
+			ihavejoined_fair = true
+			if draftMode ~= "fair" then
+				voteConTimeout = os.clock() + connectionTimeOut
+			end
+		end
+		if voteConTimeout and os.clock() >= voteConTimeout and ihavejoined_fair then
+			-- TODO do we draw UI or Spring.Echo that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
+			if not myTeamPlayersOrder then
+				Spring.SendLuaRulesMsg("vote_wait_too_long")
+			end
+			voteConTimeout = nil
+		end
 	end
 	-- DOM end
 
@@ -883,6 +924,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 
 	if words[1] == "DraftOrderPlayersOrder" then
+		Spring.Echo("DraftOrderPlayersOrder")
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
 		if myTeamPlayersOrder == nil then
@@ -897,6 +939,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+				--Spring.Echo("order is: "..playerid.." ".. tname)
 			end
 			if devUItestMode then -- dev UI testing mode		
 				currentPlayerIndex = 1 -- simulating queue progress on local end only
@@ -936,7 +979,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		if current_playerID > -1 then
 			currentTurnTimeout = os.clock() + turnTimeOut
 		end
-		if current_playerID > -1 and next_playerID > -1 then
+		if current_playerID > -1 --[[and next_playerID > -1]] then -- skip last turn anyway if they don't place AND they are NOT connected
 			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay
 		end
 	elseif words[1] == "DraftOrderAllyTeamJoined" then
