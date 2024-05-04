@@ -120,7 +120,7 @@ return {
 			subfolder = "",
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
-			stockpileLimit = 3,
+			stockpileLimit = 4,
 			evolution_announcement = "Legion commanders have upgraded to level 6",
 			evolution_announcement_size = 18.5,
 			evolution_target = "legcomlvl6",
@@ -251,9 +251,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 999,
 				damage = {
-					commanders = 24,
-					default = 48,
-					vtol = 48,
+					default = 90,
 				},
 			},
 			torpedo = {
@@ -350,7 +348,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 2000,
+				energypershot = 4500,
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
@@ -364,12 +362,12 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 15,
+				projectiles = 30,
 				range = 600,
 				reloadtime = 0.9,
 				sprayangle = 2500,
 				stockpile = true,
-				stockpiletime = 6,
+				stockpiletime = 15,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -384,6 +382,7 @@ return {
 				weaponvelocity = 2000,
 				customparams = {
 					spawns_name = "babyleglob",
+					spawns_expire = 30,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
@@ -397,6 +396,7 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

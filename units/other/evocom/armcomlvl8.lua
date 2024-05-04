@@ -249,7 +249,7 @@ return {
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "8",
-					spark_range = "150",
+					spark_range = "100",
 				},
 				damage = {
 					default = 1300,
@@ -413,7 +413,7 @@ return {
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "8",
-					spark_range = "75",
+					spark_range = "100",
 					},
 					damage = {
 						default = 66,
