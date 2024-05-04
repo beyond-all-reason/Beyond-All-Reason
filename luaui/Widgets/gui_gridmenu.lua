@@ -2004,9 +2004,13 @@ local function handleButtonHover()
 						else
 							text = unitTranslatedHumanName[uDefID]
 						end
+						local tooltip = unitTranslatedTooltip[uDefID]
+						if unitMetal_extractor[uDefID] then
+							tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+						end
 						WG["tooltip"].ShowTooltip(
 							"buildmenu",
-							"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
+							"\255\240\240\240" .. tooltip,
 							nil,
 							nil,
 							text
