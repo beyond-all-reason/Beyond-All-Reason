@@ -125,7 +125,7 @@ return {
 			subfolder = "",
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
-			stockpileLimit = 3
+			stockpileLimit = 4,
 		},
 		featuredefs = {
 			dead = {
@@ -337,7 +337,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 4000,   
+				energypershot = 15000,   
 				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
@@ -346,17 +346,17 @@ return {
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 0,
-				model = "Units/CORMINE2.s3o",
+				model = "Units/LEGCEN.s3o",
 				movingaccuracy = 600,
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 30,
+				projectiles = 50,
 				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2500,
 				stockpile = true,
-				stockpiletime = 5,
+				stockpiletime = 15,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -370,7 +370,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2000,
 				customparams = {
-					spawns_name = "babyleglob",
+					spawns_name = "babylegcen",
+					spawns_expire = 30,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
