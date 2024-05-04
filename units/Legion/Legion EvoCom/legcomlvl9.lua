@@ -35,7 +35,7 @@ return {
 		maxslope = 20,
 		speed = 47.5,
 		maxwaterdepth = 35,
-		metalmake = 20,
+		metalmake = 100,
 		metalstorage = 500,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
