@@ -193,7 +193,14 @@ function widget:Initialize()
 		return selBuildQueueDefID
 	end
 	WG['pregame-build'].setPreGamestartDefID = function(value)
-		setPreGamestartDefID(value)
+		local inBuildOptions = {}
+		for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+			inBuildOptions[opt] = true
+		end
+
+		if inBuildOptions[value] then
+			setPreGamestartDefID(value)
+		end
 	end
 
 	WG['pregame-build'].setBuildQueue = function(value)
@@ -447,6 +454,18 @@ function widget:DrawWorld()
 				buildData[1] = armToCor[buildDataId]
 				buildQueue[b] = buildData
 			end
+		end
+	end
+
+	if startDefID == UnitDefNames["armcom"].id then
+		if corToArm[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = corToArm[selBuildQueueDefID]
+			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+		end
+	elseif startDefID == UnitDefNames["corcom"].id then
+		if armToCor[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = armToCor[selBuildQueueDefID]
+			selBuildQueueDefID = armToCor[selBuildQueueDefID]
 		end
 	end
 
