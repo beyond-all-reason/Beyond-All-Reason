@@ -298,8 +298,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Settings",
-				"widgetsKey": "f11",
-				"widgets": "Widget list",
 				"share": "Share units / resources"
 			},
 			"camera": {
