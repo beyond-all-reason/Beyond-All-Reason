@@ -22,18 +22,18 @@ if gadgetHandler:IsSyncedCode() then
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
-		local _, _, _, _, allyTeamID = Spring.GetPlayerInfo(playerID)
-		for ct, id in pairs (Spring.GetTeamList(allyTeamID)) do
-			SendToUnsynced("sendMsg", playerID, string.sub(msg, 4))
-		end
+		SendToUnsynced("sendMsg", playerID, string.sub(msg, 4))
 		return true
 	end
 
 else	-- UNSYNCED
 
 	local function sendMsg(_, playerID, msg)
-		local name = Spring.GetPlayerInfo(playerID)
-		Spring.SendMessageToPlayer(Spring.GetMyPlayerID(), '<'..name..'> Allies: > '..msg)
+		local name,_,spec,_,playerAllyTeamID = Spring.GetPlayerInfo(playerID)
+		local mySpec = Spring.GetSpectatingState()
+		if not spec and (playerAllyTeamID == Spring.GetMyAllyTeamID() or mySpec) then
+			Spring.SendMessageToPlayer(Spring.GetMyPlayerID(), '<'..name..'> Allies: > '..msg)
+		end
 	end
 
 	function gadget:Initialize()

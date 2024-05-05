@@ -565,7 +565,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	local sendMetal, sendEnergy
 	local msgColor = '\255\180\180\180'
-	local metalColor = '\255\230\230\230'
+	local metalColor = '\255\233\233\233'
 	local metalValueColor = '\255\255\255\255'
 	local energyColor = '\255\255\255\180'
 	local energyValueColor = '\255\255\255\140'
