@@ -1,6 +1,7 @@
 {
 	"tips": {
 		"loadscreen": {
+			"donations": "Gute Neuigkeiten! BAR akzeptiert wieder Spenden!\nbeyondallreason.info/donate",
 			"alwaysExpand": "Die Erweiterung deines Gebietes ist essenziell, um wirtschaftlich die Oberhand zu erlangen. Sichere dir so viele Metallquellen und geothermische Risse wie möglich.",
 			"armyDiversity": "Plane voraus und integriere Luftabwehr- und Unterstützungseinheiten in deine Armee.",
 			"assistFactories": "Es ist effektiv, eine Fabrik mit Arbeitern zu unterstützen, um ihre Bauleistung zu steigern.\nWähle Arbeiter aus und rechtsklicke auf die Fabrik, um sie zu bewachen/unterstützen. ",
@@ -74,6 +75,8 @@
 			"playerResigned": "Ein Spieler hat aufgegeben",
 			"playerReconnecting": "Ein Spieler tritt erneut bei",
 			"playerTimedout": "Ein Spieler hat das Zeitlimit überschritten",
+			"raptorsAndScavsMixed": "WARNUNG! Der Raptor und Scavengers Modus wurde gleichzeitig geladen. Diese beiden Spielmodi sind nicht miteinander kompatibel. Bitte verlasse das Match und wählen nur eine dieser KIs aus. Vielen Dank für dein Verständnis.",
+			"maxUnitsReached":"Du hast die maximale Anzahl an Einheiten erreicht",
 			"unitsReceived":"Du hast neue Einheiten erhalten",
 			"metalExtractorLost": "Metallextraktor verloren",
 			"radarLost": "Radar verloren",
