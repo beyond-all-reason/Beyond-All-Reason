@@ -353,6 +353,12 @@ local function buttonTextRefresh()
 		end
 	end
 end
+
+local function PlayChooseStartLocSound()
+	if not startPointChosen and WG['notifications'] then
+		WG['notifications'].addEvent('ChooseStartLoc', true)
+	end
+end
 -- DraftOrder mod end
 
 local function drawButton()
@@ -484,7 +490,7 @@ local function progressQueueLocally(shift) -- only for dev UI testing of DOM
 		end
 		if current_playerID == myPlayerID then
 			myTurn = true
-			Spring.PlaySoundFile("beep4", 1, 'ui')
+			PlayChooseStartLocSound()
 		elseif next_playerID == myPlayerID then
 			Spring.PlaySoundFile("beep4", 1, 'ui')
 		elseif myTurn then
@@ -968,7 +974,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 		if current_playerID == myPlayerID then
 			myTurn = true
-			Spring.PlaySoundFile("beep4", 1, 'ui')
+			PlayChooseStartLocSound()
 		elseif next_playerID == myPlayerID then
 			Spring.PlaySoundFile("beep4", 1, 'ui')
 		elseif myTurn then
@@ -983,7 +989,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		if (allyTeamID_about == myAllyTeamID) then
 			myAllyTeamJoined = true
 			if draftMode == "fair" then
-				Spring.PlaySoundFile("beep4", 1, 'ui')
+				PlayChooseStartLocSound()
 			end
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
