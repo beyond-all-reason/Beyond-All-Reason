@@ -39,10 +39,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
-	if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then
+	if not childrenwithparents[unitID] then
+		if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then
 		local parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id") or -1 --this establishes parenthood of unit_explosion_spawner.lua unit creations E.G pawn launchers/legion Evocom Dgun. IT CANNOT BE DONE AT UnitCreated or UnitDestroyed!!! Exhibits anomolous behavior if not done at runtime.
 		local builderDefID = Spring.GetUnitDefID(parentID)
 		childrenwithparents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritchildrenxp[builderDefID]}
+		end
 	end
 	if childrenwithparents[unitID] then
 		local parentUnitID = childrenwithparents[unitID].parentunitid
