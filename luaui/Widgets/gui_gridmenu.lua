@@ -2095,7 +2095,7 @@ local function handleButtonHover()
 				end
 			end
 
-			if builderIsFactory and not labBuildModeActive then
+			if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
 				-- build mode button
 				if labBuildModeRect and labBuildModeRect:contains(x, y) then
 					hoveredButton = labBuildModeRect:getId()
