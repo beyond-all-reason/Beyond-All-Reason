@@ -103,7 +103,8 @@ local myTeamPlayersOrder = nil
 local currentPlayerIndex = 0
 local hasStartbox = false
 local devUItestMode = false -- flip to true to test UI with fake players
--- a lot of code copied from advplayerlist...
+local waitIsMandatory = false -- if true - you will wait for late-joiners, and conneectionTimeOut timer won't be shown
+-- a lot of code copied and slightly modified from advplayerlist...
 local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
 local imageDirectory = ":lc:" .. imgDir
 local pics = {
@@ -850,7 +851,7 @@ function widget:DrawScreen()
 		if fairTimeout and os.clock() >= fairTimeout and not ihavejoined_fair then
 			Spring.SendLuaRulesMsg("i_have_joined_fair")
 			ihavejoined_fair = true
-			if draftMode ~= "fair" and not myTeamPlayersOrder then
+			if draftMode ~= "fair" and not myTeamPlayersOrder and not waitIsMandatory then
 				voteConTimeout = os.clock() + connectionTimeOut
 			end
 		end
