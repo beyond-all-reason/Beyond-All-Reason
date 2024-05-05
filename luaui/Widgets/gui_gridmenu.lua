@@ -1846,10 +1846,17 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if currentCategory and key == KEYSYMS.ESCAPE then
-		clearCategory()
-		doUpdate = true
-		return true
+	if key == KEYSYMS.ESCAPE then
+		if currentCategory then
+			clearCategory()
+			doUpdate = true
+			return true
+		end
+		if useLabBuildMode and labBuildModeActive then
+			setLabBuildMode(false)
+			doUpdate = true
+			return true
+		end
 	end
 end
 
