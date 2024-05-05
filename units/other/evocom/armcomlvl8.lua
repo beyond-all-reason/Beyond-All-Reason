@@ -334,6 +334,7 @@ return {
 					commanders = 0,
 					default = 99999,
 					scavboss = 1000,
+					raptorqueen = 1000,
 				},
 			},
 			repulsor1 = {

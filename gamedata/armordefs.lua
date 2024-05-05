@@ -579,12 +579,6 @@ local armorDefs = {
 
 	raptor =
 	{
-		"raptor_queen_veryeasy",
-		"raptor_queen_easy",
-		"raptor_queen_normal",
-		"raptor_queen_hard",
-		"raptor_queen_veryhard",
-		"raptor_queen_epic",
 		"raptor_land_swarmer_basic_t2_v1",
 		"raptor_land_swarmer_basic_t2_v2",
 		"raptor_land_swarmer_basic_t2_v3",
@@ -634,6 +628,15 @@ local armorDefs = {
 		"raptor_allterrain_swarmer_emp_t2_v1",
 		"raptor_hive",
 		"raptor_antinuke",
+	},
+	raptorqueen =
+	{
+		"raptor_queen_veryeasy",
+		"raptor_queen_easy",
+		"raptor_queen_normal",
+		"raptor_queen_hard",
+		"raptor_queen_veryhard",
+		"raptor_queen_epic",
 	},
 }
 
