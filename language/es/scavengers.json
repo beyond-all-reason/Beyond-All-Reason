@@ -1,0 +1,37 @@
+{
+	"scav": {
+		"messages": {
+			"commanderDetected1": "Comandante carroñero detectado.",
+			"commanderDetected2": "Se ha detectado un comandante carroñero adicional.",
+			"commanderDetected3": "Se ha detectado otro comandante carroñero en la zona.",
+			"commanderDetected4": "Un nuevo comandante carroñero ha entrado en la zona.",
+			"commanderDetected5": "Se ha avistado otro comandante carroñero.",
+			"commanderDetected6": "",
+			"unkownObjectsDetected": "",
+			"classifiedAsScavengers": "Los objetos no identificados han sido clasificados como \"carroñeros\".",
+			"eventCloud": "¡Alerta! Enjambre de carroñeros acercándose.",
+			"dropPodsDetected": "Cápsulas de carroñeros detectadas en la zona.",
+			"droppingUnits": "Los carroñeros están soltando unidades en nuestra zona.",
+			"heavyShipsDetected": "",
+			"reinforcements":"",
+			"eventMiniboss": "",
+			"eventSwarm": "¡Alerta! Enjambre carroñero detectado.",
+			"eventMalfunctions": "¡Alerta! Avería carroñera detectada.",
+			"finalAttack": "Los carroñeros están mandando todo lo que tienen. Su asalto final acaba de comenzar.",
+			"finalBoss":"Comandante, estamos detectando una señal anormalmente grande de una unidad carroñera. Se aproxima lentamente en su dirección. ¡Prepárese para el enfrentamiento!",
+			"bossDetected": "¡Alerta crítica! Los carroñeros han soltado un jefe clasificado como \"altamente letal\" en la zona. Destrúyalo antes de que llegue a su base.",
+			"finalVictory": "Buen trabajo, comandante. Ha sobrevivido a todos los asaltos de los carroñeros. ¡La victoria es suya! Celébrela mientras pueda, y aniquílelos en el próximo mapa.",
+			"timeRemaining12": "",
+			"timeRemaining10": "",
+			"timeRemaining09": "",
+			"timeRemaining08": "",
+			"timeRemaining07": "",
+			"timeRemaining06": "",
+			"timeRemaining05": "",
+			"timeRemaining04": "",
+			"timeRemaining03": "",
+			"timeRemaining02": "",
+			"timeRemaining01": ""
+		}
+	}
+}
