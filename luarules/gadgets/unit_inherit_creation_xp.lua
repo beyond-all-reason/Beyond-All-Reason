@@ -18,10 +18,8 @@ local inheritchildrenxp = {} -- stores the value of XP rate to be derived from u
 
 local childrenwithparents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
 for id, def in pairs(UnitDefs) do
-	if def.customParams then
-		if def.customParams.inheritxratemultiplier then
-			inheritchildrenxp[id] = def.customParams.inheritxratemultiplier or -1
-		end
+	if def.customParams.inheritxratemultiplier then
+		inheritchildrenxp[id] = def.customParams.inheritxratemultiplier or 0
 	end
 end
 
