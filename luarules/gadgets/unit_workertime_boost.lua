@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "April 2024",
 		license = "Public domain",
-		layer = 50,
+		layer = 0,
 		enabled = true
 	}
 end
