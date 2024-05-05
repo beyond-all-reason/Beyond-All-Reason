@@ -264,6 +264,7 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_condition = "timer"
 				uDef.customparams.workertimeboost = 5
 				uDef.customparams.wtboostunittype = "MOBILE"
+				uDef.customparams.inheritxratemultiplier = 0.01
 				end
 			end
 		end
