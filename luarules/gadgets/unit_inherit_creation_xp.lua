@@ -13,17 +13,17 @@ end
 -- synced only
 if not gadgetHandler:IsSyncedCode() then return false end
 
-local inheritchildrenxp = {} -- stores the value of XP rate to be derived from unitdef
+local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
 -- inheritxratemultiplier = defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent
 
-local childrenwithparents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
+local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
 for id, def in pairs(UnitDefs) do
 	if def.customParams.inheritxratemultiplier then
-		inheritchildrenxp[id] = def.customParams.inheritxratemultiplier or 0
+		inheritChildrenXP[id] = def.customParams.inheritxratemultiplier or 0
 	end
 end
 
-if table.count(inheritchildrenxp) <= 0 then -- this enables or disables the gadget
+if table.count(inheritChildrenXP) <= 0 then -- this enables or disables the gadget
 	return false
 end
 
@@ -31,23 +31,23 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if  builderID ~= nil then
 		local builderDefID = Spring.GetUnitDefID(builderID)
 		if builderID then
-			childrenwithparents[unitID] = {unitid=unitID, parentunitid=builderID, parentxpmultiplier=inheritchildrenxp[builderDefID]}
+			childrenWithParents[unitID] = {unitid=unitID, parentunitid=builderID, parentxpmultiplier=inheritChildrenXP[builderDefID]}
 		end
 	end
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
-	if not childrenwithparents[unitID] then
+	if not childrenWithParents[unitID] then
 		if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then
 		local parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id") --this establishes parenthood of unit_explosion_spawner.lua unit creations E.G pawn launchers/legion Evocom Dgun. IT CANNOT BE DONE AT UnitCreated or UnitDestroyed!!! Exhibits anomolous behavior if not done at runtime.
 		local builderDefID = Spring.GetUnitDefID(parentID)
-		childrenwithparents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritchildrenxp[builderDefID]}
+		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritChildrenXP[builderDefID]}
 		end
 	end
-	if childrenwithparents[unitID] then
-		local parentUnitID = childrenwithparents[unitID].parentunitid
+	if childrenWithParents[unitID] then
+		local parentUnitID = childrenWithParents[unitID].parentunitid
 		local parentOldXP = Spring.GetUnitExperience(parentUnitID)
-		local parentMultiplier = childrenwithparents[unitID].parentxpmultiplier
+		local parentMultiplier = childrenWithParents[unitID].parentxpmultiplier
 		local xp
 
 		if parentMultiplier then
@@ -57,5 +57,5 @@ function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 	end
 end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-		childrenwithparents[unitID] = nil --removes children from list when destroyed
+		childrenWithParents[unitID] = nil --removes children from list when destroyed
 end
