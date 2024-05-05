@@ -29,7 +29,7 @@ return {
 		script = "Units/LEGRAIL.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 650,
+		sightdistance = 525,
 		trackoffset = -7,
 		trackstrength = 5,
 		tracktype = "armsam_tracks",
@@ -37,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
-		turnrate = 300,
+		turnrate = 250,
 		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weaponaa',

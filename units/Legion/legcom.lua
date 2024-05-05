@@ -2,7 +2,7 @@ return {
 	legcom = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 0,
+		autoheal = 5,
 		maxdec = 1.125,
 		energycost = 20000,
 		metalcost = 2000,
@@ -30,7 +30,7 @@ return {
 		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4999,
-		health = 4000,
+		health = 3700,
 		maxslope = 20,
 		speed = 37.5,
 		maxwaterdepth = 35,
