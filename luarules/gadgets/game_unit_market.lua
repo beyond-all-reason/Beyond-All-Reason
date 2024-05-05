@@ -21,8 +21,9 @@ VFS.Include("luarules/configs/customcmds.h.lua")
 if gadgetHandler:IsSyncedCode() then
 
 -- We just have a state which holds unit price. (zero or nil - can't trade it)
--- We support only one price - the fair price - no tips - no discount - no markups.
--- We only allow you to trade finished units.
+-- At this time we support only one price - the full price - no tips - no discount - no markups - it should be fair.
+-- We allow to trade any (finished and unfinished both) units between players.
+-- AI however still only recognizes only finished units as gifts. AI will only sell finished units as well.
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
 
@@ -43,9 +44,11 @@ local spValidUnitID         = Spring.ValidUnitID
 local spGetUnitHealth       = Spring.GetUnitHealth
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
+local spIsCheatingEnabled   = Spring.IsCheatingEnabled
 local RPAccess = {allied = true}
 local AllyAIsalesEverything = true -- does this needs to be a modoption? This seems useful for coop.
 local AllyAItab = {} -- [teamAI_ID][teamID] -- array of teams that this AI team owes metal to
+local AllowPlayersSellUnfinished = true -- allows players to set unfinished units on sale
 
 local function setUnitOnSale(unitID, price, toggle)
     if unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 or toggle == false then
@@ -94,10 +97,10 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
-	local unitTeamID = spGetUnitTeam(unitID)
-	if msgFromTeamID ~= unitTeamID then return end -- comment this out in local testing, only owner can set units for sale
+    local unitTeamID = spGetUnitTeam(unitID)
+    if msgFromTeamID ~= unitTeamID and not spIsCheatingEnabled() then return end -- in cheat mode you can set other units for sale, not just your own
     local finished = (select(5,spGetUnitHealth(unitID))==1)
-    if not finished then return end
+    if not AllowPlayersSellUnfinished and not finished then return end
     local price
     if sale_price > 0 then price = sale_price -- for now we only support fair price, but for future - 0 = set price automatically
     else price = unitDef.metalCost
