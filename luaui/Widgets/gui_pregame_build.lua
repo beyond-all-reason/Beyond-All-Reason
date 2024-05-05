@@ -457,6 +457,18 @@ function widget:DrawWorld()
 		end
 	end
 
+	if startDefID == UnitDefNames["armcom"].id then
+		if corToArm[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = corToArm[selBuildQueueDefID]
+			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+		end
+	elseif startDefID == UnitDefNames["corcom"].id then
+		if armToCor[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = armToCor[selBuildQueueDefID]
+			selBuildQueueDefID = armToCor[selBuildQueueDefID]
+		end
+	end
+
 	-- Draw all the buildings
 	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 	for b = 1, #buildQueue do
