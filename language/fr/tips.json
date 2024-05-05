@@ -1,6 +1,7 @@
 {
 	"tips": {
 		"loadscreen": {
+			"donations": "",
 			"alwaysExpand": "L'expansion de votre territoire est un élément essentiel \nau développement d'une économie robuste. \nTentez de sécuriser autant de gisements de métal et de fissures\ngéothermiques que possible.",
 			"armyDiversity": "Planifiez judicieusement et incluez des unités anti-aériennes et de soutien dans votre armée.",
 			"assistFactories": "Il est efficace de soutenir une usine avec des constructeurs, augmentant ainsi son efficacité de construction. \nSélectionnez des constructeurs et faites un clic-droit sur l'usine pour l'assister.",
