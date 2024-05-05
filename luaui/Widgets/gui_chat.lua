@@ -554,6 +554,9 @@ local function teamcolorPlayername(playername)
 	return playername
 end
 
+local energyText = Spring.I18N('ui.topbar.resources.energy'):lower()
+local metalText = Spring.I18N('ui.topbar.resources.metal'):lower()
+
 local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
 
@@ -562,8 +565,10 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	local sendMetal, sendEnergy
 	local msgColor = '\255\180\180\180'
-	local metalColor = '\255\255\255\255'
+	local metalColor = '\255\230\230\230'
+	local metalValueColor = '\255\255\255\255'
 	local energyColor = '\255\255\255\180'
+	local energyValueColor = '\255\255\255\140'
 
 
 	if lineType == LineTypes.Player and ssub(text, 5, 6) == '> ' then
@@ -579,9 +584,9 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 						if playernames[pair[2]] then
 							t[ pair[1] ] = teamcolorPlayername(pair[2])..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
-							t[ pair[1] ] = energyColor..pair[2]..msgColor
+							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
-							t[ pair[1] ] = metalColor..pair[2]..msgColor
+							t[ pair[1] ] = metalValueColor..pair[2]..msgColor
 						else
 							t[ pair[1] ] = pair[2]
 						end
@@ -589,6 +594,16 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 				end
 			end
 			text = Spring.I18N(params[1], t)
+			if text:lower():find(energyText, nil, true) then
+				local pos = text:lower():find(energyText, nil, true)
+				local len = slen(energyText)
+				text = ssub(text, 1, pos-1)..energyColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+			end
+			if text:lower():find(metalText, nil, true) then
+				local pos = text:lower():find(metalText, nil, true)
+				local len = slen(metalText)
+				text = ssub(text, 1, pos-1)..metalColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+			end
 		end
 		text = msgColor..text
 	end
@@ -2187,6 +2202,8 @@ end
 
 function widget:LanguageChanged()
 	refreshUnitDefs()
+	energyText = Spring.I18N('ui.topbar.resources.energy'):lower()
+	metalText = Spring.I18N('ui.topbar.resources.metal'):lower()
 end
 
 function widget:Initialize()
