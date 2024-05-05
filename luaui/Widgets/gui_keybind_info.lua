@@ -118,19 +118,6 @@ local function drawWindow(activetab)
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	local titleFontSize = 18 * widgetScale
-	-- title background
-	--[[
-	local title = Spring.I18N('ui.keybinds.title')
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
-
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
-
-	local showtabtext = "Show"
-	showtabRect = { math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), screenY, math.floor(screenX + 2*(font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
-
-	RectRound(showtabRect[1], showtabRect[2], showtabRect[3], showtabRect[4], elementCorner, 1, 1, 0, 0)
-	]]--
 
 	local tabx = 0
 	for i,tab in ipairs(tabs) do
@@ -197,10 +184,6 @@ local function drawWindow(activetab)
 		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
 		font:End()
 	end
-
-	--[[
-
-	]]--
 end
 
 local function refreshText()
