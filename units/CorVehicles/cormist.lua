@@ -24,6 +24,7 @@ return {
 		speed = 42.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		objectname = "Units/CORMIST.s3o",
 		script = "Units/CORMIST.cob",
 		seismicsignature = 0,

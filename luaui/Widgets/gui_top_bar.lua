@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true, --enabled by default
+		enabled = true,
 		handler = true, --can use widgetHandler:x()
 	}
 end
@@ -1943,7 +1943,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	updateButtons()
+	widget:ViewResize()
 end
 
 function widget:Initialize()
@@ -1974,6 +1974,11 @@ function widget:Initialize()
 	end
 	WG['topbar'].getShowButtons = function()
 		return showButtons
+	end
+
+	WG['topbar'].updateTopBarEnergy = function(value)
+		mmLevel = value
+		updateResbar('energy')
 	end
 
 	widget:ViewResize()

@@ -24,6 +24,7 @@ return {
 		speed = 45.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		objectname = "Units/ARMSAM.s3o",
 		script = "Units/ARMSAM2.cob",
 		seismicsignature = 0,

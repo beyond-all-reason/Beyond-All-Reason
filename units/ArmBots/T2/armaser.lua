@@ -25,6 +25,7 @@ return {
 		speed = 48.3,
 		maxwaterdepth = 112,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMASER.s3o",
 		onoffable = true,

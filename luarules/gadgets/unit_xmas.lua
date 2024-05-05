@@ -311,8 +311,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	elseif attackerID ~= nil then --and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
 
-			local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)
-			if buildProgress and buildProgress == 1 then	-- exclude incompleted nanoframes
+			local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+			if not inProgress then	-- exclude incompleted nanoframes
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])

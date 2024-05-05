@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "December 2023",
 		license = "GPLv2 or late",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 

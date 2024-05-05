@@ -20,7 +20,7 @@ function widget:GetInfo()
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -36,6 +36,8 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local messages = {}
 
 local font
+
+local draftMode = Spring.GetModOptions().draft_mode
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -95,8 +97,10 @@ function widget:DrawScreen()
 		return
 	end
 
+	local y = 0.19
+	if (draftMode ~= nil and draftMode ~= "disabled") then y = 0.68 end
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
+	glTranslate((vsx * 0.5), (vsy * y), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
 

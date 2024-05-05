@@ -887,6 +887,14 @@ local icontypes = {
 		bitmap = "icons/shiptrans.png",
 		size = 2.0999999
 	},
+	armtrident = {
+		bitmap = "icons/ship_t2_dronecarry.png",
+		size = 1.83749986
+	},
+	armtdrone = {
+		bitmap = "icons/air_bladew.png",
+		size = 0.5
+	},
 	armuwadves = {
 		bitmap = "icons/energystorage_t2.png",
 		size = 1.3125
@@ -1723,6 +1731,14 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},
+	corsiegebreaker = {
+		bitmap = "icons/vehicle_t2_tank_laser.png",
+		size = 1.46999991
+  },
+	corsentinel = {
+		bitmap = "icons/ship_t2_dronecarry.png",
+		size = 1.83749986
+	},
 	corsfig = {
 		bitmap = "icons/air_sea.png",
 		size = 0.86099994
@@ -1814,6 +1830,10 @@ local icontypes = {
 	cortarg = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
+	},
+	cortdrone = {
+		bitmap = "icons/air_bladew.png",
+		size = 0.5
 	},
 	cortermite = {
 		bitmap = "icons/cortermite_1.5.png",
@@ -2258,6 +2278,10 @@ local icontypes = {
 	legnap = {
 		bitmap = "icons/air_t2_bomber_napalm.png",
 		size = 1.85000002
+	},
+	legotter = {
+		bitmap = "icons/amphib_worker.png",
+		size = 1.36499989
 	},
 	legpede = {
 		bitmap = "icons/corkarg_2.05.png",

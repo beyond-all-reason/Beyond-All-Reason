@@ -10,6 +10,7 @@ local unitOrderTable = {
 	['legcv']          = 001135,
 	['armbeaver']      = 001140,
 	['cormuskrat']     = 001150,
+	['legotter']       = 001155,
 
 	['armca']          = 001160, --AIR
 	['corca']          = 001165,
@@ -341,6 +342,8 @@ local unitOrderTable = {
 
 	['armdronecarry']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
+	['armdtrident']  = 009362, --DEPTH CHARGE DRONE CARRIERS
+	['corsentinel']  = 009363,
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,

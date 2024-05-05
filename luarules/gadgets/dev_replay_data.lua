@@ -35,7 +35,7 @@ function widget:GetInfo()
       author    = "Anon",
       date      = "The Future",
       layer     = 0,
-      enabled   = true  --  loaded by default?
+      enabled   = true
     }
 end
 

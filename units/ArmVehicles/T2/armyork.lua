@@ -24,6 +24,7 @@ return {
 		speed = 70.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMYORK.s3o",
 		script = "Units/ARMYORK.cob",

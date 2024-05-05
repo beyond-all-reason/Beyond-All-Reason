@@ -38,6 +38,7 @@ return {
 		metalstorage = 500,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
+		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/LEGCOM.s3o",
 		pushresistant = true,
