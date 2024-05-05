@@ -1,0 +1,37 @@
+{
+	"scav": {
+		"messages": {
+			"commanderDetected1": "",
+			"commanderDetected2": "",
+			"commanderDetected3": "",
+			"commanderDetected4": "",
+			"commanderDetected5": "",
+			"commanderDetected6": "",
+			"unkownObjectsDetected": "",
+			"classifiedAsScavengers": "",
+			"eventCloud": "",
+			"dropPodsDetected": "",
+			"droppingUnits": "",
+			"heavyShipsDetected": "",
+			"reinforcements":"",
+			"eventMiniboss": "",
+			"eventSwarm": "",
+			"eventMalfunctions": "",
+			"finalAttack": "",
+			"finalBoss":"",
+			"bossDetected": "",
+			"finalVictory": "",
+			"timeRemaining12": "",
+			"timeRemaining10": "",
+			"timeRemaining09": "",
+			"timeRemaining08": "",
+			"timeRemaining07": "",
+			"timeRemaining06": "",
+			"timeRemaining05": "",
+			"timeRemaining04": "",
+			"timeRemaining03": "",
+			"timeRemaining02": "",
+			"timeRemaining01": ""
+		}
+	}
+}
