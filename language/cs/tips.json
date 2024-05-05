@@ -1,6 +1,7 @@
 {
 	"tips": {
 		"loadscreen": {
+			"donations": "",
 			"alwaysExpand": "Rozšiřování území je nezbytné pro získání ekonomické výhody.\nPokus se zajistit co nejvíce kovových ložisek a geotermálních průduchů. ",
 			"armyDiversity": "Mysli dopředu a zařaď protivzdušné a podpůrné jednotky do své armády.",
 			"assistFactories": "Je efektivní podpořit továrnu konstruktéry a zvýšit tak její stavební sílu.\nVyber konstruktéry a klikni pravým tlačítkem na továrnu, abys ji podpořil.",
@@ -74,6 +75,8 @@
 			"playerResigned": "Hráč se vzdal.",
 			"playerReconnecting": "Hráč se připojuje zpět",
 			"playerTimedout": "Hráči vypršel čas",
+			"raptorsAndScavsMixed": "",
+			"maxUnitsReached":"",
 			"unitsReceived":"Dostal jsi nové jednotky",
 			"metalExtractorLost": "Kovový důl ztracen",
 			"radarLost": "Radar ztracen",
