@@ -59,7 +59,5 @@ function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 	end
 end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if childrenwithparents[unitID] then
 		childrenwithparents[unitID] = nil --removes children from list when destroyed
-	end
 end
