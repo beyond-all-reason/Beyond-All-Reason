@@ -3135,7 +3135,8 @@ function widget:MousePress(x, y, button)
                                 if release ~= nil then
                                     if release >= now then
                                         if clickedPlayer.team == myTeamID then
-                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
+                                            --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
+											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
                                         else
                                             Spring_ShareResources(clickedPlayer.team, "units")
                                             Spring.PlaySoundFile("beep4", 1, 'ui')
@@ -3264,13 +3265,16 @@ function widget:MouseRelease(x, y, button)
             -- share energy/metal mouse release
             if energyPlayer.team == myTeamID then
                 if shareAmount == 0 then
-                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
+                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
                 else
-                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
+                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
-                Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
+                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..energyPlayer.name)
                 WG.sharedEnergyFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
@@ -3283,13 +3287,16 @@ function widget:MouseRelease(x, y, button)
         if metalPlayer ~= nil and shareAmount then
             if metalPlayer.team == myTeamID then
                 if shareAmount == 0 then
-                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
+                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
                 else
-                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
+                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
-                Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
+                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..metalPlayer.name)
                 WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
@@ -3712,14 +3719,19 @@ function widget:Update(delta)
             local afterM = Spring_GetTeamResources(teamID, "metal")
             local afterU = Spring_GetTeamUnitCount(teamID)
             local toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeam', { name = tookTeamName })
-
+			local detailedToSay = false
             if afterE and afterM and afterU then
                 if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-                    toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeamAmount', { name = tookTeamName, units = math.floor(afterU), energy = math.floor(afterE), metal = math.floor(afterM) })
-                end
+                    toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeamAmount', { name = tookTeamName, units = math.floor(afterU), energy = math.floor(afterE), metal = math.floor(afterE) })
+					detailedToSay = true
+				end
             end
-
-            Spring_SendCommands(toSay)
+			if detailedToSay then
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName..':units='..math.floor(afterU)..':energy='..math.floor(afterE)..':metal='..math.floor(afterE))
+			else
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName)
+			end
+			--Spring_SendCommands(toSay)
 
             for j = 0, (specOffset*2)-1 do
                 if player[j].allyteam == myAllyTeamID then
