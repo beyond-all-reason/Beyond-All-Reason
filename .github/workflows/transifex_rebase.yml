@@ -22,9 +22,9 @@ jobs:
 
       - name: Transifex Rebase
         run: |
-          git checkout transifex-test
+          git checkout master
           git fetch origin
           git checkout transifex-synchronization-source
           git pull
-          git rebase origin/transifex-test
+          git rebase origin/master
           git push origin transifex-synchronization-source
