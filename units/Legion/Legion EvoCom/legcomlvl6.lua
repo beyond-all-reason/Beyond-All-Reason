@@ -127,6 +127,7 @@ return {
 			evolution_condition = "timer",
 			evolution_timer = 99999,
 			combatradius = 500,
+			inheritxratemultiplier = 0.01
 		},
 		featuredefs = {
 			dead = {
