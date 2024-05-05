@@ -98,7 +98,7 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
     local unitTeamID = spGetUnitTeam(unitID)
-    if msgFromTeamID ~= unitTeamID and not spIsCheatingEnabled then return end -- in cheat mode you can set other units for sale, not just your own
+    if msgFromTeamID ~= unitTeamID and not spIsCheatingEnabled() then return end -- in cheat mode you can set other units for sale, not just your own
     local finished = (select(5,spGetUnitHealth(unitID))==1)
     if not AllowPlayersSellUnfinished and not finished then return end
     local price
