@@ -18,7 +18,7 @@ function widget:GetInfo() return {
 -- 2) Player B should be able to offer to buy the unit. If playerB can afford it then we go to the next step.
 -- 3) Gadget that oversees this takes the metal from the playerA and gives to playerB, and takes the unit from playerB and gives to playerA. That's it!
 -- Why? So you can trade T2 cons without tracking who paid what/what/how much. Just flip the unit for sale and we are good to go.
--- Note: you can set for sale ANYTHING as long as its a finished unit. Hotkey/Button to toggle sale. Just alt + double-click to buy.
+-- Note: you can set for sale ANYTHING, even unfinished units. Be careful if you buy unfinished units though, you pay FULL PRICE for them. Hotkey/Button to toggle sale. Just alt + double-click to buy.
 -- TODO: develop UI so that you can browse units that are for sale with a buy button maybe?
 -- TODO: maybe a button in a unitstate window "this unit is for sale" toggle so you can start selling units without hotkey or separate button?
 -- Extra feature: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
