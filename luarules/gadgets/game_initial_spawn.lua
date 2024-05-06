@@ -253,7 +253,7 @@ if gadgetHandler:IsSyncedCode() then
 				votedPlayers = votedPlayers + 1
 			end
 		end
-		if totalPlayers < VOTE_QUARUM then return 0 end -- auto-fail
+		if totalPlayers < VOTE_QUORUM then return 0 end -- auto-fail
 		return (votedPlayers / totalPlayers) * 100
 	end
 
