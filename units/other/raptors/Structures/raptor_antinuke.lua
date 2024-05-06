@@ -38,6 +38,7 @@ return {
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
 			techlevel = 2,
+			interceptorgadget = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

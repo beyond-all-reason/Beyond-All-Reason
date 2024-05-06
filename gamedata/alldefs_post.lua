@@ -75,6 +75,17 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+local function interceptorsRemakeUnit(uDef, weaponDef)
+	uDef.customparams.interceptorgadget = 1
+
+	weaponDef.interceptsolo 		= 0
+	weaponDef.reloadtime 			= 2.4
+	weaponDef.turnrate				= 40000
+	weaponDef.weaponacceleration	= 450
+	weaponDef.weapontimer			= 2.0
+	weaponDef.weaponvelocity		= 2000
+end
+
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
@@ -220,6 +231,7 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
+				armamdn = true,
 				armsilo = true,
 				armscab = true,
 				corfmd = true,
@@ -345,6 +357,68 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "cordronecarry"
 		end
+
+		--Laser Citadel + gadget integration for all interceptors
+		if name == "armacv" then --Replace original citadel with new one
+			uDef.buildoptions[23] = "armamdn"
+		end
+		if name == "armack" then
+			uDef.buildoptions[24] = "armamdn"
+		end
+		if name == "armaca" then
+			uDef.buildoptions[25] = "armamdn"
+		end
+
+		if name == "armsilo" then --Silos
+			uDef.weapondefs.nuclear_missile.weaponacceleration = 120
+			uDef.weapondefs.nuclear_missile.weaponvelocity = 1200
+		end
+		if name == "corsilo" then
+			uDef.weapondefs.crblmssl.weaponacceleration = 120
+			uDef.weapondefs.crblmssl.weaponvelocity = 1200
+		end
+
+		if name == "armamd" then --Original citadel starbustlauncher antinuke
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket) --Even tho original citadel is disabled, this is important for scavengers
+		end
+		if name == "armscab" then --Other antinukes - Armada
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.armscab_weapon)
+		end
+		if name == "armantiship" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
+		end
+		if name == "armcarry" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
+		end
+		if name == "armcarry2" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
+		end
+
+		if name == "corfmd" then --Cortex
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
+		end
+		if name == "corantiship" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.amd_rocket)
+		end
+		if name == "corcarry" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
+		end
+		if name == "corcarry2" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
+		end
+		if name == "cormabm" then
+			interceptorsRemakeUnit(uDef, uDef.weapondefs.cormabm_weapon)
+		end
+		
+		--if name == "raptor_antinuke" then --Raptor
+		--	interceptorsRemakeUnit(uDef, uDef.weapondefs.fmd_rocket)
+		--end
+		--if name == "raptor_turret_antinuke_t2_v1" then
+		--	uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
+		--end
+		--if name == "raptor_turret_antinuke_t3_v1" then
+		--	uDef.weapondefs.fmd_rocket.interceptsolo 		= 0;
+		--end
 	end
 
 	-- Add scav units to normal factories and builders

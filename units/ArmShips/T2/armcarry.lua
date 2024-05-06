@@ -58,6 +58,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
+			interceptorgadget = 0,
 		},
 		featuredefs = {
 			dead = {

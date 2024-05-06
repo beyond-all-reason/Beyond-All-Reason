@@ -459,6 +459,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "nuke-anti",
 	},
 
+	armamdn = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "nuke-anti",
+	},
+
 	armemp = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",

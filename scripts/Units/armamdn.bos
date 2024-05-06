@@ -1,0 +1,281 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece base, door1, door2,                                           //Outter structure
+      greenlight, orangelight, redlight,                            //Antena lights
+      piston, y_hinge, z_rotor, head, barrel, barrel_extend,        //Weapon
+      flare, smoke, laser;                                          //Invisible points
+
+static-var state, stockpiled, statechg_DesiredState, statechg_StateChanging;   //Unit states
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_DEACTIVATE		3
+
+#define STATE_OFF           0
+#define STATE_ON            1
+#define STATE_ACTIVATING    2
+#define STATE_DEACTIVATING  3
+
+#define SOUND_OPEN          1
+
+UpdateLight(light) {
+    hide greenlight;
+    hide orangelight;
+    hide redlight;
+
+    if (state == STATE_ACTIVATING OR state == STATE_ON) { //Ignore others, if antinuke is busy right now
+        show redlight;
+    } else {
+        if (stockpiled) {
+            show greenlight;
+        } else {
+            show orangelight;
+        }
+    }
+}
+
+activatescr(enableSFX)
+{
+    if (enableSFX) {
+        emit-sfx 1024 + 0 from smoke;           //Big opening smoke
+        emit-sfx 4096 + SOUND_OPEN from smoke;  //Play opening sound
+    }
+
+    turn door1 to z-axis <-1> speed <10.0000>;
+    turn door2 to z-axis <1> speed <10.0000>;
+    wait-for-turn door1 around z-axis;
+
+    turn door1 to z-axis <50> speed <16.66666667>;
+    turn door2 to z-axis <-50> speed <16.66666667>;
+    sleep 1000;
+
+    move piston to y-axis [6.500000] speed [2.1666666];
+
+    show laser; //Blink 1
+    sleep 500;
+    hide laser;
+    sleep 500;
+    show laser; //Blink 2
+    sleep 500;
+    hide laser;
+    sleep 500;
+    turn door1 to z-axis <49> speed <10>;
+    turn door2 to z-axis <-49> speed <10>;
+    wait-for-move piston along y-axis; // 4100ms
+
+    turn y_hinge to z-axis <90> speed <135.000000>;
+    wait-for-turn y_hinge around z-axis; // 4700ms
+    move barrel_extend to y-axis [7.6500] speed [19.000];
+    wait-for-move barrel_extend along y-axis;
+
+    state = STATE_ON;
+	return (0);
+}
+
+deactivatescr()
+{
+	set-signal-mask SIG_DEACTIVATE;
+
+    turn z_rotor to x-axis <0.000000> speed <60.000000>;
+    turn head to z-axis <0.000000> speed <60.000000>;
+    wait-for-turn z_rotor around x-axis;
+    wait-for-turn head around z-axis;
+    sleep 300;
+    hide laser;
+    sleep 500;
+
+    move barrel_extend to y-axis [0.0000] speed [22.9500];
+    sleep 333;
+
+    turn y_hinge to z-axis <0> speed <60.000000>;
+    sleep 1500;
+
+    move piston to y-axis [0.000000] speed [2.16000];
+    sleep 1300;
+
+    turn door1 to z-axis <-1> speed <16.70000>;
+    turn door2 to z-axis <1> speed <16.70000>;
+    wait-for-turn door1 around z-axis;
+    wait-for-turn door2 around z-axis;
+
+    turn door1 to z-axis <0> speed <10.0000>;
+    turn door2 to z-axis <0> speed <10.0000>;
+    wait-for-turn door1 around z-axis;
+
+    state = STATE_OFF;
+
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = STATE_OFF;
+	statechg_StateChanging = FALSE;
+}
+
+Go()
+{
+    state = STATE_ACTIVATING;
+    call-script UpdateLight();
+
+    if (state == STATE_DEACTIVATING) { // In rare cases, when another nuke is detected while being deactivating
+        signal SIG_DEACTIVATE;
+        start-script activatescr(FALSE);
+    } else { // Normal deploy
+        start-script activatescr(TRUE);
+    }
+	return (0);
+}
+
+Stop()
+{
+    statechg_DesiredState = STATE_OFF;
+    state = STATE_DEACTIVATING;
+    call-script UpdateLight();
+
+	start-script deactivatescr();
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != state )
+	{
+		if( statechg_DesiredState == STATE_ON AND state != STATE_ACTIVATING )
+		{
+			call-script Go();
+			currentstate = STATE_ON;
+		}
+		if( statechg_DesiredState == STATE_OFF AND state != STATE_DEACTIVATING )
+		{
+			call-script Stop();
+			currentstate = STATE_OFF;
+		}
+		sleep 300;
+	}
+	state = currentstate;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	hide laser;
+	hide greenlight;
+	show orangelight;
+
+	state = STATE_OFF;
+	call-script InitState();
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+Activate()
+{
+	start-script RequestState(STATE_ON);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(STATE_OFF);
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+    show laser;
+
+	start-script RequestState(STATE_ON);
+
+	signal SIG_AIM;
+    set-signal-mask SIG_AIM;
+
+	while( state != STATE_ON )
+    {
+        sleep 150;
+    }
+
+    heading = heading - 16384; //Offset
+    turn z_rotor to x-axis <0.000000> - heading speed <600.000000>;
+    turn head to z-axis <0.000000> - pitch speed <600.000000>;
+
+    return (1);
+}
+
+FirePrimary()
+{
+    hide laser;
+    return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+	    stockpiled = FALSE;
+		call-script UpdateLight();
+
+		sleep 100;
+	}
+	if (num_stockpiled >= 1)
+	{
+	    stockpiled = TRUE;
+		call-script UpdateLight();
+		sleep 100;
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	return (corpsetype);
+}

@@ -618,6 +618,7 @@ local unitOrderTable = {
    ['cortron']        = 165500,
    ['legperdition']   = 165600,
    ['armamd']         = 166000,
+   ['armamdn']        = 166100,
    ['corfmd']         = 166500,
    ['armsilo']        = 180000,
    ['corsilo']        = 180500,

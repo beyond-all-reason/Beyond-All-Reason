@@ -16,6 +16,18 @@ if not math.cross_product then
 	end
 end
 
+if not math.speed2d then
+	function math.speed2d (ax, ay)
+		return math.sqrt((ax * ax) + (ay * ay))
+	end
+end
+
+if not math.speed3d then
+	function math.speed3d (ax, ay, az)
+		return math.sqrt((ax * ax) + (ay * ay) + (az * az))
+	end
+end
+
 if not math.triangulate then
 	-- accepts an array of polygons (where a polygon is an array of {x, z} vertices), and returns an array of counterclockwise triangles
 	function math.triangulate(polies)

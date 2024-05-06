@@ -48,6 +48,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
+			interceptorgadget = 0,
 		},
 		featuredefs = {
 			dead = {

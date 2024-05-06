@@ -55,6 +55,10 @@ local icontypes = {
 		bitmap = "icons/antinuke.png",
 		size = 1.67999995
 	},
+	armamdn = {
+		bitmap = "icons/antinuke.png",
+		size = 1.67999995
+	},
 	armamex = {
 		bitmap = "icons/mex_t1_emp.png",
 		size = 1.02999997

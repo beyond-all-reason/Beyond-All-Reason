@@ -57,6 +57,7 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
+			interceptorgadget = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {

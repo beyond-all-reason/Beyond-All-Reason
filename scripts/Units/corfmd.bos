@@ -17,14 +17,14 @@ activatescr()
 {
 	if( TRUE )
 	{
-			move dbl to x-axis [-8] speed [8];
-			move dbl to z-axis [-8] speed [8];
-			move dbr to x-axis [8] speed [8];
-			move dbr to z-axis [-8] speed [8];
-			move dtl to x-axis [-8] speed [8];
-			move dtl to z-axis [8] speed [8];
-			move dtr to x-axis [8] speed [8];
-			move dtr to z-axis [8] speed [8];	
+			move dbl to x-axis [-5] speed [5];
+			move dbl to z-axis [-5] speed [5];
+			move dbr to x-axis [5] speed [5];
+			move dbr to z-axis [-5] speed [5];
+			move dtl to x-axis [-5] speed [5];
+			move dtl to z-axis [5] speed [5];
+			move dtr to x-axis [5] speed [5];
+			move dtr to z-axis [5] speed [5];
 	sleep 1768;
 	}
 	sleep 3;
@@ -35,14 +35,14 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-			move dbl to x-axis [0] speed [8];
-			move dbl to z-axis [0] speed [8];
-			move dbr to x-axis [0] speed [8];
-			move dbr to z-axis [0] speed [8];
-			move dtl to x-axis [0] speed [8];
-			move dtl to z-axis [0] speed [8];
-			move dtr to x-axis [0] speed [8];
-			move dtr to z-axis [0] speed [8];	
+			move dbl to x-axis [0] speed [5];
+			move dbl to z-axis [0] speed [5];
+			move dbr to x-axis [0] speed [5];
+			move dbr to z-axis [0] speed [5];
+			move dtl to x-axis [0] speed [5];
+			move dtl to z-axis [0] speed [5];
+			move dtr to x-axis [0] speed [5];
+			move dtr to z-axis [0] speed [5];
 		sleep 1762;
 	}
 	sleep 14;
