@@ -847,26 +847,24 @@ function widget:DrawScreen()
 			font:Print(DMDefaultColorString .. text, vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
 			font:End()
 		end
-	end
-	if draftMode ~= "disabled" then
-		if (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
-			reloadedDraftMode = nil
-			Spring.SendLuaRulesMsg("send_me_the_info_again")
-			draftModeInited()
-		end
 		if fairTimeout and os.clock() >= fairTimeout and not ihavejoined_fair then
 			Spring.SendLuaRulesMsg("i_have_joined_fair")
 			ihavejoined_fair = true
-			if draftMode ~= "fair" and not myTeamPlayersOrder and not waitIsMandatory then
+			if not myAllyTeamJoined and not waitIsMandatory then
 				voteConTimeout = os.clock() + connectionTimeOut
 			end
 		end
 		if voteConTimeout and os.clock() >= voteConTimeout and ihavejoined_fair then
 			-- TODO do we draw UI or Spring.Echo that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
-			if not myTeamPlayersOrder then
+			if not myAllyTeamJoined then
 				Spring.SendLuaRulesMsg("vote_wait_too_long")
 			end
 			voteConTimeout = nil
+		end
+		if (reloadedDraftMode and os.clock() >= reloadedDraftMode) then
+			reloadedDraftMode = nil
+			Spring.SendLuaRulesMsg("send_me_the_info_again")
+			draftModeInited()
 		end
 	end
 	-- DOM end

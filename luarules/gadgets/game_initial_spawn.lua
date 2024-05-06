@@ -321,6 +321,10 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeamIsInGame[allyTeamID] = false
 				end
 			end
+			if not votedToForceStartDraft[allyTeamID] then
+				votedToForceStartDraft[allyTeamID] = {}
+			end
+			votedToForceStartDraft[allyTeamID][teamID] = false
 		end
 		if draftMode == "random" or draftMode == "skill" then
 			for _, teamID in ipairs(tteams) do
@@ -329,13 +333,9 @@ if gadgetHandler:IsSyncedCode() then
 					votedToForceSkipTurn[allyTeamID] = {}
 				end
 				votedToForceSkipTurn[allyTeamID][teamID] = false
-				if not votedToForceStartDraft[allyTeamID] then
-					votedToForceStartDraft[allyTeamID] = {}
-				end
-				votedToForceStartDraft[allyTeamID][teamID] = false
 			end
-			canVoteForceStartDraft = true
 		end
+		canVoteForceStartDraft = true
 	end
 
 	local function putLateJoinersLast(array)
@@ -424,7 +424,7 @@ if gadgetHandler:IsSyncedCode() then
 		local votedPercentage = calculateVotedPercentage(allyTeamID, votedToForceStartDraft)
 		if votedPercentage >= VOTE_YES_PRCTN_REQ then
 			if announceVoteResults then
-				Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to force start draft queue.")
+				Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip wait for late-joiners.")
 			end
 			for teamID, _ in pairs(votedToForceStartDraft[allyTeamID]) do
 				votedToForceStartDraft[allyTeamID][teamID] = false -- reset vote
@@ -566,11 +566,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not playerIsSpec then
 			if (draftMode ~= "disabled") then
+				if canVoteForceStartDraft and msg == "vote_wait_too_long" and votedToForceStartDraft[allyTeamID][playerTeam] ~= nil then
+					votedToForceStartDraft[allyTeamID][playerTeam] = true
+					checkVotesAndStartDraft(allyTeamID) -- in fair mode it simply unlocks placing after latejoin timeout
+				end
 				if (draftMode == "skill" or draftMode == "random") then
-					if canVoteForceStartDraft and msg == "vote_wait_too_long" and votedToForceStartDraft[allyTeamID][playerTeam] ~= nil then
-						votedToForceStartDraft[allyTeamID][playerTeam] = true
-						checkVotesAndStartDraft(allyTeamID)
-					elseif allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
+					if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
 						if msg == "skip_my_turn" then
 							if allyTeamIsInGame[allyTeamID] and playerTeam and allyTeamID then
 								local turnCheck = isTurnToPlace(allyTeamID, playerTeam)
