@@ -12,19 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Git User
         run: |
-          git config user.name "GitHub Action"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
       - name: Transifex Rebase
         run: |
-          git checkout master
-          git fetch origin
           git checkout transifex-synchronization-source
-          git pull
-          git rebase origin/master
-          git push origin transifex-synchronization-source
+          git reset origin/master --hard
+          git push origin transifex-synchronization-source --force-with-lease
