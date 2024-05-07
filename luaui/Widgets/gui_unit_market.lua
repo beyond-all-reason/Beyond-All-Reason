@@ -80,6 +80,8 @@ local myPlayerID   = Spring.GetMyPlayerID()
 local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
 local unitMarket = Spring.GetModOptions().unit_market
 local selectedUnits
+local lastRequesterTime = 0
+local lastRequesterID = nil
 local lastBuyRuquestTime = 0
 local notEnoughMetalTime = 3
 local notEnoughMetalTimer = 0
@@ -328,7 +330,11 @@ function widget:RecvLuaMsg(msg, playerID)
         local teamName = getTeamName(msgFromTeamID)
         local x,y,z = spGetUnitPosition(unitID)
         if x then
-            spMarkerAddPoint(x,y,z,colourNames(msgFromTeamID)..teamName..": $$$",true) -- local ping
+            if (msgFromTeamID ~= lastRequesterID) or (msgFromTeamID == lastRequesterID and os.clock() >= lastRequesterTime) then
+                spMarkerAddPoint(x,y,z,colourNames(msgFromTeamID)..teamName..": $$$",true) -- local ping
+                lastRequesterID = msgFromTeamID
+                lastRequesterTime = os.clock()+buy_request_cooldown
+            end
         end
     end
 end
