@@ -799,6 +799,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		else
 			target = {cmdParam_1, cmdParam_2, cmdParam_3}
 			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
+			fightOrder = true
 		end
 		if targetx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
@@ -952,9 +953,21 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								end
 							else
 								if fightOrder then
-									local figthRadius = carrierMetaData.radius*0.2
-									rx, rz = RandomPointInUnitCircle(5)
-									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									local cQueue = GetCommandQueue(subUnitID, -1)
+						            for j = 1, (cQueue and #cQueue or 0) do
+							            if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
+								                idleTarget = cQueue[j].params
+								            break
+							            end
+									end
+
+									if idleTarget then
+								        spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+									else
+									    local figthRadius = carrierMetaData.radius*0.2
+									    rx, rz = RandomPointInUnitCircle(5)
+									    spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									end
 								else
 									spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
 								end
