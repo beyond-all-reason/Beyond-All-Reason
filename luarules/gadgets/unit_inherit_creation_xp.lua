@@ -28,6 +28,7 @@ if table.count(inheritChildrenXP) <= 0 then -- this enables or disables the gadg
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	Spring.Echo(Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id"))
 	if  builderID ~= nil then
 		local builderDefID = Spring.GetUnitDefID(builderID)
 		if builderID then
@@ -41,14 +42,17 @@ function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 		if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then
 		local parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id") --this establishes parenthood of unit_explosion_spawner.lua unit creations E.G pawn launchers/legion Evocom Dgun. IT CANNOT BE DONE AT UnitCreated or UnitDestroyed!!! Exhibits anomolous behavior if not done at runtime.
 		local parentDefID = Spring.GetUnitDefID(parentID)
+		local parentCurrentXP = Spring.GetUnitExperience(parentID)
 		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritChildrenXP[parentDefID]}
-		elseif Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then
+		Spring.SetUnitExperience (unitID, parentCurrentXP)
+		elseif Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then -- this establishes parenthood of unit_carrier_spawner drone/carrier relationship
 		local parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
 		local parentDefID = Spring.GetUnitDefID(parentID)
+		local parentCurrentXP = Spring.GetUnitExperience(parentID)
 		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritChildrenXP[parentDefID]}
+		Spring.SetUnitExperience (unitID, parentCurrentXP)
 		end
-	end
-	if childrenWithParents[unitID] then
+	elseif childrenWithParents[unitID] then
 		local parentUnitID = childrenWithParents[unitID].parentunitid
 		local parentOldXP = Spring.GetUnitExperience(parentUnitID)
 		local parentMultiplier = childrenWithParents[unitID].parentxpmultiplier
