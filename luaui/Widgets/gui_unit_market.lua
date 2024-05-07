@@ -608,7 +608,7 @@ function widget:DrawWorld()
     end
     local cameraState = spGetCameraState()
     local camHeight = cameraState and cameraState.dist or nil
-    if camHeight > 9000 then
+    if camHeight and camHeight > 9000 then
         return
     end
 	gl_DepthTest(false)
