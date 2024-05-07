@@ -19,10 +19,10 @@ function widget:GetInfo() return {
 -- 3) Gadget that oversees this takes the metal from the playerA and gives to playerB, and takes the unit from playerB and gives to playerA. That's it!
 -- Why? So you can trade T2 cons without tracking who paid what/what/how much. Just flip the unit for sale and we are good to go.
 -- Note: you can set for sale ANYTHING, even unfinished units. Be careful if you buy unfinished units though, you pay FULL PRICE for them. Hotkey/Button to toggle sale. Just alt + double-click to buy.
--- TODO: develop UI so that you can browse units that are for sale with a buy button maybe?
--- TODO: maybe a button in a unitstate window "this unit is for sale" toggle so you can start selling units without hotkey or separate button?
 -- Extra feature: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
--- But as it is, it should be fine for the first version.
+-- AI will NOT draw any sale icons.
+
+-- TODO: develop UI so that you can browse units that are for sale with a buy button maybe?
 
 -- How to use:
 
@@ -69,6 +69,10 @@ local spGetMouseState       = Spring.GetMouseState
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spGetGameRulesParam   = Spring.GetGameRulesParam
+local spMarkerAddPoint      = Spring.MarkerAddPoint
+local spGetTeamColor		= Spring.GetTeamColor
+local spGetTeamResources    = Spring.GetTeamResources
+local spGetGameFrame        = Spring.GetGameFrame
 local myTeamID     = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
@@ -77,29 +81,76 @@ local myPlayerID   = Spring.GetMyPlayerID()
 local tooltip = Spring.I18N('ui.orderMenu.sellunit_tooltip')
 local unitMarket = Spring.GetModOptions().unit_market
 local selectedUnits
+local lastRequesterTime = 0
+local lastRequesterID = nil
+local lastBuyRuquestTime = 0
+local notEnoughMetalTime = 3
+local notEnoughMetalTimer = 0
+local notEnoughForUnit = nil
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 local loneTeamPlayer = false
-local advertise, unitsForSaleAmount = true, 0 -- Platters fps saver
 local ignoreTeam = {} -- Ignore teams that do not have human allies
+local triedToBuy = nil
+local triedToBuyTime = 0
+local triedToBuyFrame = 0
 -- settings
 local buyWithoutHoldingAlt = false -- flip to true to buy with just a double-click
 local see_prices = false -- Set to true for local testing to verify unit prices
 local see_sales  = true  -- Set to false to never see console trade messages
 local spec_sale_offers = false -- Disables spectators hearing about sale offers
-local platterLimit = 100 -- Hide platters if more than this units are being on sale at the same time
+local buy_requests = true -- Allow to place "Sell me this" $$$ pings
+local show_ai_trade_icons = false -- This is a drain on resources
+local buy_request_cooldown = 2 -- 2 seconds
 --
 
+--------------------------------
+local function addUnitToSale(unitID, price)
+    local index = #unitsForSale + 1
+    unitsForSale[index] = {unitID = unitID, price = price}
+end
+local function removeUnitFromSale(unitID)
+    for i, unitInfo in ipairs(unitsForSale) do
+        if unitInfo.unitID == unitID then
+            table.remove(unitsForSale, i)
+            break
+        end
+    end
+end
+local function isUnitForSale(unitID)
+    for i, unitInfo in ipairs(unitsForSale) do
+        if unitInfo.unitID == unitID then
+            return true
+        end
+    end
+    return false
+end
+local function SetUnitPrice(unitID, price)
+    for i, unitInfo in ipairs(unitsForSale) do
+        if unitInfo.unitID == unitID then
+            return true
+        end
+    end
+    return false
+end
+local function GetUnitPrice(unitID)
+    for i, unitInfo in ipairs(unitsForSale) do
+        if unitInfo.unitID == unitID then
+            return unitInfo.price
+        end
+    end
+    return 0
+end
 --------------------------------
 -- This is how the unit is set for sale, the "sendLuaRulesMsg unitID",
 -- sending price as well doesn't do anything just yet (on backend), but if players demand different prices we can work on implementing that
 local function OfferToSell(unitID)
-    Spring.SendLuaRulesMsg("unitOfferToSell " .. unitID) -- Tell gadget we are offering unit for sale
+    spSendLuaRulesMsg("unitOfferToSell " .. unitID) -- Tell gadget we are offering unit for sale
 end
 
 local function toggleSelectedUnitsForSale(selectedUnits)
 	local anyUnitForSale = false
 	for _, unitID in ipairs(selectedUnits) do
-		if unitsForSale[unitID] then
+		if isUnitForSale(unitID) then
 			anyUnitForSale = true
 			OfferToSell(unitID)
 		end
@@ -116,12 +167,8 @@ local function OfferToSellAction()
     toggleSelectedUnitsForSale(selectedUnits)
 end
 
-local function OfferToBuy(unitID)
-    Spring.SendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
-end
-
 local function ClearUnitData(unitID) -- if unit is no longer sold then remove it from being sold
-    unitsForSale[unitID] = nil
+    removeUnitFromSale(unitID)
 end
 
 local function Print(msg)
@@ -130,32 +177,21 @@ local function Print(msg)
     end
 end
 
-local function AdvertCheck() -- platters
-    advertise = true
-    for _ in pairs(unitsForSale) do
-        unitsForSaleAmount = unitsForSaleAmount + 1
-        if (unitsForSaleAmount > platterLimit) then
-            advertise = false
-            break
-        end
-    end
-end
-
 local function InitFindSales()
     for _, unitID in ipairs(Spring.GetAllUnits()) do
         if spValidUnitID(unitID) then
             teamID = spGetUnitTeam(unitID)
-            if fullview or spAreTeamsAllied(teamID, myTeamID) then
+            local _, _, _, isAITeam = spGetTeamInfo(teamID)
+            if not ignoreTeam[teamID] and (fullview or spAreTeamsAllied(teamID, myTeamID)) then
                 local price = spGetUnitRulesParam(unitID, "unitPrice")
                 if (price > 0) then
-                    unitsForSale[unitID] = price
-		        else
-		            ClearUnitData(unitID)
+                    addUnitToSale(unitID, price)
+                else
+                    ClearUnitData(unitID)
                 end
             end
         end
     end
-    AdvertCheck()
 end
 
 local function FindPlayerIDFromTeamID(teamID)
@@ -203,7 +239,7 @@ local function unitSale(unitID, price, msgFromTeamID)
     if not unitDef then return end
     local name = getTeamName(msgFromTeamID)
     if price > 0 then
-        unitsForSale[unitID] = price
+        addUnitToSale(unitID, price)
         local msg = Spring.I18N('ui.unitMarket.sellingUnit', { name = name, unitName = unitDef.translatedHumanName, price = price })
         if (not isSpectating or spec_sale_offers) then
             Print(msg)
@@ -211,7 +247,6 @@ local function unitSale(unitID, price, msgFromTeamID)
     else
         ClearUnitData(unitID)
     end
-    AdvertCheck()
 end
 
 local function unitSold(unitID, price, old_ownerID, msgFromTeamID)
@@ -234,6 +269,89 @@ end
 
 function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
+end
+
+local function colourNames(teamID)
+	local nameColourR, nameColourG, nameColourB, nameColourA = spGetTeamColor(teamID)
+	local R255 = math.floor(nameColourR * 255)
+	local G255 = math.floor(nameColourG * 255)
+	local B255 = math.floor(nameColourB * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+end
+
+local function OfferToBuy(unitID)
+    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+    triedToBuyTime = os.clock()+0.3
+    triedToBuyFrame = spGetGameFrame()
+    triedToBuy = unitID
+end
+
+-- only buyer and seller will recieve pings, nobody else, not even spectators
+local function TriedToBuyUnit()
+    if triedToBuy == nil then return end
+    local unitID = triedToBuy
+    local teamID = spGetUnitTeam(unitID)
+    if teamID == myTeamID then
+        triedToBuy = nil
+        return -- already bought
+    end
+    local price = spGetUnitRulesParam(unitID, "unitPrice")
+    if price > 0 then -- not enough metal
+        local eCurrMy, eStorMy,_, _,_,_,_,_ = spGetTeamResources(myTeamID, "metal")
+        if price > eStorMy or price > eCurrMy then
+            notEnoughForUnit = unitID
+            notEnoughMetalTimer = os.clock()+3
+			Spring.PlaySoundFile("beep6", 0.6, 'ui')
+        end
+    else -- not for sale -> wtb msg
+        if buy_requests and not isUnitForSale(unitID) and os.clock() >= lastBuyRuquestTime then
+            local _, _, _, isAITeam = spGetTeamInfo(teamID)
+            if not isAITeam then
+                lastBuyRuquestTime = os.clock()+buy_request_cooldown
+                spSendLuaUIMsg("unitWantToBuy " .. unitID)
+                local teamName = getTeamName(myTeamID)
+                local x,y,z = spGetUnitPosition(unitID)
+                if x then
+                    spMarkerAddPoint(x,y,z,colourNames(myTeamID)..teamName..": $$$",true) -- local ping
+                end
+            end
+        end
+    end
+    triedToBuy = nil
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
+
+    if not msgFromTeamID or mySpec or isSpectating or not spAreTeamsAllied(msgFromTeamID, myTeamID) or msgFromTeamID == myTeamID then return end
+
+    local words = {}
+    for word in msg:gmatch("%S+") do
+        table.insert(words, word)
+    end
+
+    if words[1] == "unitWantToBuy" then
+        local unitID = words[2]
+        if unitID == nil then return end
+        local teamName = getTeamName(msgFromTeamID)
+        local x,y,z = spGetUnitPosition(unitID)
+        if x then
+            if (msgFromTeamID ~= lastRequesterID) or (msgFromTeamID == lastRequesterID and os.clock() >= lastRequesterTime) then
+                spMarkerAddPoint(x,y,z,colourNames(msgFromTeamID)..teamName..": $$$",true) -- local ping
+                lastRequesterID = msgFromTeamID
+                lastRequesterTime = os.clock()+buy_request_cooldown
+            end
+        end
+    end
 end
 
 local function DoIhaveAllies()
@@ -266,6 +384,12 @@ function widget:Initialize()
         end
         if not hasHumanPlayers then
             for _, teamID in ipairs(allyTeamTeams) do
+                ignoreTeam[teamID] = true
+            end
+        end
+        for _, teamID in ipairs(allyTeamTeams) do
+            local _, _, _, isAITeam = spGetTeamInfo(teamID)
+            if not show_ai_trade_icons and isAITeam then
                 ignoreTeam[teamID] = true
             end
         end
@@ -370,9 +494,6 @@ function widget:MousePress(mx, my, button)
 end
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local animationDuration = 7
-local animationFrequency = 3
-
 local spGetCameraDirection = Spring.GetCameraDirection
 local gl_PushMatrix = gl.PushMatrix
 local gl_Billboard = gl.Billboard
@@ -389,32 +510,100 @@ local gl_BeginEnd = gl.BeginEnd
 local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
 local gl_DrawListAtUnit = gl.DrawListAtUnit
+local gl_Texture = gl.Texture
+local gl_TexRect = gl.TexRect
+local gl_DepthTest = gl.DepthTest
 local math_sin = math.sin
 local math_cos = math.cos
 local math_pi = math.pi
 local drawLists = {}
-local drawListsP = {}
-local yellow	 = {1.0, 1.0, 0.3, 0.75}
-local yellowBold = {1.0, 1.0, 0.3, 1.0}
-local function DrawIcon(text)
-    gl_PushMatrix()
-    gl_Billboard()
-    gl_Color(yellow)
-    gl_BeginText()
-    gl_Text('$', 12.0, 15.0, 24.0)
-    gl_EndText()
-    if see_prices then
-        gl_Color(yellowBold)
-        gl_BeginText()
-        gl_Text(text, 16.0, -2.0, 10.0)
-        gl_EndText()
-    end
-    gl_PopMatrix()
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 45
+local fontfileOutlineSize = 4.5
+local fontfileOutlineStrength = 9
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local uiScale = (0.7 + (vsx * vsy / 6500000))
+local unitConf = {}
+for udid, unitDef in pairs(UnitDefs) do
+	local xsize, zsize = unitDef.xsize, unitDef.zsize
+	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	unitConf[udid] = 7 +(scale/2.5)
 end
--- platters eat fps, so don't show them if too many units are on sale...
--- TODO optimize platter drawing, can we do it with gl createlist as well?
+local DrawIcon
+local yellowBoldFont = '\255\255\255\76'
+local DrawUnitTradeInfo
+if see_prices then
+    DrawUnitTradeInfo = function()
+        local unitScale
+        for i = 1, #unitsForSale do
+            local unitID, price = unitsForSale[i].unitID, unitsForSale[i].price
+            local x, y, z = spGetUnitPosition(unitID)
+            local _, _, _, isAITeam = spGetTeamInfo(teamID)
+            if x and spIsUnitInView(unitID) then
+                if not drawLists[unitID] then
+                    drawLists[unitID] = gl_CreateList(DrawIcon, price)
+                end
+                unitScale = unitConf[unitDefID]
+                gl_DrawListAtUnit(unitID, drawLists[unitID], false, unitScale, unitScale, unitScale)
+            end
+        end
+    end
+    DrawIcon = function(text)
+        local iconSize = 25
+        gl_PushMatrix()
+        gl_Color(0.9, 0.9, 0.9, 1)
+        gl_Texture(':n:LuaUI/Images/trade_offer.png')
+        gl_Billboard()
+        gl_Translate(12.0, 18.0, 24.0)
+        gl_TexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+        if text ~= 0 then
+            gl_Texture(false)
+            gl_Translate(iconSize/2, -iconSize/2, 0)
+            font:Begin()
+            font:Print(yellowBoldFont..text, 2.0, 15.0, 12.0)--, "o")
+            font:End()
+        end
+        gl_PopMatrix()
+    end
+else
+    DrawUnitTradeInfo = function()
+        local unitScale
+        for i = 1, #unitsForSale do
+            local unitID = unitsForSale[i].unitID
+            local x, y, z = spGetUnitPosition(unitID)
+            if x and spIsUnitInView(unitID) then
+                if not drawLists[unitID] then
+                    drawLists[unitID] = gl_CreateList(DrawIcon, _)
+                end
+                unitScale = unitConf[unitDefID]
+                gl_DrawListAtUnit(unitID, drawLists[unitID], false, unitScale, unitScale, unitScale)
+            end
+        end
+    end
+    DrawIcon = function(_)
+        local iconSize = 25
+        gl_PushMatrix()
+        gl_Color(0.9, 0.9, 0.9, 1)
+        gl_Texture(':n:LuaUI/Images/trade_offer.png')
+        gl_Billboard()
+        gl_Translate(12.0, 18.0, 24.0)
+        gl_TexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+        gl_PopMatrix()
+    end
+end
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	uiScale = (0.75 + (vsx * vsy / 6000000))
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if fontfileScale ~= newFontfileScale then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+end
 function widget:DrawWorld()
-    if spIsGUIHidden() or next(unitsForSale) == nil then
+    if spIsGUIHidden() or #unitsForSale <= 0 then
         return
     end
     local cameraState = spGetCameraState()
@@ -422,33 +611,17 @@ function widget:DrawWorld()
     if camHeight > 9000 then
         return
     end
-    local currentTime = spGetGameSeconds() % animationDuration
-    local animationProgress = math_sin((currentTime / animationDuration) * (2 * math_pi * animationFrequency))
-    local radiusSize = 15 + animationProgress * 10
-    local greenColorA = {0.3, 1.0, 0.3, 1.0}
-	for unitID, price in pairs(unitsForSale) do
-		local x, y, z = spGetUnitPosition(unitID)
-		if x and spIsUnitInView(unitID) then
-            if not drawLists[unitID] then
-                drawLists[unitID] = gl_CreateList(DrawIcon, price)
-            end
-            gl_DrawListAtUnit(unitID, drawLists[unitID], false, 1, 1, 1)
-            if advertise then
-                gl_Color(greenColorA)
-                gl_DrawGroundCircle(x, y, z, radiusSize, 32)
-                local numSegments = 32
-                local angleStep = (2 * math_pi) / numSegments
-                gl_BeginEnd(gl_TRIANGLE_FAN, function()
-                    gl_Color(0.1, 1.0, 0.3, (0.1 + animationProgress * 0.05))
-                    gl_Vertex(x, y+25, z)
-                    for i = 0, numSegments do
-                        local angle = i * angleStep
-                        gl_Vertex(x + math_sin(angle) * radiusSize, y + 0, z + math_cos(angle) * radiusSize)
-                    end
-                end)
-            end
-        end
-	end
+	gl_DepthTest(false)
+    DrawUnitTradeInfo()
+	gl_DepthTest(true)
+end
+function widget:DrawScreen()
+    if notEnoughForUnit then
+        local text = Spring.I18N('ui.unitMarket.notEnoughMetal')
+        font:Begin()
+        font:Print(text, vsx * 0.5, vsy * 0.66, 26 * uiScale, "co")
+        font:End()
+    end
 end
 function widget:Shutdown()
 	for k,_ in pairs(drawLists) do
@@ -470,4 +643,12 @@ function widget:Update(dt)
 		end
 		prevCam = {camX,camY,camZ}
 	end
+
+    if notEnoughForUnit and os.clock()>=notEnoughMetalTimer then
+        notEnoughForUnit = nil
+    end
+
+    if triedToBuy and os.clock() >= triedToBuyTime and triedToBuyFrame ~= spGetGameFrame() then
+        TriedToBuyUnit()
+    end
 end
