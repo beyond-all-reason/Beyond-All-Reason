@@ -23,6 +23,7 @@ return {
 		speed = 88.5,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAH.s3o",
 		script = "Units/CORAH.cob",

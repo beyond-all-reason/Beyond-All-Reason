@@ -845,6 +845,30 @@ local options = {
 	--},
 
     {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
+        type    = "list",
+        section = "options_extra",
+        def     = "disabled",
+        items 	= {
+            { key = "disabled", name = "Disabled",  desc = "No changes." },
+            { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+        },
+    },
+  
+    {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
+        type   	= "bool",
+        def    	= false,
+        section = "options_extra",
+    },
+
+    {
         key 	= "map_waterlevel",
         name 	= "Water Level",
         desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
@@ -1217,6 +1241,47 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
+    
+    {
+        key 	= "evocom",
+        name 	= "Evolving Commanders",
+        type 	= "bool",
+        def 	= false,
+        section = "options_experimental",
+    },
+
+    {
+        key    	= "evocomleveluprate",
+        name   	= "Commander Evolution Rate",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 20,
+        step   	= 0.1,
+    },
+
+    {
+        key    	= "evocomxpmultiplier",
+        name   	= "Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

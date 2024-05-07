@@ -1,0 +1,29 @@
+name: Translations rebase from master
+
+on:
+  schedule:
+  - cron: '15 5 * * 1'
+
+permissions: write-all
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git User
+        run: |
+          git config user.name "GitHub Action"
+
+      - name: Transifex Rebase
+        run: |
+          git checkout master
+          git fetch origin
+          git checkout transifex-synchronization-source
+          git pull
+          git rebase origin/master
+          git push origin transifex-synchronization-source

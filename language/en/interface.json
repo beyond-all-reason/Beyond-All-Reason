@@ -62,6 +62,10 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
+		"unitMarket": {
+			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
+			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal."
+		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
@@ -148,7 +152,8 @@
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
-			"nextBuilder": "Next Builder"
+			"nextBuilder": "Next Builder",
+			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -204,6 +209,8 @@
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
 			"Spawning Enabled": "Spawning enabled",
+			"sellunit": "Sell Unit",
+			"sellunit_tooltip": "Toggle currently selected units for sale",
 			
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
@@ -249,7 +256,11 @@
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"siegeMode": "Spread Fire",
 				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire"
+				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
+				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
+				"dreadshot": "Normal fire",
+				"overcharge": "Overcharge",
+				"dreadshot_tooltip": "Switches between normal fire and overcharged mode"
 			}
 		},
 		"idleBuilders": {
@@ -626,6 +637,17 @@
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
 			"tooClose": "You cannot place your start position too close to another player"
+		},
+		"draftOrderMod": {
+			"teamPlacement": "Team Placement",
+			"placeYourCom": "Place your commmander",
+			"waitingFor": "Waiting for %{name}",
+			"turn": "turn",
+			"players": "players",
+			"nextIsPlayer": "Next is %{name}",
+			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
+			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
+			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"
 		},
 		"substitutePlayers": {
 			"offer": "Offer to play",

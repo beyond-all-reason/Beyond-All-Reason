@@ -16,7 +16,7 @@ local difficultyParameters = {
 	[difficulties.veryeasy] = {
 		gracePeriod       		= 9 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -26,7 +26,7 @@ local difficultyParameters = {
 		damageMod         		= 0.5,
 		maxBurrows        		= 1000,
 		minScavs		  		= 5,
-		maxScavs		  		= 20,
+		maxScavs		  		= 15,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryeasy_scav',
 		bossResistanceMult   	= 0.5,
@@ -35,7 +35,7 @@ local difficultyParameters = {
 	[difficulties.easy] = {
 		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 100 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -45,7 +45,7 @@ local difficultyParameters = {
 		damageMod         		= 0.75,
 		maxBurrows        		= 1000,
 		minScavs		  		= 10,
-		maxScavs		  		= 25,
+		maxScavs		  		= 20,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_easy_scav',
 		bossResistanceMult   	= 0.75,
@@ -53,7 +53,7 @@ local difficultyParameters = {
 	[difficulties.normal] = {
 		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -63,7 +63,7 @@ local difficultyParameters = {
 		damageMod         		= 1,
 		maxBurrows        		= 1000,
 		minScavs		  		= 15,
-		maxScavs		  		= 30,
+		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_normal_scav',
 		bossResistanceMult  	= 1,
@@ -71,7 +71,7 @@ local difficultyParameters = {
 	[difficulties.hard] = {
 		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 80 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 170 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -81,7 +81,7 @@ local difficultyParameters = {
 		damageMod         		= 1.25,
 		maxBurrows        		= 1000,
 		minScavs		  		= 20,
-		maxScavs		  		= 35,
+		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_hard_scav',
 		bossResistanceMult   	= 1.33,
@@ -89,7 +89,7 @@ local difficultyParameters = {
 	[difficulties.veryhard] = {
 		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 35 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate  			= 120 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate  			= 70 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 140 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -99,7 +99,7 @@ local difficultyParameters = {
 		damageMod         		= 1.5,
 		maxBurrows        		= 1000,
 		minScavs		  		= 25,
-		maxScavs		  		= 40,
+		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryhard_scav',
 		bossResistanceMult   	= 1.67,
@@ -107,7 +107,7 @@ local difficultyParameters = {
 	[difficulties.epic] = {
 		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 30 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 110 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -117,7 +117,7 @@ local difficultyParameters = {
 		damageMod         		= 2,
 		maxBurrows        		= 1000,
 		minScavs		  		= 30,
-		maxScavs		  		= 50,
+		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_epic_scav',
 		bossResistanceMult   	= 2,
@@ -873,12 +873,60 @@ end
 
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-
+		[UnitDefNames["corcom_scav"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
+		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
+		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
+		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
+		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
+		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
+		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
+		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
+		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
+		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
+		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
+		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
+		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
+		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-
+		[UnitDefNames["corcom_scav"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
+		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
+		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
+		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
+		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
+		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
+		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
+		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
+		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
+		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
+		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
+		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
+		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
+		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
+		[UnitDefNames["armcom_scav"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["armcomlvl2_scav"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["armcomlvl3_scav"].id] = { distance = 300, chance = 0.01 },
+		[UnitDefNames["armcomlvl4_scav"].id] = { distance = 400, chance = 0.01 },
+		[UnitDefNames["armcomlvl5_scav"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["armcomlvl6_scav"].id] = { distance = 600, chance = 0.01 },
+		[UnitDefNames["armcomlvl7_scav"].id] = { distance = 700, chance = 0.01 },
+		[UnitDefNames["armcomlvl8_scav"].id] = { distance = 800, chance = 0.01 },
+		[UnitDefNames["armcomlvl9_scav"].id] = { distance = 900, chance = 0.01 },
+		[UnitDefNames["armcomlvl10_scav"].id] = { distance = 1000, chance = 0.01 },
 		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 2000, chance = 0.001},
@@ -890,6 +938,36 @@ scavBehaviours = {
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
 		[UnitDefNames["armrectr_scav"].id] = true,--Armada Rezzer
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
+		[UnitDefNames["armcom_scav"].id] = true,
+		[UnitDefNames["corcom_scav"].id] = true,
+		[UnitDefNames["legcom_scav"].id] = true,
+		[UnitDefNames["armcomlvl2_scav"].id] = true,
+		[UnitDefNames["corcomlvl2_scav"].id] = true,
+		[UnitDefNames["legcomlvl2_scav"].id] = true,
+		[UnitDefNames["armcomlvl3_scav"].id] = true,
+		[UnitDefNames["corcomlvl3_scav"].id] = true,
+		[UnitDefNames["legcomlvl3_scav"].id] = true,
+		[UnitDefNames["armcomlvl4_scav"].id] = true,
+		[UnitDefNames["corcomlvl4_scav"].id] = true,
+		[UnitDefNames["legcomlvl4_scav"].id] = true,
+		[UnitDefNames["armcomlvl5_scav"].id] = true,
+		[UnitDefNames["corcomlvl5_scav"].id] = true,
+		[UnitDefNames["legcomlvl5_scav"].id] = true,
+		[UnitDefNames["armcomlvl6_scav"].id] = true,
+		[UnitDefNames["corcomlvl6_scav"].id] = true,
+		[UnitDefNames["legcomlvl6_scav"].id] = true,
+		[UnitDefNames["armcomlvl7_scav"].id] = true,
+		[UnitDefNames["corcomlvl7_scav"].id] = true,
+		[UnitDefNames["legcomlvl7_scav"].id] = true,
+		[UnitDefNames["armcomlvl8_scav"].id] = true,
+		[UnitDefNames["corcomlvl8_scav"].id] = true,
+		[UnitDefNames["legcomlvl8_scav"].id] = true,
+		[UnitDefNames["armcomlvl9_scav"].id] = true,
+		[UnitDefNames["corcomlvl9_scav"].id] = true,
+		[UnitDefNames["legcomlvl9_scav"].id] = true,
+		[UnitDefNames["armcomlvl10_scav"].id] = true,
+		[UnitDefNames["corcomlvl10_scav"].id] = true,
+		[UnitDefNames["legcomlvl10_scav"].id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
@@ -1105,6 +1183,47 @@ addNewSquad({ type = "basicLand", minAnger = 70, units = { "2 armvang_scav","2 c
 addNewSquad({ type = "airLand", minAnger = 65, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 2, maxAnger = 100}) --T2 Gunships
 
+
+-- evocoms
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 armcom_scav",}, weight = 1, maxAnger = 50})
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 corcom_scav",}, weight = 1, maxAnger = 50})
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 legcom_scav",}, weight = 1, maxAnger = 50})
+
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 armcomlvl2_scav",}, weight = 1, maxAnger = 60})
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 corcomlvl2_scav",}, weight = 1, maxAnger = 60})
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 legcomlvl2_scav",}, weight = 1, maxAnger = 60})
+
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 armcomlvl3_scav",}, weight = 1, maxAnger = 70})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 corcomlvl3_scav",}, weight = 1, maxAnger = 70})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 legcomlvl3_scav",}, weight = 1, maxAnger = 70})
+
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 armcomlvl4_scav",}, weight = 1, maxAnger = 80})
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 corcomlvl4_scav",}, weight = 1, maxAnger = 80})
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 legcomlvl4_scav",}, weight = 1, maxAnger = 80})
+
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 armcomlvl5_scav",}, weight = 1, maxAnger = 90})
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 corcomlvl5_scav",}, weight = 1, maxAnger = 90})
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 legcomlvl5_scav",}, weight = 1, maxAnger = 90})
+
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 armcomlvl6_scav",}, weight = 1, maxAnger = 100})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 corcomlvl6_scav",}, weight = 1, maxAnger = 100})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 legcomlvl6_scav",}, weight = 1, maxAnger = 100})
+
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 armcomlvl7_scav",}, weight = 1, maxAnger = 110})
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 corcomlvl7_scav",}, weight = 1, maxAnger = 110})
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 legcomlvl7_scav",}, weight = 1, maxAnger = 110})
+
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 armcomlvl8_scav",}, weight = 1, maxAnger = 120})
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 corcomlvl8_scav",}, weight = 1, maxAnger = 120})
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 legcomlvl8_scav",}, weight = 1, maxAnger = 120})
+
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 armcomlvl9_scav",}, weight = 1, maxAnger = 130})
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 corcomlvl9_scav",}, weight = 1, maxAnger = 130})
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 legcomlvl9_scav",}, weight = 1, maxAnger = 130})
+
+addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -23,6 +23,7 @@ return {
 		speed = 54.0,
 		maxwaterdepth = 20,
 		movementclass = "HTANK4",
+		movestate = 0,
 		objectname = "Units/CORBAN.s3o",
 		script = "Units/CORBAN.cob",
 		seismicsignature = 0,

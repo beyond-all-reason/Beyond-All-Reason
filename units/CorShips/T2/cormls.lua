@@ -24,6 +24,7 @@ return {
 		speed = 57.75,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
+		movestate = 0,
 		objectname = "Units/CORMLS.s3o",
 		script = "Units/CORMLS.cob",
 		seismicsignature = 0,

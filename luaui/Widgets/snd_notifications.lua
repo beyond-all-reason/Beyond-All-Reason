@@ -37,9 +37,6 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
-local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
-local totalUnits = 0
-
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 function addSound(name, file, minDelay, duration, messageKey, unlisted)
@@ -571,7 +568,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -582,7 +579,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -593,7 +590,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 
@@ -821,7 +818,7 @@ function widget:SetConfigData(data)
 	if data.customNotifications ~= nil and Spring.GetGameFrame() > 0 then
 		customNotifications = data.customNotifications
 	end
-	if data.soundList ~= nil then
+	if data.soundList ~= nil and type(data.soundList) == 'table' then
 		for sound, enabled in pairs(data.soundList) do
 			if Sound[sound] then
 				soundList[sound] = enabled
