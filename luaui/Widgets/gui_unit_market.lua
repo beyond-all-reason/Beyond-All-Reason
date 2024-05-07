@@ -72,6 +72,7 @@ local spGetGameRulesParam   = Spring.GetGameRulesParam
 local spMarkerAddPoint      = Spring.MarkerAddPoint
 local spGetTeamColor		= Spring.GetTeamColor
 local spGetTeamResources    = Spring.GetTeamResources
+local spGetGameFrame        = Spring.GetGameFrame
 local myTeamID     = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID   = Spring.GetGaiaTeamID()
@@ -89,6 +90,9 @@ local notEnoughForUnit = nil
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 local loneTeamPlayer = false
 local ignoreTeam = {} -- Ignore teams that do not have human allies
+local triedToBuy = nil
+local triedToBuyTime = 0
+local triedToBuyFrame = 0
 -- settings
 local buyWithoutHoldingAlt = false -- flip to true to buy with just a double-click
 local see_prices = false -- Set to true for local testing to verify unit prices
@@ -284,21 +288,32 @@ local function colourNames(teamID)
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
--- only buyer and seller will recieve pings, nobody else, not even spectators
 local function OfferToBuy(unitID)
-    -- not enough metal
+    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+    triedToBuyTime = os.clock()+0.3
+    triedToBuyFrame = spGetGameFrame()
+    triedToBuy = unitID
+end
+
+-- only buyer and seller will recieve pings, nobody else, not even spectators
+local function TriedToBuyUnit()
+    if triedToBuy == nil then return end
+    local unitID = triedToBuy
+    local teamID = spGetUnitTeam(unitID)
+    if teamID == myTeamID then
+        triedToBuy = nil
+        return -- already bought
+    end
     local price = spGetUnitRulesParam(unitID, "unitPrice")
-    if price > 0 then
+    if price > 0 then -- not enough metal
         local eCurrMy, eStorMy,_, _,_,_,_,_ = spGetTeamResources(myTeamID, "metal")
         if price > eStorMy or price > eCurrMy then
             notEnoughForUnit = unitID
             notEnoughMetalTimer = os.clock()+3
 			Spring.PlaySoundFile("beep6", 0.6, 'ui')
         end
-    else
-        -- wtb msg
+    else -- not for sale -> wtb msg
         if buy_requests and not isUnitForSale(unitID) and os.clock() >= lastBuyRuquestTime then
-            local teamID = spGetUnitTeam(unitID)
             local _, _, _, isAITeam = spGetTeamInfo(teamID)
             if not isAITeam then
                 lastBuyRuquestTime = os.clock()+buy_request_cooldown
@@ -311,7 +326,7 @@ local function OfferToBuy(unitID)
             end
         end
     end
-    spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
+    triedToBuy = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -631,5 +646,9 @@ function widget:Update(dt)
 
     if notEnoughForUnit and os.clock()>=notEnoughMetalTimer then
         notEnoughForUnit = nil
+    end
+
+    if triedToBuy and os.clock() >= triedToBuyTime and triedToBuyFrame ~= spGetGameFrame() then
+        TriedToBuyUnit()
     end
 end
