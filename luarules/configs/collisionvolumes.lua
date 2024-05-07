@@ -107,8 +107,8 @@ unitCollisionVolume['armvp'] = {
 	off={90,34,92,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
-	on={63,112,63,0,12,0,1,1,1},
-	off={45,87,45,0,0,0,2,1,0},
+	on={63,112,63,0,0,0,1,1,1},
+	off={45,87,45,0,-12,0,2,1,0},
 }
 unitCollisionVolume['cordoomt3'] = {
 	on={95,168,95,0,18,0,2,1,1},
