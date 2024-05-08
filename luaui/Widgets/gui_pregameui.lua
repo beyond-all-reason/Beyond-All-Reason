@@ -955,9 +955,10 @@ function widget:RecvLuaMsg(msg, playerID)
 	elseif words[1] == "DraftOrderPlayerTurn" then
 		allyTeamID_about = tonumber(words[2] or -1)
 		if allyTeamID_about ~= myAllyTeamID then return end
+		local oldIndex = currentPlayerIndex
 		if not devUItestMode then -- production: trust the gadget
 			currentPlayerIndex = tonumber(words[3] or -1)
-			if myTeamPlayersOrder then
+			if myTeamPlayersOrder and oldIndex ~= currentPlayerIndex then
 				if myTeamPlayersOrder[currentPlayerIndex] and myTeamPlayersOrder[currentPlayerIndex].id ~= nil then
 					current_playerID = myTeamPlayersOrder[currentPlayerIndex].id
 				else
@@ -968,23 +969,24 @@ function widget:RecvLuaMsg(msg, playerID)
 				else
 					next_playerID = -1
 				end
+				
+				if current_playerID == myPlayerID then
+					myTurn = true
+					PlayChooseStartLocSound()
+				elseif next_playerID == myPlayerID then
+					Spring.PlaySoundFile("beep4", 1, 'ui')
+				elseif myTurn then
+					myTurn = false
+				end
+				if current_playerID > -1 then
+					currentTurnTimeout = os.clock() + turnTimeOut
+					voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay -- skip last turn anyway if they don't place AND they are NOT connected
+				end
 			end
-		end
-		if current_playerID == myPlayerID then
-			myTurn = true
-			PlayChooseStartLocSound()
-		elseif next_playerID == myPlayerID then
-			Spring.PlaySoundFile("beep4", 1, 'ui')
-		elseif myTurn then
-			myTurn = false
-		end
-		if current_playerID > -1 then
-			currentTurnTimeout = os.clock() + turnTimeOut
-			voteSkipTurnTimeout = os.clock() + VoteSkipTurnDelay -- skip last turn anyway if they don't place AND they are NOT connected
 		end
 	elseif words[1] == "DraftOrderAllyTeamJoined" then
 		allyTeamID_about = tonumber(words[2] or -1)
-		if (allyTeamID_about == myAllyTeamID) then
+		if (allyTeamID_about == myAllyTeamID) and (myAllyTeamJoined ~= true) then
 			myAllyTeamJoined = true
 			if draftMode == "fair" then
 				PlayChooseStartLocSound()
