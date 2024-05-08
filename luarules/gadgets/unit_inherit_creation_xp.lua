@@ -17,9 +17,17 @@ local inheritChildrenXP = {} -- stores the value of XP rate to be derived from u
 -- inheritxratemultiplier = defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent
 
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
+local parentlessChildren = {} --stores the unitID's to be ignored in future checks
+
+local unitPowerDefs = {}
+
+
 for id, def in pairs(UnitDefs) do
 	if def.customParams.inheritxratemultiplier then
 		inheritChildrenXP[id] = def.customParams.inheritxratemultiplier or 0
+	end
+	if def.power then
+	unitPowerDefs[id] = def.power
 	end
 end
 
@@ -27,39 +35,48 @@ if table.count(inheritChildrenXP) <= 0 then -- this enables or disables the gadg
 	return false
 end
 
+local function calculatePowerDiffXP(childID, parentID)
+	local childDefID = Spring.GetUnitDefID(childID)
+	local parentDefID = Spring.GetUnitDefID(parentID)
+	local childPower =  unitPowerDefs[childDefID]
+	local parentPower = unitPowerDefs[parentDefID]
+
+	return (childPower/parentPower)*inheritChildrenXP[parentDefID]
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	Spring.Echo(Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id"))
 	if  builderID ~= nil then
 		local builderDefID = Spring.GetUnitDefID(builderID)
 		if builderID then
-			childrenWithParents[unitID] = {unitid=unitID, parentunitid=builderID, parentxpmultiplier=inheritChildrenXP[builderDefID]}
+			childrenWithParents[unitID] = {unitid=unitID, parentunitid=builderID, parentxpmultiplier=calculatePowerDiffXP(unitID, builderID)}
 		end
 	end
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
-	if not childrenWithParents[unitID] then
+	local parentCurrentXP
+	if not parentlessChildren[unitID] and not childrenWithParents[unitID] then
 		if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then
 		local parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id") --this establishes parenthood of unit_explosion_spawner.lua unit creations E.G pawn launchers/legion Evocom Dgun. IT CANNOT BE DONE AT UnitCreated or UnitDestroyed!!! Exhibits anomolous behavior if not done at runtime.
 		local parentDefID = Spring.GetUnitDefID(parentID)
-		local parentCurrentXP = Spring.GetUnitExperience(parentID)
-		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritChildrenXP[parentDefID]}
+		parentCurrentXP = Spring.GetUnitExperience(parentID)
+		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=calculatePowerDiffXP(unitID, parentID)}
 		Spring.SetUnitExperience (unitID, parentCurrentXP)
 		elseif Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then -- this establishes parenthood of unit_carrier_spawner drone/carrier relationship
 		local parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
 		local parentDefID = Spring.GetUnitDefID(parentID)
-		local parentCurrentXP = Spring.GetUnitExperience(parentID)
-		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=inheritChildrenXP[parentDefID]}
+		parentCurrentXP = Spring.GetUnitExperience(parentID)
+		childrenWithParents[unitID] = {unitid=unitID, parentunitid=parentID, parentxpmultiplier=calculatePowerDiffXP(unitID, parentID)}
 		Spring.SetUnitExperience (unitID, parentCurrentXP)
+		else parentlessChildren[unitID] = true
 		end
 	elseif childrenWithParents[unitID] then
 		local parentUnitID = childrenWithParents[unitID].parentunitid
-		local parentOldXP = Spring.GetUnitExperience(parentUnitID)
+		parentCurrentXP = Spring.GetUnitExperience(parentUnitID)
 		local parentMultiplier = childrenWithParents[unitID].parentxpmultiplier
 		local xp
-
 		if parentMultiplier then
-			xp = parentOldXP + ((experience - oldExperience) * parentMultiplier)
+			xp = parentCurrentXP + ((experience - oldExperience) * parentMultiplier)
 			Spring.SetUnitExperience(parentUnitID, xp)
 		end
 	end

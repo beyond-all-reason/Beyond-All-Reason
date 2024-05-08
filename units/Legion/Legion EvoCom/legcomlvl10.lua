@@ -126,7 +126,7 @@ return {
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
 			stockpileLimit = 4,
-			inheritxratemultiplier = 0.01
+			inheritxratemultiplier = 1
 		},
 		featuredefs = {
 			dead = {
