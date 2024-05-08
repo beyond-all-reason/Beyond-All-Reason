@@ -61,7 +61,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local minWidth = 230	-- for the sake of giving the addons some room
+local minWidth = 170	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
@@ -599,8 +599,10 @@ function SetModulesPositionX()
             updateWidgetScale()
         end
     end
+
     if widgetWidth < minWidth then
         widgetWidth = minWidth
+        updateWidgetScale()
     end
 
     if widgetWidth ~= prevWidgetWidth then
@@ -1684,9 +1686,9 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if not onlyMainList and not onlyMainList2 and not onlyMainList3 then
         onlyMainList = true
         onlyMainList2 = true
-        if m_resources.active or m_income.active then
+        --if m_resources.active or m_income.active then
             onlyMainList3 = true
-        end
+        --end
     end
     if onlyMainList2 then
         timeCounter = 0
