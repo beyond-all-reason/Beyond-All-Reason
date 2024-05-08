@@ -59,6 +59,8 @@ if not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
+local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
+
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
@@ -2785,7 +2787,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			  Spring.SetConfigString("voiceset", (hideOtherLanguagesVoicepacks and Spring.GetConfigString('language', 'en')..'/' or '')..options[i].options[options[i].value])
 			  if widgetHandler.orderList["Notifications"] ~= nil then
 				  widgetHandler:DisableWidget("Notifications")
 				  widgetHandler:EnableWidget("Notifications")
@@ -5809,16 +5811,15 @@ function init()
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
-		local hideOtherLanguages = true	-- maybe later allow people to pick other language voicepacks
 		local setCount = 0
-		if hideOtherLanguages then
+		if hideOtherLanguagesVoicepacks then
 			local language = Spring.GetConfigString('language', 'en')
 			local files = VFS.SubDirs('sounds/voice/'..language, '*')
 			for k, file in ipairs(files) do
 				local dirname = string.sub(file, 17, string.len(file)-1)
 				sets[#sets+1] = dirname
 				setCount = setCount + 1
-				if dirname == voiceset then
+				if dirname == string.sub(voiceset, 4) then
 					currentVoiceSetOption = #sets
 				end
 			end
