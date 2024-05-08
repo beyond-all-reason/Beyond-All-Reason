@@ -132,6 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 	local announceVoteResults = false -- "secret" voting
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local draftMode = Spring.GetModOptions().draft_mode
+	local waitIsMandatory = false -- if true - you will wait for late-joiners, and conneectionTimeOut timer won't be shown
 	local canVoteSkipTurn = false
 	local canVoteForceStartDraft = false
 
@@ -253,7 +254,7 @@ if gadgetHandler:IsSyncedCode() then
 				votedPlayers = votedPlayers + 1
 			end
 		end
-		if totalPlayers < VOTE_QUORUM then return 0 end -- auto-fail
+		if totalPlayers < VOTE_QUORUM or (totalPlayers == 0) then return 0 end -- auto-fail
 		return (votedPlayers / totalPlayers) * 100
 	end
 
@@ -566,7 +567,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not playerIsSpec then
 			if (draftMode ~= "disabled") then
-				if canVoteForceStartDraft and msg == "vote_wait_too_long" and votedToForceStartDraft[allyTeamID][playerTeam] ~= nil then
+				if not waitIsMandatory and canVoteForceStartDraft and msg == "vote_wait_too_long" and votedToForceStartDraft[allyTeamID][playerTeam] ~= nil then
 					votedToForceStartDraft[allyTeamID][playerTeam] = true
 					checkVotesAndStartDraft(allyTeamID) -- in fair mode it simply unlocks placing after latejoin timeout
 				end
@@ -595,15 +596,24 @@ if gadgetHandler:IsSyncedCode() then
 					if allyTeamIsInGame[allyTeamID] ~= true then
 						local allAlliesJoined = true
 						local teamList = Spring.GetTeamList(allyTeamID)
+						local count = 0
+						local tcount = 0
 						for _, team in ipairs(teamList) do
 							local _, _, _, isAI = spGetTeamInfo(team, false)
-							if not isAI and gaiaAllyTeamID ~= allyTeamID and teamPlayerData[team] == nil then
-								allAlliesJoined = false
-								break
+							if not isAI and gaiaAllyTeamID ~= allyTeamID then
+								tcount = tcount + 1
+								if teamPlayerData[team] == nil then
+									allAlliesJoined = false
+								else
+									count = count + 1
+								end
 							end
 						end
 						if allAlliesJoined then
 							InitDraftOrderData(allyTeamID)
+						end
+						if not waitIsMandatory and tcount >= VOTE_QUORUM and count > 0 and tcount > 0 and (((count / tcount) * 100) >= VOTE_YES_PRCTN_REQ) then
+							Spring.SendLuaUIMsg("DraftOrderShowCountdown "..allyTeamID)
 						end
 					end
 				elseif msg == "send_me_the_info_again" then -- someone luaui /reload'ed, send them the queue and index again

@@ -95,6 +95,7 @@ local ihavejoined_fair = false
 local currentTurnTimeout = nil
 local voteSkipTurnTimeout = nil
 local voteConTimeout = nil
+local connectionTimeoutHappened = false
 local fairTimeout = nil
 local current_playerID = -1
 local next_playerID = -1
@@ -103,7 +104,6 @@ local myTeamPlayersOrder = nil
 local currentPlayerIndex = 0
 local hasStartbox = false
 local devUItestMode = false -- flip to true to test UI with fake players
-local waitIsMandatory = false -- if true - you will wait for late-joiners, and conneectionTimeOut timer won't be shown
 -- a lot of code copied and slightly modified from advplayerlist...
 local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
 local imageDirectory = ":lc:" .. imgDir
@@ -850,9 +850,6 @@ function widget:DrawScreen()
 		if fairTimeout and os.clock() >= fairTimeout and not ihavejoined_fair then
 			Spring.SendLuaRulesMsg("i_have_joined_fair")
 			ihavejoined_fair = true
-			if not myAllyTeamJoined and not waitIsMandatory then
-				voteConTimeout = os.clock() + connectionTimeOut
-			end
 		end
 		if voteConTimeout and os.clock() >= voteConTimeout and ihavejoined_fair then
 			-- TODO do we draw UI or Spring.Echo that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
@@ -991,6 +988,12 @@ function widget:RecvLuaMsg(msg, playerID)
 			if draftMode == "fair" then
 				PlayChooseStartLocSound()
 			end
+		end
+	elseif words[1] == "DraftOrderShowCountdown" then
+		allyTeamID_about = tonumber(words[2] or -1)
+		if (allyTeamID_about == myAllyTeamID) and (myAllyTeamJoined ~= true) and (connectionTimeoutHappened == false) then
+			voteConTimeout = os.clock() + connectionTimeOut
+			connectionTimeoutHappened = true
 		end
 	elseif words[1]:sub(1, 11) == "DraftOrder_" then
 		reloadedDraftMode = nil
