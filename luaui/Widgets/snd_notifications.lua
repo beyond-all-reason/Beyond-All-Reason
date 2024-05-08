@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local defaultVoiceSet = 'allison'
+local defaultVoiceSet = 'en/allison'
 
 local useDefaultVoiceFallback = true	-- when a voiceset has missing file, try to load the default voiceset file instead
 local useDefaultVoiceFallbackCustom = true	-- only used for dynamicly added notifications like scavengers do
@@ -55,16 +55,22 @@ local function addSound(name, file, minDelay, messageKey, unlisted)
 	end
 end
 
+local language = Spring.GetConfigString('language', 'en')
+
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
 local voiceSetFound = false
-local files = VFS.SubDirs('sounds/voice', '*')
-for k, file in ipairs(files) do
-	local dirname = string.sub(file, 14, string.len(file)-1)
-	if dirname == voiceSet then
-		voiceSetFound = true
-		break
+--local languageDirs = VFS.SubDirs('sounds/voice', '*')
+--for k, dir in ipairs(languageDirs) do
+	local files = VFS.SubDirs('sounds/voice/'..language, '*')
+	for k, file in ipairs(files) do
+		local dirname = string.sub(file, 14, string.len(file)-1)
+		if dirname == voiceSet then
+			voiceSetFound = true
+			break
+		end
 	end
-end
+--end
 if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end

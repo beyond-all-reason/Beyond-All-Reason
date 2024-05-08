@@ -5808,17 +5808,43 @@ function init()
 		local voiceset = Spring.GetConfigString("voiceset", 'allison')
 		local currentVoiceSetOption
 		local sets = {}
-		local files = VFS.SubDirs('sounds/voice', '*')
-		for k, file in ipairs(files) do
-			local dirname = string.sub(file, 14, string.len(file)-1)
-			sets[#sets+1] = dirname
-			if dirname == voiceset then
-				currentVoiceSetOption = #sets
+		local languageDirs = VFS.SubDirs('sounds/voice', '*')
+		local hideOtherLanguages = true	-- maybe later allow people to pick other language voicepacks
+		local setCount = 0
+		if hideOtherLanguages then
+			local language = Spring.GetConfigString('language', 'en')
+			local files = VFS.SubDirs('sounds/voice/'..language, '*')
+			for k, file in ipairs(files) do
+				local dirname = string.sub(file, 17, string.len(file)-1)
+				sets[#sets+1] = dirname
+				setCount = setCount + 1
+				if dirname == voiceset then
+					currentVoiceSetOption = #sets
+				end
+			end
+		else
+			for k, f in ipairs(languageDirs) do
+				local langDir = string.sub(f, 14, string.len(f)-1)
+				local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
+				for k, file in ipairs(files) do
+					local dirname = string.sub(file, 14, string.len(file)-1)
+					sets[#sets+1] = dirname
+					setCount = setCount + 1
+					if dirname == voiceset then
+						currentVoiceSetOption = #sets
+					end
+				end
 			end
 		end
-		options[getOptionByID('notifications_set')].options = sets
-		if currentVoiceSetOption then
-			options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+		if setCount == 0 then
+			options[getOptionByID('notifications_set')] = nil
+			options[getOptionByID('notifications_spoken')] = nil
+			options[getOptionByID('notifications_volume')] = nil
+		else
+			options[getOptionByID('notifications_set')].options = sets
+			if currentVoiceSetOption then
+				options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+			end
 		end
 	end
 
