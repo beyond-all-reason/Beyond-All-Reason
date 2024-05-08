@@ -200,6 +200,8 @@ function widget:Initialize()
 
 		if inBuildOptions[value] then
 			setPreGamestartDefID(value)
+		else
+			setPreGamestartDefID(nil)
 		end
 	end
 
