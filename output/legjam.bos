@@ -141,34 +141,25 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode strut type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type BITMAPONLY;
+		explode strut type BITMAPONLY;
+		return(0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode strut type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type BITMAPONLY;
+		explode strut type FIRE | SMOKE | FALL;
+		return(0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode strut type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode dishA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishB type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishC type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishD type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type FIRE | SMOKE | FALL;
+		explode strut type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(0);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode strut type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode dishA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishB type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishC type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dishD type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	return corpsetype;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode strut type EXPLODE_ON_HIT | FIRE | FALL;
 }
