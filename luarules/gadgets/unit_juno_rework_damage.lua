@@ -20,9 +20,9 @@ if gadgetHandler:IsSyncedCode() then
 
 --hornet todo;
 --deploy to juno_mini_damage when mechanics sorted
---tarpit pawns & grunts while in the lingering damage area? 50% emp charge on initial, mild per X frame tick thereafter?
+--tarpit pawns & grunts possibly. code added but glitched for now.
 
----edited clone of old juno code
+
 
 	----------------------------------------------------------------
 	-- Config
@@ -78,7 +78,7 @@ local toStunUnitsNames = {
 }
 
 
-local stunDuration = Spring.GetModOptions().emprework and 30 or 20
+local stunDuration = Spring.GetModOptions().emprework and 32 or 30
 --hornet todo, might leave this to be decided by EMP settings and just max it out?
 
 
@@ -124,7 +124,8 @@ local todenyUnitsNames = {
 		end
 	end
 	toStunUnitsNames = nil
-
+	--[[
+	--WiP, works but has bug outlined below, out of time to chase in circles for now
 	local toTarpitUnits = {}
 	for name, params in pairs(toTarpitUnitsNames) do
 		if UnitDefNames[name] then
@@ -132,6 +133,7 @@ local todenyUnitsNames = {
 		end
 	end
 	toTarpitUnitsNames = nil
+	--]]
 
 
 
@@ -194,7 +196,7 @@ local todenyUnitsNames = {
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 
 		
-		--[
+		--[[
 		if junoWeapons[weaponID] and toTarpitUnits[uDefID] and aID~=99 then
 			if uID and SpValidUnitID(uID) then
 				local px, py, pz = Spring.GetUnitPosition(uID)
@@ -206,23 +208,16 @@ local todenyUnitsNames = {
 				Spring.AddUnitDamage (uID, maxHealth/2, 5, 99, aDefID)
 			end
 		end--]]--
-			
 
-		if junoWeapons[weaponID] and toStunUnits[uDefID] and aID~=99 then
+		if junoWeapons[weaponID] and toStunUnits[uDefID] and aID~=99 and (paralyzer == false) then--needed to stop possible loops
 			if uID and SpValidUnitID(uID) then
 				local px, py, pz = Spring.GetUnitPosition(uID)
 				if px then
 					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 				
-				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(aID)
-				--hornetjuno
-				Spring.AddUnitDamage (uID, maxHealth+1, stunDuration, 0, weaponID)
-				--Spring.Echo('hornet testing')
-				--Spring.Echo(uID)
-				--Spring.Echo(maxHealth)
-				--Spring.Echo(paralyzeDamage)
-				
+				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(uID)
+				Spring.AddUnitDamage (uID, maxHealth*3, stunDuration, 99, weaponID)--no weapon ID, no stun. with weapon ID, infinite loops, even with the 99 exclusion. -1 does not work.
 				--aID check removed as -probably- only useful for kill crediting?
 
 			end
@@ -302,8 +297,8 @@ local todenyUnitsNames = {
 							SpDestroyUnit(unitID, true, false)
 						end
 					end
-					--[
-					--this mostly works but has some weirdness at the end, applying a 'double tap'
+					--[[
+					--this mostly works but has a loop I can't chase out atm, and some weirdness at the end of the effect that applies a stun all over again
 					if toTarpitUnits[unitDefID] and Spring.GetModOptions().emprework then--useless without it, just adds visual noise
 						local px, py, pz = Spring.GetUnitPosition(unitID)
 						local dx = expl.x - px
