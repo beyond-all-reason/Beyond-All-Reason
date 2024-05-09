@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date      = '2021.05.020',
 		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
 		layer     = 100,
-		enabled   = false,  --  loaded by default?
+		enabled   = false,
 	}
 end
 

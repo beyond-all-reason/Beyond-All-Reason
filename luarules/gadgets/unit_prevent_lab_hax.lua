@@ -1,6 +1,3 @@
--- $Id: unit_terraform.lua 3524 2008-12-23 13:21:12Z google frog $
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
@@ -10,7 +7,7 @@ function gadget:GetInfo()
 		date      = "Jul 24, 2007",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 

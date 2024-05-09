@@ -46,7 +46,7 @@ local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
-local SpawnAsNeutral
+local SpawnAsNeutral = true
 
 local landMexesList = {
 	"armmex",
@@ -250,8 +250,9 @@ function gadget:GameFrame(n)
 		return
 	end
 
-	local landRuin, seaRuin, ruin, posx, posy, posz, seaRuinChance, radius, canBuildHere, r, blueprintTierLevel
+	local landRuin, seaRuin, posx, posy, posz, seaRuinChance, radius, canBuildHere, r, blueprintTierLevel
 	for i = 1, 100 do
+		local ruin
 		posx = math.random(0, Game.mapSizeX)
 		posz = math.random(0, Game.mapSizeZ)
 		posy = Spring.GetGroundHeight(posx, posz)

@@ -21,6 +21,7 @@ return {
 		health = 1420,
 		speed = 34.5,
 		movementclass = "ABOT2",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
 		script = "Units/CORAAK.cob",

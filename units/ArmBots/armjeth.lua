@@ -22,6 +22,7 @@ return {
 		maxslope = 15,
 		speed = 56.25,
 		movementclass = "ABOT2",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMJETH.s3o",
 		script = "Units/ARMJETH.cob",

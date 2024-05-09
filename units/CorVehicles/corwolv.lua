@@ -24,6 +24,7 @@ return {
 		speed = 48.0,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORWOLV.s3o",
 		pushresistant = true,

@@ -237,6 +237,37 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.evocom then	
+			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				if uDef.power then
+					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
+				else
+					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+				end
+				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				if  name == "armcom" then
+				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
+				uDef.customparams.evolution_announcement_size = 18.5
+				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.evolution_condition = "timer"
+				elseif name == "corcom" then
+				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
+				uDef.customparams.evolution_announcement_size = 18.5
+				uDef.customparams.evolution_target = "corcomlvl2"
+				uDef.customparams.evolution_condition = "timer"
+				elseif name == "legcomlvl3" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
+				elseif name == "legcomlvl4" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
+				uDef.customparams.evolution_announcement_size = 18.5
+				uDef.customparams.evolution_target = "legcomlvl5"
+				uDef.customparams.evolution_condition = "timer"
+				uDef.customparams.workertimeboost = 5
+				uDef.customparams.wtboostunittype = "MOBILE"
+				end
+			end
+		end
+
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
@@ -344,6 +375,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "armzapper"
 		elseif name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
+
 			uDef.buildoptions[numBuildoptions + 1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions + 2] = "corforge"
 			uDef.buildoptions[numBuildoptions + 3] = "corftiger"
@@ -351,20 +383,22 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "corvac" --corprinter
 		elseif name == "coravp" then
 			local printerpresent = false
+
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
 					printerpresent = true
 				end
 			end
+
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corgatreap"
-			uDef.buildoptions[numBuildoptions + 2] = "corforge"
-			uDef.buildoptions[numBuildoptions + 3] = "corftiger"
-			uDef.buildoptions[numBuildoptions + 4] = "cortorch"
-			if (printerpresent == false) then
-				-- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions + 5] = "corsala"
-				uDef.buildoptions[numBuildoptions + 6] = "corvac" --corprinter
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corftiger"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker"
+			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
+				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
+
 			end
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
@@ -418,22 +452,20 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions + 6] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions + 7] = "cornanotct2"
+			uDef.buildoptions[numBuildoptions + 5] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions + 6] = "cornanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
 			uDef.buildoptions[numBuildoptions + 2] = "armdecadet3"
 			uDef.buildoptions[numBuildoptions + 3] = "armpshipt3"
 			uDef.buildoptions[numBuildoptions + 4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions + 5] = "armcarry2"
-			uDef.buildoptions[numBuildoptions + 6] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 5] = "armtrident"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions + 2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions + 3] = "corcarry2"
-			uDef.buildoptions[numBuildoptions + 4] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 3] = "corsentinel"
 		end
 	end
 
@@ -651,19 +683,19 @@ function UnitDef_Post(name, uDef)
 
 
 			--mono beam settings
-			uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
-			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
-			uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
-			uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
+			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
+			--uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
+			--uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
+			--uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
+			--uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
 
 			--burst testing within monobeam
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 250
-			uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
-			uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
-			uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
-			uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
-			uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
+			--uDef.weapondefs.armdfly_paralyzer.damage.default = 125
+			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
+			--uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
+			--uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
+			--uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
+			--uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
 
 		end
 

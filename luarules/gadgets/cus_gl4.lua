@@ -804,6 +804,11 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
+	["leg"] = {
+		"unittextures/leg_wreck_color.dds",
+		"unittextures/leg_wreck_shader.dds",
+		"unittextures/leg_wreck_normal.dds",
+	},
 	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
@@ -864,7 +869,11 @@ local function GetNormal(unitDef, featureDef)
 			if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then 
 				return unittextures.."cor_color_wreck_normal.dds"
 			end
-			-- try to search for an appropriate normal 
+
+			if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
+				return unittextures.."leg_wreck_normal.dds"
+			end
+			-- try to search for an appropriate normal
 			normalMap = tex1:gsub("%.","_normals.")
 			-- Spring.Echo(normalMap)
 			if (existingfilecache[normalMap] or FileExists(normalMap)) then
@@ -975,19 +984,28 @@ local function initBinsAndTextures()
 			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
 			local lowercasenormaltex = string.lower(normalTex or "")
 
-			
-			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds")  or false
+
+			local wreckTex1 =
+					(lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
+					(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds") or
+					(lowercasetex1:find("leg_color", nil, true) and "unittextures/leg_wreck_color.dds") or
+					false
 			if wreckTex1 and existingfilecache[wreckTex1] then -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
 				wreckTex1 = existingfilecache[wreckTex1]
 			end
-			local wreckTex2 = (lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
-								(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds")  or false
+			local wreckTex2 =
+					(lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
+					(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds") or
+					(lowercasetex2:find("leg_shader", nil, true) and "unittextures/leg_wreck_shader.dds") or
+					false
 			if wreckTex2 and existingfilecache[wreckTex2] then  -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
 				wreckTex2 = existingfilecache[wreckTex2]
 			end
-			local wreckNormalTex = (lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or false
+			local wreckNormalTex =
+					(lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
+					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or
+					(lowercasenormaltex:find("leg_normal") and "unittextures/leg_wreck_normal.dds") or
+					false
 
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
 				textureTable[3] = wreckTex1
@@ -1040,6 +1058,9 @@ local function PreloadTextures()
 	--gl.Texture(0, "unittextures/cor_other_wreck.dds")
 	--gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
+	if Spring.GetModOptions().experimentallegionfaction then
+		gl.Texture(0, "unittextures/leg_wreck_normal.dds")
+	end
 	gl.Texture(0, false)
 	preloadedTextures = true
 end

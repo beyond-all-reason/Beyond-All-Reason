@@ -24,14 +24,22 @@ local types = {
 local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
-local languageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode'}
-languageCodes = table.merge(languageCodes, table.invert(languageCodes))
-
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+
+local languageCodes = { 'en', 'fr', }
+languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
+end
+
+local devLanguageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode', }
+devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
+
+local devLanguageNames = {}
+for key, code in ipairs(devLanguageCodes) do
+	devLanguageNames[key] = Spring.I18N.languages[code]
 end
 
 -- detect potatos
@@ -50,6 +58,8 @@ end
 if not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
+
+local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
@@ -758,10 +768,19 @@ function DrawWindow()
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
 							local text = option.name
-							local width = font2:GetTextWidth(text) * math.floor(15 * widgetScale)
+							local width = font:GetTextWidth(text) * math.floor(15 * widgetScale)
 							local maxWidthMult = 1
-							if width > (xPosMax - xPos - 45) * maxWidthMult then
-								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > (math.floor(xPosMax - xPos - 50))  do
+							if option.type == 'bool' then
+								maxWidthMult = 0.85
+							elseif option.type == 'select' then
+								maxWidthMult = 0.5
+							elseif option.type == 'slider' then
+								maxWidthMult = 0.55
+							end
+							local maxWidth = (xPosMax - xPos - 45) * maxWidthMult
+							if width > maxWidth then
+								maxWidth = (xPosMax - xPos - 50) * maxWidthMult
+								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > maxWidth do
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
@@ -2768,7 +2787,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			  Spring.SetConfigString("voiceset", (hideOtherLanguagesVoicepacks and Spring.GetConfigString('language', 'en')..'/' or '')..options[i].options[options[i].value])
 			  if widgetHandler.orderList["Notifications"] ~= nil then
 				  widgetHandler:DisableWidget("Notifications")
 				  widgetHandler:EnableWidget("Notifications")
@@ -2862,12 +2881,11 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 		  onload = function()
-			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local keyFile = Spring.GetConfigString("KeybindingFile")
 			  local value = 1
 
 			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
 				  keyFile = keyLayouts.keybindingLayoutFiles[1]
-				  Spring.SetConfigString("KeybindingFile", keyFile)
 			  end
 
 			  for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
@@ -3209,6 +3227,12 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
+		{ id = "language", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+			onchange = function(i, value)
+				local language = languageCodes[value]
+				WG['language'].setLanguage(language)
+			end
+		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -4530,10 +4554,10 @@ function init()
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
-		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+		{ id = "language_dev", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = devLanguageNames, value = devLanguageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
-				local language = languageCodes[value]
-				WG['language'].setLanguage(language)
+				local devLanguage = devLanguageCodes[value]
+				WG['language'].setLanguage(devLanguage)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
@@ -5786,17 +5810,42 @@ function init()
 		local voiceset = Spring.GetConfigString("voiceset", 'allison')
 		local currentVoiceSetOption
 		local sets = {}
-		local files = VFS.SubDirs('sounds/voice', '*')
-		for k, file in ipairs(files) do
-			local dirname = string.sub(file, 14, string.len(file)-1)
-			sets[#sets+1] = dirname
-			if dirname == voiceset then
-				currentVoiceSetOption = #sets
+		local languageDirs = VFS.SubDirs('sounds/voice', '*')
+		local setCount = 0
+		if hideOtherLanguagesVoicepacks then
+			local language = Spring.GetConfigString('language', 'en')
+			local files = VFS.SubDirs('sounds/voice/'..language, '*')
+			for k, file in ipairs(files) do
+				local dirname = string.sub(file, 17, string.len(file)-1)
+				sets[#sets+1] = dirname
+				setCount = setCount + 1
+				if dirname == string.sub(voiceset, 4) then
+					currentVoiceSetOption = #sets
+				end
+			end
+		else
+			for k, f in ipairs(languageDirs) do
+				local langDir = string.sub(f, 14, string.len(f)-1)
+				local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
+				for k, file in ipairs(files) do
+					local dirname = string.sub(file, 14, string.len(file)-1)
+					sets[#sets+1] = dirname
+					setCount = setCount + 1
+					if dirname == voiceset then
+						currentVoiceSetOption = #sets
+					end
+				end
 			end
 		end
-		options[getOptionByID('notifications_set')].options = sets
-		if currentVoiceSetOption then
-			options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+		if setCount == 0 then
+			options[getOptionByID('notifications_set')] = nil
+			options[getOptionByID('notifications_spoken')] = nil
+			options[getOptionByID('notifications_volume')] = nil
+		else
+			options[getOptionByID('notifications_set')].options = sets
+			if currentVoiceSetOption then
+				options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+			end
 		end
 	end
 
@@ -5817,7 +5866,7 @@ function init()
 				for k, v in pairs(soundList) do
 					if type(v) == 'table' then
 						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 							  onchange = function(i, value)
 								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 							  end,
@@ -5944,7 +5993,7 @@ function init()
 		options[getOptionByID('springcamheightmode')] = nil
 	end
 
-	if Spring.GetConfigString("KeybindingFile", "uikeys.txt") ~= "uikeys.txt" then
+	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID('gridmenu')] = nil
 	end
 

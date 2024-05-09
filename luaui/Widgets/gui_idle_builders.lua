@@ -81,22 +81,27 @@ local isBuilder = {}
 local isFactory = {}
 local isResurrector = {}
 local unitHumanName = {}
+local function refreshUnitDefs()
+	isBuilder = {}
+	isFactory = {}
+	isResurrector = {}
+	unitHumanName = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
+			isBuilder[unitDefID] = true
+		end
 
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
-		isBuilder[unitDefID] = true
-	end
+		if unitDef.isFactory then
+			isFactory[unitDefID] = true
+		end
 
-	if unitDef.isFactory then
-		isFactory[unitDefID] = true
-	end
+		if unitDef.canResurrect then
+			isResurrector[unitDefID] = true
+		end
 
-	if unitDef.canResurrect then
-		isResurrector[unitDefID] = true
-	end
-
-	if unitDef.translatedHumanName then
-		unitHumanName[unitDefID] = unitDef.translatedHumanName
+		if unitDef.translatedHumanName then
+			unitHumanName[unitDefID] = unitDef.translatedHumanName
+		end
 	end
 end
 
@@ -463,6 +468,11 @@ function widget:ViewResize()
 	end
 end
 
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
+end
+
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
@@ -479,6 +489,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	refreshUnitDefs()
 	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()

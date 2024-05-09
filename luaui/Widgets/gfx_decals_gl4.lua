@@ -750,10 +750,6 @@ local function randtablechoice (t)
 	return next(t)
 end
 
-function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- This callin is not registered!
-	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
-end
-
 -- Solars, nanos, wind, advsolars, metal makers,
 local buildingExplosionPositionVariation = {
 	nanoboom = 1,
@@ -1119,8 +1115,7 @@ for weaponDefID=1, #WeaponDefs do
 	end
 end
 
-local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
-	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local random = math.random
 	local params = weaponConfig[weaponID]
 	if not params then
@@ -1956,7 +1951,6 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	--Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
@@ -2036,7 +2030,6 @@ function widget:ShutDown()
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
-	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
 	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 
