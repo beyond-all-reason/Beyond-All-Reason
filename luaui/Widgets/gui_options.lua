@@ -5850,25 +5850,25 @@ function init()
 	end
 
 	-- add sound notification widget sound toggle options
-	local soundList
+	local notificationList
 	if WG['notifications'] ~= nil then
-		soundList = WG['notifications'].getSoundList()
-	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].soundList ~= nil then
-		soundList = widgetHandler.configData["Notifications"].soundList
+		notificationList = WG['notifications'].getNotificationList()
+	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].notificationList ~= nil then
+		notificationList = widgetHandler.configData["Notifications"].notificationList
 	end
-	if type(soundList) == 'table' then
+	if type(notificationList) == 'table' then
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
 			if option.id == 'label_notif_messages_spacer' then
-				for k, v in pairs(soundList) do
+				for k, v in pairs(notificationList) do
 					if type(v) == 'table' then
 						count = count + 1
 						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 							  onchange = function(i, value)
-								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+								  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
 							  end,
 							  onclick = function()
 								  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
