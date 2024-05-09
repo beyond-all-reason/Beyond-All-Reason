@@ -163,7 +163,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "IntrusionCountermeasure"
+		local event = "StealthyUnitsDetected"
 		local players = AllPlayers()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		for ct, playerID in pairs (players) do
