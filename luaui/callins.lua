@@ -108,7 +108,6 @@ CallInsList = {
 
 	"SunChanged",
 
-	"Explosion",
 	"ShockFront",
 
 	"RecvSkirmishAIMessage",
@@ -135,7 +134,14 @@ CallInsList = {
 	"DownloadFailed",
 	"DownloadProgress",
 
-	"LanguageChanged"
+	"LanguageChanged",
+
+	"UnitSale",
+	"UnitSold",
+
+	"VisibleExplosion",
+	"Barrelfire",
+	"CrashingAircraft",
 }
 
 CallInsMap = {}

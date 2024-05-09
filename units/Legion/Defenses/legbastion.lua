@@ -22,7 +22,7 @@ return {
 		idleautoheal = 2,
 		idletime = 1800,
 		losemitheight = 80,
-		health = 15000,
+		health = 12000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",

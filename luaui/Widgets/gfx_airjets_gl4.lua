@@ -128,7 +128,7 @@ local effectDefs = {
 	--	{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
 	--},
 	--drones
-	
+
 	["armdroneold"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
@@ -987,12 +987,11 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
-local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnit(unitID, unitDefID, teamID)
 end
 
-
-function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
@@ -1082,8 +1081,6 @@ function widget:Initialize()
 	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
 		return popElementInstance(jetInstanceVBO,airjetkey)
 	end
-
-	widgetHandler:RegisterGlobal('GadgetCrashingAircraft2', GadgetCrashingAircraft)
 end
 
 
@@ -1091,5 +1088,4 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft2')
 end

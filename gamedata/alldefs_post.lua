@@ -239,6 +239,11 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				if uDef.power then
+					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
+				else
+					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+				end
 				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
 				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
@@ -447,22 +452,20 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions + 6] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions + 7] = "cornanotct2"
+			uDef.buildoptions[numBuildoptions + 5] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions + 6] = "cornanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
 			uDef.buildoptions[numBuildoptions + 2] = "armdecadet3"
 			uDef.buildoptions[numBuildoptions + 3] = "armpshipt3"
 			uDef.buildoptions[numBuildoptions + 4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions + 5] = "armcarry2"
-			uDef.buildoptions[numBuildoptions + 6] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 5] = "armtrident"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions + 2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions + 3] = "corcarry2"
-			uDef.buildoptions[numBuildoptions + 4] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 3] = "corsentinel"
 		end
 	end
 
