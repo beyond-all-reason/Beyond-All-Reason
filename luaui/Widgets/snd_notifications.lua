@@ -360,7 +360,7 @@ function widget:Initialize()
 	WG['notifications'].getNotificationList = function()
 		local soundInfo = {}
 		for i, event in pairs(notificationOrder) do
-			soundInfo[i] = { event, notificationList[event], notification[event].messageKey }
+			soundInfo[i] = { event, notificationList[event], notification[event].messageKey, #notification[event].voiceFiles }
 		end
 		return soundInfo
 	end

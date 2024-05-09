@@ -5866,15 +5866,17 @@ function init()
 				for k, v in pairs(notificationList) do
 					if type(v) == 'table' then
 						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-							  onchange = function(i, value)
-								  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
-							  end,
-							  onclick = function()
-								  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
-									  WG['notifications'].playNotification(v[1])
-								  end
-							  end,
+						local color = widgetOptionColor
+						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+											  onchange = function(i, value)
+												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
+											  end,
+											  onclick = function()
+												  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
+													  WG['notifications'].playNotification(v[1])
+												  end
+											  end,
 						}
 					end
 				end
