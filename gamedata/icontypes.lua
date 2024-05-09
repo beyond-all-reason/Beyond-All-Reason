@@ -2243,7 +2243,7 @@ local icontypes = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
-	leglaw = {
+	legdtr = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},

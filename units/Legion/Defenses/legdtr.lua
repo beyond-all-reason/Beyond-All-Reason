@@ -1,15 +1,15 @@
 return {
-	leglaw = {
+	legdtr = {
 		maxacc = 0,
 		buildangle = 8192,
 		energycost = 1550,
 		metalcost = 290,
-		buildpic = "LEGLAW.DDS",
+		buildpic = "LEGDTR.DDS",
 		buildtime = 4420,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "32 22 32",
+		collisionvolumescales = "20 50 20",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
@@ -26,9 +26,9 @@ return {
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/LEGLAW.s3o",
+		objectname = "Units/LEGDTR.s3o",
 		radardistancejam = 8,
-		script = "Units/LEGLAW.cob",
+		script = "Units/LEGDTR.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 440,
@@ -39,7 +39,7 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
+			buildinggrounddecaltype = "decals/legdtr_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
@@ -48,7 +48,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {
@@ -64,7 +64,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 177,
-				object = "Units/legdrag.s3o",
+				object = "Units/legdrag_dead.s3o",
 				reclaimable = true,
 			},
 			rockteeth = {
