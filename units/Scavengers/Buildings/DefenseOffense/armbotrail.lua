@@ -146,10 +146,10 @@ return {
 				bouncerebound = 0.5,
 				numbounce = 10,
 				weapontype = "Cannon",
-				weaponvelocity = 1000,
+				weaponvelocity = 1250,
 				customparams = {
 					spawns_name = "armpw",
-					spawns_surface = "LAND", -- Available: "LAND SEA"
+					spawns_surface = "LAND", -- Available: "LAND SEA" blah
 				},
 				damage = {
 					default = 10,

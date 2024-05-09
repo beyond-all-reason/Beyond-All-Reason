@@ -18,7 +18,6 @@ local preProcFile  = 'gamedata/featuredefs_pre.lua'
 local postProcFile = 'gamedata/featuredefs_post.lua'
 
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 local section='featuredefs.lua'
 
 --------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ end
 --  Load the raw LUA format featuredef files
 --
 
-local luaFiles = RecursiveFileSearch('features/', '*.lua')
+local luaFiles = VFS.DirList('features/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
 	local fdEnv = {}

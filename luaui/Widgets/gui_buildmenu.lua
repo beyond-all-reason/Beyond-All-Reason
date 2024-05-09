@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "April 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 		handler = true,
 	}
 end
@@ -777,7 +777,11 @@ function widget:DrawScreen()
 								else
 									text = UnitDefs[uDefID].translatedHumanName
 								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..unitTranslatedTooltip[uDefID], nil, nil, text)
+								local tooltip = unitTranslatedTooltip[uDefID]
+								if unitMetal_extractor[uDefID] then
+									tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+								end
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
