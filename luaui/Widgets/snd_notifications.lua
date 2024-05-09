@@ -100,8 +100,9 @@ end
 
 -- load and parse sound files/notifications
 local defaultTable = VFS.Include('sounds/voice/config.lua')
-local soundsTable = VFS.Include(soundFolder .. 'config.lua')
-if soundsTable then
+local soundsTable
+if VFS.FileExists(soundFolder .. 'config.lua') then
+	soundsTable = VFS.Include(soundFolder .. 'config.lua')
 	soundsTable = table.merge(defaultTable, soundsTable)
 else
 	soundsTable = defaultTable
