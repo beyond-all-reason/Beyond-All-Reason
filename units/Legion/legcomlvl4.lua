@@ -1,3 +1,4 @@
+
 return {
 	legcomlvl4 = {
 		maxacc = 0.18,
@@ -93,7 +94,7 @@ return {
 			[30] = "leggat",
 			--[29] = "armclaw",
 			--[30] = "armferret",
-			--[31] = "corjamt",
+			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',
