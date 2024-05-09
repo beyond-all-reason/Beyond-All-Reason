@@ -1174,6 +1174,15 @@ local options = {
     },
 
     {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key 	= "air_rework",
         name 	= "Air Rework",
         desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
