@@ -79,26 +79,30 @@ local soundFolder = "sounds/voice/"..voiceSet.."/"
 local defaultSoundFolder = "sounds/voice/"..defaultVoiceSet.."/"
 
 -- load and parse sound files/notifications
+local defaultTable = VFS.Include('sounds/voice/config.lua')
 local soundsTable = VFS.Include(soundFolder .. 'config.lua')
+soundsTable = table.merge(defaultTable, soundsTable)
 for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
 	local notifSounds = {}
 	local notifTexts = {}
-	for i = 1, #notifDef.sound do
-		if notifDef.sound[i].file then
-			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
-				notifSounds[i] = soundFolder .. notifDef.sound[i].file
-				notifTexts[i] = notifDef.sound[i].text
-			elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
-				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
-				notifTexts[i] = notifDef.sound[i].text
-				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
-			else
-				Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
+	if notifDef.sound then
+		for i = 1, #notifDef.sound do
+			if notifDef.sound[i].file then
+				if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+					notifSounds[i] = soundFolder .. notifDef.sound[i].file
+					notifTexts[i] = notifDef.sound[i].text
+				elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
+					notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
+					notifTexts[i] = notifDef.sound[i].text
+					--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
+				else
+					Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
+				end
 			end
 		end
 	end
 	if notifSounds[1] then
-		addSound(notifID, notifSounds, notifDef.delay, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
+		addSound(notifID, notifSounds, notifDef.delay or 2, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
 	end
 end
 

@@ -7,8 +7,7 @@ return {
                file = 'EnemyCommanderDied.wav',
                text = 'tips.notifications.enemyCommanderDied',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['FriendlyCommanderDied'] = {
        sound = {
@@ -16,8 +15,7 @@ return {
                file = 'FriendlyCommanderDied.wav',
                text = 'tips.notifications.friendlyCommanderDied',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['FriendlyCommanderSelfD'] = {
        sound = {
@@ -25,8 +23,7 @@ return {
                file = 'AlliedComSelfD.wav',
                text = 'tips.notifications.friendlyCommanderSelfD',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['ComHeavyDamage'] = {
        sound = {
@@ -34,8 +31,7 @@ return {
                file = 'ComHeavyDamage.wav',
                text = 'tips.notifications.commanderDamage',
            },
-       }, 
-       delay = 12,
+       },  
     },
     ['TeamDownLastCommander'] = {
        sound = {
@@ -43,8 +39,7 @@ return {
                file = 'Teamdownlastcommander.wav',
                text = 'tips.notifications.teamdownlastcommander',
            },
-       }, 
-       delay = 30,
+       },  
     },
     ['YouHaveLastCommander'] = {
        sound = {
@@ -52,8 +47,7 @@ return {
                file = 'Youhavelastcommander.wav',
                text = 'tips.notifications.youhavelastcommander',
            },
-       }, 
-       delay = 30,
+       },  
     },
 
     -- Game Status
@@ -65,8 +59,7 @@ return {
                file = 'ChooseStartLoc.wav',
                text = 'tips.notifications.startingLocation',
            },
-       }, 
-       delay = 90,
+       },  
     },
     ['GameStarted'] = {
        sound = {
@@ -74,8 +67,7 @@ return {
                file = 'GameStarted.wav',
                text = 'tips.notifications.gameStarted',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['BattleEnded'] = {
        sound = {
@@ -83,8 +75,7 @@ return {
                file = 'BattleEnded.wav',
                text = 'tips.notifications.battleEnded',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['GamePause'] = {
        sound = {
@@ -92,8 +83,7 @@ return {
                file = 'GamePause.wav',
                text = 'tips.notifications.gamePaused',
            },
-       }, 
-       delay = 5,
+       },  
     },
     ['PlayerLeft'] = {
        sound = {
@@ -101,8 +91,7 @@ return {
                file = 'PlayerDisconnected.wav',
                text = 'tips.notifications.playerLeft',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['PlayerAdded'] = {
        sound = {
@@ -110,8 +99,7 @@ return {
                file = 'PlayerAdded.wav',
                text = 'tips.notifications.playerAdded',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['PlayerResigned'] = {
        sound = {
@@ -119,8 +107,7 @@ return {
                file = 'PlayerResigned.wav',
                text = 'tips.notifications.playerResigned',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['PlayerTimedout'] = {
        sound = {
@@ -128,8 +115,7 @@ return {
                file = 'PlayerTimedout.wav',
                text = 'tips.notifications.playerTimedout',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['PlayerReconnecting'] = {
        sound = {
@@ -137,8 +123,7 @@ return {
                file = 'PlayerTimedout.wav',
                text = 'tips.notifications.playerReconnecting',
            },
-       }, 
-       delay = 1,
+       },  
     },
     ['RaptorsAndScavsMixed'] = {
         sound = {
@@ -146,8 +131,7 @@ return {
                 file = 'RaptorsAndScavsMixed.wav',
                 text = 'tips.notifications.raptorsAndScavsMixed',
             },
-        }, 
-        delay = 15,
+        },  
     },
 
     -- Awareness
@@ -159,8 +143,7 @@ return {
 				--file = 'MaxUnitsReached.wav',
 				text = 'tips.notifications.maxUnitsReached',
 			},
-		}, 
-		delay = 90,
+		},  
 	},
     ['UnitsReceived'] = {
        sound = {
@@ -168,8 +151,7 @@ return {
                file = 'UnitReceived.wav',
                text = 'tips.notifications.unitsReceived',
            },
-       }, 
-       delay = 5,
+       },  
     },
     ['RadarLost'] = {
        sound = {
@@ -177,8 +159,7 @@ return {
                file = 'RadarLost.wav',
                text = 'tips.notifications.radarLost',
            },
-       }, 
-       delay = 12,
+       },  
     },
     ['AdvRadarLost'] = {
        sound = {
@@ -186,8 +167,7 @@ return {
                file = 'AdvRadarLost.wav',
                text = 'tips.notifications.advancedRadarLost',
            },
-       }, 
-       delay = 12,
+       },  
     },
     ['MexLost'] = {
        sound = {
@@ -195,8 +175,7 @@ return {
                file = 'MexLost.wav',
                text = 'tips.notifications.metalExtractorLost',
            },
-       }, 
-       delay = 10,
+       },  
     },
 
     -- Resources
@@ -208,8 +187,7 @@ return {
                file = 'YouAreOverflowingMetal.wav',
                text = 'tips.notifications.overflowingMetal',
            },
-       }, 
-       delay = 80,
+       },  
     },
     ['WholeTeamWastingMetal'] = {
        sound = {
@@ -217,8 +195,7 @@ return {
                file = 'WholeTeamWastingMetal.wav',
                text = 'tips.notifications.teamWastingMetal',
            },
-       }, 
-       delay = 60,
+       },  
     },
     ['WholeTeamWastingEnergy'] = {
        sound = {
@@ -226,8 +203,7 @@ return {
                file = 'WholeTeamWastingEnergy.wav',
                text = 'tips.notifications.teamWastingEnergy',
            },
-       }, 
-       delay = 120,
+       },  
     },
     ['LowPower'] = {
        sound = {
@@ -239,8 +215,7 @@ return {
                file = 'LowPower2.wav',
                text = 'tips.notifications.lowPower',
            },
-       }, 
-       delay = 50,
+       },  
     },
     ['WindNotGood'] = {
        sound = {
@@ -248,8 +223,7 @@ return {
                file = 'WindNotGood.wav',
                text = 'tips.notifications.lowWind',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
 
     -- Alerts
@@ -260,8 +234,7 @@ return {
                file = 'NukeLaunched.wav',
                text = 'tips.notifications.nukeLaunched',
            },
-       }, 
-       delay = 3,
+       },  
     },
     ['LrpcTargetUnits'] = {
        sound = {
@@ -269,8 +242,7 @@ return {
                file = 'LrpcTargetUnits.wav',
                text = 'tips.notifications.lrpcAttacking',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
 
     -- Unit Ready
@@ -282,8 +254,7 @@ return {
                file = 'RagnarokIsReady.wav',
                text = 'tips.notifications.vulcanReady',
            },
-       }, 
-       delay = 30,
+       },  
     },
     ['BuzzsawIsReady'] = {
        sound = {
@@ -291,8 +262,7 @@ return {
                file = 'CalamityIsReady.wav',
                text = 'tips.notifications.buzzsawReady',
            },
-       }, 
-       delay = 30,
+       },  
     },
     ['Tech3UnitReady'] = {
        sound = {
@@ -300,8 +270,7 @@ return {
                file = 'Tech3UnitReady.wav',
                text = 'tips.notifications.t3Ready',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
 
     -- Units Detected
@@ -312,8 +281,7 @@ return {
                file = 'T2UnitDetected.wav',
                text = 'tips.notifications.t2Detected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['T3Detected'] = {
        sound = {
@@ -321,8 +289,7 @@ return {
                file = 'T3UnitDetected.wav',
                text = 'tips.notifications.t3Detected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['AircraftSpotted'] = {
        sound = {
@@ -330,8 +297,7 @@ return {
                file = 'AircraftSpotted.wav',
                text = 'tips.notifications.aircraftSpotted',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['MinesDetected'] = {
        sound = {
@@ -339,8 +305,7 @@ return {
                file = 'MinesDetected.wav',
                text = 'tips.notifications.minesDetected',
            },
-       }, 
-       delay = 200,
+       },  
     },
     ['IntrusionCountermeasure'] = {
        sound = {
@@ -348,8 +313,7 @@ return {
                file = 'StealthyUnitsInRange.wav',
                text = 'tips.notifications.stealthDetected',
            },
-       }, 
-       delay = 55,
+       },  
     },
     ['LrpcDetected'] = {
        sound = {
@@ -357,8 +321,7 @@ return {
                file = 'LrpcDetected.wav',
                text = 'tips.notifications.lrpcDetected',
            },
-       }, 
-       delay = 25,
+       },  
     },
     ['EMPmissilesiloDetected'] = {
        sound = {
@@ -370,8 +333,7 @@ return {
                file = 'EmpSiloDetected2.wav',
                text = 'tips.notifications.empSiloDetected',
            },
-       }, 
-       delay = 4,
+       },  
     },
     ['TacticalNukeSiloDetected'] = {
        sound = {
@@ -379,8 +341,7 @@ return {
                file = 'TacticalNukeDetected.wav',
                text = 'tips.notifications.tacticalSiloDetected',
            },
-       }, 
-       delay = 4,
+       },  
     },
     ['NuclearSiloDetected'] = {
        sound = {
@@ -388,8 +349,7 @@ return {
                file = 'NuclearSiloDetected.wav',
                text = 'tips.notifications.nukeSiloDetected',
            },
-       }, 
-       delay = 4,
+       },  
     },
     ['NuclearBomberDetected'] = {
        sound = {
@@ -397,8 +357,7 @@ return {
                file = 'NuclearBomberDetected.wav',
                text = 'tips.notifications.nukeBomberDetected',
            },
-       }, 
-       delay = 60,
+       },  
     },
     ['JuggernautDetected'] = {
        sound = {
@@ -406,8 +365,7 @@ return {
                file = 'BehemothDetected.wav',
                text = 'tips.notifications.t3MobileTurretDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['KorgothDetected'] = {
        sound = {
@@ -415,8 +373,7 @@ return {
                file = 'JuggernautDetected.wav',
                text = 'tips.notifications.t3AssaultBotDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['BanthaDetected'] = {
        sound = {
@@ -424,8 +381,7 @@ return {
                file = 'TitanDetected.wav',
                text = 'tips.notifications.t3AssaultMechDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['FlagshipDetected'] = {
        sound = {
@@ -433,8 +389,7 @@ return {
                file = 'FlagshipDetected.wav',
                text = 'tips.notifications.flagshipDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['CommandoDetected'] = {
        sound = {
@@ -442,8 +397,7 @@ return {
                file = 'CommandoDetected.wav',
                text = 'tips.notifications.commandoDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['TransportDetected'] = {
        sound = {
@@ -451,8 +405,7 @@ return {
                file = 'TransportDetected.wav',
                text = 'tips.notifications.transportDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['AirTransportDetected'] = {
        sound = {
@@ -460,8 +413,7 @@ return {
                file = 'AirTransportDetected.wav',
                text = 'tips.notifications.airTransportDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
     ['SeaTransportDetected'] = {
        sound = {
@@ -469,8 +421,7 @@ return {
                file = 'SeaTransportDetected.wav',
                text = 'tips.notifications.seaTransportDetected',
            },
-       }, 
-       delay = 9999999,
+       },  
     },
 
     -- Lava
@@ -481,9 +432,7 @@ return {
                file = 'Lavarising.wav',
                text = 'tips.notifications.lavaRising',
            },
-       }, 
-       delay = 25,
-       unlisted = true,
+       },   
     },
     ['LavaDropping'] = {
        sound = {
@@ -491,9 +440,7 @@ return {
                file = 'Lavadropping.wav',
                text = 'tips.notifications.lavaDropping',
            },
-       }, 
-       delay = 25,
-       unlisted = true,
+       },   
     },
 
     -- Tutorials
@@ -504,9 +451,7 @@ return {
                file = 'tutorial/welcome.wav',
                text = 'tips.notifications.tutorialWelcome',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_buildmex'] = {
        sound = {
@@ -514,9 +459,7 @@ return {
                file = 'tutorial/buildmex.wav',
                text = 'tips.notifications.tutorialBuildMetal',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_buildenergy'] = {
        sound = {
@@ -524,9 +467,7 @@ return {
                file = 'tutorial/buildenergy.wav',
                text = 'tips.notifications.tutorialBuildenergy',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_makefactory'] = {
        sound = {
@@ -534,9 +475,7 @@ return {
                file = 'tutorial/makefactory.wav',
                text = 'tips.notifications.tutorialBuildFactory',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factoryair'] = {
        sound = {
@@ -544,9 +483,7 @@ return {
                file = 'tutorial/factoryair.wav',
                text = 'tips.notifications.tutorialFactoryAir',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factoryairsea'] = {
        sound = {
@@ -554,9 +491,7 @@ return {
                file = 'tutorial/factoryairsea.wav',
                text = 'tips.notifications.tutorialFactorySeaplanes',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factorybots'] = {
        sound = {
@@ -564,9 +499,7 @@ return {
                file = 'tutorial/factorybots.wav',
                text = 'tips.notifications.tutorialFactoryBots',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factoryhovercraft'] = {
        sound = {
@@ -574,9 +507,7 @@ return {
                file = 'tutorial/factoryhovercraft.wav',
                text = 'tips.notifications.tutorialFactoryHovercraft',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factoryvehicles'] = {
        sound = {
@@ -584,9 +515,7 @@ return {
                file = 'tutorial/factoryvehicles.wav',
                text = 'tips.notifications.tutorialFactoryVehicles',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_factoryships'] = {
        sound = {
@@ -594,9 +523,7 @@ return {
                file = 'tutorial/factoryships.wav',
                text = 'tips.notifications.tutorialFactoryShips',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_readyfortech2'] = {
        sound = {
@@ -604,9 +531,7 @@ return {
                file = 'tutorial/readyfortecht2.wav',
                text = 'tips.notifications.tutorialT2Ready',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_duplicatefactory'] = {
        sound = {
@@ -614,9 +539,7 @@ return {
                file = 'tutorial/duplicatefactory.wav',
                text = 'tips.notifications.tutorialDuplicateFactory',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
     ['t_paralyzer'] = {
        sound = {
@@ -624,8 +547,6 @@ return {
                file = 'tutorial/paralyzer.wav',
                text = 'tips.notifications.tutorialParalyzer',
            },
-       }, 
-       delay = 9999999,
-       unlisted = true,
+       },   
     },
 }
