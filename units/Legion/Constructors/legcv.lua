@@ -65,7 +65,7 @@ return {
 			"legdtl",
 			"legdtf",
 			"legdtm",
-			"corllt",
+			"leglht",
 			"legmg",
 			"corpun",
 			"corrl",
