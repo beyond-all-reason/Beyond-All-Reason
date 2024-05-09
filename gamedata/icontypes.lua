@@ -2203,6 +2203,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
 	},
+	legjam ={
+		bitmap ="icons/jammer.png",
+		size = 0.94499993
+	},
 	leginc = {
 		bitmap = "icons/corsumo.png",
 		size = 1.85000002
@@ -2298,6 +2302,10 @@ local icontypes = {
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
+	},
+	legrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
 	},
 	legrail = {
 		bitmap = "icons/vehicle_t1_tank_rail.png",

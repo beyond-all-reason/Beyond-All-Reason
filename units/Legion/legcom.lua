@@ -70,7 +70,7 @@ return {
 			[8] = "legvp",
 			[9] = "legap",
 			[10] = "coreyes",
-			[11] = "corrad",
+			[11] = "legrad",
 			[12] = "legdrag",
 			[13] = "leglht",
 			[14] = "corrl",
@@ -91,7 +91,7 @@ return {
 			--[28] = "armmg",
 			--[29] = "armclaw",
 			--[30] = "armferret",
-			--[31] = "corjamt",
+			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',
