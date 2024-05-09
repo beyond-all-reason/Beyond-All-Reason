@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local defaultVoiceSet = 'allison'
+local defaultVoiceSet = 'en/allison'
 
 local useDefaultVoiceFallback = true	-- when a voiceset has missing file, try to load the default voiceset file instead
 local useDefaultVoiceFallbackCustom = true	-- only used for dynamicly added notifications like scavengers do
@@ -29,6 +29,13 @@ local tutorialPlayLimit = 2		-- display the same tutorial message only this many
 
 --------------------------------------------------------------------------------
 
+local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
+VFS.Include('common/wav.lua')
+
+local language = Spring.GetConfigString('language', 'en')
+
+local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
 local LastPlay = {}
 local Sound = {}
 local customNotifications = {}
@@ -37,17 +44,19 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
-local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
-
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-function addSound(name, file, minDelay, duration, messageKey, unlisted)
+
+
+local soundFolder = "sounds/voice/"..voiceSet.."/"
+local defaultSoundFolder = "sounds/voice/"..defaultVoiceSet.."/"
+
+local function addNotification(name, soundFiles, minDelay, messageKey, unlisted)
 	Sound[name] = {
-		file = file,
+		file = soundFiles,
 		delay = minDelay,
-		duration = duration,
 		messageKey = messageKey,
-	 }
+	}
 
 	soundList[name] = true
 	if not unlisted then
@@ -55,50 +64,8 @@ function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
-local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
-local voiceSetFound = false
-local files = VFS.SubDirs('sounds/voice', '*')
-for k, file in ipairs(files) do
-	local dirname = string.sub(file, 14, string.len(file)-1)
-	if dirname == voiceSet then
-		voiceSetFound = true
-		break
-	end
-end
-if not voiceSetFound then
-	voiceSet = defaultVoiceSet
-end
-
-local soundFolder = "sounds/voice/"..voiceSet.."/"
-local defaultSoundFolder = "sounds/voice/"..defaultVoiceSet.."/"
-
--- load and parse sound files/notifications
-local soundsTable = VFS.Include(soundFolder .. 'config.lua')
-for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
-	local notifSounds = {}
-	local notifTexts = {}
-	for i = 1, #notifDef.sound do
-		if notifDef.sound[i].file then
-			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
-				notifSounds[i] = soundFolder .. notifDef.sound[i].file
-				notifTexts[i] = notifDef.sound[i].text
-			elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
-				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
-				notifTexts[i] = notifDef.sound[i].text
-				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
-			else
-				Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
-			end
-		end
-	end
-	if notifSounds[1] then
-		addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
-	end
-end
-
-
-local function AddNotification(name, files, minDelay, duration, messageKey, unlisted)
-	customNotifications[name] = { files, minDelay, duration, messageKey, unlisted }
+local function AddCustomNotification(name, files, minDelay, messageKey, unlisted)
+	customNotifications[name] = { files, minDelay, messageKey, unlisted }
 	local newFiles = {}
 	for i, file in pairs(files) do
 		if VFS.FileExists(soundFolder .. file) then
@@ -111,14 +78,61 @@ local function AddNotification(name, files, minDelay, duration, messageKey, unli
 		end
 	end
 	if newFiles[1] then
-		addSound(name, newFiles, minDelay, duration, messageKey, unlisted)
+		addNotification(name, newFiles, minDelay, messageKey, unlisted)
 	end
+end
+
+local voiceSetFound = false
+--local languageDirs = VFS.SubDirs('sounds/voice', '*')
+--for k, dir in ipairs(languageDirs) do
+	local files = VFS.SubDirs('sounds/voice/'..language, '*')
+	for k, file in ipairs(files) do
+		local dirname = string.sub(file, 14, string.len(file)-1)
+		if dirname == voiceSet then
+			voiceSetFound = true
+			break
+		end
+	end
+--end
+if not voiceSetFound then
+	voiceSet = defaultVoiceSet
+end
+
+-- load and parse sound files/notifications
+local defaultTable = VFS.Include('sounds/voice/config.lua')
+local soundsTable
+if VFS.FileExists(soundFolder .. 'config.lua') then
+	soundsTable = VFS.Include(soundFolder .. 'config.lua')
+	soundsTable = table.merge(defaultTable, soundsTable)
+else
+	soundsTable = defaultTable
+end
+for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
+	local notifTexts = {}
+	local notifSounds = {}
+	local currentEntry = 1
+	notifTexts[currentEntry] = 'tips.notifications.'..string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
+	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
+		notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
+	end
+	for i=1, 20 do
+		if VFS.FileExists(soundFolder .. notifID .. i .. '.wav') then
+			currentEntry = currentEntry + 1
+			notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
+		end
+	end
+	if useDefaultVoiceFallback and #notifSounds == 0 then
+		if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
+			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+		end
+	end
+	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.unlisted) -- bandaid, picking text from first variation always.
 end
 
 
 local unitsOfInterestNames = {
-	armemp = 'EMPmissilesiloDetected',
-	armemp = 'EMPmissilesiloDetected',
+	armemp = 'EmpSiloDetected',
+	armemp = 'EmpSiloDetected',
 	cortron = 'TacticalNukeSiloDetected',
 	armsilo = 'NuclearSiloDetected',
 	corsilo = 'NuclearSiloDetected',
@@ -127,9 +141,9 @@ local unitsOfInterestNames = {
 	corbuzz = 'LrpcDetected',
 	armvulc = 'LrpcDetected',
 	armliche = 'NuclearBomberDetected',
-	corjugg = 'JuggernautDetected',
-	corkorg = 'KorgothDetected',
-	armbanth = 'BanthaDetected',
+	corjugg = 'BehemothDetected',
+	corkorg = 'JuggernautDetected',
+	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
 	cormando = 'CommandoDetected',
@@ -335,7 +349,7 @@ function widget:Initialize()
 	end
 
 	widgetHandler:RegisterGlobal('EventBroadcast', eventBroadcast)
-	widgetHandler:RegisterGlobal('AddNotification', AddNotification)
+	widgetHandler:RegisterGlobal('AddNotification', AddCustomNotification)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
@@ -392,8 +406,8 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	--WG['notifications'].addSound = function(name, file, minDelay, duration, messageKey, unlisted)
-	--	addSound(name, file, minDelay, duration, messageKey, unlisted)
+	--WG['notifications'].addNotification = function(name, file, minDelay, messageKey, unlisted)
+	--	addNotification(name, file, minDelay, messageKey, unlisted)
 	--end
 	WG['notifications'].addEvent = function(value, force)
 		if Sound[value] then
@@ -401,14 +415,19 @@ function widget:Initialize()
 		end
 	end
 	WG['notifications'].playNotification = function(value)
-		if Sound[value] and Sound[value].file and Sound[value].file[1] ~= '' then
-			local m = math.random(1,#Sound[value].file)
-			Spring.PlaySoundFile(Sound[value].file[m], globalVolume, 'ui')
+		if Sound[value] then
+			if Sound[value].file and #Sound[value].file > 0 then
+				local m = math.random(1,#Sound[value].file)
+				Spring.PlaySoundFile(Sound[value].file[m], globalVolume, 'ui')
+			end
+			if displayMessages and WG['messages'] and Sound[value].messageKey then
+				WG['messages'].addMessage(Spring.I18N(Sound[value].messageKey))
+			end
 		end
 	end
 
 	for name, params in pairs(customNotifications) do
-		AddNotification(name, params[1], params[2], params[3], params[4], params[5])
+		AddCustomNotification(name, params[1], params[2], params[3], params[4])
 	end
 
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
@@ -509,9 +528,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if unitDefID == vulcanDefID then
-			queueNotification('VulcanIsReady')
+			queueNotification('RagnarokIsReady')
 		elseif unitDefID == buzzsawDefID then
-			queueNotification('BuzzsawIsReady')
+			queueNotification('CalamityIsReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
 
@@ -570,7 +589,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -581,7 +600,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -592,7 +611,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= gameMaxUnits then
+		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
 		end
 
@@ -718,12 +737,17 @@ local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
-		nextSoundQueued = sec + Sound[event].duration + silentTime
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
 			local m = 1
 			if spoken and Sound[event].file and Sound[event].file[1] ~= '' then
 				m = math.random(1,#Sound[event].file)
 				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
+				local duration = wavFileLengths[string.sub(Sound[event].file[m], 8)]
+				if not duration then
+					duration = ReadWAV(Sound[event].file[m])
+					duration = duration.Length
+				end
+				nextSoundQueued = sec + (duration or 3) + silentTime
 			end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
 				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))

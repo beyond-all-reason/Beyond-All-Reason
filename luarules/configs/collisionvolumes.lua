@@ -107,8 +107,8 @@ unitCollisionVolume['armvp'] = {
 	off={90,34,92,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
-	on={63,112,63,0,12,0,1,1,1},
-	off={45,87,45,0,0,0,2,1,0},
+	on={63,112,63,0,0,0,1,1,1},
+	off={45,87,45,0,-12,0,2,1,0},
 }
 unitCollisionVolume['cordoomt3'] = {
 	on={95,168,95,0,18,0,2,1,1},
@@ -119,9 +119,16 @@ unitCollisionVolume['corplat'] = {
 	off={112,35,112,0,0,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
+
 	on={70,70,70,0,-12,1,0,1,0},
+
 	off={40,76,40,0,-10,1,0,1,0},
+
 }
+
+
+
+
 
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
@@ -131,7 +138,7 @@ for name, v in pairs(unitCollisionVolume) do
 	end
 end
 pieceCollisionVolume['corhrk'] = {
-	['2']={42,48,36,0,-8,0,2,1},
+	['2']={35,40,30,0,-8,0,2,1},
 
 }
 pieceCollisionVolume['legpede'] = {
@@ -183,6 +190,17 @@ pieceCollisionVolume['corsala'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
 	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }
+
+--{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
+--		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
+
+pieceCollisionVolume['corsiegebreaker'] = {
+['0']={36,18,64,0,4,8,2,2},
+['1']={19,12,24,0,-2.5,-2.5,2,1},
+}
+--['1']={18,14,24,0,-1,1.5,0,4},
+
+
 
 pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},

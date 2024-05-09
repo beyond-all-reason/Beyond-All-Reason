@@ -132,7 +132,7 @@ return {
 				},
 			},
 			vision_generator = {
-				areaofeffect = 240,
+				areaofeffect = 200,
 				avoidfeature = false,
 				avoidground = false,
 				craterareaofeffect = 0,

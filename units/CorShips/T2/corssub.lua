@@ -22,6 +22,7 @@ return {
 		speed = 39.0,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSSUB.s3o",
 		script = "Units/CORSSUB.cob",

@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "",
 		license   = "Hornswaggle",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 

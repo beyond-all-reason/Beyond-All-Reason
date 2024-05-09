@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date = '05/2013',
 		license = 'GNU GPL, v2 or later',
 		layer = 0,
-		enabled = true
+		enabled = not Spring.GetModOptions().junorework
 	}
 end
 
@@ -40,12 +40,22 @@ if gadgetHandler:IsSyncedCode() then
 		['corfrad'] = true,
 		['corjamt'] = true,
 		['corrad'] = true,
+		['legjam'] = true,
+		['legrad'] = true,
 		['corshroud'] = true,
 		['corsjam'] = true,
 		['corsonar'] = true,
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		
+		['armmine1'] = true,
+		['armmine2'] = true,
+		['armmine3'] = true,
+		['cormine1'] = true,
+		['cormine2'] = true,
+		['cormine3'] = true,		
+		['cormine4'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,

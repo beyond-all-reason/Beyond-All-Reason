@@ -489,6 +489,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	refreshUnitDefs()
 	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()

@@ -1731,6 +1731,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},
+	corsiegebreaker = {
+		bitmap = "icons/vehicle_t2_tank_laser.png",
+		size = 1.46999991
+  },
 	corsentinel = {
 		bitmap = "icons/ship_t2_dronecarry.png",
 		size = 1.83749986
@@ -2199,6 +2203,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
 	},
+	legjam ={
+		bitmap ="icons/jammer.png",
+		size = 0.94499993
+	},
 	leginc = {
 		bitmap = "icons/corsumo.png",
 		size = 1.85000002
@@ -2226,6 +2234,10 @@ local icontypes = {
 	legkeres = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
 		size = 2
+	},
+	leglht = {
+		bitmap = "icons/defence_0_laser.png",
+		size = 0.80000001
 	},
 	leglab = {
 		bitmap = "icons/factory_bot.png",
@@ -2294,6 +2306,10 @@ local icontypes = {
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
+	},
+	legrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
 	},
 	legrail = {
 		bitmap = "icons/vehicle_t1_tank_rail.png",

@@ -22,6 +22,7 @@ return {
 		speed = 63.9,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMH.s3o",
 		script = "Units/ARMMH.cob",

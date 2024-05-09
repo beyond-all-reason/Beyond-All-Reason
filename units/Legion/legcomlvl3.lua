@@ -1,3 +1,4 @@
+
 return {
 	legcomlvl3 = {
 		maxacc = 0.18,
@@ -72,7 +73,7 @@ return {
 			[10] = "coreyes",
 			[11] = "corrad",
 			[12] = "legdrag",
-			[13] = "corllt",
+			[13] = "leglht",
 			[14] = "corrl",
 			[15] = "cordl",
 			[16] = "cortide",
@@ -92,7 +93,7 @@ return {
 			[29] = "leggob",
 			--[29] = "armclaw",
 			--[30] = "armferret",
-			--[31] = "corjamt",
+			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',

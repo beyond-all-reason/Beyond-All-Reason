@@ -34,6 +34,7 @@ return {
 		speed = 63.0,
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
+		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/CORANTISHIP.s3o",
 		radardistance = 2950,

@@ -88,7 +88,7 @@ return {
 		},
 	},
 	fb_blastsml = {
-		areaofeffect = 240,
+		areaofeffect = 200,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.34999999403954,
@@ -104,8 +104,8 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			commanders = 335,
-			default = 670,
+			commanders = 220,
+			default = 440,
 		},
 	},
 }

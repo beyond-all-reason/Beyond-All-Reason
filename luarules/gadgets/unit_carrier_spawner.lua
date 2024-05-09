@@ -141,7 +141,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- decayrate = 0,				health loss per second while not docked.
 	-- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on.
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
-
+	-- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
 	-- },
 
 	-- Notes:
@@ -184,7 +184,8 @@ for weaponDefID = 1, #WeaponDefs do
 			decayRate = wdcp.decayrate,
 			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
-			carrierdeaththroe = wdcp.carrierdeaththroe
+			carrierdeaththroe = wdcp.carrierdeaththroe,
+			holdfireRadius = wdcp.holdfireradius
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -517,6 +518,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
+					holdfireRadius = spawnDef.holdfireRadius or 0,
 				}
 				carrierMetaList[unitID] = carrierData
 				--spSetUnitRulesParam(unitID, "is_carrier_unit", "enabled", PRIVATE)
@@ -733,10 +735,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local carrierx, carriery, carrierz
 	local targetx, targety, targetz
 	local target
+	local idleTarget
 	local recallDrones = carrierMetaData.activeRecall
 	local attackOrder = false
 	local fightOrder = false
 	local setTargetOrder = false
+	local agressiveDrones = false
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
 	
@@ -746,9 +750,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
 		if carrierStates.firestate == 0 then
-			idleRadius = 0
+			idleRadius = carrierMetaData.holdfireRadius
 			--activeSpawning = false
-		elseif carrierStates.movestate == 0 then
+		elseif carrierStates.firestate == 2 then
+			agressiveDrones = true
+		end
+		if carrierStates.movestate == 0 then
 			idleRadius = 0
 		elseif carrierStates.movestate == 1 then
 			idleRadius = 200
@@ -792,6 +799,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		else
 			target = {cmdParam_1, cmdParam_2, cmdParam_3}
 			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
+			fightOrder = true
 		end
 		if targetx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
@@ -945,9 +953,21 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								end
 							else
 								if fightOrder then
-									local figthRadius = carrierMetaData.radius*0.2
-									rx, rz = RandomPointInUnitCircle(5)
-									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									local cQueue = GetCommandQueue(subUnitID, -1)
+						            for j = 1, (cQueue and #cQueue or 0) do
+							            if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
+								                idleTarget = cQueue[j].params
+								            break
+							            end
+									end
+
+									if idleTarget then
+								        spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+									else
+									    local figthRadius = carrierMetaData.radius*0.2
+									    rx, rz = RandomPointInUnitCircle(5)
+									    spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									end
 								else
 									spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
 								end
@@ -971,6 +991,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
 								-- if currently fighting AND not on hold fire
 								engaged = true
+								if agressiveDrones then
+								    idleTarget = cQueue[j].params
+								end
 								break
 							end
 						end
@@ -984,8 +1007,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 								rx, rz = RandomPointInUnitCircle(5)
 								UnDockUnit(carrierID, subUnitID)
-								spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
-								spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								if idleTarget then
+								    spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+								else
+								    spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+								    spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								end
 							end
 						end
 					end
