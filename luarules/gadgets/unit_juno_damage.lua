@@ -40,6 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 		['corfrad'] = true,
 		['corjamt'] = true,
 		['corrad'] = true,
+		['legjam'] = true,
 		['legrad'] = true,
 		['corshroud'] = true,
 		['corsjam'] = true,
