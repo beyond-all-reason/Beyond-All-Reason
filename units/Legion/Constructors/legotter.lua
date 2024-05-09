@@ -60,7 +60,7 @@ return {
 			[15] = "cornanotc",
 			[16] = "cornanotcplat",
 			[17] = "coreyes",
-			[18] = "corrad",
+			[18] = "legrad",
 			[19] = "legdrag",
 			[20] = "legdtl",
 			[21] = "legdtf",
