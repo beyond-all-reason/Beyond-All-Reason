@@ -71,7 +71,7 @@ return {
 			[10] = "coreyes",
 			[11] = "corrad",
 			[12] = "legdrag",
-			[13] = "corllt",
+			[13] = "leglht",
 			[14] = "corrl",
 			[15] = "cordl",
 			[16] = "cortide",

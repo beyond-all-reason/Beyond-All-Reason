@@ -562,6 +562,7 @@ local unitOrderTable = {
    --DEFENSES LAND T1
    ['armllt']         = 106100,
    ['corllt']         = 106200,
+   ['leglht']         = 106250,
    ['armbeamer']      = 106300,
    ['corhllt']        = 106400,
    ['corhllllt']      = 106500, --scavengers

@@ -201,6 +201,7 @@ local armorDefs = {
 		"corint",
 		"corlab",
 		"corllt",
+		"leglht",
 		"cormabm",
 		"cormakr",
 		"cormart",

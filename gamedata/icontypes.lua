@@ -2231,6 +2231,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
 		size = 2
 	},
+	leglht = {
+		bitmap = "icons/defence_0_laser.png",
+		size = 0.80000001
+	},
 	leglab = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
