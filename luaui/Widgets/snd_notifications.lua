@@ -50,11 +50,11 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
 
-local function addNotification(name, soundFiles, minDelay, messageKey, unlisted)
+local function addNotification(name, soundFiles, minDelay, i18nTextID, unlisted)
 	notification[name] = {
-		voiceFiles = soundFiles,
 		delay = minDelay,
-		messageKey = messageKey,
+		textID = i18nTextID,
+		voiceFiles = soundFiles,
 	}
 	notificationList[name] = true
 	if not unlisted then
@@ -62,8 +62,9 @@ local function addNotification(name, soundFiles, minDelay, messageKey, unlisted)
 	end
 end
 
-local function AddCustomNotification(name, files, minDelay, messageKey, unlisted)
-	customNotifications[name] = { files, minDelay, messageKey, unlisted }
+-- only used by scavenger gadget atm
+local function AddCustomNotification(name, files, minDelay, i18nTextID, unlisted)
+	customNotifications[name] = { files, minDelay, i18nTextID, unlisted }
 	local newFiles = {}
 	for i, file in pairs(files) do
 		if VFS.FileExists(soundFolder .. file) then
@@ -76,13 +77,11 @@ local function AddCustomNotification(name, files, minDelay, messageKey, unlisted
 		end
 	end
 	if newFiles[1] then
-		addNotification(name, newFiles, minDelay, messageKey, unlisted)
+		addNotification(name, newFiles, minDelay, i18nTextID, unlisted)
 	end
 end
 
 local voiceSetFound = false
---local languageDirs = VFS.SubDirs('sounds/voice', '*')
---for k, dir in ipairs(languageDirs) do
 local files = VFS.SubDirs('sounds/voice/' .. language, '*')
 for k, file in ipairs(files) do
 	local dirname = string.sub(file, 14, string.len(file) - 1)
@@ -91,7 +90,6 @@ for k, file in ipairs(files) do
 		break
 	end
 end
---end
 if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
@@ -103,7 +101,6 @@ if VFS.FileExists(soundFolder .. 'config.lua') then
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
 for notifID, notifDef in pairs(notificationTable) do
-	-- Temporary to keep it working for now
 	local notifTexts = {}
 	local notifSounds = {}
 	local currentEntry = 1
@@ -126,7 +123,6 @@ for notifID, notifDef in pairs(notificationTable) do
 end
 
 local unitsOfInterestNames = {
-	armemp = 'EmpSiloDetected',
 	armemp = 'EmpSiloDetected',
 	cortron = 'TacticalNukeSiloDetected',
 	armsilo = 'NuclearSiloDetected',
@@ -237,7 +233,6 @@ local isT2 = {}
 local isT3mobile = {}
 local isMine = {}
 for udefID, def in ipairs(UnitDefs) do
-	-- not critter/raptor/object
 	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
 		if def.canFly then
 			isAircraft[udefID] = true
@@ -277,8 +272,7 @@ local function updateCommanders()
 		local unitID = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if isCommander[unitDefID] then
-			local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = spGetUnitHealth(unitID)
-			commanders[unitID] = maxHealth
+			commanders[unitID] = select(2, spGetUnitHealth(unitID))	-- maxhealth
 		end
 	end
 end
@@ -321,11 +315,11 @@ function widget:PlayerChanged(playerID)
 	updateCommanders()
 end
 
--- function that gadgets can call
-local function eventBroadcast(msg)
+local function gadgetNotificationEvent(msg)
+	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
 	if gameframe < 60 then
 		return
-	end    -- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
+	end
 
 	if string.find(msg, "SoundEvents", nil, true) then
 		msg = string.sub(msg, 13)
@@ -345,7 +339,7 @@ function widget:Initialize()
 		widget:PlayerChanged()
 	end
 
-	widgetHandler:RegisterGlobal('EventBroadcast', eventBroadcast)
+	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
 	widgetHandler:RegisterGlobal('AddNotification', AddCustomNotification)
 
 	WG['notifications'] = {}
@@ -360,7 +354,7 @@ function widget:Initialize()
 	WG['notifications'].getNotificationList = function()
 		local soundInfo = {}
 		for i, event in pairs(notificationOrder) do
-			soundInfo[i] = { event, notificationList[event], notification[event].messageKey, #notification[event].voiceFiles }
+			soundInfo[i] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
 		end
 		return soundInfo
 	end
@@ -371,11 +365,6 @@ function widget:Initialize()
 		tutorialMode = value
 		if tutorialMode then
 			tutorialPlayed = {}
-			--for i,v in pairs(LastPlay) do
-			--	if string.sub(i, 1, 2) == 't_' then
-			--		LastPlay[i] = nil
-			--	end
-			--end
 		end
 		widget:PlayerChanged()
 	end
@@ -403,8 +392,8 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	--WG['notifications'].addNotification = function(name, file, minDelay, messageKey, unlisted)
-	--	addNotification(name, file, minDelay, messageKey, unlisted)
+	--WG['notifications'].addNotification = function(name, soundFiles, minDelay, i18nTextID, unlisted)
+	--	addNotification(name, soundFiles, minDelay, i18nTextID, unlisted)
 	--end
 	WG['notifications'].addEvent = function(value, force)
 		if notification[value] then
@@ -417,8 +406,8 @@ function widget:Initialize()
 				local m = #notification[value].voiceFiles > 1 and math.random(1, #notification[value].voiceFiles) or 1
 				Spring.PlaySoundFile(notification[value].voiceFiles[m], globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[value].messageKey then
-				WG['messages'].addMessage(Spring.I18N(notification[value].messageKey))
+			if displayMessages and WG['messages'] and notification[value].textID then
+				WG['messages'].addMessage(Spring.I18N(notification[value].textID))
 			end
 		end
 	end
@@ -434,24 +423,15 @@ end
 
 function widget:Shutdown()
 	WG['notifications'] = nil
-	widgetHandler:DeregisterGlobal('EventBroadcast')
+	widgetHandler:DeregisterGlobal('NotificationEvent')
 	widgetHandler:DeregisterGlobal('AddNotification')
 end
 
 function widget:GameFrame(gf)
 	gameframe = gf
-
-	if isSpec then
+	if isSpec or (not displayMessages and not spoken) or gameframe < 60 then	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
 		return
 	end
-
-	if not displayMessages and not spoken then
-		return
-	end
-
-	if gameframe < 60 then
-		return
-	end    -- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
 
 	if gameframe == 70 and doTutorialMode then
 		queueTutorialNotification('t_welcome')
@@ -578,10 +558,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 		queueNotification('T3Detected')
 	end
 	if isMine[udefID] then
+		-- ignore when far away
 		local x, _, z = Spring.GetUnitPosition(unitID)
-		local units = Spring.GetUnitsInCylinder(x, z, 1700, myTeamID)
-		if #units > 0 then
-			-- ignore when far away
+		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
 			queueNotification('MinesDetected')
 		end
 	end
@@ -616,11 +595,9 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-
 	if not displayMessages and not spoken then
 		return
 	end
-
 	if unitTeam == myTeamID then
 		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
 			queueNotification('MaxUnitsReached')
@@ -684,9 +661,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if not displayMessages and not spoken then
 		return
 	end
-
 	if unitTeam == myTeamID then
-
 		if paralyzer then
 			queueTutorialNotification('t_paralyzer')
 		end
@@ -754,7 +729,7 @@ local function playNextSound()
 			local m = 1
 			if spoken and notification[event].voiceFiles and notification[event].voiceFiles[1] ~= '' then
 				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
-				Spring.PlaySoundFile(notification[event].file[m], globalVolume, 'ui')
+				Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 				local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
 				if not duration then
 					duration = ReadWAV(notification[event].voiceFiles[m])
@@ -762,8 +737,8 @@ local function playNextSound()
 				end
 				nextSoundQueued = sec + (duration or 3) + silentTime
 			end
-			if displayMessages and WG['messages'] and notification[event].messageKey then
-				WG['messages'].addMessage(Spring.I18N(notification[event].messageKey))
+			if displayMessages and WG['messages'] and notification[event].textID then
+				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
@@ -791,9 +766,7 @@ function widget:Update(dt)
 	if not displayMessages and not spoken then
 		return
 	end
-
 	sec = sec + dt
-
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
@@ -836,8 +809,21 @@ function widget:KeyPress()
 	lastUserInputTime = os.clock()
 end
 
+function widget:GameStart()
+	queueNotification('GameStarted', true)
+end
+
 function widget:GameOver()
-	widgetHandler:RemoveWidget()
+	queueNotification('BattleEnded',true)
+	--widgetHandler:RemoveWidget()
+end
+
+function widget:GamePaused(playerID, isGamePaused)
+	if isGamePaused then
+		queueNotification('GamePaused',true)
+	else
+		queueNotification('GameUnpaused', true)
+	end
 end
 
 function widget:GetConfigData(data)
