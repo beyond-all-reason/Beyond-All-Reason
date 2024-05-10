@@ -68,7 +68,7 @@ return {
 			[23] = "legcluster",
 			[24] = "corrl",
 			[25] = "cormadsam",
-			[26] = "corerad",
+			[26] = "leglupara",
 			[27] = "corjuno",
 			[28] = "cordl",
 			[29] = "legjam",
