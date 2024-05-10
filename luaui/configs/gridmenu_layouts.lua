@@ -1039,14 +1039,13 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },       -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ },
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
 		{
@@ -1109,14 +1108,13 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ },
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
 		{
@@ -1178,14 +1176,13 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ },
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
 		{

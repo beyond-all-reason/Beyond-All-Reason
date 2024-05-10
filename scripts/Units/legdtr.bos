@@ -29,14 +29,14 @@ Close()
 Open()
 {
 	set ARMORED to 0;
-	turn lida to z-axis <0> speed <270>;
-	turn lidb to z-axis <0> speed <270>;
+	turn lida to z-axis <0> speed <400>;
+	turn lidb to z-axis <0> speed <400>;
 	wait-for-turn lidb around z-axis;
-	move turretbase to y-axis [0] speed [100]; //move turretbase, turretstrut, barrel to original open spot
+	move turretbase to y-axis [0] speed [150]; //move turretbase, turretstrut, barrel to original open spot
 	wait-for-move turretbase along y-axis; // wait for turretbase, turretstrut, barrel to move
-	turn turretstrut to x-axis <0> speed <100>; // turn turretstrut, barrel, around x-axis to partially open position
+	turn turretstrut to x-axis <0> speed <150>; // turn turretstrut, barrel, around x-axis to partially open position
 	// wait-for-turn turretstrut around x-axis; // wait for turretstrut
-	turn barrel to x-axis <0> speed <100>; // turn barrel around x-axis to fully open position
+	turn barrel to x-axis <0> speed <150>; // turn barrel around x-axis to fully open position
 	is_open = 1;	
 }
 

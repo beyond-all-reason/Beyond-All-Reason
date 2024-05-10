@@ -118,7 +118,7 @@ return {
 		},
 		weapondefs = {
 			corlevlr_weapon = {
-				areaofeffect = 155,
+				areaofeffect = 140,
 				avoidfeature = false,
 				burnblow = true,
 				craterboost = 0,
@@ -130,7 +130,7 @@ return {
 				name = "Area Control Riot Cannon",
 				noselfdamage = true,
 				range = 400,
-				reloadtime = 1.5,
+				reloadtime = 2.0,
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
@@ -146,7 +146,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					default = 220,
+					default = 240,
 					commanders = 375,
 					subs = 90,
 					vtol = 35,
