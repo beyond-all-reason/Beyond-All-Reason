@@ -2248,7 +2248,7 @@ local icontypes = {
 		size = 0.80000001
 	},
 	leglupara = {
-		bitmap = "icons/aa_flak_t2.png",
+		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
 	},
 	legmed = {
