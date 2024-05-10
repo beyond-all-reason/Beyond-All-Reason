@@ -3,7 +3,7 @@ function gadget:GetInfo()
         name    = 'Cluster Munitions',
         desc    = 'Custom behavior for projectiles that explode and split on impact.',
         author  = 'efrec',
-        version = 'alpha',
+        version = '1.0',
         date    = '2024-05',
         license = 'GNU GPL, v2 or later',
         layer   = 0,
@@ -28,7 +28,7 @@ local defaultBouncing = false                      -- whether sub-munitions 'bou
 
 local customParamName = "cluster"                  -- in the weapondef, the parameter name to set to `true`
 local maxSplitNumber  = 20                         -- protect game performance against stupid ideas
-local minUnitReflect  = 640000                     -- smallest unit size that causes reflection as if terrain
+local minBulkReflect  = 80000                      -- smallest unit bulk that causes reflection as if terrain
 
 -- CustomParams setup ---------------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ local minUnitReflect  = 640000                     -- smallest unit size that ca
 --    }
 
 --------------------------------------------------------------------------------------------------------------
--- Localization ----------------------------------------------------------------------------------------------
+-- Localize --------------------------------------------------------------------------------------------------
 
 local abs    = math.abs
 local sign   = math.sgn
@@ -56,7 +56,6 @@ local rand   = math.random
 local sqrt   = math.sqrt
 local cos    = math.cos
 local sin    = math.sin
-local format = string.format
 
 local spGetGroundHeight  = Spring.GetGroundHeight
 local spGetGroundNormal  = Spring.GetGroundNormal
@@ -86,6 +85,7 @@ local weaponCache = {
     projTtl = defaultTtl,
     check   = 0
 }
+
 local spawnCache  = {
     pos     = { 0, 0, 0 },
     speed   = { 0, 0, 0 },
@@ -94,7 +94,7 @@ local spawnCache  = {
     gravity = mapGravity,
 }
 
--- Information table for primary weapons
+-- Information table for cluster weapons
 
 local spawnableTypes = {
     Cannon            = true  ,
@@ -118,7 +118,7 @@ for wdid, wdef in pairs(WeaponDefs) do
         dataTable[wdid].number   = tonumber(wdef.customParams.number) or defaultSpawnNum
         dataTable[wdid].def      = wdef.customParams.def              or (string.split(wdef.name, "_"))[1] .. '_' .. defaultSpawnDef
 
-        dataTable[wdid].projDef  = 0
+        dataTable[wdid].projDef  = -1
         dataTable[wdid].projTtl  = defaultTtl
         dataTable[wdid].projVel  = defaultVelocity / GAME_SPEED
         dataTable[wdid].colDist  = max(12, sqrt(dataTable[wdid].explAoe))
@@ -148,7 +148,10 @@ for wdid, data in pairs(dataTable) do
     dataTable[wdid].colDist = max(dataTable[wdid].colDist, dataTable[wdid].projVel / 120)
 
     -- Prevent the grenade apocalypse:
-    dataTable[cmdid] = nil
+    if dataTable[cmdid] ~= nil then
+        Spring.Echo('[clustermun] [warn] Preventing recursive explosions: ' .. cmdid)
+        dataTable[cmdid] = nil
+    end
 
     -- Remove unspawnable projectiles:
     if spawnableTypes[cmdef.type] ~= true then
@@ -160,11 +163,13 @@ end
 
 -- Information on how sturdy units are, basically
 
-local unitBounce = {}
+local unitBulk = {}
 for udid, udef in pairs(UnitDefs) do
-    unitBounce[udid] = min(
-        1.0, -- When there's no good metric, use every single metric:
-        (sqrt(udef.health) + udef.xsize * udef.zsize * udef.radius * sqrt(udef.mass)) / minUnitReflect
+    unitBulk[udid] = min(
+        (   sqrt(udef.health) +
+            sqrt(udef.metalCost) * udef.xsize * udef.zsize * sqrt(udef.radius)
+        ) / minBulkReflect,
+        1.0
     )
 end
 
@@ -227,26 +232,28 @@ local function GetSurfaceDeflection(explArea, projSpeed, nearCheck, ex, ey, ez, 
         local scale = sqrt(projSpeed) / max(12, distSurface) -- idk, seems to work
         return { x * scale, y * scale, z * scale }
     else
-        -- When hitting a unit directly, we can determine how much to "bounce" off it.
-        -- This is used to keep grenades-of-grenades from detonating together on contact.
-        -- The 'bouncing' option adds a lot of overhead to this script, mostly below.
         -- No easy way to get units by collider distance; I believe this is by midpoint:
-        local collisions = spGetUnitsInSphere(ex, ey, ez, max(nearCheck, 80)) -- broad search (80 is big)
+        local collisions = spGetUnitsInSphere(ex, ey, ez, max(nearCheck, 80)) -- 80 is a fairly wide net.
+        -- When hitting a unit directly, we can determine how much to "bounce" off it.
+        -- This is used to keep grenades-of-grenades from detonating on contact instead of spreading out.
         local bounce, radius, ux, uy, uz, cx, cy, cz, cw
         for _, uid in pairs(collisions) do
-            bounce = unitBounce[spGetUnitDefID(uid)]
-            radius = spGetUnitRadius(uid)
-            ux, uy, uz = spGetUnitPosition(uid, true) -- todo: this may be the wrong point to grab
+            bounce = unitBulk[spGetUnitDefID(uid)]
+            -- Arbitrary cutoff to ignore cheap, spammy units.
+            if bounce > 0.05 then
+                radius = spGetUnitRadius(uid)
+                ux, uy, uz = spGetUnitPosition(uid, true)
 
-            cx = ex - ux
-            cy = ey - uy
-            cz = ez - uz
-            cw = cx * cx + cy * cy + cz * cz
-            cw = cw * max(1.0, cw - radius * radius)
+                cx = ex - ux
+                cy = ey - uy
+                cz = ez - uz
+                cw = cx * cx + cy * cy + cz * cz
+                cw = cw * max(1.0, cw - radius * radius)
 
-            x = x + bounce * (1 - abs(cx) / cw) * sign(cx) -- ugly bc of the broad search
-            y = y + bounce * (1 - abs(cy) / cw) * sign(cy)
-            z = z + bounce * (1 - abs(cz) / cw) * sign(cz)
+                x = x + bounce * (1 - abs(cx) / cw) * sign(cx)
+                y = y + bounce * (1 - abs(cy) / cw) * sign(cy)
+                z = z + bounce * (1 - abs(cz) / cw) * sign(cz)
+            end
         end
         return { x, y, z }
     end
@@ -272,9 +279,9 @@ local function SpawnClusterProjectiles(data, attackerID, projID, ex, ey, ez, def
 
         -- When the initial directions are not random, add jitter.
         if projNum <= #packedSpheres then
-            vx = vx * (1 + rand(-projNum, projNum) / projNum)
-            vy = vy * (1 + rand(-projNum, projNum) / projNum * 0.7)
-            vz = vz * (1 + rand(-projNum, projNum) / projNum)
+            vx = vx + rand(-projNum, projNum) / projNum * 0.86
+            vy = vy + rand(-projNum, projNum) / projNum * 0.42
+            vz = vz + rand(-projNum, projNum) / projNum * 0.86
         end
 
         -- Adjust vector length to the speed/magnitude.
@@ -301,11 +308,8 @@ function gadget:Initialize()
 end
 
 function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projID)
-    -- I thought `Script.SetWatch*` would be scoped to this script. It is not.
-    -- Our biggest concern, then, is exiting as fast as lualy possible.
     if not dataTable[weaponDefID] then return end
 
-    -- Fairly sure reassigning a table loses any prealloc/hashing advantages in lua.
     weaponCache = dataTable[weaponDefID]
 
     -- Scatter munitions away from terrain (and heavy units) as appropriate.
