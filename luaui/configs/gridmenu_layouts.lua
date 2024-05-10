@@ -1036,12 +1036,12 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },       -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -1105,12 +1105,12 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -1173,12 +1173,12 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ },
 			{ "corjuno", },                                   -- juno
 		},
@@ -1381,12 +1381,12 @@ local unitGrids = {
 			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
+			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "legrad", "coreyes", "cordrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
