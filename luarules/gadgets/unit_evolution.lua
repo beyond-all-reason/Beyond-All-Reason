@@ -74,6 +74,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
+
+	include("luarules/configs/customcmds.h.lua")
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
 
 
