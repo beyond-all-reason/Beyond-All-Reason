@@ -49,7 +49,9 @@ return {
 			subfolder = "armvehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
-			inheritxratemultiplier = 0.05834 -- Calculated as: Drone:MetalCost+(EnergyCost/60))/Carrier:Metalcost+(EnergyCost/60)
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {
