@@ -1041,7 +1041,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
 			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1110,7 +1110,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
 			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1178,7 +1178,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
 			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1386,7 +1386,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cordl", "legcluster", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
 			{ "corrad", "coreyes", "legdrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
