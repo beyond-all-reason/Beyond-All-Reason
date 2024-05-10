@@ -543,6 +543,7 @@ local unitOrderTable = {
    ['legforti']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
+   ['legdtr']     	  = 104704, --legion
    ['corscavdtl']     = 104705, --scavengers
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,

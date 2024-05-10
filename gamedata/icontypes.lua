@@ -2243,6 +2243,10 @@ local icontypes = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
+	legdtr = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	leglob = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
