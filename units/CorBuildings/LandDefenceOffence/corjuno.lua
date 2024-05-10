@@ -148,7 +148,7 @@ return {
 				},
 				damage = {
 					default = 1,
-					mines = 1000,
+					mines = 1,
 				},
 			},
 		},

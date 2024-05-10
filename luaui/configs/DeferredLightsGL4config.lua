@@ -340,6 +340,27 @@ local unitLights = {
 		},
 	},
 
+	['legrad'] = {
+		greenblobA = {
+			lightType = 'point',
+			pieceName = 'dishA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobB = {
+			lightType = 'point',
+			pieceName = 'dishB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+
 	['armmart'] = {
 		front = {
 			lightType = 'point',
@@ -1836,6 +1857,17 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 44, posz = 0, radius = 28,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.5,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legjam'] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'strut',
+			lightConfig = { posx = 0, posy = 7, posz = 0, radius = 28,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0, b = 0, a = 0.5,
 							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
