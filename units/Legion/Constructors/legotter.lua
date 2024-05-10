@@ -67,7 +67,7 @@ return {
 			[22] = "legdtm",
 			[23] = "leglht",
 			[24] = "legmg",
-			[25] = "corpun",
+			[25] = "legcluster",
 			[26] = "corrl",
 			[27] = "cormadsam",
 			[28] = "corerad",

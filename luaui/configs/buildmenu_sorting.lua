@@ -573,6 +573,7 @@ local unitOrderTable = {
    ['legdefcarryt1']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
+   ['legcluster']         = 106950,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun
