@@ -13,23 +13,33 @@ end
 -- synced only
 if not gadgetHandler:IsSyncedCode() then return false end
 
+--**********unit customparams to add to unitdef***********
+-- inheritxpratemultiplier = 1, 	-- defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent after power difference calculations
+-- childreninheritxp = "MOBILEBUILT DRONE BOTCANNON", --  determines what kinds of units linked to parent inherit XP
+-- parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON", -- determines what kinds of units linked to the parent will give the parent XP
+
 local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
--- inheritxratemultiplier = 1 -- defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent after power difference calculations
-local childrenInheritXP = {} -- stores the true/false of child xp inheritance from parents
--- childreninheritxp = "BUILT DRONE BOTCANNON" --  determines what kinds of units linked to parent inherit XP
-
+local childrenInheritXP = {} -- stores the string that represents the types of units that will inherit the parent's XP when created
+local parentsInheritXP = {} -- stores the string that represents the types of units the parent will gain xp from
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
-
+local mobileUnits = {}
 local unitPowerDefs = {}
 local unitsList = {}
 
-
 for id, def in pairs(UnitDefs) do
-	if def.customParams.inheritxratemultiplier then
-		inheritChildrenXP[id] = def.customParams.inheritxratemultiplier or 0
+	if def.customParams.inheritxpratemultiplier then
+		inheritChildrenXP[id] = def.customParams.inheritxpratemultiplier or 1
+	end
+	if def.customParams.parentsinheritxp then
+		parentsInheritXP[id] = def.customParams.parentsinheritxp or " "
+	else parentsInheritXP[id] = " "
 	end
 	if def.customParams.childreninheritxp then
 		childrenInheritXP[id] = def.customParams.childreninheritxp or " "
+	else childrenInheritXP[id] = " "
+	end
+	if def.speed and def.speed ~= 0 then
+		mobileUnits[id] = true
 	end
 	if def.power then
 	unitPowerDefs[id] = def.power
@@ -51,20 +61,20 @@ end
 local initializeList = {}
 local ignoreList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if  builderID and inheritChildrenXP[Spring.GetUnitDefID(builderID)] then
+	if  builderID and mobileUnits[Spring.GetUnitDefID(unitID)] and string.find(parentsInheritXP[Spring.GetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp 
 			childrenWithParents[unitID] = {
 				unitid=unitID,
 				parentunitid=builderID,
 				parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
 				childinheritsXP = childrenInheritXP[Spring.GetUnitDefID(unitID)],
-				childtype = "BUILT",
+				childtype = "MOBILEBUILT",
 			}
 	end
 	unitsList[unitID] = true
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	initializeList[unitID] = true
+	initializeList[unitID] = true --must initialize after finishing building otherwise child XP inheritance won't happen
 end
 
 local xpGainParents = {} --stores the unitID's of parents that inherit xp
@@ -80,7 +90,7 @@ function gadget:GameFrame(frame)
 					local parentDefID
 					if Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then --estabalishes unit_carrier_spawner parenthood
 						parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
-						if inheritChildrenXP[Spring.GetUnitDefID(parentID)] then
+						if string.find(parentsInheritXP[Spring.GetUnitDefID(parentID)], "DRONE") then
 							childrenWithParents[unitID] = {
 								unitid = unitID,
 								parentunitid = parentID,
@@ -92,7 +102,7 @@ function gadget:GameFrame(frame)
 					end
 					if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then --estabalishes unit_explosion_spawner parenthood
 						parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id")
-						if inheritChildrenXP[Spring.GetUnitDefID(parentID)] then
+						if string.find(parentsInheritXP[Spring.GetUnitDefID(parentID)], "BOTCANNON") then
 							childrenWithParents[unitID] = {
 								unitid = unitID,
 								parentunitid = parentID,
