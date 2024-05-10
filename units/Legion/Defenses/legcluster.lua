@@ -32,7 +32,7 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corpun_aoplane.dds",
+			buildinggrounddecaltype = "decals/legcluster_aoplane.dds",
 			buildinggrounddecalsizey = 1,
 			buildinggrounddecalsizex = 1,
 			buildinggrounddecaldecayspeed = 30,
