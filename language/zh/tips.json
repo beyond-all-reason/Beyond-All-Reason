@@ -2,7 +2,7 @@
       "tips":{
           "notifications":{
             "airTransportDetected":"发现敌方空中运输单位",
-            "gamePause":"已暂停",
+            "gamePaused":"已暂停",
             "tutorialFactoryBots":"你现在可以生产移动机甲单位了。机甲速度快,重量轻,可以爬上车辆爬不上的山坡。它们比车辆更便宜,但也更弱。",
             "tacticalNukeSiloDetected":"侦测到敌方战术核弹发射井!",
             "tutorialWelcome":"欢迎来到BAR,你的任务是获取战略和战术上的优势以赢得这场战斗。首先,你需要生产金属和电力。",
