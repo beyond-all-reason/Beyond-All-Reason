@@ -43,7 +43,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOMHILVL"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOMHILVL.s3o",
 		pushresistant = true,
 		radardistance = 1500,
 		radaremitheight = 40,
