@@ -248,7 +248,7 @@ return {
 				},
 			},
 			torpedo = {
-				areaofeffect = 16,
+				areaofeffect = 75,
 				avoidfeature = false,
 				avoidfriendly = true,
 				burnblow = true,
@@ -264,7 +264,7 @@ return {
 				flighttime = 1.8,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
+				model = "coradvtorpedo.s3o",
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				predictboost = 1,
@@ -280,7 +280,7 @@ return {
 				weaponacceleration = 50,
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 200,
+				weaponvelocity = 425,
 				damage = {
 					-- commanders = 375,
 					default = 350, --278.4375,

@@ -274,7 +274,7 @@ return {
 				name = "UltravioletRayBeam",
 				noselfdamage = true,
 				range = 475,
-				reloadtime = 0.44,
+				reloadtime = 0.70,
 				rgbcolor = "0.6 0.2 0.6",
 				rgbcolor2 = "0.2 0.2 0.2",
 				soundhitdry = "",

@@ -258,7 +258,7 @@ return {
 				name = "J7NSLaser",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 0.178,
+				reloadtime = 0.36,
 				rgbcolor = "0.2 0.8 0.3",
 				rgbcolor2 = "0.2 0.2 0.2",
 				soundhitdry = "",

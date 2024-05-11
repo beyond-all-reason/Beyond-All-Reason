@@ -277,7 +277,7 @@ return {
 				name = "UltravioletRayBeam",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 0.382,
+				reloadtime = 0.43,
 				rgbcolor = "0.6 0.2 0.6",
 				rgbcolor2 = "0.2 0.2 0.2",
 				soundhitdry = "",
@@ -292,7 +292,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				damage = {
-					default = 1400,
+					default = 1200,
 					subs = 600,
 				},
 			},

@@ -275,7 +275,7 @@ return {
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 450,
+				range = 500,
 				reloadtime = 0.8,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
@@ -287,7 +287,7 @@ return {
 				weaponacceleration = 50,
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 200,
+				weaponvelocity = 425,
 				damage = {
 					-- commanders = 375,
 					default = 250, --278.4375,

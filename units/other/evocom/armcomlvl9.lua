@@ -276,7 +276,7 @@ return {
 				name = "UWSupernovaBeam",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 0.3,
+				reloadtime = 0.33,
 				rgbcolor = "0.2 0.3 0.8",
 				rgbcolor2 = "1 1 1",
 				soundhitdry = "",
@@ -291,8 +291,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				damage = {
-					default = 1750,
-					subs = 1000,
+					default = 1400,
+					subs = 700,
 				},
 			},
 			disintegrator = {
