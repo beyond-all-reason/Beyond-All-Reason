@@ -273,7 +273,7 @@ return {
 				laserflaresize = 5.5,
 				name = "UWSupernovaBeam",
 				noselfdamage = true,
-				range = 600,
+				range = 500,
 				reloadtime = 0.3,
 				rgbcolor = "0.5 0.7 0.10",
 				rgbcolor2 = "1 1 1",
