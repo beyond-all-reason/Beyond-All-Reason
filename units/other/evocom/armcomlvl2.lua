@@ -103,7 +103,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			combatradius = 500,
+			combatradius = 0,
 			evolution_announcement = "Armada commanders have upgraded to level 3",
 			evolution_announcement_size = 18.5,
 			evolution_target = "armcomlvl3",

@@ -127,7 +127,7 @@ return {
 			evolution_target = "armcomlvl8",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			combatradius = 500,
+			combatradius = 0,
 			stockpileLimit = 30,
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",

@@ -122,7 +122,7 @@ return {
 			evolution_target = "corcomlvl10",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			combatradius = 500,
+			combatradius = 0,
 			maxrange = "500",
 		},
 		featuredefs = {

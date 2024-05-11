@@ -107,7 +107,7 @@ return {
 			evolution_target = "corcomlvl4",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			combatradius = 500,
+			combatradius = 0,
 			shield_color_mult = 0.8,
 			shield_power = 6250,
 			shield_radius = 100,

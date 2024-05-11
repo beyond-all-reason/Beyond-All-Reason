@@ -129,7 +129,7 @@ return {
 			evolution_target = "legcomlvl9",
 			evolution_condition = "timer",
 			evolution_timer = 210,
-			combatradius = 500,
+			combatradius = 0,
 		},
 		featuredefs = {
 			dead = {
