@@ -573,8 +573,8 @@ local function drawStats(uDefID, uID)
 
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
-		if uWep.customParams and uWep.customParams.def then
-			uWep = wDefs[WeaponDefNames[uWep.customParams.def].id]
+		if uWep.customParams and uWep.customParams.def and uWep.customParams.speceffect == "split" then
+			uWep = WeaponDefNames[uWep.customParams.def] or uWep
 		end
 		if uWep.range > 0 then
 			local oBurst = uWep.salvoSize * uWep.projectiles
@@ -634,10 +634,19 @@ local function drawStats(uDefID, uID)
 			end
 			DrawText(texts.info..":", infoText)
 			local defaultDamage = uWep.damages[0]
+			if uWep.customParams and uWep.customParams.cluster then
+				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
+				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
+				local cmDamage = WeaponDefNames[munition].damages[0]
+				defaultDamage = defaultDamage + cmDamage * cmNumber
+			end
 			local cat = 0
 			local oDmg = uWep.damages[cat]
 			local catName = Game.armorTypes[cat]
 			local burst = uWep.salvoSize
+			if uWep.customParams and uWep.customParams.def and not uWep.customParams.cluster then
+				burst = burst * (uWep.customParams.number or 1)
+			end
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..":", yellow..texts.infinite)
 			elseif wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then

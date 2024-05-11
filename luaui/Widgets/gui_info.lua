@@ -260,6 +260,21 @@ local function refreshUnitInfo()
 		end
 
 
+		local function calculateClusterDPS(def, damage)
+			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
+			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
+
+			local munition = def.customParams.def     or unitDef.name .. '_' .. 'cluster_munition'
+			local cmNumber = def.customParams.number  or 5 -- note: keep in sync with cluster defaults.
+			local cmDamage = WeaponDefNames[munition].damages[0]
+
+			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
+			local cmunDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage))
+			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps
+			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + cmunDps
+		end
+
+
 		local function setEnergyAndMetalCosts(def)
 			if def.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or def.energyCost > unitDefInfo[unitDefID].energyPerShot) then
 				unitDefInfo[unitDefID].energyPerShot = def.energyCost
@@ -303,17 +318,25 @@ local function refreshUnitInfo()
 					end
 
 				elseif 
-				unitDef.customParams.isevocom or --for evolving commanders
-				unitDef.name == 'armcom' or 
-				unitDef.name == 'corcom' or 
-				unitDef.name == 'armvang' or 
-				unitDef.name == 'corkarg' then
+					unitDef.customParams.isevocom  or -- use primary weapon for evolving commanders
+					unitDef.name == 'armcom'       or -- ignore underwater secondary
+					unitDef.name == 'corcom'       or 
+					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
+					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
+					unitDef.name == 'corpun'       or
+					unitDef.name == 'legcluster'   or
+					unitDef.name == 'armamb'       or
+					unitDef.name == 'cortoast'     or
+					unitDef.name == 'armvang'
+				then
 					unitExempt = true
 					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)
 
 						if weaponDef.type == "BeamLaser" then
 							calculateLaserDPS(weaponDef, weaponDef.damages[0])
+						elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+							calculateClusterDPS(weaponDef, weaponDef.damages[0])
 						elseif weapons[i].onlyTargets['vtol'] ~= nil then
 							calculateWeaponDPS(weaponDef, weaponDef.damages[14]	) --Damage to air category
 						else
@@ -367,7 +390,14 @@ local function refreshUnitInfo()
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
 					end
-
+				elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+					calculateClusterDPS(weaponDef, weaponDef.damages[0])
+					if weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
+					end
 				elseif weaponDef.paralyzer == true and unitDef.name ~= 'armthor' then -- exclude thor emp missile
 					local defDmg = weaponDef.damages[0]      		--Damage to default armor category
 					local emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
