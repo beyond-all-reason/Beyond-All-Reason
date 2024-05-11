@@ -4,7 +4,7 @@ return {
         maxacc = 0.5589,
 		activatewhenbuilt = true,
 		maxdec = 0.5589,
-		energycost = 0,
+		energycost = 500,
 		metalcost = 0,
 		buildpic = "ARMVADER.DDS",
 		buildtime = 7900,
