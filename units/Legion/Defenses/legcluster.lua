@@ -24,7 +24,7 @@ return {
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/LEGCLUSTER.s3o",
-		-- onoffable = true,
+		onoffable = true,
 		script = "Units/LEGCLUSTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
