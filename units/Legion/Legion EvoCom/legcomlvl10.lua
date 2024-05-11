@@ -126,6 +126,9 @@ return {
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
 			stockpileLimit = 4,
+			inheritxpratemultiplier = 0.5,
+			childreninheritxp = "DRONE BOTCANNON",
+			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 		},
 		featuredefs = {
 			dead = {
