@@ -7,6 +7,7 @@
 --  key:      the string used in the script.txt
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
+--  hint:     greyed out text that appears in input field when empty
 --  type:     the option type ('list','string','number','bool')
 --  def:      the default value
 --  min:      minimum value for number options
@@ -571,6 +572,7 @@ local options = {
         key		= "tweakunits",
         name	= "Tweak Units",
         desc	= "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -580,6 +582,7 @@ local options = {
         key     = "tweakdefs",
         name    = "Tweak Defs",
         desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
