@@ -400,14 +400,18 @@ function widget:Initialize()
 			queueNotification(value, force)
 		end
 	end
-	WG['notifications'].playNotification = function(value)
-		if notification[value] then
-			if notification[value].voiceFiles and #notification[value].voiceFiles > 0 then
-				local m = #notification[value].voiceFiles > 1 and math.random(1, #notification[value].voiceFiles) or 1
-				Spring.PlaySoundFile(notification[value].voiceFiles[m], globalVolume, 'ui')
+	WG['notifications'].playNotification = function(event)
+		if notification[event] then
+			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
+				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
+				if notification[event].voiceFiles[m] then
+					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
+				else
+					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
+				end
 			end
-			if displayMessages and WG['messages'] and notification[value].textID then
-				WG['messages'].addMessage(Spring.I18N(notification[value].textID))
+			if displayMessages and WG['messages'] and notification[event].textID then
+				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
 	end
@@ -727,15 +731,19 @@ local function playNextSound()
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
 			local m = 1
-			if spoken and notification[event].voiceFiles and notification[event].voiceFiles[1] ~= '' then
+			if spoken and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
-				Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
-				local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
-				if not duration then
-					duration = ReadWAV(notification[event].voiceFiles[m])
-					duration = duration.Length
+				if notification[event].voiceFiles[m] then
+					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
+					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
+					if not duration then
+						duration = ReadWAV(notification[event].voiceFiles[m])
+						duration = duration.Length
+					end
+					nextSoundQueued = sec + (duration or 3) + silentTime
+				else
+					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
 				end
-				nextSoundQueued = sec + (duration or 3) + silentTime
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
