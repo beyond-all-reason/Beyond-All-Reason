@@ -106,6 +106,8 @@ return {
 			[42] = "corsy",
 			[43] = "corhp",
 			[44] = "corfhp",
+			[45] = "cornanotc",
+			[46] = "cornanotcplat",
 		},
 		customparams = {
 			unitgroup = 'builder',

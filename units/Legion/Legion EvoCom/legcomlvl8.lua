@@ -109,6 +109,8 @@ return {
 			[45] = "corfhp",
 			[46] = "cormabm",
 			[47] = "corasp",
+			[48] = "cornanotc",
+			[49] = "cornanotcplat",
 		},
 		customparams = {
 			unitgroup = 'builder',
