@@ -216,7 +216,7 @@ local corUnitDefIDs = {}
 local armUnitDefIDs = {}
 
 local unitDefIDtoTex1 = {} -- Keys unit def IDs to whichever tex1 is used
-local tex1ToVBO = {} -- Keys texture1 to which VBO is used, small intermediate table, not really used
+local tex1ToVBO = {['arm_color.dds'] = true, ['cor_color.dds'] = true, ['leg_color.dds'] = true, ['legmech_color.dds'] = true} -- Keys texture1 to which VBO is used, small intermediate table, not really used
 local unitDeftoUnitShapeVBOTable = {} --  The important one, which keys the unitDefID to the actual vbo table to be used
 local uniqueIDtoUnitShapeVBOTable = {}
 
@@ -481,10 +481,12 @@ function widget:Initialize()
 		VBOTable.vertexVBO = vertexVBO
 	end
 		
-	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
-		if not tex1ToVBO[tex1] then Spring.Echo("DrawUnitShape unique tex1 is",tex1) end
-		tex1ToVBO[tex1] = true 
-	end 
+	-- This section is for automatically creating all vbos for all posible tex combos.
+	-- However it is disabled here, as there are only 4 true tex combos, as defined above in tex1ToVBOx
+	--for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
+	--	if not tex1ToVBO[tex1] then Spring.Echo("DrawUnitShape unique tex1 is",tex1) end
+	--	tex1ToVBO[tex1] = true 
+	--end 
 	
 	for tex1, _ in pairs(tex1ToVBO) do 
 		local vboname = 'DrawUnitShapeVBOTable:' .. tex1
@@ -496,10 +498,12 @@ function widget:Initialize()
 	end
 	
 	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
-		unitDeftoUnitShapeVBOTable[unitDefID] = tex1ToVBO[tex1]
-		-- This is very important, we need to remember an example unitDefID here
-		-- to use to retrive the corresponding texture bucket
-		unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
+		if tex1ToVBO[tex1] then 
+			unitDeftoUnitShapeVBOTable[unitDefID] = tex1ToVBO[tex1]
+			-- This is very important, we need to remember an example unitDefID here
+			-- to use to retrive the corresponding texture bucket
+			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
+		end
 	end 
 
 	local unitIDs = Spring.GetAllUnits()
