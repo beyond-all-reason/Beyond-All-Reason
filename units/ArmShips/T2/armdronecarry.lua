@@ -49,6 +49,9 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {
