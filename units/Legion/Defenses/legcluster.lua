@@ -183,6 +183,7 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
 				name = "Long-range g2g plasma cannon",
