@@ -32,7 +32,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corllt_aoplane.dds",
+			buildinggrounddecaltype = "decals/leglht_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
@@ -43,7 +43,7 @@ return {
 			firingceg = "barrelshot-tiny",
 			flare1name = "flare",
 			kickback = "-2.0",
-			model_author = "Mr Bob",
+			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
@@ -142,6 +142,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
+					commanders = 270,
 					default = 200,
 					vtol = 25,
 				},
