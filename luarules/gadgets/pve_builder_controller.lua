@@ -34,8 +34,6 @@ for i = 1, #teams do
 		break
 	end
 end
-
-local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
@@ -75,7 +73,7 @@ function gadget:GameFrame(frame)
         for unitID, data in pairs(aliveBuilders) do
             if Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0 then
                 --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
+                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
                     --Spring.Echo(data.unitDefName, "Isn't building anything")
                     local turretOptions = {}
                     for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do

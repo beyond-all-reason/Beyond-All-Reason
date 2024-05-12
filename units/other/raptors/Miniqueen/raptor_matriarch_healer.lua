@@ -60,6 +60,13 @@ return {
 		upright = false,
 		waterline = 40,
 		workertime = 2500,
+		buildoptions = {
+			"raptor_turret_basic_t4_v1",
+			"raptor_turret_antiair_t4_v1",
+			"raptor_turret_acid_t4_v1",
+			"raptor_turret_emp_t4_v1",
+			"raptor_turret_meteor_t4_v1",
+		},
 		customparams = {
 			subfolder = "other/raptors",
 			normaltex = "unittextures/chicken_l_normals.png",

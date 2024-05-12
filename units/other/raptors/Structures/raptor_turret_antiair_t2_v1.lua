@@ -21,7 +21,7 @@ return {
 		collisionvolumetype = "box",
 		energystorage = 500,
 		explodeas = "bug_death",
-		extractsmetal = 0.001,
+		--extractsmetal = 0.001,
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 15,
