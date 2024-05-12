@@ -273,8 +273,8 @@ function UnitDef_Post(name, uDef)
 				uDef.energymake = 125
 				uDef.metalmake = 9
 				uDef.customparams.inheritxratemultiplier = 0.5
-        uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
-        uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
+        		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
+        		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
 				end
 			end
 		end
