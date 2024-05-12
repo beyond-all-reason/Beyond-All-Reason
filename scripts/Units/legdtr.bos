@@ -23,6 +23,10 @@ Close()
 	turn lida to z-axis <180> speed <160>;
 	turn lidb to z-axis <-180> speed <160>;
 	wait-for-turn lida around z-axis;
+	hide aimpoint;
+	hide aimfrom;
+	hide flare;
+	hide firepoint;
 	set ARMORED to 1;
 }
 
@@ -37,6 +41,7 @@ Open()
 	turn turretstrut to x-axis <0> speed <150>; // turn turretstrut, barrel, around x-axis to partially open position
 	// wait-for-turn turretstrut around x-axis; // wait for turretstrut
 	turn barrel to x-axis <0> speed <150>; // turn barrel around x-axis to fully open position
+	wait-for-turn barrel around x-axis;
 	is_open = 1;	
 }
 
@@ -69,6 +74,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	hide aimpoint;
+	hide aimfrom;
+	hide flare;
+	hide firepoint;
 	start-script Close();
 }
 
