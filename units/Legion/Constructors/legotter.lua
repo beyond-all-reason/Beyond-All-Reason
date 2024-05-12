@@ -1,3 +1,4 @@
+
 return {
 	legotter = {
 		maxacc = 0.01722,
@@ -59,12 +60,12 @@ return {
 			[15] = "cornanotc",
 			[16] = "cornanotcplat",
 			[17] = "coreyes",
-			[18] = "corrad",
+			[18] = "legrad",
 			[19] = "legdrag",
 			[20] = "legdtl",
 			[21] = "legdtf",
 			[22] = "legdtm",
-			[23] = "corllt",
+			[23] = "leglht",
 			[24] = "legmg",
 			[25] = "corpun",
 			[26] = "corrl",
@@ -72,7 +73,7 @@ return {
 			[28] = "corerad",
 			[29] = "corjuno",
 			[30] = "cordl",
-			[31] = "corjamt",
+			[31] = "legjam",
 			[32] = "corfhp",
 			[33] = "coramsub",
 			[34] = "corplat",

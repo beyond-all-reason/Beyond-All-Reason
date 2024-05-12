@@ -64,7 +64,8 @@
 		},
 		"unitMarket": {
 			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal."
+			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal.",
+			"notEnoughMetal": "Not enough metal!"
 		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
@@ -298,8 +299,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Settings",
-				"widgetsKey": "f11",
-				"widgets": "Widget list",
 				"share": "Share units / resources"
 			},
 			"camera": {
@@ -677,7 +676,8 @@
 		},
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",
-			"unitRemoved": "Removed %{unit} from autogroups."
+			"unitRemoved": "Removed %{unit} from autogroups.",
+			"presetSelected": "Selected autogroup preset #%{presetNum}."
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} is being attacked!",
