@@ -13,7 +13,7 @@ end
 
 local defaultVoiceSet = 'en/allison'
 
-local useDefaultVoiceFallback = true    -- when a voiceset has missing file, try to load the default voiceset file instead
+local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local useDefaultVoiceFallbackCustom = true    -- only used for dynamicly added notifications like scavengers do
 
 local silentTime = 0.7    -- silent time between queued notifications
@@ -35,6 +35,18 @@ VFS.Include('common/wav.lua')
 local language = Spring.GetConfigString('language', 'en')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+if string.sub(voiceSet, 1, 2) ~= language then
+	local languageDirs = VFS.SubDirs('sounds/voice', '*')
+	for k, f in ipairs(languageDirs) do
+		local langDir = string.sub(f, 14, string.len(f)-1)
+		local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
+		for k, file in ipairs(files) do
+			local dirname = string.sub(file, 14, string.len(file)-1)
+			voiceSet = langDir..'/'..dirname
+			break
+		end
+	end
+end
 
 local LastPlay = {}
 local notification = {}
