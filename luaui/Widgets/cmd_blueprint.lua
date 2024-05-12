@@ -521,8 +521,6 @@ function widget:Update(dt)
 		pendingBoxSelect = false
 	end
 
-	--event("Update")
-
 	local _, cmdID = SpringGetActiveCommand()
 	if cmdID ~= prevActiveCommand then
 		setBlueprintPlacementActive(cmdID == CMD_BLUEPRINT_PLACE)
