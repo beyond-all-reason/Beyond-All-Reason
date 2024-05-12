@@ -52,6 +52,7 @@ local difficulties = {
 	veryhard = 600,
 	epic     = 500,
 }
+
 local gridSize = difficulties[Spring.GetModOptions().raptor_difficulty]
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
