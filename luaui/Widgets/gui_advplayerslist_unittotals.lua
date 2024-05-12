@@ -53,8 +53,8 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local myTotalUnits = Spring.GetTeamUnitCount(myTeamID)
-		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = myTotalUnits, maxUnits = Spring.GetTeamMaxUnits(myTeamID), totalUnits = totalUnits })
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
 
 		if displayFeatureCount then
 			local features = Spring.GetAllFeatures()

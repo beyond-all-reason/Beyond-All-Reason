@@ -179,6 +179,8 @@ bind sc_c buildunit_corllt
 bind Shift+sc_c buildunit_corllt
 bind sc_c buildunit_corrad
 bind Shift+sc_c buildunit_corrad
+bind sc_c buildunit_legrad
+bind Shift+sc_c buildunit_legrad
 bind sc_c buildunit_corrl
 bind Shift+sc_c buildunit_corrl
 bind sc_c buildunit_armrl

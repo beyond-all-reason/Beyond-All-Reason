@@ -63,6 +63,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
 	end
+	if unitDef.name == 'legrad' then
+		cmdidtoradarsize[-1 * unitDefID] = "small"
+		radaremitheight[-1 * unitDefID] = 72
+	end
 	if unitDef.name == 'corfrad' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
