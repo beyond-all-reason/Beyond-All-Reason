@@ -255,7 +255,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
-					default = 87,
+					default = 80,
 					subs = 25,
 				}
 			},
@@ -422,6 +422,33 @@ return {
 						},
 					},
 				},
+				armcannon = {
+					areaofeffect = 210,
+					avoidfeature = false,
+					craterareaofeffect = 292,
+					craterboost = 0,
+					cratermult = 0,
+					edgeeffectiveness = 0.15,
+					explosiongenerator = "custom:genericshellexplosion-large-aoe",
+					gravityaffected = "true",
+					impulseboost = 0.123,
+					impulsefactor = 0.123,
+					name = "HeavyCannon",
+					noselfdamage = true,
+					range = 550,
+					reloadtime = 3,
+					soundhit = "xplomed4",
+					soundhitwet = "splslrg",
+					soundstart = "largegun",
+					turret = true,
+					weapontype = "Cannon",
+					weaponvelocity = 310,
+					damage = {
+						default = 700,
+						subs = 150,
+						vtol = 40,
+					},
+				},
 			},
 			weapons = {
 				[1] = {
@@ -445,6 +472,11 @@ return {
 				[5] = {
 					def = "CORCOMEYELASER",
 					onlytargetcategory = "NOTSUB",
+					fastautoretargeting = true,
+				},
+				[6] = {
+					def = "ARMCANNON",
+					onlytargetcategory = "SURFACE",
 					fastautoretargeting = true,
 				},
 			},
