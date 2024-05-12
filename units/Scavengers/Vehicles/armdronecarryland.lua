@@ -48,6 +48,9 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "scavengers/vehicles",
 			techlevel = 3,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {

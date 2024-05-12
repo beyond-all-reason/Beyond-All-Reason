@@ -130,6 +130,9 @@ return {
 			evolution_condition = "timer",
 			evolution_timer = 210,
 			combatradius = 500,
+			inheritxpratemultiplier = 0.5,
+			childreninheritxp = "DRONE BOTCANNON",
+			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 		},
 		featuredefs = {
 			dead = {
