@@ -127,7 +127,7 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.builddistance = uDef.builddistance * 2
 	 		end
 			if uDef.workertime then
-				uDef.workertime = uDef.workertime * 10
+				uDef.workertime = uDef.workertime * 4
 			end
 	 	end
 	end
