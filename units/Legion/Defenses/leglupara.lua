@@ -108,6 +108,7 @@ return {
 		weapondefs = {
 			legflak_gun = {
 				accuracy = 1000,
+				sprayangle = 200,
 				areaofeffect = 150,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -131,7 +132,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 1125,
-				reloadtime = 1.2,
+				reloadtime = 1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
