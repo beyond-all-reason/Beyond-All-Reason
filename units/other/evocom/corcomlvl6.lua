@@ -22,7 +22,7 @@ return {
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energymake = 250,
+		energymake = 325,
 		energystorage = 500,
 		explodeas = "commanderexplosion",
 		footprintx = 2,
