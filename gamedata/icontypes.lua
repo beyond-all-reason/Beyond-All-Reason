@@ -2101,7 +2101,7 @@ local icontypes = {
 	},
 	legcluster = {
 		bitmap = "icons/def_t1_arty.png",
-		size = 1.0000000
+		size = 1.1500000
 	},
 	legcom = {
 		bitmap = "icons/legcom.png",
