@@ -272,7 +272,7 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.wtboostunittype = "MOBILE"
 				uDef.energymake = 125
 				uDef.metalmake = 9
-				uDef.customparams.inheritxratemultiplier = 0.5
+				uDef.customparams.inheritxpratemultiplier = 0.5
         		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
         		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
 				end
