@@ -79,7 +79,7 @@ function gadget:GameFrame(frame)
                     --Spring.Echo(data.unitDefName, "Isn't building anything")
                     local turretOptions = {}
                     for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
-                        Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
+                        --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
                         if buildOptionID and UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0 then
                             turretOptions[#turretOptions+1] = buildOptionID
                             --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
