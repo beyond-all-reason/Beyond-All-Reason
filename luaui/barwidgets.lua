@@ -201,7 +201,12 @@ local callInLists = {
 	'VisibleUnitsChanged',
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
-	'AlliedUnitsChanged'
+	'AlliedUnitsChanged',
+	'UnitSale',
+	'UnitSold',
+	'VisibleExplosion',
+	'Barrelfire',
+	'CrashingAircraft',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -2397,6 +2402,38 @@ end
 
 --------------------------------------------------------------------------------
 --
+--  GFX
+--
+
+function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:VisibleExplosion")
+	for _, w in ipairs(self.VisibleExplosionList) do
+		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:Barrelfire")
+	for _, w in ipairs(self.BarrelfireList) do
+		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("W:CrashingAircraft")
+	for _, w in ipairs(self.CrashingAircraftList) do
+		w:CrashingAircraft(unitID, unitDefID, unitTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+--------------------------------------------------------------------------------
+--
 --  Feature call-ins
 --
 
@@ -2413,6 +2450,30 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracy.ZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+
+--------------------------------------------------------------------------------
+--
+--  Unit Market
+--
+
+function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSale")
+	for _, w in ipairs(self.UnitSaleList) do
+		w:UnitSale(unitID, price, msgFromTeamID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSold")
+	for _, w in ipairs(self.UnitSoldList) do
+		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
 	tracy.ZoneEnd()
 	return

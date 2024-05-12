@@ -42,6 +42,9 @@ return {
 			--removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "BOTCANNON",
+			parentsinheritxp = "BOTCANNON",
 		},
 		featuredefs = {
 			dead = {
@@ -146,10 +149,10 @@ return {
 				bouncerebound = 0.5,
 				numbounce = 10,
 				weapontype = "Cannon",
-				weaponvelocity = 1000,
+				weaponvelocity = 1250,
 				customparams = {
 					spawns_name = "armpw",
-					spawns_surface = "LAND", -- Available: "LAND SEA"
+					spawns_surface = "LAND", -- Available: "LAND SEA" blah
 				},
 				damage = {
 					default = 10,

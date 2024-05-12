@@ -24,6 +24,7 @@ return {
 		speed = 62.4,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROY.s3o",
 		script = "Units/CORROY.cob",

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "2022",
 		license   = "public",
 		layer     = 1000,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 

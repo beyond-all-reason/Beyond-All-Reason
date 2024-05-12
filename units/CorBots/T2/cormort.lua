@@ -22,6 +22,7 @@ return {
 		speed = 50.4,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMORT.s3o",
 		script = "Units/CORMORT.cob",

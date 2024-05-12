@@ -20,7 +20,6 @@ local postProcFile = 'gamedata/unitdefs_post.lua'
 local DownloadBuilds = VFS.Include('gamedata/download_builds.lua')
 
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 
 local section = 'unitdefs.lua'
 
@@ -47,7 +46,7 @@ end
 --
 
 
-local luaFiles = RecursiveFileSearch('units/', '*.lua')
+local luaFiles = VFS.DirList('units/', '*.lua', nil, true)
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 local scavengersEnabled = true

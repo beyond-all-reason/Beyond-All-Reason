@@ -1,6 +1,3 @@
--- $Id: api_ranks.lua 3171 2008-11-06 09:06:29Z det $
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
@@ -10,7 +7,7 @@ function gadget:GetInfo()
 		date = "Dec 19, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = -990000,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 

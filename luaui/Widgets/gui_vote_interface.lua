@@ -148,7 +148,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		if votesEligible then
 			if votesRequired then
 				-- progress bar: required for
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesRequired) - bgpadding - bgpadding
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesRequired)
 				color1 = { 0, 0.6, 0, 0.1 }
 				color2 = { 0, 1, 0, 0.1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
@@ -162,7 +162,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 			-- progress bar: for
 			if votesCountYes > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesCountYes) - bgpadding - bgpadding
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountYes)
 				color1 = { 0, 0.33, 0, 1 }
 				color2 = { 0, 0.6, 0, 1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
@@ -176,7 +176,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 			end
 			-- progress bar: against
 			if votesCountNo > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesCountNo) - bgpadding - bgpadding
+				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountNo)
 				color1 = { 0.33, 0, 0, 1 }
 				color2 = { 0.6, 0, 0, 1 }
 				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
