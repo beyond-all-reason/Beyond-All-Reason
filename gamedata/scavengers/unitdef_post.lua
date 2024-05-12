@@ -8,7 +8,7 @@ local function scavUnitDef_Post(name, uDef)
 
  	-- replaced uniticons
 	if uDef.buildpic then
-		Spring.Echo("FILEEXISTS", VFS.FileExists("unitpics/scavengers/"..uDef.buildpic))
+		--Spring.Echo("FILEEXISTS", VFS.FileExists("unitpics/scavengers/"..uDef.buildpic))
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
 		if (not string.find(uDef.buildpic, "scavengers"))
 		and (not string.find(uDef.buildpic, "raptor"))
