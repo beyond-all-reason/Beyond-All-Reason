@@ -9,6 +9,8 @@ function widget:GetInfo()
 	}
 end
 
+VFS.Include("luarules/configs/customcmds.h.lua")
+
 -- types
 -- =====
 
@@ -170,7 +172,6 @@ local BLUEPRINT_UNIT_LIMIT = 100
 ---maximum total number of orders in a given blueprint placement command
 local BLUEPRINT_ORDER_LIMIT = 400
 
-local CMD_BLUEPRINT_PLACE = 894725
 local CMD_BLUEPRINT_PLACE_DESCRIPTION = {
 	id = CMD_BLUEPRINT_PLACE,
 	type = CMDTYPE.ICON_MAP,
@@ -179,7 +180,6 @@ local CMD_BLUEPRINT_PLACE_DESCRIPTION = {
 	action = "blueprint_place",
 }
 
-local CMD_BLUEPRINT_CREATE = 894726
 local CMD_BLUEPRINT_CREATE_DESCRIPTION = {
 	id = CMD_BLUEPRINT_CREATE,
 	type = CMDTYPE.ICON,
@@ -188,7 +188,6 @@ local CMD_BLUEPRINT_CREATE_DESCRIPTION = {
 	action = "blueprint_create",
 }
 
-local CMD_BLUEPRINT_CREATE_SELECTIONORDER = 894727
 local CMD_BLUEPRINT_CREATE_SELECTIONORDER_DESCRIPTION = {
 	id = CMD_BLUEPRINT_CREATE_SELECTIONORDER,
 	type = CMDTYPE.ICON,
