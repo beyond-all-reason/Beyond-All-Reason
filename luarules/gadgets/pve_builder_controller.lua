@@ -34,8 +34,6 @@ for i = 1, #teams do
 		break
 	end
 end
-
-local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
@@ -75,26 +73,20 @@ function gadget:GameFrame(frame)
         for unitID, data in pairs(aliveBuilders) do
             if Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0 then
                 --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
+                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
                     --Spring.Echo(data.unitDefName, "Isn't building anything")
                     local turretOptions = {}
                     for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
-                        Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
+                        --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
                         if buildOptionID and UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0 then
                             turretOptions[#turretOptions+1] = buildOptionID
                             --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
                         end
                     end
                     if #turretOptions > 1 then
-                        for i = 1,4 do
-                            local turret = turretOptions[math.random(1, #turretOptions)]
-                            local x,y,z = Spring.GetUnitPosition(unitID)
-                            if i == 1 then
-                                Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
-                            else
-                                Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {"shift"})
-                            end
-                        end
+                        local turret = turretOptions[math.random(1, #turretOptions)]
+                        local x,y,z = Spring.GetUnitPosition(unitID)
+                        Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
                     end
                 end
             end

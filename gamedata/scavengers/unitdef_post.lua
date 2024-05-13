@@ -8,13 +8,15 @@ local function scavUnitDef_Post(name, uDef)
 
  	-- replaced uniticons
 	if uDef.buildpic then
+		--Spring.Echo("FILEEXISTS", VFS.FileExists("unitpics/scavengers/"..uDef.buildpic))
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
 		if (not string.find(uDef.buildpic, "scavengers"))
 		and (not string.find(uDef.buildpic, "raptor"))
 		and (not string.find(uDef.buildpic, "critters"))
 		and (not string.find(uDef.buildpic, "lootboxes"))
 		and (not string.find(uDef.buildpic, "other"))
-		and (not string.find(uDef.buildpic, "alternative")) then
+		and (not string.find(uDef.buildpic, "alternative"))
+		and (VFS.FileExists("unitpics/scavengers/"..uDef.buildpic)) then
 			uDef.buildpic = "scavengers/"..uDef.buildpic
 		end
 	end
@@ -125,7 +127,7 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.builddistance = uDef.builddistance * 2
 	 		end
 			if uDef.workertime then
-				uDef.workertime = uDef.workertime * 10
+				uDef.workertime = uDef.workertime * 4
 			end
 	 	end
 	end

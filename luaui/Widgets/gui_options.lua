@@ -3231,6 +3231,11 @@ function init()
 			onchange = function(i, value)
 				local language = languageCodes[value]
 				WG['language'].setLanguage(language)
+				if widgetHandler.orderList["Notifications"] ~= nil then
+					widgetHandler:DisableWidget("Notifications")
+					widgetHandler:EnableWidget("Notifications")
+					init()
+				end
 			end
 		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
