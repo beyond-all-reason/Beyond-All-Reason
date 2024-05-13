@@ -105,7 +105,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				damage = {
-					default = 7,
+					default = 8,
 					vtol = 1,
 				},
 			},
