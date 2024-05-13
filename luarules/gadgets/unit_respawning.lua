@@ -89,7 +89,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- minimum_respawn_stun = 5,					--respawn stun duration, roughly in seconds. 
 		-- distance_stun_multiplier = 1,				--respawn stun duration based on distance from respawn location when dying. (distance * distance_stun_multiplier) 
 		-- respawn_pad = true,							--set this to true if you want the effigy to stay where it is when respawning. Use this if the effigy unit is a respawn pad or similar. 
-		
+		-- iseffigy = true,								--set this in the unitdef of the effigies that are buildable by the player.
+
 		--	-- Has a default value, as indicated, if not chosen:
 		-- respawn_health_threshold = 0,				--The health value when the unit will initiate the respawn sequence.
 		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns. 
@@ -146,6 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 				respawn_condition = udcp.respawn_condition or "none",
 				respawn_health_threshold = tonumber(udcp.respawn_health_threshold) or 0,
 				effigy = udcp.effigy or "none",
+				effigy_offset = tonumber(udcp.effigy_offset) or 0,
 				respawn_announcement = udcp.respawn_announcement,
 				respawn_announcement_size = tonumber(udcp.respawn_announcement_size),
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
@@ -164,7 +166,11 @@ if gadgetHandler:IsSyncedCode() then
 					local x,y,z = spGetUnitPosition(unitID)
 					local blockType, blockID = Spring.GetGroundBlocked(x+i, z+i)
 					local groundH = Spring.GetGroundHeight(x+i, z+i)
-					if blockType then
+
+					if respawnMetaList[unitID].effigy_offset == 0 then
+						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
+					
+					elseif blockType then
 						
 					else
 						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x+i, groundH, z+i, 0, unitTeam)
@@ -197,6 +203,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
+			if respawnMetaList[unitID].respawn_pad == false then
+				if respawnMetaList[unitID].effigyID then
+					spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+				end
+			end
 			respawnMetaList[unitID] = nil
 		end
 
@@ -210,10 +221,12 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[unitID].respawn_condition == "health" then
 				local h, mh = spGetUnitHealth(unitID)
 				local currentTime =  spGetGameSeconds()
-				if (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
+				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
 						ReturnToBase(unitID)
 						respawnMetaList[unitID].respawnTimer = spGetGameSeconds()
 						return 0, 0
+				elseif (currentTime-respawnMetaList[unitID].respawnTimer) <= 5 then
+					return 0, 0
 				end
 			end
 		end
