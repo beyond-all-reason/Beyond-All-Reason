@@ -24,7 +24,7 @@ else
 end
 
 local scavengerAITeamID = 999
-local raptorsAITeamID = 999
+--local raptorsAITeamID = 999
 
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -34,13 +34,13 @@ for i = 1, #teams do
 		break
 	end
 end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
+--for i = 1, #teams do
+--	local luaAI = Spring.GetTeamLuaAI(teams[i])
+--	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+--		raptorsAITeamID = i - 1
+--		break
+--	end
+--end
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do
@@ -57,7 +57,8 @@ end
 local aliveBuilders = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    --if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID) then
         aliveBuilders[unitID] = builderDefs[unitDefID]
     end
 end
