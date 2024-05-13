@@ -671,7 +671,7 @@ function widget:Initialize()
 		end
 	end
 
-	if (draftMode == "skill" or draftMode == "random" or draftMode == "fair") then
+	if (draftMode ~= "disabled") then
 		-- auto_ready_disable = true -- if we want to disable auto ready using this mod, otherwise do not uncomment
 		-- auto_ready_timer = auto_ready_timer * 2 -- if you want to double the wait time, otherwise do not uncomment
 	end

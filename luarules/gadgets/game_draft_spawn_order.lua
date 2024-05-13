@@ -215,7 +215,7 @@ local function PreInitDraftOrderData()
 		end
 		votedToForceStartDraft[allyTeamID][teamID] = false
 	end
-	if draftMode == "random" or draftMode == "skill" then
+	if draftMode == "random" or draftMode == "skill" or draftMode == "captain" then
 		for _, teamID in ipairs(tteams) do
 			local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 			if not votedToForceSkipTurn[allyTeamID] then
@@ -262,7 +262,7 @@ end
 local function InitDraftOrderData(allyTeamID_ready)
 	if allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
 	allyTeamIsInGame[allyTeamID_ready] = true
-	if draftMode == "random" then
+	if draftMode == "random" or draftMode == "captain" then
 		local tteams = Spring.GetTeamList()
 		for _, teamID in ipairs(tteams) do
 			local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
@@ -271,6 +271,20 @@ local function InitDraftOrderData(allyTeamID_ready)
 			end
 		end
 		shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
+		-- Try to put 'captain' first
+		if draftMode == "captain" and (#allyTeamSpawnOrder[allyTeamID_ready] > 1) then
+			local highestSkill = 0
+			local captainTeamIDindex = nil
+			for index, teamID in ipairs(allyTeamSpawnOrder[allyTeamID_ready]) do
+				if teamPlayerData[teamID] and teamPlayerData[teamID].skill > highestSkill then
+					highestSkill = teamPlayerData[teamID].skill
+					captainTeamIDindex = index
+				end
+			end
+			if captainTeamIDindex and highestSkill > 0 then
+				allyTeamSpawnOrder[allyTeamID_ready][1], allyTeamSpawnOrder[allyTeamID_ready][captainTeamIDindex] = allyTeamSpawnOrder[allyTeamID_ready][captainTeamIDindex], allyTeamSpawnOrder[allyTeamID_ready][1]
+			end
+		end
 		putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 	elseif draftMode == "skill" then
 		local tteams = Spring.GetTeamList()
@@ -301,7 +315,7 @@ local function InitDraftOrderData(allyTeamID_ready)
 		putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 	end
 	Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
-	if draftMode == "skill" or draftMode == "random" then
+	if draftMode == "skill" or draftMode == "random" or draftMode == "captain" then
 		canVoteSkipTurn = true
 		allyTeamSpawnOrderPlaced[allyTeamID_ready] = 1 -- First team in the order queue must place now
 		sendTeamOrder(allyTeamSpawnOrder[allyTeamID_ready], allyTeamID_ready, true) -- Send order FIRST
@@ -328,6 +342,8 @@ function draftModeInitialize()
 	PreInitDraftOrderData()
 	if draftMode == "random" then -- Random draft
 		Spring.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
+	elseif draftMode == "captain" then -- Fair mod
+		Spring.SendLuaUIMsg("DraftOrder_Captain") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
 	elseif draftMode == "skill" then -- Skill-based placement order
 		Spring.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
 	elseif draftMode == "fair" then -- Fair mod
@@ -340,7 +356,7 @@ function Draft_PreAllowStartPosition(teamID, allyTeamID)
 	local _, _, _, isAI = spGetTeamInfo(teamID, false)
 	if not isAI then
 		if allyTeamIsInGame[allyTeamID] == false then return false end -- Wait for everyone
-		if draftMode == "skill" or draftMode == "random" then
+		if draftMode == "skill" or draftMode == "random" or draftMode == "captain" then
 			local turnCheck = isTurnToPlace(allyTeamID, teamID) -- Check if it's your turn
 			if turnCheck == 0 then
 				return false, false
@@ -364,7 +380,7 @@ function DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		votedToForceStartDraft[allyTeamID][playerTeam] = true
 		checkVotesAndStartDraft(allyTeamID) -- in fair mode it simply unlocks placing after latejoin timeout
 	end
-	if (draftMode == "skill" or draftMode == "random") then
+	if (draftMode == "skill" or draftMode == "random" or draftMode == "captain") then
 		if allyTeamSpawnOrderPlaced[allyTeamID] and allyTeamSpawnOrderPlaced[allyTeamID] > 0 then
 			if msg == "skip_my_turn" then
 				if allyTeamIsInGame[allyTeamID] and playerTeam and allyTeamID then
