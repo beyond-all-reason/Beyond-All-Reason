@@ -281,7 +281,7 @@ local function InitDraftOrderData(allyTeamID_ready)
 					captainTeamIDindex = index
 				end
 			end
-			if captainTeamIDindex and highestSkill > 0 then
+			if captainTeamIDindex and highestSkill > 0 and captainTeamIDindex ~= 1 then
 				allyTeamSpawnOrder[allyTeamID_ready][1], allyTeamSpawnOrder[allyTeamID_ready][captainTeamIDindex] = allyTeamSpawnOrder[allyTeamID_ready][captainTeamIDindex], allyTeamSpawnOrder[allyTeamID_ready][1]
 			end
 		end
