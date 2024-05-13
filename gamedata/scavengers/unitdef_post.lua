@@ -84,13 +84,13 @@ local function scavUnitDef_Post(name, uDef)
 
 	
 	-- Remove wrecks of units you shouldn't be able to capture
-	if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
-		if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
-			uDef.corpse = "HEAP"
-		elseif uDef.corpse then
-			uDef.corpse = nil
-		end
-	end
+	-- if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
+	-- 	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
+	-- 		uDef.corpse = "HEAP"
+	-- 	elseif uDef.corpse then
+	-- 		uDef.corpse = nil
+	-- 	end
+	-- end
 	
 	-- Set autoheal of scav units
 	if uDef.health then
