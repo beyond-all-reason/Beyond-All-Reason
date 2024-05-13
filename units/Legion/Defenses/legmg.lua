@@ -38,7 +38,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weaponaa',
 			model_author = "Beherith",
-			normaltex = "unittextures/Arm_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 		},

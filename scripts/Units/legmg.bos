@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pole, flare, turret, sleeve, barrel;
+// piece  base, pole, flare, turret, sleeve, barrel;
+piece base, turret, strut, sleeve, barrel, flare;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
             Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
@@ -66,12 +67,12 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn pole to y-axis heading speed <200.000000>;
+	turn turret to y-axis heading speed <200.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <100.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn pole around y-axis;
+		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}
 	wpn1_lasthead = heading;
