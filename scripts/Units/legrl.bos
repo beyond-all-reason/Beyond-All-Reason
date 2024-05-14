@@ -26,7 +26,7 @@ Create()
 {
 	hide flare1;
 	hide flare2;
-	gun_1 = flare1;
+	gun_1 = 1;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -80,14 +80,14 @@ FirePrimary()
 	++gun_1;
 	if( gun_1 == 3 )
 	{
-		gun_1 = flare1;
+		gun_1 = 1;
 	}
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = flare2;
 	return (0);
 }
 
@@ -95,11 +95,11 @@ QueryPrimary(piecenum)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		piecenum = flare2;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		piecenum = flare1;
 	}
 	return (0);
 }
