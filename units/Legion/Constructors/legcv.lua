@@ -66,7 +66,7 @@ return {
 			"leglht",
 			"legmg",
 			"legcluster",
-			"corrl",
+			"legrl",
 			"cormadsam",
 			"leglupara",
 			"cordl",

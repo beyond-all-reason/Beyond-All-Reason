@@ -603,6 +603,7 @@ local unitOrderTable = {
    --DEFENSES AA
    ['armrl']          = 130100,
    ['corrl']          = 130200,
+   ['legrl']          = 130250,
    ['armferret']      = 130300,
    ['cormadsam']      = 130400,
    ['armcir']         = 130500,
