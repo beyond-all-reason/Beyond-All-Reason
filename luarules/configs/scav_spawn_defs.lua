@@ -373,6 +373,7 @@ local LandUnitsList = {
 			["corvroc_scav"] = 1,
 			["cortrem_scav"] = 1,
 			["corhrk_scav"] = 1,
+			["corsiegebreaker_scav"] = 1,
 			--Legion
 			["leginf_scav"] = 1,
 			["legmed_scav"] = 1,
@@ -576,10 +577,12 @@ local SeaUnitsList = {
 		["armserp_scav"] = 1,
 		["armmship_scav"] = 1,
 		["armsjam_scav"] = 1,
+		["armtrident_scav"] = 1,
 		--Cortex
 		["corssub_scav"] = 1,
 		["cormship_scav"] = 1,
 		["corsjam_scav"] = 1,
+		["corsentinel_scav"] = 1,
 		},
 		[5] = {
 		--Armada
