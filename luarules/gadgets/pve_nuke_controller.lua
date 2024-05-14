@@ -23,6 +23,25 @@ else
 	return false
 end
 
+local scavengerAITeamID = 999
+local raptorsAITeamID = 999
+
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		break
+	end
+end
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+		raptorsAITeamID = i - 1
+		break
+	end
+end
+
 local nukeDefs = {}
 for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav","corjuno_scav", "armjuno_scav"}) do 
 	if UnitDefNames[unitDefName] then 
@@ -33,7 +52,7 @@ end
 local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if nukeDefs[unitDefID] then
+    if nukeDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
         aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,10)
     end
 end

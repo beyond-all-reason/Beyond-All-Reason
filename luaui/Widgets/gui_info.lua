@@ -113,6 +113,12 @@ local GL_ONE = GL.ONE
 
 local hideBuildlist
 
+-- Reverse armor type table
+local armorIndex = {}
+for ii = 1, #Game.armorTypes do
+	armorIndex[Game.armorTypes[ii]] = ii
+end
+
 local function round(value, numDecimalPlaces)
 	if value then
 		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
@@ -338,7 +344,7 @@ local function refreshUnitInfo()
 						elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							calculateClusterDPS(weaponDef, weaponDef.damages[0])
 						elseif weapons[i].onlyTargets['vtol'] ~= nil then
-							calculateWeaponDPS(weaponDef, weaponDef.damages[14]	) --Damage to air category
+							calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol]) --Damage to air category
 						else
 							calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 						end
@@ -393,7 +399,7 @@ local function refreshUnitInfo()
 					local defDmg
 
 					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
-						defDmg = weaponDef.damages[14]
+						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
 					end
@@ -426,7 +432,7 @@ local function refreshUnitInfo()
 					local defDmg
 
 					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
-						defDmg = weaponDef.damages[14]
+						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
 					end
