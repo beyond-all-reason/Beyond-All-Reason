@@ -81,13 +81,13 @@ function widget:Initialize()
         maybeRemoveSelf()
     end
 
-    WG['autocloak'] = {}
+    --[[WG['autocloak'] = {}
 	WG['autocloak'].getUnitdefConfig = function()
 		return unitdefConfig
 	end
 	WG['autocloak'].setUnitdefConfig = function(type, value)
 		unitdefConfig[type] = value
-	end
+	end]]
 
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
@@ -126,16 +126,25 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData()
+	local unitdefConfigNames = {}
+	for uDefID, params in pairs(unitdefConfig) do
+		if UnitDefs[uDefID] then
+			unitdefConfigNames[UnitDefs[uDefID].name] = params
+		end
+	end
 	return {
-		unitdefConfig = unitdefConfig,
+		unitdefConfig = unitdefConfigNames,
 	}
 end
 
 function widget:SetConfigData(cfg)
 	if cfg.unitdefConfig ~= nil then
-		for unitDefID, value in pairs(cfg.unitdefConfig) do
-			if unitdefConfig[unitDefID] ~= nil then
-				unitdefConfig[unitDefID] = value
+		for unitName, value in pairs(cfg.unitdefConfig) do
+			if UnitDefNames[unitName] then
+				local unitDefID = UnitDefNames[unitName].id
+				if unitdefConfig[unitDefID] ~= nil then
+					unitdefConfig[unitDefID] = value
+				end
 			end
 		end
 	end
