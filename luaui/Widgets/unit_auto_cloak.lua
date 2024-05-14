@@ -81,13 +81,13 @@ function widget:Initialize()
         maybeRemoveSelf()
     end
 
-    --[[WG['autocloak'] = {}
+    WG['autocloak'] = {}
 	WG['autocloak'].getUnitdefConfig = function()
 		return unitdefConfig
 	end
 	WG['autocloak'].setUnitdefConfig = function(type, value)
 		unitdefConfig[type] = value
-	end]]
+	end
 
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
