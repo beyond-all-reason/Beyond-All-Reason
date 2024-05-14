@@ -74,6 +74,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
+
+	include("luarules/configs/customcmds.h.lua")
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
 
 
@@ -139,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
 			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
 			spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
+			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      { states.cloak     and 1 or 0 },  { })
 			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
 			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
 		end
