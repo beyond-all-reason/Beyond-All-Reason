@@ -1688,21 +1688,21 @@ armada_lazarus.bos:           corpsetype = 3 ;
 armada_lazarus.bos:           return(corpsetype);
 armada_lazarus.bos:   corpsetype = 3 ;
 armada_lazarus.bos:   return corpsetype;
-armrectrt4.bos: //set-signal-mask SIG_WALK;
-armrectrt4.bos: set-signal-mask SIG_BUILD;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
-armrectrt4.bos: set-signal-mask SIG_BUILD;
-armrectrt4.bos: set-signal-mask 0;
-armrectrt4.bos:Killed(severity, corpsetype)
-armrectrt4.bos:         corpsetype = 1 ;
-armrectrt4.bos:         return(corpsetype);
-armrectrt4.bos:         corpsetype = 2 ;
-armrectrt4.bos:         return(corpsetype);
-armrectrt4.bos:         corpsetype = 3 ;
-armrectrt4.bos:         return(corpsetype);
-armrectrt4.bos: corpsetype = 3 ;
-armrectrt4.bos: return corpsetype;
+armada_epicrector.bos: //set-signal-mask SIG_WALK;
+armada_epicrector.bos: set-signal-mask SIG_BUILD;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set-signal-mask SIG_BUILD;
+armada_epicrector.bos: set-signal-mask 0;
+armada_epicrector.bos:Killed(severity, corpsetype)
+armada_epicrector.bos:         corpsetype = 1 ;
+armada_epicrector.bos:         return(corpsetype);
+armada_epicrector.bos:         corpsetype = 2 ;
+armada_epicrector.bos:         return(corpsetype);
+armada_epicrector.bos:         corpsetype = 3 ;
+armada_epicrector.bos:         return(corpsetype);
+armada_epicrector.bos: corpsetype = 3 ;
+armada_epicrector.bos: return corpsetype;
 armada_nettle.bos:SetStunned(State)
 armada_nettle.bos:      set-signal-mask SIG_AIM;
 armada_nettle.bos:Killed(severity, corpsetype)
@@ -5508,8 +5508,8 @@ armada_grimreaper.bos:    set INBUILDSTANCE to 1;
 armada_grimreaper.bos:    set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 1;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
 armada_serpent.bos:            // Set values for tilt
 armada_seeker.bos:              // Set values for tilt
 armada_experimentalgantry.bos:   set YARD_OPEN to 1;
@@ -6312,8 +6312,8 @@ armada_grimreaper.bos:    set INBUILDSTANCE to 1;
 armada_grimreaper.bos:    set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 1;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
 Binary file armada_nettle.cob matches
 Binary file armada_rocketeer.cob matches
 Binary file armada_corsair.cob matches
@@ -7144,8 +7144,8 @@ armada_grimreaper.bos:    set INBUILDSTANCE to 1;
 armada_grimreaper.bos:    set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 1;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
 armada_experimentalgantry.bos:   set YARD_OPEN to 1;
 armada_experimentalgantry.bos:           set BUGGER_OFF to 1;
 armada_experimentalgantry.bos:           set YARD_OPEN to 1;
@@ -7750,8 +7750,8 @@ armada_grimreaper.bos:    set INBUILDSTANCE to 1;
 armada_grimreaper.bos:    set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 1;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
 Binary file armada_nettle.cob matches
 Binary file armada_rocketeer.cob matches
 Binary file armada_corsair.cob matches
@@ -8526,8 +8526,8 @@ armada_grimreaper.bos:    set INBUILDSTANCE to 1;
 armada_grimreaper.bos:    set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 0;
 armada_lazarus.bos:   set INBUILDSTANCE to 1;
-armrectrt4.bos: set INBUILDSTANCE to 0;
-armrectrt4.bos: set INBUILDSTANCE to 1;
+armada_epicrector.bos: set INBUILDSTANCE to 0;
+armada_epicrector.bos: set INBUILDSTANCE to 1;
 Binary file armada_nettle.cob matches
 Binary file armada_rocketeer.cob matches
 Binary file armada_corsair.cob matches
