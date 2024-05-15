@@ -315,6 +315,14 @@ local function determineBuildModeArgs(mode, startPosition, endPosition, targetID
 	end
 end
 
+local function postProcessBlueprint(bp)
+	-- precompute some useful information
+	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
+	bp.floatOnWater = table.any(bp.units, function(u)
+		return UnitDefs[u.unitDefID].floatOnWater
+	end)
+end
+
 local function createBlueprint(unitIDs, ordered)
 	if #unitIDs > BLUEPRINT_UNIT_LIMIT then
 		Spring.Echo(string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs))
@@ -364,6 +372,8 @@ local function createBlueprint(unitIDs, ordered)
 			end
 		)
 	}
+
+	postProcessBlueprint(blueprint)
 
 	blueprints[#blueprints + 1] = blueprint
 
@@ -1026,11 +1036,7 @@ local function deserializeBlueprint(sbp)
 		}
 	)
 
-	-- precompute some useful information
-	result.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(result))
-	result.floatOnWater = table.any(result.units, function(u)
-		return UnitDefs[u.unitDefID].floatOnWater
-	end)
+	postProcessBlueprint(result)
 
 	return result
 end
