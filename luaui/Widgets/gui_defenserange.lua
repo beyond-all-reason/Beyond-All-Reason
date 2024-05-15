@@ -101,6 +101,7 @@ modConfig["BYAR"]["unitList"] = {
 	legcluster = { weapons = { 1 } },  -- t1 cluster arty
 
 	legrl = { weapons = { 2 } }, -- t1 light aa turret
+	legrhapsis = { weapons = { 2 } }, -- t1 salvo aa
 	leglupara = { weapons = { 2 } }, -- t1.5 burst flak
 
 	legstarfall = { weapons = { 1 } }, -- LOLCannon
