@@ -606,6 +606,7 @@ local unitOrderTable = {
    ['legrl']          = 130250,
    ['armferret']      = 130300,
    ['cormadsam']      = 130400,
+   ['legrhapsis']      = 130450,
    ['armcir']         = 130500,
    ['corerad']        = 130600,
    ['leglupara']        = 130700,
