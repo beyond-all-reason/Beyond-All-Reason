@@ -43,7 +43,7 @@ return {
 			[9] = "cortex_despot",
 			[10] = "cortex_messenger",
 			[11] = "cortex_blackhydra",
-			[12] = "cortex_flamethrowership",
+			[12] = "cortex_brimstone",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

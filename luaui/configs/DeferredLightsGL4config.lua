@@ -4098,7 +4098,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['cortex_flamethrowership'] = {
+	['cortex_brimstone'] = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'sleeve',
@@ -5544,7 +5544,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_lightningship'] = {
+	['armada_maelstrom'] = {
 		back = {
 			lightType = 'point',
 			pieceName = 'base',

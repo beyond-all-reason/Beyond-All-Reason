@@ -43,7 +43,7 @@ return {
 			[9] = "armada_dreadnought",
 			[10] = "armada_longbow",
 			[11] = "armada_epoch",
-			[12] = "armada_lightningship",
+			[12] = "armada_maelstrom",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

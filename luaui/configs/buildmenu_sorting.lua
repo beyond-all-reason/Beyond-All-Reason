@@ -327,8 +327,8 @@ local unitOrderTable = {
 	['cortex_oppressor']         = 009230,
 
 	-- T2 WATER ATTACK
-	['armada_lightningship']       = 009280, --ANTISWARM
-	['cortex_flamethrowership']       = 009290,
+	['armada_maelstrom']       = 009280, --ANTISWARM
+	['cortex_brimstone']       = 009290,
 
 	['armada_paladin']        = 009300, --MAIN BATTLE
 	['cortex_buccaneer']        = 009310,

@@ -479,9 +479,9 @@ local SeaUnitsList = {
 		},
 		[3] = {
 		--Armada
-		["armada_lightningship_scav"] = 1,
+		["armada_maelstrom_scav"] = 1,
 		--Cortex
-		["cortex_flamethrowership_scav"] = 1,
+		["cortex_brimstone_scav"] = 1,
 		},
 		[4] = {
 		--Armada

@@ -499,7 +499,7 @@ local icontypes = {
 		bitmap = "icons/defence_0_laser.png",
 		size = 0.83999997
 	},
-	armada_lightningship = {
+	armada_maelstrom = {
 		bitmap = "icons/ship_t2_lightning.png",
 		size = 1.79999995
 	},
@@ -1343,7 +1343,7 @@ local icontypes = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
-	cortex_flamethrowership = {
+	cortex_brimstone = {
 		bitmap = "icons/ship_t2_flame.png",
 		size = 1.89999998
 	},
