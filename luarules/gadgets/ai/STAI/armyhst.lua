@@ -401,7 +401,7 @@ function ArmyHST:Init()
 		armada_lightmine = true ,
 		armada_mediummine = true ,
 		armada_heavymine = true ,
-		armada_heavymine = true ,
+		armada_navalheavymine = true ,
 		cortex_lightmine = true ,
 		cortex_mediummine = true ,
 		cortex_heavymine = true ,

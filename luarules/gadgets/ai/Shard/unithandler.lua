@@ -71,7 +71,7 @@ local inactive = {
 	armada_navalpinpointer = true,
 	armada_sharksteeth = true,
 	armada_aurora = true,
-	armada_heavymine = true,
+	armada_navalheavymine = true,
 	armada_navalradarsonar = true,
 	armada_sonarstation = true,
 

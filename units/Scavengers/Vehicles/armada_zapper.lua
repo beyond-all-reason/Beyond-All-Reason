@@ -1,10 +1,10 @@
 return {
-	armzapper = {
+	armada_zapper = {
 		maxacc = 0.3,
 		maxdec = 0.5,
 		energycost = 1200,
 		metalcost = 80,
-		buildpic = "armzapper.DDS",
+		buildpic = "armada_zapper.DDS",
 		buildtime = 1200,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
-		objectname = "Units/armzapper.s3o",
-		script = "Units/armzapper.cob",
+		objectname = "Units/armada_zapper.s3o",
+		script = "Units/armada_zapper.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 260,

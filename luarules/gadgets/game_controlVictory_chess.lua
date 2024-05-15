@@ -395,7 +395,7 @@ local landUnitsList = {
                 "armada_thor",
 
                 -- Superboss
-                "armada_pawnt4",
+                "armada_epicpawn",
                 "armada_ratte",
                 "armada_epictumbleweed",
                 "cortex_epicgrunt",

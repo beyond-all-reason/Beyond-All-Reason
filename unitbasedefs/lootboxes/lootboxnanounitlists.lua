@@ -224,7 +224,7 @@ return {
 		"leegmech",
 
 		-- Superboss
-		"armada_pawnt4",
+		"armada_epicpawn",
 		"armada_ratte",
 		"armada_epictumbleweed",
 		"armada_flyingepoch",

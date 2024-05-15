@@ -1330,7 +1330,7 @@ local unitGrids = {
 		{
 			{ "armada_navalradarsonar", "armada_advancedradartower", },                              -- fl radar, adv radar
 			{ },                                                    --
-			{ "armada_heavymine", },                                       -- naval mine
+			{ "armada_navalheavymine", },                                       -- naval mine
 		},
 		{
 			{ "armada_shipyard", "armada_constructionship", },                                  -- shipyard, sea con

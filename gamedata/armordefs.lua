@@ -336,7 +336,7 @@ local armorDefs = {
 
 		"cortex_lasertiger",
 
-		"armada_pawnt4",
+		"armada_epicpawn",
 		"armada_ratte",
 		"armada_epictumbleweed",
 		"cortex_epickarganeth",
@@ -370,7 +370,7 @@ local armorDefs = {
 		"armada_heavymine",
 		"armada_lightmine",
 		"armada_mediummine",
-		"armada_heavymine",
+		"armada_navalheavymine",
 		"cortex_navalheavymine",
 		"cortex_lightmine",
 		"cortex_mediummine",

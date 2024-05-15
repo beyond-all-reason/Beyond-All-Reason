@@ -1,11 +1,11 @@
 return {
-	armada_heavymine = {
+	armada_navalheavymine = {
 		maxacc = 0,
 		blocking = false,
 		maxdec = 0,
 		energycost = 1600,
 		metalcost = 25,
-		buildpic = "armada_heavymine.DDS",
+		buildpic = "armada_navalheavymine.DDS",
 		buildtime = 150,
 		canattack = false,
 		canguard = false,
@@ -29,7 +29,7 @@ return {
 		mincloakdistance = 8,
 		minwaterdepth = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/armada_heavymine.s3o",
+		objectname = "Units/armada_navalheavymine.s3o",
 		script = "mines_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "FMINE_HEAVY",

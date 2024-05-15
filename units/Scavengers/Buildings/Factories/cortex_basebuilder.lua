@@ -34,7 +34,7 @@ return {
 		minwaterdepth = 12,
 		movementclass = "NANO",
 		objectname = "Units/cortex_basebuilder.s3o",
-		script = "Units/CORNANOT2.cob",
+		script = "Units/cortex_advancedconstructionturret.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		sightdistance = range,

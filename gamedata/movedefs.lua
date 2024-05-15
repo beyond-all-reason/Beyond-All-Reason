@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armada_pawnt4 cortex_epicgrunt armada_meatball armada_assimilator armada_lunchbox
+	-- armada_epicpawn cortex_epicgrunt armada_meatball armada_assimilator armada_lunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,

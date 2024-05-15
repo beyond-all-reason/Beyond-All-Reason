@@ -183,7 +183,7 @@ local LandUnitsList = {
 		[2] = {
 			--Armada
 			["armada_blitz_scav"] = 1,
-			["armzapper_scav"] = 1,
+			["armada_zapper_scav"] = 1,
 			--Cortex
 			["cortex_incisor_scav"] = 1,
 			--Legion
@@ -215,7 +215,7 @@ local LandUnitsList = {
 		},
 		[5] = {
 			--Armada
-			["armada_pawnt4_scav"] = 1,
+			["armada_epicpawn_scav"] = 1,
 			["armada_marauder_scav"] = 1,
 			--Cortex
 			["cortex_epicgrunt_scav"] = 1,
@@ -1063,7 +1063,7 @@ addNewSquad({ type = "airLand", minAnger = 10, units = { "12 cortex_shuriken_sca
 addNewSquad({ type = "airLand", minAnger = 15, units = { "20 armada_falcon_scav","20 cortex_valiant_scav",}, weight = 4, maxAnger = 25}) --Fighters
 addNewSquad({ type = "airLand", minAnger = 15, units = { "12 armada_stormbringer_scav","12 cortex_whirlwind_scav","5 legcib_scav",}, weight = 4, maxAnger = 25}) --Bombers
 ------Tier 2 25-60%
-addNewSquad({ type = "basicLand", minAnger = 25, units = { "10 armada_rover_scav","10 cortex_rascal_scav","25 armzapper_scav",}, weight = 6, maxAnger = 60}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 25, units = { "10 armada_rover_scav","10 cortex_rascal_scav","25 armada_zapper_scav",}, weight = 6, maxAnger = 60}) --Rover and EMP Rover/Whole Tier Length
 --Land
 addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armada_jaguar_scav","6 cortex_torch_scav","6 legmrv_scav",}, weight = 4, maxAnger = 55}) --T2 Veh Raid
 addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armada_bull_scav","6 cortex_tiger_scav","1 cortex_tzar_scav","5 legsco_scav","2 armada_shredder_scav","2 cortex_fury_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Assault/AA

@@ -11997,7 +11997,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['armada_heavymine'] = {
+	['armada_navalheavymine'] = {
 		top1 = {
 			lightType = 'point',
 			pieceName = 'base',

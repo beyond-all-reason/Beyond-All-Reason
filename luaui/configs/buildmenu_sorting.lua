@@ -275,7 +275,7 @@ local unitOrderTable = {
 	['armada_lunchbox']    = 007210,
 	['armada_assimilator'] = 007220,
 
-	['armada_pawnt4']        = 007300,
+	['armada_epicpawn']        = 007300,
    ['cortex_epicgrunt']        = 007310,
 	['armada_recluset4']      = 007320,
 	['cortex_demon']     = 007330,
@@ -655,7 +655,7 @@ local unitOrderTable = {
    ['cortex_underwaterexperimentalgantry']      = 216200,
 
    --WATER MINES
-   ['armada_heavymine']      = 217100,
+   ['armada_navalheavymine']      = 217100,
    ['cortex_navalheavymine']      = 217200,
 
    --WATER UTILITIES

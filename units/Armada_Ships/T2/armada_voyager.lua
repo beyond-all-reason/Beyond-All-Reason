@@ -50,7 +50,7 @@ return {
 			[12] = "armada_dolphin",
 			[13] = "armada_corsair",
 			[14] = "armada_amphibiousbot",
-			[15] = "armada_heavymine",
+			[15] = "armada_navalheavymine",
 			[16] = "armada_rattlesnake",
 			[17] = "armada_gorgon",
 		},

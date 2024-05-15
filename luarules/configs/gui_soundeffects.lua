@@ -611,7 +611,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "mine-large",
 	},
 
-	armada_heavymine = {
+	armada_navalheavymine = {
 		BaseSoundSelectType = "arm-mine-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "mine-large-water",

@@ -574,7 +574,7 @@ customDefs.cortex_scavdragonsclaw = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_ratte",
 -- 		[numBuildoptions+2] = "armada_recluset4",
--- 		[numBuildoptions+3] = "armada_pawnt4",
+-- 		[numBuildoptions+3] = "armada_epicpawn",
 -- 		[numBuildoptions+4] = "armada_epictumbleweed",
 -- 		[numBuildoptions+5] = "armada_lunchbox",
 -- 		[numBuildoptions+6] = "armada_meatball",
@@ -586,7 +586,7 @@ customDefs.cortex_scavdragonsclaw = {
 -- customDefs.armada_experimentalgantryuw = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "armada_ratte",
--- 		[numBuildoptions+2] = "armada_pawnt4",
+-- 		[numBuildoptions+2] = "armada_epicpawn",
 -- 		[numBuildoptions+3] = "armada_epictumbleweed",
 -- 		[numBuildoptions+4] = "armada_meatball",
 -- 	},

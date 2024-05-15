@@ -35,7 +35,7 @@ return {
 		"armada_whistler_scav",
 		"armada_pincer_scav",
 		"armada_janus_scav",
-		"armzapper_scav",
+		"armada_zapper_scav",
 		"cortex_incisor_scav",
 		"cortex_lasher_scav",
 		"cortex_wolverine_scav",
@@ -170,7 +170,7 @@ return {
 		"armada_thor_scav",
 
 		-- Superboss
-		"armpw_scav",
+		"armada_epicpawn_scav",
 		"armada_ratte_scav",
 		"armada_epictumbleweed_scav",
 		"cortex_epicgrunt_scav",

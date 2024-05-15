@@ -39,7 +39,7 @@ local exceptionList = { --add exempt units here
 	"armada_lightmine",
 	"armada_mediummine",
 	"armada_heavymine",
-	"armada_heavymine",
+	"armada_navalheavymine",
 	"cortex_lightmine",
 	"cortex_mediummine",
 	"cortex_heavymine",

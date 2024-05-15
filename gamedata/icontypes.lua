@@ -379,7 +379,7 @@ local icontypes = {
 		bitmap = "icons/bot_t1_flea.png",
 		size = 0.53549999
 	},
-	armada_heavymine = {
+	armada_navalheavymine = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
@@ -659,8 +659,8 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.73499995
 	},
-	armada_pawnt4 = {
-		bitmap = "icons/armada_pawnt4.png",
+	armada_epicpawn = {
+		bitmap = "icons/armada_epicpawn.png",
 		size = 2.30999994
 	},
 	armada_radartower = {
@@ -959,7 +959,7 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},
-	armzapper = {
+	armada_zapper = {
 		bitmap = "icons/vehicle.png",
 		size = 0.57749999
 	},

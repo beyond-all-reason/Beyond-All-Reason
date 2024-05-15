@@ -34,7 +34,7 @@ return {
 		minwaterdepth = 12,
 		movementclass = "NANO",
 		objectname = "Units/armada_basebuilder.s3o",
-		script = "Units/ARMNANOT2.cob",
+		script = "Units/armada_advancedconstructionturret.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		sightdistance = range,
