@@ -745,6 +745,8 @@ function widget:Initialize()
 		getUnitsBounds = getUnitsBounds,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
+		SQUARE_SIZE = SQUARE_SIZE,
+		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
 	}
 end
 

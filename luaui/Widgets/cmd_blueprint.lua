@@ -321,6 +321,17 @@ local function postProcessBlueprint(bp)
 	bp.floatOnWater = table.any(bp.units, function(u)
 		return UnitDefs[u.unitDefID].floatOnWater
 	end)
+	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
+		local w, h = WG["api_blueprint"].getBuildingDimensions(
+			u.unitDefID,
+			0
+		)
+		if acc then
+			return math.min(w, h, acc)
+		else
+			return math.min(w, h)
+		end
+	end, nil)
 end
 
 local function createBlueprint(unitIDs, ordered)
@@ -823,12 +834,19 @@ local function handleSpacingAction(_, _, args)
 		return
 	end
 
+	local minSpacing = math.floor(
+		-(math.min(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension)
+			/ WG["api_blueprint"].BUILD_SQUARE_SIZE
+	)
+
 	local newSpacing = nil
 	if args and args[1] == "inc" then
 		newSpacing = bp.spacing + 1
 	elseif args and args[1] == "dec" then
 		newSpacing = bp.spacing - 1
 	end
+
+	newSpacing = math.max(minSpacing, newSpacing)
 
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
