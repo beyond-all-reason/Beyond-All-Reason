@@ -2323,6 +2323,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank_rail.png",
 		size = 1.35000002
 	},
+	legrhapsis = {
+		bitmap = "icons/aa_t15.png",
+		size = 1.15499997
+	},
 	legsco = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998

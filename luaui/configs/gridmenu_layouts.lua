@@ -1037,7 +1037,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "corrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1106,7 +1106,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "corrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1174,7 +1174,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "corrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -1382,7 +1382,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "leglupara", "corfrt" },             -- basic AA, SAM, eradicator, floating AA
+			{ "corrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, SAM, eradicator, floating AA
 			{ "cordl", "legcluster", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{

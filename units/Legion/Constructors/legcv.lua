@@ -67,7 +67,7 @@ return {
 			"legmg",
 			"legcluster",
 			"corrl",
-			"cormadsam",
+			"legrhapsis",
 			"leglupara",
 			"cordl",
 			"legjam",
