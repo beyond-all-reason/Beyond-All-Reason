@@ -115,7 +115,7 @@ FirePrimary()
 		//++shoot;
 	}
 	if(shoot==2){
-		spin barrelB around z-axis speed <900.000000>;
+		spin barrelB around z-axis speed <-900.000000>;
 		stop-spin barrelA around z-axis decelerate <50>;
 		stop-spin barrelB around z-axis decelerate <30>;
 		//++shoot;
