@@ -855,10 +855,11 @@ local options = {
         section = "options_extra",
         def     = "disabled",
         items 	= {
-            { key = "disabled", name = "Disabled",  desc = "No changes." },
-            { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
-            { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
-            { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+            { key = "disabled", name = "Default",                       desc = "No changes. Fast-PC place first." },
+            { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
+            { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
   

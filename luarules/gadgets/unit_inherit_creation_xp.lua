@@ -90,7 +90,8 @@ function gadget:GameFrame(frame)
 					local parentDefID
 					if Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then --estabalishes unit_carrier_spawner parenthood
 						parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
-						if string.find(parentsInheritXP[Spring.GetUnitDefID(parentID)], "DRONE") then
+						parentDefID = Spring.GetUnitDefID(parentID)
+						if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "DRONE") then
 							childrenWithParents[unitID] = {
 								unitid = unitID,
 								parentunitid = parentID,
@@ -102,7 +103,8 @@ function gadget:GameFrame(frame)
 					end
 					if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then --estabalishes unit_explosion_spawner parenthood
 						parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id")
-						if string.find(parentsInheritXP[Spring.GetUnitDefID(parentID)], "BOTCANNON") then
+						parentDefID = Spring.GetUnitDefID(parentID)
+						if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "BOTCANNON") then
 							childrenWithParents[unitID] = {
 								unitid = unitID,
 								parentunitid = parentID,
