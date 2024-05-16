@@ -355,7 +355,9 @@ function Draft_PreAllowStartPosition(teamID, allyTeamID)
 	local myTurn = false
 	local _, _, _, isAI = spGetTeamInfo(teamID, false)
 	if not isAI then
-		if allyTeamIsInGame[allyTeamID] == false then return false end -- Wait for everyone
+		if allyTeamIsInGame[allyTeamID] == false then
+			return false, false
+		end -- Wait for everyone
 		if draftMode == "skill" or draftMode == "random" or draftMode == "captain" then
 			local turnCheck = isTurnToPlace(allyTeamID, teamID) -- Check if it's your turn
 			if turnCheck == 0 then
