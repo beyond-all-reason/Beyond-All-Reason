@@ -109,7 +109,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
 
-			if respawnMetaList[unitID].respawn_pad == false then
+			if respawnMetaList[unitID].respawn_pad == "false" then
 				Spring.SetUnitPosition(respawnMetaList[unitID].effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			end
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 				announcementSize = respawnMetaList[unitID].respawn_announcement_size
 			end
 
-
+			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			SendToUnsynced("unit_respawned", announcement, announcementSize)
 
 		end
@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,
-				respawn_pad = udcp.respawn_pad or false,
+				respawn_pad = tostring(udcp.respawn_pad) or "false",
 				
 				
 				respawnTimer = spGetGameSeconds(),
@@ -203,7 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
-			if respawnMetaList[unitID].respawn_pad == false then
+			if respawnMetaList[unitID].respawn_pad == "false" then
 				if respawnMetaList[unitID].effigyID then
 					spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 				end
