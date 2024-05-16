@@ -5909,8 +5909,13 @@ function init()
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
 		unitdefConfig = WG['autocloak'].getUnitdefConfig()
-	elseif widgetHandler.configData["autocloak"] ~= nil and widgetHandler.configData["autocloak"].unitdefConfig ~= nil then
-		unitdefConfig = widgetHandler.configData["autocloak"].unitdefConfig
+	elseif widgetHandler.configData["Auto Cloak Units"] ~= nil and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil then
+		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
+			if UnitDefNames[unitName] then
+				local unitDefID = UnitDefNames[unitName].id
+				unitdefConfig[unitDefID] = value
+			end
+		end
 	end
 	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
 	if type(unitdefConfig) == 'table' then
