@@ -658,7 +658,7 @@ function DrawWindow()
 	local column = 1
 	local drawColumnPos = 1
 
-	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
+	maxColumnRows = math.ceil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
 	local dontFilterGroup = false
