@@ -15,7 +15,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		usepiececollisionvolumes = 1, --------use collisionvolumes.lua
+		usepiececollisionvolumes = 0, --------use collisionvolumes.lua
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
