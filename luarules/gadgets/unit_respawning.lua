@@ -169,7 +169,7 @@ if gadgetHandler:IsSyncedCode() then
 
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
-					
+						return
 					elseif blockType then
 						
 					else
