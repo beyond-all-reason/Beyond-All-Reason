@@ -239,6 +239,7 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+				uDef.customparams.combatradius = 0
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
 				else
@@ -255,8 +256,13 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
+				elseif name == "legcomlvl2" then
+					uDef.energymake = 50
+					uDef.metalmake = 3
 				elseif name == "legcomlvl3" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
+				uDef.energymake = 75
+				uDef.metalmake = 5
 				elseif name == "legcomlvl4" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
 				uDef.customparams.evolution_announcement_size = 18.5
@@ -264,6 +270,11 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_condition = "timer"
 				uDef.customparams.workertimeboost = 5
 				uDef.customparams.wtboostunittype = "MOBILE"
+				uDef.energymake = 125
+				uDef.metalmake = 9
+				uDef.customparams.inheritxpratemultiplier = 0.5
+        		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
+        		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
 				end
 			end
 		end

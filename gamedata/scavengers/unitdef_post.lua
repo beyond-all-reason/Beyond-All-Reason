@@ -8,13 +8,15 @@ local function scavUnitDef_Post(name, uDef)
 
  	-- replaced uniticons
 	if uDef.buildpic then
+		--Spring.Echo("FILEEXISTS", VFS.FileExists("unitpics/scavengers/"..uDef.buildpic))
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
 		if (not string.find(uDef.buildpic, "scavengers"))
 		and (not string.find(uDef.buildpic, "raptor"))
 		and (not string.find(uDef.buildpic, "critters"))
 		and (not string.find(uDef.buildpic, "lootboxes"))
 		and (not string.find(uDef.buildpic, "other"))
-		and (not string.find(uDef.buildpic, "alternative")) then
+		and (not string.find(uDef.buildpic, "alternative"))
+		and (VFS.FileExists("unitpics/scavengers/"..uDef.buildpic)) then
 			uDef.buildpic = "scavengers/"..uDef.buildpic
 		end
 	end
@@ -82,13 +84,13 @@ local function scavUnitDef_Post(name, uDef)
 
 	
 	-- Remove wrecks of units you shouldn't be able to capture
-	if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
-		if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
-			uDef.corpse = "HEAP"
-		elseif uDef.corpse then
-			uDef.corpse = nil
-		end
-	end
+	-- if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
+	-- 	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
+	-- 		uDef.corpse = "HEAP"
+	-- 	elseif uDef.corpse then
+	-- 		uDef.corpse = nil
+	-- 	end
+	-- end
 	
 	-- Set autoheal of scav units
 	if uDef.health then
@@ -124,6 +126,9 @@ local function scavUnitDef_Post(name, uDef)
 	 		if uDef.builddistance then
 	 			uDef.builddistance = uDef.builddistance * 2
 	 		end
+			if uDef.workertime then
+				uDef.workertime = uDef.workertime * 4
+			end
 	 	end
 	end
 

@@ -49,6 +49,9 @@ return {
 			subfolder = "armvehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {

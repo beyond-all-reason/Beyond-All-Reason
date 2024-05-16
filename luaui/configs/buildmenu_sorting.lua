@@ -543,6 +543,7 @@ local unitOrderTable = {
    ['legforti']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
+   ['legdtr']     	  = 104704, --legion
    ['corscavdtl']     = 104705, --scavengers
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
@@ -573,6 +574,7 @@ local unitOrderTable = {
    ['legdefcarryt1']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
+   ['legcluster']         = 106950,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun
@@ -605,6 +607,7 @@ local unitOrderTable = {
    ['cormadsam']      = 130400,
    ['armcir']         = 130500,
    ['corerad']        = 130600,
+   ['leglupara']        = 130700,
 
    ['armflak']        = 153000,
    ['corflak']        = 153500,

@@ -2099,6 +2099,10 @@ local icontypes = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
+	legcluster = {
+		bitmap = "icons/def_t1_arty.png",
+		size = 1.1500000
+	},
 	legcom = {
 		bitmap = "icons/legcom.png",
 		size = 1.60000002
@@ -2243,9 +2247,17 @@ local icontypes = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
+	legdtr = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	leglob = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
+	},
+	leglupara = {
+		bitmap = "icons/aa_flak_t15.png",
+		size = 1.3
 	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",

@@ -27,10 +27,13 @@ return {
 	GameStarted = {
 		delay = 1,
 	},
+	GameUnpaused = {
+		delay = 1,
+	},
 	BattleEnded = {
 		delay = 1,
 	},
-	GamePause = {
+	GamePaused = {
 		delay = 5,
 	},
 	PlayerDisconnected = {
@@ -157,9 +160,9 @@ return {
 	AirTransportDetected = {
 		delay = 9999999,
 	},
-	--SeaTransportDetected = {
-	--	delay = 9999999,
-	--},
+	SeaTransportDetected = {
+		delay = 9999999,
+	},
 
 	-- Lava
 	LavaRising = {
@@ -171,7 +174,7 @@ return {
 		unlisted = true,
 	},
 
-	-- Tutorials
+	-- Tutorial / tips
 	t_welcome = {
 		delay = 9999999,
 		unlisted = true,

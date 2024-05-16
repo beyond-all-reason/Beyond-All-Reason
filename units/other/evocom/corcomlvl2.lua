@@ -14,6 +14,7 @@ return {
 		cancloak = true,
 		canmanualfire = true,
 		canmove = true,
+		capturable = false,
 		capturespeed = 1800,
 		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 100,
@@ -22,7 +23,7 @@ return {
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energymake = 25,
+		energymake = 50,
 		energystorage = 500,
 		explodeas = "commanderexplosion",
 		footprintx = 2,
@@ -38,7 +39,7 @@ return {
 		maxslope = 20,
 		speed = 37.5,
 		maxwaterdepth = 35,
-		metalmake = 2,
+		metalmake = 3,
 		metalstorage = 500,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
@@ -107,7 +108,7 @@ return {
 			evolution_target = "corcomlvl3",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			combatradius = 500,
+			combatradius = 0,
 		},
 		featuredefs = {
 			dead = {
@@ -310,6 +311,7 @@ return {
 					commanders = 0,
 					default = 99999,
 					scavboss = 1000,
+					raptorqueen = 1000,
 				},
 			},
 			repulsor1 = {

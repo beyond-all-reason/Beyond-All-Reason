@@ -68,7 +68,7 @@
 			"chooseStartLoc": "Vyber startovací místo",
 			"gameStarted": "bitva začala",
 			"battleEnded": "bitva skončila",
-			"gamePause": "pozastaveno",
+			"gamePaused": "pozastaveno",
 			"playerDisconnected": "Hráč se odpojil.",
 			"playerAdded": "Hráč byl přidán do hry.",
 			"playerResigned": "Hráč se vzdal.",
