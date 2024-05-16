@@ -145,7 +145,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
+    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID, false)
 
     if mySpec then return end
 
