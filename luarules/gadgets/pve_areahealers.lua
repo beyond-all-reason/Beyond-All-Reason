@@ -78,9 +78,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-    if aliveHealers[unitID] then
+    --if aliveHealers[unitID] then
         aliveHealers[unitID] = nil
-    end
+    --end
 end
 
 function gadget:GameFrame(frame)
