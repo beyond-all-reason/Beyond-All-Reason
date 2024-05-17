@@ -146,6 +146,13 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.customparams.iscommander = nil
 	end
 
+	-- Evocom adjustments
+	if string.find(name, "armcomlvl") then -- nerf health of armada evocom, since it's invisible and hard to deal with because of that
+		if uDef.health then
+			uDef.health = uDef.health * 0.5
+		end
+	end
+
 
 
 	-- Extra Units for Scavs
