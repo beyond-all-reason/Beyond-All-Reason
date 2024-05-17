@@ -288,6 +288,7 @@ else
 			announcementEnabled = true
 			announcementStart = spGetGameSeconds()
 		end
+		Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 	end
 
 	function gadget:DrawScreen()
