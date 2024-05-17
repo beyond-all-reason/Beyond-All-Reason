@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,
-				respawn_pad = tostring(udcp.respawn_pad) or "false",
+				respawn_pad = udcp.respawn_pad or "false",
 				
 				
 				respawnTimer = spGetGameSeconds(),
@@ -205,7 +205,18 @@ if gadgetHandler:IsSyncedCode() then
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				if respawnMetaList[unitID].effigyID then
-					spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+					if newID then
+						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
+							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
+							Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
+						elseif respawnMetaList[newID] then
+							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
+						else
+							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+						end
+					end
 				end
 			end
 			respawnMetaList[unitID] = nil
