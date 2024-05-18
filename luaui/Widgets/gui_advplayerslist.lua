@@ -1475,28 +1475,31 @@ function SortAllyTeams(vOffset)
         end
     end
 
-	-- "Enemies" label
-	vOffset = vOffset + 13
-	vOffset = vOffset + labelOffset - 3
-	drawListOffset[#drawListOffset + 1] = vOffset
-	drawList[#drawList + 1] = -3 -- "Enemies" label
+    if numberOfEnemies > 0 then
 
-	-- add the others
-	if enemyListShow then
-		local firstenemy = true
-		for allyTeamID = 0, allyTeamsCount - 1 do
-			if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-				if firstenemy then
-					firstenemy = false
-				else
-					vOffset = vOffset + (separatorOffset*playerScale)
-					drawListOffset[#drawListOffset + 1] = vOffset
-					drawList[#drawList + 1] = -4 -- Enemy teams separator
-				end
-				vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-			end
-		end
-	end
+        -- "Enemies" label
+        vOffset = vOffset + 13
+        vOffset = vOffset + labelOffset - 3
+        drawListOffset[#drawListOffset + 1] = vOffset
+        drawList[#drawList + 1] = -3 -- "Enemies" label
+
+        -- add the others
+        if enemyListShow then
+            local firstenemy = true
+            for allyTeamID = 0, allyTeamsCount - 1 do
+                if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+                    if firstenemy then
+                        firstenemy = false
+                    else
+                        vOffset = vOffset + (separatorOffset*playerScale)
+                        drawListOffset[#drawListOffset + 1] = vOffset
+                        drawList[#drawList + 1] = -4 -- Enemy teams separator
+                    end
+                    vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+                end
+            end
+        end
+    end
 
     return vOffset
 end
@@ -1916,18 +1919,20 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 						DrawSeparator(drawListOffset[i])
 					end
                 elseif drawObject == -3 then
-                    enemyLabelOffset = drawListOffset[i]
-                    local enemyAmount = numberOfEnemies
-                    if numberOfEnemies == 0 or enemyListShow then
-                        enemyAmount = ""
-                    end
-                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                    if Spring.GetGameFrame() <= 0 then
-                        if enemyListShow then
-                            DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
-                        else
-                            DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                    if numberOfEnemies > 0 then
+                        enemyLabelOffset = drawListOffset[i]
+                        local enemyAmount = numberOfEnemies
+                        if numberOfEnemies == 0 or enemyListShow then
+                            enemyAmount = ""
+                        end
+                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                        if Spring.GetGameFrame() <= 0 then
+                            if enemyListShow then
+                                DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
+                            else
+                                DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                            end
                         end
                     end
                 elseif drawObject == -2 then

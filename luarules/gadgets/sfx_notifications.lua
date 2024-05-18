@@ -254,7 +254,7 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if not unitInView then
-							if Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true" then
+							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 								BroadcastEvent("NotificationEvent", "FriendlyCommanderSelfD", tostring(player))
 							else
@@ -274,7 +274,7 @@ else
 			if not unitInView then
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
-					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true" then
+					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 						BroadcastEvent("NotificationEvent", "EnemyCommanderDied", tostring(player))
 					end
 				end

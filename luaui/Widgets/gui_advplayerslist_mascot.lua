@@ -240,7 +240,6 @@ function widget:PlayerChanged(playerID)
 end
 
 local sec = 0
-local sec2 = 0
 local totalTime = 0
 local rot = 0
 local bob = 0
@@ -259,12 +258,7 @@ function widget:Update(dt)
 		sec = 0
 		usedDrawlist = 2
 	end
-
-	sec2 = sec2 + dt
-	if sec2 > 0.1 then
-		sec2 = sec2 - 0.1
-		updatePosition()
-	end
+	updatePosition()
 end
 
 function widget:RecvLuaMsg(msg, playerID)

@@ -30,7 +30,6 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
-local passedTime2 = 0
 local usedTextWidth = 0
 local textWidthClock = 0
 
@@ -160,15 +159,11 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	updatePosition()
 	passedTime = passedTime + dt
-	passedTime2 = passedTime2 + dt
-	if passedTime > 0.1 then
-		passedTime = passedTime - 0.1
-		updatePosition()
-	end
-	if passedTime2 > 1 then
+	if passedTime > 1 then
 		updateValues()
-		passedTime2 = passedTime2 - 1
+		passedTime = passedTime - 1
 	end
 end
 
