@@ -8,19 +8,21 @@ Through the metatable, local variables within the loaded file will now be access
 
 local localsDetectorString = [[
 
-local __locals = {}
-local __i = 1
-while true do
-  local name, _ = debug.getlocal(1, __i)
-  if not name then break end
+do
+	local __locals = {}
+	local __i = 1
+	while true do
+		local name, _ = debug.getlocal(1, __i)
+		if not name then break end
 
-  if name ~= "__i" and name ~= "__locals" then
-    table.insert(__locals, name)
-  end
+		if name ~= "__i" and name ~= "__locals" then
+			table.insert(__locals, name)
+		end
 
-  __i = __i + 1
+		__i = __i + 1
+	end
+	return __locals
 end
-return __locals
 ]]
 
 local function generateLocalsAccessStr(localsNames)
