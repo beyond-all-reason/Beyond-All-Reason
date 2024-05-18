@@ -74,9 +74,21 @@ if not table.toString then
 	end
 
 	local function keyCmp(a, b)
-		a = tableToString(a)
-		b = tableToString(b)
-		return a < b
+		local ta = type(a)
+		local tb = type(b)
+
+		-- numbers always sort before other keys
+		-- compare pairs of numbers directly
+		-- for everything else, convert to string first
+		if ta == "number" and tb == "number" then
+			return a < b
+		elseif ta == "number" and tb ~= "number" then
+			return true
+		elseif tb == "number" and ta ~= "number" then
+			return false
+		else
+			return tableToString(a) < tableToString(b)
+		end
 	end
 
 	tableToString = function(tbl, options, _seen, _depth)
