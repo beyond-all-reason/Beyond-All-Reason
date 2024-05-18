@@ -47,19 +47,20 @@ local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
 local landMexesList = {
-	"armmex",
-	"cormex",
+	--"armmex",
+	--"cormex",
 	--"armamex_scav",
-	"corexp",
+	--"corexp",
 	"armmoho",
+	"armshockwave",
 	"cormoho",
 	"cormexp",
 }
 local seaMexesList = {
-	"armmex",
-	"cormex",
-	"armuwmex",
-	"coruwmex",
+	--"armmex",
+	--"cormex",
+	--"armuwmex",
+	--"coruwmex",
 	"armuwmme",
 	"coruwmme",
 }
