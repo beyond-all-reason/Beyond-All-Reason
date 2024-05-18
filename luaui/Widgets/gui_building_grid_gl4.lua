@@ -24,7 +24,7 @@ local config = {
 	lineColor = { 0.70, 1.0, 0.70 }, -- color of the lines
 }
 
-local waterLevel = Spring.GetModOptions().map_waterlevel
+local waterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 
 local cmdShowForUnitDefID
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
