@@ -172,6 +172,30 @@ local function GetCommanderPosition(teamID)
     return x, y, z
 end
 
+-- Load the units_per_round multiplier
+local unitsPerRoundMultiplier = modOptions.units_per_round or 1
+
+local function SpawnUnitsForTeam(teamID, unitName, unitCount)
+    local teamUnits = unitSpawns[teamID] or {}
+    local x, y, z = GetCommanderPosition(teamID)
+
+    -- Apply unitsPerRoundMultiplier to unitCount
+    unitCount = math.floor(unitCount * unitsPerRoundMultiplier)
+
+    for i = 1, unitCount do
+        local ux = x + math.random(-100, 100)
+        local uz = z + math.random(-100, 100)
+        local uy = Spring.GetGroundHeight(ux, uz)
+        local unitID = Spring.CreateUnit(unitName, ux, uy,uz, 0, teamID)
+        table.insert(teamUnits, unitID)
+        
+        -- Trigger explosion effect for each spawned unit
+        Spring.SpawnCEG("botrailspawn", ux, uy, uz, 0, 0, 0)
+    end
+
+    unitSpawns[teamID] = teamUnits
+end
+
 local function SpawnUnitsForTeam(teamID, unitName, unitCount)
     local teamUnits = unitSpawns[teamID] or {}
     local x, y, z = GetCommanderPosition(teamID)
@@ -182,10 +206,16 @@ local function SpawnUnitsForTeam(teamID, unitName, unitCount)
         local uy = Spring.GetGroundHeight(ux, uz)
         local unitID = Spring.CreateUnit(unitName, ux, uy, uz, 0, teamID)
         table.insert(teamUnits, unitID)
+        
+        -- Trigger explosion effect for each spawned unit
+        Spring.SpawnCEG("botrailspawn", ux, uy, uz, 0, 0, 0)
     end
 
     unitSpawns[teamID] = teamUnits
 end
+
+local firstRoundDelay = 90  -- Corresponds to a 3-second delay at 30 fps
+local firstRoundDelayed = (currentRound == 1)  -- Only delay the first round
 
 local function StartNewRound()
     currentRoundFrameStart = Spring.GetGameFrame()
@@ -195,8 +225,10 @@ local function StartNewRound()
 
     for _, teamID in ipairs(teams) do
         if teamID ~= gaiaTeamID then
-            for _, config in ipairs(spawnConfiguration) do
-                SpawnUnitsForTeam(teamID, config.unitName, config.count)
+            if not firstRoundDelayed then  -- Spawn units immediately if not first round or delay elapsed
+                for _, config in ipairs(spawnConfiguration) do
+                    SpawnUnitsForTeam(teamID, config.unitName, config.count)
+                end
             end
         end
     end
@@ -216,6 +248,20 @@ end
 function gadget:GameFrame(n)
     if n == currentRoundFrameStart + roundTime then
         StartNewRound()
+    end
+    
+    if firstRoundDelayed and (n == currentRoundFrameStart + firstRoundDelay) then
+        -- Perform the delayed first round spawn
+        local spawnConfiguration = unitSpawnConfig[1] or {}  -- Ensure it targets the first round config
+
+        for _, teamID in ipairs(teams) do
+            if teamID ~= gaiaTeamID then
+                for _, config in ipairs(spawnConfiguration) do
+                    SpawnUnitsForTeam(teamID, config.unitName, config.count)
+                end
+            end
+        end
+        firstRoundDelayed = false  -- Reset the delay flag to prevent re-spawning
     end
 end
 

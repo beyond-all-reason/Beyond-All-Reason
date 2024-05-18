@@ -1093,7 +1093,7 @@ local options = {
 	{
 		key		= "micro_wars_options",
 		name	= "Micro Wars",
-		desc	= "Micro Wars: fast-paced rounds with predefined armies and tactical control point objectives.",
+		desc	= "Micro Wars: fast-paced rounds with preset armies and no eco.",
 		type	= "section",
 	},
 
@@ -1137,7 +1137,7 @@ local options = {
 		type   = "number",
 		section= "micro_wars_options",
 		def    = 10,
-		min    = 3,
+		min    = 1,
 		max    = 20,
 		step   = 1,
 	},
@@ -1153,8 +1153,8 @@ local options = {
 
 	{
 		key    = "end_round_early_percentage",
-		name   = "Number of Control Points",
-		desc   = "Sets the number of control points available to capture each round.",
+		name   = "End Rounds Early At Unit Loss Percentage",
+		desc   = "Ends a round early when one team has mucher fewer units/HP. When enemy has more than 200% more units and HP left than opposing team.",
 		type   = "number",
 		section= "micro_wars_options",
 		def    = 10,
@@ -1212,6 +1212,22 @@ local options = {
 		type   = "bool",
 		section= "micro_wars_options",
 		def    = false,
+	},
+
+	{
+		key    = "preset_army_compositions",
+		name   = "Preset Army Compositions",
+		desc   = "Choose from pre-defined army setups for each round.",
+		type   = "list",
+		section= "micro_wars_options",
+		def    = "Basic T1 - T4",
+		items  = {
+			{ key = "Basic T1 - T4", name = "Basic T1 - T4", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "T1 Variety", name = "T1 Variety", desc = "Diverse compositions exclusively using Tier 1 units."},
+			{ key = "Death from Above", name = "Death from Above", desc = "Air-dominated unit compositions."},
+			{ key = "Glass the Runners", name = "Glass the Runners", desc = "Phoenixes, fast ground attackers, and mobile anti-air."},
+			{ key = "Long Range Standoff", name = "Long Range Standoff", desc = "Compositions specializing in long-range engagements."},
+		},
 	},
 
 
