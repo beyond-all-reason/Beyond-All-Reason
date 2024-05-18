@@ -108,7 +108,7 @@ if not table.toString then
 		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
 
 		local str = "{"
-		if options and options.pretty then
+		if #keys > 0 and options and options.pretty then
 			str = str .. "\n"
 		end
 		for i, key in ipairs(keys) do
@@ -133,9 +133,10 @@ if not table.toString then
 		if #keys > 0 then
 			-- remove the last comma (normal) or newline (pretty)
 			str = str:sub(1, #str - 1)
-		end
-		if options and options.pretty then
-			str = str .. "\n" .. stringRep(" ", _depth * indent)
+
+			if options and options.pretty then
+				str = str .. "\n" .. stringRep(" ", _depth * indent)
+			end
 		end
 		str = str .. "}"
 
