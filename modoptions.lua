@@ -1083,6 +1083,138 @@ local options = {
         step   	= 1,
     },
 
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Micro Wars Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key		= "micro_wars_options",
+		name	= "Micro Wars",
+		desc	= "Micro Wars: fast-paced rounds with predefined armies and tactical control point objectives.",
+		type	= "section",
+	},
+
+	{
+		key    = "micro_wars_enabled",
+		name   = "Play Micro Wars Gamemode",
+		desc   = "Custom Micro Wars gamemode, created by Soareverix",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+	{
+		key    = "round_time",
+		name   = "Round Time",
+		desc   = "Duration of each round in minutes.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 5,
+		min    = 0.1,
+		max    = 20,
+		step   = 0.1,
+	},
+
+	{
+		key    = "units_per_round",
+		name   = "Units per Round Multiplier",
+		desc   = "Multiplier for the number of units each player receives per round.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = "number_of_control_points",
+		name   = "Number of Control Points",
+		desc   = "Sets the number of control points available to capture each round.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 10,
+		min    = 3,
+		max    = 20,
+		step   = 1,
+	},
+
+	{
+		key    = "micro_wars_despawn",
+		name   = "Remove extra units",
+		desc   = "Remove surviving units at the end of the round (more balanced games)",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = true,
+	},
+
+	{
+		key    = "end_round_early_percentage",
+		name   = "Number of Control Points",
+		desc   = "Sets the number of control points available to capture each round.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 10,
+		min    = 3,
+		max    = 20,
+		step   = 1,
+	},
+
+	{
+		key    = "production_mode",
+		name   = "Production Mode",
+		desc   = "Toggle between receiving units directly and receiving a factory with a budget to produce units.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+	{
+		key    = "max_rounds_mode",
+		name   = "Max Rounds Mode",
+		desc   = "End the game after a maximum number of rounds instead of using HP.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+	{
+		key    = "max_number_of_rounds",
+		name   = "Max Number of Rounds",
+		desc   = "Maximum number of rounds before declaring a winner based on points.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 10,
+		min    = 1,
+		max    = 50,
+		step   = 1,
+	},
+
+	{
+		key    = "control_point_unit_conversion",
+		name   = "Control Point to Unit Conversion",
+		desc   = "Modifies the number of extra units given to the losing team based on control points captured.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = "allow_round_resign",
+		name   = "Allow Early Round Resign",
+		desc   = "Enables the option for a team to resign a round early, losing a fixed amount of HP.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options
