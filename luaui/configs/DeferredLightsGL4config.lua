@@ -340,27 +340,6 @@ local unitLights = {
 		},
 	},
 
-	['legrad'] = {
-		greenblobA = {
-			lightType = 'point',
-			pieceName = 'dishA',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = 0, g = 1, b = 0, a = 0.60000002,
-				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},
-		greenblobB = {
-			lightType = 'point',
-			pieceName = 'dishB',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = 0, g = 1, b = 0, a = 0.60000002,
-				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},
-	},
-
 	['armmart'] = {
 		front = {
 			lightType = 'point',
@@ -407,6 +386,17 @@ local unitLights = {
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.065,
 							modelfactor = 0.4, specular = 0, scattering = 0.6, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legrhapsis'] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'searchLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 475,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.12,
+							r = 1, g = 1, b = 1, a = 0.45,
+							modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -1857,17 +1847,6 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 44, posz = 0, radius = 28,
-							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
-							r = 1, g = 0, b = 0, a = 0.5,
-							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-	},
-	['legjam'] = {
-		cloaklightred = {
-			lightType = 'point',
-			pieceName = 'strut',
-			lightConfig = { posx = 0, posy = 7, posz = 0, radius = 28,
 							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
 							r = 1, g = 0, b = 0, a = 0.5,
 							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
@@ -19006,6 +18985,48 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legrad'] = {
+		greenblobA = {
+			lightType = 'point',
+			pieceName = 'dishA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobB = {
+			lightType = 'point',
+			pieceName = 'dishB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legjam'] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'strut',
+			lightConfig = { posx = 0, posy = 7, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.6,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legrl'] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'barrel',
+			lightConfig = { posx = 0, posy = 9, posz = 8, radius = 450,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.2,
+				r = 1, g = 1, b = 1, a = 0.45,
+				modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	}
 }
 
 
@@ -19446,6 +19467,7 @@ local unitEventLightsNames = {
 			},
 		},
 	},
+	
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
