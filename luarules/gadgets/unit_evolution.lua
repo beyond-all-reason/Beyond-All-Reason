@@ -132,6 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+			
 			SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 			if evolutionMetaList[unitID].evolution_health_transfer == "full" then
 			elseif evolutionMetaList[unitID].evolution_health_transfer == "percentage" then
@@ -274,6 +275,8 @@ if gadgetHandler:IsSyncedCode() then
 				local enemyCount = -1
 				local teamID = spGetUnitTeam(unitID)
 				local powerValue = 0
+				local transporterID = Spring.GetUnitTransporter(unitID)
+
 				for team, power in pairs(teamPowerList) do
 					if team and teamID and power then
 						local teamsAllied = Spring.AreTeamsAllied(team, teamID)
@@ -289,8 +292,8 @@ if gadgetHandler:IsSyncedCode() then
 					enemyPower = enemyPower/enemyCount
 				end
 				powerValue = powerValue + enemyPower
-
-				if evolutionMetaList[unitID].evolution_condition == "power" and powerValue > evolutionMetaList[unitID].evolution_power_threshold then
+				if transporterID then
+				elseif evolutionMetaList[unitID].evolution_condition == "power" and powerValue > evolutionMetaList[unitID].evolution_power_threshold then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
