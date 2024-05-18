@@ -1977,7 +1977,7 @@ function widget:Initialize()
 	end
 
 	WG['topbar'].updateTopBarEnergy = function(value)
-		mmLevel = value
+		draggingConversionIndicatorValue = value
 		updateResbar('energy')
 	end
 
