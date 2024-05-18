@@ -69,18 +69,21 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if healersTable[unitDefID] then
+        Spring.Echo("Created Area Healer", unitID, UnitDefs[unitDefID].name)
         aliveHealers[unitID] = {
             healingpower = healersTable[unitDefID].healingpower,
             healingrange = healersTable[unitDefID].healingrange,
             canbehealed = healersTable[unitDefID].canbehealed,
         }
+    else
+        aliveHealers[unitID] = nil
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-    --if aliveHealers[unitID] then
+    if aliveHealers[unitID] then
         aliveHealers[unitID] = nil
-    --end
+    end
 end
 
 function gadget:GameFrame(frame)
