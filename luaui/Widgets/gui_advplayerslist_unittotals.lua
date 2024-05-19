@@ -33,11 +33,9 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
--- calc actual player max unit limit = 32000 / (players+gaia)
-local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+local myTeamID = Spring.GetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
-local passedTime2 = 0
 
 local allyTeamList = Spring.GetAllyTeamList()
 local allyTeamTeamList = {}
@@ -54,8 +52,8 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
-		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
 
 		if displayFeatureCount then
 			local features = Spring.GetAllFeatures()
@@ -116,6 +114,10 @@ function widget:Initialize()
 	end
 end
 
+function widget:PlayerChanged()
+	myTeamID = Spring.GetMyTeamID()
+end
+
 function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('unittotals')
@@ -127,13 +129,9 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	updatePosition()
 	passedTime = passedTime + dt
-	passedTime2 = passedTime2 + dt
-	if passedTime > 0.1 then
-		passedTime = passedTime - 0.1
-		updatePosition()
-	end
-	if passedTime2 > 1 and Spring.GetGameFrame() > 0 then
+	if passedTime > 1 and Spring.GetGameFrame() > 0 then
 		totalUnits = 0
 		local numberOfAllyTeams = #allyTeamList
 		for allyTeamListIndex = 1, numberOfAllyTeams do
@@ -143,7 +141,7 @@ function widget:Update(dt)
 			end
 		end
 		updateValues()
-		passedTime2 = passedTime2 - 1
+		passedTime = passedTime - 1
 	end
 end
 

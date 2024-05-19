@@ -63,8 +63,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <35.005495>;
-	turn gun to x-axis <0.000000> - pitch speed <35.005495>;
+	turn turret to y-axis heading speed <45>;
+	turn gun to x-axis <0.000000> - pitch speed <45>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
@@ -98,8 +98,8 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn turretl to y-axis heading speed <120>;
-	turn barrell to x-axis <0.000000> - pitch speed <45>;
+	turn turretl to y-axis heading speed <180>;
+	turn barrell to x-axis <0.000000> - pitch speed <60>;
 	wait-for-turn turretl around y-axis;
 	wait-for-turn barrell around x-axis;
 	start-script RestoreAfterDelay();
@@ -129,8 +129,8 @@ AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn turretr to y-axis heading speed <120>;
-	turn barrelr to x-axis <0.000000> - pitch speed <45>;
+	turn turretr to y-axis heading speed <180>;
+	turn barrelr to x-axis <0.000000> - pitch speed <60>;
 	wait-for-turn turretr around y-axis;
 	wait-for-turn barrelr around x-axis;
 	start-script RestoreAfterDelay();

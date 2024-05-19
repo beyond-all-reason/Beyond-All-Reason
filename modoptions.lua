@@ -7,6 +7,7 @@
 --  key:      the string used in the script.txt
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
+--  hint:     greyed out text that appears in input field when empty
 --  type:     the option type ('list','string','number','bool')
 --  def:      the default value
 --  min:      minimum value for number options
@@ -571,6 +572,7 @@ local options = {
         key		= "tweakunits",
         name	= "Tweak Units",
         desc	= "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -580,6 +582,7 @@ local options = {
         key     = "tweakdefs",
         name    = "Tweak Defs",
         desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -843,6 +846,31 @@ local options = {
 	--	def		= false,
 	--	section	= "options_extra",
 	--},
+
+    {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
+        type    = "list",
+        section = "options_extra",
+        def     = "disabled",
+        items 	= {
+            { key = "disabled", name = "Default",                       desc = "No changes. Fast-PC place first." },
+            { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
+            { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+        },
+    },
+  
+    {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
+        type   	= "bool",
+        def    	= false,
+        section = "options_extra",
+    },
 
     {
         key 	= "map_waterlevel",
@@ -1150,6 +1178,15 @@ local options = {
     },
 
     {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key 	= "air_rework",
         name 	= "Air Rework",
         desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
@@ -1219,25 +1256,36 @@ local options = {
     },
     
     {
-        key 	= "unbacom",
-        name 	= "Unbalanced Commanders",
+        key 	= "evocom",
+        name 	= "Evolving Commanders",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
     },
 
     {
-        key    	= "unbacomleveluprate",
-        name   	= "Unbalanced Commanders Levelup Rate",
-        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
+        key    	= "evocomleveluprate",
+        name   	= "Commander Evolution Rate",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
         min    	= 0.1,
-        max    	= 15,
+        max    	= 20,
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomxpmultiplier",
+        name   	= "Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
 
     {
 		key		= "forceallunits",

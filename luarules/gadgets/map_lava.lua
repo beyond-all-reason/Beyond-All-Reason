@@ -640,13 +640,13 @@ else  -- UNSYCNED
 			if lavaGrow then
 				if lavaGrow > 0 and not lavaRisingNotificationPlayed then
 					lavaRisingNotificationPlayed = true
-					if Script.LuaUI("EventBroadcast") then
-						Script.LuaUI.EventBroadcast("SoundEvents LavaRising "..myPlayerID)
+					if Script.LuaUI("NotificationEvent") then
+						Script.LuaUI.NotificationEvent("SoundEvents LavaRising "..myPlayerID)
 					end
 				elseif lavaGrow < 0 and not lavaDroppingNotificationPlayed then
 					lavaDroppingNotificationPlayed = true
-					if Script.LuaUI("EventBroadcast") then
-						Script.LuaUI.EventBroadcast("SoundEvents LavaDropping "..myPlayerID)
+					if Script.LuaUI("NotificationEvent") then
+						Script.LuaUI.NotificationEvent("SoundEvents LavaDropping "..myPlayerID)
 					end
 				elseif lavaGrow == 0 and (lavaRisingNotificationPlayed or lavaDroppingNotificationPlayed) then
 					lavaRisingNotificationPlayed = false

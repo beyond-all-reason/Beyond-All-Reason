@@ -513,10 +513,12 @@ local unitOrderTable = {
    ['coreyes']        = 103050,
    ['armrad']         = 103100,
    ['corrad']         = 103150,
+   ['legrad']         = 103160,
    ['armarad']        = 103200,
    ['corarad']        = 103250,
    ['armjamt']        = 103300,
    ['corjamt']        = 103350,
+   ['legjam']         = 103360,
    ['armveil']        = 103400,
    ['corshroud']      = 103450,
    ['armjuno']        = 103500,
@@ -541,6 +543,7 @@ local unitOrderTable = {
    ['legforti']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
+   ['legdtr']     	  = 104704, --legion
    ['corscavdtl']     = 104705, --scavengers
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
@@ -562,6 +565,7 @@ local unitOrderTable = {
    --DEFENSES LAND T1
    ['armllt']         = 106100,
    ['corllt']         = 106200,
+   ['leglht']         = 106250,
    ['armbeamer']      = 106300,
    ['corhllt']        = 106400,
    ['corhllllt']      = 106500, --scavengers
@@ -570,6 +574,7 @@ local unitOrderTable = {
    ['legdefcarryt1']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
+   ['legcluster']         = 106950,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun
@@ -598,10 +603,13 @@ local unitOrderTable = {
    --DEFENSES AA
    ['armrl']          = 130100,
    ['corrl']          = 130200,
+   ['legrl']          = 130250,
    ['armferret']      = 130300,
    ['cormadsam']      = 130400,
+   ['legrhapsis']      = 130450,
    ['armcir']         = 130500,
    ['corerad']        = 130600,
+   ['leglupara']        = 130700,
 
    ['armflak']        = 153000,
    ['corflak']        = 153500,

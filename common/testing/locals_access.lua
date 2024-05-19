@@ -25,16 +25,25 @@ return __locals
 
 local function generateLocalsAccessStr(localsNames)
 	local content = "\n__localsAccess = {\n"
+
 	content = content .. "  getters = {\n"
 	for _, name in ipairs(localsNames) do
 		content = content .. "    " .. name .. " = function() return " .. name .. " end,\n"
 	end
 	content = content .. "  },\n"
+
 	content = content .. "  setters = {\n"
 	for _, name in ipairs(localsNames) do
 		content = content .. "    " .. name .. " = function(__value) " .. name .. " = __value end,\n"
 	end
 	content = content .. "  },\n"
+
+	content = content .. "  getAllLocals = function() return {\n"
+	for _, name in ipairs(localsNames) do
+		content = content .. "    \"" .. name .. "\",\n"
+	end
+	content = content .. "  } end,\n"
+
 	content = content .. "}\n"
 	return content
 end

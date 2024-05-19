@@ -26,7 +26,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if isCommander[unitDefID] then
 		local px,py,pz = Spring.GetUnitPosition(unitID)
 		pz = pz - 40
-		if not (Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true") then
+		if not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 			local tombstoneID = Spring.CreateFeature(isCommander[unitDefID], px, Spring.GetGroundHeight(px,pz), pz, 0, teamID)
 			if tombstoneID then
 				local rx,ry,rz = Spring.GetFeatureRotation(tombstoneID)

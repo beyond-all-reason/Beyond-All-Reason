@@ -2099,6 +2099,10 @@ local icontypes = {
 		bitmap = "icons/bot_worker.png",
 		size = 0.99749994
 	},
+	legcluster = {
+		bitmap = "icons/def_t1_arty.png",
+		size = 1.1500000
+	},
 	legcom = {
 		bitmap = "icons/legcom.png",
 		size = 1.60000002
@@ -2203,6 +2207,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
 	},
+	legjam ={
+		bitmap ="icons/jammer.png",
+		size = 0.94499993
+	},
 	leginc = {
 		bitmap = "icons/corsumo.png",
 		size = 1.85000002
@@ -2231,13 +2239,25 @@ local icontypes = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
 		size = 2
 	},
+	leglht = {
+		bitmap = "icons/defence_0_laser.png",
+		size = 0.80000001
+	},
 	leglab = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
 	},
+	legdtr = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	leglob = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
+	},
+	leglupara = {
+		bitmap = "icons/aa_flak_t15.png",
+		size = 1.3
 	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
@@ -2295,9 +2315,21 @@ local icontypes = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
+	legrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
+	},
 	legrail = {
 		bitmap = "icons/vehicle_t1_tank_rail.png",
 		size = 1.35000002
+	},
+	legrl = {
+		bitmap = "icons/aa.png",
+		size = 0.89249998
+	},
+	legrhapsis = {
+		bitmap = "icons/aa_t15.png",
+		size = 1.15499997
 	},
 	legsco = {
 		bitmap = "icons/vehicle_t2_sco.png",
