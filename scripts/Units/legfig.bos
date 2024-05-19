@@ -26,8 +26,6 @@ activatescr()
 
 deactivatescr()
 {
-	
-	
 	turn wingAconn to z-axis <-80> speed <120>;
 	turn wingbconn to z-axis <80> speed <120>;
 	turn wingCconn to z-axis <80> speed <120>;
@@ -50,6 +48,15 @@ deactivatescr()
 
 InitState()
 {
+	turn wingA to z-axis <0> speed <60>;
+	turn wingAconn to z-axis <0> speed <60>;
+	turn wingB to z-axis <0> speed <60>;
+	turn wingbconn to z-axis <0> speed <60>;
+	turn wingC to z-axis <0> speed <60>;
+	turn wingCconn to z-axis <0> speed <60>;
+	turn wingD to z-axis <0> speed <60>;
+	turn wingDconn to z-axis <0> speed <60>;
+	show thrust;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	return (0);
@@ -117,6 +124,10 @@ Create()
 	turn wingCconn to z-axis <80> now;
 	turn wingD to z-axis <60> now;
 	turn wingDconn to z-axis <-80> now;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 100;
+	}
 	Static_Var_1 = 0;
 	gun_1 = 0;
 	call-script InitState();
