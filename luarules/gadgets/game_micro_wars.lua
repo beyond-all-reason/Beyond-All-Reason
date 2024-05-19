@@ -236,6 +236,115 @@ local unitSpawnConfigs = {
 			{unitName = "corkarg", count = 5},    -- Karganeth (Cor Karg)
 		},
     },
+	
+    ["Raining Hell"] = {
+		[1] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+		},
+		[2] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+		},
+		[3] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+		},
+		[4] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+		},
+		[5] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+		},
+		[6] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 7},     -- Banishers (Cor Ban)
+		},
+		[7] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 3},     -- Medusa (Leg Med)
+		},
+		[8] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+		},
+		[9] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
+		},
+		[10] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
+			{unitName = "corkarg", count = 5},    -- Karganeth (Cor Karg)
+		},
+	},
     ["T1 Variety"] = {
         [1] = {
             {unitName = "armpw", count = 30},

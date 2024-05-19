@@ -93,6 +93,12 @@ if Spring.GetModOptions().experimentalextraunits == true then
 	scavengersEnabled = true
 end
 
+if Spring.GetModOptions().micro_wars_enabled == true then
+	raptorsEnabled = true
+	scavengersEnabled = true
+	legionEnabled = true
+end
+
 if Spring.GetModOptions().forceallunits == true then
 	raptorsEnabled = true
 	scavengersEnabled = true
