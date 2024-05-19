@@ -1220,9 +1220,10 @@ local options = {
 		desc   = "Choose from pre-defined army setups for each round.",
 		type   = "list",
 		section= "micro_wars_options",
-		def    = "Basic T1 - T4",
+		def    = "Basic T1 - T3",
 		items  = {
-			{ key = "Basic T1 - T4", name = "Basic T1 - T4", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "Basic T1 - T3", name = "Basic T1 - T3", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "Raining Hell", name = "Raining Hell", desc = "Lots of rockets"},
 			{ key = "T1 Variety", name = "T1 Variety", desc = "Diverse compositions exclusively using Tier 1 units."},
 			{ key = "Death from Above", name = "Death from Above", desc = "Air-dominated unit compositions."},
 			{ key = "Glass the Runners", name = "Glass the Runners", desc = "Phoenixes, fast ground attackers, and mobile anti-air."},

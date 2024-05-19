@@ -39,93 +39,223 @@ local unitSpawnConfig = {
     [3] = {{unitName = "armpw", count = 50}, {unitName = "corak", count = 50}},
 }
 ]]
-local unitSpawnConfig = {
-    [1] = {
-        {unitName = "armpw", count = 20},    -- Pawns
-        {unitName = "armrock", count = 10},  -- Rocket Bots
-        {unitName = "corcrash", count = 2},  -- Trashers
-        {unitName = "corshad", count = 2},   -- Whirlwinds
+
+local unitSpawnConfigs = {
+    ["Basic T1 - T3"] = {  -- Already provided in your original script
+        [1] = {
+			{unitName = "armpw", count = 20},    -- Pawns
+			{unitName = "armrock", count = 10},  -- Rocket Bots
+			{unitName = "corcrash", count = 2},  -- Trashers
+			{unitName = "corshad", count = 2},   -- Whirlwinds
+		},
+		[2] = {
+			{unitName = "armpw", count = 30},    -- Pawns
+			{unitName = "armrock", count = 15},  -- Rocket Bots
+			{unitName = "corcrash", count = 3},  -- Trashers
+			{unitName = "corshad", count = 3},   -- Whirlwinds
+			{unitName = "armsam", count = 2},    -- Missile Trucks
+		},
+		[3] = {
+			{unitName = "armpw", count = 40},    -- Pawns
+			{unitName = "armrock", count = 20},  -- Rocket Bots
+			{unitName = "corcrash", count = 4},  -- Trashers
+			{unitName = "corshad", count = 4},   -- Whirlwinds
+			{unitName = "armsam", count = 4},    -- Missile Trucks
+		},
+		[4] = {
+			{unitName = "armpw", count = 50},    -- Pawns
+			{unitName = "armrock", count = 25},  -- Rocket Bots
+			{unitName = "corcrash", count = 5},  -- Trashers
+			{unitName = "corshad", count = 5},   -- Whirlwinds
+			{unitName = "armsam", count = 6},    -- Missile Trucks
+			{unitName = "corraid", count = 2},   -- Brutes
+		},
+		[5] = {
+			{unitName = "armpw", count = 60},    -- Pawns
+			{unitName = "armrock", count = 30},  -- Rocket Bots
+			{unitName = "corcrash", count = 6},  -- Trashers
+			{unitName = "corshad", count = 6},   -- Whirlwinds
+			{unitName = "armsam", count = 8},    -- Missile Trucks
+			{unitName = "corspec", count = 4},   -- Deceivers
+		},
+		[6] = {
+			{unitName = "armpw", count = 70},    -- Pawns
+			{unitName = "armrock", count = 35},  -- Rocket Bots
+			{unitName = "corcrash", count = 7},  -- Trashers
+			{unitName = "corshad", count = 7},   -- Whirlwinds
+			{unitName = "armsam", count = 10},   -- Missile Trucks
+			{unitName = "corraid", count = 4},   -- Brutes
+			{unitName = "corspec", count = 4},   -- Deceivers
+		},
+		[7] = {
+			{unitName = "armpw", count = 80},    -- Pawns
+			{unitName = "armrock", count = 40},  -- Rocket Bots
+			{unitName = "corcrash", count = 8},  -- Trashers
+			{unitName = "corshad", count = 8},   -- Whirlwinds
+			{unitName = "armsam", count = 12},   -- Missile Trucks
+			{unitName = "corraid", count = 6},   -- Brutes
+			{unitName = "corcat", count = 2},    -- Heavy Rocket Bot
+		},
+		[8] = {
+			{unitName = "armpw", count = 90},    -- Pawns
+			{unitName = "armrock", count = 45},  -- Rocket Bots
+			{unitName = "corcrash", count = 9},  -- Trashers
+			{unitName = "corshad", count = 9},   -- Whirlwinds
+			{unitName = "armsam", count = 14},   -- Missile Trucks
+			{unitName = "corraid", count = 8},   -- Brutes
+			{unitName = "corspec", count = 8},   -- Deceivers
+			{unitName = "corcat", count = 4},    -- Heavy Rocket Bot
+		},
+		[9] = {
+			{unitName = "armpw", count = 100},   -- Pawns
+			{unitName = "armrock", count = 50},  -- Rocket Bots
+			{unitName = "corcrash", count = 10}, -- Trashers
+			{unitName = "corshad", count = 10},  -- Whirlwinds
+			{unitName = "armsam", count = 16},   -- Missile Trucks
+			{unitName = "corraid", count = 10},  -- Brutes
+			{unitName = "corspec", count = 10},  -- Deceivers
+			{unitName = "corcat", count = 6},    -- Heavy Rocket Bot
+		},
+		[10] = {
+			{unitName = "armpw", count = 120},   -- Pawns
+			{unitName = "armrock", count = 60},  -- Rocket Bots
+			{unitName = "corcrash", count = 12}, -- Trashers
+			{unitName = "corshad", count = 12},  -- Whirlwinds
+			{unitName = "armsam", count = 20},   -- Missile Trucks
+			{unitName = "corraid", count = 12},  -- Brutes
+			{unitName = "corspec", count = 12},  -- Deceivers
+			{unitName = "corcat", count = 8},    -- Heavy Rocket Bot
+			{unitName = "corkarg", count = 1},   -- Karganeth (All-Terrain Assault Mech)
+		}
     },
-    [2] = {
-        {unitName = "armpw", count = 30},    -- Pawns
-        {unitName = "armrock", count = 15},  -- Rocket Bots
-        {unitName = "corcrash", count = 3},  -- Trashers
-        {unitName = "corshad", count = 3},   -- Whirlwinds
-        {unitName = "armsam", count = 2},    -- Missile Trucks
+	["Raining Hell"] = {
+		[1] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+		},
+		[2] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+		},
+		[3] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+		},
+		[4] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+		},
+		[5] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+		},
+		[6] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 7},     -- Banishers (Cor Ban)
+		},
+		[7] = {
+			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 3},     -- Medusa (Leg Med)
+		},
+		[8] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+		},
+		[9] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
+		},
+		[10] = {
+			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
+			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
+			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
+			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
+			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
+			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
+			{unitName = "corkarg", count = 5},    -- Karganeth (Cor Karg)
+		},
     },
-    [3] = {
-        {unitName = "armpw", count = 40},    -- Pawns
-        {unitName = "armrock", count = 20},  -- Rocket Bots
-        {unitName = "corcrash", count = 4},  -- Trashers
-        {unitName = "corshad", count = 4},   -- Whirlwinds
-        {unitName = "armsam", count = 4},    -- Missile Trucks
+    ["T1 Variety"] = {
+        [1] = {
+            {unitName = "armpw", count = 30},
+            -- More units
+        },
+        -- Other rounds
     },
-    [4] = {
-        {unitName = "armpw", count = 50},    -- Pawns
-        {unitName = "armrock", count = 25},  -- Rocket Bots
-        {unitName = "corcrash", count = 5},  -- Trashers
-        {unitName = "corshad", count = 5},   -- Whirlwinds
-        {unitName = "armsam", count = 6},    -- Missile Trucks
-        {unitName = "corraid", count = 2},   -- Brutes
+    ["Death from Above"] = {
+        [1] = {
+            {unitName = "corshad", count = 15},
+            -- More units
+        },
+        -- Other rounds
     },
-    [5] = {
-        {unitName = "armpw", count = 60},    -- Pawns
-        {unitName = "armrock", count = 30},  -- Rocket Bots
-        {unitName = "corcrash", count = 6},  -- Trashers
-        {unitName = "corshad", count = 6},   -- Whirlwinds
-        {unitName = "armsam", count = 8},    -- Missile Trucks
-        {unitName = "corspec", count = 4},   -- Deceivers
-    },
-    [6] = {
-        {unitName = "armpw", count = 70},    -- Pawns
-        {unitName = "armrock", count = 35},  -- Rocket Bots
-        {unitName = "corcrash", count = 7},  -- Trashers
-        {unitName = "corshad", count = 7},   -- Whirlwinds
-        {unitName = "armsam", count = 10},   -- Missile Trucks
-        {unitName = "corraid", count = 4},   -- Brutes
-        {unitName = "corspec", count = 4},   -- Deceivers
-    },
-    [7] = {
-        {unitName = "armpw", count = 80},    -- Pawns
-        {unitName = "armrock", count = 40},  -- Rocket Bots
-        {unitName = "corcrash", count = 8},  -- Trashers
-        {unitName = "corshad", count = 8},   -- Whirlwinds
-        {unitName = "armsam", count = 12},   -- Missile Trucks
-        {unitName = "corraid", count = 6},   -- Brutes
-        {unitName = "corcat", count = 2},    -- Heavy Rocket Bot
-    },
-    [8] = {
-        {unitName = "armpw", count = 90},    -- Pawns
-        {unitName = "armrock", count = 45},  -- Rocket Bots
-        {unitName = "corcrash", count = 9},  -- Trashers
-        {unitName = "corshad", count = 9},   -- Whirlwinds
-        {unitName = "armsam", count = 14},   -- Missile Trucks
-        {unitName = "corraid", count = 8},   -- Brutes
-        {unitName = "corspec", count = 8},   -- Deceivers
-        {unitName = "corcat", count = 4},    -- Heavy Rocket Bot
-    },
-    [9] = {
-        {unitName = "armpw", count = 100},   -- Pawns
-        {unitName = "armrock", count = 50},  -- Rocket Bots
-        {unitName = "corcrash", count = 10}, -- Trashers
-        {unitName = "corshad", count = 10},  -- Whirlwinds
-        {unitName = "armsam", count = 16},   -- Missile Trucks
-        {unitName = "corraid", count = 10},  -- Brutes
-        {unitName = "corspec", count = 10},  -- Deceivers
-        {unitName = "corcat", count = 6},    -- Heavy Rocket Bot
-    },
-    [10] = {
-        {unitName = "armpw", count = 120},   -- Pawns
-        {unitName = "armrock", count = 60},  -- Rocket Bots
-        {unitName = "corcrash", count = 12}, -- Trashers
-        {unitName = "corshad", count = 12},  -- Whirlwinds
-        {unitName = "armsam", count = 20},   -- Missile Trucks
-        {unitName = "corraid", count = 12},  -- Brutes
-        {unitName = "corspec", count = 12},  -- Deceivers
-        {unitName = "corcat", count = 8},    -- Heavy Rocket Bot
-        {unitName = "corkarg", count = 1},   -- Karganeth (All-Terrain Assault Mech)
-    }
+    -- Define other presets like "Glass the Runners" and "Long Range Standoff"
 }
+
+-- Check which preset is selected in the game options and set the unitSpawnConfig accordingly
+local selectedComposition = modOptions.preset_army_compositions or "Basic T1 - T3"
+local unitSpawnConfig = unitSpawnConfigs[selectedComposition]
 
 local currentRound = 1
 local currentRoundFrameStart = 0
