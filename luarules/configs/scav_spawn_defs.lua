@@ -729,7 +729,6 @@ local AirUnitsList = {
 	[6] = {
 	--Armada
 	["armfepocht4_scav"] = 1,
-	["armlichet4_scav"] = 1,
 	--Cortex
 	["corfblackhyt4_scav"] = 1,
 	["corcrwt4_scav"] = 1,
