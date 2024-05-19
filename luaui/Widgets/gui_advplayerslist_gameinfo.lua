@@ -32,6 +32,7 @@ local top, left, bottom, right = 0,0,0,0
 local passedTime = 0
 local usedTextWidth = 0
 local textWidthClock = 0
+local gameframe = Spring.GetGameFrame()
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -46,12 +47,11 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local _,gamespeed,_ = Spring.GetGameSpeed()
-		gamespeed = string.format("%.2f", gamespeed)
 		local fps = Spring.GetFPS()
 		local titleColor = '\255\200\200\200'
 		local valueColor = '\255\245\245\245'
-		local gameframe = Spring.GetGameFrame()
+		local prevGameframe = gameframe
+		gameframe = Spring.GetGameFrame()
 		local minutes = math.floor((gameframe / 30 / 60))
 		local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
 		if seconds == 0 then
@@ -69,6 +69,9 @@ local function updateValues()
 		elseif minutes > 9 then
 			extraSpacing = 0.7
 		end
+		--local _,gamespeed,_ = Spring.GetGameSpeed()
+		--gamespeed = string.format("%.2f", gamespeed)
+		local gamespeed = string.format("%.2f", (gameframe-prevGameframe) / 30)
 		local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
 		font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		local textWidth = font:GetTextWidth(text) * textsize

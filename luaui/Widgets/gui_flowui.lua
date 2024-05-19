@@ -243,11 +243,11 @@ end
 WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
 	gl.PushMatrix()
 	gl.Translate(left, bottom, 0)
-	local xcen = (right-left)*0.5
-	local ycen = (top-bottom)*0.5
 	right = right - left
 	top = top - bottom
 	left, bottom = 0, 0
+	local xcen = (right-left)*0.5
+	local ycen = (top-bottom)*0.5
 	local alpha = 360 * progress
 	local alpha_rad = math.rad(alpha)
 	local beta_rad = math.pi / 2 - alpha_rad
