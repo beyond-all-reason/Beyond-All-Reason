@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 40,
+        version = 41,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -49,6 +49,7 @@ end
 	v38   (Floris): significant performance improvement, + fast updating resources
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
+	v41   (Floris): added APM info to cpu/ping tooltip
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -2954,7 +2955,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         end
         tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
         if system ~= nil then
-            tipText = tipText .. "\n\255\240\240\240" .. system
+            tipText = tipText .. system
         end
         tipTextTime = os.clock()
     end

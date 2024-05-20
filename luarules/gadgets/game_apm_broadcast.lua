@@ -31,7 +31,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		teamAddedActionFrame = {}
-		if gf % 300 == 1 then
+		if gf % 450 == 1 then	-- every 15 secs
 			for teamID, totalActions in pairs(totalTeamActions) do
 				local apm = totalActions / ((gf-startFrame)/1800)	-- 1800 frames = 1 min
 				SendToUnsynced("apmBroadcast", teamID, math.floor(apm+0.5))
@@ -47,9 +47,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- unsynced
 
 
-	local function handleApmEvent(_, playerID, apm)
+	local function handleApmEvent(_, teamID, apm)
 		if Script.LuaUI("ApmEvent") then
-			Script.LuaUI.ApmEvent(playerID, apm)
+			Script.LuaUI.ApmEvent(teamID, apm)
 		end
 	end
 

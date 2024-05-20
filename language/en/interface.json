@@ -466,6 +466,8 @@
 			"unitsProduced": "Produced",
 			"unitsKilled": "Killed",
 			"unitsDied": "Lost",
+			"actionsPerMinute1": "Actions",
+			"actionsPerMinute2": "Per Minute",
 			"aggression": "Aggression",
 			"aggressionLevel": "Level",
 			"metal": "Metal",
