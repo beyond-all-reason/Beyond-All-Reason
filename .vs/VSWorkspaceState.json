@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
+    "\\gamedata",
     "\\luarules",
     "\\luarules\\gadgets"
   ],
+  "SelectedNode": "\\gamedata\\unitdefs.lua",
   "PreviewInSolutionExplorer": false
 }

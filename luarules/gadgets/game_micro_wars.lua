@@ -354,7 +354,367 @@ local unitSpawnConfigs = {
     },
     ["Death from Above"] = {
         [1] = {
-            {unitName = "corshad", count = 15},
+            {unitName = "corshad", count = 15}, --Bombers
+			{unitName = "armrock", count = 30}, --Rocketeers
+			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
+            -- More units
+        },
+        -- Other rounds
+    },
+	["Inferno"] = {
+        [1] = {
+			{unitName = "cortorch", count = 15},  -- Torch
+			{unitName = "corsala", count = 10},   -- Salamander
+			{unitName = "corcan", count = 15}     -- Fiends
+		},
+		[2] = {
+			{unitName = "legkark", count = 10},   -- Karkinos
+			{unitName = "leghelios", count = 30}, -- Helios
+			{unitName = "corhal", count = 5},     -- Laser Tigers
+			{unitName = "legbar", count = 5}      -- Barrage
+		},
+		[3] = {
+			{unitName = "leginf", count = 1},     -- Inferno
+			{unitName = "leghelios", count = 20}, -- Helios
+			{unitName = "legbar", count = 5},     -- Barrage
+			{unitName = "corcan", count = 15},    -- Fiends
+			{unitName = "corsala", count = 10},   -- Salamanders
+			{unitName = "cortermite", count = 10} -- Thermites
+		},
+		[4] = {
+			{unitName = "corvipe", count = 1},    -- Scorpion Tank
+			{unitName = "corftiger", count = 10}, -- Heat Tigers
+			{unitName = "corsala", count = 20},   -- Salamanders
+			{unitName = "leginf", count = 2}      -- Infernos
+		},
+		[5] = {
+			{unitName = "legbart", count = 10},   -- Belcher
+			{unitName = "leginf", count = 5},     -- Inferno
+			{unitName = "legbar", count = 20},    -- Barrage
+			{unitName = "corcan", count = 30},    -- Fiends
+			{unitName = "corsala", count = 20}    -- Salamanders
+		},
+		[6] = {
+			{unitName = "cortermite", count = 50},  -- Termites
+			{unitName = "corthert4", count = 1}     -- Epic Termite
+		},
+		[7] = {
+			{unitName = "corvipe", count = 5},     -- Scorpion Tanks
+			{unitName = "corsala", count = 20},    -- Salamanders
+			{unitName = "corftiger", count = 30},  -- Heat Tigers
+			{unitName = "corcan", count = 20},     -- Fiends
+			{unitName = "cortorch", count = 20},   -- Torch
+			{unitName = "cordemon", count = 1},    -- Demon
+			{unitName = "corforge", count = 5}     -- Forge
+		},
+		[8] = {
+			{unitName = "cordemon", count = 3},    -- Demons
+			{unitName = "corvipe", count = 10},    -- Scorpion Tanks
+			{unitName = "corftiger", count = 30},  -- Heat Tigers
+			{unitName = "leginf", count = 10},     -- Infernos
+			{unitName = "cortorch", count = 30}    -- Torch
+		},
+		[9] = {
+			{unitName = "corjugg", count = 1},     -- Juggernaut
+			{unitName = "cordemon", count = 2},    -- Demons
+			{unitName = "leghelios", count = 50},  -- Helios
+			{unitName = "corsala", count = 50}     -- Salamanders
+		},
+		[10] = {
+			{unitName = "corjugg", count = 1},     -- Juggernaut
+			{unitName = "cordemon", count = 4},    -- Demons
+			{unitName = "corthert4", count = 2},   -- Epic Termites
+			{unitName = "corvipe", count = 15},    -- Scorpion Tanks
+			{unitName = "corftiger", count = 10},  -- Heat Tigers
+			{unitName = "corsala", count = 20},    -- Salamanders
+			{unitName = "cortermite", count = 10}, -- Termites
+			{unitName = "leginf", count = 10},     -- Infernos
+			{unitName = "legbart", count = 10},    -- Belchers
+			{unitName = "leghelios", count = 30},  -- Helios
+			{unitName = "legkark", count = 10},    -- Karkinos
+			{unitName = "corcan", count = 30}      -- Fiends
+		},
+    },
+	["Arachnophobia"] = {
+        [1] = {
+			{unitName = "armsptk", count = 20},    -- Recluse
+			{unitName = "armspid", count = 10},    -- Webber
+			{unitName = "leginfestor", count = 30} -- Infestors
+		},
+		[2] = {
+			{unitName = "armsptk", count = 20},    -- Recluse
+			{unitName = "armspid", count = 10},    -- Webber
+			{unitName = "leginfestor", count = 30},-- Infestors
+			{unitName = "cortermite", count = 20}, -- Termites
+			{unitName = "legsrail", count = 20}    -- Railgun Spiders
+		},
+		[3] = {
+			{unitName = "armspid", count = 20},    -- Webbers
+			{unitName = "armvang", count = 10},    -- Vanguards
+			{unitName = "armsptk", count = 20}     -- Recluse
+		},
+		[4] = {
+			{unitName = "corthermite", count = 1}, -- Epic Termite
+			{unitName = "cortermite", count = 60}  -- Termites
+		},
+		[5] = {
+			{unitName = "corkarg", count = 1},     -- Karganeth
+			{unitName = "leginfestor", count = 15} -- Infestors
+		},
+		[6] = {
+			{unitName = "legpede", count = 2},     -- Mukade
+			{unitName = "legsrail", count = 50},   -- Railgun Spiders
+			{unitName = "armspid", count = 10},    -- Webbers
+			{unitName = "armsptk", count = 10}     -- Recluse
+		},
+		[7] = {
+			{unitName = "armsptk", count = 40},    -- Recluse
+			{unitName = "cortermite", count = 40}, -- Termites
+			{unitName = "armspid", count = 20},    -- Webbers
+			{unitName = "legsrail", count = 40},   -- Railgun Spiders
+			{unitName = "legpede", count = 1},     -- Mukade
+			{unitName = "armsptkt4", count = 1},   -- Epic Recluse
+			{unitName = "corthermite", count = 1}  -- Epic Termite
+		},
+		[8] = {
+			{unitName = "armvang", count = 15},    -- Vanguards
+			{unitName = "legsrail", count = 20},   -- Railgun Spiders
+			{unitName = "armsptkt4", count = 1},   -- Epic Recluse
+			{unitName = "corkarg", count = 10},    -- Karganeth
+			{unitName = "armsptk", count = 30}     -- Recluse
+		},
+		[9] = {
+			{unitName = "cortermite", count = 30},     -- Termites
+			{unitName = "armsptk", count = 30},        -- Recluse
+			{unitName = "armsptkt4", count = 5},       -- Epic Recluse
+			{unitName = "corthermite", count = 5},     -- Epic Termite
+			{unitName = "corkarganetht4", count = 5},  -- Epic Karganeth
+			{unitName = "armvang", count = 10},        -- Vanguards
+			{unitName = "corkarg", count = 10},        -- Karganeth
+			{unitName = "leginfestor", count = 30},    -- Infestors
+			{unitName = "legsrail", count = 30},       -- Railgun Spiders
+			{unitName = "legkark", count = 30},        -- Karkinos
+			{unitName = "armspid", count = 30}         -- Webber
+		},
+		[10] = {
+			{unitName = "armsptkt4", count = 1},      -- Epic Recluse
+			{unitName = "corthermite", count = 1},    -- Epic Termite
+			{unitName = "corkarganetht4", count = 1}  -- Epic Karganeth
+		},
+    },
+	["World of Tanks"] = {
+        [1] = {
+			{unitName = "leghades", count = 10},  -- Helios
+			{unitName = "corraid", count = 10},   -- Brutes
+			{unitName = "armstump", count = 10},  -- Stouts
+			{unitName = "leghades", count = 10},  -- Hades
+			{unitName = "corlevlr", count = 10},  -- Pounders
+			{unitName = "corgarp", count = 10},   -- Garpikes
+			{unitName = "armpincer", count = 10}, -- Pincers
+			{unitName = "armflash", count = 10},  -- Blitz
+			{unitName = "corgator", count = 10}   -- Incisors
+		},
+		[2] = {
+			{unitName = "corgator", count = 20},  -- Incisors
+			{unitName = "corsala", count = 20},   -- Salamanders
+			{unitName = "armlatnk", count = 20},  -- Jaguars
+			{unitName = "armflash", count = 20},  -- Blitz
+			{unitName = "armstump", count = 20},  -- Stouts
+			{unitName = "corraid", count = 20}    -- Brutes
+		},
+		[3] = {
+			{unitName = "corban", count = 10},    -- Banishers
+			{unitName = "corsala", count = 40},   -- Salamanders
+			{unitName = "leghades", count = 30},  -- Hades
+			{unitName = "legkark", count = 1}     -- Scorpion
+		},
+		[4] = {
+			{unitName = "armcroc", count = 5},    -- Turtles
+			{unitName = "corgarp", count = 10},   -- Garpikes
+			{unitName = "armpincer", count = 10}, -- Pincers
+			{unitName = "corsala", count = 5},    -- Salamanders
+			{unitName = "corparrow", count = 1}   -- Poison Arrow
+		},
+		[5] = {
+			{unitName = "legmed", count = 1},     -- Medusa
+			{unitName = "corgator", count = 10},  -- Incisors
+			{unitName = "corsala", count = 10},   -- Salamanders
+			{unitName = "corparrow", count = 3},  -- Poison Arrows
+			{unitName = "corgol", count = 2}      -- Tzars
+		},
+		[6] = {
+			{unitName = "corftiger", count = 15}, -- Heat Tigers
+			{unitName = "corraid", count = 15},   -- Tigers
+			{unitName = "corgatreap", count = 15} -- Laser Tigers
+		},
+		[7] = {
+			{unitName = "legmed", count = 5},     -- Medusa
+			{unitName = "legkeres", count = 1},   -- Keres
+			{unitName = "corlevlr", count = 30},  -- Pounders
+			{unitName = "armstump", count = 20},  -- Stouts
+			{unitName = "corraid", count = 20},   -- Brutes
+			{unitName = "corban", count = 5}      -- Banishers
+		},
+		[8] = {
+			{unitName = "armbull", count = 5},     -- Bulls
+			{unitName = "corraid", count = 5},     -- Tigers
+			{unitName = "corban", count = 5},      -- Banishers
+			{unitName = "corparrow", count = 5},   -- Poison Arrows
+			{unitName = "legmed", count = 5},      -- Medusa
+			{unitName = "corgol", count = 5},      -- Tzars
+			{unitName = "corgatreap", count = 5},  -- Laser Tigers
+			{unitName = "corftiger", count = 5},   -- Heat Tigers
+			{unitName = "corsala", count = 5},     -- Salamanders
+			{unitName = "corraid", count = 5},     -- Brutes
+			{unitName = "armstump", count = 5},    -- Stouts
+			{unitName = "armtorch", count = 5},    -- Torch
+			{unitName = "armcroc", count = 5},     -- Turtles
+			{unitName = "armflash", count = 5},    -- Blitz
+			{unitName = "corgator", count = 5},    -- Incisors
+			{unitName = "armgremlin", count = 5},  -- Gremlin
+			{unitName = "legkark", count = 5},     -- Scorpion
+			{unitName = "armpincer", count = 5},   -- Pincers
+			{unitName = "corgarp", count = 5},     -- Garpikes
+			{unitName = "leghades", count = 5},    -- Hades
+			{unitName = "leghades", count = 5}     -- Helios
+		},
+		[9] = {
+			{unitName = "armbull", count = 5},     -- Bulls
+			{unitName = "corraid", count = 5},     -- Tigers
+			{unitName = "corban", count = 5},      -- Banishers
+			{unitName = "corparrow", count = 5},   -- Poison Arrows
+			{unitName = "legmed", count = 5},      -- Medusa
+			{unitName = "corgol", count = 5},      -- Tzars
+			{unitName = "corgatreap", count = 5},  -- Laser Tigers
+			{unitName = "corftiger", count = 5},   -- Heat Tigers
+			{unitName = "corsala", count = 5},     -- Salamanders
+			{unitName = "corraid", count = 5},     -- Brutes
+			{unitName = "armstump", count = 5},    -- Stouts
+			{unitName = "armtorch", count = 5},    -- Torch
+			{unitName = "armcroc", count = 5},     -- Turtles
+			{unitName = "armflash", count = 5},    -- Blitz
+			{unitName = "corgator", count = 5},    -- Incisors
+			{unitName = "armgremlin", count = 5},  -- Gremlin
+			{unitName = "legkark", count = 5},     -- Scorpion
+			{unitName = "armpincer", count = 5},   -- Pincers
+			{unitName = "corgarp", count = 5},     -- Garpikes
+			{unitName = "leghades", count = 5},    -- Hades
+			{unitName = "leghades", count = 5},    -- Helios
+			{unitName = "armthor", count = 1},     -- Thor
+			{unitName = "corgolt4", count = 1},    -- Epic Tzar
+			{unitName = "legkeres", count = 1}     -- Keres
+		},
+		[10] = {
+			{unitName = "armgremlin", count = 75},  -- Gremlins
+			{unitName = "armlatnk", count = 25},    -- Jaguars
+			{unitName = "armthor", count = 1}       -- Thor
+		},
+    },
+	["Can't Touch This"] = {
+        [1] = {
+			{unitName = "armfav", count = 30},    -- Rovers
+			{unitName = "corfav", count = 30},    -- Rascals
+			{unitName = "legcen", count = 1},     -- Centaur
+			{unitName = "legstr", count = 1},     -- Strider
+			{unitName = "armflea", count = 30},   -- Ticks
+			{unitName = "armpw", count = 30},     -- Pawns
+			{unitName = "corak", count = 20},     -- Grunts
+			{unitName = "armflash", count = 10}   -- Blitz
+		},
+		[2] = {
+			{unitName = "armflea", count = 100},  -- Ticks
+			{unitName = "corak", count = 1},      -- Grunt
+			{unitName = "armfast", count = 1},    -- Sprinter
+			{unitName = "armamph", count = 1},    -- Platypus
+			{unitName = "corpyro", count = 1},    -- Fiend
+			{unitName = "armpw", count = 1},      -- Pawn
+			{unitName = "legcen", count = 1},     -- Centaur
+			{unitName = "legstr", count = 1},     -- Strider
+			{unitName = "armlatnk", count = 1},   -- Jaguar
+			{unitName = "armfav", count = 1},     -- Rover
+			{unitName = "leghades", count = 1},   -- Hades
+			{unitName = "armflash", count = 1},   -- Blitz
+			{unitName = "corgator", count = 1},   -- Incisor
+			{unitName = "cortorch", count = 1},   -- Torch
+			{unitName = "legmrv", count = 1}      -- Quickshot
+		},
+		[3] = {
+			{unitName = "legcen", count = 5},     -- Centaurs
+			{unitName = "armpw", count = 20},     -- Pawns
+			{unitName = "corak", count = 20},     -- Grunts
+			{unitName = "armflea", count = 30}    -- Ticks
+		},
+		[4] = {
+			{unitName = "corpyro", count = 5},    -- Fiends
+			{unitName = "corfav", count = 50},    -- Rascals
+			{unitName = "armfast", count = 20},   -- Sprinters
+			{unitName = "armlatnk", count = 10}   -- Jaguars
+		},
+		[5] = {
+			{unitName = "legstr", count = 10},    -- Striders
+			{unitName = "armfast", count = 10},   -- Sprinters
+			{unitName = "corpyro", count = 10},   -- Fiends
+			{unitName = "corak", count = 10},     -- Grunts
+			{unitName = "armpw", count = 10},     -- Pawns
+			{unitName = "armmar", count = 1}      -- Marauder
+		},
+		[6] = {
+			{unitName = "armamph", count = 20},   -- Platypus
+			{unitName = "armfast", count = 20},   -- Sprinters
+			{unitName = "legcen", count = 20},    -- Centaurs
+			{unitName = "corakt4", count = 1}     -- Epic Grunt
+		},
+		[7] = {
+			{unitName = "corakt4", count = 1},    -- Epic Grunt
+			{unitName = "armpwt4", count = 1},    -- Epic Pawn
+			{unitName = "armflea", count = 100}   -- Ticks
+		},
+		[8] = {
+			{unitName = "armmar", count = 5},     -- Marauders
+			{unitName = "legmrv", count = 5},     -- Quickshots
+			{unitName = "armpwt4", count = 5},    -- Epic Pawns
+			{unitName = "corpyro", count = 50},   -- Fiends
+			{unitName = "cortorch", count = 5}    -- Torches
+		},
+		[9] = {
+			{unitName = "armpwt4", count = 1},    -- Epic Pawn
+			{unitName = "corakt4", count = 1},    -- Epic Grunt
+			{unitName = "armmar", count = 10},    -- Marauders
+			{unitName = "corfav", count = 50},    -- Rascals
+			{unitName = "armflea", count = 50}    -- Ticks
+		},
+		[10] = {
+			{unitName = "armfav", count = 7},     -- Rovers
+			{unitName = "corfav", count = 7},     -- Rascals
+			{unitName = "legcen", count = 7},     -- Centaurs
+			{unitName = "legstr", count = 7},     -- Striders
+			{unitName = "armflea", count = 7},    -- Ticks
+			{unitName = "armpw", count = 7},      -- Pawns
+			{unitName = "corak", count = 7},      -- Grunts
+			{unitName = "armflash", count = 7},   -- Blitz
+			{unitName = "armfast", count = 7},    -- Sprinters
+			{unitName = "armamph", count = 7},    -- Platypus
+			{unitName = "corpyro", count = 7},    -- Fiends
+			{unitName = "armlatnk", count = 7},   -- Jaguars
+			{unitName = "leghades", count = 7},   -- Hades
+			{unitName = "corgator", count = 7},   -- Incisors
+			{unitName = "cortorch", count = 7},   -- Torches
+			{unitName = "legmrv", count = 7},     -- Quickshots
+			{unitName = "armmar", count = 7},     -- Marauders
+			{unitName = "corakt4", count = 7},    -- Epic Grunts
+			{unitName = "armpwt4", count = 7}     -- Epic Pawns
+		}
+    },
+	["Glass the Runners"] = {
+        [1] = {
+            {unitName = "armpw", count = 30},
+            -- More units
+        },
+        -- Other rounds
+    },
+	["Long Range Standoff"] = {
+        [1] = {
+            {unitName = "armpw", count = 30},
             -- More units
         },
         -- Other rounds
