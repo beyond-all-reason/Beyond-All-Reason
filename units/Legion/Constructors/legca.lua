@@ -26,9 +26,9 @@ return {
 		maxslope = 10,
 		speed = 201.0,
 		maxwaterdepth = 0,
-		objectname = "Units/CORCA.s3o",
+		objectname = "Units/LEGCA.s3o",
 		radardistance = 50,
-		script = "Units/CORCA.cob",
+		script = "Units/LEGCA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 351,
@@ -73,8 +73,8 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			model_author = "Mr Bob, Flaka",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "coraircraft",
 		},
 		sfxtypes = {
