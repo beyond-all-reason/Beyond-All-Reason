@@ -91,6 +91,7 @@
 			"resincome": "Resource income",
 			"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
 			"cpu": "CPU: %{cpuUsage}%%",
+			"apm": "APM: %{apm} (actions per minute)",
 			"framerate": "FPS: %{fps}",
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",

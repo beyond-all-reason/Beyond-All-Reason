@@ -1041,7 +1041,7 @@ local icontypes = {
 	},
 	corakt4 = {
 		bitmap = "icons/corakt4.png",
-		size = 2.30999994
+		size = 1.7
 	},
 	coralab = {
 		bitmap = "icons/factory_bot_t2.png",
@@ -2338,7 +2338,7 @@ local icontypes = {
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
-	},	
+	},
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002

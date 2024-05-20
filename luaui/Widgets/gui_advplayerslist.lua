@@ -224,9 +224,9 @@ local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
-local specJoinedOnce, scheduledSpecFullView
-local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
-local lockPlayerID, leftPosX, lastSliderSound, release
+--local specJoinedOnce, scheduledSpecFullView
+--local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
+--local lockPlayerID, leftPosX, lastSliderSound, release
 local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 8
@@ -241,6 +241,7 @@ local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
 local lastActivity = {}
 local lastFpsData = {}
+local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
 
@@ -752,10 +753,15 @@ function GpuMemEvent(playerID, percentage)
 end
 
 function FpsEvent(playerID, fps)
-    lastFpsData[playerID] = fps
+	lastFpsData[playerID] = fps
+	WG.playerFPS = WG.playerFPS or {}
+	WG.playerFPS[playerID] = fps
+end
 
-    WG.playerFPS = WG.playerFPS or {}
-    WG.playerFPS[playerID] = fps
+function ApmEvent(teamID, fps)
+	lastApmData[teamID] = fps
+	WG.teamAPM = WG.teamAPM or {}
+	WG.teamAPM[teamID] = fps
 end
 
 function SystemEvent(playerID, system)
@@ -845,6 +851,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
@@ -1011,7 +1018,8 @@ function widget:Shutdown()
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
     widgetHandler:DeregisterGlobal('ActivityEvent')
-    widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('ApmEvent')
     widgetHandler:DeregisterGlobal('GpuMemEvent')
     widgetHandler:DeregisterGlobal('SystemEvent')
     if ShareSlider then
@@ -2194,7 +2202,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec)
+                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
         end
     end
@@ -2923,7 +2931,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome)
     end
 end
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
     if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
@@ -2933,10 +2941,14 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
         tipTextTime = os.clock()
     elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
-        tipText = Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
-        if fps ~= nil then
-            tipText = Spring.I18N('ui.playersList.framerate', { fps = fps }) .. "    " .. tipText
-        end
+		tipText = ''
+		if not spec and apm ~= nil then
+			tipText = tipText .. Spring.I18N('ui.playersList.apm', { apm = apm }) .."\n"
+		end
+		if fps ~= nil then
+			tipText =  tipText .. Spring.I18N('ui.playersList.framerate', { fps = fps })
+		end
+		tipText = tipText .. "    " .. Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
