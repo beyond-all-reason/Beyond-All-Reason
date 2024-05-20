@@ -124,6 +124,7 @@ return {
 			subfolder = "",
 			evolution_announcement = "Armada commanders have upgraded to level 9",
 			evolution_announcement_size = 18.5,
+			evolution_health_transfer = "percentage",
 			evolution_target = "armcomlvl9",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
