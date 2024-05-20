@@ -788,6 +788,7 @@ function DrawWindow()
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
 							end
+							options[oid].nametext = text
 							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
@@ -844,6 +845,7 @@ function DrawWindow()
 									end
 									text = text .. '...'
 								end
+								options[oid].nametext = text
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
@@ -1281,7 +1283,16 @@ function widget:DrawScreen()
 								if options[i].restart then
 									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
 								end
-								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								local showTooltip = true
+								if options[i].nametext and string.find(options[i].nametext, desc) then
+									if string.len(desc) == (string.len(options[i].nametext)+1)-string.find(options[i].nametext, desc) then
+										showTooltip = false
+									end
+								end
+								if showTooltip then
+									desc = font:WrapText(desc, WG['tooltip'].getFontsize() * 90)
+									WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								end
 							end
 							break
 						end

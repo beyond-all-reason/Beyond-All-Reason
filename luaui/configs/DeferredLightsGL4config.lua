@@ -2119,7 +2119,7 @@ local unitLights = {
 
 
 	},
-	
+
 	['corack'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
@@ -13217,7 +13217,7 @@ local unitLights = {
 			pieceName = 'barrel',
 			lightConfig = { posx = 0, posy = 0.2, posz = 5.9, radius = 6,
 							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 100,
-							r = 0.85, g = 0.85, b = 1.3, a = 0.8,
+							r = 0.85, g = 0.85, b = 1.3, a = 0.6,
 							modelfactor = 0.2, specular = 0.3, scattering = 2, lensflare = 20,
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
@@ -13226,7 +13226,7 @@ local unitLights = {
 			pieceName = 'emplight',
 			lightConfig = { posx = 0, posy = 3, posz = 0, radius = 25,
 							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 1.5,
-							r = 0.85, g = 0.85, b = 1.1, a = 0.25,
+							r = 0.85, g = 0.85, b = 1.1, a = 0.2,
 							modelfactor = 0.2, specular = 0.3, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
@@ -13244,7 +13244,7 @@ local unitLights = {
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 9, posz = -9, radius = 19,
 							color2r = 1, color2g = 1, color2b = 0.3, colortime = 0,
-							r = 1, g = 1, b = 0.3, a = 0.09,
+							r = 1, g = 1, b = 0.3, a = 0.075,
 							modelfactor = 0.4, specular = 0.8, scattering = 1.1, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -16295,7 +16295,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	
+
 	['legadvsol'] = {
 		glow1 = {
 			lightType = 'point',
@@ -16324,9 +16324,9 @@ local unitLights = {
 							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-	},	
-	
-	
+	},
+
+
 	['cormakr'] = {
 		enabled1 = {
 			lightType = 'point',
@@ -19467,7 +19467,7 @@ local unitEventLightsNames = {
 			},
 		},
 	},
-	
+
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {

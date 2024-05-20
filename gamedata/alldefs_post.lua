@@ -240,6 +240,7 @@ function UnitDef_Post(name, uDef)
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or uDef.customparams.iscommander then
 				uDef.customparams.combatradius = 0
+				uDef.customparams.evolution_health_transfer = "percentage"
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
 				else
