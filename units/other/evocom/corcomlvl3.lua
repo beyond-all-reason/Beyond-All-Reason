@@ -18,7 +18,7 @@ return {
 		capturespeed = 1800,
 		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 100,
-		cloakcostmoving = 1250,
+		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
