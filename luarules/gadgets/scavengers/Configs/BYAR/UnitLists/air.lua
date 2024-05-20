@@ -57,5 +57,6 @@ return {
 		"armfepocht4_scav",
 		"corfblackhyt4_scav",
 		"armthundt4_scav",
+		"armlichet4_scav",
 	},
 }

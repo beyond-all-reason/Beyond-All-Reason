@@ -37,6 +37,7 @@ return {
 			"armaca",
 			"armthundt4",
 			"armfepocht4",
+			"armlichet4",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

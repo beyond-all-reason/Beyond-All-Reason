@@ -491,6 +491,10 @@ local icontypes = {
 		bitmap = "icons/air_liche.png",
 		size = 2.0999999
 	},
+	armlichet4 = {
+		bitmap = "icons/air_liche.png",
+		size = 4.19999981
+	},
 	armllt = {
 		bitmap = "icons/defence_0_laser.png",
 		size = 0.83999997
