@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		version = "0.5",
 		author	= "ivand, Beherith",
 		date 	= "20220310",
-		license = "Private while in testing mode",
+		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= true,
 	}
