@@ -3,8 +3,8 @@ function gadget:GetInfo()
         name    = 'Cluster Munitions',
         desc    = 'Custom behavior for projectiles that explode and split on impact.',
         author  = 'efrec',
-        version = '1.0',
-        date    = '2024-05',
+        version = '1.1',
+        date    = '2024-05-20',
         license = 'GNU GPL, v2 or later',
         layer   = 0,
         enabled = true
@@ -16,11 +16,11 @@ if not gadgetHandler:IsSyncedCode() then return false end
 --------------------------------------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------------------------------------
 
--- Default settings -----------------------------------------------------------------------------------------
+-- Default settings ------------------------------------------------------------------------------------------
 
 local defaultSpawnDef = "cluster_munition"         -- def used, by default
 local defaultSpawnNum = 5                          -- number of spawned projectiles, by default
-local defaultTtl      = 300                        -- detonate projectiles after time = ttl, by default
+local defaultSpawnTtl = 300                        -- detonate projectiles after time = ttl, by default
 local defaultVelocity = 240                        -- speed of spawned projectiles, by default
 local defaultBouncing = false                      -- whether sub-munitions 'bounce' off of units, by default
 
@@ -28,16 +28,17 @@ local defaultBouncing = false                      -- whether sub-munitions 'bou
 
 local customParamName = "cluster"                  -- in the weapondef, the parameter name to set to `true`
 local maxSplitNumber  = 20                         -- protect game performance against stupid ideas
-local minBulkReflect  = 80000                      -- smallest unit bulk that causes reflection as if terrain
+local minUnitBounces  = "armpw"                    -- smallest unit (name) that bounces projectiles at all
+local minBulkReflect  = 64000                      -- smallest unit bulk that causes reflection as if terrain
 
--- CustomParams setup ---------------------------------------------------------------------------------------
+-- CustomParams setup ----------------------------------------------------------------------------------------
 
 --    primary_weapon = {
 --        customparams = {
 --            cluster  = true,
 --           [def      = <string>,]
 --           [number   = <integer>,]
---           [bouncing = true | false,]
+--           [bouncing = <boolean>,]
 --        },
 --    },
 --    cluster_munition = {
@@ -73,27 +74,6 @@ local SetWatchExplosion  = Script.SetWatchExplosion
 --------------------------------------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------------------------------------
 
--- Reusable tables for reducing garbage
-
-local weaponCache = {
-    explVel = 0,
-    explAoe = 0,
-    def     = defaultSpawnDef,
-    number  = defaultSpawnNum,
-    projDef = 0,
-    projVel = defaultVelocity / GAME_SPEED,
-    projTtl = defaultTtl,
-    check   = 0
-}
-
-local spawnCache  = {
-    pos     = { 0, 0, 0 },
-    speed   = { 0, 0, 0 },
-    owner   = 0,
-    ttl     = defaultTtl,
-    gravity = mapGravity,
-}
-
 -- Information table for cluster weapons
 
 local spawnableTypes = {
@@ -104,7 +84,7 @@ local spawnableTypes = {
     MissileLauncher   = false , -- but possible
 }
 
-local dataTable      = {} -- Info on each cluster weapon.
+local dataTable      = {} -- Info on each cluster weapon
 local wDefNamesToIDs = {} -- Says it on the tin
 
 for wdid, wdef in pairs(WeaponDefs) do
@@ -113,15 +93,14 @@ for wdid, wdef in pairs(WeaponDefs) do
     if wdef.customParams and wdef.customParams[customParamName] then
         dataTable[wdid] = {}
         dataTable[wdid].explAoe  = wdef.damageAreaOfEffect            or 12
-        dataTable[wdid].explVel  = wdef.explosionSpeed                or (8 + max(30, wdef.damages[0] / 20)) / (9 + sqrt(max(30, wdef.damages[0] / 20)) * 0.7) * 0.5
+        dataTable[wdid].explVel  = wdef.explosionSpeed                or (8 + max(30, wdef.damages[0] / 20)) / (9 + sqrt(max(30, wdef.damages[0] / 20)) * 0.7)
         dataTable[wdid].bouncing = wdef.customParams.bouncing         or defaultBouncing
         dataTable[wdid].number   = tonumber(wdef.customParams.number) or defaultSpawnNum
         dataTable[wdid].def      = wdef.customParams.def              or (string.split(wdef.name, "_"))[1] .. '_' .. defaultSpawnDef
 
         dataTable[wdid].projDef  = -1
-        dataTable[wdid].projTtl  = defaultTtl
+        dataTable[wdid].projTtl  = defaultSpawnTtl
         dataTable[wdid].projVel  = defaultVelocity / GAME_SPEED
-        dataTable[wdid].colDist  = max(12, sqrt(dataTable[wdid].explAoe))
     end
 end
 
@@ -132,7 +111,7 @@ for wdid, data in pairs(dataTable) do
     local cmdef = WeaponDefs[cmdid]
 
     dataTable[wdid].projDef = cmdid
-    dataTable[wdid].projTtl = cmdef.ttl or defaultTtl
+    dataTable[wdid].projTtl = cmdef.ttl or defaultSpawnTtl
 
     -- Range and velocity are closely related so may be in disagreement. Average them (more or less):
     local projVel = cmdef.projectileSpeed or cmdef.startvelocity
@@ -143,9 +122,6 @@ for wdid, data in pairs(dataTable) do
     else
         dataTable[wdid].projVel = projVel
     end
-
-    -- We check for collisions within a radius:
-    dataTable[wdid].colDist = max(dataTable[wdid].colDist, dataTable[wdid].projVel / 120)
 
     -- Prevent the grenade apocalypse:
     if dataTable[cmdid] ~= nil then
@@ -161,17 +137,55 @@ for wdid, data in pairs(dataTable) do
     end
 end
 
--- Information on how sturdy units are, basically
+-- Information on units and their colliders
 
-local unitBulk = {}
+local unitBulk = {} -- How sturdy the unit is. Projectiles scatter less with lower bulk values.
+local unitSize = {} -- The proportions of a unit's collider (x, y, z relative to the unit).
+
 for udid, udef in pairs(UnitDefs) do
-    unitBulk[udid] = min(
-        (   sqrt(udef.health) +
-            sqrt(udef.metalCost) * udef.xsize * udef.zsize * sqrt(udef.radius)
-        ) / minBulkReflect,
-        1.0
-    )
+    -- Set the unit bulk values.
+    -- todo: We don't even _detect_ walls; objectified units aren't returned by GetUnitsInSphere.
+    if udef.armorType == Game.armorTypes.wall or udef.armorType == Game.armorTypes.indestructible then
+        unitBulk[udid] = 0.9
+    elseif udef.name == 'armclaw' or udef.name == 'cormaw' or udef.name == 'legjaw' then
+        unitBulk[udid] = 0.8
+    else
+        unitBulk[udid] = min(
+            1.0,
+            ((  sqrt(udef.health) +                         -- HP is log2-ish but that feels too tryhard
+                sqrt(udef.metalCost) *                      -- Steel (metal) is heavier than feathers (energy)
+                udef.xsize * udef.zsize * sqrt(udef.radius) -- People see 'bigger thing' as 'more solid'
+            ) / minBulkReflect)                             -- Scaled against some large-ish bulk rating
+        ) ^ 0.33                                            -- Raised to a low power to curve up the results
+    end
+
+    -- Set the unit collider values, as needed. We're only handling tall CylY colliders, for now.
+    local shape = string.lower(udef.collisionVolume.type or "sphere")
+    if shape == "cylinder" and udef.collisionVolume.scaleY >= 50 then
+        unitSize[udid] = {udef.collisionVolume.scaleX,udef.collisionVolume.scaleY,udef.collisionVolume.scaleZ}
+    end
 end
+
+local bulkMin = unitBulk[UnitDefNames[minUnitBounces].id]
+-- Spring.Debug.TableEcho(
+--     {
+--         ['Tick bulk']     = unitBulk[ UnitDefNames["armflea"].id  ],
+--         ['Pawn bulk']     = unitBulk[ UnitDefNames["armpw"].id    ],
+--         ['Gauntlet bulk'] = unitBulk[ UnitDefNames["armguard"].id ],
+--         ['Pulsar bulk']   = unitBulk[ UnitDefNames["armanni"].id  ],
+--         ['Thor bulk']     = unitBulk[ UnitDefNames["armthor"].id  ],
+--     }
+-- )
+
+-- Reusable table for reducing garbage
+
+local spawnCache  = {
+    pos     = { 0, 0, 0 },
+    speed   = { 0, 0, 0 },
+    owner   = 0,
+    ttl     = defaultSpawnTtl,
+    gravity = mapGravity,
+}
 
 --------------------------------------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------------------------------------
@@ -192,7 +206,7 @@ end
 -- Randomness produces clumping at small sample sizes, so we scatter evenly-spaced vectors instead.
 -- Credit to Hardin, Sloane, & Smith (and contribs).
 local packedSpheres = {
-    [1] = 0,
+    [1] = {},
     [2] = {  1, 0, 0,   -1, 0, 0  },
     [3] = {  1, 0, 0,   -0.5, 0, 0.866025403784439,   -0.5, 0, -0.866025403784438  },
     [4] = { -0.577350269072,  0.577350269072, -0.577350269072,  0.577350269072,  0.577350269072,  0.577350269072, -0.577350269072, -0.577350269072,  0.577350269072,  0.577350269072, -0.577350269072, -0.577350269072 },
@@ -267,32 +281,35 @@ local function SpawnClusterProjectiles(data, attackerID, projID, ex, ey, ez, def
     spawnCache.ttl   = data.projTtl
 
     -- Initial direction vectors are evenly spaced.
-    local distribute = DistributedVectorSet(projNum)
+    local directions = DistributedVectorSet(projNum)
 
     local vx, vy, vz, dist, norm
     for ii = 0, (projNum-1) do
         -- Avoid shooting into terrain by adding deflection.
-        dist = min(1, (data.explVel + data.projVel) / 12) * (data.bouncing and 4 or 1)
-        vx = distribute[(3*ii+1)] + deflect[1] * dist
-        vy = distribute[(3*ii+2)] + deflect[2] * dist
-        vz = distribute[(3*ii+3)] + deflect[3] * dist
+        vx = directions[3*ii+1] + deflect[1]
+        vy = directions[3*ii+2] + deflect[2]
+        vz = directions[3*ii+3] + deflect[3]
 
         -- When the initial directions are not random, add jitter.
         if projNum <= #packedSpheres then
-            vx = vx + rand(-projNum, projNum) / projNum * 0.86
-            vy = vy + rand(-projNum, projNum) / projNum * 0.42
-            vz = vz + rand(-projNum, projNum) / projNum * 0.86
+            vx = vx + rand(-3, 3) / projNum
+            vy = vy + rand(-3, 3) / projNum
+            vz = vz + rand(-3, 3) / projNum
         end
 
         -- Adjust vector length to the speed/magnitude.
-        norm = sqrt(vx*vx + vy*vy + vz*vz) or 1
+        norm = sqrt(vx*vx + vy*vy + vz*vz)
         vx = vx * projVel / norm
         vy = vy * projVel / norm
         vz = vz * projVel / norm
         spawnCache.speed = { vx, vy, vz }
 
         -- Pre-scatter projectiles.
-        spawnCache.pos = { ex + vx*4, ey + vy*2*min(4, max(1, projVel / (abs(vx) + abs(vz)))), ez + vz*4 }
+        spawnCache.pos = {
+            ex + vx * 12,
+            ey + vy * 3*max(1, 3 * abs(vy) / projVel),
+            ez + vz * 12
+        }
 
         spSpawnProjectile(data.projDef, spawnCache)
     end
