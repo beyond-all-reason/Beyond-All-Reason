@@ -67,7 +67,7 @@ return {
 				footprintz = 2,
 				height = 4,
 				metal = 150,
-				object = "corunits/arm2x2c.s3o.s3o",
+				object = "corunits/arm2x2c.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 			},
