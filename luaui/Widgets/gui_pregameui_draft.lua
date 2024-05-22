@@ -410,13 +410,6 @@ local function DrawTeamPlacement()
 		font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.nextIsPlayer', { name = tname}), vsx * 0.5, vsy * 0.205, 15.0 * uiScale, "co")
 		font:End()
 	end
-	if hasStartbox then
-		local infotext = Spring.I18N('ui.startSpot.anywhere')
-		local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
-		font:Begin()
-		font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.18, 15.0 * uiScale, "co")
-		font:End()
-	end -- and if the player doens't have green box? not tell them anything?
 
 	-- "fancy" Team Placement UI
 	SetSidePics()
@@ -833,6 +826,15 @@ function widget:DrawScreen()
 		if not mySpec then
 			if draftMode ~= "fair" and myTeamPlayersOrder and (moreThanOneAlly or devUItestMode) then
 				DrawTeamPlacement()
+			end
+			if draftMode == "fair" or myAllyTeamJoined then
+				if hasStartbox then
+					local infotext = Spring.I18N('ui.startSpot.anywhere')
+					local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
+					font:Begin()
+					font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.18, 15.0 * uiScale, "co")
+					font:End()
+				end -- and if the player doens't have green box? not tell them anything?
 			end
 			-- non-UI part
 			if draftMode ~= "fair" then
