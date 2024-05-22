@@ -2124,7 +2124,7 @@ function widget:TextCommand(command)
 	if string.sub(command, 1, 18) == 'preventhistorymode' then
 		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
 		enableShortcutClick = not enableShortcutClick
-		if showHistoryWhenCtrlShift then
+		if not showHistoryWhenCtrlShift then
 			Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
 		else
 			Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
