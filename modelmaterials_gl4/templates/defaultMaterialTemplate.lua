@@ -890,9 +890,9 @@ fragment = [[
 			shadow /= float(shadowSamples);
 			*/
 		} else { //shadowSamples == 1
-			const float cb = 0.00005;
-			float bias = cb * tan(acos(NdotL));
-			bias = clamp(bias, 0.0, 5.0 * cb);
+			float shadowTexelSizeInv = 0.5 / textureSize(shadowTex, 0).x; // Used to be hard coded as 0.00005
+			float bias = shadowTexelSizeInv * tan(acos(NdotL));
+			bias = clamp(bias, 0.0, 5.0 * shadowTexelSizeInv);
 			shadowCoord.z -= bias;
 			shadow = texture( shadowTex, shadowCoord ).r;
 

@@ -850,12 +850,12 @@ local options = {
     {
         key     = "draft_mode",
         name    = "Draft Spawn Order mod",
-        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
+        desc    = "Random/Captain/Skill/Fair based startPosType mods. Default: Random.",
         type    = "list",
         section = "options_extra",
-        def     = "disabled",
+        def     = "random",
         items 	= {
-            { key = "disabled", name = "Default",                       desc = "No changes. Fast-PC place first." },
+            { key = "disabled", name = "Disabled",                      desc = "Disable draft mod. Fast-PC place first." },
             { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
             { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
             { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
