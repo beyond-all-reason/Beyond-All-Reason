@@ -1650,6 +1650,7 @@ local function ExecuteDrawPass(drawPass)
 	return batches, units, shaderswaps
 end
 
+
 local function initGL4()
 	if initiated then return end
 
@@ -1735,8 +1736,11 @@ local function tableEcho(data, name, indent, tableChecked)
 	Spring.Echo(indent .. "},")
 end
 
+local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
+
 local function ReloadCUSGL4(optName, line, words, playerID)
-	if initiated then return end
+	if initiated and (not words) then return end
+	manualReload = true
 	if playerID ~= Spring.GetMyPlayerID() then
 		return
 	end
@@ -2081,10 +2085,18 @@ function gadget:DrawWorldPreUnit()
 
 	if updateframe == 0 then
 		local t0 = Spring.GetTimerMicros()
-		-- local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
-		-- local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
-		local units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true)
-		local features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
+		
+		local units, drawFlagsUnits, features, drawFlagsFeatures
+		
+		if manualReload then 
+			manualReload = false
+			units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
+			features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+		else
+			units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true)
+			features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
+		end
+		
 		--if (Spring.GetGameFrame() % 31)  == 0 then
 		--	Spring.Echo("Updatenums", #units, #features, # drawFlagsUnits, #drawFlagsFeatures, numdestroyedUnits, numdestroyedFeatures)
 		--	Spring.Echo(printDrawPassStats())
