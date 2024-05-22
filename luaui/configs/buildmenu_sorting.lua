@@ -383,6 +383,7 @@ local unitOrderTable = {
 	-- TRANSPORTS
 	['armatlas']       = 010500,
 	['corvalk']        = 010510,
+	['legatrans']      = 010520,
 
 	['armtship']       = 010540,
 	['cortship']       = 010550,

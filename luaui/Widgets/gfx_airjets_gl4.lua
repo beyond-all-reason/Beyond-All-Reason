@@ -164,6 +164,14 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
 	},
+	["legatrans"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "rightGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "leftGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "rightMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "leftMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "rightMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "leftMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
+	},
 	["legstronghold"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },

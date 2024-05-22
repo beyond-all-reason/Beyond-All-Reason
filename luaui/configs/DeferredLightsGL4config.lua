@@ -13826,6 +13826,75 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legatrans'] = {
+		lgThrust = {
+			lightType = 'cone',
+			pieceName = 'leftGroundThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 80,
+							dirx = 0, diry = -1, dirz = 0, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rgThrust = {
+			lightType = 'cone',
+			pieceName = 'rightGroundThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 80,
+							dirx = 0, diry = -1, dirz = 0, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		lmainthrust = {
+			lightType = 'cone',
+			pieceName = 'leftMainThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rmainthrust = {
+			lightType = 'cone',
+			pieceName = 'rightMainThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		lminithrust = {
+			lightType = 'cone',
+			pieceName = 'leftMiniThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rminithrust = {
+			lightType = 'cone',
+			pieceName = 'rightMiniThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		trieyes = {
+			lightType = 'point',
+			pieceName = 'chassis',
+			lightConfig = { posx = 0, posy = 15.5, posz = 4.3, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+	},
 	['legionnaire'] = {
 		thruster1 = {
 			lightType = 'point',
