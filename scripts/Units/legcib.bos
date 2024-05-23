@@ -53,22 +53,22 @@ deactivatescr()
 	turn rWingPivot to z-axis <0> speed [1];
 	turn lWingPivot to z-axis <0> speed [1];
 
-	move rWingC to z-axis [-3.7] speed [20];
-	move rWingB to z-axis [-3.7] speed [20];
-	move lWingC to z-axis [-3.7] speed [20];
-	move lWingB to z-axis [-3.7] speed [20];
+	move rWingC to z-axis [-3.7] speed [10];
+	move rWingB to z-axis [-3.7] speed [10];
+	move lWingC to z-axis [-3.7] speed [10];
+	move lWingB to z-axis [-3.7] speed [10];
 	wait-for-move rWingB along z-axis;
 
-	move rWingC to y-axis [-1.4] speed [20];
-	move rWingB to y-axis [-1.4] speed [20];
-	move lWingC to y-axis [-1.4] speed [20];
-	move lWingB to y-axis [-1.4] speed [20];
+	move rWingC to y-axis [-1.4] speed [10];
+	move rWingB to y-axis [-1.4] speed [10];
+	move lWingC to y-axis [-1.4] speed [10];
+	move lWingB to y-axis [-1.4] speed [10];
 	wait-for-move rWingB along y-axis;
 
-	move rWingC to x-axis [-7.1] speed [20];
-	move rWingB to x-axis [-7.1] speed [20];
-	move lWingC to x-axis [7.1] speed [20];
-	move lWingB to x-axis [7.1] speed [20];
+	move rWingC to x-axis [-7.1] speed [10];
+	move rWingB to x-axis [-7.1] speed [10];
+	move lWingC to x-axis [7.1] speed [10];
+	move lWingB to x-axis [7.1] speed [10];
 	//wait-for-move rWingB along x-axis;
 
 }

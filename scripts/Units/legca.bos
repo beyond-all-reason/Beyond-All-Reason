@@ -149,7 +149,7 @@ StopBuilding()
 
 	hide beam;
 	turn nano to x-axis <0> speed <200>;
-	wait-for-turn nano around x-axis;
+	//wait-for-turn nano around x-axis;
 	move nanoStrut to y-axis [0] speed [40];
 
 	set INBUILDSTANCE to 0;
