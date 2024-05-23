@@ -29,6 +29,7 @@ end
 
 local spEcho = Spring.Echo
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spSetTeamRulesParam = Spring.SetTeamRulesParam
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spShareTeamResource = Spring.ShareTeamResource
 local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -44,11 +45,14 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 
+-- TODO test that this gadget works fine when it runs faster or slower than 1 second interval - in theory it should be fine, but if there are issues they need to be fixed or interval should be set to once a second.
 local FLOW_PULSE = 20 -- every 0.67 second (1 sec = 30 frames)
 local FLOW_PULSE_FLOAT = 0.67 -- 20/30, see above
 
 local calamityCount = {} -- super weapon amount by teamID
 
+local isFFA = false -- if true, this gadget does nothing
+local ignoreList = {} -- ignore these teams, FFA or no allies on some teams, skip them
 local teamIncomeClass = {} -- 0, 1, 2 -- 0 is poor, 1 is healthy, 2 is rich
 
 -- condition 1 is:
@@ -109,7 +113,7 @@ end
 
 local function energyPulse(myTeamID)
     local eCurrMy, eStorMy,_ , eIncoMy, eExpeMy, eShare, eSent, eReceived = spGetTeamResources(myTeamID, "energy")
-    local _,_,_,_,_,myAllyTeamID = spGetTeamInfo(myTeamID, false)
+    local myAllyTeamID = select(6,spGetTeamInfo(myTeamID, false))
     local teamList = spGetTeamList(myAllyTeamID)
     local transfered = eShare + eSent + eReceived
     local currentIncome = eIncoMy + transfered
@@ -195,9 +199,9 @@ local function energyPulse(myTeamID)
 end
 
 function gadget:GameFrame(frame)
-    if (frame % FLOW_PULSE) == 1 then
+    if not isFFA and (frame % FLOW_PULSE) == 1 then
         for _, teamID in ipairs(allTeamList) do
-            if underflowTeam[teamID] then
+            if underflowTeam[teamID] and not ignoreList[teamID] then
                 checkIfTeamIsPoor(teamID)
                 if teamIncomeClass[teamID] > 0 then
                     energyPulse(teamID)
@@ -233,7 +237,7 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID, false)
+    local _, _, mySpec, teamID = spGetPlayerInfo(playerID, false)
 
     if mySpec then return end
 
@@ -243,18 +247,34 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
     
     if words[1] == "underflowToggle" then
-        underflowTeam[msgFromTeamID] = not underflowTeam[msgFromTeamID]
-        if underflowTeam[msgFromTeamID] == false then
-            teamIncomeClass[msgFromTeamID] = 2 -- greedy player means rich player
+        underflowTeam[teamID] = not underflowTeam[teamID]
+        if underflowTeam[teamID] == false then
+            teamIncomeClass[teamID] = 2 -- greedy player means rich player
         end
+        spSetTeamRulesParam(teamID, "underflowStatus", underflowTeam[teamID])
     elseif words[1] == "underflowEnable" then
-        underflowTeam[msgFromTeamID] = true
+        underflowTeam[teamID] = true
+        spSetTeamRulesParam(teamID, "underflowStatus", underflowTeam[teamID])
     elseif words[1] == "underflowDisable" then
-        underflowTeam[msgFromTeamID] = false
+        underflowTeam[teamID] = false
+        spSetTeamRulesParam(teamID, "underflowStatus", underflowTeam[teamID])
     end
 end
 
 function gadget:Initialize()
+    local allyTeamCounts = {}
+    local maxAlliesDetected = 0
+    for _, teamID in ipairs(allTeamList) do
+        local allyTeamID = select(6, spGetTeamInfo(teamID))
+        if not allyTeamCounts[allyTeamID] then
+            allyTeamCounts[allyTeamID] = 0
+        end
+        allyTeamCounts[allyTeamID] = allyTeamCounts[allyTeamID] + 1
+        if allyTeamCounts[allyTeamID] > maxAlliesDetected then
+            maxAlliesDetected = allyTeamCounts[allyTeamID]
+        end
+    end
+
     underflowTeam = {}
     for _, teamID in ipairs(allTeamList) do
         calamityCount[teamID] = 0
@@ -263,6 +283,18 @@ function gadget:Initialize()
         else
             underflowTeam[teamID] = defaultState
         end
+        spSetTeamRulesParam(teamID, "underflowStatus", underflowTeam[teamID])
         teamIncomeClass[teamID] = 0
+
+        local allyTeamID = select(6, spGetTeamInfo(teamID))
+        if allyTeamCounts[allyTeamID] == 1 then
+            ignoreList[teamID] = true
+        else
+            ignoreList[teamID] = false
+        end
+    end
+
+    if maxAlliesDetected <= 1 then
+        isFFA = true
     end
 end
