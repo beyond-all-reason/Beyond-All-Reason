@@ -314,7 +314,8 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
 	},
 	["legcib"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", light = 1.3 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "lThrust", light = 1.3 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "rThrust", light = 1.3 },
 	},
 	["legkam"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 24, piece = "thrust", light = 1 },
