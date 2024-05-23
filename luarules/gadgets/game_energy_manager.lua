@@ -58,6 +58,7 @@ local teamIncomeClass = {} -- 0, 1, 2 -- 0 is poor, 1 is healthy, 2 is rich
 -- condition 1 is:
 local underflowTeam = {} -- by teamID, enable pact: true/false,
 local defaultState = true -- default: true
+local defaultStateForAI = true
 local energyThresholdDefault = 250 -- income (without loss) should be at least this for you to be considered 'Rich' -- condition 2
 local storageThresholdDefault = 900 -- minimum E in storage before consider sending some to someone else -- condition 3
 local storagePartDefault = 0.10 -- how much of your income is reserved to be sent (counted from storage capacity instead of actual income btw)
@@ -281,7 +282,12 @@ function gadget:Initialize()
         if teamID == GaiaTeamID then
             underflowTeam[teamID] = false
         else
-            underflowTeam[teamID] = defaultState
+            local isAI = select(4,spGetTeamInfo(teamID, false))
+            if isAI then
+                underflowTeam[teamID] = defaultStateForAI
+            else
+                underflowTeam[teamID] = defaultState
+            end
         end
         spSetTeamRulesParam(teamID, "underflowStatus", underflowTeam[teamID])
         teamIncomeClass[teamID] = 0
