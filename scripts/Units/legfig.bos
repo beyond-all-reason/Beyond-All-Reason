@@ -26,6 +26,7 @@ activatescr()
 
 deactivatescr()
 {
+	hide thrust;
 	turn wingAconn to z-axis <-80> speed <120>;
 	turn wingbconn to z-axis <80> speed <120>;
 	turn wingCconn to z-axis <80> speed <120>;
@@ -35,7 +36,6 @@ deactivatescr()
 	turn wingB to z-axis <-60> speed <60>;
 	turn wingC to z-axis <-60> speed <60>;
 	turn wingD to z-axis <60> speed <60>;
-	hide thrust;
 	sleep 66;
 	return (0);
 }
@@ -48,15 +48,6 @@ deactivatescr()
 
 InitState()
 {
-	turn wingA to z-axis <0> speed <60>;
-	turn wingAconn to z-axis <0> speed <60>;
-	turn wingB to z-axis <0> speed <60>;
-	turn wingbconn to z-axis <0> speed <60>;
-	turn wingC to z-axis <0> speed <60>;
-	turn wingCconn to z-axis <0> speed <60>;
-	turn wingD to z-axis <0> speed <60>;
-	turn wingDconn to z-axis <0> speed <60>;
-	show thrust;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	return (0);
@@ -132,6 +123,7 @@ Create()
 	gun_1 = 0;
 	call-script InitState();
 	start-script BarrelRoll();
+	call-script activatescr();
 	return (0);
 }
 
@@ -154,40 +146,14 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	gun_1 = !gun_1;
+	emit-sfx 1024 + 0 from flare;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare;
-	}
-	return (0);
-}
-
-
-AimSecondary(heading, pitch)
-{
-	return (1);
-}
-
-FireSecondary()
-{
-	gun_1 = !gun_1;
-	return (0);
-}
-
-QuerySecondary(piecenum)
-{
-	
-	piecenum = gun_1;
-	return (0);
+	piecenum = flare;
+	return(0);
 }
 
 SweetSpot(piecenum)

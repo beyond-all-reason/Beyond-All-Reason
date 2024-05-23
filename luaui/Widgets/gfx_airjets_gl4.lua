@@ -101,7 +101,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
 	},
 	["legfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 15, piece = "thrust", limit = true },
 	},
 	["legionnaire"] = {
 		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta", limit = true },
@@ -190,6 +190,9 @@ local effectDefs = {
 	},
 	["armblade"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
+	},
+	["legmos"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 16, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 	},
 	["corape"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "rthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
