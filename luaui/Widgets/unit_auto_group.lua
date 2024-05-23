@@ -2,13 +2,14 @@ local versionNum = '5.00'
 
 function widget:GetInfo()
 	return {
-		name = "Auto Group",
+		name = "Auto Group Presets",
 		desc = "v" .. (versionNum) .. " Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units. Type '/luaui autogroup help' for help or view settings at: Settings/Interface/AutoGroup'.",
 		author = "Licho",
 		date = "Mar 23, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
+		handler = true
 	}
 end
 
@@ -85,6 +86,8 @@ local createdFrame = {}
 local toBeAddedLater = {}
 
 local gameStarted
+local gotConfigData = false
+local seenFrames = 0 -- so that autogroups get pulled from the old name after one frame after initialization
 
 local GetUnitGroup = Spring.GetUnitGroup
 local SetUnitGroup = Spring.SetUnitGroup
@@ -247,10 +250,10 @@ function widget:Initialize()
 
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
+	widgetHandler.actionHandler:AddAction(self, "add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler.actionHandler:AddAction(self, "remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler.actionHandler:AddAction(self, "remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler.actionHandler:AddAction(self, "load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
@@ -304,7 +307,61 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	builtInPlace[unitID] = nil
 end
 
-function widget:GameFrame()
+function widget:GameFrame(n)
+	seenFrames = seenFrames + 1
+	if seenFrames>1 and (not gotConfigData) then -- init config from normal autogroups
+		local data = widgetHandler.configData["Auto Group"]
+		gotConfigData = true
+		if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
+			if data.immediate ~= nil then
+				immediate = data.immediate
+				verbose = data.verbose
+				addall = data.addall
+			end
+			if data.persist ~= nil then
+				persist = data.persist
+			end
+			local groupData = data.groups
+			if groupData and type(groupData) == 'table' then
+				for _, nam in ipairs(groupData) do
+					if type(nam) == 'table' then
+						local gr = UnitDefNames[nam[1]]
+						if gr ~= nil then
+							unit2group[gr.id] = tonumber(nam[2])
+						end
+					end
+				end
+			end
+			presets[1] = unit2group
+		end
+		if data and type(data) == 'table' and data.version and (data.version + 0) >= 5 then
+			if data.immediate ~= nil then
+				immediate = data.immediate
+				verbose = data.verbose
+				addall = data.addall
+			end
+			if data.persist ~= nil then
+				persist = data.persist
+			end
+			local groupData = data.presets
+			if groupData and type(groupData) == 'table' and groupData[1] and type(groupData[1]) == 'table' then
+				for p, preset in pairs(groupData) do
+					for _, group in ipairs(preset) do
+						if type(group) == 'table' then
+							local gr = UnitDefNames[group[1]]
+							if gr then
+								presets[p][gr.id] = tonumber(group[2])
+							else
+								rejectedUnits[p][group[1]] = tonumber(group[2])
+							end
+						end
+					end
+				end
+			end
+		end
+		unit2group = presets[currPreset]
+		addAllUnits()
+	end
 	for unitID, unitDefID in pairs(toBeAddedLater) do
 		if unitHealth[unitDefID] and GetUnitHealth(unitID) == unitHealth[unitDefID] then
 			local gr = unit2group[unitDefID]
@@ -395,28 +452,6 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
-		if data.immediate ~= nil then
-			immediate = data.immediate
-			verbose = data.verbose
-			addall = data.addall
-		end
-		if data.persist ~= nil then
-			persist = data.persist
-		end
-		local groupData = data.groups
-		if groupData and type(groupData) == 'table' then
-			for _, nam in ipairs(groupData) do
-				if type(nam) == 'table' then
-					local gr = UnitDefNames[nam[1]]
-					if gr ~= nil then
-						unit2group[gr.id] = tonumber(nam[2])
-					end
-				end
-			end
-		end
-		presets[1] = unit2group
-	end
 	if data and type(data) == 'table' and data.version and (data.version + 0) >= 5 then
 		if data.immediate ~= nil then
 			immediate = data.immediate
@@ -441,6 +476,7 @@ function widget:SetConfigData(data)
 				end
 			end
 		end
+		gotConfigData = true
 	end
 	unit2group = presets[currPreset]
 	if GetGameFrame() > 0 then
