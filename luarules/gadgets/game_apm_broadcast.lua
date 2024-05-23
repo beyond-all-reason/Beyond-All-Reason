@@ -19,7 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] then
+		if not teamAddedActionFrame[teamID] and not Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then
 			if not totalTeamActions[teamID] then
 				totalTeamActions[teamID] = 0
 			end
