@@ -10,3 +10,4 @@
 .vs/BAR.sdd/v16/Browse.VC.db-shm
 .vs/BAR.sdd/v16/Browse.VC.db-wal
 .vs/slnx.sqlite
+*.sqlite
