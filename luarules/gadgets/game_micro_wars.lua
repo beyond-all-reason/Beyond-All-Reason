@@ -722,6 +722,7 @@ function gadget:GetInfo()
     }
 end
 
+
 local function ResetUnitSpawns()
     if not despawnUnits then
         return -- Do not despawn units if despawnUnits is set to false
@@ -775,7 +776,25 @@ local function SpawnUnitsForTeam(teamID, unitName, unitCount)
     unitSpawns[teamID] = teamUnits
 end
 
-local firstRoundDelay = 80  -- Corresponds to a 2.7-second delay at 30 fps, right as the commander lands for spawn
+local function SpawnUnitsForTeam(teamID, unitName, unitCount)
+    local teamUnits = unitSpawns[teamID] or {}
+    local x, y, z = GetCommanderPosition(teamID)
+
+    for i = 1, unitCount do
+        local ux = x + math.random(-100, 100)
+        local uz = z + math.random(-100, 100)
+        local uy = Spring.GetGroundHeight(ux, uz)
+        local unitID = Spring.CreateUnit(unitName, ux, uy, uz, 0, teamID)
+        table.insert(teamUnits, unitID)
+        
+        -- Trigger explosion effect for each spawned unit
+        Spring.SpawnCEG("botrailspawn", ux, uy, uz, 0, 0, 0)
+    end
+
+    unitSpawns[teamID] = teamUnits
+end
+
+local firstRoundDelay = 90  -- Corresponds to a 3-second delay at 30 fps
 local firstRoundDelayed = (currentRound == 1)  -- Only delay the first round
 
 local function StartNewRound()
@@ -802,8 +821,8 @@ local function StartNewRound()
 end
 
 function gadget:GameStart()
+    Spring.Echo("Micro Wars Started") -- Debugging output
     StartNewRound()
-    Spring.Echo("Micro Wars Started -- Building Disabled")
 end
 
 function gadget:GameFrame(n)
@@ -825,14 +844,6 @@ function gadget:GameFrame(n)
         firstRoundDelayed = false  -- Reset the delay flag to prevent re-spawning
     end
 end
-
---dynamically prevent building
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-       if cmdID < 0 then  -- build commands are negative numbers corresponding to the unitDefID to be built
-           return false  -- disallow all build commands
-       end
-       return true  -- allow all other commands
-   end
 
 function gadget:Initialize()
     for _, teamID in ipairs(teams) do
