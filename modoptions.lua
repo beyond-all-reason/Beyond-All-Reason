@@ -1152,14 +1152,23 @@ local options = {
 	},
 
 	{
+		key    = "micro_wars_battlefield_mode",
+		name   = "Battlefield Mode",
+		desc   = "Rather than time, rounds only end when one army has many more units/HP than the opposing team. The traditional army experience.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = true,
+	},
+
+	{
 		key    = "end_round_early_percentage",
 		name   = "End Rounds Early At Unit Loss Percentage",
-		desc   = "Ends a round early when one team has mucher fewer units/HP. When enemy has more than 200% more units and HP left than opposing team.",
+		desc   = "Ends a round early (only in battlefield mode) when one team has mucher fewer units/HP. 200 would mean that a roudn ends when enemy has more than 200% more units and HP left than opposing team.",
 		type   = "number",
 		section= "micro_wars_options",
-		def    = 10,
-		min    = 3,
-		max    = 20,
+		def    = 50,
+		min    = 1,
+		max    = 1000,
 		step   = 1,
 	},
 

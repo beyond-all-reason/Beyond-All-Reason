@@ -19,6 +19,8 @@ local maxRoundsMode = modOptions.max_rounds_mode or false
 local maxNumberOfRounds = modOptions.max_number_of_rounds or 10
 local controlPointUnitConversion = modOptions.control_point_unit_conversion or 1
 local allowRoundResign = modOptions.allow_round_resign or false
+local battlefieldMode = modOptions.micro_wars_battlefield_mode or true
+local endRoundEarlyPercentage = modOptions.end_round_early_percentage or 50
 
 -- Correct initialization for despawnUnits
 local despawnUnits = true -- Default value
@@ -32,14 +34,6 @@ local teams = Spring.GetTeamList()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 -- Custom unit spawn configuration per round
---[[
-local unitSpawnConfig = {
-    [1] = {{unitName = "armpw", count = 100}},
-    [2] = {{unitName = "corak", count = 100}},
-    [3] = {{unitName = "armpw", count = 50}, {unitName = "corak", count = 50}},
-}
-]]
-
 local unitSpawnConfigs = {
     ["Basic T1 - T3"] = {  -- Already provided in your original script
         [1] = {
@@ -863,15 +857,76 @@ function gadget:GameStart()
     Spring.Echo("Micro Wars Started -- Building Disabled")
 end
 
-function gadget:GameFrame(n)
-    if n == currentRoundFrameStart + roundTime then
-        StartNewRound()
+local function CalculateTeamStrength(teamID)
+    local unitList = Spring.GetTeamUnits(teamID)
+    local totalHealth = 0
+    local totalUnits = #unitList
+    for _, unitID in ipairs(unitList) do
+        if not Spring.GetUnitIsDead(unitID) then
+            totalHealth = totalHealth + Spring.GetUnitHealth(unitID)
+        end
     end
-    
-    if firstRoundDelayed and (n == currentRoundFrameStart + firstRoundDelay) then
-        -- Perform the delayed first round spawn
-        local spawnConfiguration = unitSpawnConfig[1] or {}  -- Ensure it targets the first round config
+    return totalUnits, totalHealth
+end
 
+local function CheckForEarlyEnd()
+    local maxUnits = 0
+    local maxHealth = 0
+    local maxTeam = nil
+    -- Find the team with the maximum units and HP
+    for _, teamID in ipairs(teams) do
+        if teamID ~= gaiaTeamID then
+            local unitCount, totalHealth = CalculateTeamStrength(teamID)
+            if unitCount > maxUnits or (unitCount == maxUnits and totalHealth > maxHealth) then
+                maxUnits = unitCount
+                maxHealth = totalHealth
+                maxTeam = teamID
+            end
+        end
+    end
+    -- Check conditions independently for units and HP against other teams
+    for _, teamID in ipairs(teams) do
+        if teamID ~= gaiaTeamID and teamID ~= maxTeam then
+            local unitCount, totalHealth = CalculateTeamStrength(teamID)
+            if maxUnits >= unitCount * (endRoundEarlyPercentage / 100) and
+               maxHealth >= totalHealth * (endRoundEarlyPercentage / 100) then
+                return maxTeam
+            end
+        end
+    end
+    return nil
+end
+
+local checkForEarlyEndDelay = 300 -- Delay of 10 seconds (10 * 30 fps)
+-- Commonly used helper function to calculate game frames
+local function CalculateFrame(seconds)
+    return seconds * 30  -- 30 frames per second
+end
+function gadget:GameFrame(n)
+    -- Delay check until 10 seconds into the game and also delay after each round start
+    if not battlefieldMode then
+        if n == currentRoundFrameStart + roundTime then
+            currentRoundFrameStart = n + checkForEarlyEndDelay  -- Update and apply delay for new round start
+            StartNewRound()
+        end
+    else
+        local checkStartFrame = currentRoundFrameStart + checkForEarlyEndDelay
+        local earlyRoundCheckEndFrame = n - checkForEarlyEndDelay
+        -- Check only during allowed periods
+        if n > checkStartFrame and (currentRoundFrameStart == 0 or n > currentRoundFrameStart + checkForEarlyEndDelay) then
+            local winningTeam = CheckForEarlyEnd()
+            if winningTeam then
+                currentRoundFrameStart = n + checkForEarlyEndDelay  -- Prepare delay for next round
+                Spring.Echo("Team " .. winningTeam .. " has conclusively won the round early based on both unit count and total HP.")
+                StartNewRound()
+                return
+            end
+        end
+    end
+    -- Handling for first-round delayed spawn
+    if firstRoundDelayed and (n == currentRoundFrameStart + firstRoundDelay) then
+        -- Execute delayed spawn
+        local spawnConfiguration = unitSpawnConfig[1] or {}
         for _, teamID in ipairs(teams) do
             if teamID ~= gaiaTeamID then
                 for _, config in ipairs(spawnConfiguration) do
@@ -879,9 +934,10 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        firstRoundDelayed = false  -- Reset the delay flag to prevent re-spawning
+        firstRoundDelayed = false -- Reset flag
     end
 end
+
 
 --dynamically prevent building
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
