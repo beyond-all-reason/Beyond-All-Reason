@@ -873,10 +873,11 @@ local function CheckForEarlyEnd()
     local maxUnits = 0
     local maxHealth = 0
     local maxTeam = nil
-    -- Find the team with the maximum units and HP
+    -- Retrieve and log details for each team
     for _, teamID in ipairs(teams) do
         if teamID ~= gaiaTeamID then
             local unitCount, totalHealth = CalculateTeamStrength(teamID)
+            Spring.Echo("Debug: Team", teamID, "- Units:", unitCount, "HP:", totalHealth)
             if unitCount > maxUnits or (unitCount == maxUnits and totalHealth > maxHealth) then
                 maxUnits = unitCount
                 maxHealth = totalHealth
@@ -884,12 +885,13 @@ local function CheckForEarlyEnd()
             end
         end
     end
-    -- Check conditions independently for units and HP against other teams
+    -- Compare each team against the max team
     for _, teamID in ipairs(teams) do
         if teamID ~= gaiaTeamID and teamID ~= maxTeam then
             local unitCount, totalHealth = CalculateTeamStrength(teamID)
-            if maxUnits >= unitCount * (endRoundEarlyPercentage / 100) and
-               maxHealth >= totalHealth * (endRoundEarlyPercentage / 100) then
+            if maxUnits >= unitCount * (1 + endRoundEarlyPercentage / 100) and
+               maxHealth >= totalHealth * (1 + endRoundEarlyPercentage / 100) then
+                Spring.Echo("Debug: Ending Round Early - Dominating Team", maxTeam, "over Team", teamID)
                 return maxTeam
             end
         end
@@ -902,6 +904,29 @@ local checkForEarlyEndDelay = 300 -- Delay of 10 seconds (10 * 30 fps)
 local function CalculateFrame(seconds)
     return seconds * 30  -- 30 frames per second
 end
+
+function gadget:GameFrame(n)
+    -- Delay check until 10 seconds into the game and also delay after each round start
+    if battlefieldMode then
+        local checkStartFrame = currentRoundFrameStart + checkForEarlyEndDelay
+        local nextCheckStartFrame = currentRoundFrameStart + roundTime - checkForEarlyEndDelay
+        if n > checkStartFrame and n < nextCheckStartFrame then
+            local winningTeam = CheckForEarlyEnd()
+            if winningTeam then
+                currentRoundFrameStart = n + checkForEarlyEndDelay
+                Spring.Echo("Team " .. winningTeam .. " has ended the round early.")
+                StartNewRound()
+                return
+            end
+        end
+    else
+        if n == currentRoundFrameStart + roundTime then
+            currentRoundFrameStart = n  -- Set up for the new round
+            StartNewRound()
+        end
+    end
+end
+
 function gadget:GameFrame(n)
     -- Delay check until 10 seconds into the game and also delay after each round start
     if not battlefieldMode then
