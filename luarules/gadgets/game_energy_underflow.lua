@@ -83,10 +83,10 @@ local allyEnergyThresholdDefault = 0.12 -- less than 12% in storage means you ar
 -- please add super weapons here
 local armvulcDefID = UnitDefNames.armvulc.id
 local corbuzzDefID = UnitDefNames.corbuzz.id
-local legstarfallDefID = UnitDefNames.legstarfall.id
+local legstarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legstarfall.id or nil
 
 local function isCalamity(unitDefID)
-	return ((armvulcDefID == unitDefID) or (corbuzzDefID == unitDefID) or (legstarfallDefID == unitDefID))
+	return unitDefID and ((armvulcDefID == unitDefID) or (corbuzzDefID == unitDefID) or (legstarfallDefID == unitDefID))
 end
 
 local function recalculateStorageThreshold(teamID, eStorMy, storageThreshold)
@@ -314,7 +314,6 @@ function gadget:Initialize()
         end
     end
 
-    underflowTeam = {}
     for _, teamID in ipairs(allTeamList) do
         calamityCount[teamID] = 0
         if teamID == GaiaTeamID then

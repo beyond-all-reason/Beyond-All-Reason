@@ -2025,7 +2025,10 @@ function widget:Initialize()
 	end
 
 	if underflowEnabled then
-		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus")
+		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus") or false
+		if (Spring.GetTeamRulesParam(myTeamID, "underflowStatus") == nil) then
+			showUnderflowButton = false
+		end
 	end
 end
 
