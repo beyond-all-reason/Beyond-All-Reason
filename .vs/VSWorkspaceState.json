@@ -1,10 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\gamedata",
     "\\luarules",
     "\\luarules\\gadgets"
   ],
-  "SelectedNode": "\\gamedata\\unitdefs.lua",
+  "SelectedNode": "\\README.md",
   "PreviewInSolutionExplorer": false
 }
