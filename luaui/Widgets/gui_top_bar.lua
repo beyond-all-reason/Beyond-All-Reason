@@ -895,7 +895,7 @@ local function updateResbar(res)
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
-			--WG['tooltip'].AddTooltip(res .. '_underflow', { area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16 }, Spring.I18N('ui.topbar.underflow.tooltip'), nil, Spring.I18N('ui.topbar.underflow.tooltipTitle'))
+
 			WG['tooltip'].AddTooltip(res .. '_underflow', { area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16 }, Spring.I18N('ui.topbar.underflow.tooltipText'), nil, Spring.I18N('ui.topbar.underflow.tooltipTitle'))
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
