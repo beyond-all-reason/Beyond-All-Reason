@@ -33,7 +33,9 @@ local bladeSpeedMultiplier = 0.2
 
 local wholeTeamWastingMetalCount = 0
 
+local underflowEnabled = (Spring.GetModOptions().energy_share_rework == true)
 local generousPlayer = true -- otherwise greedy
+local showUnderflowButton = true
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local showButtons = true
@@ -795,7 +797,7 @@ local function updateResbar(res)
 		glTexRect(area[1] + bgpaddingHalf + iconPadding, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSize, area[4] + bgpaddingHalf - iconPadding)
 		glTexture(false)
 
-		if (res == "energy") and fontSize then
+		if underflowEnabled and showUnderflowButton and (res == "energy") and fontSize then
 			local w = math_floor(320 * widgetScale)
 			local padding = math_floor(w / 90)
 			local color1, color2
@@ -1880,7 +1882,7 @@ function widget:MousePress(x, y, button)
 					draggingShareIndicator = 'energy'
 				end
 				local area = resbarArea["energy"]
-				if math_isInRect(x, y, area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16) then
+				if underflowEnabled and showUnderflowButton and math_isInRect(x, y, area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16) then
 					generousPlayer = not generousPlayer
 					Spring.SendLuaRulesMsg("underflowToggle")
 					updateResbar("energy")
@@ -2022,7 +2024,9 @@ function widget:Initialize()
 		isMetalmap = true
 	end
 
-	generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus")
+	if underflowEnabled then
+		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus")
+	end
 end
 
 function shutdown()

@@ -64,7 +64,7 @@
 			"underflow": {
 				"generous": "generous",
 				"greedy": "greedy",
-				"tooltipText": "Being a generous ally - you will share and receieve energy underflow.\n10%% of energy income.\nBeing greedy, however, will get you neither.",
+				"tooltipText": "Being a generous ally - you will share and receieve energy underflow.\n10%% of energy income. Helps to prevent your allies from E-stalling.\nBeing greedy, however, will get you neither.",
 				"tooltipTitle": "Energy underflow toggle"
 			}
 		},
