@@ -912,6 +912,55 @@ local function CalculateFrame(seconds)
     return seconds * 30  -- 30 frames per second
 end
 
+local roundWins = {}
+
+function gadget:Initialize()
+    for _, teamID in ipairs(teams) do
+        unitSpawns[teamID] = {}
+        if teamID ~= gaiaTeamID then
+            roundWins[teamID] = 0
+        end
+    end
+end
+
+local function AssessVictoryAndEndGame()
+	Spring.Echo("Endgame reached")
+    local winner = nil
+    local maxWins = -1
+    for teamID, wins in pairs(roundWins) do
+        if wins > maxWins then
+            maxWins = wins
+            winner = teamID
+        end
+    end
+    if winner then
+        Spring.Echo("The game ends with Team " .. winner .. " victorious, with " .. maxWins .. " rounds won.")
+        -- End the game with this team as the winner
+        Spring.GameOver({winner})
+    end
+end
+
+function gadget:GameFrame(n)
+    if battlefieldMode then
+        if n == currentRoundFrameStart + roundTime or CheckForEarlyEnd() then
+            local winningTeam = CheckForEarlyEnd()
+            if winningTeam then
+                roundWins[winningTeam] = (roundWins[winningTeam] or 0) + 1
+                Spring.Echo("Team " .. winningTeam .. " wins the round.")
+            end
+            StartNewRound()
+            -- Evaluate end of the game after the last round is processed.
+			if currentRound >= maxNumberOfRounds then
+				Spring.Echo("Alternative")
+                AssessVictoryAndEndGame()
+            end
+            if currentRound > maxNumberOfRounds then
+                AssessVictoryAndEndGame()
+            end
+        end
+    end
+end
+
 function gadget:GameFrame(n)
     -- Delay check until 10 seconds into the game and also delay after each round start
     if battlefieldMode then
@@ -997,17 +1046,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
        end
        return true  -- allow all other commands
    end
-
-local roundWins = {}
-
-function gadget:Initialize()
-    for _, teamID in ipairs(teams) do
-        unitSpawns[teamID] = {}
-        if teamID ~= gaiaTeamID then
-            roundWins[teamID] = 0
-        end
-    end
-end
 
 function gadget:Shutdown()
     ResetUnitSpawns()
