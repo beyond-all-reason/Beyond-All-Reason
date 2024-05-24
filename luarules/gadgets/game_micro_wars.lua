@@ -40,6 +40,8 @@ local unitSpawnConfig = {
 }
 ]]
 
+--[[
+
 local unitSpawnConfigs = {
     ["Basic T1 - T3"] = {  -- Already provided in your original script
         [1] = {
@@ -721,6 +723,135 @@ local unitSpawnConfigs = {
     },
     -- Define other presets like "Glass the Runners" and "Long Range Standoff"
 }
+]]
+
+local unitSpawnConfigs = {
+
+    ["Basic T1 - T3"] = {  -- Already provided in your original script
+
+        -- existing configurations go here...
+
+    },
+
+    ["Raining Hell"] = {
+
+        -- existing configurations go here...
+
+    },
+
+    -- All other existing unit configurations...
+
+    ["Royalty"] = {
+
+        [1] = {
+
+            {unitName = "armpw", count = 50},  -- Pawns
+
+            {unitName = "armpwt4", count = 1},  -- Epic Pawn
+
+            {unitName = "armwar", count = 10},    -- Centurion
+
+        },
+
+        [2] = {
+
+            {unitName = "corthud", count = 50},  -- Thugs
+
+            {unitName = "cormando", count = 1},  -- Commando
+
+            {unitName = "corhrk", count = 10},    -- Arbiiter
+
+        },
+
+        [3] = {
+
+            {unitName = "legshot", count = 50},  -- legion shield bot
+
+            {unitName = "corgol", count = 1},  -- Tzar
+
+            {unitName = "corhrk", count = 10},    -- Arbiiter
+
+        },
+
+        [4] = {
+
+            {unitName = "armpw", count = 100},  -- Pawns
+
+            {unitName = "armpwt4", count = 1},  -- Epic Pawn
+
+            {unitName = "armwar", count = 15},    -- Centurion
+
+        },
+
+        [5] = {
+
+            {unitName = "corthud", count = 50},  -- Thugs
+
+            {unitName = "cormando", count = 5},  -- Commando
+
+            {unitName = "corhrk", count = 10},    -- Arbiiter
+
+            {unitName = "legshot", count = 25},  -- legion shield bot
+
+            {unitName = "corgol", count = 1},  -- Tzar
+
+        },
+
+        [6] = {
+
+            {unitName = "corthud", count = 20},  -- Thugs
+
+            {unitName = "cormando", count = 5},  -- Commando
+
+            {unitName = "corhrk", count = 10},    -- Arbiiter
+
+            {unitName = "legshot", count = 25},  -- legion shield bot
+
+            {unitName = "corgol", count = 3},  -- Tzar
+
+            {unitName = "armpw", count = 20},  -- Pawns
+
+            {unitName = "armpwt4", count = 1},  -- Epic Pawn
+
+            {unitName = "armwar", count = 10},    -- Centurion
+
+        },
+
+        [7] = {
+
+            {unitName = "corthud", count = 50},  -- Thugs
+
+            {unitName = "cormando", count = 5},  -- Commando
+
+            {unitName = "corhrk", count = 10},    -- Arbiiter
+
+            {unitName = "legshot", count = 25},  -- legion shield bot
+
+            {unitName = "corgol", count = 3},  -- Tzar
+
+            {unitName = "armpw", count = 50},  -- Pawns
+
+            {unitName = "armpwt4", count = 1},  -- Epic Pawn
+
+            {unitName = "armwar", count = 10},    -- Centurion
+
+            {unitName = "armmerl", count = 10},    -- ambassador
+
+        },
+
+        [8] = {
+
+            -- etc.
+
+        },
+
+        -- Additional rounds up to [10] are added similarly
+
+    },
+
+    -- Any new presets you want to add based on your provided details...
+
+}
 
 -- Check which preset is selected in the game options and set the unitSpawnConfig accordingly
 local selectedComposition = modOptions.preset_army_compositions or "Basic T1 - T3"
@@ -813,7 +944,7 @@ local function SpawnUnitsForTeam(teamID, unitName, unitCount)
     unitSpawns[teamID] = teamUnits
 end
 
-local firstRoundDelay = 90  -- Corresponds to a 3-second delay at 30 fps
+local firstRoundDelay = 80  -- Corresponds to a 3-second delay at 30 fps
 local firstRoundDelayed = (currentRound == 1)  -- Only delay the first round
 
 local function StartNewRound()
