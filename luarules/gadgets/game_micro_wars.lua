@@ -788,15 +788,22 @@ local function ResetUnitSpawns()
     unitSpawns = {}
 end
 
+local initialCommanderPositions = {}
 local function GetCommanderPosition(teamID)
     local teamUnits = Spring.GetTeamUnits(teamID)
     for _, unitID in ipairs(teamUnits) do
-        if UnitDefs[Spring.GetUnitDefID(unitID)].customParams.iscommander then
+        local unitDefID = Spring.GetUnitDefID(unitID)
+        if unitDefID and UnitDefs[unitDefID].customParams.iscommander then
             local x, y, z = Spring.GetUnitPosition(unitID)
             return x, y, z
         end
     end
-    -- Fallback to team start position if no commander is found
+    -- Fallback to stored initial position if no commander is found
+    if initialCommanderPositions[teamID] then
+        local x, y, z = initialCommanderPositions[teamID][1], initialCommanderPositions[teamID][2], initialCommanderPositions[teamID][3]
+        return x, y, z
+    end
+    -- Ultimate Fallback to team start position if no initial position is stored
     local x, z = Spring.GetTeamStartPosition(teamID)
     local y = Spring.GetGroundHeight(x, z)
     return x, y, z
@@ -870,30 +877,30 @@ local function CalculateTeamStrength(teamID)
 end
 
 local function CheckForEarlyEnd()
-    local maxUnits = 0
-    local maxHealth = 0
-    local maxTeam = nil
-    -- Retrieve and log details for each team
+    local teamStrengths = {}
+    -- Collect and log details for each team
     for _, teamID in ipairs(teams) do
         if teamID ~= gaiaTeamID then
             local unitCount, totalHealth = CalculateTeamStrength(teamID)
+            table.insert(teamStrengths, {teamID = teamID, unitCount = unitCount, totalHealth = totalHealth})
             Spring.Echo("Debug: Team", teamID, "- Units:", unitCount, "HP:", totalHealth)
-            if unitCount > maxUnits or (unitCount == maxUnits and totalHealth > maxHealth) then
-                maxUnits = unitCount
-                maxHealth = totalHealth
-                maxTeam = teamID
-            end
         end
     end
-    -- Compare each team against the max team
-    for _, teamID in ipairs(teams) do
-        if teamID ~= gaiaTeamID and teamID ~= maxTeam then
-            local unitCount, totalHealth = CalculateTeamStrength(teamID)
-            if maxUnits >= unitCount * (1 + endRoundEarlyPercentage / 100) and
-               maxHealth >= totalHealth * (1 + endRoundEarlyPercentage / 100) then
-                Spring.Echo("Debug: Ending Round Early - Dominating Team", maxTeam, "over Team", teamID)
-                return maxTeam
-            end
+    -- Sort teams by unitCount, break ties with totalHealth
+    table.sort(teamStrengths, function(a, b)
+        if a.unitCount == b.unitCount then
+            return a.totalHealth > b.totalHealth
+        end
+        return a.unitCount > b.unitCount
+    end)
+    -- Compare the strongest team to the second strongest
+    if #teamStrengths > 1 then
+        local strongest = teamStrengths[1]
+        local secondStrongest = teamStrengths[2]
+        if strongest.unitCount >= secondStrongest.unitCount * (1 + endRoundEarlyPercentage / 100) and
+           strongest.totalHealth >= secondStrongest.totalHealth * (1 + endRoundEarlyPercentage / 100) then
+            Spring.Echo("Debug: Ending Round Early - Dominating Team", strongest.teamID, "over Team", secondStrongest.teamID)
+            return strongest.teamID
         end
     end
     return nil
@@ -904,6 +911,8 @@ local checkForEarlyEndDelay = 300 -- Delay of 10 seconds (10 * 30 fps)
 local function CalculateFrame(seconds)
     return seconds * 30  -- 30 frames per second
 end
+
+
 
 function gadget:GameFrame(n)
     -- Delay check until 10 seconds into the game and also delay after each round start
@@ -928,6 +937,25 @@ function gadget:GameFrame(n)
 end
 
 function gadget:GameFrame(n)
+
+	-- log initial commander starting positions
+	if n == 90 then  -- 3 seconds into the game, 3 * 30 fps
+        for _, teamID in ipairs(teams) do
+            if teamID ~= gaiaTeamID then
+                local teamUnits = Spring.GetTeamUnits(teamID)
+                for _, unitID in ipairs(teamUnits) do
+                    local unitDefID = Spring.GetUnitDefID(unitID)
+                    if unitDefID and UnitDefs[unitDefID].customParams.iscommander then
+                        local x, y, z = Spring.GetUnitPosition(unitID)
+                        initialCommanderPositions[teamID] = {x, y, z}
+                        Spring.Echo("Initial commander position for team", teamID, "recorded at:", x, y, z)
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     -- Delay check until 10 seconds into the game and also delay after each round start
     if not battlefieldMode then
         if n == currentRoundFrameStart + roundTime then
@@ -972,9 +1000,30 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
        return true  -- allow all other commands
    end
 
+local roundWins = {}
+
 function gadget:Initialize()
     for _, teamID in ipairs(teams) do
         unitSpawns[teamID] = {}
+        if teamID ~= gaiaTeamID then
+            roundWins[teamID] = 0
+        end
+    end
+end
+
+local function AssessVictoryAndEndGame()
+    local winner = nil
+    local maxWins = -1
+    for teamID, wins in pairs(roundWins) do
+        if wins > maxWins then
+            maxWins = wins
+            winner = teamID
+        end
+    end
+    if winner then
+        Spring.Echo("The game ends with Team " .. winner .. " victorious, with " .. maxWins .. " rounds won.")
+        -- End the game with this team as the winner
+        Spring.GameOver({winner})
     end
 end
 
