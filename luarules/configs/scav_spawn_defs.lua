@@ -401,19 +401,25 @@ local LandUnitsList = {
 	Healer = {
 		[1] = {
 			--Armada
-
+			["armck_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armcv_scav"] = 1,
 			--Cortex
-
+			["corck_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corcv_scav"] = 1,
 			--Legion
+			["legcv_scav"] = 1,
+			["legck_scav"] = 1,
 		},
 		[2] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
+			["armrectr_scav"] = 40,
 			["armcv_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
+			["cornecro_scav"] = 40,
 			["corcv_scav"] = 1,
 			--Legion
 			["legcv_scav"] = 1,
@@ -421,12 +427,14 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
+			["armrectr_scav"] = 40,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
+			["cornecro_scav"] = 40,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -436,29 +444,66 @@ local LandUnitsList = {
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
-
 		},
 		[4] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
-
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 		[5] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 		[6] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 	},
 }
@@ -600,9 +645,11 @@ local SeaUnitsList = {
 	Healer = {
 		[1] = {
 		--Armada
-
+		["armcs_scav"] = 1,
+		["armrecl_scav"] = 1,
 		--Cortex
-
+		["corcs_scav"] = 1,
+		["correcl_scav"] = 1,
 		},
 		[2] = {
 		--Armada
@@ -622,18 +669,28 @@ local SeaUnitsList = {
 		},
 		[4] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
 		},
 		[5] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
+
 		},
 		[6] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
 		},
 	},
 }
@@ -967,6 +1024,9 @@ scavBehaviours = {
 		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["scavmist_scav"].id]			= { distance = 2000, chance = 1},
+		[UnitDefNames["scavmistxl_scav"].id]		= { distance = 2000, chance = 1},
+		[UnitDefNames["scavmistxxl_scav"].id]		= { distance = 2000, chance = 1},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
@@ -1184,7 +1244,7 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Airland)
-addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
@@ -1262,6 +1322,25 @@ addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 legcomlvl9_scav"
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+
+-- Mist
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "5 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "10 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "10 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 0, units = { "5 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "10 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "10 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
