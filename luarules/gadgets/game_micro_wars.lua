@@ -941,52 +941,8 @@ local function AssessVictoryAndEndGame()
 end
 
 function gadget:GameFrame(n)
-    if battlefieldMode then
-        if n == currentRoundFrameStart + roundTime or CheckForEarlyEnd() then
-            local winningTeam = CheckForEarlyEnd()
-            if winningTeam then
-                roundWins[winningTeam] = (roundWins[winningTeam] or 0) + 1
-                Spring.Echo("Team " .. winningTeam .. " wins the round.")
-            end
-            StartNewRound()
-            -- Evaluate end of the game after the last round is processed.
-			if currentRound >= maxNumberOfRounds then
-				Spring.Echo("Alternative")
-                AssessVictoryAndEndGame()
-            end
-            if currentRound > maxNumberOfRounds then
-                AssessVictoryAndEndGame()
-            end
-        end
-    end
-end
-
-function gadget:GameFrame(n)
-    -- Delay check until 10 seconds into the game and also delay after each round start
-    if battlefieldMode then
-        local checkStartFrame = currentRoundFrameStart + checkForEarlyEndDelay
-        local nextCheckStartFrame = currentRoundFrameStart + roundTime - checkForEarlyEndDelay
-        if n > checkStartFrame and n < nextCheckStartFrame then
-            local winningTeam = CheckForEarlyEnd()
-            if winningTeam then
-                currentRoundFrameStart = n + checkForEarlyEndDelay
-                Spring.Echo("Team " .. winningTeam .. " has ended the round early.")
-                StartNewRound()
-                return
-            end
-        end
-    else
-        if n == currentRoundFrameStart + roundTime then
-            currentRoundFrameStart = n  -- Set up for the new round
-            StartNewRound()
-        end
-    end
-end
-
-function gadget:GameFrame(n)
-
-	-- log initial commander starting positions
-	if n == 90 then  -- 3 seconds into the game, 3 * 30 fps
+    -- log initial commander starting positions
+    if n == 90 then
         for _, teamID in ipairs(teams) do
             if teamID ~= gaiaTeamID then
                 local teamUnits = Spring.GetTeamUnits(teamID)
@@ -1001,43 +957,46 @@ function gadget:GameFrame(n)
                 end
             end
         end
-    end
-
-    -- Delay check until 10 seconds into the game and also delay after each round start
-    if not battlefieldMode then
-        if n == currentRoundFrameStart + roundTime then
-            currentRoundFrameStart = n + checkForEarlyEndDelay  -- Update and apply delay for new round start
-            StartNewRound()
+    elseif n >= currentRoundFrameStart + firstRoundDelay and firstRoundDelayed then
+        StartDelayedFirstRound()
+    elseif battlefieldMode then
+        if n >= currentRoundFrameStart + checkForEarlyEndDelay then
+            local endingEarly = CheckForEarlyEnd()
+            if endingEarly or n >= currentRoundFrameStart + roundTime then
+                ConcludeRound(endingEarly)
+            end
         end
     else
-        local checkStartFrame = currentRoundFrameStart + checkForEarlyEndDelay
-        local earlyRoundCheckEndFrame = n - checkForEarlyEndDelay
-        -- Check only during allowed periods
-        if n > checkStartFrame and (currentRoundFrameStart == 0 or n > currentRoundFrameStart + checkForEarlyEndDelay) then
-            local winningTeam = CheckForEarlyEnd()
-            if winningTeam then
-                currentRoundFrameStart = n + checkForEarlyEndDelay  -- Prepare delay for next round
-                Spring.Echo("Team " .. winningTeam .. " has conclusively won the round early based on both unit count and total HP.")
-                StartNewRound()
-                return
-            end
+        if n >= currentRoundFrameStart + roundTime then
+            StartNewRound()
         end
-    end
-    -- Handling for first-round delayed spawn
-    if firstRoundDelayed and (n == currentRoundFrameStart + firstRoundDelay) then
-        -- Execute delayed spawn
-        local spawnConfiguration = unitSpawnConfig[1] or {}
-        for _, teamID in ipairs(teams) do
-            if teamID ~= gaiaTeamID then
-                for _, config in ipairs(spawnConfiguration) do
-                    SpawnUnitsForTeam(teamID, config.unitName, config.count)
-                end
-            end
-        end
-        firstRoundDelayed = false -- Reset flag
     end
 end
 
+function StartDelayedFirstRound()
+    local spawnConfiguration = unitSpawnConfig[1] or {}
+    for _, teamID in ipairs(teams) do
+        if teamID ~= gaiaTeamID then
+            for _, config in ipairs(spawnConfiguration) do
+                SpawnUnitsForTeam(teamID, config.unitName, config.count)
+            end
+        end
+    end
+    firstRoundDelayed = false
+end
+
+function ConcludeRound(endingEarly)
+    if endingEarly then
+        Spring.Echo("Team " .. endingEarly .. " has conclusively won the round early.")
+        roundWins[endingEarly] = (roundWins[endingEarly] or 0) + 1
+    end
+	if currentRound > maxNumberOfRounds then
+		Spring.Echo("The game has ended now.")
+        AssessVictoryAndEndGame()
+    end
+    StartNewRound()
+    
+end
 
 --dynamically prevent building
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
