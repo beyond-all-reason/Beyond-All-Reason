@@ -495,11 +495,9 @@ if gadgetHandler:IsSyncedCode() then
 									Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
 								if math.random() < 0.75 then
-									Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
-								end
-								if math.random() < 0.75 then
 									Spring.GiveOrderToUnit(unitID, CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
+								Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {"shift"})
 							end
 						end
@@ -1112,7 +1110,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if loopCounter <= 1 and mRandom() <= config.spawnChance then
+					if mRandom() <= config.spawnChance then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
