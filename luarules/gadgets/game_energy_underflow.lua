@@ -62,7 +62,6 @@ local teamIncomeClass = {} -- 0, 1, 2 -- 0 is poor, 1 is healthy, 2 is rich, 3 i
 local currentMMsliderValue = {} -- metalmaker slider value cached
 local allyTeamIsRich = {} -- whether entire ally team is rich or not
 
--- condition 1 is:
 local underflowTeam = {} -- by teamID, enable pact: true/false,
 local defaultState = true -- default: true (players)
 local defaultStateForAI = true -- (AI)
