@@ -39,13 +39,8 @@ local unitSpawnConfig = {
     [3] = {{unitName = "armpw", count = 50}, {unitName = "corak", count = 50}},
 }
 ]]
-
---name = "Basic T1 to T3"
-
--- Define multiple unit spawn configurations based on presets
-local unitSpawnConfigs = {
-    ["Basic T1 - T3"] = {  -- Already provided in your original script
-        [1] = {
+local unitSpawnConfig = {
+    [1] = {
         {unitName = "armpw", count = 20},    -- Pawns
         {unitName = "armrock", count = 10},  -- Rocket Bots
         {unitName = "corcrash", count = 2},  -- Trashers
@@ -130,140 +125,7 @@ local unitSpawnConfigs = {
         {unitName = "corcat", count = 8},    -- Heavy Rocket Bot
         {unitName = "corkarg", count = 1},   -- Karganeth (All-Terrain Assault Mech)
     }
-    },
-    ["T1 Variety"] = {
-        [1] = {
-            {unitName = "armpw", count = 30},
-            -- More units
-        },
-        -- Other rounds
-    },
-    ["Death from Above"] = {
-        [1] = {
-            {unitName = "corshad", count = 15},
-            -- More units
-        },
-        -- Other rounds
-    },
-	["Raining Hell"] = {
-		[1] = {
-
-			{unitName = "armrock", count = 15},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 10},    -- Missile Trucks
-			{unitName = "armsam", count = 10},    -- Janus
-		},
-		[2] = {
-			{unitName = "armrock", count = 15},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 10},    -- Missile Trucks
-			{unitName = "armsam", count = 10},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 15},  -- Trashers
-		},
-		[3] = {
-			{unitName = "armrock", count = 25},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 15},    -- Missile Trucks
-			{unitName = "armsam", count = 15},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 15},  -- Trashers
-		},
-		[4] = {
-			{unitName = "armrock", count = 25},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 15},    -- Missile Trucks
-			{unitName = "armsam", count = 15},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 15},  -- Trashers
-			{unitName = "corhrk", count = 15},  -- Arbiters
-		},
-		[5] = {
-			{unitName = "armrock", count = 25},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 15},    -- Missile Trucks
-			{unitName = "armsam", count = 15},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 20},  -- Trashers
-			{unitName = "corhrk", count = 15},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-
-
-		},
-		[6] = {
-			{unitName = "armrock", count = 25},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 15},    -- Missile Trucks
-			{unitName = "armsam", count = 15},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 20},  -- Trashers
-			{unitName = "corhrk", count = 15},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-			{unitName = "corban", count = 7},  --Banishers
-		},
-		[7] = {
-			{unitName = "armrock", count = 25},  -- Rocket Bots
-			{unitName = "corestorm", count = 25},  -- Rocket Bots
-			{unitName = "armsam", count = 10},    -- Missile Trucks
-			{unitName = "armsam", count = 5},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 20},  -- Trashers
-			{unitName = "corhrk", count = 10},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-			{unitName = "corban", count = 10},  --Banishers
-			{unitName = "legmed", count = 3},  --Medusa
-		},
-		[8] = {
-			{unitName = "armrock", count = 15},  -- Rocket Bots
-			{unitName = "corestorm", count = 15},  -- Rocket Bots
-			{unitName = "armsam", count = 5},    -- Missile Trucks
-			{unitName = "armsam", count = 5},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 10},  -- Trashers
-			{unitName = "corhrk", count = 10},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-			{unitName = "corban", count = 10},  --Banishers
-			{unitName = "legmed", count = 5},  --Medusa
-			{unitName = "corvroc", count = 5},  --Rocket truck
-		},
-		[9] = {
-			{unitName = "armrock", count = 15},  -- Rocket Bots
-			{unitName = "corestorm", count = 25},  -- Rocket Bots
-			{unitName = "armsam", count = 5},    -- Missile Trucks
-			{unitName = "armsam", count = 10},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 10},  -- Trashers
-			{unitName = "corhrk", count = 15},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-			{unitName = "corban", count = 10},  --Banishers
-			{unitName = "legmed", count = 5},  --Medusa
-			{unitName = "corvroc", count = 5},  --Rocket truck
-			{unitName = "corcat", count = 2},  --catapult
-		},
-		[10] = {
-			{unitName = "armrock", count = 15},  -- Rocket Bots
-			{unitName = "corestorm", count = 25},  -- Rocket Bots
-			{unitName = "armsam", count = 5},    -- Missile Trucks
-			{unitName = "armsam", count = 10},    -- Janus
-			{unitName = "legmos", count = 10},    -- mosquito
-			{unitName = "corcrash", count = 10},  -- Trashers
-			{unitName = "corhrk", count = 15},  -- Arbiters
-			{unitName = "corape", count = 5},  --Wasps
-			{unitName = "corban", count = 10},  --Banishers
-			{unitName = "legmed", count = 5},  --Medusa
-			{unitName = "corvroc", count = 5},  --Rocket truck
-			{unitName = "corcat", count = 2},  --catapult
-			{unitName = "corkarg", count = 5},   -- Karganeth (All-Terrain Assault Mech)
-		}
-	}
-    -- Define other presets like "Glass the Runners" and "Long Range Standoff"
 }
-
--- Check which preset is selected in the game options and set the unitSpawnConfig accordingly
-local selectedComposition = modOptions.preset_army_compositions or "Basic T1 - T3"
-local unitSpawnConfig = unitSpawnConfigs[selectedComposition]
-
-
 
 local currentRound = 1
 local currentRoundFrameStart = 0
@@ -382,13 +244,6 @@ function gadget:GameStart()
     Spring.Echo("Micro Wars Started") -- Debugging output
     StartNewRound()
     Spring.Echo("Micro Wars Started -- Building Disabled")
-end
-
-local function HandleMaxRounds()
-    if maxRoundsMode and currentRound > maxNumberOfRounds then
-        Spring.Echo("Ending game after max number of rounds reached")
-        gadgetHandler:RemoveGadget(self)
-    end
 end
 
 function gadget:GameFrame(n)
