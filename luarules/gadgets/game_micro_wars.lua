@@ -912,8 +912,6 @@ local function CalculateFrame(seconds)
     return seconds * 30  -- 30 frames per second
 end
 
-
-
 function gadget:GameFrame(n)
     -- Delay check until 10 seconds into the game and also delay after each round start
     if battlefieldMode then
@@ -1008,22 +1006,6 @@ function gadget:Initialize()
         if teamID ~= gaiaTeamID then
             roundWins[teamID] = 0
         end
-    end
-end
-
-local function AssessVictoryAndEndGame()
-    local winner = nil
-    local maxWins = -1
-    for teamID, wins in pairs(roundWins) do
-        if wins > maxWins then
-            maxWins = wins
-            winner = teamID
-        end
-    end
-    if winner then
-        Spring.Echo("The game ends with Team " .. winner .. " victorious, with " .. maxWins .. " rounds won.")
-        -- End the game with this team as the winner
-        Spring.GameOver({winner})
     end
 end
 
