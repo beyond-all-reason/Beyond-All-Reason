@@ -1068,6 +1068,9 @@ scavBehaviours = {
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		--[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
+		[UnitDefNames["scavmist_scav"].id]			= true,
+		[UnitDefNames["scavmistxl_scav"].id]		= true,
+		[UnitDefNames["scavmistxxl_scav"].id]		= true,
 	},
 	ALLOWFRIENDLYFIRE = {
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
@@ -1324,23 +1327,23 @@ addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 
 -- Mist
-addNewSquad({ type = "specialLand", minAnger = 0, units = { "5 scavmist_scav",}, weight = 8, maxAnger = 33})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "10 scavmist_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
 
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "10 scavmistxl_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
 
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "20 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
 
-addNewSquad({ type = "specialSea", minAnger = 0, units = { "5 scavmist_scav",}, weight = 8, maxAnger = 33})
-addNewSquad({ type = "specialSea", minAnger = 30, units = { "10 scavmist_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialSea", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
 
-addNewSquad({ type = "specialSea", minAnger = 30, units = { "10 scavmistxl_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
 
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "20 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
