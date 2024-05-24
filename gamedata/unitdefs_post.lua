@@ -13,7 +13,7 @@ if Spring.GetTeamList then
 		end
 	end
 end
-if Spring.GetModOptions().ruins == "enabled" or Spring.GetModOptions().forceallunits == true then
+if Spring.GetModOptions().ruins == "enabled" or Spring.GetModOptions().forceallunits == true or Spring.GetModOptions().micro_wars_enabled == true then
 	scavengersEnabled = true
 end
 

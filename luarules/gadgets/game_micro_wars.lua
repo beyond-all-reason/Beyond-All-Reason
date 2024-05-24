@@ -128,6 +128,7 @@ local unitSpawnConfigs = {
 			{unitName = "corkarg", count = 1},   -- Karganeth (All-Terrain Assault Mech)
 		}
     },
+
 	["Raining Hell"] = {
 		[1] = {
 			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
@@ -236,115 +237,90 @@ local unitSpawnConfigs = {
 			{unitName = "corkarg", count = 5},    -- Karganeth (Cor Karg)
 		},
     },
-	
-    ["Raining Hell"] = {
+
+	["Royalty"] = {
 		[1] = {
-			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
+			{unitName = "armpw", count = 50},  -- Pawns
+			{unitName = "armpwt4", count = 1},  -- Epic Pawn
+			{unitName = "armwar", count = 10},    -- Centurion
 		},
 		[2] = {
-			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+			{unitName = "corthud", count = 50},  -- Thugs
+			{unitName = "cormando", count = 1},  -- Commando
+			{unitName = "corhrk", count = 10},    -- Arbiiter
+
 		},
 		[3] = {
-			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
+			{unitName = "legshot", count = 50},  -- legion shield bot
+			{unitName = "corgol", count = 1},  -- Tzar
+			{unitName = "corhrk", count = 10},    -- Arbiiter
 		},
 		[4] = {
-			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 15},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
+		 {unitName = "armpw", count = 100},  -- Pawns
+			{unitName = "armpwt4", count = 1},  -- Epic Pawn
+			{unitName = "armwar", count = 15},    -- Centurion
 		},
 		[5] = {
-			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
+			{unitName = "corthud", count = 50},  -- Thugs
+			{unitName = "cormando", count = 5},  -- Commando
+			{unitName = "corhrk", count = 10},    -- Arbiiter
+			{unitName = "legshot", count = 25},  -- legion shield bot
+			{unitName = "corgol", count = 1},  -- Tzar
 		},
 		[6] = {
-			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 15},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 15},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
-			{unitName = "corban", count = 7},     -- Banishers (Cor Ban)
+			{unitName = "corthud", count = 20},  -- Thugs
+			{unitName = "cormando", count = 5},  -- Commando
+			{unitName = "corhrk", count = 10},    -- Arbiiter
+			{unitName = "legshot", count = 25},  -- legion shield bot
+			{unitName = "corgol", count = 3},  -- Tzar
+			{unitName = "armpw", count = 20},  -- Pawns
+			{unitName = "armpwt4", count = 1},  -- Epic Pawn
+			{unitName = "armwar", count = 10},    -- Centurion
 		},
 		[7] = {
-			{unitName = "armrock", count = 25},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 10},    -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 20},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
-			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
-			{unitName = "legmed", count = 3},     -- Medusa (Leg Med)
+			{unitName = "corthud", count = 50},  -- Thugs
+			{unitName = "cormando", count = 5},  -- Commando
+			{unitName = "corhrk", count = 10},    -- Arbiiter
+			{unitName = "legshot", count = 25},  -- legion shield bot
+			{unitName = "corgol", count = 3},  -- Tzar
+			{unitName = "armpw", count = 50},  -- Pawns
+			{unitName = "armpwt4", count = 1},  -- Epic Pawn
+			{unitName = "armwar", count = 10},    -- Centurion
+			{unitName = "armmerl", count = 10},    -- ambassador
 		},
 		[8] = {
-			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 15},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 5},   -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 10},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
-			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
-			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
-			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
+			{unitName = "corthud", count = 50},  -- Thugs
+			{unitName = "cormando", count = 5},  -- Commando
+			{unitName = "corhrk", count = 10},    -- Arbiiter
+			{unitName = "legshot", count = 25},  -- legion shield bot
+			{unitName = "corgol", count = 3},  -- Tzar
+			{unitName = "armpw", count = 50},  -- Pawns
+			{unitName = "armpwt4", count = 1},  -- Epic Pawn
+			{unitName = "armwar", count = 10},    -- Centurion
+			{unitName = "armmerl", count = 10},    -- ambassador
+			{unitName = "corgolt4", count = 1},  --Epic Tzar
 		},
-		[9] = {
-			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
-			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
-			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
-			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
-			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
+		[9] = 
+			{unitName = "corthud", count = 20},  -- Thugs
+			{unitName = "cormando", count = 5},  -- Commando
+			{unitName = "corhrk", count = 5},    -- Arbiiter
+			{unitName = "legshot", count = 25},  -- legion shield bot
+			{unitName = "corgol", count = 10},  -- Tzar
+			{unitName = "armpw", count = 70},  -- Pawns
+			{unitName = "armpwt4", count = 3},  -- Epic Pawn
+			{unitName = "armwar", count = 10},    -- Centurion
+			{unitName = "armmerl", count = 10},    -- ambaassaors
+			{unitName = "corgolt4", count = 1},  --Epic Tzar
 		},
 		[10] = {
-			{unitName = "armrock", count = 15},   -- Rocket Bots (Arm Rock)
-			{unitName = "corstorm", count = 25},  -- Rocket Bots (Cor Storm)
-			{unitName = "armsam", count = 5},     -- Missile Trucks (Arm Sam)
-			{unitName = "armjanus", count = 10},  -- Janus (Arm Janus)
-			{unitName = "legmos", count = 10},    -- Mosquito (Leg Mos)
-			{unitName = "corcrash", count = 10},  -- Trashers (Cor Crash)
-			{unitName = "corhrk", count = 15},    -- Arbiters (Cor Hrk)
-			{unitName = "corape", count = 5},     -- Wasps (Cor Ape)
-			{unitName = "corban", count = 10},    -- Banishers (Cor Ban)
-			{unitName = "legmed", count = 5},     -- Medusa (Leg Med)
-			{unitName = "corvroc", count = 5},    -- Rocket Trucks (Cor Vroc)
-			{unitName = "corcat", count = 2},     -- Catapults (Cor Cat)
-			{unitName = "corkarg", count = 5},    -- Karganeth (Cor Karg)
-		},
-	},
+			{unitName = "legshot", count = 35},  -- legion shield bot
+			{unitName = "corgol", count = 10},  -- Tzar
+			{unitName = "armpw", count = 80},  -- Pawns
+			{unitName = "armpwt4", count = 10},  -- Epic Pawn
+			{unitName = "corgolt4", count = 1},  --Epic Tzar
+		}
+	}
+	
     ["T1 Variety"] = {
         [1] = {
             {unitName = "armpw", count = 30},
@@ -352,6 +328,7 @@ local unitSpawnConfigs = {
         },
         -- Other rounds
     },
+
     ["Death from Above"] = {
         [1] = {
             {unitName = "corshad", count = 15}, --Bombers
@@ -361,6 +338,7 @@ local unitSpawnConfigs = {
         },
         -- Other rounds
     },
+
 	["Inferno"] = {
         [1] = {
 			{unitName = "cortorch", count = 15},  -- Torch
@@ -435,6 +413,7 @@ local unitSpawnConfigs = {
 			{unitName = "corcan", count = 30}      -- Fiends
 		},
     },
+
 	["Arachnophobia"] = {
         [1] = {
 			{unitName = "armsptk", count = 20},    -- Recluse
@@ -502,6 +481,7 @@ local unitSpawnConfigs = {
 			{unitName = "corkarganetht4", count = 1}  -- Epic Karganeth
 		},
     },
+
 	["World of Tanks"] = {
         [1] = {
 			{unitName = "leghades", count = 10},  -- Helios
@@ -610,6 +590,7 @@ local unitSpawnConfigs = {
 			{unitName = "armthor", count = 1}       -- Thor
 		},
     },
+
 	["Can't Touch This"] = {
         [1] = {
 			{unitName = "armfav", count = 30},    -- Rovers
