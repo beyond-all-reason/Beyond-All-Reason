@@ -26,7 +26,7 @@ local math_isInRect = math.isInRect
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local RectRound, UiElement, elementCorner
-local font, chobbyInterface, hovering
+local font, hovering
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -161,15 +161,7 @@ function widget:ViewResize()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()

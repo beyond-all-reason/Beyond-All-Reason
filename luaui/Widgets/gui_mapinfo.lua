@@ -43,7 +43,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local mapInfoWidth = 400	-- minimum width
 local mapinfoList = {}
 
-local font, mapInfoBoxHeight, chobbyInterface
+local font, mapInfoBoxHeight
 
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 
@@ -198,14 +198,7 @@ function widget:Shutdown()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawWorld()
-	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
 	if spIsAABBInView(offset, mapInfoBoxHeight, Game.mapSizeZ,   mapInfoWidth*scale, mapInfoBoxHeight+(thickness*scale), Game.mapSizeZ) then

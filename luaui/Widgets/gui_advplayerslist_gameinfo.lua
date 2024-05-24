@@ -13,7 +13,7 @@ end
 local timeNotation = 24
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local font, chobbyInterface, hovering
+local font, hovering
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -186,15 +186,7 @@ function widget:ViewResize(newX,newY)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()
