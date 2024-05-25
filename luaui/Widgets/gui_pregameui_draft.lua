@@ -452,7 +452,7 @@ local function DrawTeamPlacement()
 	--
 
 	font:SetOutlineColor(0, 0, 0, 0.5)
-	UiElement(x, y - max_height, x + max_width, y, 1, 1, 1, 1, 1, 1, 1, 1, nil) -- longest player name can probably get away outside rectangle width
+	UiElement(x, y - max_height, x + max_width, y, 1, 1, 1, 1, 1, 1, 1, 1, nil)
 	gl_Color(1, 1, 1, 1)
 	font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x + max_width/2, y - 32, 16 * uiScale, "co")
 	local y_shift
@@ -814,8 +814,23 @@ function widget:Initialize()
 		end
 	end
 
-	local allyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
-	moreThanOneAlly = (allyCount > 1)
+	local myAllyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
+	moreThanOneAlly = (myAllyCount > 1)
+
+	if (Game.startPosType == 2) and (draftMode ~= nil or draftMode ~= "disabled") then
+		local biggestNumberOfPlayers = 1
+		local allyTeams = Spring.GetAllyTeamList()
+		for i = 1, #allyTeams do
+			local allyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
+			if (allyCount > biggestNumberOfPlayers) then
+				biggestNumberOfPlayers = allyCount
+			end
+		end
+		local min_auto_ready_timer = 5 + (biggestNumberOfPlayers * (turnTimeOut + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
+		if (auto_ready_timer < min_auto_ready_timer) then
+			auto_ready_timer = min_auto_ready_timer
+		end
+	end
 
 	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
 	if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
@@ -1011,10 +1026,6 @@ function widget:RecvLuaMsg(msg, playerID)
 			end
 			if #myTeamPlayersOrder > 8 then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam
-			end
-			local min_auto_ready_timer = 5 + (#myTeamPlayersOrder * (turnTimeOut + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
-			if (auto_ready_timer < min_auto_ready_timer) then
-				auto_ready_timer = min_auto_ready_timer
 			end
 			if devUItestMode then -- dev UI testing mode		
 				currentPlayerIndex = 1 -- simulating queue progress on local end only
