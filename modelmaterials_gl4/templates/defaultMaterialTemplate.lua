@@ -526,7 +526,7 @@ vertex = [[
 				}
 
 				// ################# LEGION ##################
-				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
+				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
 					const float texSpeedMult = -6.0;
 
 					if (IN_PIXEL_RECT(uvCoords, 2613, 768, 660, 404)) {
