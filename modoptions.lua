@@ -7,6 +7,7 @@
 --  key:      the string used in the script.txt
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
+--  hint:     greyed out text that appears in input field when empty
 --  type:     the option type ('list','string','number','bool')
 --  def:      the default value
 --  min:      minimum value for number options
@@ -571,6 +572,7 @@ local options = {
         key		= "tweakunits",
         name	= "Tweak Units",
         desc	= "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -580,6 +582,7 @@ local options = {
         key     = "tweakdefs",
         name    = "Tweak Defs",
         desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -847,15 +850,16 @@ local options = {
     {
         key     = "draft_mode",
         name    = "Draft Spawn Order mod",
-        desc    = "Random/Skill/Fair based startPosType mods. Default: Disabled.",
+        desc    = "Random/Captain/Skill/Fair based startPosType mods. Default: Random.",
         type    = "list",
         section = "options_extra",
-        def     = "disabled",
+        def     = "random",
         items 	= {
-            { key = "disabled", name = "Disabled",  desc = "No changes." },
-            { key = "random",   name = "Random",    desc = "Players get to pick a start position with a delay in a random order." },
-            { key = "skill",    name = "Skill",     desc = "Skill-based order, instead of random." },
-            { key = "fair",     name = "Fair",      desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+            { key = "disabled", name = "Disabled",                      desc = "Disable draft mod. Fast-PC place first." },
+            { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
+            { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
   

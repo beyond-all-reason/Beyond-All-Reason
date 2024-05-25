@@ -271,7 +271,7 @@ if volume > 80 then
 end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
+local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -797,14 +797,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()

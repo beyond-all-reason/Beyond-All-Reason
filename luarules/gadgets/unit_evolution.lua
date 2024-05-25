@@ -71,9 +71,15 @@ if gadgetHandler:IsSyncedCode() then
 	local EMPTY_TABLE = {}
 
 	local evolutionMetaList = {}
+	local teamPowerList = {}
+
+	local lastTimerCheck = 0
+	local lastPowerCheck = 0
 
 	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
+	local POWER_CHECK_FREQUENCY = 300 -- gameframes
 
+	include("luarules/configs/customcmds.h.lua")
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
 
 
@@ -84,30 +90,35 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		--	-- Optional:
-		-- evolution_announcement = "Unit Evolved",  	Announcement printed when the unit is evolved.
-		-- evolution_announcement_size = 18.5, 			Size of the onscreen announcement
+		-- evolution_announcement = "Unit Evolved", -- Announcement printed when the unit is evolved.
+		-- evolution_announcement_size = 18.5, 		-- Size of the onscreen announcement
 
 		--	-- Has a default value, as indicated, if not chosen:
-		-- evolution_condition = "timer"    condition type for the evolution.
-		-- evolution_timer = 600, 			set the timer used for the timer condition. Given in secons from when the unit was created.
-		-- combatradius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat.
+		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "health", or "power"
+		-- evolution_timer = 600, 					-- set the timer used for the timer condition. Given in secons from when the unit was created.
+		-- evolution_health_threshold = 0,			-- threshold for triggering the "health" evolution condition.
+		-- evolution_power_threshold = 600,			-- threshold for triggering the "power" evolution condition.
+		-- evolution_power_enemy_multiplier = 1,	-- Scales the power calculated based on the average enemy combined power.
+		-- evolution_power_multiplier = 1,			-- Scales the power calculated based on your own combined power. 
+		-- combatradius = 1000,						-- Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat.
+		-- evolution_health_transfer = "flat",		-- "flat", "percentage", or "full"
 
 
 		-- },
-
-
+  
 	function Evolve(unitID, newUnit)
 		local x,y,z = spGetUnitPosition(unitID)
 		if not z then
 			return
 		end
-		local health = spGetUnitHealth(unitID)
+		local health, maxHealth = spGetUnitHealth(unitID)
 		local experience = spGetUnitExperience(unitID)
 		local team = spGetUnitTeam(unitID)
 		local states = spGetUnitStates(unitID)
 		local dx, dy, dz = spGetUnitDirection(unitID)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
 		local commandQueue = spGetUnitCommands(unitID, -1)
+		local transporter = Spring.GetUnitTransporter(unitID)
 
 		local newUnitID = spCreateUnit(newUnit, x,y,z, 0, team)
 
@@ -120,11 +131,19 @@ if gadgetHandler:IsSyncedCode() then
 				announcementSize = evolutionMetaList[unitID].evolution_announcement_size
 			end
 
-			spSetUnitRulesParam(unitID, "unit_evolved", "true", PRIVATE)
-
+			spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+			
 			SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
+			if evolutionMetaList[unitID].evolution_health_transfer == "full" then
+			elseif evolutionMetaList[unitID].evolution_health_transfer == "percentage" then
+				local _, newUnitMaxHealth = spGetUnitHealth(newUnitID)
+				local pHealth = (health/maxHealth) * newUnitMaxHealth
+				spSetUnitHealth(newUnitID, pHealth)
+			else
+				spSetUnitHealth(newUnitID, health)
+			end
+
 			spDestroyUnit(unitID, false, true)
-			spSetUnitHealth(newUnitID, health)
 			spSetUnitExperience(newUnitID, experience)
 			spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 			spSetUnitDirection(newUnitID, dx, dy, dz)
@@ -135,11 +154,14 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
+			if transporter then
+				spGiveOrderToUnit(transporter, CMD.LOAD_UNITS, { newUnitID }, 0)
+			end
 
 			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
 			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
 			spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
+			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      { states.cloak     and 1 or 0 },  { })
 			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
 			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
 		end
@@ -148,22 +170,36 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local udcp = UnitDefs[unitDefID].customParams
-
 		if udcp.evolution_target then
 			evolutionMetaList[unitID] = {
 				evolution_target = udcp.evolution_target,
 				evolution_condition = udcp.evolution_condition or "timer",
 				evolution_timer = tonumber(udcp.evolution_timer) or 600,
+				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or 600,
+				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1,
+				evolution_power_multiplier = tonumber(udcp.evolution_power_multiplier) or 1,
+				evolution_health_threshold = tonumber(udcp.evolution_health_threshold) or 0,
+				evolution_disable_deathsequence = udcp.evolution_disable_deathsequence or true,
 				evolution_announcement = udcp.evolution_announcement,
 				evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
 				combatRadius = tonumber(udcp.combatradius) or 1000,
-
-
+				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
+				
+				
 				timeCreated = spGetGameSeconds(),
 				combatTimer = spGetGameSeconds(),
 				inCombat = false,
 			}
 		end
+
+		if UnitDefs[unitDefID].power then
+			if teamPowerList[unitTeam] then
+				teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
+			else
+				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+			end
+		end
+
 	end
 
 	--function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -172,22 +208,92 @@ if gadgetHandler:IsSyncedCode() then
 	--	end
 	--end
 
-	function gadget:UnitDestroyed(unitID)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if evolutionMetaList[unitID] then
 			evolutionMetaList[unitID] = nil
 		end
-	end
 
+		if UnitDefs[unitDefID].power then
+			if teamPowerList[unitTeam] then
+				if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
+					teamPowerList[unitTeam] = nil
+				else
+					teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+				end
+			else
+				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+			end
+		end
+	end
+	
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if evolutionMetaList[unitID] then
+			if evolutionMetaList[unitID].evolution_condition == "health" then
+				local h, mh = spGetUnitHealth(unitID)
+				local currentTime =  spGetGameSeconds()
+				if (h-damage) <= evolutionMetaList[unitID].evolution_health_threshold then
+						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+						return 0, 0
+				end
+			end
+		end
+	end
+	
 
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 then
 			return
 		end
 
-		if f % TIMER_CHECK_FREQUENCY == 0 then
+		--if f % TIMER_CHECK_FREQUENCY == 0 then
+		if ((TIMER_CHECK_FREQUENCY + lastTimerCheck) < f) then
+			lastTimerCheck = f	
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
 				if evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer then
+					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
+					local inCombat = false
+					if enemyNearby then
+						inCombat = true
+						evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
+					end
+
+					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
+						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+					end
+				end
+			end
+		end
+
+		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
+			lastPowerCheck = f	
+			
+			
+			for unitID, _ in pairs(evolutionMetaList) do
+				local currentTime =  spGetGameSeconds()
+				local enemyPower = 0
+				local enemyCount = -1
+				local teamID = spGetUnitTeam(unitID)
+				local powerValue = 0
+				local transporterID = Spring.GetUnitTransporter(unitID)
+
+				for team, power in pairs(teamPowerList) do
+					if team and teamID and power then
+						local teamsAllied = Spring.AreTeamsAllied(team, teamID)
+						if team == teamID then
+							powerValue = power*evolutionMetaList[unitID].evolution_power_multiplier
+						elseif teamsAllied == false then
+							enemyPower = enemyPower + power*evolutionMetaList[unitID].evolution_power_enemy_multiplier
+							enemyCount = enemyCount + 1
+						end
+					end
+				end
+				if enemyCount > 0 then
+					enemyPower = enemyPower/enemyCount
+				end
+				powerValue = powerValue + enemyPower
+				if transporterID then
+				elseif evolutionMetaList[unitID].evolution_condition == "power" and powerValue > evolutionMetaList[unitID].evolution_power_threshold then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
@@ -242,6 +348,10 @@ else
 
 	local function EvolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
 		local selUnits = spGetSelectedUnits()
+		local unitGroup = Spring.GetUnitGroup(oldID)
+		if unitGroup then
+			Spring.SetUnitGroup(newID, unitGroup)
+		end
 		for i=1,#selUnits do
 		  local unitID = selUnits[i]
 		  if (unitID == oldID) then

@@ -16,7 +16,7 @@ local difficultyParameters = {
 	[difficulties.veryeasy] = {
 		gracePeriod       		= 9 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -35,7 +35,7 @@ local difficultyParameters = {
 	[difficulties.easy] = {
 		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 100 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -53,7 +53,7 @@ local difficultyParameters = {
 	[difficulties.normal] = {
 		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -71,7 +71,7 @@ local difficultyParameters = {
 	[difficulties.hard] = {
 		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 80 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 160 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 170 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -89,7 +89,7 @@ local difficultyParameters = {
 	[difficulties.veryhard] = {
 		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 35 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate  			= 70 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate  			= 140 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 140 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -107,7 +107,7 @@ local difficultyParameters = {
 	[difficulties.epic] = {
 		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 30 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 110 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -287,6 +287,7 @@ local LandUnitsList = {
 			--Legion
 			["legsco_scav"] = 1,
 			["leginc_scav"] = 1,
+			["legfloat_scav"] = 1,
 		},
 		[5] = {
 			--Armada
@@ -299,7 +300,8 @@ local LandUnitsList = {
 			["corthermite"] = 1,
 			["corsok_scav"] = 1,
 			--Legion
-			--N/A
+			["legpede_scav"] = 1,
+			["legkeres_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -314,7 +316,7 @@ local LandUnitsList = {
 			["corkarganetht4_scav"] = 1,
 			["corgolt4_scav"] = 1,
 			--Legion
-			["legpede_scav"] = 1,
+			["leegmech_scav"] = 1,
 		},
 	},
 	Support = {
@@ -371,8 +373,10 @@ local LandUnitsList = {
 			["corvroc_scav"] = 1,
 			["cortrem_scav"] = 1,
 			["corhrk_scav"] = 1,
+			["corsiegebreaker_scav"] = 1,
 			--Legion
 			["leginf_scav"] = 1,
+			["legmed_scav"] = 1,
 
 		},
 		[5] = {
@@ -397,19 +401,25 @@ local LandUnitsList = {
 	Healer = {
 		[1] = {
 			--Armada
-
+			["armck_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armcv_scav"] = 1,
 			--Cortex
-
+			["corck_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corcv_scav"] = 1,
 			--Legion
+			["legcv_scav"] = 1,
+			["legck_scav"] = 1,
 		},
 		[2] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
+			["armrectr_scav"] = 40,
 			["armcv_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
+			["cornecro_scav"] = 40,
 			["corcv_scav"] = 1,
 			--Legion
 			["legcv_scav"] = 1,
@@ -417,12 +427,14 @@ local LandUnitsList = {
 		},
 		[3] = {
 			--Armada
+			["armrectr_scav"] = 40,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
+			["cornecro_scav"] = 40,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -432,29 +444,66 @@ local LandUnitsList = {
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
-
 		},
 		[4] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
-
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 		[5] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 		[6] = {
 			--Armada
-
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
 			--Cortex
-
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
 			--Legion
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
 		},
 	},
 }
@@ -573,10 +622,12 @@ local SeaUnitsList = {
 		["armserp_scav"] = 1,
 		["armmship_scav"] = 1,
 		["armsjam_scav"] = 1,
+		["armtrident_scav"] = 1,
 		--Cortex
 		["corssub_scav"] = 1,
 		["cormship_scav"] = 1,
 		["corsjam_scav"] = 1,
+		["corsentinel_scav"] = 1,
 		},
 		[5] = {
 		--Armada
@@ -594,9 +645,11 @@ local SeaUnitsList = {
 	Healer = {
 		[1] = {
 		--Armada
-
+		["armcs_scav"] = 1,
+		["armrecl_scav"] = 1,
 		--Cortex
-
+		["corcs_scav"] = 1,
+		["correcl_scav"] = 1,
 		},
 		[2] = {
 		--Armada
@@ -616,18 +669,28 @@ local SeaUnitsList = {
 		},
 		[4] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
 		},
 		[5] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
+
 		},
 		[6] = {
 		--Armada
-
+		["armacsub_scav"] = 1,
+		["armmls_scav"] = 1,
 		--Cortex
+		["coracsub_scav"] = 1,
+		["cormls_scav"] = 1,
 		},
 	},
 }
@@ -687,6 +750,7 @@ local AirUnitsList = {
 	["cortitan_scav"] = 1,
 	--Legion
 	["legaca_scav"] = 1,
+	["legwhisper_scav"] = 1,
 	},
 	[4] = {
 	--Armada
@@ -701,9 +765,14 @@ local AirUnitsList = {
 	["corape_scav"] = 1,
 	["corhurc_scav"] = 1,
 	["corcrw_scav"] = 1,
+	["corcrwh_scav"] = 1,
 	--Legion
+	["legstronghold_scav"] = 1,
+	["legvenator_scav"] = 1,
+	["legionnaire_scav"] = 1,
 	["legnap_scav"] = 1,
 	["legmineb_scav"] = 1,
+	["legphoenix_scav"] = 1,
 	["legfort_scav"] = 1,
 	},
 	[5] = {
@@ -737,6 +806,7 @@ local Turrets = {
 	[1] = {
 		["armllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
 		["corllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
+		["leglht_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
 		["armrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
 		["corrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.6, maxExisting = 10},
 		--["cordl_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.6, maxExisting = 1},
@@ -756,14 +826,17 @@ local Turrets = {
 	[2] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["corhllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
+		["legmg_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["cormaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
 		["armclaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
+		["legdtr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 4},
 		["armferret_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["cormadsam_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["corhlt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["corpun_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armhlt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
 		["armguard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
+		["legcluster_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["corscavdtl_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["corscavdtf_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
 		["corscavdtm_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 3},
@@ -775,10 +848,13 @@ local Turrets = {
 		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["legrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["legjam_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 	},
 	[3] = {
 		["armcir_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["corerad_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["leglupara_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		--Sea
 		["corfdoom_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
 		["coratl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 5},
@@ -798,6 +874,7 @@ local Turrets = {
 		["cormwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["armpb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["corvipe_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["legbombard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		--Misc
 		["corhllllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
 		["armgate_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 2},
@@ -805,6 +882,7 @@ local Turrets = {
 		--T2 AA
 		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 		["armflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
+		["legflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 	},
 	[4] = {
 		-- T2 popup arty
@@ -813,6 +891,7 @@ local Turrets = {
 		-- Pulsar and Bulwark normals
 		["armanni_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--LRPC
 		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
@@ -822,6 +901,7 @@ local Turrets = {
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["legperdition_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--T2 AA
 		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
@@ -830,9 +910,10 @@ local Turrets = {
 		-- nukes
 		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
-
+		-- misc t3 turrets
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
+		["legministarfall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
 	},
 	[6] = {
@@ -873,66 +954,79 @@ end
 
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["corcom_scav"].id] = { distance = 100, chance = 0.01 },
-		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.01 },
-		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
-		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
-		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
-		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
-		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
-		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
-		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
-		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
-		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
-		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
-		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
-		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
-		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
-		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
+		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.1 },
+		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.1 },
+		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.1 },
+		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.1 },
+		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.1 },
+		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.1 },
+		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.1 },
+		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.1 },
+		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.1 },
+		[UnitDefNames["armcom_scav"].id] = { distance = 100, chance = 0.001 },
+		[UnitDefNames["armcomlvl2_scav"].id] = { distance = 200, chance = 0.001 },
+		[UnitDefNames["armcomlvl3_scav"].id] = { distance = 300, chance = 0.001 },
+		[UnitDefNames["armcomlvl4_scav"].id] = { distance = 400, chance = 0.001 },
+		[UnitDefNames["armcomlvl5_scav"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames["armcomlvl6_scav"].id] = { distance = 600, chance = 0.001 },
+		[UnitDefNames["armcomlvl7_scav"].id] = { distance = 700, chance = 0.001 },
+		[UnitDefNames["armcomlvl8_scav"].id] = { distance = 800, chance = 0.001 },
+		[UnitDefNames["armcomlvl9_scav"].id] = { distance = 900, chance = 0.001 },
+		[UnitDefNames["armcomlvl10_scav"].id] = { distance = 1000, chance = 0.001 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["corcom_scav"].id] = { distance = 100, chance = 0.01 },
-		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.01 },
-		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
-		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.01 },
-		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
-		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.01 },
-		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
-		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.01 },
-		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
-		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.01 },
-		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
-		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.01 },
-		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
-		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.01 },
-		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
-		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.01 },
+		[UnitDefNames["corcom_scav"].id] = { distance = 100, chance = 0.1 },
+		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 150, chance = 0.1 },
+		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 200, chance = 0.1 },
+		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 250, chance = 0.1 },
+		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 300, chance = 0.1 },
+		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 350, chance = 0.1 },
+		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 400, chance = 0.1 },
+		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 450, chance = 0.1 },
+		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 550, chance = 0.1 },
+		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.001 },
+		[UnitDefNames["legcomlvl2_scav"].id] = { distance = 150, chance = 0.001 },
+		[UnitDefNames["legcomlvl3_scav"].id] = { distance = 200, chance = 0.001 },
+		[UnitDefNames["legcomlvl4_scav"].id] = { distance = 250, chance = 0.001 },
+		[UnitDefNames["legcomlvl5_scav"].id] = { distance = 300, chance = 0.001 },
+		[UnitDefNames["legcomlvl6_scav"].id] = { distance = 350, chance = 0.001 },
+		[UnitDefNames["legcomlvl7_scav"].id] = { distance = 400, chance = 0.001 },
+		[UnitDefNames["legcomlvl8_scav"].id] = { distance = 450, chance = 0.001 },
+		[UnitDefNames["legcomlvl9_scav"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames["legcomlvl10_scav"].id] = { distance = 550, chance = 0.001 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["armcom_scav"].id] = { distance = 100, chance = 0.01 },
-		[UnitDefNames["armcomlvl2_scav"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["armcomlvl3_scav"].id] = { distance = 300, chance = 0.01 },
-		[UnitDefNames["armcomlvl4_scav"].id] = { distance = 400, chance = 0.01 },
-		[UnitDefNames["armcomlvl5_scav"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["armcomlvl6_scav"].id] = { distance = 600, chance = 0.01 },
-		[UnitDefNames["armcomlvl7_scav"].id] = { distance = 700, chance = 0.01 },
-		[UnitDefNames["armcomlvl8_scav"].id] = { distance = 800, chance = 0.01 },
-		[UnitDefNames["armcomlvl9_scav"].id] = { distance = 900, chance = 0.01 },
-		[UnitDefNames["armcomlvl10_scav"].id] = { distance = 1000, chance = 0.01 },
+		[UnitDefNames["armcom_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl2_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl3_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl4_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl5_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl6_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl7_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl8_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl9_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["armcomlvl10_scav"].id] = { distance = 2000, chance = 0.1 },
+		[UnitDefNames["corcom_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl2_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl3_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl4_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl5_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl6_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl7_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl8_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl9_scav"].id] = { distance = 2000, chance = 0.001 },
+		[UnitDefNames["corcomlvl10_scav"].id] = { distance = 2000, chance = 0.001 },
 		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 2000, chance = 0.001},
 		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["scavmist_scav"].id]			= { distance = 2000, chance = 1},
+		[UnitDefNames["scavmistxl_scav"].id]		= { distance = 2000, chance = 1},
+		[UnitDefNames["scavmistxxl_scav"].id]		= { distance = 2000, chance = 1},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
@@ -974,6 +1068,9 @@ scavBehaviours = {
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		--[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
+		[UnitDefNames["scavmist_scav"].id]			= true,
+		[UnitDefNames["scavmistxl_scav"].id]		= true,
+		[UnitDefNames["scavmistxxl_scav"].id]		= true,
 	},
 	ALLOWFRIENDLYFIRE = {
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
@@ -1124,6 +1221,10 @@ for tier, _ in pairs(SeaUnitsList.Healer) do
 			-- Spring.Echo(unitName)
 			if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
 				scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
+				if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
+					scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
+					scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
+				end
 			end
 			addNewSquad({ type = "healerSea", minAnger = TierConfiguration[tier].minAnger, units = { TierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = TierConfiguration[tier].maxAnger })
 		end
@@ -1146,7 +1247,7 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Airland)
-addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
@@ -1169,7 +1270,7 @@ addNewSquad({ type = "basicLand", minAnger = 40, units = { "3 armmart_scav","1 a
 addNewSquad({ type = "airLand", minAnger = 40, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = 50}) --T2 Air Scouts
 addNewSquad({ type = "airLand", minAnger = 40, units = { "2 armstil_scav",}, weight = 4, maxAnger = 50}) --EMP Bombers
 addNewSquad({ type = "airLand", minAnger = 50, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = 60}) --Fighters
-addNewSquad({ type = "airLand", minAnger = 50, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 4, maxAnger = 60}) --T2 Gunships
+addNewSquad({ type = "airLand", minAnger = 50, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = 60}) --T2 Gunships
 ------Tier 3 60-80%
 --Dilluters
 addNewSquad({ type = "basicLand", minAnger = 60, units = { "15 armfav_scav","15 corfav_scav",}, weight = 8, maxAnger = 1000}) --Rover Whole Tier Length
@@ -1181,49 +1282,68 @@ addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 corshiva_scav","2 
 addNewSquad({ type = "basicLand", minAnger = 70, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = 1000}) --T3 Arty/AA
 --AirLand
 addNewSquad({ type = "airLand", minAnger = 65, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
-addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 2, maxAnger = 100}) --T2 Gunships
+addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = 100}) --T2 Gunships
 
 
 -- evocoms
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 armcom_scav",}, weight = 1, maxAnger = 50})
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 corcom_scav",}, weight = 1, maxAnger = 50})
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "1 legcom_scav",}, weight = 1, maxAnger = 50})
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 corcom_scav",}, weight = 1, maxAnger = 20})
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 legcom_scav",}, weight = 1, maxAnger = 20})
 
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 armcomlvl2_scav",}, weight = 1, maxAnger = 60})
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 corcomlvl2_scav",}, weight = 1, maxAnger = 60})
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "1 legcomlvl2_scav",}, weight = 1, maxAnger = 60})
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 armcomlvl2_scav",}, weight = 1, maxAnger = 30})
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 corcomlvl2_scav",}, weight = 1, maxAnger = 30})
+addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 legcomlvl2_scav",}, weight = 1, maxAnger = 30})
 
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 armcomlvl3_scav",}, weight = 1, maxAnger = 70})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 corcomlvl3_scav",}, weight = 1, maxAnger = 70})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "1 legcomlvl3_scav",}, weight = 1, maxAnger = 70})
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 armcomlvl3_scav",}, weight = 1, maxAnger = 40})
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 corcomlvl3_scav",}, weight = 1, maxAnger = 40})
+addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 legcomlvl3_scav",}, weight = 1, maxAnger = 40})
 
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 armcomlvl4_scav",}, weight = 1, maxAnger = 80})
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 corcomlvl4_scav",}, weight = 1, maxAnger = 80})
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "1 legcomlvl4_scav",}, weight = 1, maxAnger = 80})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 armcomlvl4_scav",}, weight = 1, maxAnger = 50})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 corcomlvl4_scav",}, weight = 1, maxAnger = 50})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 legcomlvl4_scav",}, weight = 1, maxAnger = 50})
 
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 armcomlvl5_scav",}, weight = 1, maxAnger = 90})
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 corcomlvl5_scav",}, weight = 1, maxAnger = 90})
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "1 legcomlvl5_scav",}, weight = 1, maxAnger = 90})
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 armcomlvl5_scav",}, weight = 1, maxAnger = 60})
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 corcomlvl5_scav",}, weight = 1, maxAnger = 60})
+addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 legcomlvl5_scav",}, weight = 1, maxAnger = 60})
 
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 armcomlvl6_scav",}, weight = 1, maxAnger = 100})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 corcomlvl6_scav",}, weight = 1, maxAnger = 100})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "1 legcomlvl6_scav",}, weight = 1, maxAnger = 100})
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 armcomlvl6_scav",}, weight = 1, maxAnger = 70})
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 corcomlvl6_scav",}, weight = 1, maxAnger = 70})
+addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 legcomlvl6_scav",}, weight = 1, maxAnger = 70})
 
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 armcomlvl7_scav",}, weight = 1, maxAnger = 110})
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 corcomlvl7_scav",}, weight = 1, maxAnger = 110})
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "1 legcomlvl7_scav",}, weight = 1, maxAnger = 110})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 armcomlvl7_scav",}, weight = 1, maxAnger = 80})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 corcomlvl7_scav",}, weight = 1, maxAnger = 80})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 legcomlvl7_scav",}, weight = 1, maxAnger = 80})
 
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 armcomlvl8_scav",}, weight = 1, maxAnger = 120})
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 corcomlvl8_scav",}, weight = 1, maxAnger = 120})
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "1 legcomlvl8_scav",}, weight = 1, maxAnger = 120})
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 armcomlvl8_scav",}, weight = 1, maxAnger = 90})
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 corcomlvl8_scav",}, weight = 1, maxAnger = 90})
+addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 legcomlvl8_scav",}, weight = 1, maxAnger = 90})
 
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 armcomlvl9_scav",}, weight = 1, maxAnger = 130})
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 corcomlvl9_scav",}, weight = 1, maxAnger = 130})
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "1 legcomlvl9_scav",}, weight = 1, maxAnger = 130})
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 armcomlvl9_scav",}, weight = 1, maxAnger = 100})
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 corcomlvl9_scav",}, weight = 1, maxAnger = 100})
+addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 legcomlvl9_scav",}, weight = 1, maxAnger = 100})
 
-addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
-addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
-addNewSquad({ type = "specialLand", minAnger = 100, units = { "1 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+
+-- Mist
+addNewSquad({ type = "specialLand", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
+
+addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

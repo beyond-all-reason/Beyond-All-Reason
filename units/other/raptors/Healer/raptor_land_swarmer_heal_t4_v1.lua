@@ -10,7 +10,7 @@ return {
 		builder = 1,
 		buildpic = "raptors/raptorhealer.DDS",
 		buildtime = 750,
-		canassist = 0,
+		canassist = 1,
 		canbuild = 1,
 		canguard = 1,
 		canmove = 1,
@@ -65,6 +65,12 @@ return {
 		upright = false,
 		waterline = 12,
 		workertime = 1000,
+		buildoptions = {
+			"raptor_turret_basic_t3_v1",
+			"raptor_turret_antiair_t3_v1",
+			"raptor_turret_acid_t3_v1",
+			"raptor_turret_emp_t3_v1",
+		},
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
