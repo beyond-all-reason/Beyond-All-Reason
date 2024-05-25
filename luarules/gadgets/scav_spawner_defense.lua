@@ -1147,6 +1147,7 @@ if gadgetHandler:IsSyncedCode() then
 					if mRandom() <= config.spawnChance then
 						for name, data in pairs(squadSpawnOptions.commanders) do
 							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive then
+								waveCommanders[name] = true
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
 								break
 							end
