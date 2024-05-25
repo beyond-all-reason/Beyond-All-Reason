@@ -42,6 +42,7 @@ RequestState(requestedstate, currentstate)
 		}
 		if( statechg_DesiredState == 1 )
 		{
+			bMoving = 0;
 			call-script deactivatescr();
 			currentstate = 1;
 			turn wing_bl to z-axis <-5> speed <100>;
@@ -199,11 +200,11 @@ Activate()
 Deactivate()
 {
 	hide thrust;
-	turn wing_bl to z-axis <-5> speed <50>;
+	/**turn wing_bl to z-axis <-5> speed <50>;
 	turn wing_br to z-axis <-5> speed <50>;
 	turn wing_fl to z-axis <0> speed <50>;
 	turn wing_fr to z-axis <0> speed <50>;
-	wait-for-turn wing_fr around z-axis;
+	wait-for-turn wing_fr around z-axis;**/
 	stop-spin blades around z-axis decelerate <5>;
 	start-script RequestState(1);
 }
