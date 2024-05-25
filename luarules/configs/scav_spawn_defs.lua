@@ -985,6 +985,10 @@ for tier, _ in pairs(Turrets) do
 	end
 end
 
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
 		[UnitDefNames["legcom_scav"].id] = { distance = 100, chance = 0.1 },
@@ -1122,6 +1126,40 @@ local squadSpawnOptionsTable = {
 	healerSea = {}, -- Healers/Medics
 	airLand = {},
 	airSea = {},
+	commanders = {
+		["armcom_scav"]      = { minAnger = 0, maxAnger = 20, maxAlive = 1 },
+		["armcomlvl2_scav"]  = { minAnger = 10, maxAnger = 30, maxAlive = 1 },
+		["armcomlvl3_scav"]  = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["armcomlvl4_scav"]  = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["armcomlvl5_scav"]  = { minAnger = 40, maxAnger = 60, maxAlive = 2 },
+		["armcomlvl6_scav"]  = { minAnger = 50, maxAnger = 70, maxAlive = 2 },
+		["armcomlvl7_scav"]  = { minAnger = 60, maxAnger = 80, maxAlive = 2 },
+		["armcomlvl8_scav"]  = { minAnger = 70, maxAnger = 90, maxAlive = 2 },
+		["armcomlvl9_scav"]  = { minAnger = 80, maxAnger = 100, maxAlive = 3 },
+		["armcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 3 },
+		["armdecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 3 },
+		["corcom_scav"]      = { minAnger = 0, maxAnger = 20, maxAlive = 1 },
+		["corcomlvl2_scav"]  = { minAnger = 10, maxAnger = 30, maxAlive = 1 },
+		["corcomlvl3_scav"]  = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["corcomlvl4_scav"]  = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["corcomlvl5_scav"]  = { minAnger = 40, maxAnger = 60, maxAlive = 2 },
+		["corcomlvl6_scav"]  = { minAnger = 50, maxAnger = 70, maxAlive = 2 },
+		["corcomlvl7_scav"]  = { minAnger = 60, maxAnger = 80, maxAlive = 2 },
+		["corcomlvl8_scav"]  = { minAnger = 70, maxAnger = 90, maxAlive = 2 },
+		["corcomlvl9_scav"]  = { minAnger = 80, maxAnger = 100, maxAlive = 3 },
+		["corcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 3 },
+		["cordecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 3 },
+		["legcom_scav"]      = { minAnger = 0, maxAnger = 20, maxAlive = 1 },
+		["legcomlvl2_scav"]  = { minAnger = 10, maxAnger = 30, maxAlive = 1 },
+		["legcomlvl3_scav"]  = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["legcomlvl4_scav"]  = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["legcomlvl5_scav"]  = { minAnger = 40, maxAnger = 60, maxAlive = 2 },
+		["legcomlvl6_scav"]  = { minAnger = 50, maxAnger = 70, maxAlive = 2 },
+		["legcomlvl7_scav"]  = { minAnger = 60, maxAnger = 80, maxAlive = 2 },
+		["legcomlvl8_scav"]  = { minAnger = 70, maxAnger = 90, maxAlive = 2 },
+		["legcomlvl9_scav"]  = { minAnger = 80, maxAnger = 100, maxAlive = 3 },
+		["legcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 3 },
+	}
 }
 
 local scavMinions = {} -- Units spawning other units
@@ -1319,45 +1357,45 @@ addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 a
 
 
 -- evocoms
-addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
-addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 corcom_scav",}, weight = 1, maxAnger = 20})
-addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 legcom_scav",}, weight = 1, maxAnger = 20})
-
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 armcomlvl2_scav",}, weight = 1, maxAnger = 30})
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 corcomlvl2_scav",}, weight = 1, maxAnger = 30})
-addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 legcomlvl2_scav",}, weight = 1, maxAnger = 30})
-
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 armcomlvl3_scav",}, weight = 1, maxAnger = 40})
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 corcomlvl3_scav",}, weight = 1, maxAnger = 40})
-addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 legcomlvl3_scav",}, weight = 1, maxAnger = 40})
-
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 armcomlvl4_scav",}, weight = 1, maxAnger = 50})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 corcomlvl4_scav",}, weight = 1, maxAnger = 50})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 legcomlvl4_scav",}, weight = 1, maxAnger = 50})
-
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 armcomlvl5_scav",}, weight = 1, maxAnger = 60})
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 corcomlvl5_scav",}, weight = 1, maxAnger = 60})
-addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 legcomlvl5_scav",}, weight = 1, maxAnger = 60})
-
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 armcomlvl6_scav",}, weight = 1, maxAnger = 70})
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 corcomlvl6_scav",}, weight = 1, maxAnger = 70})
-addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 legcomlvl6_scav",}, weight = 1, maxAnger = 70})
-
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 armcomlvl7_scav",}, weight = 1, maxAnger = 80})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 corcomlvl7_scav",}, weight = 1, maxAnger = 80})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 legcomlvl7_scav",}, weight = 1, maxAnger = 80})
-
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 armcomlvl8_scav",}, weight = 1, maxAnger = 90})
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 corcomlvl8_scav",}, weight = 1, maxAnger = 90})
-addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 legcomlvl8_scav",}, weight = 1, maxAnger = 90})
-
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 armcomlvl9_scav",}, weight = 1, maxAnger = 100})
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 corcomlvl9_scav",}, weight = 1, maxAnger = 100})
-addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 legcomlvl9_scav",}, weight = 1, maxAnger = 100})
-
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
-addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+--addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
+--addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 corcom_scav",}, weight = 1, maxAnger = 20})
+--addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 legcom_scav",}, weight = 1, maxAnger = 20})
+--
+--addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 armcomlvl2_scav",}, weight = 1, maxAnger = 30})
+--addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 corcomlvl2_scav",}, weight = 1, maxAnger = 30})
+--addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 legcomlvl2_scav",}, weight = 1, maxAnger = 30})
+--
+--addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 armcomlvl3_scav",}, weight = 1, maxAnger = 40})
+--addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 corcomlvl3_scav",}, weight = 1, maxAnger = 40})
+--addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 legcomlvl3_scav",}, weight = 1, maxAnger = 40})
+--
+--addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 armcomlvl4_scav",}, weight = 1, maxAnger = 50})
+--addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 corcomlvl4_scav",}, weight = 1, maxAnger = 50})
+--addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 legcomlvl4_scav",}, weight = 1, maxAnger = 50})
+--
+--addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 armcomlvl5_scav",}, weight = 1, maxAnger = 60})
+--addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 corcomlvl5_scav",}, weight = 1, maxAnger = 60})
+--addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 legcomlvl5_scav",}, weight = 1, maxAnger = 60})
+--
+--addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 armcomlvl6_scav",}, weight = 1, maxAnger = 70})
+--addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 corcomlvl6_scav",}, weight = 1, maxAnger = 70})
+--addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 legcomlvl6_scav",}, weight = 1, maxAnger = 70})
+--
+--addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 armcomlvl7_scav",}, weight = 1, maxAnger = 80})
+--addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 corcomlvl7_scav",}, weight = 1, maxAnger = 80})
+--addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 legcomlvl7_scav",}, weight = 1, maxAnger = 80})
+--
+--addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 armcomlvl8_scav",}, weight = 1, maxAnger = 90})
+--addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 corcomlvl8_scav",}, weight = 1, maxAnger = 90})
+--addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 legcomlvl8_scav",}, weight = 1, maxAnger = 90})
+--
+--addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 armcomlvl9_scav",}, weight = 1, maxAnger = 100})
+--addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 corcomlvl9_scav",}, weight = 1, maxAnger = 100})
+--addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 legcomlvl9_scav",}, weight = 1, maxAnger = 100})
+--
+--addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+--addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
+--addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
