@@ -290,8 +290,8 @@ end
 local function draftModeInited() -- We want to ensure the player's UI is loaded and seen by the player before proceeding
 	if draftModeLoaded then return end
 
-	local mode = draftMode:gsub("^%l", string.upper) -- Random/Skill/Fair
-	Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode))
+	local mode = draftMode:gsub("^%l", string.upper) -- Random/Captain/Skill/Fair
+	Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode).."."")
 	draftModeLoaded = true
 	if mode == "Fair" then
 		fairTimeout = os.clock() + 2
