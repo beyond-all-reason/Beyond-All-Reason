@@ -620,15 +620,15 @@ local SeaUnitsList = {
 		[2] = {
 		--Armada
 		["armsub_scav"] = 1,
-		["armah"] = 1,
-		["armmh"] = 1,
+		["armah_scav"] = 1,
+		["armmh_scav"] = 1,
 		--Cortex
 		["corsub_scav"] = 1,
-		["corah"] = 1,
-		["cormh"] = 1,
+		["corah_scav"] = 1,
+		["cormh_scav"] = 1,
 		--Legion
-		["legah"] = 1,
-		["legmh"] = 1,
+		["legah_scav"] = 1,
+		["legmh_scav"] = 1,
 		},
 		[3] = {
 		--Armada
