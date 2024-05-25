@@ -119,6 +119,7 @@ Activate()
 
 Deactivate()
 {
+	hide cagelight_emit;
 	start-script RequestState(1);
 }
 
