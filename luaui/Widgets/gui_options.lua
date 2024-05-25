@@ -5911,7 +5911,7 @@ function init()
 		[UnitDefNames["armpb"].id] = false,
 		[UnitDefNames["armsnipe"].id] = false,
 		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = false,
+		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,

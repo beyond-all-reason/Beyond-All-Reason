@@ -20,7 +20,7 @@ local unitdefConfigNames = {
 	['armpb'] = false,
 	['armsnipe'] = false,
 	['corsktl'] = false,
-	['armgremlin'] = false,
+	['armgremlin'] = true,
 	['armamex'] = true,
 	['armckfus'] = true,
 	['armspy'] = true,
@@ -85,7 +85,8 @@ function widget:Initialize()
 	WG['autocloak'].getUnitdefConfig = function()
 		return unitdefConfig
 	end
-	WG['autocloak'].setUnitdefConfig = function(type, value)
+	WG['autocloak'].setUnitdefConfig = function(data)
+		local type, value = data[1], data[2]
 		unitdefConfig[type] = value
 	end
 
