@@ -74,7 +74,7 @@ return {
 			unitgroup = 'buildert2',
 			area_mex_def = "cormoho",
 			model_author = "Tharsis",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots/t2",
 			techlevel = 2,
 		},
