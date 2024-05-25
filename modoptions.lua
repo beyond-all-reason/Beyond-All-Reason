@@ -1131,18 +1131,6 @@ local options = {
 	},
 
 	{
-		key    = "number_of_control_points",
-		name   = "Number of Control Points",
-		desc   = "Sets the number of control points available to capture each round.",
-		type   = "number",
-		section= "micro_wars_options",
-		def    = 10,
-		min    = 1,
-		max    = 20,
-		step   = 1,
-	},
-
-	{
 		key    = "micro_wars_despawn",
 		name   = "Remove extra units",
 		desc   = "Remove surviving units at the end of the round (more balanced games)",
@@ -1182,15 +1170,6 @@ local options = {
 	},
 
 	{
-		key    = "max_rounds_mode",
-		name   = "Max Rounds Mode",
-		desc   = "End the game after a maximum number of rounds instead of using HP.",
-		type   = "bool",
-		section= "micro_wars_options",
-		def    = false,
-	},
-
-	{
 		key    = "max_number_of_rounds",
 		name   = "Max Number of Rounds",
 		desc   = "Maximum number of rounds before declaring a winner based on points.",
@@ -1200,27 +1179,6 @@ local options = {
 		min    = 1,
 		max    = 50,
 		step   = 1,
-	},
-
-	{
-		key    = "control_point_unit_conversion",
-		name   = "Control Point to Unit Conversion",
-		desc   = "Modifies the number of extra units given to the losing team based on control points captured.",
-		type   = "number",
-		section= "micro_wars_options",
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = "allow_round_resign",
-		name   = "Allow Early Round Resign",
-		desc   = "Enables the option for a team to resign a round early, losing a fixed amount of HP.",
-		type   = "bool",
-		section= "micro_wars_options",
-		def    = false,
 	},
 
 	{
