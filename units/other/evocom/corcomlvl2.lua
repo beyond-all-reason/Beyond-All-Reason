@@ -105,6 +105,7 @@ return {
 			subfolder = "",
 			evolution_announcement = "Cortex commanders have upgraded to level 3",
 			evolution_announcement_size = 18.5,
+			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl3",
 			evolution_condition = "timer",
 			evolution_timer = 99999,

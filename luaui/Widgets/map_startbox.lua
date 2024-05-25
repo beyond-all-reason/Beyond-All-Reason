@@ -187,7 +187,7 @@ local function createInfotextList()
 	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		if draftMode == nil or draftMode == "disabled" or draftMode == "fair" then
+		if draftMode == nil or draftMode == "disabled" then
 			font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
 		end
 		font:End()

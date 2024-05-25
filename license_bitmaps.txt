@@ -1,5 +1,6 @@
 -- bitmaps/projectiletextures/
 
+BARFlame02.tga
 blastwave.tga
 bubbletexture.tga
 decal_scar_50.tga
@@ -10,7 +11,11 @@ explo.tga
 explofade.tga
 exploflare.tga
 explowater.tga
+FireBall02-anim.tga
 flare2.tga
+flash1.tga
+flash2.tga
+flash3.tga
 flashside2.tga
 flashside3.tga
 glow3.tga
@@ -23,6 +28,10 @@ muzzleside.tga
 muzzlesideflipped.tga
 new_dirta.png
 new_dirtb.png
+shockwave.tga
+smoke-anim.tga
+smoke-beh-anim.tga
+smoke-ice-anim.tga
 smoke.tga
 smoketrail.tga
 smoketrailaa.tga
@@ -37,27 +46,27 @@ trail2.tga
 trail3.tga
 wake.tga
 wakegrey.tga
-wave.tga
 waterrush.tga
+wave.tga
 whitelightb.tga
 
-All above projectile-textures were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All above projectile-textures were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/atmos/*.*
 
-All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/ui/*.*
 
-All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/loadpictures/*.*
 
-All textures in this folder (/bitmaps/loadpictures/) were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All textures in this folder (/bitmaps/loadpictures/) were made for Beyond All Reason by Rubus.
+All rights reserved.
 
 -- bitmaps/default/
 
@@ -71,13 +80,23 @@ groundflashwhite.tga
 groundring.tga
 muzzlefront.tga
 
-All above (/bitmaps/default/) textures were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All above (/bitmaps/default/) textures were made for Beyond All Reason by IceXuick.
+All rights reserved.
+
+-- bitmaps/raptors/*.*
+
+All textures in this folder (/bitmaps/raptors/) were made for Beyond All Reason by IceXuick.
+All rights reserved.
+
+-- bitmaps/decals/*.*
+
+All textures in this folder (/bitmaps/decals/) were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/smoke/*.*
 
-All smoke[xx].tga textures in this folder were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All smoke[xx].tga textures in this folder (/bitmaps/smoke/) were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/pd/
 
@@ -88,14 +107,16 @@ blooddropwhite.tga
 bloodsplat.tga
 lightningball2.tga
 
-All above projectile-textures were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All above projectile-textures were made for Beyond All Reason by IceXuick.
+All rights reserved.
 
 -- bitmaps/
 
 graphPaper.bmp
+graysmoke.tga
 nano.bmp
 nano.tga
+all *logo*.png files
 
-All above (/bitmaps/) textures in this folder were made for Beyond All Reason by IceXuick
-all rights reserved (CC BY NC ND)
+All above (/bitmaps/) textures in this folder were made for Beyond All Reason by IceXuick.
+All rights reserved.

@@ -2817,6 +2817,9 @@ GUIUnitSoundEffects = {
 	scavengerdroppodfriendly = {},
 	scavempspawner = {},
 	scavtacnukespawner = {},
+	scavmist = {},
+	scavmistxl = {},
+	scavmistxxl = {},
 
 
 	lootboxbronze		= LootboxSoundEffects,

@@ -26,7 +26,6 @@ local xPos = 0
 local yPos = 0
 
 local usedImgSize = iconSize
-local chobbyInterface
 local continuouslyClean = false
 local math_isInRect = math.isInRect
 
@@ -102,12 +101,6 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
 	if continuouslyClean then
 		return true
@@ -115,8 +108,6 @@ function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	if drawlist[1] ~= nil then
 		local mx,my = Spring.GetMouseState()
 		glPushMatrix()

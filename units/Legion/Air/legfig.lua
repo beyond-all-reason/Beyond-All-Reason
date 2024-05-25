@@ -41,9 +41,9 @@ return {
 		wingdrag = 0.185,
 		customparams = {
 			unitgroup = 'aa',
-			model_author = "FireStorm",
-			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Air",
 			fighter = 1,
 		},
 		sfxtypes = {
@@ -128,7 +128,7 @@ return {
 				badtargetcategory = "NOTAIR",
 				def = "SEMIAUTO",
 				maindir = "0 0 1",
-				maxangledif = 30,
+				maxangledif = 20,
 				onlytargetcategory = "VTOL",
 			},
 		},
