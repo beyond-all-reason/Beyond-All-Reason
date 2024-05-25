@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, turret, sleeve, barrel1, barrel2, barrel3, barrel4;
+piece  base, tracks, armor, aimy1, turret, aimx1, sleeve, barrel, flare;
 
 static-var  restore_delay, bAiming, wpn1_lasthead;
 
@@ -51,8 +51,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50.005495>;
-	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	turn aimy1 to y-axis <0.000000> speed <50.005495>;
+	turn aimx1 to x-axis <0.000000> speed <50.005495>;
 	wpn1_lasthead = 1000000;
 	bAiming = 0;
 }
@@ -74,13 +74,13 @@ AimPrimary(heading, pitch)
 {
 	bAiming = TRUE;
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <90>;
-	turn sleeve to x-axis <0.000000> - pitch speed <90>;
+	turn aimy1 to y-axis heading speed <90>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <90>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -90,15 +90,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
  	emit-sfx 1024 + 0 from flare;
- 	move barrel1 to z-axis [-3.000000] speed [500.000000];
-	move barrel2 to z-axis [-3.000000] speed [500.000000];
-	move barrel3 to z-axis [-3.000000] speed [500.000000];
-	move barrel4 to z-axis [-3.000000] speed [500.000000];
- 	wait-for-move barrel1 along z-axis;
- 	move barrel1 to z-axis [0.000000] speed [3.000000];	
- 	move barrel2 to z-axis [0.000000] speed [3.000000];	
-	move barrel3 to z-axis [0.000000] speed [3.000000];	
- 	move barrel4 to z-axis [0.000000] speed [3.000000];	
+ 	move barrel to z-axis [-6.000000] speed [500.000000];
+ 	wait-for-move barrel along z-axis;
+ 	move barrel to z-axis [0.000000] speed [3.000000];	
 }
 
 AimFromPrimary(piecenum)
@@ -127,7 +121,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -137,7 +131,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FALL | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -147,7 +141,7 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -155,7 +149,7 @@ Killed(severity, corpsetype)
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

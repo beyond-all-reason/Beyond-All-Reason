@@ -27,9 +27,9 @@ return {
 		speed = 51.0,
 		maxwaterdepth = 19,
 		movementclass = "TANK3",
-		objectname = "Units/CORCV.s3o",
+		objectname = "Units/LEGCV.s3o",
 		radardistance = 50,
-		script = "Units/CORCV.cob",
+		script = "Units/LEGCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
 		sightdistance = 260,
@@ -78,8 +78,8 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mexT15_def = "legmext15",
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corvehicles",
 		},
 		featuredefs = {
@@ -95,7 +95,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				metal = 87,
-				object = "Units/corcv_dead.s3o",
+				object = "Units/legcv_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
