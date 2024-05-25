@@ -146,7 +146,7 @@ return {
 				sprayangle = 2400,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 175,
+				weaponvelocity = 250,
 				damage = {
 					default = 30,
 					subs = 10,
