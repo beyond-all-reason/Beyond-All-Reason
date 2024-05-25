@@ -960,20 +960,22 @@ local function initBinsAndTextures()
 	Spring.Echo("[CUS GL4] Init Unit bins")
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then
+			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
+			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
+			local lowercasenormaltex = string.lower(normalTex or "")
+
+			-- bin units according to what faction's texture they use
+			local factionBinTag = lowercasetex1:sub(1,3)
+
 			objectDefToUniformBin[unitDefID] = "otherunit"
-			if unitDef.name:sub(1,3) == 'arm' then
+			if factionBinTag == 'arm' then
 				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'cor' then
+			elseif factionBinTag == 'cor' then
 				objectDefToUniformBin[unitDefID] = 'corunit'
-			elseif 	unitDef.name:sub(1,6) == 'leggat' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,7) == 'legrail' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,6) == 'legstr' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'leg' then
-				objectDefToUniformBin[unitDefID] = 'corunit'
+			elseif factionBinTag == 'leg' then
+				objectDefToUniformBin[unitDefID] = 'legunit'
 			end
+
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1
@@ -990,11 +992,6 @@ local function initBinsAndTextures()
 				[10] = noisetex3dcube,
 				--[10] = envLUT,
 			}
-
-			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
-			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
-			local lowercasenormaltex = string.lower(normalTex or "")
-
 
 			local wreckTex1 =
 					(lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
@@ -1022,10 +1019,12 @@ local function initBinsAndTextures()
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
-				if unitDef.name:sub(1,3) == 'arm' then
+				if factionBinTag == 'arm' then
 					objectDefToUniformBin[unitDefID] = 'armscavenger'
-				elseif 	unitDef.name:sub(1,3) == 'cor' then
+				elseif factionBinTag == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
+				elseif factionBinTag == 'leg' then
+					objectDefToUniformBin[unitDefID] = 'legscavenger'
 				end
 			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
 				textureTable[5] = wreckAtlases['raptor'][1]
