@@ -85,6 +85,7 @@ local blinkButton = false
 local draftMode = Spring.GetModOptions().draft_mode
 local turnTimeOut = 8 -- This controls timeout for random/skill mode placement turns, default: 8s
 local turnTimeOutBigTeam = 5 -- When allyTeam has 9 or more players on it: 5s
+local bigTeamAmountOfPlayers = 8 -- How many players for it to be considered big team?
 local connectionTimeOut = 45 -- How many seconds to wait for allies before placing them at the tail end of the queue in random/skill draft
 local VoteSkipTurnDelay = 3
 local draftModeLoaded = false
@@ -826,9 +827,11 @@ function widget:Initialize()
 				biggestNumberOfPlayers = allyCount
 			end
 		end
-		local min_auto_ready_timer = 5 + (biggestNumberOfPlayers * (turnTimeOut + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
-		if (auto_ready_timer < min_auto_ready_timer) then
-			auto_ready_timer = min_auto_ready_timer
+		if biggestNumberOfPlayers > bigTeamAmountOfPlayers then -- big team, not regular game
+			local min_auto_ready_timer = 5 + (biggestNumberOfPlayers * (turnTimeOut + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
+			if (auto_ready_timer < min_auto_ready_timer) then
+				auto_ready_timer = min_auto_ready_timer
+			end
 		end
 	end
 
@@ -1024,7 +1027,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
-			if #myTeamPlayersOrder > 8 then -- big team, not regular game
+			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam
 			end
 			if devUItestMode then -- dev UI testing mode		
