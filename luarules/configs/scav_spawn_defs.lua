@@ -179,6 +179,7 @@ local LandUnitsList = {
 			["corsh_scav"] = 1,
 			--Legion
 			["leggob_scav"] = 1,
+			["legsh_scav"] = 1,
 		},
 		[2] = {
 			--Armada
@@ -252,17 +253,18 @@ local LandUnitsList = {
 			--Cortex
 			["corraid_scav"] = 1,
 			["corlevlr_scav"] = 1,
-			["corhal_scav"] = 1,
 			["corsnap_scav"] = 1,
 			--Legion
 			["leggat_scav"] = 1,
 			["legkark_scav"] = 1,
+			["legner_scav"] = 1,
 		},
 		[3] = {
 			--Armada
 			["armzeus_scav"] = 1,
 			--Cortex
 			["corcan_scav"] = 1,
+			["corhal_scav"] = 1,
 			--Legion
 			["legshot_scav"] = 1,
 
@@ -345,6 +347,8 @@ local LandUnitsList = {
 			["leghelios_scav"] = 1,
 			["legbar_scav"] = 1,
 			["legrail_scav"] = 1,
+			["legmh_scav"] = 1,
+			["legah_scav"] = 1,
 		},
 		[3] = {
 			--Armada
@@ -404,26 +408,32 @@ local LandUnitsList = {
 			["armck_scav"] = 1,
 			["armrectr_scav"] = 40,
 			["armcv_scav"] = 1,
+			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
 			["cornecro_scav"] = 40,
 			["corcv_scav"] = 1,
+			["corch_scav"] = 1,
 			--Legion
 			["legcv_scav"] = 1,
 			["legck_scav"] = 1,
+			["legch_scav"] = 1,
 		},
 		[2] = {
 			--Armada
 			["armck_scav"] = 1,
 			["armrectr_scav"] = 40,
 			["armcv_scav"] = 1,
+			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
 			["cornecro_scav"] = 40,
 			["corcv_scav"] = 1,
+			["corch_scav"] = 1,
 			--Legion
 			["legcv_scav"] = 1,
 			["legck_scav"] = 1,
+			["legch_scav"] = 1,
 		},
 		[3] = {
 			--Armada
@@ -517,14 +527,17 @@ local SeaUnitsList = {
 		[1] = {
 		--Armada
 		["armdecade_scav"] = 1,
+		["armsh_scav"] = 1,
 		--Cortex
 		["coresupp_scav"] = 1,
+		["corsh_scav"] = 1,
+		--Legion
+		["legsh_scav"] = 1,
 		},
 		[2] = {
 		--Armada
-
 		--Cortex
-
+		--Legion
 		},
 		[3] = {
 		--Armada
@@ -561,15 +574,20 @@ local SeaUnitsList = {
 		--Armada
 		["armpship_scav"] = 1,
 		["armroy_scav"] = 1,
+		["armanac_scav"] = 1,
 		--Cortex
 		["corpship_scav"] = 1,
 		["corroy_scav"] = 1,
+		["corsnap_scav"] = 1,
+		--Legion
+		["legner_scav"] = 1,
 		},
 		[3] = {
 		--Armada
 		["armcrus_scav"] = 1,
 		--Cortex
 		["corcrus_scav"] = 1,
+		["corhal_scav"] = 1,
 		},
 		[4] = {
 		--Armada
@@ -602,8 +620,15 @@ local SeaUnitsList = {
 		[2] = {
 		--Armada
 		["armsub_scav"] = 1,
+		["armah"] = 1,
+		["armmh"] = 1,
 		--Cortex
 		["corsub_scav"] = 1,
+		["corah"] = 1,
+		["cormh"] = 1,
+		--Legion
+		["legah"] = 1,
+		["legmh"] = 1,
 		},
 		[3] = {
 		--Armada
@@ -647,17 +672,25 @@ local SeaUnitsList = {
 		--Armada
 		["armcs_scav"] = 1,
 		["armrecl_scav"] = 1,
+		["armch_scav"] = 1,
 		--Cortex
 		["corcs_scav"] = 1,
 		["correcl_scav"] = 1,
+		["corch_scav"] = 1,
+		--Legion
+		["legch_scav"] = 1,
 		},
 		[2] = {
 		--Armada
 		["armcs_scav"] = 1,
 		["armrecl_scav"] = 1,
+		["armch_scav"] = 1,
 		--Cortex
 		["corcs_scav"] = 1,
 		["correcl_scav"] = 1,
+		["corch_scav"] = 1,
+		--Legion
+		["legch_scav"] = 1,
 		},
 		[3] = {
 		--Armada

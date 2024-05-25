@@ -36,6 +36,7 @@ return {
 			[3] = "legner",
 			[4] = "legah",
 			[5] = "legmh",
+			[6] = "corhal",
 		},
 		customparams = {
 			unitgroup = 'builder',
