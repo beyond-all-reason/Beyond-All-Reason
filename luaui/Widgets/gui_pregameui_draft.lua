@@ -828,7 +828,7 @@ function widget:Initialize()
 			end
 		end
 		if biggestNumberOfPlayers > bigTeamAmountOfPlayers then -- big team, not regular game
-			local min_auto_ready_timer = 5 + (biggestNumberOfPlayers * (turnTimeOut + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
+			local min_auto_ready_timer = 5 + (biggestNumberOfPlayers * (turnTimeOutBigTeam + VoteSkipTurnDelay + 1)) -- 20vs20 = 185s (5 + 180)
 			if (auto_ready_timer < min_auto_ready_timer) then
 				auto_ready_timer = min_auto_ready_timer
 			end
