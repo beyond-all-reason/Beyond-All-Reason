@@ -41,7 +41,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
 			legacyname = "Gaat Gun",
@@ -142,7 +142,7 @@ return {
 					engagementrange = 1000,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
-					maxunits = 4,				--Will spawn units until this amount has been reached.
+					maxunits = 6,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
@@ -153,9 +153,9 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 2,		--First model piece to be used for docking.
+					dockingpiecestart = 4,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 5,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieceend = 9,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
