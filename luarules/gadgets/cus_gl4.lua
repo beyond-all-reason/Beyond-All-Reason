@@ -261,6 +261,7 @@ do --save a ton of locals
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
+	local OPTION_TREADS_LEG       = 8192
 
 	local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
@@ -275,6 +276,11 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
+		legunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_LEG + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
+		},
 		armscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
@@ -282,6 +288,11 @@ do --save a ton of locals
 		},
 		corscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.4,
+			brightnessFactor = 1.5,
+		},
+		legscavenger = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_LEG + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
