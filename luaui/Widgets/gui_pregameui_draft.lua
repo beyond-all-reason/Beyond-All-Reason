@@ -821,7 +821,7 @@ function widget:Initialize()
 		local biggestNumberOfPlayers = 1
 		local allyTeams = Spring.GetAllyTeamList()
 		for i = 1, #allyTeams do
-			local allyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
+			local allyCount = getHumanCountWithinAllyTeam(allyTeams[i])
 			if (allyCount > biggestNumberOfPlayers) then
 				biggestNumberOfPlayers = allyCount
 			end
