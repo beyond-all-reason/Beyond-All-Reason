@@ -1152,14 +1152,23 @@ local options = {
 	},
 
 	{
+		key    = "micro_wars_battlefield_mode",
+		name   = "Battlefield Mode",
+		desc   = "Rather than time, rounds only end when one army has many more units/HP than the opposing team. The traditional army experience.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = true,
+	},
+
+	{
 		key    = "end_round_early_percentage",
 		name   = "End Rounds Early At Unit Loss Percentage",
-		desc   = "Ends a round early when one team has mucher fewer units/HP. When enemy has more than 200% more units and HP left than opposing team.",
+		desc   = "Ends a round early (only in battlefield mode) when one team has mucher fewer units/HP. 200 would mean that a roudn ends when enemy has more than 200% more units and HP left than opposing team.",
 		type   = "number",
 		section= "micro_wars_options",
-		def    = 10,
-		min    = 3,
-		max    = 20,
+		def    = 50,
+		min    = 1,
+		max    = 1000,
 		step   = 1,
 	},
 
@@ -1222,7 +1231,13 @@ local options = {
 		section= "micro_wars_options",
 		def    = "Basic T1 - T3",
 		items  = {
-			{ key = "Basic T1 - T4", name = "Basic T1 - T4", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "Basic T1 - T3", name = "Basic T1 - T3", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "Raining Hell", name = "Raining Hell", desc = "Lots of rockets"},
+			{ key = "Royalty", name = "Royalty", desc = "Units with royal names: Pawns, Epic Pawns, Centurions, Shield Bots, Tzars, etc"},
+			{ key = "Inferno", name = "Inferno", desc = "Fire and Heat. Time to burn."},
+			{ key = "World of Tanks", name = "World of Tanks", desc = "Just tanks."},
+			{ key = "Arachnophobia", name = "Arachnophobia", desc = "I hope you're not afraid of spiders. (Spider units only)"},
+			{ key = "Can't Touch This", name = "Can't Touch This", desc = "I am SPEED. Very fast units only."},
 			{ key = "T1 Variety", name = "T1 Variety", desc = "Diverse compositions exclusively using Tier 1 units."},
 			{ key = "Death from Above", name = "Death from Above", desc = "Air-dominated unit compositions."},
 			{ key = "Glass the Runners", name = "Glass the Runners", desc = "Phoenixes, fast ground attackers, and mobile anti-air."},
