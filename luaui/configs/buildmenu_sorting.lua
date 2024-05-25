@@ -28,6 +28,7 @@ local unitOrderTable = {
 
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
+	['legch']          = 002060,
 
 	['armrectr']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
@@ -144,6 +145,7 @@ local unitOrderTable = {
 
 	['armsh']          = 004500, --HOVER
 	['corsh']          = 004510,
+	['legsh']         = 004520,
 
 	-- EMP
 	['corbw']          = 004800, --EMP
@@ -163,10 +165,11 @@ local unitOrderTable = {
 	['corlevlr']       = 005210,
 	['armstump']       = 005220,
 	['corraid']        = 005230,
+	['leghelios']	   = 005231,
+	['leggat']		   = 005232,
 	['armanac']        = 005240,
 	['corsnap']        = 005250,
-	['leghelios']	   = 005251,
-	['leggat']		   = 005252,
+	['legner']         = 005255,
 
 	['armrock']        = 005300, --ROCKETS
 	['corstorm']       = 005310,
@@ -176,9 +179,11 @@ local unitOrderTable = {
 	['corthud']        = 005410,
 	['armart']         = 005420,
 	['corwolv']        = 005430,
-	['armmh']          = 005420,
-	['cormh']          = 005430,
-	['legbar']         = 005440,
+	['legbar']         = 005435,
+	['armmh']          = 005440,
+	['cormh']          = 005450,
+	['legmh']         = 005460,
+
 
 	['armwar']         = 005600, --STRONK
 	['legkark']        = 005610,
@@ -306,6 +311,7 @@ local unitOrderTable = {
 
 	['armah']          = 008300,
 	['corah']          = 008310,
+	['legah']         = 008320,
 
 	-- -- T2 AA
 	-- ['armaak']         = 008500,
@@ -488,6 +494,7 @@ local unitOrderTable = {
    ['legap']          = 102230,
    ['armhp']          = 102250,
    ['corhp']          = 102275,
+   ['leghp']          = 102278,
 
    ['armalab']        = 102400,
    ['coralab']        = 102425,
@@ -670,6 +677,7 @@ local unitOrderTable = {
    ['corsy']          = 211200,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
+   ['legfhp']         = 212250,
    ['armamsub']       = 213100,
    ['coramsub']       = 213200,
    ['armplat']        = 214100,

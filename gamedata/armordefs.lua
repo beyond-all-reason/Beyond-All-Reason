@@ -407,7 +407,14 @@ local armorDefs = {
 		"legacv",
 		"legaca",
 		"legack",
-
+		
+		"legah",
+		"legmh",
+		"legner",
+		"legsh",
+		"leghp",
+		"legfhp",
+		"legch",
 	},
 
 	space = {

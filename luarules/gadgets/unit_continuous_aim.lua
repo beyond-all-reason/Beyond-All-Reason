@@ -79,6 +79,7 @@ local convertedUnitsNames = {
 	['cordecom'] = 5,
 	['armdecom'] = 5,
 
+	['legah'] = 5,
 	['legbal'] = 5,
 	['legbastion'] = 5,
 	['legcen'] = 2,
