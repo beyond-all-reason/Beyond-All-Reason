@@ -474,8 +474,8 @@ vertex = [[
 				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(	uv.x >= PX_TO_UV(left),         uv.y <= 1.f - PX_TO_UV(top),  uv.x <= PX_TO_UV(left + width), uv.y >= 1.f - PX_TO_UV(top + height) 	)))
 
 				// apply a minimum amount of "speed" when not completely stopped
-				// so that have tracks appear to "spin up/down as they dig into the ground"
-				// instead of jittering strangly at low speed
+				// so that tracks appear to "spin up/down as they dig into the ground"
+				// instead of jittering strangely at low speed
 				float unitSpeed = uni[instData.y].speed.w;
 
 				if (unitSpeed > 0.5) {
