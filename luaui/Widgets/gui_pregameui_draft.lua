@@ -110,6 +110,8 @@ local TeamPlacementUI = nil
 local TeamPlacementUIshown = false
 local devUItestMode = false -- flip to true to test UI with fake players
 -- a lot of code copied and slightly modified from advplayerlist...
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
 local imageDirectory = ":lc:" .. imgDir
 local pics = {
@@ -226,10 +228,15 @@ end
 
 -- advplayerlist end
 local function colourNames(teamID, blink)
-	if teamID == nil then return "\255\210\210\210" end -- debug
 	local mult = 1
-	if blink then mult = 0.66 end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB = 0.9, 0.9, 0.9
+	if teamID ~= nil then
+		if blink then mult = 0.66 end
+		nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
+	end
+	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 	local R255 = math.floor(nameColourR * mult * 255)
 	local G255 = math.floor(nameColourG * mult * 255)
 	local B255 = math.floor(nameColourB * mult * 255)
