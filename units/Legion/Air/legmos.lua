@@ -32,8 +32,8 @@ return {
 		turnrate = 1400,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "FireStorm",
-			normaltex = "unittextures/Arm_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "armaircraft",
 		},
 		sfxtypes = {

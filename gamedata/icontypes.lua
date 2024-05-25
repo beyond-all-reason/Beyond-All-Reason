@@ -2063,6 +2063,10 @@ local icontypes = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
+	legatrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.36499989
+	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425

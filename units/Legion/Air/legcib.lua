@@ -42,8 +42,8 @@ return {
 		wingdrag = 0.08,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "coraircraft",
 		},
 		sfxtypes = {

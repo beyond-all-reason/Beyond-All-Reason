@@ -78,7 +78,7 @@ local labGrids = {
 	},
     legap = {
 		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
-		"legcib", "corvalk",                                -- radar, transport
+		"legcib", "legatrans",                                -- radar, transport
 	},
 	-- T2 air
 	armaap = {
