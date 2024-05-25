@@ -63,7 +63,6 @@ table.insert(OPTIONS, {
 local currentOption = 1
 
 local usedImgSize = OPTIONS[currentOption].imageSize
-local chobbyInterface
 
 local function shallow_copy(t)
 	local t2 = {}
@@ -261,15 +260,7 @@ function widget:Update(dt)
 	updatePosition()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
