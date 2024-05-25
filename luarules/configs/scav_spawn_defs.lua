@@ -1326,24 +1326,6 @@ addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 
--- Mist
-addNewSquad({ type = "specialLand", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
-
-addNewSquad({ type = "specialLand", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
-
-addNewSquad({ type = "specialLand", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
-
-addNewSquad({ type = "specialSea", minAnger = 0, units = { "20 scavmist_scav",}, weight = 8, maxAnger = 33})
-addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmist_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmist_scav",}, weight = 8, maxAnger = 1000})
-
-addNewSquad({ type = "specialSea", minAnger = 30, units = { "40 scavmistxl_scav",}, weight = 8, maxAnger = 66})
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxl_scav",}, weight = 8, maxAnger = 1000})
-
-addNewSquad({ type = "specialSea", minAnger = 60, units = { "80 scavmistxxl_scav",}, weight = 8, maxAnger = 1000})
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
