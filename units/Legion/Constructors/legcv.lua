@@ -57,7 +57,7 @@ return {
 			"leglab",
 			"legvp",
 			"legap",
-			"corhp",
+			"leghp",
 			"cornanotc",
 			"coreyes",
 			"legrad",
