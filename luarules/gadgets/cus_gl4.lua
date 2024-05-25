@@ -962,6 +962,7 @@ local function initBinsAndTextures()
 		if unitDef.model then
 			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
 			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
+			local normalTex = GetNormal(unitDef, nil)
 			local lowercasenormaltex = string.lower(normalTex or "")
 
 			-- bin units according to what faction's texture they use
@@ -976,7 +977,6 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[unitDefID] = 'legunit'
 			end
 
-			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1
 				[0] = string.format("%%%s:%i", unitDefID, 0),
