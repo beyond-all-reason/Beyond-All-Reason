@@ -145,6 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 		needsregroup = false,
 		needsrefresh = true,
 	}
+	CommandersPopulation = 0
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -1146,7 +1147,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if mRandom() <= config.spawnChance then
 						for name, data in pairs(squadSpawnOptions.commanders) do
-							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive then
+							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation < SetCount(humanTeams) then
 								waveCommanders[name] = true
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
 								break
@@ -1283,6 +1284,9 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
+			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+				CommandersPopulation = CommandersPopulation + 1
 			end
 			return
 		end
@@ -1792,6 +1796,9 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					spawnCreepStructuresWave()
 				end
+			end
+			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+				CommandersPopulation = CommandersPopulation - 1
 			end
 		end
 
