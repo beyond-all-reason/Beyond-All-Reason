@@ -14,7 +14,7 @@ Create()
 	hide pad2;
 	hide pad1;
 	hide pad0;
-	spin platform around y-axis speed <10>;
+	spin platform around y-axis speed <10> accelerate <1>;
 }
 
 #define SMOKEPIECE base
