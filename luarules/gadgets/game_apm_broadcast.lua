@@ -15,7 +15,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local teamAddedActionFrame = {}
 	local startFrame = Spring.GetGameFrame()	-- used in case of luarules reload
-	local spGetUnitNoSelect = spring.GetUnitNoSelect
+	local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 	local totalTeamActions = {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
