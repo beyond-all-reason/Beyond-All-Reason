@@ -1163,7 +1163,7 @@ local options = {
 	{
 		key    = "production_mode",
 		name   = "Production Mode",
-		desc   = "Toggle between receiving units directly and receiving a factory with a budget to produce units.",
+		desc   = "Toggle between receiving units directly and receiving a factory with a budget to produce units (not implemented yet).",
 		type   = "bool",
 		section= "micro_wars_options",
 		def    = false,
