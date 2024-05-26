@@ -88,8 +88,8 @@ return {
 			[24] = "corfrt",
 			[25] = "corfrad",
 			-- Experimental:
-			[26] = "corhp",
-			[27] = "corfhp",
+			[26] = "leghp",
+			[27] = "legfhp",
 			[28] = "legmg",
 			[29] = "leggob",
 			--[29] = "armclaw",

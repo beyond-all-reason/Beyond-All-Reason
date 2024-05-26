@@ -2119,7 +2119,7 @@ local unitLights = {
 
 
 	},
-	
+
 	['corack'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
@@ -13217,7 +13217,7 @@ local unitLights = {
 			pieceName = 'barrel',
 			lightConfig = { posx = 0, posy = 0.2, posz = 5.9, radius = 6,
 							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 100,
-							r = 0.85, g = 0.85, b = 1.3, a = 0.8,
+							r = 0.85, g = 0.85, b = 1.3, a = 0.6,
 							modelfactor = 0.2, specular = 0.3, scattering = 2, lensflare = 20,
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
@@ -13226,7 +13226,7 @@ local unitLights = {
 			pieceName = 'emplight',
 			lightConfig = { posx = 0, posy = 3, posz = 0, radius = 25,
 							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 1.5,
-							r = 0.85, g = 0.85, b = 1.1, a = 0.25,
+							r = 0.85, g = 0.85, b = 1.1, a = 0.2,
 							modelfactor = 0.2, specular = 0.3, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
@@ -13244,7 +13244,7 @@ local unitLights = {
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 9, posz = -9, radius = 19,
 							color2r = 1, color2g = 1, color2b = 0.3, colortime = 0,
-							r = 1, g = 1, b = 0.3, a = 0.09,
+							r = 1, g = 1, b = 0.3, a = 0.075,
 							modelfactor = 0.4, specular = 0.8, scattering = 1.1, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -13779,7 +13779,201 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legca'] = {
+		nanolight = {
+			lightType = 'point',
+			pieceName = 'beam',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 16,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.25,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0 },
+		},
+		mainthrust = {
+			lightType = 'point',
+			pieceName = 'mainThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
+							r = 0.45, g = 0.7, b = 1, a = 0.35,
+							modelfactor = 0.4, specular = 0, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		minithrusta = {
+			lightType = 'point',
+			pieceName = 'thrustA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
+							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
+							r = 0.45, g = 0.7, b = 1, a = 0.35,
+							modelfactor = 0.4, specular = 0, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		minithrustb = {
+			lightType = 'point',
+			pieceName = 'thrustB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
+							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
+							r = 0.45, g = 0.7, b = 1, a = 0.35,
+							modelfactor = 0.4, specular = 0, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes1 = {
+			lightType = 'point',
+			pieceName = 'chassis',
+			lightConfig = { posx = 0, posy = 1.5, posz = 15.5, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legatrans'] = {
+		lgThrust = {
+			lightType = 'cone',
+			pieceName = 'leftGroundThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 80,
+							dirx = 0, diry = -1, dirz = 0, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rgThrust = {
+			lightType = 'cone',
+			pieceName = 'rightGroundThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 80,
+							dirx = 0, diry = -1, dirz = 0, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 
+		lmainthrust = {
+			lightType = 'cone',
+			pieceName = 'leftMainThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rmainthrust = {
+			lightType = 'cone',
+			pieceName = 'rightMainThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		lminithrust = {
+			lightType = 'cone',
+			pieceName = 'leftMiniThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rminithrust = {
+			lightType = 'cone',
+			pieceName = 'rightMiniThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		trieyes = {
+			lightType = 'point',
+			pieceName = 'chassis',
+			lightConfig = { posx = 0, posy = 4.3, posz = 15.5, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+	},
+	['legcib'] = {
+		eyes = {
+			lightType = 'point',
+			pieceName = 'chassis',
+			lightConfig = { posx = 0, posy = 1, posz = 19, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rthrust = {
+			lightType = 'cone',
+			pieceName = 'rThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+
+		},
+		lthrust = {
+			lightType = 'cone',
+			pieceName = 'lThrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 1, g = 0.8, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legmos'] = {
+		eyes = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = -3, posz = 16, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrustMain = {
+			lightType = 'cone',
+			pieceName = 'thrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legkam'] = {
+		thrustMain = {
+			lightType = 'cone',
+			pieceName = 'thrust',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		bomb1 = {
+			lightType = 'point',
+			pieceName = 'bomb',
+			lightConfig = { posx = 0, posy = 0, posz = -1.9, radius = 10,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.6,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		bomb2 = {
+			lightType = 'point',
+			pieceName = 'bomb',
+			lightConfig = { posx = 0, posy = 0, posz = -9.9, radius = 10,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.6,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legionnaire'] = {
 		thruster1 = {
 			lightType = 'point',
@@ -16295,7 +16489,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	
+
 	['legadvsol'] = {
 		glow1 = {
 			lightType = 'point',
@@ -16324,9 +16518,9 @@ local unitLights = {
 							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-	},	
-	
-	
+	},
+
+
 	['cormakr'] = {
 		enabled1 = {
 			lightType = 'point',
@@ -17254,6 +17448,34 @@ local unitLights = {
 							r = 1, g = 0.2, b = 0.2, a = 0.11,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},['legcv'] = {
+		buildlight = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 18,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2 = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 18,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight = {
+			lightType = 'point',
+			pieceName = 'beam',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 16,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.25,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
 	['armraz'] = {
@@ -19467,7 +19689,7 @@ local unitEventLightsNames = {
 			},
 		},
 	},
-	
+
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {

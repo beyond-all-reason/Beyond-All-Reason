@@ -1045,7 +1045,7 @@ local icontypes = {
 	},
 	corakt4 = {
 		bitmap = "icons/corakt4.png",
-		size = 2.30999994
+		size = 1.7
 	},
 	coralab = {
 		bitmap = "icons/factory_bot_t2.png",
@@ -2043,6 +2043,10 @@ local icontypes = {
 		bitmap = "icons/energy2_1.18.png",
 		size = 1.23899984
 	},
+	legah = {
+		bitmap = "icons/hover_aa.png",
+		size = 1.15499997
+	},
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.9425
@@ -2058,6 +2062,10 @@ local icontypes = {
 	legassistdrone_land = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
+	},
+	legatrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.36499989
 	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
@@ -2090,6 +2098,10 @@ local icontypes = {
 	legcen = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.04999995
+	},
+	legch = {
+		bitmap = "icons/hover_worker.png",
+		size = 1.25999999
 	},
 	legcib = {
 		bitmap = "icons/air_bomber_juno.png",
@@ -2171,6 +2183,10 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
 	},
+	legfhp = {
+		bitmap = "icons/factory_hover.png",
+		size = 1.52250004
+	},
 	legfig = {
 		bitmap = "icons/air.png",
 		size = 0.64999998
@@ -2206,6 +2222,10 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	leghp = {
+		bitmap = "icons/factory_hover.png",
+		size = 1.52250004
 	},
 	legjam ={
 		bitmap ="icons/jammer.png",
@@ -2279,6 +2299,10 @@ local icontypes = {
 		bitmap = "icons/defence_2_mg.png",
 		size = 1.60849988
 	},
+	legmh = {
+		bitmap = "icons/hover_t1_missile.png",
+		size = 1.41750002
+	},
 	legmineb = {
 		bitmap = "icons/air_bomber_minelayer.png",
 		size = 1.39999998
@@ -2298,6 +2322,10 @@ local icontypes = {
 	legnap = {
 		bitmap = "icons/air_t2_bomber_napalm.png",
 		size = 1.85000002
+	},
+	legner = {
+		bitmap = "icons/hover_gun.png",
+		size = 1
 	},
 	legotter = {
 		bitmap = "icons/amphib_worker.png",
@@ -2335,6 +2363,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
 	},
+	legsh = {
+		bitmap = "icons/hover_raid.png",
+		size = 1
+	},
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
@@ -2342,7 +2374,7 @@ local icontypes = {
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
-	},	
+	},
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002

@@ -390,7 +390,6 @@ local armorDefs = {
 		"legstarfall",
 		"legflak",
 		"legsolar",
-		"legsolar",
 		"legadvsol",
 		"legrl",
 		"legrhapsis",
@@ -401,13 +400,18 @@ local armorDefs = {
 		"armuwageo",
 
 		"legcv",
-		"legca",
 		"legck",
 		"legotter",
 		"legacv",
-		"legaca",
 		"legack",
-
+		
+		"legah",
+		"legmh",
+		"legner",
+		"legsh",
+		"leghp",
+		"legfhp",
+		"legch",
 	},
 
 	space = {
@@ -501,6 +505,7 @@ local armorDefs = {
 		"legnap",
 		"legkam",
 		"legcib",
+		"legatrans",
 		"legmineb",
 		"raptor_air_kamikaze_basic_t2_v1",
 		"raptor_air_bomber_brood_t4_v2",

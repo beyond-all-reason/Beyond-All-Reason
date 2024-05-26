@@ -1,27 +1,31 @@
-Sound effects made for Beyond All Reason. By IceXuick, all rights reserved (CC BY NC ND 4.0)
+Sound effects made for Beyond All Reason. By IceXuick, all rights reserved.
+There are a handful of sounds under a CC/GPL License.
 Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds for a complete list and modification dates.
 
-/sounds/atmos (Water Sound effects obtained from https://www.zapsplat.com)
-/sounds/atmoslocal
-/sounds/bombs
-/sounds/raptors
+/sounds/critters
 /sounds/replies
 /sounds/ui
 /sounds/uw
 /sounds/weapons
-/sounds/voice
 
-For the above mentioned folder the CC BY NC ND applies to all new sound effects created after january 2019.
-For the "raptor" sound effects created after july 2020
+All rights reserved for the above mentioned folders for all sound effects created after january 2019.
 
 /sounds/raptors
 
-CC BY NC ND applies to all sound effects in:
+All rights reserved for the folder "raptors" for all sounds created after july 2020
+
+/sounds/atmos
+/sounds/atmos-geovents
+/sounds/atmoslocal
+/sounds/bombs
+/sounds/buildings/
 /sounds/commands/
 /sounds/function/
-/sounds/movement/
 /sounds/movement-air/
-/sounds/buildings/
+/sounds/movement/
+/sounds/replies
+/sounds/unit
+/sounds/unit-local
+/sounds/voice
 
-All sounds in /sounds/voice have been manually created with
-https://text-to-speech-demo.ng.bluemix.net
+All rights reserved for the above mentioned folders for all sound files in these folders.
