@@ -1002,7 +1002,7 @@ function widget:Update(dt)
 		return
 	end
 	sec = sec + dt
-	if sec > 0.05 then -- 50 updates per second
+	if sec >= 0.05 then -- 50 updates per second
 		sec = 0
 		if TeamPlacementUI ~= nil then
 			glDeleteList(TeamPlacementUI)
