@@ -215,7 +215,7 @@ local function DrawRank(rank, posX, posY)
 end
 
 local function DrawSkill(skill, posX, posY)
-    local fontsize = 11 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 14 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
@@ -450,7 +450,14 @@ local function DrawTeamPlacement()
 		end
 	end
 	local button_width = uiElementRect[3]-uiElementRect[1]
-	max_width = math.max((max_width * 16 * uiScale) + 12 + 90 + 12, button_width)
+
+	local rank_column_offset = 24
+	local skill_column_offset = 58
+	local player_column_offset = rank_column_offset + skill_column_offset + 24
+	local padding_left = 12
+	local player_name_font_size = 16
+
+	max_width = math.max((max_width * player_name_font_size * uiScale) + padding_left + player_column_offset + padding_left, button_width)
 
 	-- we can modify "lock position" button pos here
 	buttonPosX = 0.78
@@ -462,11 +469,20 @@ local function DrawTeamPlacement()
 	font:SetOutlineColor(0, 0, 0, 0.5)
 	UiElement(x, y - max_height, x + max_width, y, 1, 1, 1, 1, 1, 1, 1, 1, nil)
 	gl_Color(1, 1, 1, 1)
-	font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x + max_width/2, y - 32, 16 * uiScale, "co")
+	font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x + max_width/2, y - 32, player_name_font_size * uiScale, "co")
 	local y_shift
 	for i, data in ipairs(myTeamPlayersOrder) do
 		y_shift = y - (i * 26 * uiScale) - 40
 		local playerID = data.id
+		-- Draw black background with black bottom border for current player's turn -- added by Scopa
+		if current_playerID == playerID then
+			gl.Color(0, 0, 0, 0.8) -- 80% opaque black
+			local highlightTop = y_shift + 26 * uiScale - 7
+			local highlightBottom = y_shift - 7
+			gl.Rect(x, highlightTop, x + max_width, highlightBottom)
+			gl.Color(1, 1, 1, 1)
+		end
+		--
 		local playerName = findPlayerName(playerID)
 		local _, active, _, playerTeamID, _, ping, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID, true)
 		local playerRank, playerSkill = 0, 0
@@ -478,15 +494,15 @@ local function DrawTeamPlacement()
 			if (rank ~= nil) then playerRank = rank end
 		end
 		-- | indicator/timer/hourglass | rankicon | skill/zero | [playercolor] playername |
-		local x_offset = 12
+		local x_offset = padding_left
 		if (current_playerID == playerID) then
-			font:Print(DMDefaultColorString .. tmsg, x + x_offset, y_shift + 1, 12 * uiScale, "lo")
+			font:Print(DMDefaultColorString .. tmsg, x + x_offset - 1, y_shift + 3, 15 * uiScale, "lo")
 		elseif (canPlayerPlaceNow(playerID)) then
-			x_offset = 12 - 5
-			DrawState(playerID, x + x_offset, y_shift - 5)
+			x_offset = padding_left - 5
+			DrawState(playerID, x + x_offset, y_shift - 3)
 		else
-			x_offset = 12 - 4
-			DrawHourglass(x + x_offset, y_shift - 5)
+			x_offset = padding_left - 4
+			DrawHourglass(x + x_offset + 1, y_shift - 1)
 		end
 		local colorMod = colourNames(playerTeamID)
 		if (not active) then
@@ -494,14 +510,15 @@ local function DrawTeamPlacement()
 				colorMod = colourNames(playerTeamID, true)
 			end
 		else
-			x_offset = 12 + 22
-			DrawRank(playerRank, x + x_offset, y_shift - 5)
-			x_offset = 12 + 55
-			DrawSkill(playerSkill, x + x_offset, y_shift - 5)
+			x_offset = padding_left + rank_column_offset
+			DrawRank(playerRank, x + x_offset, y_shift - 3)
+			x_offset = padding_left + skill_column_offset
+			DrawSkill(playerSkill, x + x_offset, y_shift - 4)
 		end
-		x_offset = 12 + 90
-		font:Print(colorMod .. playerName, x + x_offset, y_shift + 2, 16 * uiScale, "lo")
+		x_offset = padding_left + player_column_offset
+		font:Print(colorMod .. playerName, x + x_offset, y_shift + 3, player_name_font_size * uiScale, "lo")
 	end
+
 	end)
 	TeamPlacementUIshown = true
 end
