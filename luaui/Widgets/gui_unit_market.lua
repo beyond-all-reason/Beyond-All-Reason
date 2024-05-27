@@ -530,8 +530,8 @@ end
 
 local function FindBestT2ConsForSale(frame)
     if #T2consForSale == 0 then
-        if #T2consForSale ~= 0 then -- abort buy attempts
-            T2consForSale = {}
+        if #t2consFormatted ~= 0 then -- abort buy attempts
+            t2consFormatted = {}
             if buyStatus ~= nil and frame >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
                 clearPurchaseQueue()
             end
