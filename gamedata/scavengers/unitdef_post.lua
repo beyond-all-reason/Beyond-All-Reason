@@ -153,6 +153,11 @@ local function scavUnitDef_Post(name, uDef)
 		end
 	end
 
+	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then
+		uDef.explodeas = "advmetalmaker"
+		uDef.selfdestructas = "advmetalmakerSelfd"
+	end
+
 
 
 	-- Extra Units for Scavs
