@@ -528,14 +528,16 @@ local function ExecutePurchases()
     end
 end
 
-local function FindBestT2ConsForSale(frame)
+local function FindBestT2ConsForSale()
     if #T2consForSale == 0 then
-        if #t2consFormatted ~= 0 then -- abort buy attempts
+        if #t2consFormatted ~= 0 then
             t2consFormatted = {}
-            if buyStatus ~= nil and frame >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
-                clearPurchaseQueue()
-            end
+            lastTimeT2ConsOnSale = os.clock()
         end
+        -- abort buy attempts
+       if buyStatus ~= nil and os.clock() >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
+           clearPurchaseQueue()
+       end
         return false
     end
 
@@ -811,7 +813,7 @@ function widget:Initialize()
 
     if (spGetGameFrame() > 0) then
         lastTimeT2ConsOnSale = os.clock()
-        FindBestT2ConsForSale(spGetGameFrame())
+        FindBestT2ConsForSale()
         DrawT2TradeDock()
     end
 end
@@ -1104,13 +1106,13 @@ function widget:GameFrame(frame)
 	if frame <= 0 or isSpectating then return end
     if frame == 1 then
         lastTimeT2ConsOnSale = os.clock()
-        FindBestT2ConsForSale(spGetGameFrame())
+        FindBestT2ConsForSale()
         DrawT2TradeDock()
     elseif (frame % 15) == 1 then
         dot_count = dot_count + 1
         if (dot_count > 3) then dot_count = 0 end
 
-        if (FindBestT2ConsForSale(frame)) then
+        if (FindBestT2ConsForSale()) then
             if not t2conDockShown then
                 DrawT2TradeDock()
                 updatePeriod = 0.25
