@@ -60,6 +60,12 @@
 				"defaultTooltip": "Shows how many of your energy converters are active and producing metal",
 				"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
+			},
+			"underflow": {
+				"generous": "generous",
+				"greedy": "greedy",
+				"tooltipText": "Being a generous ally - you will share and receieve energy underflow.\n10%% of energy income. Helps to prevent your allies from E-stalling.\nBeing greedy, however, will get you neither.",
+				"tooltipTitle": "Energy underflow toggle"
 			}
 		},
 		"unitMarket": {

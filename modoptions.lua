@@ -1205,6 +1205,15 @@ local options = {
     },
 
     {
+        key 	= "energy_share_rework",
+        name 	= "Energy Share Rework",
+        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
