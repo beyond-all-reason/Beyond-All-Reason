@@ -20,9 +20,7 @@ function widget:GetInfo() return {
 -- Why? So you can trade T2 cons without tracking who paid what/what/how much. Just flip the unit for sale and we are good to go.
 -- Note: you can set for sale ANYTHING, even unfinished units. Be careful if you buy unfinished units though, you pay FULL PRICE for them. Hotkey/Button to toggle sale. Just alt + double-click to buy.
 -- Extra feature: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
--- AI will NOT draw any sale icons.
-
--- TODO: develop UI so that you can browse units that are for sale with a buy button maybe?
+-- AI will NOT draw any sale icons if you disable them in options.
 
 -- How to use:
 
@@ -39,11 +37,14 @@ function widget:GetInfo() return {
 -- 1) hold alt (optionally) and double-click over an ally unit that your ally is selling. make sure you have resources first. in case you don't have enough metal - nothing will happen.
 -- There are various tooltips to help you out in the process.
 
--- New features May 2024:
+-- New features 27 May 2024:
 -- 1) Rewamped and optimized UI and unit state command.
 -- 2) t2con dock at top-right, so you can buy t2 cons fast as fast as they go for sale.
--- 3) same dock has 'saving metal on/off' button which allows you to automatically save metal for the unit you want to buy.
--- 4) "please set unit X for sale" requests, so buyer can get potential seller for a unit to be set on sale.
+-- 3) same dock has 'saving metal on/off' functionallity which allows you to automatically save metal for the unit you want to buy.
+
+-- Paused for now:
+-- "please set unit X for sale" requests, so buyer can get potential seller for a unit to be set on sale.
+-- develop UI so that you can browse units that are for sale with a buy button maybe?
 
 --------------------------------
 VFS.Include("luarules/configs/customcmds.h.lua")
@@ -192,6 +193,7 @@ local DrawUnitTradeInfo = function() end
 local t2conShopText = Spring.I18N('ui.unitMarket.t2conShop')
 local shopTitle = Spring.I18N('ui.unitMarket.shopTitle')
 local shopInfo = Spring.I18N('ui.unitMarket.shopInfo')
+local youAreSellingText = Spring.I18N('ui.unitMarket.youAreSellingText')
 local buy_text = Spring.I18N('ui.unitMarket.buy')
 local cancel_text = Spring.I18N('ui.unitMarket.abort')
 --
@@ -228,27 +230,12 @@ end
 local function addT2ConOffer(unitID, unitDefID)
     local index = #T2consForSale + 1
     T2consForSale[index] = unitID
+    lastTimeT2ConsOnSale = os.clock()
 end
 local function removeT2Offer(unitID)
     for i, tUnitID in ipairs(T2consForSale) do
         if tUnitID == unitID then
             table.remove(T2consForSale, i)
-            break
-        end
-    end
-end
-local function addUnitToSale(unitID, price, unitDefID)
-    local index = #unitsForSale + 1
-    unitsForSale[index] = {unitID = unitID, price = price}
-    if isT2Con(unitDefID) then
-        addT2ConOffer(unitID, unitDefID)
-    end
-end
-local function removeUnitFromSale(unitID, unitDefID)
-    for i, unitInfo in ipairs(unitsForSale) do
-        if unitInfo.unitID == unitID then
-            table.remove(unitsForSale, i)
-            removeT2Offer(unitID)
             break
         end
     end
@@ -260,6 +247,24 @@ local function isUnitForSale(unitID)
         end
     end
     return false
+end
+local function addUnitToSale(unitID, price, unitDefID)
+    if not isUnitForSale(unitID) then
+        local index = #unitsForSale + 1
+        unitsForSale[index] = {unitID = unitID, price = price}
+        if isT2Con(unitDefID) then
+            addT2ConOffer(unitID, unitDefID)
+        end
+    end
+end
+local function removeUnitFromSale(unitID, unitDefID)
+    for i, unitInfo in ipairs(unitsForSale) do
+        if unitInfo.unitID == unitID then
+            table.remove(unitsForSale, i)
+            removeT2Offer(unitID)
+            break
+        end
+    end
 end
 local function SetUnitPrice(unitID, price)
     for i, unitInfo in ipairs(unitsForSale) do
@@ -410,10 +415,10 @@ local function clearPurchaseQueue()
 end
 
 function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
-    if (autoPurchasingUnitID == unitID and msgFromTeamID == myTeamID) then -- successful purchase by YOU
+    if (autoPurchasingUnitID == unitID and msgFromTeamID == myTeamID) then -- successfull purchase by YOU
         clearPurchaseQueue()
         local x, y, z = spGetUnitPosition(unitID)
-        spMarkerAddPoint(x, y, z, _, true)
+        spMarkerAddPoint(x, y, z, "", true)
     end
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
 end
@@ -523,17 +528,17 @@ local function ExecutePurchases()
     end
 end
 
-local function FindBestT2ConsForSale(frame)
+local function FindBestT2ConsForSale()
     if #T2consForSale == 0 then
-        if #T2consForSale ~= 0 then -- abort buy attempts
-            T2consForSale = {}
-            if buyStatus ~= nil and frame >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
-                clearPurchaseQueue()
-            end
+        if #t2consFormatted ~= 0 then
+            t2consFormatted = {}
+            lastTimeT2ConsOnSale = os.clock()
+        end
+        -- abort buy attempts
+        if buyStatus ~= nil and os.clock() >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
+            clearPurchaseQueue()
         end
         return false
-    else
-        lastTimeT2ConsOnSale = os.clock()
     end
 
     t2consFormatted = {}
@@ -571,7 +576,8 @@ local function DrawT2TradeDock()
         local price = UnitDefs[buyStatus[2]].metalCost
         text = Spring.I18N('ui.unitMarket.purchasing', { name = unit_name, price = price })
     else
-        if #T2consForSale > 0 then
+        local amIselling = (#t2consFormatted == 0) and (#T2consForSale > 0)
+        if #t2consFormatted > 0 then
             text = t2conShopText
         else
             local closeTimer = math_floor(lastTimeT2ConsOnSale + t2conShopTimeout - os.clock())
@@ -581,7 +587,11 @@ local function DrawT2TradeDock()
             if buyStatus ~= nil then
                 text = shopTitle.."\n"..shopInfo.."\n"..Spring.I18N('ui.unitMarket.failedToFindNewOffers', { sec = closeTimer })
             else
-                text = shopTitle.."\n"..shopInfo.."\n"..Spring.I18N('ui.unitMarket.autoClosing', { sec = closeTimer })
+                if amIselling then
+                    text = shopTitle.."\n"..youAreSellingText.."\n"..Spring.I18N('ui.unitMarket.autoClosing', { sec = closeTimer })
+                else
+                    text = shopTitle.."\n"..shopInfo.."\n"..Spring.I18N('ui.unitMarket.autoClosing', { sec = closeTimer })
+                end
             end
             max_height = 110
         end
@@ -594,7 +604,7 @@ local function DrawT2TradeDock()
     -- figure out which t2cons we can buy, if there are any, we will draw the dock
     buyButtons = {}
 
-    if #T2consForSale > 0 then
+    if #t2consFormatted > 0 then
     t2conDock = glCreateList(function()
     UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
     font:SetTextColor(1, 1, 1, 1)
@@ -761,10 +771,6 @@ local function getIgnoreList()
     --
 end
 
-function widget:GameStart()
-    FindBestT2ConsForSale(spGetGameFrame())
-    DrawT2TradeDock()
-end
 function widget:Initialize()
     -- if market is disabled, exit
     if not unitMarket or unitMarket ~= true then
@@ -806,7 +812,8 @@ function widget:Initialize()
 	InitFindSales()
 
     if (spGetGameFrame() > 0) then
-        FindBestT2ConsForSale(spGetGameFrame())
+        lastTimeT2ConsOnSale = os.clock()
+        FindBestT2ConsForSale()
         DrawT2TradeDock()
     end
 end
@@ -1096,12 +1103,16 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(frame)
-	if frame <= 0 then return end
-    if (frame % 15) == 1 then
+	if frame <= 0 or isSpectating then return end
+    if frame == 1 then
+        lastTimeT2ConsOnSale = os.clock()
+        FindBestT2ConsForSale()
+        DrawT2TradeDock()
+    elseif (frame % 15) == 1 then
         dot_count = dot_count + 1
         if (dot_count > 3) then dot_count = 0 end
 
-        if (FindBestT2ConsForSale(frame)) then
+        if (FindBestT2ConsForSale()) then
             if not t2conDockShown then
                 DrawT2TradeDock()
                 updatePeriod = 0.25

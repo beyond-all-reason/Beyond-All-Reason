@@ -82,7 +82,18 @@ local function UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
     SendToUnsynced("UnitSold", unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
+local function setForSaleState(unitID, state)
+	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SELL_UNIT)
+	if cmdDescID then
+		sellCmd.params[1] = state
+		spEditUnitCmdDesc(unitID, cmdDescID, {params = sellCmd.params})
+	end
+end
+
 local function setNotForSale(unitID)
+    if spValidUnitID(unitID) then
+        setForSaleState(unitID, 0)
+    end
     spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
     UnitSaleBroadcast(unitID, 0, spGetUnitTeam(unitID))
     unitsForSale[unitID] = nil
@@ -93,6 +104,7 @@ local function setUnitOnSale(unitID, price, toggle)
         unitsForSale[unitID] = price
         spSetUnitRulesParam(unitID, "unitPrice", price, RPAccess)
         UnitSaleBroadcast(unitID, price, spGetUnitTeam(unitID))
+        setForSaleState(unitID, 1)
         return true
     else
         setNotForSale(unitID)
@@ -280,34 +292,16 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 
             local price = unitDef.metalCost
             setUnitOnSale(unitID, price, false)
-
-            local cmdIdx = spFindUnitCmdDesc(unitID, CMD_SELL_UNIT)
-            if cmdIdx then
-                local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-                cmdDesc.params[1] = 1
-                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            end
         end
     end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if (cmdID == CMD_SELL_UNIT) then
-        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_SELL_UNIT)
-        if cmdIdx then
-            local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            cmdDesc.params[1] = cmdParams[1]
-            spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            spSetUnitRulesParam(unitID, sellCmd.id, cmdParams[1])
-			if cmdParams[1] == 0 then
-                setUnitOnSale(unitID, 0, false)
-			else
-                local unitDef = UnitDefs[unitDefID]
-                if unitDef then
-                    local price = unitDef.metalCost
-                    setUnitOnSale(unitID, price, false)
-                end
-			end
+        local unitDef = UnitDefs[unitDefID]
+        if unitDef then
+            local price = unitDef.metalCost
+            setUnitOnSale(unitID, price, true)
         end
 	end
 	return true
@@ -338,13 +332,6 @@ function gadget:Initialize()
                     if unitDef and unitDef.metalCost >= 0 then
                         local price = unitDef.metalCost
                         setUnitOnSale(unitID, price, false)
-                        
-                        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_SELL_UNIT)
-                        if cmdIdx then
-                            local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-                            cmdDesc.params[1] = 1
-                            spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-                        end
                     end
                 end
             end

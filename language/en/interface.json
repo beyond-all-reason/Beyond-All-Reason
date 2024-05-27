@@ -80,6 +80,7 @@
 			"t2conShop": "Buy T2cons here!",
 			"shopTitle": "Unit Market",
 			"shopInfo": "You'll find t2cons listed here for sale.",
+			"youAreSellingText": "You've put t2con for sale, others can buy it now!",
 			"failedToFindNewOffers": "Out-of-stock! Waiting for new offers! %{sec}s.",
 			"autoClosing": "Auto closing this window in %{sec}s.",
 			"purchasing": "Purchasing %{name} (%{price}m)",
