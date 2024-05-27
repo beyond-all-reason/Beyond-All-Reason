@@ -38,9 +38,9 @@ local unitSpawnConfigs = {
     ["Basic T1 - T3"] = {  -- Already provided in your original script
         [1] = {
 			{unitName = "armpw", count = 20},    -- Pawns
-			{unitName = "armpwt4", count = 10},  -- Rocket Bots
+			{unitName = "armrock", count = 10},  -- Rocket Bots
 			{unitName = "corcrash", count = 2},  -- Trashers
-			{unitName = "legmos", count = 2},   -- Whirlwinds
+			{unitName = "legmos", count = 2},   -- Mosquitos
 		},
 		[2] = {
 			{unitName = "armpw", count = 30},    -- Pawns

@@ -6,8 +6,5 @@
 *.iml
 .project
 *.code-workspace
-.vs/BAR.sdd/v16/Browse.VC.opendb
-.vs/BAR.sdd/v16/Browse.VC.db-shm
-.vs/BAR.sdd/v16/Browse.VC.db-wal
-.vs/slnx.sqlite
+.vs/  # ignore the whole .vs folder
 *.sqlite
