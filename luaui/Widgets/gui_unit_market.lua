@@ -535,9 +535,9 @@ local function FindBestT2ConsForSale()
             lastTimeT2ConsOnSale = os.clock()
         end
         -- abort buy attempts
-       if buyStatus ~= nil and os.clock() >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
-           clearPurchaseQueue()
-       end
+        if buyStatus ~= nil and os.clock() >= (lastTimeT2ConsOnSale + t2conShopTimeout) then
+            clearPurchaseQueue()
+        end
         return false
     end
 
