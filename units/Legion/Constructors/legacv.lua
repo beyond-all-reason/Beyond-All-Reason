@@ -59,7 +59,7 @@ return {
 			[14] = "cortarg",
 			[15] = "corsd",
 			[16] = "corgate",
-			[17] = "cortoast",
+			[17] = "legacluster",
 			[18] = "legbombard",
 			[19] = "legbastion",
 			[20] = "legflak",

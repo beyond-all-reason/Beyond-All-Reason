@@ -55,7 +55,7 @@ return {
 			"cortarg",
 			"corsd",
 			"corgate",
-			"cortoast",
+			"legacluster",
 			"legbombard",
 			"legbastion",
 			"legflak",

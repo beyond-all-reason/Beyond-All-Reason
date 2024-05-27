@@ -1485,7 +1485,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1555,7 +1555,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1624,7 +1624,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "cortoast", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1827,6 +1827,30 @@ local unitGrids = {
 			{ "cormando", },                                          -- commando
 		}
 	},
+
+	--[[--proteus
+	legaceb = {
+		{
+			{ "legmex", "legsolar", },                                -- 0.5 mex, solar
+			{ },                                                      -- 
+			{ },                                                      --
+		},
+		{
+			{ "legdtr", "legstrider", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
+			{ "legravager", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
+			{ "cordl", "legfloat", "legsrailspider", },               -- coastal torp launcher, triton, arquebus
+		},
+		{
+			{ "corarad", "coreyes", "legfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
+			{ },                                                      --
+			{ "cormine2", },                                          -- med mine
+		},
+		{
+			{ "leglab", "legck", },                                   -- bot lab, bot con
+			{ "cornanotc", "legch", },                                -- nano, hover con (for now)
+			{ "leginfestor", },                                       -- infester
+		}
+	},]]
 
 	--consul
 	armconsul = {

@@ -591,6 +591,7 @@ local unitOrderTable = {
    ['legbombard']     = 107250,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
+   ['legacluster']	  = 107450,
    ['armanni']        = 107500,
    ['cordoom']        = 107600,
    ['legbastion']     = 107650,
