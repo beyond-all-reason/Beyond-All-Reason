@@ -148,7 +148,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
     if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
 
-    local current, storage = spGetTeamResources(msgFromTeamID, "metal")
+    local current = select(1,spGetTeamResources(msgFromTeamID, "metal"))
     local price = unitsForSale[unitID]
 
     if isAiTeam then
