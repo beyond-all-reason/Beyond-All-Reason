@@ -55,6 +55,7 @@ local FLOW_PULSE = 20 -- every 0.67 second (1 sec = 30 frames)
 local FLOW_PULSE_FLOAT = math_round(FLOW_PULSE / 30, 4) -- 20/30, 0.6667, see above
 
 local calamityCount = {} -- super weapon amount by teamID
+local starfallCount = {} -- it needs 360k E to shoot omg...
 
 local isFFA = false -- if true, this gadget does nothing
 local ignoreList = {} -- ignore these teams, FFA or no allies on some teams, skip them
@@ -80,20 +81,23 @@ local allyEnergyThresholdDefault = 0.12 -- less than 12% in storage means you ar
 
 -- once all conditions are true -- 'underflow' is happening.
 
--- please add super weapons here
+-- please add super weapons here (hungry on energy ones)
 local armvulcDefID = UnitDefNames.armvulc.id
 local corbuzzDefID = UnitDefNames.corbuzz.id
-local legstarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legstarfall.id or nil
-
+local legministarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legministarfall.id or nil
+local legstarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legministarfall.id or nil
 local function isCalamity(unitDefID)
-	return unitDefID and ((armvulcDefID == unitDefID) or (corbuzzDefID == unitDefID) or (legstarfallDefID == unitDefID))
+	return unitDefID and ((armvulcDefID == unitDefID) or (corbuzzDefID == unitDefID) or (legministarfallDefID == unitDefID))
+end
+local function isStarfall(unitDefID)
+	return unitDefID and (legstarfallDefID == unitDefID)
 end
 
 local function recalculateStorageThreshold(teamID, eStorMy, storageThreshold)
-    if (calamityCount[teamID] > 0) then
-        if (storageThreshold < 30000) then
-            storageThreshold = 30000
-        end
+    if (calamityCount[teamID] > 0) and (storageThreshold < 400000) then
+        storageThreshold = 400000
+    elseif (starfallCount[teamID] > 0) and (storageThreshold < 30000) then
+        storageThreshold = 30000
     end
     if storageThreshold > eStorMy then
         storageThreshold = eStorMy
@@ -257,18 +261,33 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
             calamityCount[newTeam] = calamityCount[newTeam] + 1
         end
     end
-end
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, _, _, _)
-    if isCalamity(unitDefID) then
-        calamityCount[unitTeam] = calamityCount[unitTeam] - 1
-        if (calamityCount[unitTeam] < 0) then
-            calamityCount[unitTeam] = 0
+    if isStarfall(unitDefID) then
+        local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
+        if (buildProgress >= 1) then
+            starfallCount[newTeam] = starfallCount[newTeam] + 1
         end
     end
 end
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, teamID, _, _, _)
     if isCalamity(unitDefID) then
-        calamityCount[unitTeam] = calamityCount[unitTeam] + 1
+        calamityCount[teamID] = calamityCount[teamID] - 1
+        if (calamityCount[teamID] < 0) then
+            calamityCount[teamID] = 0
+        end
+    end
+    if isStarfall(unitDefID) then
+        starfallCount[teamID] = starfallCount[teamID] - 1
+        if (starfallCount[teamID] < 0) then
+            starfallCount[teamID] = 0
+        end
+    end
+end
+function gadget:UnitFinished(unitID, unitDefID, teamID)
+    if isCalamity(unitDefID) then
+        calamityCount[teamID] = calamityCount[teamID] + 1
+    end
+    if isStarfall(unitDefID) then
+        starfallCount[teamID] = starfallCount[teamID] + 1
     end
 end
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
@@ -316,6 +335,7 @@ function gadget:Initialize()
 
     for _, teamID in ipairs(allTeamList) do
         calamityCount[teamID] = 0
+        starfallCount[teamID] = 0
         if teamID == GaiaTeamID then
             underflowTeam[teamID] = false
         else
