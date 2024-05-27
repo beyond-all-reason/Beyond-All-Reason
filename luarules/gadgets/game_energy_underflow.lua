@@ -85,7 +85,7 @@ local allyEnergyThresholdDefault = 0.12 -- less than 12% in storage means you ar
 local armvulcDefID = UnitDefNames.armvulc.id
 local corbuzzDefID = UnitDefNames.corbuzz.id
 local legministarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legministarfall.id or nil
-local legstarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legministarfall.id or nil
+local legstarfallDefID = UnitDefNames.legstarfall and UnitDefNames.legstarfall.id or nil
 local function isCalamity(unitDefID)
 	return unitDefID and ((armvulcDefID == unitDefID) or (corbuzzDefID == unitDefID) or (legministarfallDefID == unitDefID))
 end
