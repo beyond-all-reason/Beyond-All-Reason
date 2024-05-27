@@ -562,14 +562,12 @@ local SeaUnitsList = {
 		},
 		[3] = {
 		--Armada
-		["armcarry2_scav"] = 1,
 		["armantiship_scav"] = 1,
 		["armdronecarry_scav"] = 1,
 		["armaas_scav"] = 1,
 		--Cortex
 		["cordronecarry_scav"] = 1,
 		["corantiship_scav"] = 1,
-		["corcarry2_scav"] = 1,
 		["corarch_scav"] = 1,
 		},
 		[4] = {
