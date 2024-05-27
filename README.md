@@ -12,6 +12,10 @@ https://www.beyondallreason.info/download
 
 https://www.beyondallreason.info/guides
 
+## Player Dashboard
+
+https://server4.beyondallreason.info/login
+
 ## Development Quick Start
 
 Beyond All Reason (BAR), consists of 2 primary components, the lobby (Chobby - https://github.com/beyond-all-reason/BYAR-Chobby) and the game code itself (this repository).
