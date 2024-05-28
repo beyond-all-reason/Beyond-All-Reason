@@ -456,13 +456,14 @@ end
 local function TriedToBuyUnit()
     if triedToManullyBuyUnitID == nil then return end
     local unitID = triedToManullyBuyUnitID
+    if not spValidUnitID(unitID) then return end
     local teamID = spGetUnitTeam(unitID)
     if teamID == myTeamID then
         triedToManullyBuyUnitID = nil
         return -- already bought
     end
     local price = spGetUnitRulesParam(unitID, "unitPrice")
-    if price > 0 then -- not enough metal
+    if price and price > 0 then -- not enough metal
         local eCurrMy, eStorMy,_, _,_,_,_,_ = spGetTeamResources(myTeamID, "metal")
         if price > eStorMy or price > eCurrMy then
             notEnoughForUnit = unitID
