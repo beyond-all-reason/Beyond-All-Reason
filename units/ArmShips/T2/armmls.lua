@@ -25,7 +25,7 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT4",
 		movestate = 0,
-		objectname = "Units/ARMMLV.s3o",
+		objectname = "Units/ARMMLS.s3o",
 		script = "Units/ARMMLS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
@@ -198,6 +198,7 @@ return {
 				thickness = 0,
 				tolerance = 100,
 				turret = true,
+				waterweapon = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 3650,
@@ -211,7 +212,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "minesweep",
-				onlytargetcategory = "ALL",
+				onlytargetcategory = "MINE",
 			},
 		},
 		

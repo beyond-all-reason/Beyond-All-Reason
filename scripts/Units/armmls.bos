@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+
+piece ground, base, door1, door2, NanoTurret, Nanoemit;
 //piece  base, base, door1, door2, nanosleeve, lnano, nanosleeve;
-piece base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel, 
- 		nanosleeve, lnano, rnano, lflare, rflare;
+//piece ground, base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel,  nanosleeve, lnano, rnano, lflare, rflare;
 
 static-var  gun_2, targetheading, statechg_DesiredState, statechg_StateChanging, oldHead, notBuilding;
 
@@ -17,8 +18,8 @@ SetDirection(heading)
 {
 	var spd;
 	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn base to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
+	turn ground to y-axis heading speed spd;
+	turn ground to y-axis 0-heading speed spd;
 	oldHead = heading;
 }
 
@@ -35,17 +36,17 @@ RockOnWaves()
 {
 	while(1)
 	{
-		turn base to x-axis <1.0> speed <1.5>;
-		move base to y-axis [0.0] speed [0.15];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <-1.0> speed <1.5>;
-		move base to y-axis [-0.1] speed [0.15];
-		wait-for-move base along y-axis;
-		move base to y-axis [0.0] speed [0.15];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <1.0> speed <1.5>;
-		move base to y-axis [-0.1] speed [0.15];
-		wait-for-move base along y-axis;
+		turn ground to x-axis <1.0> speed <1.5>;
+		move ground to y-axis [0.0] speed [0.15];
+		wait-for-turn ground around x-axis;
+		turn ground to x-axis <-1.0> speed <1.5>;
+		move ground to y-axis [-0.1] speed [0.15];
+		wait-for-move ground along y-axis;
+		move ground to y-axis [0.0] speed [0.15];
+		wait-for-turn ground around x-axis;
+		turn ground to x-axis <1.0> speed <1.5>;
+		move ground to y-axis [-0.1] speed [0.15];
+		wait-for-move ground along y-axis;
 	}
 }
 
@@ -55,12 +56,12 @@ waveSplash()
 {
 	while( TRUE )
 	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.23] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
+		turn ground to x-axis <-3.0> speed <3.0>;
+		move ground to y-axis [0.23] speed [0.23];
+		wait-for-turn ground around x-axis;
+		turn ground to x-axis <0.0> speed <3.0>;
+		move ground to y-axis [0.0] speed [0.23];
+		wait-for-turn ground around x-axis;
 	}
 }
 
@@ -72,7 +73,7 @@ StartMoving()
 	start-script waveSplash();
 	while( TRUE )
 	{
-		emit-sfx 1024 + 0 from base;
+		emit-sfx 1024 + 0 from ground;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 15000 / waketime;
@@ -82,8 +83,8 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
+	turn ground to x-axis <0.0> speed <3.0>;
+	move ground to y-axis [0.0] speed [0.23];
 }
 
 
@@ -113,20 +114,20 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	gun_2 = base;
+	gun_2 = ground;
 	sleep 3000;
-	gun_2 = nanosleeve;
+	gun_2 = NanoTurret;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = nanosleeve;
+	piecenum = NanoTurret;
 
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = ground;
 }
 
 AimSecondary(heading, pitch)
@@ -140,19 +141,19 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	gun_2 = base;
+	gun_2 = ground;
 	sleep 3000;
-	gun_2 = nanosleeve;
+	gun_2 = NanoTurret;
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = base;
+	piecenum = ground;
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = base;
+	piecenum = ground;
 }
 
 
@@ -176,12 +177,12 @@ FirePrimary()
 QueryPrimary(piecenum)
 {
 	get PRINT(111);
-	piecenum = base;
+	piecenum = ground;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = ground;
 }
 */
 
@@ -191,7 +192,7 @@ DetonateMines()
 	while( TRUE )
 	{
 		sleep 500;
-		emit-sfx 4096 from base;
+		emit-sfx 4096 from ground;
 	}
 }
 
@@ -236,9 +237,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	gun_2 = nanosleeve;//needed?
+	
+	gun_2 = NanoTurret;//needed?
 	//hide lnano;
-	//hide base;
+	//hide ground;
 	targetheading = 0;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
@@ -254,15 +256,15 @@ Create()
 
 activatescr()
 {
-	//move door1 to y-axis [1] speed [3];
-	//move door2 to y-axis [1] speed [3];
+	move door1 to y-axis [1] speed [3];
+	move door2 to y-axis [1] speed [3];
 	sleep 333;
 	
-	//move door1 to x-axis [3.4] speed [9];
-	//move door2 to x-axis [-3.4] speed [9];
+	move door1 to x-axis [3.4] speed [9];
+	move door2 to x-axis [-3.4] speed [9];
 	sleep 333;
 	
-	move nanosleeve to y-axis [8] speed [24];
+	move nanoturret to y-axis [8] speed [24];
 	sleep 333;
 
 }
@@ -270,17 +272,15 @@ activatescr()
 deactivatescr()
 {
 
-	move nanosleeve to y-axis [0] speed [24];
+	move nanoturret to y-axis [0] speed [24];
 	sleep 333;
 	
-	
-	//move door1 to x-axis [0] speed [9];
-	//move door2 to x-axis [0] speed [9];
+	move door1 to x-axis [0] speed [9];
+	move door2 to x-axis [0] speed [9];
 	sleep 333;
 	
-	//move door1 to y-axis [0] speed [3];
-	//move door2 to y-axis [0] speed [3];
-	sleep 333;
+	move door1 to y-axis [0] speed [3];
+	move door2 to y-axis [0] speed [3];
 }
 
 
@@ -299,33 +299,33 @@ Deactivate()
 
 StartBuilding(head,pitch)
 {
-	show lnano;
-	targetheading = head;
+	show Nanoemit;
+	oldHead = head;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn nanosleeve to y-axis <180>+targetheading speed <160.000000>;
-	wait-for-turn nanosleeve around y-axis;
+	turn NanoTurret to y-axis <180>+oldHead speed <160.000000>;
+	wait-for-turn NanoTurret around y-axis;
 	set INBUILDSTANCE to 1;
 	
 }
 
 StopBuilding()
 {
-	hide lnano;
+	hide nanoemit;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 3000;
 	set-signal-mask 0;
 	signal SIG_BUILD;
-	turn nanosleeve to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn nanosleeve around y-axis;
+	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn NanoTurret around y-axis;
 	start-script RequestState(1);
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = lnano;
+	piecenum = Nanoemit;
 }
 
 TargetHeading(Func_Var_1)
@@ -336,50 +336,46 @@ TargetHeading(Func_Var_1)
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = ground;
 }
-/*
+//*
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nanosleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode lnano type BITMAPONLY | NOHEATCLOUD;
+		//explode NanoTurret type BITMAPONLY | NOHEATCLOUD;
 		explode door2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nanosleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode NanoTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanosleeve type SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type SMOKE | FALL | NOHEATCLOUD;
+		explode NanoTurret type SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ground type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanosleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode NanoTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }//*/
