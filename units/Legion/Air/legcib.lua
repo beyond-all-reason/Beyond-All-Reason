@@ -98,7 +98,7 @@ return {
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",
-        mygravity = 0.2,
+        		mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
 				range = 1280,
 				reloadtime = 10,
