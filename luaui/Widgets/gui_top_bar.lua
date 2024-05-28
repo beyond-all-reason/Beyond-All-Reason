@@ -34,6 +34,7 @@ local bladeSpeedMultiplier = 0.2
 local wholeTeamWastingMetalCount = 0
 
 local underflowEnabled = (Spring.GetModOptions().energy_share_rework == true)
+local underflowTranslation = { Spring.I18N('ui.topbar.underflow.generous'), Spring.I18N('ui.topbar.underflow.greedy') }
 local generousPlayer = true -- otherwise greedy
 local showUnderflowButton = true
 
@@ -774,7 +775,9 @@ local function updateResbar(res)
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
-	local underflowTranslation = { Spring.I18N('ui.topbar.underflow.generous'), Spring.I18N('ui.topbar.underflow.greedy') }
+	if underflowEnabled then
+		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus") or false
+	end
 
 	dlistResbar[res][1] = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
@@ -1883,7 +1886,6 @@ function widget:MousePress(x, y, button)
 				end
 				local area = resbarArea["energy"]
 				if underflowEnabled and showUnderflowButton and math_isInRect(x, y, area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16) then
-					generousPlayer = not generousPlayer
 					Spring.SendLuaRulesMsg("underflowToggle")
 					updateResbar("energy")
 				end
