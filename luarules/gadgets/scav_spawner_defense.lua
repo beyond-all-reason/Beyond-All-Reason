@@ -145,6 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 		needsregroup = false,
 		needsrefresh = true,
 	}
+	CommandersPopulation = 0
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -495,11 +496,9 @@ if gadgetHandler:IsSyncedCode() then
 									Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
 								if math.random() < 0.75 then
-									Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
-								end
-								if math.random() < 0.75 then
 									Spring.GiveOrderToUnit(unitID, CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
+								Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {"shift"})
 							end
 						end
@@ -969,6 +968,8 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.waveSizeMultiplier = 1
 		waveParameters.waveTimeMultiplier = 1
 
+		local waveCommanders = {}
+
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
 			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
@@ -1112,7 +1113,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if loopCounter <= 1 and mRandom() <= config.spawnChance then
+					if mRandom() <= config.spawnChance then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
@@ -1141,6 +1142,15 @@ if gadgetHandler:IsSyncedCode() then
 										cCount = cCount + 1
 									end
 								end
+							end
+						end
+					end
+					if mRandom() <= config.spawnChance then
+						for name, data in pairs(squadSpawnOptions.commanders) do
+							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation < SetCount(humanTeams)*(techAnger*0.01) then
+								waveCommanders[name] = true
+								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
+								break
 							end
 						end
 					end
@@ -1274,6 +1284,9 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
+			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+				CommandersPopulation = CommandersPopulation + 1
 			end
 			return
 		end
@@ -1783,6 +1796,9 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					spawnCreepStructuresWave()
 				end
+			end
+			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+				CommandersPopulation = CommandersPopulation - 1
 			end
 		end
 

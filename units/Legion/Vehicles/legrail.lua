@@ -32,8 +32,8 @@ return {
 		sightdistance = 525,
 		trackoffset = -7,
 		trackstrength = 5,
-		tracktype = "armsam_tracks",
-		trackwidth = 28,
+		tracktype = "armbull_tracks",
+		trackwidth = 32,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
@@ -41,8 +41,8 @@ return {
 		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weaponaa',
-			model_author = "Beherith",
-			normaltex = "unittextures/Arm_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "armvehicles",
 		},
 		featuredefs = {

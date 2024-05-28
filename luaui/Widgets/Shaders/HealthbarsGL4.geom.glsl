@@ -128,7 +128,7 @@ void main(){
 
 	// All the early bail conditions to not draw full/empty bars
 	#ifndef DEBUGSHOW
-		if (health < 0.001) return;
+		if (health < 0.00001) return;
 		if ((BARTYPE & BITPERCENTAGE) > 0u) { // for percentage bars
 			if (health > 0.995) return;
 		}else{

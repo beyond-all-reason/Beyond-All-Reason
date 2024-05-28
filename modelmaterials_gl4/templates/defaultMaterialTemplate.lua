@@ -83,6 +83,8 @@ vertex = [[
 
 	#define OPTION_TREEWIND 11
 
+	#define OPTION_TREADS_LEG 13
+
 	%%GLOBAL_OPTIONS%%
 
 	/***********************************************************************/
@@ -468,14 +470,14 @@ vertex = [[
 			%%VERTEX_UV_TRANSFORM%%
 
 			#ifdef ENABLE_OPTION_TREADS
-			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_TREADS_CORE) || BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
 				#define ATLAS_SIZE 4096.0
 				#define PX_TO_UV(x) (float(x) / ATLAS_SIZE)
 				#define IN_PIXEL_RECT(uv, left, top, width, height) (all(bvec4(	uv.x >= PX_TO_UV(left),         uv.y <= 1.f - PX_TO_UV(top),  uv.x <= PX_TO_UV(left + width), uv.y >= 1.f - PX_TO_UV(top + height) 	)))
 
 				// apply a minimum amount of "speed" when not completely stopped
-				// so that have tracks appear to "spin up/down as they dig into the ground"
-				// instead of jittering strangly at low speed
+				// so that tracks appear to "spin up/down as they dig into the ground"
+				// instead of jittering strangely at low speed
 				float unitSpeed = uni[instData.y].speed.w;
 
 				if (unitSpeed > 0.5) {
@@ -522,6 +524,17 @@ vertex = [[
 						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 28.0));
 					}
 				}
+
+				// ################# LEGION ##################
+				if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
+					const float texSpeedMult = -6.0;
+
+					if (IN_PIXEL_RECT(uvCoords, 2613, 768, 660, 404)) {
+						// Legion Rubber and Steel tracks (top right) width 55px
+						uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 55.0));
+					}
+				}
+
 				#undef ATLAS_SIZE
 				#undef IN_PIXEL_RECT
 				#undef PIXELS_TO_UV
@@ -644,6 +657,7 @@ fragment = [[
 	#define OPTION_TREEWIND 11
 	#define OPTION_PBROVERRIDE 12
 
+	#define OPTION_TREADS_LEG 13
 
 	%%GLOBAL_OPTIONS%%
 
@@ -890,9 +904,9 @@ fragment = [[
 			shadow /= float(shadowSamples);
 			*/
 		} else { //shadowSamples == 1
-			const float cb = 0.00005;
-			float bias = cb * tan(acos(NdotL));
-			bias = clamp(bias, 0.0, 5.0 * cb);
+			float shadowTexelSizeInv = 0.5 / textureSize(shadowTex, 0).x; // Used to be hard coded as 0.00005
+			float bias = shadowTexelSizeInv * tan(acos(NdotL));
+			bias = clamp(bias, 0.0, 5.0 * shadowTexelSizeInv);
 			shadowCoord.z -= bias;
 			shadow = texture( shadowTex, shadowCoord ).r;
 

@@ -124,7 +124,7 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.maxdec  = uDef.maxdec * 3
 	 		end
 	 		if uDef.builddistance then
-	 			uDef.builddistance = uDef.builddistance * 2
+	 			uDef.builddistance = uDef.builddistance * 1.25
 	 		end
 			if uDef.workertime then
 				uDef.workertime = uDef.workertime * 4
@@ -144,6 +144,18 @@ local function scavUnitDef_Post(name, uDef)
 	end
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
+	end
+
+	-- Evocom adjustments
+	if string.find(name, "armcomlvl") then -- nerf health of armada evocom, since it's invisible and hard to deal with because of that
+		if uDef.health then
+			uDef.health = uDef.health * 0.5
+		end
+	end
+
+	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then
+		uDef.explodeas = "advmetalmaker"
+		uDef.selfdestructas = "advmetalmakerSelfd"
 	end
 
 

@@ -1041,7 +1041,7 @@ local icontypes = {
 	},
 	corakt4 = {
 		bitmap = "icons/corakt4.png",
-		size = 2.30999994
+		size = 1.7
 	},
 	coralab = {
 		bitmap = "icons/factory_bot_t2.png",
@@ -2055,6 +2055,10 @@ local icontypes = {
 		bitmap = "icons/land_assistdrone.png",
 		size = 0.85000002
 	},
+	legatrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.36499989
+	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
@@ -2362,7 +2366,7 @@ local icontypes = {
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
-	},	
+	},
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002
