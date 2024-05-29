@@ -1,4 +1,4 @@
-// Author: Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // These are the general stubs for WobbleUnit and BankControl
 
 // TODO: 

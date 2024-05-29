@@ -3,7 +3,7 @@
 // And a barrel roll speed, default <120> 
 // Remember to start-script BarrelRoll(); in Create()!
 
-// By Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 #ifndef BARRELROLL_PIECE
     #define BARRELROLL_PIECE base

@@ -1,4 +1,4 @@
-// Author: Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // floatmotion.h
 // This is a nice bobbing and rocking on the waves animation.
 // Looks quite decent and performs like a champ due to interpolated proper speed turns

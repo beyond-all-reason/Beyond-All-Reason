@@ -33,7 +33,7 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position, ai
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // adjustments by Itanthias
 #define MAX_AIMY1_VELOCITY <2.20>
 #define AIMY1_ACCELERATION <0.13>

@@ -32,7 +32,8 @@ Close()
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
-	// (c) CC BY NC ND Beherith mysterme@gmail.com
+	// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <113.735764> / animSpeed; //delta=-3.79

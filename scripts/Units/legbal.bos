@@ -13,7 +13,7 @@ static-var  maxSpeed, animFramesPerKeyframe, isMoving;
 #define SIGNAL_AIM1 256
 
 
-walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
+walk() 	//Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 {
 	set-signal-mask SIGNAL_MOVE;	if (isMoving) { //Frame:4
 			turn launcher to x-axis <0.700000> speed <155.999983> / animSpeed; 

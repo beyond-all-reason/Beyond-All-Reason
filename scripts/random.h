@@ -1,5 +1,5 @@
 // random.h
-// Author (c) Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // This is a linear feedback shift register implementation of a 31 bit pseudo random number generator
 // The NEXTRANDOM func:
 //    - Takes the last two bits of the current random number and XOR's them

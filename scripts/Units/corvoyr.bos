@@ -14,7 +14,8 @@ static-var  Stunned;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_MOVE 1
 Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	//CC BY NC ND (c) Beherith
+	//Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <2.498132> speed <548.994061> / animSpeed; //delta=-18.30 

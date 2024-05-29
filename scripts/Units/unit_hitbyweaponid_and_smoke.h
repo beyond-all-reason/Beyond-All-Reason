@@ -1,4 +1,4 @@
-// Author Beherith (mysterme@gmail.com)
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // unit_hitbyweaponid_and_smoke.h
 // This header defines wether a unit should rock when hit by a weapon
 // And wether it should emit smoke if the unit's health is below a threshold

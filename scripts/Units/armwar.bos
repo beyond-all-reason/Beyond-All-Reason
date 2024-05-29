@@ -29,7 +29,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armwar_anim_walk.blend 
-	// (c) CC BY NC ND Beherith mysterme@gmail.com
+	// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
 			turn larm to x-axis <-17.134373> speed <514.031192> / animSpeed; //delta=17.13 

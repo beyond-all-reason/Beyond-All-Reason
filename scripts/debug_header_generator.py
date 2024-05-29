@@ -1,4 +1,4 @@
-# (C) Beherith mysterme@gmail.com
+# Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 numweapons = 6
 weaponcallinsX = ['AimWeapon', 'AimFromWeapon', 'FireWeapon', 'Shot', 'QueryWeapon','EndBurst','BlockShot','TargetWeight']

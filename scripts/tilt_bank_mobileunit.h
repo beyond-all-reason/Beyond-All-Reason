@@ -1,4 +1,4 @@
-// Author Beherith (mysterme@gmail.com)
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // tilt_bank_mobileunit.h
 // This header defines wether a unit shoud tilt forward and backward when accelerating
 // And wether it should lean bank left and right when turning

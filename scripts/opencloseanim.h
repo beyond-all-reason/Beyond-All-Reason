@@ -1,4 +1,4 @@
-// (c) Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 // This is header is for an uninterruptible open-close animation
 // Where you want the animation to complete fully before reversing

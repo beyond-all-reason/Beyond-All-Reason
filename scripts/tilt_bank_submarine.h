@@ -1,4 +1,4 @@
-// Author Beherith (mysterme@gmail.com)
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // tilt_bank_submarine.h
 // This header defines wether a submarine should tilt up and down on terrian height changes
 // And wether it should lean bank left and right when turning

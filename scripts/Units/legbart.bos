@@ -12,7 +12,7 @@ static-var  isMoving, isAiming, isReady;
 #define SIGNAL_AIM1 256
 
 // 
-// LICENSED CC BY NC ND to Beherith mysterme@gmail.com
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // Generated for N:\animations\corcat_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes

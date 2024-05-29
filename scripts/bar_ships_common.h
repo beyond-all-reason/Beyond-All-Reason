@@ -1,6 +1,6 @@
 // -------------------------------- WARSHIP ------------------------
 // bar_ship_common.h
-// Author: (c) Beherith (mysterme@gmail.com)
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // This is a collection of functions that provide a physical simulation of a ship
 //	- The ship is modeled as a body with two different axes of rotation moments of inertia
 // 		- Thus the rotations around X (pitch) and Z (roll) are independently calculated

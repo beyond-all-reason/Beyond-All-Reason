@@ -21,7 +21,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 #define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armack_anim_walk.blend 
-	//CC BY NC ND (c) Beherith
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-0.485482> speed <110.281531> / animSpeed; //delta=3.68 
