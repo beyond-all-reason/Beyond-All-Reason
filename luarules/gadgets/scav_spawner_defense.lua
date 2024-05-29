@@ -724,7 +724,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if config.burrowSpawnType ~= "avoid" then
 				if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
-					for _ = 1,100 do
+					for _ = 1,1000 do
 						spawnPosX = mRandom(spread, MAPSIZEX - spread)
 						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
 						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -735,13 +735,16 @@ if gadgetHandler:IsSyncedCode() then
 						if canSpawnBurrow then
 							canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 						end
+						if canSpawnBurrow then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+						end
 						if canSpawnBurrow then
 							break
 						end
 					end
 				end
 
-				if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
+				if (not canSpawnBurrow) then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
 					for _ = 1,100 do
 						spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
 						spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
@@ -779,6 +782,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
+				
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
 
 				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
@@ -1181,6 +1185,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if canSpawnStructure then
 					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+				end
+				if canSpawnStructure then
+					canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
 				end
 				if canSpawnStructure then
 					break
