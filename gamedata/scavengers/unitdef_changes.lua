@@ -171,7 +171,7 @@ customDefs.legcomlvl5 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -185,7 +185,7 @@ customDefs.legcomlvl6 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -199,7 +199,7 @@ customDefs.legcomlvl7 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -213,7 +213,7 @@ customDefs.legcomlvl8 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -227,7 +227,7 @@ customDefs.legcomlvl9 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -241,7 +241,7 @@ customDefs.legcomlvl10 = {
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
-				spawns_expire = nil,
+				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
