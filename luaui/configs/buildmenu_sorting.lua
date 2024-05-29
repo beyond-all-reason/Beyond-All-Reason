@@ -601,6 +601,7 @@ local unitOrderTable = {
    --DEFENSES LAND LRPC
    ['armbrtha']       = 110100,
    ['corint']         = 110200,
+   ['leglrpc']		  = 110300,
    ['armminivulc']    = 120100, --scavengers
    ['corminibuzz']    = 120200, --scavengers
    ['legministarfall']= 120250, --scavengers

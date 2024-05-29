@@ -65,7 +65,7 @@ return {
 			"legperdition",
 			"corfmd",
 			"corsilo",
-			"corint",
+			"leglrpc",
 			"legstarfall",
 			"leglab",
 			"legalab",

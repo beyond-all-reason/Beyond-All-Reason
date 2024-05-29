@@ -63,7 +63,7 @@ return {
 			"legperdition",
 			"corfmd",
 			"corsilo",
-			"corint",
+			"leglrpc",
 			"legstarfall",
 			"legap",
 			"legaap",
