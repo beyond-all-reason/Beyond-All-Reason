@@ -137,9 +137,21 @@ FirePrimary()
 	//shotcount = shotcount + 1;
 	//move barrel to z-axis [-8.000000] speed [500.000000];
 
-	//call-script lua_UnitScriptLight(1, shotcount);
-	//call-script lua_UnitScriptLight(2, shotcount);
-	//call-script lua_UnitScriptLight(3, shotcount);
+	//barrelA
+	call-script lua_UnitScriptLight(1, guncount);
+	call-script lua_UnitScriptLight(2, guncount);
+	//barrelB
+	call-script lua_UnitScriptLight(3, guncount);
+	call-script lua_UnitScriptLight(4, guncount);
+	//barrelC
+	call-script lua_UnitScriptLight(5, guncount);
+	call-script lua_UnitScriptLight(6, guncount);
+	//exhaust glows
+	call-script lua_UnitScriptLight(7, guncount);
+	call-script lua_UnitScriptLight(8, guncount);
+	call-script lua_UnitScriptLight(9, guncount);
+	call-script lua_UnitScriptLight(10, guncount);
+	call-script lua_UnitScriptLight(11, guncount);
 
 	wait-for-turn barrelPivot around y-axis;
 	sleep 50;
@@ -152,11 +164,11 @@ FirePrimary()
 	move barrelA to z-axis [0.000000] speed [3.500000];
 	move barrelB to z-axis [0.000000] speed [3.500000];
 	move barrelC to z-axis [0.000000] speed [3.500000];**/
-	sleep 10000;
-	move exhaustCell to z-axis [9] speed [25];
-	turn exhaustDoorA to x-axis <-45> speed <100>;
-	turn exhaustDoorB to x-axis <-45> speed <100>;
-	turn exhaustDoorC to x-axis <-45> speed <100>;
+	sleep 7500;
+	move exhaustCell to z-axis [9] speed [5];
+	turn exhaustDoorA to x-axis <-45> speed <20>;
+	turn exhaustDoorB to x-axis <-45> speed <20>;
+	turn exhaustDoorC to x-axis <-45> speed <20>;
 }
 
 TargetCleared(Func_Var_1)
@@ -173,7 +185,8 @@ Shot1(heading, pitch) {
 
 	if (guncount == 7){
 		emit-sfx 1024 + 0 from flareA;
-		move barrelA to z-axis [-10] now;
+		move barrelA to z-axis [-15] now;
+		move barrelSleeveA to z-axis [-10] now;
 		sleep 100;
 		turn barrelPivot to z-axis <-120> speed <400>;
 		//wait-for-turn barrelPivot around z-axis;
@@ -182,7 +195,8 @@ Shot1(heading, pitch) {
 	if (guncount == 10){
 		wait-for-turn barrelPivot around z-axis;
 		emit-sfx 1024 + 0 from flareB;
-		move barrelB to z-axis [-10] now;
+		move barrelB to z-axis [-15] now;
+		move barrelSleeveB to z-axis [-10] now;
 		sleep 100;
 		turn barrelPivot to z-axis <-240> speed <400>;
 		//wait-for-turn barrelPivot around z-axis;
@@ -191,7 +205,8 @@ Shot1(heading, pitch) {
 	if (guncount == 13){
 		wait-for-turn barrelPivot around z-axis;
 		emit-sfx 1024 + 0 from flareC;
-		move barrelC to z-axis [-10] now;
+		move barrelC to z-axis [-15] now;
+		move barrelSleeveC to z-axis [-10] now;
 		move exhaustCell to z-axis [0] speed [100];
 		turn exhaustDoorA to x-axis <0> speed <300>;
 		turn exhaustDoorB to x-axis <0> speed <300>;
@@ -203,9 +218,18 @@ Shot1(heading, pitch) {
 		guncount = 7;
 		sleep 200;
 		//wait-for-move barrelC along z-axis;
+		move barrelSleeveA to z-axis [0.000000] speed [8.000000];
+		sleep 200;
+		move barrelSleeveB to z-axis [0.000000] speed [8.000000];
+		sleep 200;
+		move barrelSleeveC to z-axis [0.000000] speed [8.000000];
+		wait-for-move barrelSleeveA along z-axis;
 		move barrelA to z-axis [0.000000] speed [3.500000];
+		sleep 200;
 		move barrelB to z-axis [0.000000] speed [3.500000];
+		sleep 200;
 		move barrelC to z-axis [0.000000] speed [3.500000];
+
 	}
 }
 

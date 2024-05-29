@@ -2283,6 +2283,10 @@ local icontypes = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
 	},
+	leglrpc = {
+		bitmap = "icons/leglrpc.png",
+		size = 2.41499972
+	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
 		size = 1.85
