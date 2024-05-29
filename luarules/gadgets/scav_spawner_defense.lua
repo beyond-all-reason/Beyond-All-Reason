@@ -973,6 +973,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.waveTimeMultiplier = 1
 
 		local waveCommanders = {}
+		local waveCommanderCount = 0
 
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
@@ -1153,8 +1154,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if mRandom() <= config.spawnChance then
 						for name, data in pairs(squadSpawnOptions.commanders) do
-							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation < SetCount(humanTeams)*(techAnger*0.01) then
+							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveCommanderCount < SetCount(humanTeams)*(techAnger*0.01) then
 								waveCommanders[name] = true
+								waveCommanderCount = waveCommanderCount + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
 								break
 							end
