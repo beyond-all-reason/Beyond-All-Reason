@@ -32,7 +32,7 @@ return {
 		trackoffset = 8,
 		trackstrength = 7,
 		tracktype = "corwidetracks",
-		trackwidth = 35,
+		trackwidth = 32,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.957,
