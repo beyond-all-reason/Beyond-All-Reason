@@ -167,11 +167,11 @@ customDefs.corscavdtl = {
 customDefs.legcomlvl5 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 6,
+			projectiles = 4,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
-				spawns_expire = 30,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -181,11 +181,11 @@ customDefs.legcomlvl5 = {
 customDefs.legcomlvl6 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 10,
+			projectiles = 6,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
-				spawns_expire = 30,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -195,11 +195,11 @@ customDefs.legcomlvl6 = {
 customDefs.legcomlvl7 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 5,
+			projectiles = 3,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
-				spawns_expire = 45,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -209,11 +209,11 @@ customDefs.legcomlvl7 = {
 customDefs.legcomlvl8 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 9,
+			projectiles = 5,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
-				spawns_expire = 45,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -223,11 +223,11 @@ customDefs.legcomlvl8 = {
 customDefs.legcomlvl9 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 2,
+			projectiles = 1,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
-				spawns_expire = 60,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -237,11 +237,11 @@ customDefs.legcomlvl9 = {
 customDefs.legcomlvl10 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 3,
+			projectiles = 2,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
 				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
-				spawns_expire = 60,
+				spawns_expire = nil,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}

@@ -158,6 +158,30 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.selfdestructas = "advmetalmakerSelfd"
 	end
 
+	-- Economy Boost
+	if uDef.energystorage then
+		uDef.energystorage = uDef.energystorage*1.5
+	end
+	if uDef.energyupkeep and uDef.energyupkeep < 0 then
+		uDef.energyupkeep = uDef.energyupkeep*1.5
+	end
+	if uDef.energymake then
+		uDef.energymake = uDef.energymake*1.5
+	end
+	if uDef.metalstorage then
+		uDef.metalstorage = uDef.metalstorage*2
+	end
+	if uDef.extractsmetal then
+		uDef.extractsmetal = uDef.extractsmetal*2
+	end
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+		uDef.extractsmetal = uDef.extractsmetal*2
+		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*2
+	end
+	if uDef.customparams.energyconv_efficiency then
+		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency*2
+	end
+
 
 
 	-- Extra Units for Scavs
