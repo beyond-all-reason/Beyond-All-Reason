@@ -877,8 +877,8 @@ local Turrets = {
 		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 1},
+		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 1},
 		["legrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["legjam_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 	},
@@ -924,11 +924,11 @@ local Turrets = {
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--LRPC
-		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
 		--antinukes
-		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
+		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
@@ -939,13 +939,13 @@ local Turrets = {
 	},
 	[5] = {
 		-- nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
-		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		-- misc t3 turrets
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["legministarfall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
-		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
+		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
 	},
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal
