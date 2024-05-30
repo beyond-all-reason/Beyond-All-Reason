@@ -1905,7 +1905,6 @@ if gadgetHandler:IsSyncedCode() then
 			for i = 1,#squadsTable do
 				if squadsTable[i].squadBurrow == unitID then
 					squadsTable[i].squadBurrow = nil
-					break
 				end
 			end
 
