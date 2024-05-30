@@ -117,6 +117,14 @@ customDefs.corjuno = {
 	},
 }
 
+customDefs.legstarfall = {
+	weapondefs = {
+		starfire = {
+			range = 72000,
+		}
+	},
+}
+
 
 
 
