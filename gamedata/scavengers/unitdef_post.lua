@@ -144,6 +144,7 @@ local function scavUnitDef_Post(name, uDef)
 	end
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
+		uDef.customparams.isscavcommander = true
 	end
 
 	-- Evocom adjustments
