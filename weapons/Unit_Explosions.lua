@@ -2131,7 +2131,7 @@ local unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 1670,
+			default = 3000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2153,7 +2153,7 @@ local unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 2800,
+			default = 6000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2175,7 +2175,7 @@ local unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 3900,
+			default = 20000,
 		},
 		customparams = {
 			unitexplosion = 1,
