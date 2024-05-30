@@ -154,6 +154,7 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					spawns_name = "legvision",
+					spawns_expire = 5,
 					spawns_surface = "LAND",
 				},
 				damage = {
