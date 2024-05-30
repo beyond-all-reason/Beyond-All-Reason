@@ -171,11 +171,10 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.metalstorage then
 		uDef.metalstorage = uDef.metalstorage*2
 	end
-	if uDef.extractsmetal then
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) then
 		uDef.extractsmetal = uDef.extractsmetal*2
 	end
-	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-		uDef.extractsmetal = uDef.extractsmetal*2
+	if (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
 		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*2
 	end
 	if uDef.customparams.energyconv_efficiency then
