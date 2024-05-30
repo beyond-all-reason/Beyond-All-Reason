@@ -117,29 +117,6 @@ customDefs.corjuno = {
 	},
 }
 
-customDefs.legstarfall = {
-	weapondefs = {
-		starfire = {
-			range = 72000,
-		}
-	},
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
