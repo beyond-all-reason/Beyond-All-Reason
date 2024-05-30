@@ -959,7 +959,7 @@ local options = {
         key    	= "ruins_only_t1",
         name   	= "Ruins: Only T1",
         type   	= "bool",
-        def    	= true,
+        def    	= false,
         hidden 	= true,
         section	= "options_extra",
     },
