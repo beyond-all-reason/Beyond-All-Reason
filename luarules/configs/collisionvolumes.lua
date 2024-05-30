@@ -71,12 +71,13 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 	   unit's on/off status, unarmored for on and armored for off
 ]]--
 
---Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly
+--Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly 
 local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
-
+-- number of times this table had to be touched since 2022 ~22
+-- increase this number eachtime this table gets touched
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
@@ -189,6 +190,112 @@ pieceCollisionVolume['corgator'] = {
 pieceCollisionVolume['corsala'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
 	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
+}
+
+
+pieceCollisionVolume['correap'] = {
+	['0']={36,20,46,0,3.5,0,2,1},
+	['1']={24,14,24,0,1.875,1.5,2,1},
+}
+pieceCollisionVolume['corlevlr'] = {
+	['0']={31,17,31,0,3.5,0,2,1},
+	['1']={16,10,15,0,1.875,1.5,2,1},
+}
+pieceCollisionVolume['corraid'] = {
+	['0']={33,18,39,0,3.5,0,2,1},
+	['2']={16,7,15,0,0,1,2,1},
+}
+pieceCollisionVolume['cormist'] = {
+	['0']={34,18,43,0,3.5,0,2,1},
+	['1']={20,28,24,0,0,1.5,2,1},
+}
+pieceCollisionVolume['corgarp'] = {
+	['0']={30,21,42,0,0,6,2,1},
+	['6']={16,7,15,0,-2,1.5,2,1},
+}
+pieceCollisionVolume['armflash'] = {
+	['0']={24,13,31,0,0,0,2,1},
+	['1']={16,12,16,0,0,0,2,1},
+}
+pieceCollisionVolume['armstump'] = {
+	['0']={34,18,40,0,-5,0,2,1},
+	['18']={17,16,16,1,0,0,2,1},
+}
+pieceCollisionVolume['armsam'] = {
+	['0']={26,26,43,0,0,-2,2,1},
+	['8']={16,16,20,0,0,0,2,1},
+}
+pieceCollisionVolume['armpincer'] = {
+	['0']={31,13,31,0,5,0,2,1},
+	['1']={16,12,20,0,0,0,2,1},
+}
+pieceCollisionVolume['armjanus'] = {
+	['0']={26,12,35,0,0,0,2,1},
+	['1']={20,10,20,0,0,0,2,1},
+}
+pieceCollisionVolume['armanac'] = {
+	['0']={40,19,40,0,0,0,1,1},
+	['2']={16,10,16,0,5,0,2,1},
+}
+pieceCollisionVolume['corah'] = {
+	['0']={28,16,35,0,0,0,2,1},
+	['1']={10,10,10,0,0,0,2,1},
+}
+pieceCollisionVolume['corhal'] = {
+	['0']={42,12,42,0,0,0,2,1},
+	['1']={14,10,14,0,0,0,2,1},
+}
+pieceCollisionVolume['corsnap'] = {
+	['0']={32,16,38,0,-4,0,2,1},
+	['2']={12,10,12,0,0,0,2,1},
+}
+pieceCollisionVolume['corsumo'] = {
+	['0']={38,34,36,0,0,0,2,1},
+	['2']={24,16,25,0,0,0,2,1},
+}
+pieceCollisionVolume['armfboy'] = {
+	['0']={34,40,42,0,-5,0,2,1},
+	['8']={16,16,16,0,0,0,2,1},
+}
+pieceCollisionVolume['armfido'] = {
+	['1']={26,32,34,0,-10,10,2,1},
+	['15']={12,30,12,0,0,0,2,1},
+}
+pieceCollisionVolume['corgol'] = {
+	['0']={48,44,56,0,0,0,2,1},
+	['3']={24,24,24,0,0,0,2,1},
+}
+pieceCollisionVolume['cortrem'] = {
+	['0']={40,32,44,0,0,0,2,1},
+	['1']={24,64,24,0,0,0,2,1},
+}
+pieceCollisionVolume['seal'] = {
+	['0']={28,25,34,0,0,0,2,1},
+	['1']={12,16,12,0,0,0,2,1},
+}
+pieceCollisionVolume['corban'] = {
+	['0']={26,32,34,0,0,0,2,1},
+	['3']={24,16,24,0,0,0,2,1},
+}
+pieceCollisionVolume['cormart'] = {
+	['0']={26,28,34,0,0,0,2,1},
+	['1']={12,25,12,0,-5,0,2,1},
+}
+pieceCollisionVolume['armmart'] = {
+	['0']={44,24,50,0,0,0,2,1},
+	['1']={16,32,16,0,0,0,2,1},
+}
+pieceCollisionVolume['armbull'] = {
+	['0']={44,23,52,0,5,0,2,1},
+	['4']={24,18,24,0,0,0,2,1},
+}
+pieceCollisionVolume['armlatnk'] = {
+	['0']={30,26,34,0,0,0,2,1},
+	['5']={16,16,16,0,0,0,2,1},
+}
+pieceCollisionVolume['armmanni'] = {
+	['0']={48,34,38,0,10,0,2,1},
+	['1']={24,52,24,0,0,0,2,1},
 }
 
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,

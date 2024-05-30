@@ -10,8 +10,9 @@ return {
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "28 18 35",
+		collisionvolumescales = "28 16 35",
 		collisionvolumetype = "Box",
+		usepiececollisionvolumes = 1, --------use collisionvolumes.lua
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
