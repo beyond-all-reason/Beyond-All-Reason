@@ -3,43 +3,31 @@
 "economy": {
 	"energy": {
 		// If land area >= 40% of the map then "land" config used, "water" otherwise
-		"side": {
-			"armada": {
-				"land": {
-					// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
-					// limit = random(<lower limit>..<upper limit>)
-					"armwin": [10, 20],
-					"armsolar": [8, 12],
-					"armadvsol": [8, 12],
-					"armfus": [3, 4],
-					"armafus": [4, 5]
-				},
-				"water": {
-					"armtide": [14, 25],
-					"armwin": [10, 20],
-					"armsolar": [1],
-					"armadvsol": [12, 16],
-					"armuwfus": [1, 2]
-				}
-			},
-			"cortex": {
-				"land": {
-					// "<energy_def>": [<lower limit>, <upper limit>]
-					// limit = random(<lower limit>..<upper limit>)
-					"corwin": [10, 20],
-					"corsolar": [8, 12],
-					"coradvsol": [8, 12],
-					"corfus": [3, 4],
-					"corafus": [4, 5]
-				},
-				"water": {
-					"cortide": [14, 25],
-					"corwin": [10, 20],
-					"corsolar": [1],
-					"coradvsol": [12, 16],
-					"coruwfus": [1, 2]
-				}
-			}
+		"land": {
+			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
+			// limit = random(<lower limit>..<upper limit>)
+			"armwin": [10, 20],
+			"armsolar": [8, 12],
+			"armadvsol": [8, 12],
+			"armfus": [3, 4],
+			"armafus": [4, 5],
+			"corwin": [10, 20],
+			"corsolar": [8, 12],
+			"coradvsol": [8, 12],
+			"corfus": [3, 4],
+			"corafus": [4, 5]
+		},
+		"water": {
+			"armtide": [14, 25],
+			"armwin": [10, 20],
+			"armsolar": [1],
+			"armadvsol": [12, 16],
+			"armuwfus": [1, 2],
+			"cortide": [14, 25],
+			"corwin": [10, 20],
+			"corsolar": [1],
+			"coradvsol": [12, 16],
+			"coruwfus": [1, 2]
 		},
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
