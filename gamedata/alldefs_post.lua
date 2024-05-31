@@ -666,6 +666,24 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	--Juno Rework
+	if modOptions.junorework == true then
+		if name == "armjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
+		end
+		if name == "corjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
+		end
+	end
+
 	--- EMP rework
 	if modOptions.emprework == true then
 		if name == "armstil" then
