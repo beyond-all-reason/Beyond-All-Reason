@@ -16,7 +16,7 @@ end
 
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
-local cloudMult = math.ceil(((mapx+mapz)*0.5)/5000)
+local cloudMult = math.ceil(((mapx+mapz)*0.5)/4000)
 
 function gadget:GameFrame(frame)
     for _ = 1, cloudMult do

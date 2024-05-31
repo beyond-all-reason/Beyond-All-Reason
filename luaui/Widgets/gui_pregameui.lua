@@ -279,6 +279,7 @@ end
 function widget:Initialize()
 	if (Game.startPosType == 2) and draftMode ~= nil and draftMode ~= "disabled" then
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 	if Spring.GetGameFrame() > 0 or isReplay then

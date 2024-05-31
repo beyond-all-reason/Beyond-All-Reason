@@ -632,14 +632,12 @@ local SeaUnitsList = {
 		},
 		[3] = {
 		--Armada
-		["armcarry2_scav"] = 1,
 		["armantiship_scav"] = 1,
 		["armdronecarry_scav"] = 1,
 		["armaas_scav"] = 1,
 		--Cortex
 		["cordronecarry_scav"] = 1,
 		["corantiship_scav"] = 1,
-		["corcarry2_scav"] = 1,
 		["corarch_scav"] = 1,
 		},
 		[4] = {
@@ -855,6 +853,28 @@ local Turrets = {
 		["corfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.6, maxExisting = 2},
 		["corgplat_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
 		["armgplat_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 5},
+		--Eco
+		["armsolar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["corsolar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["legsolar_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["armwin_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["corwin_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["legwin_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["legadvsol_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 2},
+		["armtide_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 3},
+		["cortide_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 3},
+		["armmstor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["cormstor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["armestor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["corestor_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["armuwms_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
+		["coruwms_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
+		["armuwes_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
+		["coruwes_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
+		["armmakr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["cormakr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.6, maxExisting = 1},
+		["armfmkr_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
+		["corfmkr_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.6, maxExisting = 1},
 	},
 	[2] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 5},
@@ -879,8 +899,8 @@ local Turrets = {
 		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
-		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
+		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 1},
+		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 1},
 		["legrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 		["legjam_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.5, maxExisting = 2},
 	},
@@ -916,6 +936,23 @@ local Turrets = {
 		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 		["armflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
 		["legflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.4, maxExisting = 4},
+		--Eco
+		["armwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["corwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["legwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 3},
+		["armfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 1},
+		["armckfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 1},
+		["corfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 1},
+		["armuwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 1},
+		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 1},
+		["armuwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.4, maxExisting = 1},
+		["coruwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.4, maxExisting = 1},
+		["armuwadves_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.4, maxExisting = 1},
+		["coruwadves_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.4, maxExisting = 1},
+		["armmmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 1},
+		["cormmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.4, maxExisting = 1},
+		["armuwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 1},
+		["coruwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.4, maxExisting = 1},
 	},
 	[4] = {
 		-- T2 popup arty
@@ -926,11 +963,11 @@ local Turrets = {
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		--LRPC
-		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
 		--antinukes
-		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
-		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
+		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
+		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.3, maxExisting = 10},
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.3, maxExisting = 2},
@@ -941,13 +978,16 @@ local Turrets = {
 	},
 	[5] = {
 		-- nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
-		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		-- misc t3 turrets
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
 		["legministarfall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 3},
-		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
+		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 1},
+		--Eco
+		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
+		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.2, maxExisting = 2},
 	},
 	[6] = {
 		--Epic Bulwark and Pulsar/rag/cal

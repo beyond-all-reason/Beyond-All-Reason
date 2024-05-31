@@ -866,7 +866,7 @@ local options = {
     {
         key 	= "unit_market",
         name 	= "Unit Market",
-        desc 	= "Allow players to trade units. (Select unit, press 'Sell Unit' or say /sell_unit in chat to mark the unit for sale. Hold ALT and double-click to buy from allies.)",
+        desc 	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
         type   	= "bool",
         def    	= false,
         section = "options_extra",
@@ -959,7 +959,7 @@ local options = {
         key    	= "ruins_only_t1",
         name   	= "Ruins: Only T1",
         type   	= "bool",
-        def    	= true,
+        def    	= false,
         hidden 	= true,
         section	= "options_extra",
     },
@@ -1199,6 +1199,15 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "energy_share_rework",
+        name 	= "Energy Share Rework",
+        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,

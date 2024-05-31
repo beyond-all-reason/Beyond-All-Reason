@@ -187,10 +187,6 @@ local icontypes = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
-	armcarry2 = {
-		bitmap = "icons/ship_t2_carrier.png",
-		size = 2.51999998
-	},
 	armch = {
 		bitmap = "icons/hover_worker.png",
 		size = 1.25999999
@@ -1148,10 +1144,6 @@ local icontypes = {
 		size = 1.34399986
 	},
 	corcarry = {
-		bitmap = "icons/ship_t2_carrier.png",
-		size = 2.51999998
-	},
-	corcarry2 = {
 		bitmap = "icons/ship_t2_carrier.png",
 		size = 2.51999998
 	},
