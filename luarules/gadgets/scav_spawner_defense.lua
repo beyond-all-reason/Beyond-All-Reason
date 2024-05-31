@@ -146,6 +146,8 @@ if gadgetHandler:IsSyncedCode() then
 		needsrefresh = true,
 	}
 	CommandersPopulation = 0
+	HumanTechLevel = 0
+	HumanTechLevelPenalty = 0
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -1606,7 +1608,13 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
+		if HumanTechLevel >= 2 and techAnger < 25 then -- Late T1
+			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
+		end
 
+		if HumanTechLevel >= 3 and techAnger < 60 then -- Early T2
+			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
+		end
 
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
@@ -1647,9 +1655,9 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			if pastFirstBoss then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0)
+				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
 			end
 			if t < config.gracePeriod then
 				bossAnger = 0
@@ -1917,6 +1925,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if unitTeam ~= scavTeamID and config.ecoBuildingsPenalty[unitDefID] then
 			playerAggressionEcoValue = playerAggressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.bossTime/3600)) -- scale to 60minutes = 3600seconds boss time
+		end
+	end
+
+	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
+			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
+			HumanTechLevel = math.max(HumanTechLevel, unitTech)
 		end
 	end
 
