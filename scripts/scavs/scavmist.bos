@@ -16,6 +16,7 @@ piece	flare;
 #define SIG_AIM 2
 //#define SIG_FIRE1 4
 //#define SIG_WALK 8
+#define SIG_BUILD 2
 //#define SMOKEPIECE1 body
 
 
@@ -30,7 +31,7 @@ Emitsmoke()
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from flare;
-		sleep 500;
+		sleep 400;
 	}
 	sleep 50;
 	start-script Emitsmoke();
@@ -62,6 +63,19 @@ FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
 	return(1);
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIG_BUILD;
+	set-signal-mask SIG_BUILD;
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	signal SIG_BUILD;	
+	set INBUILDSTANCE to 0;
 }
 
 Killed(severity, corpsetype)

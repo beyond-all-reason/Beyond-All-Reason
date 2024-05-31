@@ -203,7 +203,10 @@ local callInLists = {
 	'AlliedUnitRemoved',
 	'AlliedUnitsChanged',
 	'UnitSale',
-	'UnitSold'
+	'UnitSold',
+	'VisibleExplosion',
+	'Barrelfire',
+	'CrashingAircraft',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1335,10 +1338,12 @@ end
 
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
-	for _, w in r_ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
-		w:DrawWorld()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldList) do
+			tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
+			w:DrawWorld()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1346,10 +1351,12 @@ end
 
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
-	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
-		w:DrawWorldPreUnit()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldPreUnitList) do
+			tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
+			w:DrawWorldPreUnit()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1410,7 +1417,6 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
-
 	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
@@ -2396,6 +2402,38 @@ function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneEnd()
 end
 
+
+--------------------------------------------------------------------------------
+--
+--  GFX
+--
+
+function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:VisibleExplosion")
+	for _, w in ipairs(self.VisibleExplosionList) do
+		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:Barrelfire")
+	for _, w in ipairs(self.BarrelfireList) do
+		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("W:CrashingAircraft")
+	for _, w in ipairs(self.CrashingAircraftList) do
+		w:CrashingAircraft(unitID, unitDefID, unitTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --

@@ -33,6 +33,7 @@ return {
 		trackstrength = 10,
 		tracktype = "corwidetracks",
 		trackwidth = 34,
+		usePieceCollisionVolumes= 1,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.2573,

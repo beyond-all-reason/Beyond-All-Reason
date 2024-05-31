@@ -2,8 +2,8 @@ return {
 	leghades = {
 		maxacc = 0.06788,
 		maxdec = 0.13575,
-		energycost = 600,
-		metalcost = 50,
+		energycost = 750,
+		metalcost = 60,
 		buildpic = "LEGHADES.DDS",
 		buildtime = 1500,
 		canmove = true,

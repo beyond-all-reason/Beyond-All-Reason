@@ -49,6 +49,9 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
 			techlevel = 2,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {

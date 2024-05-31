@@ -5,16 +5,16 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "April 2024",
 		license = "Public domain",
-		layer = 1,
+		layer = 0,
 		enabled = true
 	}
 end
 
+
+
 -- synced only
 if not gadgetHandler:IsSyncedCode() then return false end
 
--- is unba com on
-if not Spring.GetModOptions().evocom then return false end
 
 local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost
 local mobileunits = {} -- stores the names of units that can move
@@ -23,7 +23,6 @@ local originalworkertimes = {}
 -- workertimeboost = number -- in the unitdefs of the builder. This is the mulitplier by which workertime is boosted.
 -- wtboostunittype = defined in unitdef of builder, it's a table of strings such as "MOBILE" which defines what units boost buildpower for the builder.
 	
---step 1, FOR make a table containing the  names of the units that can boost
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed then
 		if def.customParams.workertimeboost then
@@ -31,14 +30,16 @@ for id, def in pairs(UnitDefs) do
 			boostedworkertimes[id] = def.buildSpeed * def.customParams.workertimeboost--adds the key "id" unitname to the list. Boostable builders represented the boosted workertime.
 		end
 	end
-
 	if def.speed and def.speed ~= 0 then
 		mobileunits[id] = true
 	end
-
 	if def.customParams.wtboostunittype then
 		boosttriggers[id] = def.customParams.wtboostunittype --stores the string of the builder that defines unit categories
 	end
+end
+
+if table.count(originalworkertimes) <= 0 then -- this enables or disables the gadget
+	return false
 end
 
 local boostedtofinish = {}-- going to store the key of unitID equal to the builderID
@@ -47,7 +48,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if  builderID ~= nil then
 		local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
 		local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
-	
 		if boost and trigger and builderID then
 			if string.find(trigger, "MOBILE") and mobileunits[unitDefID] then
 				Spring.SetUnitBuildSpeed(builderID, boost)

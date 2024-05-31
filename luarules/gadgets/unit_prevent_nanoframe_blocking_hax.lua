@@ -79,10 +79,12 @@ local function CheckUnit(unitID)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	--local _,buildProgress = Spring.GetUnitIsBeingBuilt(unitID)	-- buildProgress is always 0 on UnitCreated
-	local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
-	if projectileBlocking then
-		AddNanoFrame(unitID)
+	--local _,buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	if builderID then
+		local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
+		if projectileBlocking then
+			AddNanoFrame(unitID)
+		end
 	end
 end
 

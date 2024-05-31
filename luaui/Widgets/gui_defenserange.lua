@@ -94,9 +94,19 @@ modConfig["BYAR"]["unitList"] = {
 	corbuzz = { weapons = { 1 } },
 	
 	--LEGION
-	legstarfall = { weapons = { 1 } },
-	legbombard = { weapons = { 1 } },
-	legperdition = { weapons = { 1 } },
+
+	leglht = { weapons = { 1 } }, -- t1 heatray tower
+	legmg = { weapons = { 1 } }, -- machine gun tower
+	legdtr = { weapons = { 1 } }, -- t1 pop-up riot cannon
+	legcluster = { weapons = { 1 } },  -- t1 cluster arty
+
+	legrl = { weapons = { 2 } }, -- t1 light aa turret
+	legrhapsis = { weapons = { 2 } }, -- t1 salvo aa
+	leglupara = { weapons = { 2 } }, -- t1.5 burst flak
+
+	legstarfall = { weapons = { 1 } }, -- LOLCannon
+	legbombard = { weapons = { 1 } }, -- t2 pop-up
+	legperdition = { weapons = { 1 } }, -- tacnuke
 	
 	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },

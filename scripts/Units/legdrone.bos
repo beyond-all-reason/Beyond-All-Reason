@@ -3,7 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, thrust, base2, lloarm, lgun, lfire;
+piece  base, lwing, rwing, bwing, lblades, rblades, bblades, lflare, rflare;
+
+static-var gun;
 
 #define SIG_AIM				2
 
@@ -20,8 +22,9 @@ piece  base, flare, thrust, base2, lloarm, lgun, lfire;
 
 Create()
 {
-	hide flare;
-	hide thrust;
+	gun = 0;
+	hide lflare;
+	hide rflare;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -31,22 +34,49 @@ Create()
 
 Activate()
 {
-	show thrust;
+	spin lblades around y-axis speed <-800>;
+	spin rblades around y-axis speed <-800>;
+	spin bblades around y-axis speed <-800>;
+	
+	turn lwing to y-axis <-15> speed <60>;
+	turn rwing to y-axis <15> speed <60>;
+	
+	turn lwing to z-axis <-15> speed <60>;
+	turn rwing to z-axis <15> speed <60>;
+	turn bwing to x-axis <15> speed <60>;
 }
 
 Deactivate()
 {
-	hide thrust;
+	stop-spin lblades around y-axis decelerate <100>;
+	stop-spin rblades around y-axis decelerate <100>;
+	stop-spin bblades around y-axis decelerate <100>;
+	
+	turn lwing to y-axis <0> speed <10>;
+	turn rwing to y-axis <0> speed <10>;
+	
+	turn lwing to z-axis <45> speed <30>;
+	turn rwing to z-axis <-45> speed <30>;
+	turn bwing to x-axis <-45> speed <30>;
 }
 
 QueryPrimary(piecenum)
-{
-	piecenum = flare;
+{	
+	if (gun == 0)
+	{
+		piecenum = lflare;
+		gun = 1;
+	}
+	if (gun == 1)
+	{
+		piecenum = rflare;
+		gun = 0;
+	}
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = base;
 }
 
 AimPrimary(heading, pitch)
@@ -68,18 +98,8 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-PostFire()
-{
-    show flare;
-	move lgun to z-axis [-1.00000] speed [50.000000];
-	sleep 200;
-	move lgun to z-axis [0] speed [10.000000];
-	hide flare;
-}
-
 FirePrimary()
 {
-	start-script PostFire();
 	return (1);
 }
 
@@ -89,25 +109,33 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode lwing type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type BITMAPONLY | NOHEATCLOUD;
+		explode bwing type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode bwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode bwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

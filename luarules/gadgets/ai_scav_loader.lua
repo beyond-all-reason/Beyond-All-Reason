@@ -52,9 +52,9 @@ else
 
 	function SendNotification(_,msg)
 		if Spring.GetConfigInt("scavmessages",1) == 1 then
-			if Script.LuaUI("EventBroadcast") then
+			if Script.LuaUI("NotificationEvent") then
 				local forceplay = (Spring.GetConfigInt("scavaudiomessages",1) == 1) and ' y' or ''
-				Script.LuaUI.EventBroadcast("SoundEvents "..msg.." "..myPlayerID..forceplay)
+				Script.LuaUI.NotificationEvent("SoundEvents "..msg.." "..myPlayerID..forceplay)
 			end
 		end
 	end

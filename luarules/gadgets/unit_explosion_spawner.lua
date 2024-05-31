@@ -108,7 +108,7 @@ local function SpawnUnit(spawnData)
 			
 			local unitID = nil
 			if validSurface == true then 
-				spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+				unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface

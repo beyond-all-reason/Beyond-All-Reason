@@ -16,6 +16,8 @@ if Game.startPosType ~= 2 then
 	return false
 end
 
+local draftMode = Spring.GetModOptions().draft_mode
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = 0.5 + (vsx * vsy / 5700000)
@@ -185,7 +187,9 @@ local function createInfotextList()
 	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
+		if draftMode == nil or draftMode == "disabled" then
+			font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
+		end
 		font:End()
 	end)
 end
@@ -526,9 +530,11 @@ function widget:Update(delta)
 		end
 	end
 
-	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
-		playedChooseStartLoc = true
-		WG['notifications'].addEvent('ChooseStartLoc', true)
+	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
+		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+			playedChooseStartLoc = true
+			WG['notifications'].addEvent('ChooseStartLoc', true)
+		end
 	end
 
 	sec = sec + delta

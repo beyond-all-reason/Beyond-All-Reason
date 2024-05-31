@@ -45,6 +45,9 @@ return {
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
 			legacyname = "Gaat Gun",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {

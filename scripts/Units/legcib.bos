@@ -3,9 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, firepoint, thrust;
+// piece  base, firepoint, thrust;
+piece chassis, firepoint, launcher, rThrust, lThrust, 
+rWingPivot, rWingA, rWingB, rWingC,
+lWingPivot, lWingA, lWingB, lWingC;
 
-static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging;
+
+static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 // Signal definitions
 #define SIG_AIM_2			2
@@ -13,25 +17,96 @@ static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	sleep 10;
+	//sleep 10;
+	show lThrust;
+	show rThrust;
+
+	turn rWingPivot to z-axis <-25> speed [1];
+	turn lWingPivot to z-axis <25> speed [1];
+	
+	move rWingC to x-axis [0] speed [7];
+	move rWingB to x-axis [0] speed [7];
+	move lWingC to x-axis [0] speed [7];
+	move lWingB to x-axis [0] speed [7];
+	wait-for-move rWingB along x-axis;
+
+	move rWingC to y-axis [0] speed [7];
+	move rWingB to y-axis [0] speed [7];
+	move lWingC to y-axis [0] speed [7];
+	move lWingB to y-axis [0] speed [7];
+	wait-for-move rWingB along y-axis;
+
+	move rWingC to z-axis [0] speed [7];
+	move rWingB to z-axis [0] speed [7];
+	move lWingC to z-axis [0] speed [7];
+	move lWingB to z-axis [0] speed [7];
+	wait-for-move rWingB along z-axis;
+
 }
 
 deactivatescr()
 {
-	sleep 10;
+	//sleep 10;
+	hide lThrust;
+	hide rThrust;
+
+	turn rWingPivot to z-axis <0> speed [1];
+	turn lWingPivot to z-axis <0> speed [1];
+
+	move rWingC to z-axis [-3.7] speed [10];
+	move rWingB to z-axis [-3.7] speed [10];
+	move lWingC to z-axis [-3.7] speed [10];
+	move lWingB to z-axis [-3.7] speed [10];
+	wait-for-move rWingB along z-axis;
+
+	move rWingC to y-axis [-1.4] speed [10];
+	move rWingB to y-axis [-1.4] speed [10];
+	move lWingC to y-axis [-1.4] speed [10];
+	move lWingB to y-axis [-1.4] speed [10];
+	wait-for-move rWingB along y-axis;
+
+	move rWingC to x-axis [-7.1] speed [10];
+	move rWingB to x-axis [-7.1] speed [10];
+	move lWingC to x-axis [7.1] speed [10];
+	move lWingB to x-axis [7.1] speed [10];
+	//wait-for-move rWingB along x-axis;
+
 }
 
 
-#define BASEPIECE base
+#define BASEPIECE chassis
 #define HITSPEED <105.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
 
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 500;
+	turn launcher to x-axis <-10> speed <10>;
+	start-script ExecuteRestoreAfterDelay();
+}
+
 InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+	show lThrust;
+	show rThrust;	
+	start-script RequestState(0);
 }
 
 RequestState(requestedstate, currentstate)
@@ -62,22 +137,74 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide thrust;
+	//hide thrust;
+	//hide firepoint;
+
+	hide rThrust;
+	hide lThrust;
 	hide firepoint;
+
+	turn rWingPivot to z-axis <-25> now;
+	turn lWingPivot to z-axis <25> now;
+
+	turn launcher to x-axis <-10> now;
+
+	move rWingC to y-axis [-1.4] now;
+	move rWingB to y-axis [-1.4] now;
+	move lWingC to y-axis [-1.4] now;
+	move lWingB to y-axis [-1.4] now;
+	wait-for-move rWingB along y-axis;
+
+	move rWingC to z-axis [-3.7] now;
+	move rWingB to z-axis [-3.7] now;
+	move lWingC to z-axis [-3.7] now;
+	move lWingB to z-axis [-3.7] now;
+	//wait-for-move rWingB along z-axis;
+
+	move rWingC to x-axis [-7.1] now;
+	move rWingB to x-axis [-7.1] now;
+	move lWingC to x-axis [7.1] now;
+	move lWingB to x-axis [7.1] now;
+	//wait-for-move rWingB along x-axis;
+
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 10;
+	}
 	Static_Var_1 = 3000;
 	call-script InitState();
 }
 
 Activate()
 {
-	show thrust;
+	show lThrust;
+	show rThrust;	
 	start-script RequestState(0);
+	return(0);
 }
 
 Deactivate()
 {
-	hide thrust;
+	hide lThrust;
+	hide rThrust;
 	start-script RequestState(1);
+	return(0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn launcher to x-axis <10> speed <50>;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 1024 + 0 from firepoint;
+	sleep 100;
+	return (0);
 }
 
 QueryPrimary(piecenum)
@@ -88,7 +215,7 @@ QueryPrimary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = chassis;
 }
 
 Killed(severity, corpsetype)
@@ -96,26 +223,26 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		explode firepoint type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		explode firepoint type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		explode firepoint type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		explode firepoint type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

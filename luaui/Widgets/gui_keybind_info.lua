@@ -20,15 +20,15 @@ local lineType = {
 	key = 3,
 }
 
-local tabs = {"Keybindings", "Default Keys", "CTRL Keys", "ALT Keys", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys",}
+local tabs = {"Keybindings", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys", "Legacy Keys", "Legacy CTRL Keys", "Legacy ALT Keys",}
 
 local keybindsimages = {
-	['Default Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts.png",
-	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_CTRL.png",
-	['ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_ALT.png",
-	['Grid Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID.png",
-	['Grid CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_CTRL.png",
-	['Grid ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_ALT.png",
+	["Grid Keys"]        = "luaui/images/keybinds/grid_keys.png",
+	['Grid CTRL Keys']   = "luaui/images/keybinds/grid_keys_CTRL.png",
+	['Grid ALT Keys']    = "luaui/images/keybinds/grid_keys_ALT.png",
+	['Legacy Keys']      = "luaui/images/keybinds/legacy_keys.png",
+	['Legacy CTRL Keys'] = "luaui/images/keybinds/legacy_keys_CTRL.png",
+	['Legacy ALT Keys']  = "luaui/images/keybinds/legacy_keys_ALT.png",
 }
 
 local tabrects = {}
@@ -118,19 +118,6 @@ local function drawWindow(activetab)
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	local titleFontSize = 18 * widgetScale
-	-- title background
-	--[[
-	local title = Spring.I18N('ui.keybinds.title')
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
-
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
-
-	local showtabtext = "Show"
-	showtabRect = { math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), screenY, math.floor(screenX + 2*(font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
-
-	RectRound(showtabRect[1], showtabRect[2], showtabRect[3], showtabRect[4], elementCorner, 1, 1, 0, 0)
-	]]--
 
 	local tabx = 0
 	for i,tab in ipairs(tabs) do
@@ -197,10 +184,6 @@ local function drawWindow(activetab)
 		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
 		font:End()
 	end
-
-	--[[
-
-	]]--
 end
 
 local function refreshText()
@@ -216,7 +199,6 @@ local function refreshText()
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.menus.title') },
 		{ type = lineType.key, key = getActionHotkey('options'),		text = Spring.I18N('ui.keybinds.menus.settings')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.menus.widgetsKey'),		text = Spring.I18N('ui.keybinds.menus.widgets')		},
 		{ type = lineType.key, key = getActionHotkey('sharedialog'),			text = Spring.I18N('ui.keybinds.menus.share')		},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.camera.title') },
@@ -227,7 +209,7 @@ local function refreshText()
 		{ type = lineType.key, key = getActionHotkey('cameraflip'),	text = Spring.I18N('ui.keybinds.camera.flip')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.cameraModes.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.changeKey'),			text = Spring.I18N('ui.keybinds.cameraModes.change')		},
+		{ type = lineType.key, key = getActionHotkey('viewta') .. ', ' .. getActionHotkey('viewspring'),			text = Spring.I18N('ui.keybinds.cameraModes.change')		},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.fullscreenKey'),		text = Spring.I18N('ui.keybinds.cameraModes.fullscreen')	},
 		{ type = lineType.key, key = getActionHotkey('toggleoverview'),		text = Spring.I18N('ui.keybinds.cameraModes.overview')		},
 		{ type = lineType.key, key = getActionHotkey('togglelos'),				text = Spring.I18N('ui.keybinds.cameraModes.los')			},
@@ -252,7 +234,7 @@ local function refreshText()
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.defaultKey'),		text = Spring.I18N('ui.keybinds.orders.default')		},
 		{ type = lineType.key, key = getActionHotkey('move'),			text = Spring.I18N('ui.keybinds.orders.move')			},
 		{ type = lineType.key, key = getActionHotkey('attack'),		text = Spring.I18N('ui.keybinds.orders.attack')			},
-		{ type = lineType.key, key = getActionHotkey('settargetnoground'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
+		{ type = lineType.key, key = getActionHotkey('settarget'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
 		{ type = lineType.key, key = getActionHotkey('repair'),		text = Spring.I18N('ui.keybinds.orders.repair')			},
 		{ type = lineType.key, key = getActionHotkey('reclaim'),		text = Spring.I18N('ui.keybinds.orders.reclaim')		},
 		{ type = lineType.key, key = getActionHotkey('resurrect'),	text = Spring.I18N('ui.keybinds.orders.resurrect')		},

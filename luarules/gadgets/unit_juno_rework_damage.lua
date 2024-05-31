@@ -342,6 +342,7 @@ local todenyUnitsNames = {
 				if expl.t + fadetime >= curtime or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
 					update = true -- fast update during fade in/out
 				end
+
 			end
 		end
 

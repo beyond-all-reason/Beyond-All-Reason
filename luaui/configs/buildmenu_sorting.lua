@@ -28,6 +28,7 @@ local unitOrderTable = {
 
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
+	['legch']          = 002060,
 
 	['armrectr']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
@@ -144,6 +145,7 @@ local unitOrderTable = {
 
 	['armsh']          = 004500, --HOVER
 	['corsh']          = 004510,
+	['legsh']         = 004520,
 
 	-- EMP
 	['corbw']          = 004800, --EMP
@@ -163,10 +165,11 @@ local unitOrderTable = {
 	['corlevlr']       = 005210,
 	['armstump']       = 005220,
 	['corraid']        = 005230,
+	['leghelios']	   = 005231,
+	['leggat']		   = 005232,
 	['armanac']        = 005240,
 	['corsnap']        = 005250,
-	['leghelios']	   = 005251,
-	['leggat']		   = 005252,
+	['legner']         = 005255,
 
 	['armrock']        = 005300, --ROCKETS
 	['corstorm']       = 005310,
@@ -176,9 +179,11 @@ local unitOrderTable = {
 	['corthud']        = 005410,
 	['armart']         = 005420,
 	['corwolv']        = 005430,
-	['armmh']          = 005420,
-	['cormh']          = 005430,
-	['legbar']         = 005440,
+	['legbar']         = 005435,
+	['armmh']          = 005440,
+	['cormh']          = 005450,
+	['legmh']         = 005460,
+
 
 	['armwar']         = 005600, --STRONK
 	['legkark']        = 005610,
@@ -306,6 +311,7 @@ local unitOrderTable = {
 
 	['armah']          = 008300,
 	['corah']          = 008310,
+	['legah']         = 008320,
 
 	-- -- T2 AA
 	-- ['armaak']         = 008500,
@@ -383,6 +389,7 @@ local unitOrderTable = {
 	-- TRANSPORTS
 	['armatlas']       = 010500,
 	['corvalk']        = 010510,
+	['legatrans']      = 010520,
 
 	['armtship']       = 010540,
 	['cortship']       = 010550,
@@ -401,10 +408,8 @@ local unitOrderTable = {
 
 	['armcarry']       = 020100,
 	['armantiship']	   = 020101,
-	['armcarry2']      = 020105,
 	['corcarry']       = 020110,
 	['corantiship']    = 020111,
-	['corcarry2']      = 020115,
 
 -- BUILDINGS
    --ECO METAL MEX
@@ -488,6 +493,7 @@ local unitOrderTable = {
    ['legap']          = 102230,
    ['armhp']          = 102250,
    ['corhp']          = 102275,
+   ['leghp']          = 102278,
 
    ['armalab']        = 102400,
    ['coralab']        = 102425,
@@ -513,10 +519,12 @@ local unitOrderTable = {
    ['coreyes']        = 103050,
    ['armrad']         = 103100,
    ['corrad']         = 103150,
+   ['legrad']         = 103160,
    ['armarad']        = 103200,
    ['corarad']        = 103250,
    ['armjamt']        = 103300,
    ['corjamt']        = 103350,
+   ['legjam']         = 103360,
    ['armveil']        = 103400,
    ['corshroud']      = 103450,
    ['armjuno']        = 103500,
@@ -541,6 +549,7 @@ local unitOrderTable = {
    ['legforti']        = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
+   ['legdtr']     	  = 104704, --legion
    ['corscavdtl']     = 104705, --scavengers
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
@@ -562,6 +571,7 @@ local unitOrderTable = {
    --DEFENSES LAND T1
    ['armllt']         = 106100,
    ['corllt']         = 106200,
+   ['leglht']         = 106250,
    ['armbeamer']      = 106300,
    ['corhllt']        = 106400,
    ['corhllllt']      = 106500, --scavengers
@@ -570,6 +580,7 @@ local unitOrderTable = {
    ['legdefcarryt1']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
+   ['legcluster']         = 106950,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun
@@ -598,10 +609,13 @@ local unitOrderTable = {
    --DEFENSES AA
    ['armrl']          = 130100,
    ['corrl']          = 130200,
+   ['legrl']          = 130250,
    ['armferret']      = 130300,
    ['cormadsam']      = 130400,
+   ['legrhapsis']      = 130450,
    ['armcir']         = 130500,
    ['corerad']        = 130600,
+   ['leglupara']        = 130700,
 
    ['armflak']        = 153000,
    ['corflak']        = 153500,
@@ -662,6 +676,7 @@ local unitOrderTable = {
    ['corsy']          = 211200,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
+   ['legfhp']         = 212250,
    ['armamsub']       = 213100,
    ['coramsub']       = 213200,
    ['armplat']        = 214100,
