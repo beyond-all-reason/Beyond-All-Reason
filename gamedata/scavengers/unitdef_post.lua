@@ -161,25 +161,25 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Economy Boost
 	if uDef.energystorage then
-		uDef.energystorage = uDef.energystorage*1.5
+		uDef.energystorage = uDef.energystorage*1.1
 	end
 	if uDef.energyupkeep and uDef.energyupkeep < 0 then
-		uDef.energyupkeep = uDef.energyupkeep*1.5
+		uDef.energyupkeep = uDef.energyupkeep*1.1
 	end
 	if uDef.energymake then
-		uDef.energymake = uDef.energymake*1.5
+		uDef.energymake = uDef.energymake*1.1
 	end
 	if uDef.metalstorage then
-		uDef.metalstorage = uDef.metalstorage*2
+		uDef.metalstorage = uDef.metalstorage*1.2
 	end
 	if (uDef.extractsmetal and uDef.extractsmetal > 0) then
-		uDef.extractsmetal = uDef.extractsmetal*2
+		uDef.extractsmetal = uDef.extractsmetal*1.2
 	end
 	if (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*2
+		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*1.2
 	end
-	if uDef.customparams.energyconv_efficiency then
-		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency*2
+	if uDef.customparams.energyconv_capacity then
+		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity*1.2
 	end
 
 
