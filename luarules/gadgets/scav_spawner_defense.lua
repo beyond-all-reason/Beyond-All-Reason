@@ -1608,11 +1608,11 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		if HumanTechLevel >= 2 and techAnger < 25 then -- Late T1
+		if HumanTechLevel >= 2 and techAnger < config.tierConfiguration[3].minAnger then -- Early T2
 			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
 		end
 
-		if HumanTechLevel >= 3 and techAnger < 60 then -- Early T2
+		if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
 			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
 		end
 
