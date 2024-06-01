@@ -42,6 +42,9 @@ return {
 			--removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "BOTCANNON",
+			parentsinheritxp = "BOTCANNON",
 		},
 		featuredefs = {
 			dead = {

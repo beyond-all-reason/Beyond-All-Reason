@@ -22,7 +22,10 @@ local LineTypes = {
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
 local showHistoryWhenChatInput = true
+
+local showHistoryWhenCtrlShift = true
 local enableShortcutClick = true -- enable ctrl+click to goto mapmark coords... while not being in history mode
+
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
 local posX = 0.3
@@ -1333,7 +1336,7 @@ function widget:Update(dt)
 		currentChatLine = #chatLines
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and shift then
+		if showHistoryWhenCtrlShift and ctrl and shift then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
 			else
@@ -2118,6 +2121,15 @@ function widget:TextCommand(command)
 			Spring.Echo("Showing all spectator chat again")
 		end
 	end
+	if string.sub(command, 1, 18) == 'preventhistorymode' then
+		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
+		enableShortcutClick = not enableShortcutClick
+		if not showHistoryWhenCtrlShift then
+			Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
+		else
+			Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
+		end
+	end
 end
 
 function widget:ViewResize()
@@ -2338,6 +2350,8 @@ function widget:GetConfigData(data)
 		inputButton = inputButton,
 		hide = hide,
 		showHistoryWhenChatInput = showHistoryWhenChatInput,
+		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
+		enableShortcutClick = enableShortcutClick,
 		version = 1,
 	}
 end
@@ -2357,6 +2371,12 @@ function widget:SetConfigData(data)
 	end
 	if data.sndChatFileVolume ~= nil then
 		sndChatFileVolume = data.sndChatFileVolume
+	end
+	if data.showHistoryWhenCtrlShift ~= nil then
+		showHistoryWhenCtrlShift = data.showHistoryWhenCtrlShift
+	end
+	if data.enableShortcutClick ~= nil then
+		enableShortcutClick = data.enableShortcutClick
 	end
 	if data.sndMapmarkFileVolume ~= nil then
 		sndMapmarkFileVolume = data.sndMapmarkFileVolume

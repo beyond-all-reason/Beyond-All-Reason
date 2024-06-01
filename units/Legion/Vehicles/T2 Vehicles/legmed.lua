@@ -115,7 +115,7 @@ return {
 				impulseboost = 0.2,
 				impulsefactor = 0.2,
 				metalpershot = 0,
-				model = "corvrocket.s3o",
+				model = "leghomingmissile.s3o",
 				name = "Missiles",
 				noselfdamage = true,
 				range = 950,

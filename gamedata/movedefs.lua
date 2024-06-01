@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2 corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,

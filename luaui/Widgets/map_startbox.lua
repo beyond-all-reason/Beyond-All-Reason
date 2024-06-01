@@ -187,7 +187,7 @@ local function createInfotextList()
 	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		if draftMode == nil or draftMode == "disabled" or draftMode == "fair" then
+		if draftMode == nil or draftMode == "disabled" then
 			font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
 		end
 		font:End()
@@ -530,9 +530,11 @@ function widget:Update(delta)
 		end
 	end
 
-	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
-		playedChooseStartLoc = true
-		WG['notifications'].addEvent('ChooseStartLoc', true)
+	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
+		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+			playedChooseStartLoc = true
+			WG['notifications'].addEvent('ChooseStartLoc', true)
+		end
 	end
 
 	sec = sec + delta

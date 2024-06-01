@@ -36,15 +36,39 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
+local legionLobberUnitsT1 = {
+	"legcen_scav",
+	"legkark_scav",
+	"legbal_scav",
+	"leggat_scav",
+	"legrail_scav",
+	"legbar_scav",
+}
+local legionLobberUnitsT2 = {
+	"legstr_scav",
+	"leginfestor_scav",
+	"legbart_scav",
+	"legsrail_scav",
+	"legmrv_scav",
+	"legfloat_scav",
+}
+local legionLobberUnitsT3 = {
+	"leginf_scav",
+	"legsco_scav",
+	"leginc_scav",
+	"legmed_scav",
+}
+
 customDefs.armsilo = {
 	weapondefs = {
 		nuclear_missile = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -53,12 +77,13 @@ customDefs.armsilo = {
 customDefs.corsilo = {
 	weapondefs = {
 		crblmssl = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -67,13 +92,14 @@ customDefs.corsilo = {
 customDefs.armjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -82,39 +108,25 @@ customDefs.armjuno = {
 customDefs.corjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
 
 customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
+	decoyfor = "corcom_scav",
 }
 
 customDefs.armclaw = {
@@ -141,6 +153,89 @@ customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
 
+customDefs.legcomlvl5 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 4,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl6 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 6,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl7 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 3,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl8 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 5,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl9 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 1,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl10 = {
+	weapondefs = {
+		napalmmissile = {
+			projectiles = 2,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
 
 -- local scavConstructorsList = {
 -- 	-- rezzers

@@ -24,38 +24,39 @@ else
 end
 
 local aliveHealers = {}
-local healersTable = {
-    [UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = {
+local healersTable = {}
+if Spring.Utilities.Gametype.IsRaptors() then
+    healersTable[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = {
         healingpower = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].repairSpeed,
         healingrange = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].buildDistance*2,
         canbehealed = false,
-    },
-    [UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = {
+    }
+    healersTable[UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = {
         healingpower = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].repairSpeed,
         healingrange = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].buildDistance*2,
         canbehealed = false,
-    },
-    [UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = {
+    }
+    healersTable[UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = {
         healingpower = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].repairSpeed,
         healingrange = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].buildDistance*2,
         canbehealed = false,
-    },
-    [UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = {
+    }
+    healersTable[UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = {
         healingpower = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].repairSpeed,
         healingrange = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].buildDistance*2,
         canbehealed = false,
-    },
-    [UnitDefNames["raptor_matriarch_healer"].id] = {
+    }
+    healersTable[UnitDefNames["raptor_matriarch_healer"].id] = {
         healingpower = UnitDefNames["raptor_matriarch_healer"].repairSpeed,
         healingrange = UnitDefNames["raptor_matriarch_healer"].buildDistance*2,
         canbehealed = false,
-    },
-}
+    }
+end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.customParams.isscavenger and unitDef.canRepair and unitDef.repairSpeed and unitDef.buildDistance then
         healersTable[unitDefID] = {
-            healingpower = unitDef.repairSpeed,
+            healingpower = unitDef.repairSpeed*0.1,
             healingrange = unitDef.buildDistance*2,
             canbehealed = true,
         }
@@ -65,6 +66,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if healersTable[unitDefID] then
+        --Spring.Echo("Created Area Healer", unitID, UnitDefs[unitDefID].name)
         aliveHealers[unitID] = {
             healingpower = healersTable[unitDefID].healingpower,
             healingrange = healersTable[unitDefID].healingrange,
@@ -75,6 +77,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
     if aliveHealers[unitID] then
+        --Spring.Echo("Removed Area Healer", unitID, UnitDefs[unitDefID].name)
         aliveHealers[unitID] = nil
     end
 end
@@ -82,6 +85,7 @@ end
 function gadget:GameFrame(frame)
     for unitID, statsTable in pairs(aliveHealers) do
         if unitID%30 == frame%30 then
+            --Spring.Echo("Alive Healer ID", unitID, UnitDefs[Spring.GetUnitDefID(unitID)].name)
             local x,y,z = Spring.GetUnitPosition(unitID)
             local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
             for i = 1,#surroundingUnits do

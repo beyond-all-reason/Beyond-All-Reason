@@ -44,11 +44,12 @@ local header = {
 	"unitsKilled",
 	"unitsDied",
 	"damageEfficiency",
-	"aggressionLevel",
 	"metalProduced",
 	"metalExcess",
 	"energyProduced",
 	"energyExcess",
+	"aggressionLevel",
+	"actionsPerMinute",
 }
 
 local headerRemap = {}	-- filled in initialize
@@ -228,6 +229,7 @@ local function refreshHeaders()
 		unitsDied = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsDied')},
 		unitsKilled = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsKilled')},
 		aggressionLevel = {Spring.I18N('ui.teamStats.aggression'), Spring.I18N('ui.teamStats.aggressionLevel')},
+		actionsPerMinute = {Spring.I18N('ui.teamStats.actionsPerMinute1'), Spring.I18N('ui.teamStats.actionsPerMinute2')},
 	}
 end
 
@@ -313,6 +315,7 @@ function widget:GameFrame(n,forceupdate)
 		local allyVec = {}
 		local allyTotal = {}
 		local teamInsertCount = 1
+		local teamAPM = WG.teamAPM or {}
 		for _,teamID in ipairs(GetTeamList(allyTeamID)) do
 			if teamID ~= GetGaiaTeamID() then
 				local range = GetTeamStatsHistory(teamID)
@@ -324,6 +327,7 @@ function widget:GameFrame(n,forceupdate)
 					history.resourcesExcess = history.metalExcess + history.energyExcess/60
 					history.resourcesSent = history.metalSent + history.energySent/60
 					history.resourcesReceived = history.metalReceived + history.energyReceived/60
+					history.actionsPerMinute = teamAPM[teamID] or 0
 					for varName,value in pairs(history) do
 						allyTotal[varName] = (allyTotal[varName] or 0 ) + value
 					end

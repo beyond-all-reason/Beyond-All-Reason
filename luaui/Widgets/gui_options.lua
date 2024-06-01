@@ -658,7 +658,7 @@ function DrawWindow()
 	local column = 1
 	local drawColumnPos = 1
 
-	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
+	maxColumnRows = math.ceil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
 	local dontFilterGroup = false
@@ -788,6 +788,7 @@ function DrawWindow()
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
 							end
+							options[oid].nametext = text
 							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
@@ -844,6 +845,7 @@ function DrawWindow()
 									end
 									text = text .. '...'
 								end
+								options[oid].nametext = text
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
@@ -1281,7 +1283,16 @@ function widget:DrawScreen()
 								if options[i].restart then
 									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
 								end
-								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								local showTooltip = true
+								if options[i].nametext and string.find(options[i].nametext, desc) then
+									if string.len(desc) == (string.len(options[i].nametext)+1)-string.find(options[i].nametext, desc) then
+										showTooltip = false
+									end
+								end
+								if showTooltip then
+									desc = font:WrapText(desc, WG['tooltip'].getFontsize() * 90)
+									WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								end
 							end
 							break
 						end
@@ -3231,6 +3242,11 @@ function init()
 			onchange = function(i, value)
 				local language = languageCodes[value]
 				WG['language'].setLanguage(language)
+				if widgetHandler.orderList["Notifications"] ~= nil then
+					widgetHandler:DisableWidget("Notifications")
+					widgetHandler:EnableWidget("Notifications")
+					init()
+				end
 			end
 		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
@@ -3661,6 +3677,31 @@ function init()
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = Spring.I18N('ui.settings.option.buildbar'), type = "bool", value = GetWidgetToggleValue("BuildBar"), description = Spring.I18N('ui.settings.option.buildbar_descr') },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
+
+		{ id = "seeprices", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.seeprices'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getSeePrices() or 0), description = Spring.I18N('ui.settings.option.seeprices_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "seeprices", { 'seePrices' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setSeePrices', { 'seePrices' }, value)
+			end,
+		},
+		{ id = "showaisaleoffers", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.showaisaleoffers'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getShowAIsaleOffers() or 0), description = Spring.I18N('ui.settings.option.showaisaleoffers_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "showaisaleoffers", { 'showAIsaleOffers' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setShowAIsaleOffers', { 'showAIsaleOffers' }, value)
+			end,
+		},
+		{ id = "buywithoutholdignalt", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buywithoutholdignalt'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getBuyWithoutHoldingAlt() or 0), description = Spring.I18N('ui.settings.option.buywithoutholdignalt_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "buywithoutholdignalt", { 'buyWithoutHoldingAlt' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setBuyWithoutHoldingAlt', { 'buyWithoutHoldingAlt' }, value)
+			end,
+		},
 
 		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
@@ -5895,7 +5936,7 @@ function init()
 		[UnitDefNames["armpb"].id] = false,
 		[UnitDefNames["armsnipe"].id] = false,
 		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = false,
+		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
@@ -5904,8 +5945,13 @@ function init()
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
 		unitdefConfig = WG['autocloak'].getUnitdefConfig()
-	elseif widgetHandler.configData["autocloak"] ~= nil and widgetHandler.configData["autocloak"].unitdefConfig ~= nil then
-		unitdefConfig = widgetHandler.configData["autocloak"].unitdefConfig
+	elseif widgetHandler.configData["Auto Cloak Units"] ~= nil and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil then
+		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
+			if UnitDefNames[unitName] then
+				local unitDefID = UnitDefNames[unitName].id
+				unitdefConfig[unitDefID] = value
+			end
+		end
 	end
 	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
 	if type(unitdefConfig) == 'table' then

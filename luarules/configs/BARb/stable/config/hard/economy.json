@@ -3,64 +3,53 @@
 "economy": {
 	"energy": {
 		// If land area >= 40% of the map then "land" config used, "water" otherwise
-		"side": {
-			"armada": {
-				"land": {
-					// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
-					// limit = random(<lower limit>..<upper limit>)
-					//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
-					//higer value => more efficient | e-output * e-output / mcost*x*y
-					"armwin": [30, 60],
-					"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
-					"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
-					//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
-					"armgmm":[4, 8, 25, 600, 2.2],
-					//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
-					"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
-					"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
-					"armafus": [50,100, 70, 4000, 6.44],
-                    "armuwfus": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
-				},
-				"water": {
-					"armtide": [45, 60],
-					"armwin": [30, 60],
-                    "armsolar": [12, 14, 0, 0, 0.030],
-                    "armadvsol": [16, 20, 12, 220, 0.200],
-                    //"armgeo": [4, 8, 16, 300, 0.6], //0.6
-                    "armgmm":[4,8, 25, 600, 2.2], 
-                    //"armageo": [0, 1, 35, 1000, 3.0], //3.0
-                    "armfus": [4, 6, 30, 900, 2.0],	
-					"armckfus": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
-					"armafus": [50,100, 70, 4000, 6.44],  // efficiency=6.443299					
-					"armuwfus": [50, 100, 35, 600, 2.8]
-				}
-			},
-			"cortex": {
-				"land": {
-					"corwin": [30, 60],
-					"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
-                    "coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
-                    //"corgeo": [4, 8, 16, 300, 0.6], //0.6
-                   // "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
-					"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
-					"corafus": [50, 100, 60, 4000, 6.44],
-                    "coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
-				},
-				"water": {
-					"cortide": [45, 60],
-					"corwin": [10, 20],
-					"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
-                    "coradvsol": [16, 20, 12, 220, 0.220], //efficiency=0.237542
-                    //"corgeo": [4, 8, 16, 300, 0.6],
-                    //"corageo": [0, 1, 16, 1000, 3.0],
-                    "corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
-                    "corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
-					"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
-				}
-			}
+		"land": {
+			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
+			// limit = random(<lower limit>..<upper limit>)
+			//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
+			//higer value => more efficient | e-output * e-output / mcost*x*y
+			"armwin": [30, 60],
+			"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
+			"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
+			//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
+			"armgmm":[4, 8, 25, 600, 2.2],
+			//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
+			"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
+			"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
+			"armafus": [50,100, 70, 4000, 6.44],
+			"armuwfus": [6, 12, 35, 600, 2.8],  // efficiency=6.443299
+			"corwin": [30, 60],
+			"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
+			"coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
+			//"corgeo": [4, 8, 16, 300, 0.6], //0.6
+			// "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
+			"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
+			"corafus": [50, 100, 60, 4000, 6.44],
+			"coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
 		},
-		
-		
+		"water": {
+			"armtide": [45, 60],
+			"armwin": [30, 60],
+			"armsolar": [12, 14, 0, 0, 0.030],
+			"armadvsol": [16, 20, 12, 220, 0.200],
+			//"armgeo": [4, 8, 16, 300, 0.6], //0.6
+			"armgmm":[4,8, 25, 600, 2.2],
+			//"armageo": [0, 1, 35, 1000, 3.0], //3.0
+			"armfus": [4, 6, 30, 900, 2.0],
+			"armckfus": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
+			"armafus": [50,100, 70, 4000, 6.44],  // efficiency=6.443299
+			"armuwfus": [50, 100, 35, 600, 2.8],
+			"cortide": [45, 60],
+			"corwin": [10, 20],
+			"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
+			"coradvsol": [16, 20, 12, 220, 0.220], //efficiency=0.237542
+			//"corgeo": [4, 8, 16, 300, 0.6],
+			//"corageo": [0, 1, 16, 1000, 3.0],
+			"corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
+			"corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
+			"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
+		},
+
 		"factor": [[6.0, 1], [20, 300], [30, 420], [60.0, 3600]], //desired energy factor at a certain time
 		// desired energy rule #1: e-income >= m-income * factor
 		// income factor for energy, time is in seconds

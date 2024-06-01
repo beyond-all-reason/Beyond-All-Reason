@@ -139,7 +139,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 500,
-				model = "xmasball1_1.s3o",--ho ho ho
+				model = "legbomb.s3o",
 				name = "Long range hellfire",
 				energypershot = 17000,
 				noselfdamage = true,

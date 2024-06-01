@@ -26,7 +26,7 @@ local math_isInRect = math.isInRect
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local RectRound, UiElement, elementCorner
-local font, chobbyInterface, hovering
+local font, hovering
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -36,7 +36,6 @@ local top, left, bottom, right = 0,0,0,0
 local myTeamID = Spring.GetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
-local passedTime2 = 0
 
 local allyTeamList = Spring.GetAllyTeamList()
 local allyTeamTeamList = {}
@@ -130,13 +129,9 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	updatePosition()
 	passedTime = passedTime + dt
-	passedTime2 = passedTime2 + dt
-	if passedTime > 0.1 then
-		passedTime = passedTime - 0.1
-		updatePosition()
-	end
-	if passedTime2 > 1 and Spring.GetGameFrame() > 0 then
+	if passedTime > 1 and Spring.GetGameFrame() > 0 then
 		totalUnits = 0
 		local numberOfAllyTeams = #allyTeamList
 		for allyTeamListIndex = 1, numberOfAllyTeams do
@@ -146,7 +141,7 @@ function widget:Update(dt)
 			end
 		end
 		updateValues()
-		passedTime2 = passedTime2 - 1
+		passedTime = passedTime - 1
 	end
 end
 
@@ -166,15 +161,7 @@ function widget:ViewResize()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()

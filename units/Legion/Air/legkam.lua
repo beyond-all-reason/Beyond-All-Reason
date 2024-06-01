@@ -42,8 +42,8 @@ return {
 		wingdrag = 0.06,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Protar",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "coraircraft",
 		},
 		sfxtypes = {
@@ -154,6 +154,7 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					spawns_name = "legvision",
+					spawns_expire = 5,
 					spawns_surface = "LAND",
 				},
 				damage = {

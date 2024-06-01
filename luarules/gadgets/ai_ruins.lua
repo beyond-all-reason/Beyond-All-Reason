@@ -46,22 +46,21 @@ local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
-local SpawnAsNeutral = true
-
 local landMexesList = {
-	"armmex",
-	"cormex",
+	--"armmex",
+	--"cormex",
 	--"armamex_scav",
-	"corexp",
+	--"corexp",
 	"armmoho",
+	"armshockwave",
 	"cormoho",
 	"cormexp",
 }
 local seaMexesList = {
-	"armmex",
-	"cormex",
-	"armuwmex",
-	"coruwmex",
+	--"armmex",
+	--"cormex",
+	--"armuwmex",
+	--"coruwmex",
 	"armuwmme",
 	"coruwmme",
 }
@@ -144,7 +143,6 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		mirrored = false
 		mirroredDirection = "null"
 	end
-	SpawnAsNeutral = true
 	for _, building in ipairs(ruin.buildings) do
 		if building.unitDefID then
 			if swapXandY == false then
@@ -168,9 +166,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
 
-					if SpawnAsNeutral then
-						Spring.SetUnitNeutral(unit, true)
-					end
+					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 					--Spring.SetUnitAlwaysVisible(unit, true)
@@ -199,8 +195,6 @@ end
 local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,3) == 0 then
-			SpawnAsNeutral = true
-
 			local spot = mexSpots[i]
 			local posx = spot.x
 			local posz = spot.z
@@ -228,9 +222,7 @@ local function SpawnMexes(mexSpots)
 				local mex = mexesList[math.random(1,#mexesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
 				Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
-				if SpawnAsNeutral then
-					Spring.SetUnitNeutral(unit, true)
-				end
+				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 			end
