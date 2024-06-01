@@ -129,7 +129,7 @@ AimFromPrimary(piecenum)
 {
 	piecenum = ground;
 }
-
+/*
 AimSecondary(heading, pitch)
 {
 	while( !gun_2 )
@@ -156,7 +156,7 @@ AimFromSecondary(piecenum)
 	piecenum = ground;
 }
 
-
+//*/
 
 
 /*
@@ -338,7 +338,7 @@ SweetSpot(piecenum)
 {
 	piecenum = ground;
 }
-//*
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
@@ -378,4 +378,4 @@ Killed(severity, corpsetype)
 		explode NanoTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
-}//*/
+}

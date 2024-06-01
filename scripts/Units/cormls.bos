@@ -3,13 +3,27 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, door1, door2, neck, boom, nano, wake;
+piece  ground, base, door1, door2, neck, boom, nano, wake;
 
-static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, notBuilding;
+static-var  gun_2, targetheading, statechg_DesiredState, statechg_StateChanging, oldHead, notBuilding;
 
 // Signal definitions
 #define SIG_MOVE			2
 #define SIG_BUILD			4
+
+
+/*
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn ground to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
+//*/
+
+
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -78,7 +92,7 @@ StopMoving()
 Go()
 {
 	call-script activatescr();
-	turn neck to y-axis Static_Var_2 speed <160.000000>;
+	turn neck to y-axis targetheading speed <160.000000>;
 	wait-for-turn neck around y-axis;
 	set INBUILDSTANCE to 1;
 	sleep 500;
@@ -92,6 +106,74 @@ Stop()
 	call-script deactivatescr();
 	sleep 200;	
 }
+
+
+
+
+Create()
+{
+	move base to z-axis [20] now;
+	
+	gun_2 = boom;//needed?
+
+	targetheading = 0;
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
+	
+}
+
+
+
+
+
+
+AimPrimary(heading, pitch)
+{
+	while( !gun_2 )
+	{
+		sleep 250;
+	}
+	return (1);
+}
+
+FirePrimary()
+{
+	gun_2 = base;
+	sleep 3000;
+	gun_2 = boom;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = boom;
+
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+}
+
+
+//needed?
+DetonateMines()
+{
+	while( TRUE )
+	{
+		sleep 500;
+		emit-sfx 4096 from base;
+	}
+}
+
+
+
+
 
 
 RequestState(requestedstate, currentstate)
@@ -126,7 +208,7 @@ Create()
 {
 	hide nano;
 	hide wake;
-	Static_Var_2 = 0;
+	targetheading = 0;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -179,10 +261,10 @@ Deactivate()
 StartBuilding(head,pitch)
 {
 	show nano;
-	Static_Var_2 = head;
+	targetheading = head;
 	start-script RequestState(0);
 	signal SIG_BUILD;
-	turn neck to y-axis Static_Var_2 speed <160.000000>;
+	turn neck to y-axis targetheading speed <160.000000>;
 	wait-for-turn neck around y-axis;
 	set INBUILDSTANCE to 1;
 	//this seems to break nano pointing for this boat only, reasons unknown
@@ -209,9 +291,11 @@ QueryNanoPiece(piecenum)
 	move base to y-axis [0.0] speed [0.23];
 }
 
-TargetHeading(Func_Var_1) {
-	Static_Var_2 = 0 - Func_Var_1;
+TargetHeading(Func_Var_1)
+{
+	targetheading = 0 - Func_Var_1;
 }
+
 
 SweetSpot(piecenum)
 {
