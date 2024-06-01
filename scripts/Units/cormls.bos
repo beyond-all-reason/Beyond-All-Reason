@@ -110,26 +110,6 @@ Stop()
 
 
 
-Create()
-{
-	move base to z-axis [20] now;
-	
-	gun_2 = boom;//needed?
-
-	targetheading = 0;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-	
-}
-
-
-
 
 
 
@@ -204,8 +184,12 @@ RequestState(requestedstate, currentstate)
 }
 
 
+
+
+
 Create()
 {
+	gun_2 = boom;//needed?
 	hide nano;
 	hide wake;
 	targetheading = 0;
