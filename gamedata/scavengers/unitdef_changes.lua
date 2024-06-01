@@ -62,12 +62,13 @@ local legionLobberUnitsT3 = {
 customDefs.armsilo = {
 	weapondefs = {
 		nuclear_missile = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -76,12 +77,13 @@ customDefs.armsilo = {
 customDefs.corsilo = {
 	weapondefs = {
 		crblmssl = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -90,13 +92,14 @@ customDefs.corsilo = {
 customDefs.armjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -105,13 +108,14 @@ customDefs.armjuno = {
 customDefs.corjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -122,7 +126,7 @@ customDefs.armdecom = {
 }
 
 customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
+	decoyfor = "corcom_scav",
 }
 
 customDefs.armclaw = {
