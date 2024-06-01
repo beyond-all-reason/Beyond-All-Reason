@@ -1059,20 +1059,27 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local airRandom = mRandom(1,100)
+					local specialRandom = mRandom(1,100)
 					local squad
 					local burrowX, burrowY, burrowZ = Spring.GetUnitPosition(burrowID)
 					local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
 					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
 							local potentialSquad
-							potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
-							if potentialSquad and potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
-								squad = potentialSquad
-								break
+							if specialRandom <= waveParameters.waveSpecialPercentage then
+								potentialSquad = squadSpawnOptions.specialAir[mRandom(1, #squadSpawnOptions.specialAir)]
+							else
+								potentialSquad = squadSpawnOptions.basicAir[mRandom(1, #squadSpawnOptions.basicAir)]
+							end
+							if potentialSquad then
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
 							end
 						end
 					else
-						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
 							local potentialSquad
 							if specialRandom <= waveParameters.waveSpecialPercentage then
