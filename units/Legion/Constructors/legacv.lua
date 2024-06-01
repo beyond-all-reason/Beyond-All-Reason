@@ -63,7 +63,7 @@ return {
 			[18] = "legbombard",
 			[19] = "legbastion",
 			[20] = "legflak",
-			[21] = "corscreamer",
+			[21] = "leglraa",
 			[22] = "legperdition",
 			[23] = "corfmd",
 			[24] = "corsilo",

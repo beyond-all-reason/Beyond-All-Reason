@@ -2275,6 +2275,10 @@ local icontypes = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
 	},
+	leglraa = {
+		bitmap = "icons/aa_longrange_railgun_t2.png",
+		size = 1.88999987,
+	},
 	leglrpc = {
 		bitmap = "icons/leglrpc.png",
 		size = 2.41499972

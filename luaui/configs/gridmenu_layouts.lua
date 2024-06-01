@@ -1486,7 +1486,7 @@ local unitGrids = {
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1556,7 +1556,7 @@ local unitGrids = {
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1625,7 +1625,7 @@ local unitGrids = {
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1837,7 +1837,7 @@ local unitGrids = {
 		},
 		{
 			{ "legdtr", "legstrider", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
-			{ "legravager", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
+			{ "legflak", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
 			{ "cordl", "legfloat", "legsrailspider", },               -- coastal torp launcher, triton, arquebus
 		},
 		{

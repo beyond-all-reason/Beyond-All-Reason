@@ -624,6 +624,7 @@ local unitOrderTable = {
    ['legflak']        = 153600,
    ['armmercury']     = 154000,
    ['corscreamer']    = 154500,
+   ['leglraa']    	  = 154600,
 
    --DEFENSES TO WATER
    ['armdl']          = 155000,
