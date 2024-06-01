@@ -1178,8 +1178,7 @@ local squadSpawnOptionsTable = {
 	specialSea = {}, -- 33% spawn chance, there's 1% chance of Special squad spawning Super squad, which is specials but 30% anger earlier.
 	healerLand = {}, -- Healers/Medics
 	healerSea = {}, -- Healers/Medics
-	airLand = {},
-	airSea = {},
+	air = {},
 	commanders = {
 		["armcom_scav"]      = { minAnger = 0, maxAnger = 20, maxAlive = 1 },
 		["armcomlvl2_scav"]  = { minAnger = 10, maxAnger = 30, maxAlive = 1 },
@@ -1365,13 +1364,21 @@ for tier, _ in pairs(AirUnitsList) do
 		if UnitDefNames[unitName] then
 			local unitWeight = AirUnitsList[tier][unitName]
 			-- Spring.Echo(unitName)
-			addNewSquad({ type = "airLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
-			addNewSquad({ type = "airSea", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({ type = "air", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			if tierConfiguration[tier-1] then
+				addNewSquad({ type = "air", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier-1].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			end
+			if tierConfiguration[tier-2] then
+				addNewSquad({ type = "air", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier-2].maxSquadSize*3 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			end
+			if tierConfiguration[tier-3] then
+				addNewSquad({ type = "air", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier-3].maxSquadSize*4 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			end
 		end
 	end
 end
 
-------Tier 1 0-25% (Land and Airland)
+------Tier 1 0-25% (Land and Air)
 addNewSquad({ type = "healerLand", minAnger = tierConfiguration[1].minAnger, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[1].minAnger, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = tierConfiguration[1].maxAnger}) --Rovers/Whole Tier Length
@@ -1379,15 +1386,11 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[1].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "5 armstump_scav","5 corraid_scav","5 leggat_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --T1 Veh Assault
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "2 armjanus_scav","2 corlevlr_scav","2 legrail_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --T1 Veh Unique
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist_scav","2 legbar_scav"}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --T1 Arty/AA
---AirLand
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[1].minAnger, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = tierConfiguration[1].maxAnger}) --T1 Air Scouts
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[1].minAnger, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = tierConfiguration[1].maxAnger}) --T1 Air Scouts
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[2].minAnger, units = { "12 corbw_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bladewings
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[2].minAnger, units = { "12 corbw_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bladewings
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[2].minAnger, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Fighters
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[2].minAnger, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Fighters
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[2].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bombers
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[2].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bombers
+--air
+addNewSquad({ type = "air", minAnger = tierConfiguration[1].minAnger, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = tierConfiguration[1].maxAnger}) --T1 Air Scouts
+addNewSquad({ type = "air", minAnger = tierConfiguration[2].minAnger, units = { "12 corbw_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bladewings
+addNewSquad({ type = "air", minAnger = tierConfiguration[2].minAnger, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Fighters
+addNewSquad({ type = "air", minAnger = tierConfiguration[2].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --Bombers
 ------Tier 2 25-60%
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[3].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[3].maxAnger}) --Rover and EMP Rover/Whole Tier Length
 --Land
@@ -1395,15 +1398,11 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[3].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[3].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legsco_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[3].maxAnger}) --T2 Veh Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Unique
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Arty/AA
---AirLand
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[4].minAnger, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Air Scouts
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[4].minAnger, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Air Scouts
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[4].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --EMP Bombers
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[4].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --EMP Bombers
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[4].minAnger, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Fighters
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[4].minAnger, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Fighters
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[4].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Gunships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[4].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Gunships
+--air
+addNewSquad({ type = "air", minAnger = tierConfiguration[4].minAnger, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Air Scouts
+addNewSquad({ type = "air", minAnger = tierConfiguration[4].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --EMP Bombers
+addNewSquad({ type = "air", minAnger = tierConfiguration[4].minAnger, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Fighters
+addNewSquad({ type = "air", minAnger = tierConfiguration[4].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Gunships
 ------Tier 3 60-80%
 --Dilluters
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "15 armfav_scav","15 corfav_scav",}, weight = 8, maxAnger = tierConfiguration[5].maxAnger}) --Rover Whole Tier Length
@@ -1413,18 +1412,13 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T3 Arty/AA
---AirLand
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[5].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Fighters
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[5].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Fighters
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[5].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = tierConfiguration[5].maxAnger}) --T2 Gunships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[5].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = tierConfiguration[5].maxAnger}) --T2 Gunships
+--air
+addNewSquad({ type = "air", minAnger = tierConfiguration[5].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Fighters
+addNewSquad({ type = "air", minAnger = tierConfiguration[5].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = tierConfiguration[5].maxAnger}) --T2 Gunships
 ------Tier 4 80%+
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --T2 Fighters
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --T2 Fighters
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
+addNewSquad({ type = "air", minAnger = tierConfiguration[6].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --T2 Fighters
+addNewSquad({ type = "air", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
+addNewSquad({ type = "air", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
 
 -- evocoms
 --addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
