@@ -23,21 +23,20 @@ local minesweeperIDs = {}
 local minesweepers = {}
 local mineIDs = {}
 
-Spring.Echo('hornet ms loaded')
+--Spring.Echo('hornet ms loaded')
 
 local teamList = Spring.GetTeamList()
 local teamIDs = {}
 
-local revealedMines = {}--todo
-Spring.Debug.TableEcho(teamList)
+local revealedMines = {}=
+--Spring.Debug.TableEcho(teamList)
 for i = 1, #teamList do
     teamIDs[teamList[i]] = teamList[i]
 	revealedMines[teamList[i]] = {}
-	Spring.Echo('hornet revealedMines team', teamList[i])
 end
-Spring.Debug.TableEcho(teamIDs)
-Spring.Echo('hornet revealedMines')
-Spring.Debug.TableEcho(revealedMines)
+--Spring.Debug.TableEcho(teamIDs)
+--Spring.Echo('hornet revealedMines')
+--Spring.Debug.TableEcho(revealedMines)
 
 
 
@@ -74,8 +73,8 @@ end
 if UnitDefNames.legmls then
     minesweeperIDs[UnitDefNames.legmls.id] = true
 end
---Spring.Echo('hornet minesweeperIDs')
---Spring.Debug.TableEcho(minesweeperIDs)
+----Spring.Echo('hornet minesweeperIDs')
+----Spring.Debug.TableEcho(minesweeperIDs)
 
 
 
@@ -108,8 +107,8 @@ if UnitDefNames.corfmine3 then
 end
 --will need leg later
 
---Spring.Echo('hornet mineIDs')
---Spring.Debug.TableEcho(mineIDs)
+----Spring.Echo('hornet mineIDs')
+----Spring.Debug.TableEcho(mineIDs)
 
 
 function gadget:Initialize()
@@ -138,40 +137,40 @@ end
 
 function gadget:GameFrame(f)
 	local minesToReveal = {}
-	--todo generate list of active teams. this is list of mines that team can see
+	--generate list of active teams. this is list of mines that team can see
 
 	for team in pairs(teamIDs) do
 		minesToReveal[team] = {}
 	end
 
 	if f % 50 == 1 then
-		Spring.Echo('hornet minesweepers')
-		Spring.Debug.TableEcho(minesweepers)
+		--Spring.Echo('hornet minesweepers')
+		--Spring.Debug.TableEcho(minesweepers)
     	--find all minesweepers
 		if table.count(minesweepers)>0 then
-			Spring.Echo('hornet in minesweepers>0')
+			--Spring.Echo('hornet in minesweepers>0')
 			for miner in pairs(minesweepers) do
 
-				Spring.Echo('hornet miner', miner)
+				--Spring.Echo('hornet miner', miner)
 
 				
 				local minerTeam = Spring.GetUnitTeam(miner)--this sometimes seems to be 0, should it be? is 0 gaia or 'team 1' ? try with built minelayers rather than spawned? try to give units to team 2 and see if they;re blue or gaia?
 				local x, y, z = Spring.GetUnitPosition(miner)
 				local nearUnits = Spring.GetUnitsInCylinder(x, z, detectionRange)
 
-				Spring.Echo('hornet minerTeam', minerTeam)
+				--Spring.Echo('hornet minerTeam', minerTeam)
 
 
-				Spring.Echo('hornet nearUnits')
-				Spring.Debug.TableEcho(nearUnits)
+				--Spring.Echo('hornet nearUnits')
+				--Spring.Debug.TableEcho(nearUnits)
 				for _, nearUnit in ipairs(nearUnits) do
-					Spring.Echo('hornet poi Spring.GetUnitTeam(nearUnit)', Spring.GetUnitTeam(nearUnit))
+					--Spring.Echo('hornet poi Spring.GetUnitTeam(nearUnit)', Spring.GetUnitTeam(nearUnit))
 					--local mineTeam = Spring.GetUnitTeam(nearUnit)
 					if minerTeam ~= Spring.GetUnitTeam(nearUnit) then
 						local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
 					
 						if mineIDs[nearUnitDefID] then
-							Spring.Echo('hornet adding  minesToReveal[minerTeam][nearUnit] = nearUnit', minerTeam, nearUnit)
+							--Spring.Echo('hornet adding  minesToReveal[minerTeam][nearUnit] = nearUnit', minerTeam, nearUnit)
 							minesToReveal[minerTeam][nearUnit] = nearUnit
 						end
 						
@@ -183,15 +182,15 @@ function gadget:GameFrame(f)
 
 		for team in pairs(teamIDs) do
 
-			Spring.Echo('hornet minesToReveal (team)' , team)
-			Spring.Debug.TableEcho(minesToReveal)
+			--Spring.Echo('hornet minesToReveal (team)' , team)
+			--Spring.Debug.TableEcho(minesToReveal)
 			if table.count(minesToReveal[team]) > 0 then
-				Spring.Echo('hornet poi2 minesToReveal loop starting, team: ' , team)
+				--Spring.Echo('hornet poi2 minesToReveal loop starting, team: ' , team)
 				for mineToReveal in pairs(minesToReveal[team]) do
-					Spring.Echo('mineToReveal loop,', mineToReveal)
+					--Spring.Echo('mineToReveal loop,', mineToReveal)
 					if revealedMines[team][mineToReveal] == nil then
 						--show 
-						Spring.Echo('revealedMines[team][mineToReveal] = mineToReveal', team, mineToReveal)
+						--Spring.Echo('revealedMines[team][mineToReveal] = mineToReveal', team, mineToReveal)
 						revealedMines[team][mineToReveal] = mineToReveal
 						Spring.SetUnitLosState(mineToReveal, team, 3) --show in vision and radar
 						Spring.SetUnitLosMask(mineToReveal, team, 3) -- prevent engine from immediately resetting that state
@@ -201,12 +200,12 @@ function gadget:GameFrame(f)
 			end
 				
 
-			Spring.Echo('hornet revealedMines (team)' , team)
-			Spring.Debug.TableEcho(revealedMines)
+			--Spring.Echo('hornet revealedMines (team)' , team)
+			--Spring.Debug.TableEcho(revealedMines)
 			if table.count(revealedMines[team]) > 0 then
 
-				Spring.Echo('hornet minesToReveal (team)' , team)
-				Spring.Debug.TableEcho(minesToReveal)
+				--Spring.Echo('hornet minesToReveal (team)' , team)
+				--Spring.Debug.TableEcho(minesToReveal)
 	
 				--if any mines -are- uncloaked that no longer should be, recloak
 				if table.count(minesToReveal[team]) > 0 then
@@ -243,4 +242,4 @@ end
 		-- add those mines to the decloaked list
 
 
-		--Spring.Debug.TableEcho(unitSlowed)
+		----Spring.Debug.TableEcho(unitSlowed)
