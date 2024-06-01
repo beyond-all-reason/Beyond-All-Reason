@@ -1421,10 +1421,10 @@ addNewSquad({ type = "airSea", minAnger = tierConfiguration[5].minAnger, units =
 ------Tier 4 80%+
 addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --T2 Fighters
 addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --T2 Fighters
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
-addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
-addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 5, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
+addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
+addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Armada Flying Flagships
+addNewSquad({ type = "airLand", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
+addNewSquad({ type = "airSea", minAnger = tierConfiguration[6].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger}) --Cortex Flying Flagships
 
 -- evocoms
 --addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
