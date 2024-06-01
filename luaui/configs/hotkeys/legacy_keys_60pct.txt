@@ -183,6 +183,8 @@ bind sc_c buildunit_legrad
 bind Shift+sc_c buildunit_legrad
 bind sc_c buildunit_corrl
 bind Shift+sc_c buildunit_corrl
+bind sc_c buildunit_legrl
+bind Shift+sc_c buildunit_legrl
 bind sc_c buildunit_armrl
 bind Shift+sc_c buildunit_armrl
 bind sc_c buildunit_armpb

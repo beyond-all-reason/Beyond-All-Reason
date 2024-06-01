@@ -6,7 +6,7 @@
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
     rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, eyeflare, cagelight, cagelight_emit, headmount, hatpoint, crown, medalsilver, medalbronze, medalgold, torsofrontmarker;
 
-static-var bMoving, bAiming, Busy, gun_3, gun_2, gun_eye, counter,
+static-var bMoving, bAiming, Busy, gun_6, gun_3, gun_2, gun_eye, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
 
 // for the AimPrimary script, to skip wait-for-turn if needed
@@ -807,6 +807,7 @@ Create()
 	gun_2 = torso;
 	Busy = 1;
 	gun_3 = torso;
+	gun_6 = torso;
 	gun_eye = head;
 	buildHeading = 0;
 	buildPitch = 0;
@@ -860,6 +861,7 @@ StartMoving()
 {
 	bMoving = TRUE;
 	gun_3 = torso;
+	gun_6 = torso;
 	gun_eye = head;
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
@@ -887,6 +889,7 @@ QueryNanoPiece(piecenum)
 RestorePosition()
 {
 	gun_3 = torso;
+	gun_6 = torso;
 	set-signal-mask SIG_AIM1;
 	sleep 2000;
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
@@ -940,7 +943,11 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	if( gun_3 == 1 )
+	if( gun_3 == 1)
+	{
+		return (0);
+	}
+	if( gun_6 == 1)
 	{
 		return (0);
 	}
@@ -1032,7 +1039,11 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	if( gun_3 == 1 )
+	if( gun_3 == 1)
+	{
+		return (0);
+	}
+	if( gun_6 == 1)
 	{
 		return (0);
 	}
@@ -1112,6 +1123,56 @@ FireWeapon5()
 	sleep 100;
 	sleep 400;
 	gun_eye = head;
+	return (0);
+}
+
+AimFromWeapon6(piecenum)
+{
+	piecenum = rbigflash;
+	return (0);
+}
+
+QueryWeapon6(piecenum)
+{
+	piecenum = rbigflash;
+	return (0);
+}
+
+AimWeapon6(heading, pitch)
+{
+	if( gun_3 == 1 )
+	{
+		return (0);
+	}
+	if( bIsBuilding )
+	{
+		return (0);
+	}
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(6));
+	if( reloading )
+	{
+		return(0);
+	}
+	signal SIG_AIM1;
+	set-signal-mask SIG_AIM1;
+	gun_6 = lfirept;
+	bAiming = TRUE;
+	turn aimy1 to y-axis heading speed <360.000000>;
+	turn aimx1 to x-axis <0> - pitch speed <360.000000>;
+	//turn ruparm to x-axis <0> speed <360>;
+	wait-for-turn aimy1 around y-axis;
+	//wait-for-turn biggun around x-axis;
+	return (1);
+}
+
+FireWeapon6()
+{
+	//shotcount = shotcount + 1;
+	emit-sfx 1024 + 0 from rbigflash;
+	//call-script lua_UnitScriptLight(1, shotcount);
+	gun_6 = torso;
+	call-script bigfire();
 	return (0);
 }
 

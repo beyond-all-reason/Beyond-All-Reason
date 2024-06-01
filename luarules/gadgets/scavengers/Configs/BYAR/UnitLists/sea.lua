@@ -73,11 +73,11 @@ return {
 
 	T3 = {
 		"armbats_scav",
-		"armcarry2_scav",
+		"armdronecarry_scav",
 		"armepoch_scav",
 		"armserp_scav",
 		"corbats_scav",
-		"corcarry2_scav",
+		"cordronecarry_scav",
 		"corblackhy_scav",
 		"corslrpc_scav",
 		"armdecadet3_scav",

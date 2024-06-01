@@ -72,6 +72,7 @@ local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
 local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitTeam = Spring.GetUnitTeam
 local simSpeed = Game.gameSpeed
 
 local max = math.max
@@ -100,11 +101,24 @@ local function updateTeamList()
 	teamList = spGetTeamList()
 end
 
+local isTeamSavingMetal = function(_) return false end
+
 function gadget:Initialize()
     for _,unitID in pairs(Spring.GetAllUnits()) do
-        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
     end
 	updateTeamList()
+	
+	-- huge apologies for intruding on this gadget, but players have requested ability to put everything on hold to buy t2 as soon as possible (Unit Market)
+	if (Spring.GetModOptions().unit_market) then
+		isTeamSavingMetal = function(teamID)
+			local isAiTeam = select(4,spGetTeamInfo(teamID))
+			if not isAiTeam then
+				return (GG.isTeamSaving and GG.isTeamSaving(teamID)) or false
+			end
+			return false
+		end
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
@@ -276,7 +290,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end
 
 		-- override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
-		if buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0 then
+		if (buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0) then
 			spSetUnitBuildSpeed(builderID, 0.001) --(*)
 		end
 	end
@@ -313,7 +327,10 @@ end
 function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-            spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
+			local teamID = spGetUnitTeam(builderID)
+			if not isTeamSavingMetal(teamID) then
+            	spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
+			end
         end
     end
 	buildTargetOwners = {}
@@ -321,7 +338,7 @@ function gadget:GameFrame(n)
 
 	for i=1, #teamList do
 		local teamID = teamList[i]
-		if not deadTeamList[teamID] then -- isnt dead
+		if not deadTeamList[teamID] and not isTeamSavingMetal(teamID) then -- isnt dead
 			if n == updateFrame[teamID] then
 				local interval = GetUpdateInterval(teamID)
 				UpdatePassiveBuilders(teamID, interval)

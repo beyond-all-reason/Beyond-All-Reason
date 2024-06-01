@@ -42,8 +42,8 @@ return {
 		wingdrag = 0.08,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "coraircraft",
 		},
 		sfxtypes = {
@@ -97,6 +97,8 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
+				model = "legmediumrocket.s3o",
+        		mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
 				range = 1280,
 				reloadtime = 10,

@@ -1338,10 +1338,12 @@ end
 
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
-	for _, w in r_ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
-		w:DrawWorld()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldList) do
+			tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
+			w:DrawWorld()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1349,10 +1351,12 @@ end
 
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
-	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
-		w:DrawWorldPreUnit()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldPreUnitList) do
+			tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
+			w:DrawWorldPreUnit()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1413,7 +1417,6 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
-
 	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()

@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.7457,
 		turnrate = 487,
-		usePieceCollisionVolumes=true,
+		usePieceCollisionVolumes= 1,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",

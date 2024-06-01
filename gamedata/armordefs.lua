@@ -66,6 +66,7 @@ local armorDefs = {
 		"armdrag",
 		"armfort",
 		"cordrag",
+		"legdrag",
 		"corfort",
 		"scavdrag",
 		"scavfort",
@@ -201,7 +202,6 @@ local armorDefs = {
 		"corint",
 		"corlab",
 		"corllt",
-		"leglht",
 		"cormabm",
 		"cormakr",
 		"cormart",
@@ -306,15 +306,12 @@ local armorDefs = {
 		"coreyes",
 		"corfrad",
 		"corjamt",
-		"legjam",
 		"corrad",
-		"legrad",
 		"corshroud",
 		"corsonar",
 		"corspec",
 		"corvoyr",
 		"corvrad",
-
 		"armafus",
 		"armaap",
 		"armalab",
@@ -362,7 +359,6 @@ local armorDefs = {
 		"corerad",
 		"coruwadves",
 		"coruwadvms",
-
 		"corgatreap",
 
 		"armpwt4",
@@ -382,14 +378,21 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legjam",
+		"legrad",
+		"leglht",
+		"leglupara",
+		"legdtr",
+		"legcluster",
 		"legbastion",
 		"legbombard",
 		"legperdition",
 		"legstarfall",
 		"legflak",
 		"legsolar",
-		"legsolar",
 		"legadvsol",
+		"legrl",
+		"legrhapsis",
 
 		"coruwgeo",
 		"coruwageo",
@@ -397,13 +400,18 @@ local armorDefs = {
 		"armuwageo",
 
 		"legcv",
-		"legca",
 		"legck",
 		"legotter",
 		"legacv",
-		"legaca",
 		"legack",
-
+		
+		"legah",
+		"legmh",
+		"legner",
+		"legsh",
+		"leghp",
+		"legfhp",
+		"legch",
 	},
 
 	space = {
@@ -497,6 +505,7 @@ local armorDefs = {
 		"legnap",
 		"legkam",
 		"legcib",
+		"legatrans",
 		"legmineb",
 		"raptor_air_kamikaze_basic_t2_v1",
 		"raptor_air_bomber_brood_t4_v2",
@@ -582,12 +591,6 @@ local armorDefs = {
 
 	raptor =
 	{
-		"raptor_queen_veryeasy",
-		"raptor_queen_easy",
-		"raptor_queen_normal",
-		"raptor_queen_hard",
-		"raptor_queen_veryhard",
-		"raptor_queen_epic",
 		"raptor_land_swarmer_basic_t2_v1",
 		"raptor_land_swarmer_basic_t2_v2",
 		"raptor_land_swarmer_basic_t2_v3",
@@ -637,6 +640,15 @@ local armorDefs = {
 		"raptor_allterrain_swarmer_emp_t2_v1",
 		"raptor_hive",
 		"raptor_antinuke",
+	},
+	raptorqueen =
+	{
+		"raptor_queen_veryeasy",
+		"raptor_queen_easy",
+		"raptor_queen_normal",
+		"raptor_queen_hard",
+		"raptor_queen_veryhard",
+		"raptor_queen_epic",
 	},
 }
 
