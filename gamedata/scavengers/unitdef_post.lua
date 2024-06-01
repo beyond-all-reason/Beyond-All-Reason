@@ -96,7 +96,7 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.health then
 		if not string.find(name, "armscavengerbossv2") then
 			if not string.find(name, "scavengerdroppodbeacon") then
-				uDef.health = uDef.health * 1.5
+				uDef.health = uDef.health * 1.25
 				uDef.hidedamage = true
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
@@ -121,7 +121,7 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.turnrate = uDef.turnrate * 1.5
 	 		end
 	 		if uDef.maxdec then
-	 			uDef.maxdec  = uDef.maxdec * 3
+	 			uDef.maxdec  = uDef.maxdec * 1.5
 	 		end
 	 		if uDef.builddistance then
 	 			uDef.builddistance = uDef.builddistance * 1.25
@@ -150,7 +150,7 @@ local function scavUnitDef_Post(name, uDef)
 	-- Evocom adjustments
 	if string.find(name, "armcomlvl") then -- nerf health of armada evocom, since it's invisible and hard to deal with because of that
 		if uDef.health then
-			uDef.health = uDef.health * 0.5
+			uDef.health = uDef.health * 0.8
 		end
 	end
 
