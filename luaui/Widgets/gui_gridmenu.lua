@@ -213,7 +213,6 @@ local pages = 1
 local currentPage = 1
 local minimapHeight = 0.235
 
-local updateSelection = true
 local selectedBuilders = {}
 local selectedBuildersCount = 0
 local prevBuildRectsCount = 0
@@ -492,10 +491,10 @@ local function setCurrentCategory(category)
 end
 
 local function queueUnit(uDefID, opts)
-	local udTable = Spring.GetSelectedUnitsSorted()
-	for udidFac, uTable in pairs(udTable) do
-		if units.isFactory[udidFac] then
-			for _, uid in ipairs(uTable) do
+	local sel = Spring.GetSelectedUnitsSorted()
+	for unitDefID, unitIds in pairs(sel) do
+		if units.isFactory[unitDefID] then
+			for _, uid in ipairs(unitIds) do
 				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
 			end
 		end
@@ -638,33 +637,29 @@ local function nextPageHandler()
 	doUpdate = true
 end
 
-local function addBuilderToSelection(unitID, incrementCount)
-	local unitDefID = spGetUnitDefID(unitID)
+local function addFactoryToSelection(unitID, unitDefID)
+	doUpdate = true
 
-	if units.isBuilder[unitDefID] then
-		doUpdate = true
-		builderIsFactory = false
+	builderIsFactory = true
+	selectedFactoryUID = unitID
+	activeBuilder = unitDefID
+end
 
-		if not selectedBuilders[unitDefID] then
-			selectedBuildersCount = selectedBuildersCount + 1
-		end
+local function addBuilderToSelection(unitID, unitDefID, incrementCount)
+	doUpdate = true
+	builderIsFactory = false
 
-		if incrementCount then
-			local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
-			selectedBuilders[unitDefID] = count + 1
-		end
-
-		activeBuilder = unitDefID
-		activeBuilderID = unitID
+	if not selectedBuilders[unitDefID] then
+		selectedBuildersCount = selectedBuildersCount + 1
 	end
 
-	if units.isFactory[unitDefID] then
-		doUpdate = true
-
-		builderIsFactory = true
-		selectedFactoryUID = unitID
-		activeBuilder = unitDefID
+	if incrementCount then
+		local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
+		selectedBuilders[unitDefID] = count + 1
 	end
+
+	activeBuilder = unitDefID
+	activeBuilderID = unitID
 end
 
 ---Set active builder based on index in selectedBuilders
@@ -675,11 +670,13 @@ local function setActiveBuilder(index)
 	for builder, _ in pairsByKeys(selectedBuilders) do
 		i = i + 1
 		if i == index then
-			local sel = Spring.GetSelectedUnits()
-			for _, unitID in pairs(sel) do
-				local unitDefID = spGetUnitDefID(unitID)
+			local sel = Spring.GetSelectedUnitsSorted()
+			for unitDefID, unitIDs in pairs(sel) do
 				if builder == unitDefID then
-					addBuilderToSelection(unitID, false)
+					addBuilderToSelection(unitIDs[1], unitDefID, false)
+					if units.isFactory[unitDefID] then
+						addFactoryToSelection(unitIDs[1], unitDefID)
+					end
 					break
 				end
 			end
@@ -984,35 +981,6 @@ function widget:LanguageChanged()
 end
 
 function widget:Update(dt)
-	if updateSelection then
-		updateSelection = false
-
-		activeBuilder = nil
-		activeBuilderID = nil
-		builderIsFactory = false
-		labBuildModeActive = false
-		setCurrentCategory(nil)
-		selectedBuilders = {}
-		selectedBuildersCount = 0
-		currentPage = 1
-
-		if spGetSelectedUnitsCount() > 0 then
-			local sel = Spring.GetSelectedUnits()
-			for _, unitID in pairs(sel) do
-				addBuilderToSelection(unitID, true)
-			end
-
-			if activeBuilder and not builderIsFactory then
-				categories = CONFIG.buildCategories
-			else
-				categories = {}
-			end
-
-			-- set active builder to first index after updating selection
-			setActiveBuilder(1)
-		end
-	end
-
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
@@ -2325,7 +2293,46 @@ function widget:UnitFromFactory(_, _, _, factID)
 end
 
 function widget:SelectionChanged()
-	updateSelection = true
+	activeBuilder = nil
+	activeBuilderID = nil
+	builderIsFactory = false
+	labBuildModeActive = false
+	setCurrentCategory(nil)
+	selectedBuilders = {}
+	selectedBuildersCount = 0
+	currentPage = 1
+
+	if spGetSelectedUnitsCount() == 0 then
+		widget:Update(1000)
+
+		return
+	end
+
+	local sel = Spring.GetSelectedUnitsSorted()
+	for unitDefID, unitIDs in pairs(sel) do
+		if units.isBuilder[unitDefID] then
+			local isFactory = units.isFactory[unitDefID]
+
+			for _, unitID in pairs(unitIDs) do
+				addBuilderToSelection(unitID, unitDefID, true)
+
+				if isFactory then
+					addFactoryToSelection(unitID, unitDefID)
+				end
+			end
+		end
+	end
+
+	if activeBuilder and not builderIsFactory then
+		categories = CONFIG.buildCategories
+	else
+		categories = {}
+	end
+
+	-- set active builder to first index after updating selection
+	setActiveBuilder(1)
+
+	widget:Update(1000)
 end
 
 function widget:GameStart()
