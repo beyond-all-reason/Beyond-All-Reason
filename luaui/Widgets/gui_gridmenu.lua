@@ -167,6 +167,13 @@ function Rect:new(x1, y1, x2, y2, opts)
 		return x >= self.x and x <= self.xEnd and y >= self.y and y <= self.yEnd
 	end
 
+	function this:set(x1, y1, x2, y2)
+		this.x = x1
+		this.y = y1
+		this.xEnd = x2
+		this.yEnd = y2
+	end
+
 	function this:getId()
 		return self.x .. self.y .. self.yEnd .. self.xEnd
 	end
@@ -223,6 +230,10 @@ local selectedBuildersCount = 0
 local prevBuildRectsCount = 0
 
 local cellRects = {}
+-- populate cellRects
+for i = 1, 12 do
+	cellRects[i] = Rect:new(0, 0, 0, 0)
+end
 local catRects = {}
 local builderRects = {}
 local backgroundRect = Rect:new(0, 0, 0, 0)
@@ -345,6 +356,34 @@ end
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
 -------------------------------------------------------------------------------
+local function setupCells()
+	local cellRectID = 0
+
+	cellCmds = {}
+	for row = 1, 3 do
+		for col = 1, 4 do
+			cellRectID = cellRectID + 1
+
+			-- if gridmenu is on bottom, we need to remap positions from 2x6 -> 3x4 grid
+			-- 3,1 -> 2,5
+			-- 3,2 -> 2,6
+			-- 3,3 -> 1,5
+			-- 3,4 -> 1,6
+			local acol = col
+			local arow = row
+			if row > 2 and stickToBottom then
+				arow = col < 3 and 2 or 1
+				acol = 6 - col % 2
+			end
+			cellRects[cellRectID] = Rect:new(
+				buildpicsRect.x + (acol - 1) * cellSize,
+				buildpicsRect.yEnd - (rows - arow + 1) * cellSize,
+				buildpicsRect.x + acol * cellSize,
+				buildpicsRect.yEnd - (rows - arow) * cellSize
+			)
+		end
+	end
+end
 
 local function setupCategoryRects()
 	-- set up rects
@@ -857,8 +896,6 @@ function widget:Initialize()
 		stickToBottom = value
 		widget:Update(1000)
 		widget:ViewResize()
-		doUpdate = true
-		setupCategoryRects()
 	end
 	WG["buildmenu"].getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
@@ -921,33 +958,33 @@ function widget:ViewResize()
 		local categoryWidth = 10 * categoryFontSize * ui_scale
 
 		-- assemble rects left to right
-		categoriesRect = Rect:new(posX + bgpadding, posYEnd, posX + categoryWidth, posY - bgpadding)
+		categoriesRect:set(posX + bgpadding, posYEnd, posX + categoryWidth, posY - bgpadding)
 
-		buildpicsRect = Rect:new(
+		buildpicsRect:set(
 			categoriesRect.xEnd + bgpadding,
 			posYEnd,
 			categoriesRect.xEnd + (cellSize * columns) + bgpadding,
 			posY - bgpadding
 		)
 
-		backgroundRect = Rect:new(posX, posYEnd, buildpicsRect.xEnd + bgpadding, posY)
+		backgroundRect:set(posX, posYEnd, buildpicsRect.xEnd + bgpadding, posY)
 
 		local buttonHeight = categoriesRect:getHeight() / 4
-		backRect = Rect:new(
+		backRect:set(
 			categoriesRect.x,
 			categoriesRect.yEnd - buttonHeight + bgpadding,
 			categoriesRect.xEnd,
 			categoriesRect.yEnd
 		)
 
-		nextPageRect = Rect:new(
+		nextPageRect:set(
 			categoriesRect.x,
 			categoriesRect.y + bgpadding,
 			categoriesRect.xEnd,
 			categoriesRect.y + buttonHeight - bgpadding
 		)
 
-		labBuildModeRect = Rect:new(
+		labBuildModeRect:set(
 			categoriesRect.x,
 			categoriesRect.y + buttonHeight + bgpadding,
 			categoriesRect.xEnd,
@@ -981,7 +1018,7 @@ function widget:ViewResize()
 		categoryButtonHeight = categoryButtonHeight * 1.4
 
 		-- assemble rects, bottom to top
-		categoriesRect = Rect:new(
+		categoriesRect:set(
 			posX + bgpadding,
 			posYEnd + bgpadding,
 			posXEnd - bgpadding,
@@ -992,32 +1029,32 @@ function widget:ViewResize()
 		columns = 4
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
 
-		buildpicsRect = Rect:new(
+		buildpicsRect:set(
 			posX + bgpadding,
 			categoriesRect.yEnd,
 			posXEnd - bgpadding,
 			categoriesRect.yEnd + (cellSize * rows)
 		)
 
-		backgroundRect = Rect:new(posX, posYEnd, posXEnd, buildpicsRect.yEnd + (bgpadding * 1.5))
+		backgroundRect:set(posX, posYEnd, posXEnd, buildpicsRect.yEnd + (bgpadding * 1.5))
 
 		local buttonWidth = (categoriesRect.xEnd - categoriesRect.x) / 3
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		backRect = Rect:new(
+		backRect:set(
 			categoriesRect.x,
 			categoriesRect.y + padding,
 			categoriesRect.x + buttonWidth - (bgpadding * 2),
 			categoriesRect.yEnd - padding
 		)
 
-		nextPageRect = Rect:new(
+		nextPageRect:set(
 			categoriesRect.xEnd - buttonWidth + (2 * bgpadding),
 			categoriesRect.y + padding,
 			categoriesRect.xEnd,
 			categoriesRect.yEnd - padding
 		)
 
-		labBuildModeRect = Rect:new(
+		labBuildModeRect:set(
 			categoriesRect.x,
 			categoriesRect.y + padding,
 			nextPageRect.x - (2 * bgpadding),
@@ -1025,8 +1062,11 @@ function widget:ViewResize()
 		)
 
 		-- start with no width and grow dynamically
-		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
+		buildersRect:set(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
 	end
+
+	setupCategoryRects()
+	setupCells()
 
 	checkGuishader(true)
 	clearDrawLists()
@@ -1215,8 +1255,22 @@ local function drawButton(rect)
 	end
 end
 
-local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
-	local uid = cmd.id * -1
+local function drawCell(rect)
+	-- empty cell
+	if not rect.opts.uDefID then
+		local color = { 0.1, 0.1, 0.1, 0.7 }
+		local pad = cellPadding + iconPadding
+		RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
+
+		return
+	end
+
+	local cellColor = rect.opts.selected and { 1, 0.85, 0.2, 0.25 } or nil
+	local uid = rect.opts.uDefID
+	local disabled = rect.opts.disabled
+	local usedZoom = rect.opts.usedZoom
+	local cmd = rect.opts.cmd
+
 	-- unit icon
 	if disabled then
 		gl.Color(0.4, 0.4, 0.4, 1)
@@ -1364,12 +1418,6 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 			"o"
 		)
 	end
-end
-
-local function drawEmptyCell(rect)
-	local color = { 0.1, 0.1, 0.1, 0.7 }
-	local pad = cellPadding + iconPadding
-	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
 end
 
 local function drawButtonHotkey(rect)
@@ -1700,59 +1748,37 @@ local function drawGrid()
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
 
-			local uDefID
-
 			-- offset for pages
 			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
 
+			local uDefID
 			if gridOpts[index] then
 				uDefID = -gridOpts[index].id
 			end
 
-			-- if gridmenu is on bottom, we need to remap positions from 2x6 -> 3x4 grid
-			-- 3,1 -> 2,5
-			-- 3,2 -> 2,6
-			-- 3,3 -> 1,5
-			-- 3,4 -> 1,6
-			local rect
-			local acol = col
-			local arow = row
-			if row > 2 and stickToBottom then
-				arow = col < 3 and 2 or 1
-				acol = 6 - col % 2
-			end
-			rect = Rect:new(
-				buildpicsRect.x + (acol - 1) * cellSize,
-				buildpicsRect.yEnd - (rows - arow + 1) * cellSize,
-				buildpicsRect.x + acol * cellSize,
-				buildpicsRect.yEnd - (rows - arow) * cellSize
-			)
+			local rect = cellRects[cellRectID]
+			rect.opts.uDefID = uDefID
 
-			if uDefID and gridOpts[index] then
+			if uDefID then
 				cellCmds[cellRectID] = gridOpts[index]
 
 				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
-				local udef = gridOpts[index]
+				local cmd = gridOpts[index]
 
-				cellRects[cellRectID] = rect
-
-				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name)
+				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
 					or (isPregame and pregameBlueprintDefID == uDefID)
-				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
-
-				drawCell(
-					rect,
-					gridOpts[index],
-					usedZoom,
-					cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil,
-					units.unitRestricted[uDefID]
-				)
+				rect.opts.selected = cellIsSelected
+				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
+				rect.opts.disabled = units.unitRestricted[uDefID]
+				rect.opts.cmd = cmd
 			else
-				drawEmptyCell(rect)
+				rect.opts.uDefID = nil
 				hotkeyActions[tostring(row) .. tostring(col)] = nil
 			end
+
+			drawCell(rect)
 		end
 	end
 
@@ -1760,8 +1786,6 @@ local function drawGrid()
 		selectNextFrame = cellCmds[1].id
 	end
 end
-
-local function updateBuildMenu() end
 
 local function drawBuildMenu()
 	font2:Begin()
@@ -1789,7 +1813,6 @@ local function drawBuildMenu()
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
 
-	cellRects = {}
 	hotkeyActions = {}
 
 	drawGrid()
@@ -1924,6 +1947,7 @@ function widget:MousePress(x, y, button)
 				for cellRectID, cellRect in pairs(cellRects) do
 					if
 						cellCmds[cellRectID].id
+						and cellRect.opts.uDefID
 						and unitTranslatedHumanName[-cellCmds[cellRectID].id]
 						and cellRect:contains(x, y)
 						and not units.unitRestricted[-cellCmds[cellRectID].id]
@@ -2003,7 +2027,7 @@ local function handleButtonHover()
 	if not WG["topbar"] or not WG["topbar"].showingQuit() then
 		if hovering then
 			for cellRectID, cellRect in pairs(cellRects) do
-				if cellRect:contains(x, y) then
+				if cellRect.uDefID and cellRect:contains(x, y) then
 					hoveredCellID = cellRectID
 					local cmd = cellCmds[cellRectID]
 					local uDefID = -cmd.id
