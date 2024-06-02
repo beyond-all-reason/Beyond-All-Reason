@@ -168,15 +168,15 @@ local labGrids = {
 	},
 
 	leghp = {
-		"legch", "", "leggla", "",
-		"legner", "legsal", "corhal", "",
-		"", "", "legalp",
+		"legch", "", "legsh", "",
+		"legner", "legmh", "corhal", "",
+		"", "", "legah",
 	},
 	
 	legfhp = {
-		"legch", "", "leggla", "",
-		"legner", "legsal", "corhal", "",
-		"", "", "legalp",
+		"legch", "", "legsh", "",
+		"legner", "legmh", "corhal", "",
+		"", "", "legah",
 	},
 	-- T3 labs
 	armshltx = {

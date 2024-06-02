@@ -5,6 +5,7 @@ local function scavUnitDef_Post(name, uDef)
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
+	uDef.decloakonfire = true
 
  	-- replaced uniticons
 	if uDef.buildpic then
@@ -96,7 +97,7 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.health then
 		if not string.find(name, "armscavengerbossv2") then
 			if not string.find(name, "scavengerdroppodbeacon") then
-				uDef.health = uDef.health * 1.5
+				uDef.health = uDef.health * 1.25
 				uDef.hidedamage = true
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
@@ -121,7 +122,7 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.turnrate = uDef.turnrate * 1.5
 	 		end
 	 		if uDef.maxdec then
-	 			uDef.maxdec  = uDef.maxdec * 3
+	 			uDef.maxdec  = uDef.maxdec * 1.5
 	 		end
 	 		if uDef.builddistance then
 	 			uDef.builddistance = uDef.builddistance * 1.25
@@ -145,13 +146,6 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
-	end
-
-	-- Evocom adjustments
-	if string.find(name, "armcomlvl") then -- nerf health of armada evocom, since it's invisible and hard to deal with because of that
-		if uDef.health then
-			uDef.health = uDef.health * 0.5
-		end
 	end
 
 	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then

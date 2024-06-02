@@ -1059,24 +1059,27 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local airRandom = mRandom(1,100)
+					local specialRandom = mRandom(1,100)
 					local squad
 					local burrowX, burrowY, burrowZ = Spring.GetUnitPosition(burrowID)
 					local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
 					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
 							local potentialSquad
-							if surface == "land" then
-								potentialSquad = squadSpawnOptions.airLand[mRandom(1, #squadSpawnOptions.airLand)]
-							elseif surface == "sea" then
-								potentialSquad = squadSpawnOptions.airSea[mRandom(1, #squadSpawnOptions.airSea)]
+							if specialRandom <= waveParameters.waveSpecialPercentage then
+								potentialSquad = squadSpawnOptions.specialAir[mRandom(1, #squadSpawnOptions.specialAir)]
+							else
+								potentialSquad = squadSpawnOptions.basicAir[mRandom(1, #squadSpawnOptions.basicAir)]
 							end
-							if potentialSquad and potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
-								squad = potentialSquad
-								break
+							if potentialSquad then
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
 							end
 						end
 					else
-						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
 							local potentialSquad
 							if specialRandom <= waveParameters.waveSpecialPercentage then
@@ -1608,13 +1611,13 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		if HumanTechLevel >= 2 and techAnger < 25 then -- Late T1
+		if HumanTechLevel >= 2 and techAnger < config.tierConfiguration[3].minAnger then -- Early T2
 			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
 		end
 
-		if HumanTechLevel >= 3 and techAnger < 60 then -- Early T2
-			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		end
+		--if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
+		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
+		--end
 
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
