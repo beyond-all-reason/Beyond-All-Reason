@@ -8547,6 +8547,35 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['scavengerbossv4'] = {
+		vortex1 = {
+			lightType = 'point',
+			pieceName = 'vortex1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		vortex2 = {
+			lightType = 'point',
+			pieceName = 'vortex2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		vortex3 = {
+			lightType = 'point',
+			pieceName = 'vortex3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['corcom'] = {
 		headlightcorcom = {
 			lightType = 'cone',

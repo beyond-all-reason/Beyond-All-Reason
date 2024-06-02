@@ -53,6 +53,7 @@ local convertedUnitsNames = {
 	['armbanth'] = 1,
 	['corkorg'] = 1,
 	['armvang'] = 3,
+	['scavengerbossv4'] = 1,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
   
