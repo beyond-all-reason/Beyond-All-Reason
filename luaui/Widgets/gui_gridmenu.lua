@@ -693,11 +693,10 @@ local function cycleBuilder()
 	for unitDefID, _ in pairsByKeys(selectedBuilders) do
 		index = index + 1
 		if unitDefID == activeBuilder then
-			if index == selectedBuildersCount then -- loop back to start
-				setActiveBuilder(1)
-			else
-				setActiveBuilder(index + 1)
-			end
+			-- loop through selections
+			local activeIndex = (index % selectedBuildersCount) + 1
+			setActiveBuilder(activeIndex)
+
 			break
 		end
 	end
