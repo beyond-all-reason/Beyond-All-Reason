@@ -10,7 +10,7 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
 		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare;  
 
-static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead;
+static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -467,7 +467,14 @@ AmIBored() {
 	return (0);
 }
 
-
+EaterBeamIncrementTimer()
+{
+	while ( TRUE && isAimingEaterBeam == 1){
+		eaterBeamIncrement = (eaterBeamIncrement + 1);
+		sleep 500;
+	}
+	start-script EaterBeamIncrementTimer();
+}
 
 //--------------------------------------------------------
 //--start ups :)
@@ -507,11 +514,14 @@ Create(){
 	isBuilding = 0;
 	isAimingShotgun = 0;
 	isAimingEaterBeam = 0;
+	eaterBeamIncrement = 20;
+	isAimingDgun = 0;
 	buildHeading = 0;
 	buildPitch = 0;
 	leftArm = 1;
 	rightArm = 1;
 	call-script StopWalking();
+	start-script EaterBeamIncrementTimer();
 }
 
 QueryNanoPiece(piecenum)
@@ -524,7 +534,7 @@ QueryNanoPiece(piecenum)
 
 RestoreAfterDelay(){
 	set-signal-mask SIG_AIM;
-	sleep 1000;
+	sleep 3000;
 	turn torso to  y-axis <0> speed <45.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	
 	turn biggun to  x-axis <-38> speed <30.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
@@ -537,6 +547,8 @@ RestoreAfterDelay(){
 	torsoaim = 0;
 	isAiming = 0;
 	isAimingShotgun = 0;
+	isAimingEaterBeam = 0;
+	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
 	wpn1_lasthead = 1000000;
@@ -581,7 +593,10 @@ AimFromPrimary(piecenum)
 
 AimPrimary(heading, pitch) //pew pew
 {
-	if (isAimingEaterBeam){
+	if (isAimingEaterBeam == 1){
+		return (0);
+	}
+	if (isAimingDgun == 1){
 		return (0);
 	}
 	if (isAimingShotgun){
@@ -691,7 +706,10 @@ AimFromSecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (isAimingEaterBeam){
+	if (isAimingEaterBeam == 1){
+		return (0);
+	}
+	if (isAimingDgun == 1){
 		return (0);
 	}
 	if( get PIECE_Y(head) > 0 )
@@ -767,7 +785,10 @@ AimTertiary(heading, pitch)
 	{
 		return(0);
 	}
-	if (isAimingEaterBeam){
+	if (isAimingEaterBeam == 1){
+		return (0);
+	}
+	if (isAimingDgun == 1){
 		return (0);
 	}
 	signal SIG_AIM;
@@ -890,7 +911,7 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
-QueryWeapon6(piecenum) //ferret
+QueryWeapon6(piecenum) //eater beam
 {
 	piecenum = nano;
 	return (0);
@@ -905,7 +926,7 @@ AimFromWeapon6(piecenum)
 FireWeapon6()
 {
 	//emit-sfx 1024 + 2 from misflare;
-	isAimingEaterBeam = 0;
+	//isAimingEaterBeam = 0;
 	return (0);
 }
 AimWeapon6(heading, pitch)
@@ -914,15 +935,19 @@ AimWeapon6(heading, pitch)
 	//{
 	//	return (0);
 	//}
-	//if( isAimingEaterBeam == 1 )
-	//{
-	//	return (0);
-	//}
+	if( isAimingEaterBeam == 1 )
+	{
+		return (0);
+	}
+	if (isAimingDgun == 1){
+		return (0);
+	}
 	rightarm = 0;
 	leftarm = 0;
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	isAimingEaterBeam = 1;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
@@ -933,13 +958,72 @@ AimWeapon6(heading, pitch)
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
+	isAimingEaterBeam = 0;
 	isAiming = 1;
-	isAimingEaterBeam = 1;
 	if( isBuilding == 1 )
 	{
 		start-script ResumeBuilding();
 	}
 	start-script RestoreAfterDelay();
+	return (1);
+}
+
+QueryWeapon7(piecenum) //eater beam
+{
+	piecenum = nano;
+	return (0);
+}
+
+AimFromWeapon7(piecenum)
+{
+	piecenum = nano;
+	return (0);
+}
+
+FireWeapon7()
+{
+	//emit-sfx 1024 + 2 from misflare;
+	//isAimingEaterBeam = 0;
+	return (0);
+}
+AimWeapon7(heading, pitch)
+{
+	//if( get PIECE_Y(head) > 0 )
+	//{
+	//	return (0);
+	//}
+	if( isAimingDgun == 1 )
+	{
+		return (0);
+	}
+	if( eaterBeamIncrement < 20 )
+	{
+		return (0);
+	}
+	rightarm = 0;
+	leftarm = 0;
+	//call-script FixArms(0, 1);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isAimingEaterBeam = 1;
+	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	//torsoaim = heading;
+	turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	turn luparm to  x-axis <0> speed <390.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	turn rloarm to  x-axis <-38> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	turn ruparm to  x-axis <0> speed <390.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	stop-spin barrelr around y-axis;
+	wait-for-turn torso around y-axis;
+	//wait-for-turn rloarm around x-axis;
+	//wait-for-turn ruparm around x-axis;
+	isAimingDgun = 0;
+	isAiming = 1;
+	if( isBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	start-script RestoreAfterDelay();
+	eaterBeamIncrement = 0;
 	return (1);
 }
 
