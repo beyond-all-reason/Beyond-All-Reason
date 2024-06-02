@@ -4,6 +4,8 @@
 -- bind z gridmenu_key 1 1 <-- Sets the first grid key, useful for german keyboard layout. Unnecessary if using the Bar Swap Y Z widget
 -- bind alt+x gridmenu_next_page <-- Go to next page
 -- bind alt+z gridmenu_prev_page <-- Go to previous page
+
+-- TODO: Fix unitfromfactory and unitcommand callins to update queue progress
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -149,25 +151,27 @@ local cycleBuilderKey
 
 local Rect = {}
 function Rect:new(x1, y1, x2, y2, opts)
-	opts = opts or {}
-
 	local this = {
 		x = x1,
 		y = y1,
 		xEnd = x2,
 		yEnd = y2,
-		opts = opts,
+		opts = opts or {},
 	}
 
 	function this:contains(x, y)
 		return x >= self.x and x <= self.xEnd and y >= self.y and y <= self.yEnd
 	end
 
-	function this:set(x1, y1, x2, y2)
-		this.x = x1
-		this.y = y1
-		this.xEnd = x2
-		this.yEnd = y2
+	function this:set(newX1, newY1, newX2, newY2, newOpts)
+		this.x = newX1
+		this.y = newY1
+		this.xEnd = newX2
+		this.yEnd = newY2
+
+		if newOpts then
+			this.opts = newOpts
+		end
 	end
 
 	function this:getId()
@@ -226,11 +230,16 @@ local selectedBuildersCount = 0
 local prevBuildRectsCount = 0
 
 local cellRects = {}
--- populate cellRects
 for i = 1, 12 do
 	cellRects[i] = Rect:new(0, 0, 0, 0)
 end
+
 local catRects = {}
+catRects[BUILDCAT_ECONOMY] = Rect:new(0, 0, 0, 0)
+catRects[BUILDCAT_COMBAT] = Rect:new(0, 0, 0, 0)
+catRects[BUILDCAT_UTILITY] = Rect:new(0, 0, 0, 0)
+catRects[BUILDCAT_PRODUCTION] = Rect:new(0, 0, 0, 0)
+
 local builderRects = {}
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0)
@@ -424,7 +433,7 @@ local function setupCells()
 				arow = col < 3 and 2 or 1
 				acol = 6 - col % 2
 			end
-			cellRects[cellRectID] = Rect:new(
+			cellRects[cellRectID]:set(
 				buildpicsRect.x + (acol - 1) * cellSize,
 				buildpicsRect.yEnd - (rows - arow + 1) * cellSize,
 				buildpicsRect.x + acol * cellSize,
@@ -445,7 +454,7 @@ local function setupCategoryRects()
 			for i, cat in ipairs(categories) do
 				if cat == currentCategory then
 					local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
-					catRects[cat] = Rect:new(
+					catRects[cat]:set(
 						x1,
 						y1,
 						x1 + contentWidth - activeAreaMargin,
@@ -453,13 +462,13 @@ local function setupCategoryRects()
 						defaultCategoryOpts[i]
 					)
 				else
-					catRects[cat] = Rect:new(0, 0, 0, 0, defaultCategoryOpts[i])
+					catRects[cat]:set(0, 0, 0, 0, defaultCategoryOpts[i])
 				end
 			end
 		else
 			for i, cat in ipairs(categories) do
 				local y1 = categoriesRect.yEnd - i * contentHeight + 2
-				catRects[cat] = Rect:new(
+				catRects[cat]:set(
 					x1,
 					y1,
 					x1 + contentWidth - activeAreaMargin,
@@ -477,7 +486,7 @@ local function setupCategoryRects()
 			local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
 			for i, cat in ipairs(categories) do
 				if cat == currentCategory then
-					catRects[cat] = Rect:new(
+					catRects[cat]:set(
 						x1,
 						y2 - categoryButtonHeight + padding,
 						x1 + buttonWidth,
@@ -485,13 +494,13 @@ local function setupCategoryRects()
 						defaultCategoryOpts[i]
 					)
 				else
-					catRects[cat] = Rect:new(0, 0, 0, 0, defaultCategoryOpts[i])
+					catRects[cat]:set(0, 0, 0, 0, defaultCategoryOpts[i])
 				end
 			end
 		else
 			for i, cat in ipairs(categories) do
 				local x1 = categoriesRect.x + (i - 1) * buttonWidth
-				catRects[cat] = Rect:new(
+				catRects[cat]:set(
 					x1,
 					y2 - categoryButtonHeight + padding,
 					x1 + buttonWidth,
@@ -1042,7 +1051,7 @@ function widget:ViewResize()
 		)
 
 		-- start with no width and grow dynamically
-		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
+		buildersRect:set(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
 	else -- if stick to side we know cells are 3 row by 4 column
 		local width = 0.2125 -- hardcoded width to match bottom element
 		width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
@@ -1705,7 +1714,7 @@ local function drawBuilders()
 			Rect:new(buildersRect.xEnd, buildersRect.y, buildersRect.xEnd + builderButtonSize, buildersRect.yEnd)
 
 		-- grow container
-		buildersRect = Rect:new(buildersRect.x, buildersRect.y, rect.xEnd + padding, buildersRect.yEnd)
+		buildersRect:set(buildersRect.x, buildersRect.y, rect.xEnd + padding, buildersRect.yEnd)
 		builderRects[builderTypes] = rect
 		builderButtons[builderTypes] = { unitDefID, count, rect }
 
