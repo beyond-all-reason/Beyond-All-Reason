@@ -427,7 +427,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	gadget.UnitGiven = gadget.UnitCreated
-	gadget.UnitCaptured = gadget.UnitCreated
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then

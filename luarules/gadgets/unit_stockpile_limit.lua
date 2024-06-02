@@ -176,13 +176,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitCaptured(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
-			UpdateStockpile(unitID, unitDefID)
-		end
-	end
-
 	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
 		UpdateStockpile(unitID, unitDefID)
 	end
