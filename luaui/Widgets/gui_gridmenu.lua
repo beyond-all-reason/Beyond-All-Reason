@@ -25,6 +25,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -491,7 +492,7 @@ local function setCurrentCategory(category)
 end
 
 local function queueUnit(uDefID, opts)
-	local sel = Spring.GetSelectedUnitsSorted()
+	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
@@ -638,8 +639,6 @@ local function nextPageHandler()
 end
 
 local function addFactoryToSelection(unitID, unitDefID)
-	doUpdate = true
-
 	builderIsFactory = true
 	selectedFactoryUID = unitID
 	activeBuilder = unitDefID
@@ -670,10 +669,10 @@ local function setActiveBuilder(index)
 	for builder, _ in pairsByKeys(selectedBuilders) do
 		i = i + 1
 		if i == index then
-			local sel = Spring.GetSelectedUnitsSorted()
-			for unitDefID, unitIDs in pairs(sel) do
+			for unitDefID, unitIDs in pairs(spGetSelectedUnitsSorted()) do
 				if builder == unitDefID then
 					addBuilderToSelection(unitIDs[1], unitDefID, false)
+
 					if units.isFactory[unitDefID] then
 						addFactoryToSelection(unitIDs[1], unitDefID)
 					end
@@ -2292,7 +2291,7 @@ function widget:UnitFromFactory(_, _, _, factID)
 	end
 end
 
-function widget:SelectionChanged()
+function widget:SelectionChanged(newSel)
 	activeBuilder = nil
 	activeBuilderID = nil
 	builderIsFactory = false
@@ -2302,14 +2301,15 @@ function widget:SelectionChanged()
 	selectedBuildersCount = 0
 	currentPage = 1
 
-	if spGetSelectedUnitsCount() == 0 then
+	if #newSel == 0 then
 		widget:Update(1000)
 
 		return
 	end
 
-	local sel = Spring.GetSelectedUnitsSorted()
-	for unitDefID, unitIDs in pairs(sel) do
+	-- Here we do selected sorted to save the GetUnitDefIDs we would have to do
+	-- if we used the newSel
+	for unitDefID, unitIDs in pairs(spGetSelectedUnitsSorted()) do
 		if units.isBuilder[unitDefID] then
 			local isFactory = units.isFactory[unitDefID]
 
