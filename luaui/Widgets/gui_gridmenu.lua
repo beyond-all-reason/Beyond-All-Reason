@@ -354,6 +354,21 @@ end
 -------------------------------------------------------------------------------
 
 local function updateGrid(gridOpts)
+	-- update page data
+	local gridOptsCount = table.count(gridOpts)
+
+	if gridOptsCount > columns * rows then
+		pages = math_ceil(gridOptsCount / (rows * columns))
+
+		if currentPage > pages then
+			currentPage = pages
+		end
+	else
+		currentPage = 1
+		pages = 1
+	end
+
+	-- update cells data
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 
@@ -388,20 +403,6 @@ local function updateGrid(gridOpts)
 				rect.opts.cmd = nil
 			end
 		end
-	end
-
-	-- adjust grid size when pages are needed
-	local gridOptsCount = table.count(gridOpts)
-
-	if gridOptsCount > columns * rows then
-		pages = math_ceil(gridOptsCount / (rows * columns))
-
-		if currentPage > pages then
-			currentPage = pages
-		end
-	else
-		currentPage = 1
-		pages = 1
 	end
 end
 
@@ -531,21 +532,21 @@ local function RefreshCommands()
 		activeBuilder = startDefID
 	end
 
-	gridOpts = {}
-	gridOptsCount = 0
+	if not activeBuilder then
+		return
+	end
 
-	if activeBuilder then
-		if builderIsFactory then
-			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
-			if activeCmdDescs then
-				gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
-			end
-		else
-			updateCategories(CONFIG.buildCategories)
-
-			local buildOptions = unitBuildOptions[activeBuilder]
-			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
+	local gridOpts
+	if builderIsFactory then
+		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+		if activeCmdDescs then
+			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
 		end
+	else
+		updateCategories(CONFIG.buildCategories)
+
+		local buildOptions = unitBuildOptions[activeBuilder]
+		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
 	updateGrid(gridOpts)
