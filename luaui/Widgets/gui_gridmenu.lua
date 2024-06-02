@@ -120,8 +120,6 @@ local defaultCategoryOpts = {}
 
 local activeCmd
 
-local gridOpts = {}
-local gridOptsCount
 local categories = {}
 local currentCategory
 local labBuildModeActive = false
@@ -140,7 +138,6 @@ include("keysym.h.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-local hotkeyActions = {}
 local categoryKeys = {}
 local keyLayout = {}
 local nextPageKey
@@ -355,6 +352,59 @@ end
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
 -------------------------------------------------------------------------------
+
+local function updateGrid(gridOpts)
+	local numCellsPerPage = rows * columns
+	local cellRectID = 0
+
+	for row = 1, 3 do
+		for col = 1, 4 do
+			cellRectID = cellRectID + 1
+
+			-- offset for pages
+			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
+
+			local uDefID
+			if gridOpts[index] then
+				uDefID = -gridOpts[index].id
+			end
+
+			local rect = cellRects[cellRectID]
+			rect.opts.uDefID = uDefID
+
+			if uDefID then
+				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
+
+				local cmd = gridOpts[index]
+
+				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
+					or (isPregame and pregameBlueprintDefID == uDefID)
+				rect.opts.color = cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil
+				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
+				rect.opts.disabled = units.unitRestricted[uDefID]
+				rect.opts.cmd = cmd
+			else
+				rect.opts.uDefID = nil
+				rect.opts.cmd = nil
+			end
+		end
+	end
+
+	-- adjust grid size when pages are needed
+	local gridOptsCount = table.count(gridOpts)
+
+	if gridOptsCount > columns * rows then
+		pages = math_ceil(gridOptsCount / (rows * columns))
+
+		if currentPage > pages then
+			currentPage = pages
+		end
+	else
+		currentPage = 1
+		pages = 1
+	end
+end
+
 local function setupCells()
 	local cellRectID = 0
 
@@ -498,7 +548,7 @@ local function RefreshCommands()
 		end
 	end
 
-	gridOptsCount = table.count(gridOpts)
+	updateGrid(gridOpts)
 end
 
 local function getActionHotkey(action)
@@ -622,7 +672,8 @@ local function gridmenuCategoryHandler(_, _, args)
 		setLabBuildMode(true)
 		return true
 	end
-	if not activeBuilder or builderIsFactory or (currentCategory and hotkeyActions["1" .. cIndex]) then
+
+	if not activeBuilder or builderIsFactory or (currentCategory and cellRects[cIndex]) then
 		return
 	end
 
@@ -650,8 +701,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		return
 	end
 
-	local uDefID = hotkeyActions[tostring(row) .. tostring(col)]
-	if not uDefID or units.unitRestricted[-uDefID] then
+	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
+	if not uDefID or units.unitRestricted[uDefID] then
 		return
 	end
 
@@ -683,7 +734,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			table.insert(opts, "shift")
 		end
 
-		queueUnit(uDefID, opts)
+		queueUnit(-uDefID, opts)
 
 		return true
 	elseif isPregame and currentCategory then
@@ -694,7 +745,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return false
 		end
 
-		setPregameBlueprint(-uDefID)
+		setPregameBlueprint(uDefID)
 		doUpdate = true
 		return true
 	elseif activeBuilder and currentCategory then
@@ -705,7 +756,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-		pickBlueprint(uDefID)
+		pickBlueprint(-uDefID)
 		return true
 	end
 
@@ -1737,44 +1788,8 @@ local function drawBuilders()
 end
 
 local function drawGrid()
-	local numCellsPerPage = rows * columns
-	local cellRectID = 0
-
-	for row = 1, 3 do
-		for col = 1, 4 do
-			cellRectID = cellRectID + 1
-
-			-- offset for pages
-			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
-
-			local uDefID
-			if gridOpts[index] then
-				uDefID = -gridOpts[index].id
-			end
-
-			local rect = cellRects[cellRectID]
-			rect.opts.uDefID = uDefID
-
-			if uDefID then
-				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
-				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
-
-				local cmd = gridOpts[index]
-
-				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
-					or (isPregame and pregameBlueprintDefID == uDefID)
-				rect.opts.color = cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil
-				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
-				rect.opts.disabled = units.unitRestricted[uDefID]
-				rect.opts.cmd = cmd
-			else
-				rect.opts.uDefID = nil
-				rect.opts.cmd = nil
-				hotkeyActions[tostring(row) .. tostring(col)] = nil
-			end
-
-			drawCell(rect)
-		end
+	for i = 1, 12 do
+		drawCell(cellRects[i])
 	end
 
 	local firstUnitDefID = cellRects[1].opts.uDefID
@@ -1791,26 +1806,12 @@ local function drawBuildMenu()
 		drawCategories()
 	end
 
-	-- adjust grid size when pages are needed
-	if gridOptsCount > columns * rows then
-		pages = math_ceil(gridOptsCount / (rows * columns))
-
-		if currentPage > pages then
-			currentPage = pages
-		end
-	else
-		currentPage = 1
-		pages = 1
-	end
-
 	-- these are globals so it can be re-used (hover highlight)
 	cellPadding = math_floor(cellSize * CONFIG.cellPadding)
 	iconPadding = math_max(1, math_floor(cellSize * CONFIG.iconPadding))
 	cornerSize = math_floor(cellSize * CONFIG.iconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
-
-	hotkeyActions = {}
 
 	drawGrid()
 	drawPageAndBackButtons()
