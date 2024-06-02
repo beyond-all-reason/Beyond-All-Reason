@@ -2023,6 +2023,10 @@ local icontypes = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
+	legaceb = {
+		bitmap = "icons/corfast_1.3.png",
+		size = 1.16999996
+	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999

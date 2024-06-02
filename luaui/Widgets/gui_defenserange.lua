@@ -99,14 +99,20 @@ modConfig["BYAR"]["unitList"] = {
 	legmg = { weapons = { 1 } }, -- machine gun tower
 	legdtr = { weapons = { 1 } }, -- t1 pop-up riot cannon
 	legcluster = { weapons = { 1 } },  -- t1 cluster arty
+	legdefcarryt1 = { weapons = { 1 } },  -- t1 drone pad
 
 	legrl = { weapons = { 2 } }, -- t1 light aa turret
 	legrhapsis = { weapons = { 2 } }, -- t1 salvo aa
 	leglupara = { weapons = { 2 } }, -- t1.5 burst flak
 
 	legstarfall = { weapons = { 1 } }, -- LOLCannon
+	leglrpc = { weapons = { 1 } }, -- t2 lrpc
+	legacluster = { weapons = { 1 } }, -- t2 popup arty
 	legbombard = { weapons = { 1 } }, -- t2 pop-up
-	legperdition = { weapons = { 1 } }, -- tacnuke
+	legperdition = { weapons = { 1 } }, -- t2 tacnuke
+
+	legflak = { weapons = { 2 } }, -- t2 ravager gatling flak
+	leglraa = { weapons = { 2 } }, -- t2 aa railgun
 	
 	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },

@@ -29,7 +29,7 @@ local labGrids = {
 		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
 	legalab = {
-		"legack", "corfast", "legstr", "corspy",               -- T2 con, freaker, strider, spy
+		"legack", "legaceb", "legstr", "corspy",               -- T2 con, freaker, strider, spy
 		"corvoyr", "corspec", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
 		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
 	},
@@ -1828,7 +1828,7 @@ local unitGrids = {
 		}
 	},
 
-	--[[--proteus
+	--proteus
 	legaceb = {
 		{
 			{ "legmex", "legsolar", },                                -- 0.5 mex, solar
@@ -1841,7 +1841,7 @@ local unitGrids = {
 			{ "cordl", "legfloat", "legsrailspider", },               -- coastal torp launcher, triton, arquebus
 		},
 		{
-			{ "corarad", "coreyes", "legfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
+			{ "corarad", "coreyes", "legforti", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
 			{ "cormine2", },                                          -- med mine
 		},
@@ -1850,7 +1850,7 @@ local unitGrids = {
 			{ "cornanotc", "legch", },                                -- nano, hover con (for now)
 			{ "leginfestor", },                                       -- infester
 		}
-	},]]
+	},
 
 	--consul
 	armconsul = {

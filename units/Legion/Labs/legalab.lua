@@ -35,7 +35,7 @@ return {
 		yardmap = "ooooooo ooooooo ooooooo occccco occccco occccco",
 		buildoptions = {
 			[1] = "legack",
-			[2] = "corfast",
+			[2] = "legaceb",
 			[3] = "legstr",
 			[4] = "coramph",
 			[5] = "legshot",
