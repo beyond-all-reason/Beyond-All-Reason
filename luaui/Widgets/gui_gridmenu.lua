@@ -343,95 +343,9 @@ local function checkGuishaderBuilders()
 end
 
 -------------------------------------------------------------------------------
---- HOTKEY AND ACTION HANDLING
+--- STATE MANAGEMENT
 -------------------------------------------------------------------------------
 
-local function RefreshCommands()
-	if isPregame and startDefID then
-		activeBuilder = startDefID
-	end
-
-	gridOpts = {}
-	gridOptsCount = 0
-
-	if activeBuilder then
-		if builderIsFactory then
-			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
-			if activeCmdDescs then
-				gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
-			end
-		else
-			categories = CONFIG.buildCategories
-			local buildOptions = unitBuildOptions[activeBuilder]
-			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
-		end
-	end
-
-	gridOptsCount = table.count(gridOpts)
-end
-
-local function getActionHotkey(action)
-	local key
-	for _, keybinding in pairs(Spring.GetActionHotKeys(action)) do
-		if (not key) or keybinding:len() < key:len() then
-			key = keybinding
-		end
-
-		if key:len() == 1 then
-			break
-		end
-	end
-
-	return key
-end
-
--- Helper function for iterating over the actions with builder and factory tags,
--- with GetActionHotKeys those tags will be missed and the hotkey wont work
-local function getGridKey(action)
-	local key = getActionHotkey(action)
-		or getActionHotkey(action .. " builder")
-		or getActionHotkey(action .. " factory")
-	return key
-end
-
-local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-
-	keyLayout = { {}, {}, {} }
-
-	for c = 1, 4 do
-		local categoryAction = "gridmenu_category " .. c
-		local cKey = getActionHotkey(categoryAction)
-
-		if not cKey then
-			cKey = ""
-		end
-
-		categoryKeys[c] = cKey
-
-		for r = 1, 3 do
-			local keyAction = "gridmenu_key " .. r .. " " .. c
-			local key = getGridKey(keyAction)
-
-			if not key then
-				key = ""
-			end
-
-			keyLayout[r][c] = key
-		end
-	end
-
-	local key = getActionHotkey("gridmenu_next_page")
-
-	nextPageKey = key
-
-	key = getActionHotkey("gridmenu_cycle_builder")
-	cycleBuilderKey = key
-
-	doUpdate = true
-end
-
--- we don't need to do this every frame, only call when category rects have changed
 local function setupCategoryRects()
 	-- set up rects
 	if stickToBottom then
@@ -499,6 +413,116 @@ local function setupCategoryRects()
 			end
 		end
 	end
+end
+
+local function updateCategories(newCategories)
+	if categories == newCategories then
+		return
+	end
+
+	categories = newCategories
+
+	if next(catRects) == nil then
+		setupCategoryRects()
+	end
+
+	for _, cat in pairs(categories) do
+		local rect = catRects[cat]
+
+		if rect:getWidth() ~= 0 then
+			rect.opts.current = cat == currentCategory
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
+--- HOTKEY AND ACTION HANDLING
+-------------------------------------------------------------------------------
+
+local function RefreshCommands()
+	if isPregame and startDefID then
+		activeBuilder = startDefID
+	end
+
+	gridOpts = {}
+	gridOptsCount = 0
+
+	if activeBuilder then
+		if builderIsFactory then
+			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+			if activeCmdDescs then
+				gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
+			end
+		else
+			updateCategories(CONFIG.buildCategories)
+
+			local buildOptions = unitBuildOptions[activeBuilder]
+			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
+		end
+	end
+
+	gridOptsCount = table.count(gridOpts)
+end
+
+local function getActionHotkey(action)
+	local key
+	for _, keybinding in pairs(Spring.GetActionHotKeys(action)) do
+		if (not key) or keybinding:len() < key:len() then
+			key = keybinding
+		end
+
+		if key:len() == 1 then
+			break
+		end
+	end
+
+	return key
+end
+
+-- Helper function for iterating over the actions with builder and factory tags,
+-- with GetActionHotKeys those tags will be missed and the hotkey wont work
+local function getGridKey(action)
+	local key = getActionHotkey(action)
+		or getActionHotkey(action .. " builder")
+		or getActionHotkey(action .. " factory")
+	return key
+end
+
+local function reloadBindings()
+	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+
+	keyLayout = { {}, {}, {} }
+
+	for c = 1, 4 do
+		local categoryAction = "gridmenu_category " .. c
+		local cKey = getActionHotkey(categoryAction)
+
+		if not cKey then
+			cKey = ""
+		end
+
+		categoryKeys[c] = cKey
+
+		for r = 1, 3 do
+			local keyAction = "gridmenu_key " .. r .. " " .. c
+			local key = getGridKey(keyAction)
+
+			if not key then
+				key = ""
+			end
+
+			keyLayout[r][c] = key
+		end
+	end
+
+	local key = getActionHotkey("gridmenu_next_page")
+
+	nextPageKey = key
+
+	key = getActionHotkey("gridmenu_cycle_builder")
+	cycleBuilderKey = key
+
+	doUpdate = true
 end
 
 local function setLabBuildMode(value)
@@ -1368,23 +1392,7 @@ local function drawButtonHotkey(rect)
 	)
 end
 
-local function updateCategories()
-	if next(catRects) == nil then
-		setupCategoryRects()
-	end
-
-	for _, cat in pairs(categories) do
-		local rect = catRects[cat]
-
-		if rect:getWidth() ~= 0 then
-			rect.opts.current = cat == currentCategory
-		end
-	end
-end
-
 local function drawCategories()
-	updateCategories() -- change only state TODO: Remove from draw loop
-
 	for _, cat in pairs(categories) do
 		local rect = catRects[cat]
 
@@ -1420,7 +1428,6 @@ local function drawPageAndBackButtons()
 			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 		end
 
-		backRect.opts.hovered = hoveredButton == backRect:getId()
 		backRect.opts.keyText = "Shift"
 		backRect.opts.keyTextHeight = font2:GetTextHeight("Shift")
 
@@ -1445,7 +1452,6 @@ local function drawPageAndBackButtons()
 			"o"
 		)
 
-		nextPageRect.opts.hovered = nextPageRect:getId() == hoveredButton
 		nextPageRect.opts.keyText = nextKeyText
 		nextPageRect.opts.keyTextHeight = font2:GetTextHeight(nextKeyText)
 
@@ -1519,7 +1525,6 @@ local function drawBuildModeButtons()
 
 				labBuildModeRect.opts.keyText = hotkeys
 				labBuildModeRect.opts.keyTextHeight = font2:GetTextHeight(hotkeys)
-				labBuildModeRect.opts.hoveredButton = labBuildModeRect:getId() == hoveredButton
 
 				drawButtonHotkey(labBuildModeRect)
 				drawButton(labBuildModeRect)
@@ -1956,7 +1961,7 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-local function setHoveredRect(rect)
+local function resetHovered()
 	for _, irect in pairs(catRects) do
 		irect.opts.hovered = false
 	end
@@ -1970,6 +1975,10 @@ local function setHoveredRect(rect)
 	backRect.opts.hovered = false
 	nextPageRect.opts.hovered = false
 	nextBuilderRect.opts.hovered = false
+end
+
+local function setHoveredRect(rect)
+	resetHovered()
 
 	hoveredButton = rect:getId()
 	rect.opts.hovered = true
@@ -2147,6 +2156,7 @@ local function handleButtonHover()
 			doUpdate = true
 		end
 
+		resetHovered()
 		hoveredButton = nil
 		drawnHoveredButton = nil
 	end
@@ -2385,9 +2395,9 @@ function widget:SelectionChanged(newSel)
 	end
 
 	if activeBuilder and not builderIsFactory then
-		categories = CONFIG.buildCategories
+		updateCategories(CONFIG.buildCategories)
 	else
-		categories = {}
+		updateCategories({})
 	end
 
 	-- set active builder to first index after updating selection
