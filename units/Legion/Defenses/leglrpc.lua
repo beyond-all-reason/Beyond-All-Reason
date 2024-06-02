@@ -106,6 +106,7 @@ return {
 		weapondefs = {
 			lrpc = {
 				accuracy = 300,
+				sprayangle = 150,
 				areaofeffect = 135,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -127,8 +128,8 @@ return {
 				model = "artshell-large.s3o",
 				name = "Long-Range g2g Heavy Cluster Plasma Cannon",
 				noselfdamage = true,
-				range = 4650,
-				reloadtime = 15,
+				range = 4300,
+				reloadtime = 18,
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -139,7 +140,7 @@ return {
 				weaponvelocity = 1100,
 				customparams = {
 					cluster = true,
-					bouncing = true,
+					bouncing = false,
 					number = 4,
 				},
 				damage = {
@@ -161,7 +162,8 @@ return {
 				impulsefactor = 0.5,
 				name = "Plasma Burst",
 				noselfdamage = true,
-				range = 180,
+				maxvelocity = 720,
+				range = 400,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
