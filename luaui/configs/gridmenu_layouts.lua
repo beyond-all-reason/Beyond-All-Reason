@@ -143,6 +143,12 @@ local labGrids = {
 		"corseal", "corparrow", "", "",
 		"", "corcrash", "coraak",
 	},
+	
+	legamsub = {
+		"legotter", "", "corgarp", "",
+		"", "legfloat", "", "",
+		"", "corcrash", "coraak",
+	},	
 	-- hover labs
 	armhp = {
 		"armch", "", "armsh", "",
@@ -1310,7 +1316,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "cornanotc", "legavp", "cornanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1427,7 +1433,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "cornanotc", "legavp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
