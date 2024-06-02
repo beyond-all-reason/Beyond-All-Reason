@@ -471,7 +471,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "Darkmatter Photon-Disruptor",
 				noexplode = true,
 				noselfdamage = true,
-				range = 1100,
+				range = 800,
 				reloadtime = 1,
 				stockpile = true,
 				stockpiletime = 1,

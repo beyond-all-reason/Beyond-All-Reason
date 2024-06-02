@@ -467,13 +467,15 @@ AmIBored() {
 	return (0);
 }
 
-EaterBeamIncrementTimer()
+IncrementTimer()
 {
-	while ( TRUE && isAimingEaterBeam == 1){
+	while ( TRUE ){
+		if (isAimingEaterBeam == 1){
 		eaterBeamIncrement = (eaterBeamIncrement + 1);
+		}
 		sleep 500;
 	}
-	start-script EaterBeamIncrementTimer();
+	start-script IncrementTimer();
 }
 
 //--------------------------------------------------------
@@ -521,7 +523,7 @@ Create(){
 	leftArm = 1;
 	rightArm = 1;
 	call-script StopWalking();
-	start-script EaterBeamIncrementTimer();
+	start-script IncrementTimer();
 }
 
 QueryNanoPiece(piecenum)
@@ -1000,12 +1002,19 @@ AimWeapon7(heading, pitch)
 	{
 		return (0);
 	}
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(7));
+	if( reloading )
+	{
+		return (0);
+	}
+	isAimingDgun = 1;
 	rightarm = 0;
 	leftarm = 0;
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	isAimingEaterBeam = 1;
+	isAimingDgun = 1;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
