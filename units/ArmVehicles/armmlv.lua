@@ -59,6 +59,7 @@ return {
 			[5] = "armeyes",
 		},
 		customparams = {
+			minesweeper = 300,
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

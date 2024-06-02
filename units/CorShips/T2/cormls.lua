@@ -56,6 +56,7 @@ return {
 			[17] = "corfdrag",
 		},
 		customparams = {
+			minesweeper = 300,
 			unitgroup = 'buildert2',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

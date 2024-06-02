@@ -59,6 +59,7 @@ return {
 			[5] = "coreyes",
 		},
 		customparams = {
+			minesweeper = 300,
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

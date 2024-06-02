@@ -57,6 +57,7 @@ return {
 			[18] = "armfdrag",
 		},
 		customparams = {
+			minesweeper = 300,
 			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

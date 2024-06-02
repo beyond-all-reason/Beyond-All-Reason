@@ -21,6 +21,7 @@ local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
 local minesweeperIDs = {}
 local minesweepers = {}
+local minesweeperRanges = {}
 local mineIDs = {}
 
 --Spring.Echo('hornet ms loaded')
@@ -28,7 +29,7 @@ local mineIDs = {}
 local teamList = Spring.GetTeamList()
 local teamIDs = {}
 
-local revealedMines = {}=
+local revealedMines = {}
 --Spring.Debug.TableEcho(teamList)
 for i = 1, #teamList do
     teamIDs[teamList[i]] = teamList[i]
@@ -41,74 +42,25 @@ end
 
 
 
-local detectionRange = 300
-
---anything that should detect mines
-if UnitDefNames.armmlv then
-    minesweeperIDs[UnitDefNames.armmlv.id] = true
-end
-if UnitDefNames.cormlv then
-    minesweeperIDs[UnitDefNames.cormlv.id] = true
-end
-if UnitDefNames.legmlv then
-    minesweeperIDs[UnitDefNames.legmlv.id] = true
+for udid, ud in pairs(UnitDefs) do
+	if ud.customParams and ud.customParams.minesweeper then
+		minesweeperIDs[udid] = udid
+		minesweeperRanges[udid] = ud.customParams.minesweeper
+	end
 end
 
-if UnitDefNames.armmls then
-    minesweeperIDs[UnitDefNames.armmls.id] = true
-end
-if UnitDefNames.cormls then
-    minesweeperIDs[UnitDefNames.cormls.id] = true
-end
-if UnitDefNames.legmls then
-    minesweeperIDs[UnitDefNames.legmls.id] = true
+
+for udid, ud in pairs(UnitDefs) do
+	if ud.customParams and ud.customParams.mine then
+		mineIDs[udid] = udid
+	end
 end
 
-if UnitDefNames.armmls then
-    minesweeperIDs[UnitDefNames.armmls.id] = true
-end
-if UnitDefNames.cormls then
-    minesweeperIDs[UnitDefNames.cormls.id] = true
-end
-if UnitDefNames.legmls then
-    minesweeperIDs[UnitDefNames.legmls.id] = true
-end
-----Spring.Echo('hornet minesweeperIDs')
-----Spring.Debug.TableEcho(minesweeperIDs)
+--Spring.Echo('hornet poi minesweeperIDs')
+--Spring.Debug.TableEcho(minesweeperIDs)
 
-
-
-if UnitDefNames.armmine1 then
-    mineIDs[UnitDefNames.armmine1.id] = true
-end
-if UnitDefNames.armmine2 then
-    mineIDs[UnitDefNames.armmine2.id] = true
-end
-if UnitDefNames.armmine3 then
-    mineIDs[UnitDefNames.armmine3.id] = true
-end
-if UnitDefNames.cormine1 then
-    mineIDs[UnitDefNames.cormine1.id] = true
-end
-if UnitDefNames.cormine2 then
-    mineIDs[UnitDefNames.cormine2.id] = true
-end
-if UnitDefNames.cormine3 then
-    mineIDs[UnitDefNames.cormine3.id] = true
-end
-if UnitDefNames.cormine4 then
-    mineIDs[UnitDefNames.cormine4.id] = true
-end
-if UnitDefNames.armfmine3 then
-    mineIDs[UnitDefNames.armfmine3.id] = true
-end
-if UnitDefNames.corfmine3 then
-    mineIDs[UnitDefNames.corfmine3.id] = true
-end
---will need leg later
-
-----Spring.Echo('hornet mineIDs')
-----Spring.Debug.TableEcho(mineIDs)
+--Spring.Echo('hornet mineIDs')
+--Spring.Debug.TableEcho(mineIDs)
 
 
 function gadget:Initialize()
@@ -118,14 +70,14 @@ function gadget:Initialize()
 	if table.count(mineIDs) <= 0 then
 		gadgetHandler:RemoveGadget(self)
 	end
-
 end
 
 
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	--Spring.Echo('hornet poi 79 minesweeperIDs[unitDefID], unitDefID, unitID', minesweeperIDs[unitDefID], unitDefID, unitID)
 	if minesweeperIDs[unitDefID] then
-		minesweepers[unitID] = true
+		minesweepers[unitID] = unitDefID
 	end
 end
 
@@ -149,17 +101,18 @@ function gadget:GameFrame(f)
     	--find all minesweepers
 		if table.count(minesweepers)>0 then
 			--Spring.Echo('hornet in minesweepers>0')
-			for miner in pairs(minesweepers) do
+			for miner, minerdef in pairs(minesweepers) do
 
 				--Spring.Echo('hornet miner', miner)
+				--Spring.Echo('hornet minerdef', minerdef)
 
 				
 				local minerTeam = Spring.GetUnitTeam(miner)--this sometimes seems to be 0, should it be? is 0 gaia or 'team 1' ? try with built minelayers rather than spawned? try to give units to team 2 and see if they;re blue or gaia?
 				local x, y, z = Spring.GetUnitPosition(miner)
-				local nearUnits = Spring.GetUnitsInCylinder(x, z, detectionRange)
+				local nearUnits = Spring.GetUnitsInCylinder(x, z, minesweeperRanges[minerdef])
 
 				--Spring.Echo('hornet minerTeam', minerTeam)
-
+				--Spring.Echo('hornet minerdef minesweeperRanges[minerdef]', minerdef, minesweeperRanges[minerdef])
 
 				--Spring.Echo('hornet nearUnits')
 				--Spring.Debug.TableEcho(nearUnits)
@@ -229,17 +182,6 @@ function gadget:GameFrame(f)
 
 		end
 
-
 	end
 
-
 end
----Spring.SetUnitLosState(unitID, allyTeamID, 2) to force a unit to be in radar of that allyteam
----Spring.SetUnitLosMask(unitID, allyTeamID, 2) to prevent engine from immediately resetting that state
----don't forget to set mask to 0 when out of sensor range (don't set state though, maybe the target is in actual radar. engine will take care of it) 
-
-
-		-- add those mines to the decloaked list
-
-
-		----Spring.Debug.TableEcho(unitSlowed)
