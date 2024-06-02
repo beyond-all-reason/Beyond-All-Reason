@@ -41,7 +41,7 @@ local tokillUnitsNames = {
 }
 
 --emp these
-local toStunUnitsNames = {
+local toStunUnitsNames = {--this could maybe use customparams later, at least in part to detect mines
 		['armarad'] = true,
 		['armaser'] = true,
 		['armason'] = true,
@@ -75,6 +75,9 @@ local toStunUnitsNames = {
 		['cormine1'] = true,
 		['cormine2'] = true,
 		['cormine3'] = true,
+		['armfmine3'] = true,		
+		['corfmine3'] = true,
+
 }
 
 

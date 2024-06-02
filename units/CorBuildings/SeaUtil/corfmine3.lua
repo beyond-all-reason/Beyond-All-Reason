@@ -40,7 +40,6 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
-			mine = true,
 			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Tristan",
