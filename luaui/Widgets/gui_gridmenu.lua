@@ -120,7 +120,6 @@ local defaultCategoryOpts = {}
 
 local activeCmd
 
-local cellCmds = {}
 local gridOpts = {}
 local gridOptsCount
 local categories = {}
@@ -359,7 +358,6 @@ end
 local function setupCells()
 	local cellRectID = 0
 
-	cellCmds = {}
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
@@ -1265,7 +1263,7 @@ local function drawCell(rect)
 		return
 	end
 
-	local cellColor = rect.opts.selected and { 1, 0.85, 0.2, 0.25 } or nil
+	local cellColor = rect.opts.color
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
 	local usedZoom = rect.opts.usedZoom
@@ -1742,8 +1740,6 @@ local function drawGrid()
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 
-	cellCmds = {}
-
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
@@ -1760,8 +1756,6 @@ local function drawGrid()
 			rect.opts.uDefID = uDefID
 
 			if uDefID then
-				cellCmds[cellRectID] = gridOpts[index]
-
 				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
@@ -1769,12 +1763,13 @@ local function drawGrid()
 
 				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
 					or (isPregame and pregameBlueprintDefID == uDefID)
-				rect.opts.selected = cellIsSelected
+				rect.opts.color = cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil
 				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 				rect.opts.disabled = units.unitRestricted[uDefID]
 				rect.opts.cmd = cmd
 			else
 				rect.opts.uDefID = nil
+				rect.opts.cmd = nil
 				hotkeyActions[tostring(row) .. tostring(col)] = nil
 			end
 
@@ -1782,8 +1777,10 @@ local function drawGrid()
 		end
 	end
 
-	if cellCmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
-		selectNextFrame = cellCmds[1].id
+	local firstUnitDefID = cellRects[1].opts.uDefID
+
+	if firstUnitDefID and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
+		selectNextFrame = -firstUnitDefID
 	end
 end
 
@@ -1830,8 +1827,8 @@ local function drawBuildProgress()
 			local unitBuildDefID = spGetUnitDefID(unitBuildID)
 			if unitBuildDefID then
 				-- loop all shown cells
-				for cellRectID, cellRect in pairs(cellRects) do
-					local cellUnitDefID = cellCmds[cellRectID].id * -1
+				for _, cellRect in pairs(cellRects) do
+					local cellUnitDefID = cellRect.opts.uDefID
 					if unitBuildDefID == cellUnitDefID then
 						local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
 						progress = 1 - progress -- make the effect wind counter-clockwise
@@ -1945,25 +1942,25 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
+					local unitDefID = cellRect.opts.uDefID
 					if
-						cellCmds[cellRectID].id
-						and cellRect.opts.uDefID
-						and unitTranslatedHumanName[-cellCmds[cellRectID].id]
+						unitDefID
+						and unitTranslatedHumanName[unitDefID]
 						and cellRect:contains(x, y)
-						and not units.unitRestricted[-cellCmds[cellRectID].id]
+						and not cellRect.opts.disabled
 					then
 						if button ~= 3 then
 							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 							if isPregame then
-								setPregameBlueprint(cellCmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cellCmds[cellRectID].id) then
-								pickBlueprint(cellCmds[cellRectID].id)
+								setPregameBlueprint(unitDefID)
+							elseif spGetCmdDescIndex(-unitDefID) then
+								pickBlueprint(-unitDefID)
 							end
-						elseif builderIsFactory and spGetCmdDescIndex(cellCmds[cellRectID].id) then
+						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 							Spring.SetActiveCommand(
-								spGetCmdDescIndex(cellCmds[cellRectID].id),
+								spGetCmdDescIndex(-unitDefID),
 								3,
 								false,
 								true,
@@ -2027,16 +2024,16 @@ local function handleButtonHover()
 	if not WG["topbar"] or not WG["topbar"].showingQuit() then
 		if hovering then
 			for cellRectID, cellRect in pairs(cellRects) do
-				if cellRect.uDefID and cellRect:contains(x, y) then
+				if cellRect.opts.uDefID and cellRect:contains(x, y) then
 					hoveredCellID = cellRectID
-					local cmd = cellCmds[cellRectID]
+					local cmd = cellRect.opts.cmd
 					local uDefID = -cmd.id
 					WG["buildmenu"].hoverID = uDefID
 					gl.Color(1, 1, 1, 1)
 					if WG["tooltip"] then
 						local text
 						local textColor = "\255\215\255\215"
-						if units.unitRestricted[uDefID] then
+						if cellRect.opts.disabled then
 							text = Spring.I18N("ui.buildMenu.disabled", {
 								unit = unitTranslatedHumanName[uDefID],
 								textColor = textColor,
@@ -2195,12 +2192,10 @@ local function handleButtonHover()
 		if hovering then
 			-- cells
 			if hoveredCellID then
-				local uDefID = cellCmds[hoveredCellID].id * -1
-				local cellIsSelected = (
-					activeCmd
-					and cellCmds[hoveredCellID]
-					and activeCmd == cellCmds[hoveredCellID].name
-				)
+				local hoveredCell = cellRects[hoveredCellID]
+				local cmd = cellRects[hoveredCellID].opts.cmd
+				local uDefID = cellRects[hoveredCellID].opts.uDefID
+				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
 				if
 					not prevHoveredCellID
 					or hoveredCellID ~= prevHoveredCellID
@@ -2208,9 +2203,9 @@ local function handleButtonHover()
 					or cellIsSelected ~= hoverCellSelected
 					or b ~= prevB
 					or b3 ~= prevB3
-					or cellCmds[hoveredCellID].params[1] ~= prevQueueNr
+					or cmd.params[1] ~= prevQueueNr
 				then
-					prevQueueNr = cellCmds[hoveredCellID].params[1]
+					prevQueueNr = cmd.params[1]
 					prevB = b
 					prevB3 = b3
 					prevHoveredCellID = hoveredCellID
@@ -2220,50 +2215,48 @@ local function handleButtonHover()
 						hoverDlist = gl.DeleteList(hoverDlist)
 					end
 					hoverDlist = gl.CreateList(function()
-						-- determine zoom amount and cell color
-						usedZoom = hoverCellZoom
-						if not cellIsSelected then
-							if (b or b2) and cellIsSelected then
-								usedZoom = clickSelectedCellZoom
-							elseif cellIsSelected then
-								usedZoom = selectedCellZoom
-							elseif (b or b2) and not disableInput then
-								usedZoom = clickCellZoom
-							elseif b3 and not disableInput and cellCmds[hoveredCellID].params[1] then
-								-- has queue
-								usedZoom = rightclickCellZoom
-							end
-							-- determine color
-							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, 0.2 }
-							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, 0.2 }
+						if not hoveredCell.disabled then
+							-- determine zoom amount and cell color
+							usedZoom = hoverCellZoom
+							if not cellIsSelected then
+								if (b or b2) and cellIsSelected then
+									usedZoom = clickSelectedCellZoom
+								elseif cellIsSelected then
+									usedZoom = selectedCellZoom
+								elseif (b or b2) and not disableInput then
+									usedZoom = clickCellZoom
+								elseif b3 and not disableInput and cmd.params[1] then
+									-- has queue
+									usedZoom = rightclickCellZoom
+								end
+								-- determine color
+								if (b or b2) and not disableInput then
+									cellColor = { 0.3, 0.8, 0.25, 0.2 }
+								elseif b3 and not disableInput then
+									cellColor = { 1, 0.35, 0.3, 0.2 }
+								else
+									cellColor = { 0.63, 0.63, 0.63, 0 }
+								end
 							else
-								cellColor = { 0.63, 0.63, 0.63, 0 }
+								-- selected cell
+								if b or b2 or b3 then
+									usedZoom = clickSelectedCellZoom
+								else
+									usedZoom = selectedCellZoom
+								end
+								cellColor = { 1, 0.85, 0.2, 0.25 }
 							end
-						else
-							-- selected cell
-							if b or b2 or b3 then
-								usedZoom = clickSelectedCellZoom
-							else
-								usedZoom = selectedCellZoom
-							end
-							cellColor = { 1, 0.85, 0.2, 0.25 }
-						end
-						if not units.unitRestricted[uDefID] then
+
 							local unsetShowPrice
 							if not showPrice then
 								unsetShowPrice = true
 								showPrice = true
 							end
 
-							drawCell(
-								cellRects[hoveredCellID],
-								cellCmds[hoveredCellID],
-								usedZoom,
-								cellColor,
-								units.unitRestricted[uDefID]
-							)
+							hoveredCell.opts.usedZoom = usedZoom
+							hoveredCell.opts.color = cellColor
+
+							drawCell(hoveredCell)
 
 							if unsetShowPrice then
 								showPrice = false
