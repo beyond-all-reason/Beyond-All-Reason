@@ -37,14 +37,23 @@ for name,uDef in pairs(UnitDefs) do
 end
 
 local legionLobberUnitsT1 = {
+	"leglob_scav",
+	"leggob_scav",
+	"leghades_scav",
+	"leghelios_scav",
+	"legsh_scav",
+}
+local legionLobberUnitsT2 = {
 	"legcen_scav",
 	"legkark_scav",
 	"legbal_scav",
 	"leggat_scav",
 	"legrail_scav",
 	"legbar_scav",
+	"legmh_scav",
+	"legner_scav",
 }
-local legionLobberUnitsT2 = {
+local legionLobberUnitsT3 = {
 	"legstr_scav",
 	"leginfestor_scav",
 	"legbart_scav",
@@ -52,7 +61,7 @@ local legionLobberUnitsT2 = {
 	"legmrv_scav",
 	"legfloat_scav",
 }
-local legionLobberUnitsT3 = {
+local legionLobberUnitsT4 = {
 	"leginf_scav",
 	"legsco_scav",
 	"leginc_scav",
@@ -153,13 +162,279 @@ customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
 
+customDefs.legcom = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 1000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 3,
+			range = 450,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl2 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 2000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 4,
+			range = 500,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl3 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 3000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 6,
+			range = 550,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl4 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 4000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 4,
+			range = 600,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
 customDefs.legcomlvl5 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 4,
+			energypershot = 5000,
+			projectiles = 5,
+			range = 650,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -170,10 +445,12 @@ customDefs.legcomlvl5 = {
 customDefs.legcomlvl6 = {
 	weapondefs = {
 		napalmmissile = {
+			energypershot = 6000,
 			projectiles = 6,
+			range = 700,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -184,10 +461,12 @@ customDefs.legcomlvl6 = {
 customDefs.legcomlvl7 = {
 	weapondefs = {
 		napalmmissile = {
+			energypershot = 7000,
 			projectiles = 3,
+			range = 750,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -198,10 +477,12 @@ customDefs.legcomlvl7 = {
 customDefs.legcomlvl8 = {
 	weapondefs = {
 		napalmmissile = {
+			energypershot = 8000,
 			projectiles = 5,
+			range = 800,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -212,10 +493,12 @@ customDefs.legcomlvl8 = {
 customDefs.legcomlvl9 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 1,
+			energypershot = 9000,
+			projectiles = 2,
+			range = 850,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_name = legionLobberUnitsT4[math.random(#legionLobberUnitsT4)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -226,10 +509,12 @@ customDefs.legcomlvl9 = {
 customDefs.legcomlvl10 = {
 	weapondefs = {
 		napalmmissile = {
-			projectiles = 2,
+			energypershot = 10000,
+			projectiles = 4,
+			range = 900,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_name = legionLobberUnitsT4[math.random(#legionLobberUnitsT4)],
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}

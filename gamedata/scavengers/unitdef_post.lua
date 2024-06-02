@@ -5,6 +5,7 @@ local function scavUnitDef_Post(name, uDef)
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
+	uDef.decloakonfire = true
 
  	-- replaced uniticons
 	if uDef.buildpic then
@@ -145,13 +146,6 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
-	end
-
-	-- Evocom adjustments
-	if string.find(name, "armcomlvl") then -- nerf health of armada evocom, since it's invisible and hard to deal with because of that
-		if uDef.health then
-			uDef.health = uDef.health * 0.8
-		end
 	end
 
 	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then
