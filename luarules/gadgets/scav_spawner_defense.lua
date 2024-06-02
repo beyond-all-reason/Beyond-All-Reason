@@ -1615,9 +1615,9 @@ if gadgetHandler:IsSyncedCode() then
 			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
 		end
 
-		if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
-			HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		end
+		--if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
+		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
+		--end
 
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
