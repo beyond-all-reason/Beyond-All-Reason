@@ -24,7 +24,6 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 local math_floor = math.floor
@@ -117,6 +116,8 @@ local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
 local showBuildProgress = true
 
+local defaultCategoryOpts = {}
+
 local activeCmd
 
 local cellCmds = {}
@@ -151,12 +152,15 @@ local cycleBuilderKey
 -------------------------------------------------------------------------------
 
 local Rect = {}
-function Rect:new(x1, y1, x2, y2)
+function Rect:new(x1, y1, x2, y2, opts)
+	opts = opts or {}
+
 	local this = {
 		x = x1,
 		y = y1,
 		xEnd = x2,
 		yEnd = y2,
+		opts = opts,
 	}
 
 	function this:contains(x, y)
@@ -429,52 +433,69 @@ end
 
 -- we don't need to do this every frame, only call when category rects have changed
 local function setupCategoryRects()
-	local numCats = #categories
 	-- set up rects
 	if stickToBottom then
 		local x1 = categoriesRect.x
-		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
+		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / #categories
 		local contentWidth = categoriesRect.xEnd - categoriesRect.x
 		if currentCategory then
 			-- put current category in center and hide all others
-			for _, cat in ipairs(categories) do
+			for i, cat in ipairs(categories) do
 				if cat == currentCategory then
 					local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
-					catRects[cat] = Rect:new(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2)
+					catRects[cat] = Rect:new(
+						x1,
+						y1,
+						x1 + contentWidth - activeAreaMargin,
+						y1 + contentHeight - 2,
+						defaultCategoryOpts[i]
+					)
 				else
-					catRects[cat] = Rect:new(0, 0, 0, 0)
+					catRects[cat] = Rect:new(0, 0, 0, 0, defaultCategoryOpts[i])
 				end
 			end
 		else
 			for i, cat in ipairs(categories) do
 				local y1 = categoriesRect.yEnd - i * contentHeight + 2
-				catRects[cat] = Rect:new(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2)
+				catRects[cat] = Rect:new(
+					x1,
+					y1,
+					x1 + contentWidth - activeAreaMargin,
+					y1 + contentHeight - 2,
+					defaultCategoryOpts[i]
+				)
 			end
 		end
 	else
-		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
+		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / #categories))
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
 		local y2 = categoriesRect.yEnd
 		if currentCategory then
 			-- put current category in center and hide all others
 			local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
-			for _, cat in ipairs(categories) do
+			for i, cat in ipairs(categories) do
 				if cat == currentCategory then
 					catRects[cat] = Rect:new(
 						x1,
 						y2 - categoryButtonHeight + padding,
 						x1 + buttonWidth,
-						y2 - activeAreaMargin - padding
+						y2 - activeAreaMargin - padding,
+						defaultCategoryOpts[i]
 					)
 				else
-					catRects[cat] = Rect:new(0, 0, 0, 0)
+					catRects[cat] = Rect:new(0, 0, 0, 0, defaultCategoryOpts[i])
 				end
 			end
 		else
 			for i, cat in ipairs(categories) do
 				local x1 = categoriesRect.x + (i - 1) * buttonWidth
-				catRects[cat] =
-					Rect:new(x1, y2 - categoryButtonHeight + padding, x1 + buttonWidth, y2 - activeAreaMargin - padding)
+				catRects[cat] = Rect:new(
+					x1,
+					y2 - categoryButtonHeight + padding,
+					x1 + buttonWidth,
+					y2 - activeAreaMargin - padding,
+					defaultCategoryOpts[i]
+				)
 			end
 		end
 	end
@@ -716,6 +737,17 @@ function widget:Initialize()
 
 	reloadBindings()
 
+	-- Setup some semi-static data so we don't need to perform in-game
+	for catIndex, cat in pairs(CONFIG.buildCategories) do
+		local keyText = keyConfig.sanitizeKey(categoryKeys[catIndex], currentLayout)
+
+		defaultCategoryOpts[catIndex] = {
+			name = cat,
+			icon = CONFIG.categoryIcons[catIndex],
+			keyText = keyText,
+		}
+	end
+
 	ui_opacity = WG.FlowUI.opacity
 	ui_scale = WG.FlowUI.scale
 
@@ -840,6 +872,11 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2, 0.28, 1.6)
+
+	for _, rectOpts in pairs(defaultCategoryOpts) do
+		rectOpts.nameHeight = font2:GetTextHeight(rectOpts.name)
+		rectOpts.keyTextHeight = font2:GetTextHeight(rectOpts.keyText)
+	end
 
 	if WG["minimap"] then
 		minimapHeight = WG["minimap"].getHeight()
@@ -1069,11 +1106,10 @@ local function drawBuildMenuBg()
 	)
 end
 
-local function drawButton(rect, opts, icon)
-	opts = opts or {}
-	local disabled = opts.disabled or false
-	local highlight = opts.highlight
-	local hovered = opts.hovered
+local function drawButton(rect)
+	local disabled = false
+	local highlight = rect.opts.current
+	local hovered = rect.opts.hovered
 
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
 
@@ -1091,9 +1127,9 @@ local function drawButton(rect, opts, icon)
 
 	local dim = disabled and 0.4 or 1.0
 
-	if icon then
+	if rect.opts.icon then
 		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
-		icon = ":l:" .. icon
+		local icon = ":l:" .. rect.opts.icon
 		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
 		gl.BeginEnd(
@@ -1150,7 +1186,7 @@ local function drawButton(rect, opts, icon)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	if opts.hovered then
+	if hovered then
 		drawnHoveredButton = rect:getId()
 	end
 end
@@ -1312,16 +1348,17 @@ local function drawEmptyCell(rect)
 	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
 end
 
-local function drawButtonHotkey(rect, keyText)
-	if not rect or not keyText then
+local function drawButtonHotkey(rect)
+	if not rect or not rect.opts.keyText then
 		return
 	end
-	local keyFontHeight = font2:GetTextHeight(keyText) * hotkeyFontSize
+
+	local keyFontHeight = rect.opts.keyTextHeight * hotkeyFontSize
 	local keyFontHeightOffset = keyFontHeight * 0.34
 
 	local textPadding = bgpadding * 2
 
-	local text = "\255\215\255\215" .. keyText
+	local text = "\255\215\255\215" .. rect.opts.keyText
 	font2:Print(
 		text,
 		rect.xEnd - textPadding,
@@ -1331,37 +1368,42 @@ local function drawButtonHotkey(rect, keyText)
 	)
 end
 
-local function drawCategories()
+local function updateCategories()
 	if next(catRects) == nil then
 		setupCategoryRects()
 	end
-	for catIndex, cat in pairs(categories) do
+
+	for _, cat in pairs(categories) do
 		local rect = catRects[cat]
+
 		if rect:getWidth() ~= 0 then
-			local catText = cat
-			local catIcon = CONFIG.categoryIcons[catIndex]
-			local keyText = keyConfig.sanitizeKey(categoryKeys[catIndex], currentLayout)
+			rect.opts.current = cat == currentCategory
+		end
+	end
+end
 
-			local opts = {
-				highlight = (cat == currentCategory),
-				hovered = (hoveredButton == rect:getId()),
-			}
+local function drawCategories()
+	updateCategories() -- change only state TODO: Remove from draw loop
 
-			local fontSize = categoryFontSize
-			local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
+	for _, cat in pairs(categories) do
+		local rect = catRects[cat]
+
+		if rect:getWidth() ~= 0 then
+			local fontHeight = rect.opts.nameHeight * categoryFontSize
 			local fontHeightOffset = fontHeight * 0.34
 			font2:Print(
-				catText,
+				rect.opts.name,
 				rect.x + (bgpadding * 7),
 				(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
-				fontSize,
+				categoryFontSize,
 				"o"
 			)
 
-			if cat ~= currentCategory then
-				drawButtonHotkey(rect, keyText)
+			if not rect.current then
+				drawButtonHotkey(rect)
 			end
-			drawButton(rect, opts, catIcon)
+
+			drawButton(rect)
 		end
 	end
 end
@@ -1378,24 +1420,18 @@ local function drawPageAndBackButtons()
 			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 		end
 
-		local opts = {
-			highlight = false,
-			hovered = hoveredButton == backRect:getId(),
-		}
+		backRect.opts.hovered = hoveredButton == backRect:getId()
+		backRect.opts.keyText = "Shift"
+		backRect.opts.keyTextHeight = font2:GetTextHeight("Shift")
 
-		drawButtonHotkey(backRect, "Shift")
-		drawButton(backRect, opts)
+		drawButtonHotkey(backRect)
+		drawButton(backRect)
 	end
 
 	if pages > 1 then
 		-- Page button
 		local nextKeyText = keyConfig.sanitizeKey(nextPageKey, currentLayout)
 		local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
-
-		local opts = {
-			highlight = false,
-			hovered = hoveredButton and nextPageRect:getId() == hoveredButton,
-		}
 
 		local buttonHeight = nextPageRect:getHeight()
 		local fontHeight = font2:GetTextHeight(nextPageText) * pageFontSize
@@ -1409,8 +1445,12 @@ local function drawPageAndBackButtons()
 			"o"
 		)
 
-		drawButtonHotkey(nextPageRect, nextKeyText)
-		drawButton(nextPageRect, opts)
+		nextPageRect.opts.hovered = nextPageRect:getId() == hoveredButton
+		nextPageRect.opts.keyText = nextKeyText
+		nextPageRect.opts.keyTextHeight = font2:GetTextHeight(nextKeyText)
+
+		drawButtonHotkey(nextPageRect)
+		drawButton(nextPageRect)
 	end
 end
 
@@ -1439,11 +1479,6 @@ local function drawBuildModeButtons()
 				hotkeys = hotkeys .. keyConfig.sanitizeKey(categoryKeys[i], currentLayout)
 			end
 
-			local opts = {
-				highlight = false,
-				hovered = hoveredButton and labBuildModeRect:getId() == hoveredButton,
-			}
-
 			if stickToBottom then
 				local rect = labBuildModeRect
 				local fullText = "\255\245\245\245" .. "Enable Build Mode"
@@ -1468,7 +1503,7 @@ local function drawBuildModeButtons()
 
 				local text = "\255\215\255\215" .. hotkeys
 				font2:Print(text, left, rect.y + (keyFontHeight * 0.8), hotkeyFontSize, "o")
-				drawButton(labBuildModeRect, opts)
+				drawButton(labBuildModeRect)
 			else
 				local buildModeText = "\255\245\245\245" .. "Enable Build Mode"
 				local buttonHeight = labBuildModeRect:getHeight()
@@ -1481,8 +1516,13 @@ local function drawBuildModeButtons()
 					pageFontSize,
 					"o"
 				)
-				drawButtonHotkey(labBuildModeRect, hotkeys)
-				drawButton(labBuildModeRect, opts)
+
+				labBuildModeRect.opts.keyText = hotkeys
+				labBuildModeRect.opts.keyTextHeight = font2:GetTextHeight(hotkeys)
+				labBuildModeRect.opts.hoveredButton = labBuildModeRect:getId() == hoveredButton
+
+				drawButtonHotkey(labBuildModeRect)
+				drawButton(labBuildModeRect)
 			end
 		end
 	end
@@ -1610,33 +1650,38 @@ local function drawBuilders()
 
 	local hotkey = keyConfig.sanitizeKey(cycleBuilderKey, currentLayout) or nil
 	local hotkeyWidth = hotkey and (font2:GetTextWidth(hotkey) * hotkeyFontSize) + (bgpadding * 2) or 0
+	local text = "›"
 
 	-- draw hint
+	local keyTextHeight = font2:GetTextHeight(text)
+
 	local rect = Rect:new(
 		buildersRect.xEnd + (bgpadding * 3),
 		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2) + iconMargin,
 		buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth + (bgpadding * 3),
-		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2) + iconMargin
+		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2) + iconMargin,
+		{
+			keyText = text,
+			keyTextHeight = keyTextHeight,
+		}
 	)
 
-	local text = "›"
-	local rectSize = rect.yEnd - rect.y
-	local fontSize = rectSize * 1.2
-	local textHeight = font2:GetTextHeight(text) * fontSize
+	local rectHeight = rect:getHeight()
+	local fontSize = rectHeight * 1.2
+	local textHeight = keyTextHeight * fontSize
+
+	rect.opts.hovered = hoveredButton == rect:getId()
+
 	font2:Print(
 		"\255\255\255\255" .. text,
-		rect.x + math_floor(rectSize * 0.2),
+		rect.x + math_floor(rectHeight * 0.2),
 		rect.y + ((rect.yEnd - rect.y) / 2) - math_floor(textHeight / 2),
 		fontSize,
 		"o"
 	)
 
-	local opts = {
-		hovered = (hoveredButton == rect:getId()),
-	}
-
-	drawButton(rect, opts)
-	drawButtonHotkey(rect, hotkey)
+	drawButton(rect)
+	drawButtonHotkey(rect)
 	nextBuilderRect = rect
 end
 
@@ -1710,6 +1755,8 @@ local function drawGrid()
 		selectNextFrame = cellCmds[1].id
 	end
 end
+
+local function updateBuildMenu() end
 
 local function drawBuildMenu()
 	font2:Begin()
@@ -1909,6 +1956,25 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+local function setHoveredRect(rect)
+	for _, irect in pairs(catRects) do
+		irect.opts.hovered = false
+	end
+
+	for _, irect in pairs(builderRects) do
+		irect.opts.hovered = false
+	end
+
+	labBuildModeRect.opts.hovered = false
+	nextBuilderRect.opts.hovered = false
+	backRect.opts.hovered = false
+	nextPageRect.opts.hovered = false
+	nextBuilderRect.opts.hovered = false
+
+	hoveredButton = rect:getId()
+	rect.opts.hovered = true
+end
+
 local function handleButtonHover()
 	if not (isPregame or activeBuilder) then
 		return
@@ -1977,11 +2043,7 @@ local function handleButtonHover()
 			if not currentCategory then
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
-						hoveredButton = catRect:getId()
-
-						if hoveredButton ~= drawnHoveredButton then
-							doUpdate = true
-						end
+						setHoveredRect(catRect)
 
 						if WG["tooltip"] then
 							local textColor = "\255\215\255\215"
@@ -2009,7 +2071,7 @@ local function handleButtonHover()
 			if currentCategory or labBuildModeActive then
 				-- back button
 				if backRect and backRect:contains(x, y) then
-					hoveredButton = backRect:getId()
+					setHoveredRect(backRect)
 					hoveredButtonNotFound = false
 					if WG["tooltip"] then
 						local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage")
@@ -2021,7 +2083,7 @@ local function handleButtonHover()
 			if pages > 1 then
 				-- paginator buttons
 				if nextPageRect and nextPageRect:contains(x, y) then
-					hoveredButton = nextPageRect:getId()
+					setHoveredRect(nextPageRect)
 					hoveredButtonNotFound = false
 					if WG["tooltip"] then
 						local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage")
@@ -2033,7 +2095,7 @@ local function handleButtonHover()
 			if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
 				-- build mode button
 				if labBuildModeRect and labBuildModeRect:contains(x, y) then
-					hoveredButton = labBuildModeRect:getId()
+					setHoveredRect(labBuildModeRect)
 					hoveredButtonNotFound = false
 					if WG["tooltip"] then
 						local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr")
@@ -2045,7 +2107,7 @@ local function handleButtonHover()
 			-- builder buttons
 			for i, rect in pairs(builderRects) do
 				if rect:contains(x, y) then
-					hoveredButton = rect:getId()
+					setHoveredRect(rect)
 					hovering = true
 					hoveredButtonNotFound = false
 
@@ -2065,7 +2127,7 @@ local function handleButtonHover()
 				end
 			end
 			if nextBuilderRect:contains(x, y) then
-				hoveredButton = nextBuilderRect:getId()
+				setHoveredRect(nextBuilderRect)
 				hovering = true
 				hoveredButtonNotFound = false
 				if WG["tooltip"] then
