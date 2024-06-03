@@ -36,37 +36,10 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
-local legionLobberUnitsT1 = {
-	"leglob_scav",
-	"leggob_scav",
-	"leghades_scav",
-	"leghelios_scav",
-	"legsh_scav",
-}
-local legionLobberUnitsT2 = {
-	"legcen_scav",
-	"legkark_scav",
-	"legbal_scav",
-	"leggat_scav",
-	"legrail_scav",
-	"legbar_scav",
-	"legmh_scav",
-	"legner_scav",
-}
-local legionLobberUnitsT3 = {
-	"legstr_scav",
-	"leginfestor_scav",
-	"legbart_scav",
-	"legsrail_scav",
-	"legmrv_scav",
-	"legfloat_scav",
-}
-local legionLobberUnitsT4 = {
-	"leginf_scav",
-	"legsco_scav",
-	"leginc_scav",
-	"legmed_scav",
-}
+local legionLobberUnitsT1 = "leglob_scav leggob_scav leghades_scav leghelios_scav legsh_scav"
+local legionLobberUnitsT2 = "legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
+local legionLobberUnitsT3 = "legstr_scav leginfestor_scav legbart_scav legsrail_scav legmrv_scav legfloat_scav"
+local legionLobberUnitsT4 = "leginf_scav legsco_scav leginc_scav legmed_scav"
 
 customDefs.armsilo = {
 	weapondefs = {
@@ -210,7 +183,8 @@ customDefs.legcom = {
 			weapontype = "Cannon",
 			weaponvelocity = 2000,
 			customparams = {
-				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			},
@@ -276,7 +250,8 @@ customDefs.legcomlvl2 = {
 			weapontype = "Cannon",
 			weaponvelocity = 2000,
 			customparams = {
-				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			},
@@ -342,7 +317,8 @@ customDefs.legcomlvl3 = {
 			weapontype = "Cannon",
 			weaponvelocity = 2000,
 			customparams = {
-				spawns_name = legionLobberUnitsT1[math.random(#legionLobberUnitsT1)],
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			},
@@ -408,7 +384,8 @@ customDefs.legcomlvl4 = {
 			weapontype = "Cannon",
 			weaponvelocity = 2000,
 			customparams = {
-				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			},
@@ -434,7 +411,8 @@ customDefs.legcomlvl5 = {
 			range = 650,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -450,7 +428,8 @@ customDefs.legcomlvl6 = {
 			range = 700,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT2[math.random(#legionLobberUnitsT2)],
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -466,7 +445,8 @@ customDefs.legcomlvl7 = {
 			range = 750,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -482,7 +462,8 @@ customDefs.legcomlvl8 = {
 			range = 800,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT3[math.random(#legionLobberUnitsT3)],
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -498,7 +479,8 @@ customDefs.legcomlvl9 = {
 			range = 850,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT4[math.random(#legionLobberUnitsT4)],
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
@@ -514,7 +496,8 @@ customDefs.legcomlvl10 = {
 			range = 900,
 			model = "Units/CORMINE2.s3o",
 			customparams = {
-				spawns_name = legionLobberUnitsT4[math.random(#legionLobberUnitsT4)],
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
 				spawns_expire = 999999,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
