@@ -110,7 +110,7 @@ return {
 				areaofeffect = 135,
 				avoidfeature = false,
 				avoidfriendly = false,
-				cegtag = "starfire",
+				cegtag = "starfire-small",
 				collidefriendly = false,
 				craterareaofeffect = 116,
 				craterboost = 0.1,
