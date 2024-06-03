@@ -123,7 +123,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				name = "Long-range g2g plasma cannon",
+				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1100,
 				reloadtime = 2.1,

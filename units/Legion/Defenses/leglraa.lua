@@ -177,7 +177,7 @@ return {
 				impulseboost = 0.8,
 				impulsefactor = 2,
 				intensity = 1.0,
-				name = "Railgun",
+				name = "Heavy Anti-Air Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
