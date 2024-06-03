@@ -472,7 +472,7 @@ AmIBored() {
 IncrementTimer()
 {
 	while ( TRUE ){
-		if (isAimingEaterBeam == 1){
+		if (torsoPriority == 9){ //if eater beam is aiming, increment
 		eaterBeamIncrement = (eaterBeamIncrement + 1);
 		}
 		sleep 500;
