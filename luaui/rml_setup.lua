@@ -34,7 +34,11 @@ RmlUi.CreateContext("shared")
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
-RmlUi.LoadFontFace("fonts/Exo2-SemiBold.otf", true)
+local font_files = VFS.DirList('fonts/exo2', '*.ttf')
+for _, file in ipairs(font_files) do
+	RmlUi.LoadFontFace(file, true)
+end
+
 RmlUi.LoadFontFace("fonts/SourceHanSans-Regular.ttc", true)
 RmlUi.LoadFontFace("fonts/monospaced/SourceCodePro-Medium.otf")
 

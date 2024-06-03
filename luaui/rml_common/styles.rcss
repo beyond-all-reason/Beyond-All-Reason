@@ -2,7 +2,7 @@
 * Default styles for all the basic elements.
 */
 
-* {
+body {
     box-sizing: border-box;
     font-family: "Exo 2";
     font-size: 20px;
@@ -48,12 +48,25 @@ h5, h6, strong {
     font-weight: bold;
 }
 
-em {
+b, strong {
+	font-weight: 600 ;
+}
+
+u {
+	text-decoration: underline;
+}
+
+s, strike {
+	text-decoration: line-through;
+}
+
+i, em {
     font-style: italic;
 }
 
-pre {
-    white-space: pre;
+code, pre {
+	font-family: "Source Code Pro";
+	white-space: pre;
 }
 
 hr {
@@ -94,4 +107,18 @@ handle[size_target] {
 
 handle[move_target] {
     cursor: move;
+}
+
+scrollbarvertical {
+	display: block;
+	max-width: 6px;
+}
+
+scrollbarhoriztonal {
+	display: block;
+	max-height: 6px;
+}
+
+sliderbar {
+	background-color: gray;
 }
