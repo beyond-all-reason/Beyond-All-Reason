@@ -10,13 +10,15 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
 		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare;  
 
-static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead;
+static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch,
+			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority;
 
 // Signal definitions
 #define SIG_AIM 2
 #define SIG_WALK 4
 #define SIG_AIM_2 8
 #define SIG_FIRE1 16
+#define SIG_AIMMIS 32
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -474,8 +476,8 @@ IncrementTimer()
 		eaterBeamIncrement = (eaterBeamIncrement + 1);
 		}
 		sleep 500;
+		get PRINT(torsoPriority, eaterBeamIncrement);
 	}
-	start-script IncrementTimer();
 }
 
 //--------------------------------------------------------
@@ -514,6 +516,7 @@ Create(){
 	bMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
+	torsoPriority = 0;
 	isAimingShotgun = 0;
 	isAimingEaterBeam = 0;
 	eaterBeamIncrement = 20;
@@ -536,9 +539,9 @@ QueryNanoPiece(piecenum)
 
 RestoreAfterDelay(){
 	set-signal-mask SIG_AIM;
-	sleep 3000;
+	sleep 50;
+	sleep 950;
 	turn torso to  y-axis <0> speed <45.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
-	
 	turn biggun to  x-axis <-38> speed <30.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
 	turn luparm to  x-axis <0> speed <30.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
 	turn rloarm to  x-axis <-38> speed <30.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
@@ -548,11 +551,9 @@ RestoreAfterDelay(){
 	stop-spin barrelr around y-axis;
 	torsoaim = 0;
 	isAiming = 0;
-	isAimingShotgun = 0;
-	isAimingEaterBeam = 0;
-	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
+	torsoPriority = 0;
 	wpn1_lasthead = 1000000;
 	wpn4_lasthead = 1000000;
 	wpn5_lasthead = 1000000;
@@ -581,29 +582,25 @@ SweetSpot(piecenum)
 	return (0);
 }
 /////////// pew pew laser
-QueryPrimary(piecenum) //gatling laser gun right arm
+QueryWeapon1(piecenum) //gatling laser gun right arm
 {
 	piecenum = flare;
+	//torsoPriority = 0;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = ruparm;
 	return (0);
 }
 
-AimPrimary(heading, pitch) //pew pew
+AimWeapon1(heading, pitch) //pew pew
 {
-	if (isAimingEaterBeam == 1){
+	if (torsoPriority > 5){
 		return (0);
 	}
-	if (isAimingDgun == 1){
-		return (0);
-	}
-	if (isAimingShotgun){
-		return (0);
-	}
+	torsoPriority = 5;
 	rightarm = 0;
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
@@ -678,9 +675,11 @@ AimPrimary(heading, pitch) //pew pew
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin barrelr around y-axis speed <600.000000>;
+	sleep 50;
+	torsoPriority = 0;
 	return (1);
 }
 
@@ -694,37 +693,28 @@ Shot1(zero)
 
 /////////// uw weapon
 
-QuerySecondary(piecenum) //uw weapon
+QueryWeapon2(piecenum) //uw weapon
+{
+	piecenum = laserflare;
+	//torsoPriority = 6;
+	return (0);
+}
+
+AimFromWeapon2(piecenum)
 {
 	piecenum = laserflare;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimWeapon2(heading, pitch)
 {
-	piecenum = laserflare;
-	return (0);
-}
-
-AimSecondary(heading, pitch)
-{
-	if (isAimingEaterBeam == 1){
+	if( get PIECE_Y(head) > 0 ){
 		return (0);
 	}
-	if (isAimingDgun == 1){
+	if (torsoPriority > 6){
 		return (0);
 	}
-	if( get PIECE_Y(head) > 0 )
-	{
-		return (0);
-	}
-	if( isAimingShotgun == 1 )
-	{
-		return (0);
-	}
-	if (isAimingShotgun){
-		return (0);
-	}
+	torsoPriority = 6;
 	rightarm = 0;
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
@@ -745,28 +735,28 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
+	torsoPriority = 0;
 	return (0);
 }
 
-QueryTertiary(piecenum) //left arm shotgun
+QueryWeapon3(piecenum) //left arm shotgun
 {
 	piecenum = lflare;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
 	piecenum = biggun;
 	return (0);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	//emit-sfx 1024 + 0 from lflare;
-	isAimingShotgun = 0;
 	turn luparm to x-axis <20> now;
 	turn biggun to x-axis <-100> now;
 	move barrel to y-axis [-1.5] now;
@@ -774,28 +764,25 @@ FireTertiary()
 	turn luparm to x-axis <5> speed <100>;
 	turn biggun to x-axis <-85> speed <100>;
 	move barrel to y-axis [0] speed [5];
-	
+	sleep 50;
+	torsoPriority = 0;
 	//call-script bigfire();
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(3));
-	if( reloading )
-	{
+	if( reloading ){
 		return(0);
 	}
-	if (isAimingEaterBeam == 1){
+	if (torsoPriority > 8){
 		return (0);
 	}
-	if (isAimingDgun == 1){
-		return (0);
-	}
+	torsoPriority = 8;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	isAimingShotgun = 1;
 	isAiming = 1;
 	leftArm = 0;
 	//call-script FixArms(1, 0);
@@ -899,8 +886,8 @@ FireWeapon5()
 }
 AimWeapon5(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIMMIS;
+	set-signal-mask SIG_AIMMIS;
 	turn turretmis to y-axis heading - torsoaim speed <100.000000>;
 	turn misbox to x-axis <0> - pitch speed <80.000000>;
 	if (((get ABS(wpn5_lasthead - heading)) > 65536) OR(((get ABS(wpn5_lasthead - heading)) > 3000) AND ((get ABS(wpn5_lasthead - heading)) < 64236)))
@@ -916,6 +903,7 @@ AimWeapon5(heading, pitch)
 QueryWeapon6(piecenum) //eater beam
 {
 	piecenum = nano;
+	//torsoPriority = 0;
 	return (0);
 }
 
@@ -929,21 +917,19 @@ FireWeapon6()
 {
 	//emit-sfx 1024 + 2 from misflare;
 	//isAimingEaterBeam = 0;
+	sleep 50;
+	torsoPriority = 0;
 	return (0);
 }
 AimWeapon6(heading, pitch)
 {
-	//if( get PIECE_Y(head) > 0 )
-	//{
+	//if( get PIECE_Y(head) > 0 ){
 	//	return (0);
 	//}
-	if( isAimingEaterBeam == 1 )
-	{
+	if (torsoPriority > 9){
 		return (0);
 	}
-	if (isAimingDgun == 1){
-		return (0);
-	}
+	torsoPriority = 9;
 	rightarm = 0;
 	leftarm = 0;
 	//call-script FixArms(0, 1);
@@ -960,7 +946,6 @@ AimWeapon6(heading, pitch)
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
-	isAimingEaterBeam = 0;
 	isAiming = 1;
 	if( isBuilding == 1 )
 	{
@@ -973,6 +958,7 @@ AimWeapon6(heading, pitch)
 QueryWeapon7(piecenum) //eater beam
 {
 	piecenum = nano;
+	//torsoPriority = 0;
 	return (0);
 }
 
@@ -986,29 +972,28 @@ FireWeapon7()
 {
 	//emit-sfx 1024 + 2 from misflare;
 	//isAimingEaterBeam = 0;
+	sleep 50;
+	eaterBeamIncrement = 0;
+	torsoPriority = 0;
 	return (0);
 }
 AimWeapon7(heading, pitch)
 {
-	//if( get PIECE_Y(head) > 0 )
-	//{
+	//if( get PIECE_Y(head) > 0 ){
 	//	return (0);
 	//}
-	if( isAimingDgun == 1 )
-	{
-		return (0);
-	}
-	if( eaterBeamIncrement < 20 )
-	{
+	if( eaterBeamIncrement < 20 ){
 		return (0);
 	}
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(7));
-	if( reloading )
-	{
+	if( reloading ){
 		return (0);
 	}
-	isAimingDgun = 1;
+		if (torsoPriority > 15){
+		return (0);
+	}
+	torsoPriority = 15;
 	rightarm = 0;
 	leftarm = 0;
 	//call-script FixArms(0, 1);
@@ -1025,14 +1010,12 @@ AimWeapon7(heading, pitch)
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
-	isAimingDgun = 0;
 	isAiming = 1;
 	if( isBuilding == 1 )
 	{
 		start-script ResumeBuilding();
 	}
 	start-script RestoreAfterDelay();
-	eaterBeamIncrement = 0;
 	return (1);
 }
 
