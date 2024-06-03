@@ -48,7 +48,7 @@ local labGrids = {
 	legvp = {
 		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
 		"leggat", "leghelios", "legbar", "",         -- raider, leveler, art
-		"legotter", "", "legrail", "",       -- amphib con, amphib tank, missile truck
+		"legotter", "corgarp", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
 	armavp = {
