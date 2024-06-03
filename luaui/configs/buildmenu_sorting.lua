@@ -57,6 +57,7 @@ local unitOrderTable = {
 	--NANO SUPPORT
 	['armfark']        = 003100, --BOTS
 	['corfast']        = 003200,
+	['legaceb']        = 003250,
 
 	['armconsul']      = 003300, --VEH
 	['corprinter']     = 003325, --VEH
@@ -589,6 +590,7 @@ local unitOrderTable = {
    ['legbombard']     = 107250,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
+   ['legacluster']	  = 107450,
    ['armanni']        = 107500,
    ['cordoom']        = 107600,
    ['legbastion']     = 107650,
@@ -598,6 +600,7 @@ local unitOrderTable = {
    --DEFENSES LAND LRPC
    ['armbrtha']       = 110100,
    ['corint']         = 110200,
+   ['leglrpc']		  = 110300,
    ['armminivulc']    = 120100, --scavengers
    ['corminibuzz']    = 120200, --scavengers
    ['legministarfall']= 120250, --scavengers
@@ -622,6 +625,7 @@ local unitOrderTable = {
    ['legflak']        = 153600,
    ['armmercury']     = 154000,
    ['corscreamer']    = 154500,
+   ['leglraa']    	  = 154600,
 
    --DEFENSES TO WATER
    ['armdl']          = 155000,
@@ -635,6 +639,7 @@ local unitOrderTable = {
    ['corfmd']         = 166500,
    ['armsilo']        = 180000,
    ['corsilo']        = 180500,
+   ['legsilo']        = 180600,
 
    --WATER ECO METAL
    ['armuwmme']       = 200000,

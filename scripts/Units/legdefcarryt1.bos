@@ -3,15 +3,18 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad2, pad3,pad0,nano;
+piece  base, platform, pad0, pad1, pad2, pad3, pad4, pad5, nano;
 
 Create()
 {
 	hide nano;
+	hide pad5;
+	hide pad4;
 	hide pad3;
 	hide pad2;
 	hide pad1;
 	hide pad0;
+	spin platform around y-axis speed <10> accelerate <1>;
 }
 
 #define SMOKEPIECE base
