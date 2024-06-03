@@ -224,6 +224,7 @@ function UnitDef_Post(name, uDef)
 				armscab = true,
 				corfmd = true,
 				corsilo = true,
+				legsilo =  true,
 				cormabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
@@ -284,6 +285,7 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				legperdition = true,
 				armemp_scav = true,
 				cortron_scav = true,
 			}
@@ -299,6 +301,7 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				leglrpc = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
