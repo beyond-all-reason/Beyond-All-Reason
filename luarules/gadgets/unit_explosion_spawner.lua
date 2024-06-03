@@ -32,6 +32,7 @@ local mapsizeZ 				  = Game.mapSizeZ
 local random = math.random
 local sin    = math.sin
 local cos    = math.cos
+local strSplit = string.split
 
 local GAME_SPEED = Game.gameSpeed
 local TAU = 2 * math.pi
@@ -53,6 +54,7 @@ local expireCount = 0
 
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
+local spawnNames = {}
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -62,6 +64,7 @@ for weaponDefID = 1, #WeaponDefs do
 			expire = wdcp.spawns_expire and (tonumber(wdcp.spawns_expire) * GAME_SPEED),
 			feature = wdcp.spawns_feature,
 			surface = wdcp.spawns_surface,
+			mode = wdcp.spawns_mode,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -107,8 +110,34 @@ local function SpawnUnit(spawnData)
 			end
 			
 			local unitID = nil
-			if validSurface == true then 
-				unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+			if validSurface == true then
+				local ownerID = spawnData.ownerID
+				local spawnUnitName
+				if ownerID and spawnNames[ownerID] then
+					if spawnDef.mode == "random" then
+						local randomUnit = random(#spawnNames[ownerID].names)
+						spawnUnitName = spawnNames[ownerID].names[randomUnit]
+						
+					elseif spawnDef.mode == "sequential" then
+						local unitNumber = spawnNames[ownerID].unitSequence
+						spawnUnitName = spawnNames[ownerID].names[unitNumber]
+						if unitNumber < #spawnNames[ownerID].names then
+							spawnNames[ownerID].unitSequence = unitNumber + 1
+						else
+							spawnNames[ownerID].unitSequence = 1
+						end
+						
+					elseif spawnDef.mode == "random_locked" then
+						local unitNumber = spawnNames[ownerID].unitSequence
+						spawnUnitName = spawnNames[ownerID].names[unitNumber]
+					else
+						spawnUnitName = spawnNames[ownerID].names[1]
+					end
+				else
+					local unitName = strSplit(spawnDef.name)
+					spawnUnitName = unitName[1]
+				end
+				unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface
@@ -163,20 +192,22 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		return
 	end
 
-	local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-	local teamID = spGetProjectileTeamID(proID)
-
-	-- Don't let awakening children embrace the glory of their birthright
-	-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
-	spawnCount = spawnCount + 1
-	local spawnData = spawnList[spawnCount] or {}
-	spawnData.spawnDef = spawnDef
-	spawnData.x = x
-	spawnData.y = y
-	spawnData.z = z
-	spawnData.ownerID = ownerID
-	spawnData.teamID = teamID
-	spawnList[spawnCount] = spawnData
+	if spawnDefs[weaponDefID] then
+		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
+		local teamID = spGetProjectileTeamID(proID)
+		
+		-- Don't let awakening children embrace the glory of their birthright
+		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
+		spawnCount = spawnCount + 1
+		local spawnData = spawnList[spawnCount] or {}
+		spawnData.spawnDef = spawnDef
+		spawnData.x = x
+		spawnData.y = y
+		spawnData.z = z
+		spawnData.ownerID = ownerID
+		spawnData.teamID = teamID
+		spawnList[spawnCount] = spawnData
+	end
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile)
@@ -198,8 +229,37 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 	noCreate = true -- not a per-projectile map because Explosion() is guaranteed to follow
 end
 
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	local unitDef = UnitDefs[unitDefID]
+	local weaponList = unitDef.weapons
+	
+	for i = 1, #weaponList do
+		local weapon = weaponList[i]
+		local weaponDefID = weapon.weaponDef
+		if weaponDefID and spawnDefs[weaponDefID] then
+
+			local spawnDef = spawnDefs[weaponDefID]
+			spawnNames[unitID] = {
+			    names = strSplit(spawnDef.name),
+			    unitSequence = 1,
+			}
+			if spawnDef.mode == "random_locked" then
+			    spawnNames[unitID].unitSequence = random(#spawnNames[unitID].names)
+			end
+		    
+			
+		end
+	end
+end
+
+
 function gadget:UnitDestroyed(unitID)
 	local index = expireByID[unitID]
+	if spawnNames[unitID] then
+	    spawnNames[unitID] = nil
+	end
+    
 	if not index then
 		return
 	end
