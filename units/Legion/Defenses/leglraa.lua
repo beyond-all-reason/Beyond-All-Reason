@@ -152,6 +152,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
 				damage = {
+					default = 1,
 					vtol = 750,
 					space = 750,
 				},
@@ -197,6 +198,7 @@ return {
 				weaponvelocity = 3529,
 				damage = {
 					--commanders = 750,
+					default = 1,
 					vtol = 700,
 					space = 700,
 				},
