@@ -1,10 +1,25 @@
 .element {
     padding: 4px;
     border-radius: 8px;
-    border: 4px black;
+    border: 3px black;
     background-color: rgba(0%, 0%, 0%, 70%);
-    image-color: rgba(100%, 100%, 100%, 1%);
+    image-color: rgba(100%, 100%, 100%, 2%);
     decorator:
-        gradient(vertical rgba(100%, 100%, 100%, 15%) rgba(0%, 0%, 0%, 15%)),
+        linear-gradient(
+			to bottom, 
+			rgba(255, 255, 255, 20%) 0%, 
+			rgba(255, 255, 255, 15%) 4px,
+			rgba(255, 255, 255, 10%) 5px,
+			rgba(  0,   0,   0, 10%) 30px,
+			rgba(  0,   0,   0, 15%) 100%
+		),
+        linear-gradient(
+			to top, 
+			rgba(255, 255, 255, 10%) 0%,
+			rgba(255, 255, 255, 10%) 2px,
+			rgba(255, 255, 255, 10%) 2px,
+			rgba( 50,  50,  50, 10%) 3px,
+			rgba(  0,   0,   0,  0%) 100%
+		),
         image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat);
 }
