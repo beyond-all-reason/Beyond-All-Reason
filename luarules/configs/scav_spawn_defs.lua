@@ -450,6 +450,7 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
+			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
@@ -470,6 +471,7 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
+			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
@@ -490,6 +492,7 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
+			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
@@ -510,6 +513,7 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
+			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
@@ -960,13 +964,15 @@ local Turrets = {
 		-- T2 popup arty
 		["armamb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["cortoast_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["legacluster_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		-- Pulsar and Bulwark normals
 		["armanni_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		--LRPC
-		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
+		["leglrpc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
 		--antinukes
 		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
 		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
@@ -977,11 +983,13 @@ local Turrets = {
 		--T2 AA
 		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["leglraa_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
 	[5] = {
 		-- nukes
 		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["legsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		-- misc t3 turrets
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
