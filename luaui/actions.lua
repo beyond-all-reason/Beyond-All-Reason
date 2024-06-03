@@ -57,6 +57,7 @@ end
 
 
 function actionHandler:AddAction(widget, cmd, func, data, types)
+  Spring.Echo('hornet actionHandler ', widget, cmd, func, data, types)
   local function add(actionMap)
     local callInfoList = actionMap[cmd]
     if (callInfoList == nil) then
