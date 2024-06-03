@@ -66,7 +66,7 @@ return {
 			[21] = "leglraa",
 			[22] = "legperdition",
 			[23] = "corfmd",
-			[24] = "corsilo",
+			[24] = "legsilo",
 			[25] = "leglrpc",
 			[26] = "legstarfall",
 			[27] = "legvp",

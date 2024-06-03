@@ -2375,6 +2375,10 @@ local icontypes = {
 		bitmap = "icons/hover_raid.png",
 		size = 1
 	},
+	legsilo = {
+		bitmap = "icons/nuke.png",
+		size = 2.51999998
+	},
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
