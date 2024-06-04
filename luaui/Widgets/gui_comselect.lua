@@ -17,9 +17,6 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spSendCommands = Spring.SendCommands
 
-local specOld = false
-local spec = false
-local team
 
 
 local commanderList = {}
