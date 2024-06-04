@@ -25,7 +25,7 @@ local team
 local commanderList = {}
 local commanderIds = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams and ud.customParams.iscommander then
+	if ud.customParams.iscommander then
 		commanderIds[udid] = udid
 	end
 end
