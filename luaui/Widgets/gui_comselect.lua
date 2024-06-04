@@ -31,7 +31,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	if (not myTeamID or unitTeam ~= myTeamID) then
+	if unitTeam ~= myTeamID then
 		return
 	end
 	if commanderIds[unitDefID] then
