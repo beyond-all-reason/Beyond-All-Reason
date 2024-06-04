@@ -22,9 +22,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	if (not myTeamID or unitTeam ~= myTeamID) then
 		return
 	end
@@ -32,6 +30,16 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		table.insert(commanderList, unitID)
 	end
 end
+
+
+function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	if commanderList[unitID] then
+		commanderList[unitID] = nil
+	end
+end
+
+
+
 
 
 -- comm selection functionality
@@ -65,6 +73,7 @@ local function SelectComm()
 	end
 	
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	Spring.SelectUnitArray({unitID}, shift)
 	if not shift then
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		Spring.SetCameraTarget(x, y, z)
@@ -75,14 +84,10 @@ end
 
 
 function widget:Shutdown()
-	if mainWindow then
-		mainWindow:Dispose()
-	end
 	widgetHandler:RemoveAction("selectcomm")
 end
 
 
 function widget:Initialize()
-
 	widgetHandler:AddAction("selectcomm", SelectComm, nil, 'p')
 end
