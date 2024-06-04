@@ -98,29 +98,34 @@ local function SelectComm()
 end
 
 
-function widget:PlayerChanged()
-	local spectatorFollowing = Spring.GetMyTeamID()
+local function RefreshList()
+	local spGetUnitDefID = Spring.GetUnitDefID
 
-	if spectatorFollowing ~= nil then
-		commanderList = {}
-
-		local units = Spring.GetAllUnits()
-		for i = 1, #units do
-			local unitID = units[i]
-			local unitOwner = Spring.GetUnitTeam(unitID)
-
-			if unitOwner == spectatorFollowing then
-				local unitDefID = Spring.GetUnitDefID(unitID)
-
-				if commanderIds[unitDefID] then
-					table.insert(commanderList, unitID)
-				end
-
-			end
+	commanderList = {}
+	local count = 0
+	local units = Spring.GetTeamUnits(myTeamID)
+	for i = 1, #units do
+		local unitID = units[i]
+		if commanderIds[spGetUnitDefID(unitID)] then
+			count = count + 1
+			commanderList[count] = unitID
 		end
 	end
+end
 
-  end
+function widget:PlayerChanged()
+	local teamID = Spring.GetMyTeamID()
+
+	if teamID ~= myTeamID then
+		myTeamID = teamID
+		RefreshList()
+	end
+end
+
+function widget:Initialize()
+	myTeamID = Spring.GetMyTeamID()
+	RefreshList()
+end
   
 
 
