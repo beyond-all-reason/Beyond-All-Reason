@@ -13,10 +13,11 @@ name: Translations set merge target to master
 on:
   pull_request:
     types: [opened, synchronize]
+    branches:
+      - 'transifex-synchronization-source'
 
 jobs:
   auto_change_base_branch:
-    if: ${{ github.base_ref == 'transifex-synchronization-source' }}
     runs-on: ubuntu-latest
 
     steps:
