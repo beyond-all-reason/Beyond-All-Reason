@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Hornet, with some ZK raiding",
 		date = "03 June 2024",
 		license = "GNU GPL, v2 or later",
-		layer = 1001,
+		layer = 0,
 		enabled = true,
 	}
 end
