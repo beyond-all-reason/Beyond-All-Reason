@@ -259,14 +259,8 @@ local LandUnitsList = {
 	Assault = {
 		[1] = {
 			--Armada
-			["armham_scav"] = 1,
-			["armpincer_scav"] = 1,
 			--Cortex
-			["corthud_scav"] = 1,
-			["corgarp_scav"] = 1,
 			--Legion
-			["legcen_scav"] = 1,
-			["leglob_scav"] = 1,
 		},
 		[2] = {
 			--Armada
@@ -359,15 +353,8 @@ local LandUnitsList = {
 	Support = {
 		[1] = {
 			--Armada
-			["armrock_scav"] = 1,
-			["armjeth_scav"] = 1,
-			["armah_scav"] = 1,
 			--Cortex
-			["corstorm_scav"] = 1,
-			["corcrash_scav"] = 1,
-			["corah_scav"] = 1,
 			--Legion
-			["legbal_scav"] = 1,
 		},
 		[2] = {
 			--Armada
@@ -837,13 +824,9 @@ local AirUnitsList = {
 	[1] = {
 		--Armada
 		["armpeep_scav"] = 1,
-		["armsehak_scav"] = 1,
 		--Cortex
 		["corfink_scav"] = 1,
-		["corbw_scav"] = 1,
-		["corhunt_scav"] = 1,
 		--Legion
-		["legfig_scav"] = 1,
 
 	},
 	[2] = {
@@ -853,7 +836,6 @@ local AirUnitsList = {
 		--Cortex
 		["corfink_scav"] = 1,
 		["corbw_scav"] = 1,
-		["corhunt_scav"] = 1,
 		--Legion
 		["legfig_scav"] = 1,
 
@@ -894,6 +876,7 @@ local AirUnitsList = {
 		["corsb_scav"] = 1,
 		["corseap_scav"] = 1,
 		["cortitan_scav"] = 1,
+		["corhunt_scav"] = 1,
 		--Legion
 		["legaca_scav"] = 1,
 		["legwhisper_scav"] = 1,
