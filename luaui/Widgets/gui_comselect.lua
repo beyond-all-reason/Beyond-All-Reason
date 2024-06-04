@@ -42,9 +42,15 @@ end
 
 
 function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	if commanderList[unitID] then
-		commanderList[unitID] = nil
+	if not commanderIds[unitDefID] then
+		return
 	end
+
+	local found = commanderList:removeFirst(unitID)
+
+	-- if not found then
+	-- 	error("unit is a commander but was not on the list!", unitID)
+	-- end
 end
 
 
