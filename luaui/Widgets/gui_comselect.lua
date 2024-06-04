@@ -13,6 +13,14 @@ end
 
 
 local myTeamID = Spring.GetMyTeamID()
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetMyTeamID = Spring.GetMyTeamID
+local spSendCommands = Spring.SendCommands
+
+local specOld = false
+local spec = false
+local team
+
 
 local commanderList = {}
 local commanderIds = {}
@@ -28,6 +36,7 @@ function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 	if commanderIds[unitDefID] then
 		table.insert(commanderList, unitID)
+		--Spring.Echo('hornet comsel adding com')
 	end
 end
 
@@ -45,9 +54,11 @@ end
 -- comm selection functionality
 local commIndex = 1
 local function SelectComm()
+	--Spring.Echo('hornet comsel tab')
 	local commCount = #commanderList
 
 	if commCount <= 0 then
+		--Spring.Echo('hornet comsel 0 coms')
 		return
 	end
 	
@@ -81,6 +92,30 @@ local function SelectComm()
 end
 
 
+function widget:PlayerChanged()
+	local spectatorFollowing = Spring.GetMyTeamID()
+
+	if spectatorFollowing ~= nil then
+		commanderList = {}
+
+		local units = Spring.GetAllUnits()
+		for i = 1, #units do
+			local unitID = units[i]
+			local unitOwner = Spring.GetUnitTeam(unitID)
+
+			if unitOwner == spectatorFollowing then
+				local unitDefID = Spring.GetUnitDefID(unitID)
+
+				if commanderIds[unitDefID] then
+					table.insert(commanderList, unitID)
+				end
+
+			end
+		end
+	end
+
+  end
+  
 
 
 function widget:Shutdown()
