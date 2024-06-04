@@ -56,8 +56,12 @@ local function createSection(name, content)
 end
 
 function widget:Initialize()
-	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
+	widget.rmlContext = RmlUi.GetContext(widget.whInfo.name)
+	if not widget.rmlContext then
+		widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
+	end
 	
+	widget.rmlContext:RemoveDataModel("data_model_test")
 	data_handle = widget.rmlContext:OpenDataModel("data_model_test", {
 		tab_name = '',
 	});
@@ -74,21 +78,57 @@ function widget:Initialize()
 	end)
 
 	-- these elements are automatically created and must be interacted with programmatically
-	tabset:QuerySelector('tabs'):SetClass('element', true)
-	tabset:QuerySelector('panels'):SetClass('element', true)
+	tabset:QuerySelector('tabs'):SetClass('container', true)
+	tabset:QuerySelector('panels'):SetClass('container', true)
 
-	------------------------
-	---- BASIC ELEMENTS ----
-	------------------------
+	createBasicElementsPage()
+	createLayoutElementsPage()
+	
+	--createBasicStylesPage()
+	--createBasicEventsPage()
+	--createBasicElementsPage()
+	--createBasicStylesPage()
+	--createBasicEventsPage()
+	
+	createMediaElementsPage()
+	
+	tabset.active_tab = -1
+	tabset.active_tab = 0
+	RmlUi.SetDebugContext(widget.rmlContext)
+end
 
-	addPage('Basic Elements',
-		createSection('Layout', [[
+function widget:Shutdown()
+	RmlUi.SetDebugContext(nil)
+
+	if document then
+		document:Close()
+	end
+	
+	if widget.rmlContext then
+		RmlUi.RemoveContext(widget.whInfo.name)
+	end
+end
+
+function widget:OnReloadClick()
+	widget.rmlContext = nil
+	widgetHandler:DisableWidget(widget:GetInfo().name)
+	widgetHandler:EnableWidget(widget:GetInfo().name)
+end
+
+------------------------
+---- BASIC ELEMENTS ----
+------------------------
+function createBasicElementsPage()
+
+	local layoutSection = createSection('Basic Layout', [[
 <div>div</div>
 Horizontal Rule<hr/>
 <p>paragraph</p>
 <span>span</span>
-<div class="element">styled 'container' element</div>
-]]) .. createSection('Text Decoration', [[
+<div class="container">styled 'container' element using a class</div>
+]])
+	
+	local textDecorationSection = createSection('Text Decoration', [[
 <b>Bold </b> <strong>Strong</strong><br/>
 <i>Italic </i> <em>Emphasis</em><br/>
 <u>Underline</u><br/>
@@ -98,7 +138,9 @@ Horizontal Rule<hr/>
 Preformatted
        text
 </pre>
-]]) .. createSection('Headings', [[
+]])
+	
+	local headingsSection = createSection('Headings', [[
 <div style="display: flex; flex-direction: row; align-items: flex-end;">
 	<h1>h1</h1>
 	<h2>h2</h2>
@@ -107,31 +149,128 @@ Preformatted
 	<h5>h5</h5>
 	<h6>h6</h6>
 </div>
-]]))
-	--for i = 1, 1 do
-	--	local content = ''
-	--	for j = 1, 1 do
-	--		content = content .. createSection('Section ' .. i .. '.' .. j, '<div class="element">Content ' .. j .. '</div>')
-	--	end
-	--	addPage('tab ' .. i, content)
-	--end
-	
-	------------------------
-	---- MEDIA ELEMENTS ----
-	------------------------
+]])
+	addPage(
+		'Basic Elements', 
+		layoutSection .. 
+			textDecorationSection .. 
+			headingsSection
+	)
+end
 
-	addPage('Media Elements',
-		createSection('Images (Relative Paths)', [[
+-------------------------
+---- LAYOUT ELEMENTS ----
+-------------------------
+function createLayoutElementsPage()
+
+	local listsSection = createSection('Lists', [[
+<ol>
+	<li>1. ordered lists</li>
+	<li>2. and</li>
+	<li>3. unordered lists</li>
+</ol>
+<ul>
+	<li>• both no not have inherent</li>
+	<li>• bullet points/numbering</li>
+	<li>• due to RmlUi limitations</li>
+</ul>
+]])
+
+	local tableSection = createSection('Table', [[
+<table style="border: 1px white; gap: 0.5em;">
+	<colgroup>
+		<col style="background-color: maroon;"/>
+		<col style="background-color: gray;"/>
+		<col style="background-color: #060;"/>
+	</colgroup>
+	<thead style="background-color: black; color: white;">
+		<tr>
+			<th colspan="2" style="text-align: center;">th colspan 2</th>
+			<th>th</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td rowspan="2" style="position: relative; vertical-align: center;">
+				<div style="display: flex; align-items: center; justify-content: center; height: 58px;">
+					<span>td rowspan 2</span>
+				</div>
+			</td>
+			<td>data</td>
+			<td>data</td>
+		</tr>
+		<tr>
+			<td>data</td>
+			<td>data</td>
+		</tr>
+	</tbody>
+	<tfoot style="background-color: black; color: white;">
+		<tr>
+			<td>td</td>
+			<td>td</td>
+			<td>td</td>
+		</tr>
+	</tfoot>
+</table>
+]])
+	
+	local flexBoxSection = createSection('Flex Box', [[
+<div style="display: flex; flex-direction: row;">
+	<div>div</div>
+	<div>div</div>
+	<div>div</div>
+</div>
+]])
+	
+	local nestedFlexBoxSection = createSection('Nested Flex Box', [[
+<div style="display: flex; flex-direction: column;">
+	<div style="display: flex; flex-direction: row;">
+		<div>div</div>
+		<div>div</div>
+		<div>div</div>
+	</div>
+	<div style="display: flex; flex-direction: row; justify-content: space-between;">
+		<div>div</div>
+		<div>div</div>
+		<div>div</div>
+	</div>
+	<div style="display: flex; flex-direction: row; justify-content: flex-end;">
+		<div>div</div>
+		<div>div</div>
+		<div>div</div>
+	</div>
+</div>
+]])
+	
+	addPage(
+		'Layout Elements', 
+		listsSection ..
+			tableSection ..
+		flexBoxSection ..
+		nestedFlexBoxSection
+	)
+end
+
+
+------------------------
+---- MEDIA ELEMENTS ----
+------------------------
+function createMediaElementsPage()
+	local imagesSection = createSection('Images (Relative Paths)', [[
 <div style="max-width: 100%">
 	<img src="/bitmaps/loadpictures/armada.jpg" style="width: 50%;"/>
 	<img src="/bitmaps/loadpictures/cortex.jpg" style="width: 50%;"/>
 </div>
-]]) .. createSection('Image Texture Examples (Custom Element, Absolute Paths, Tints)', [[
+]])
+
+	local imageTextureExamplesSection = createSection('Image Texture Examples (Custom Element, Absolute Paths, Tints)', [[
 <div style="max-width: 100%">
 	<texture src=":t0,1,1:bitmaps/loadpictures/armada.jpg" style="width: 50%;"/>
 	<texture src=":t1,0,1:bitmaps/loadpictures/cortex.jpg" style="width: 50%;"/>
 </div>
-]]) .. createSection('Texture Types', [[
+]])
+
+	local textureTypesSection = createSection('Texture Types', [[
 <div style="display: flex; flex-direction: row;">
 	<div>
 		<h5>Build Picture</h5>
@@ -158,7 +297,9 @@ Preformatted
 		<texture src="luaui/images/backgroundtile.png" style="width: 100px; height: 100px"/>
 	</div>
 </div>
-]]) .. createSection("Named Texture Modifiers (Non .dds Only)", [[
+]])
+
+	local namedTextureModifiersSection = createSection("Named Texture Modifiers (Non .dds Only)", [[
 <div style="display: flex; flex-direction: row;">
 	<div>
 		<h5>Normal</h5>
@@ -191,20 +332,13 @@ Preformatted
 		<texture src=":a:bitmaps/logo.png" style="width: 128px; height: 128px"/>
 	</div>
 </div>
-]]))
+]])
 	
-	tabset.active_tab = -1
-	tabset.active_tab = 0
-	RmlUi.SetDebugContext(widget.rmlContext)
-end
-
-function widget:Shutdown()
-	RmlUi.SetDebugContext(nil)
-
-	if document then
-		document:Close()
-	end
-	if widget.rmlContext then
-		RmlUi.RemoveContext(widget.whInfo.name)
-	end
-end
+	addPage(
+		'Media Elements', 
+		imagesSection .. 
+			imageTextureExamplesSection .. 
+			textureTypesSection .. 
+			namedTextureModifiersSection
+	)
+end 

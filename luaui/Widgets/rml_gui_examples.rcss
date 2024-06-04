@@ -1,0 +1,62 @@
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.container {
+    background-color: #000A;
+    border: 2px black;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.title-bar {
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 1em;
+}
+
+tabset {
+    display: flex;
+    flex-direction: row;
+}
+
+tabset > tabs {
+    display: flex;
+    flex-direction: column;
+}
+
+tabset > tabs > tab {
+    display: inline-block;
+    margin-top: 0.5em;
+}
+
+tabset > tabs > tab:selected {
+    border-bottom: 1px white;
+    margin-bottom: -1px;
+}
+
+tabset panels {
+    display: block;
+    flex-grow: 1;
+    min-width: 800px;
+    min-height: 600px;
+    max-height: 800px;
+    overflow-y: scroll;
+}
+
+code.example-code {
+    position: relative;
+    display: block;
+    padding: 1em;
+    background-color: black;
+    font-size: 16px;
+    border: 1px gray;
+    border-radius: 1em;
+}
+
+code.example-code textarea {
+    position: relative;
+    display: block;
+    width: 100%;
+}

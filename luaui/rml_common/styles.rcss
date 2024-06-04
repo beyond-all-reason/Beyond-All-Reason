@@ -5,11 +5,19 @@
 body {
     box-sizing: border-box;
     font-family: "Exo 2";
+    font-weight: normal;
     font-size: 20px;
 }
 
+body * {
+    box-sizing: border-box;
+}
+
+dl, dt, dd, ol, ul, li,
 body, div, p, hr, pre,
+blockquote, address,
 h1, h2, h3, h4, h5, h6,
+p, pre, div, section,
 tabset tabs {
     display: block;
 }
@@ -49,15 +57,15 @@ h5, h6, strong {
 }
 
 b, strong {
-	font-weight: 600 ;
+    font-weight: 600;
 }
 
 u {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 s, strike {
-	text-decoration: line-through;
+    text-decoration: line-through;
 }
 
 i, em {
@@ -65,14 +73,18 @@ i, em {
 }
 
 code, pre {
-	font-family: "Source Code Pro";
-	white-space: pre;
+    font-family: "Source Code Pro";
+    white-space: pre;
 }
 
-hr {
-    border-width: 1px;
+/* Lists */
+ul, ol {
+    padding-left: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }
 
+/* Table */
 table {
     box-sizing: border-box;
     display: table;
@@ -81,6 +93,12 @@ table {
 tr {
     box-sizing: border-box;
     display: table-row;
+}
+
+th {
+    box-sizing: border-box;
+    display: table-cell;
+    font-weight: bold;
 }
 
 td {
@@ -101,6 +119,71 @@ thead, tbody, tfoot {
     display: table-row-group;
 }
 
+/* Input Elements */
+button, select {
+    background-color: #222;
+    border: 1px #666;
+    border-radius: 4px;
+    padding: 4px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+button:hover, select:hover {
+    background-color: #444;
+}
+
+button:active, select:active {
+    background-color: #666;
+}
+
+button:disabled, select:disabled {
+    background-color: #000;
+    color: #666;
+    cursor: not-allowed;
+}
+
+input.radio, input.checkbox {
+    width: 10px;
+    height: 10px;
+    border: 1px #666;
+    background: #fff;
+    tab-index: auto;
+}
+
+input.radio {
+    border-radius: 5px;
+}
+
+input.radio:hover, input.checkbox:hover {
+    background: #444;
+}
+
+input.radio:active, input.checkbox:active {
+    background: #ccc;
+}
+
+input.radio:checked, input.checkbox:checked {
+    background: #222;
+}
+
+input.text {
+    background-color: #fff;
+    color: #555;
+    border: 2px #999;
+    padding: 5px;
+    tab-index: auto;
+    cursor: text;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+input.text, textarea {
+    text-align: left;
+}
+
+/* RmlUi Elements */
+
 handle[size_target] {
     cursor: nwse-resize;
 }
@@ -110,15 +193,45 @@ handle[move_target] {
 }
 
 scrollbarvertical {
-	display: block;
-	max-width: 6px;
+    width: 6px;
 }
 
 scrollbarhoriztonal {
-	display: block;
-	max-height: 6px;
+    height: 6px;
 }
 
-sliderbar {
-	background-color: gray;
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack {
+    background: #333;
+    border-color: #888;
+}
+
+scrollbarvertical slidertrack {
+    border-left-width: 1px;
+}
+
+scrollbarhorizontal slidertrack {
+    height: 6px;
+    border-top-width: 1px;
+}
+
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar {
+    background: #888;
+    border-color: #666;
+}
+
+scrollbarvertical sliderbar {
+    border-width: 1px 0;
+    margin-left: 1px;
+}
+
+scrollbarhorizontal sliderbar {
+    height: 6px;
+    border-width: 0 1px;
+    margin-top: 1px;
+}
+
+scrollbarcorner {
+    background: #888;
 }
