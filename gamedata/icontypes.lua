@@ -3067,9 +3067,21 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	scavengerdroppodbeacon = {
+	scavbeacon_t1 = {
+		bitmap = "icons/beacon.png",
+		size = 1.25
+	},
+	scavbeacon_t2 = {
+		bitmap = "icons/beacon.png",
+		size = 1.5
+	},
+	scavbeacon_t3 = {
 		bitmap = "icons/beacon.png",
 		size = 1.74299991
+	},
+	scavbeacon_t4 = {
+		bitmap = "icons/beacon.png",
+		size = 2
 	},
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",

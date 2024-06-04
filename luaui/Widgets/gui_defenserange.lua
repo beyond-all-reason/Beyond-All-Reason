@@ -115,7 +115,10 @@ modConfig["BYAR"]["unitList"] = {
 	leglraa = { weapons = { 2 } }, -- t2 aa railgun
 	
 	-- SCAVENGERS
-	scavengerdroppodbeacon_scav = { weapons = { 1 } },
+	scavbeacon_t1_scav = { weapons = { 1 } },
+	scavbeacon_t2_scav = { weapons = { 1 } },
+	scavbeacon_t3_scav = { weapons = { 1 } },
+	scavbeacon_t4_scav = { weapons = { 1 } },
 
 	armannit3 = { weapons = { 1 } },
 	--armbotrail = { weapons = { 1 } },
