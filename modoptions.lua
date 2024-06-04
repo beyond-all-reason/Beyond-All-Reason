@@ -737,7 +737,7 @@ local options = {
         name	= "Spawner Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "initialbox",
+        def		= "avoid",
         section	= "scav_defense_options",
         items	= {
             { key = "avoid", 		name = "Avoid Players", 	desc="Burrows avoid player units" },
@@ -801,6 +801,7 @@ local options = {
         max		= 3,
         step	= 0.1,
         section	= "scav_defense_options",
+        hidden  = true,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
