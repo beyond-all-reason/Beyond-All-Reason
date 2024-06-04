@@ -5,7 +5,11 @@
 -- bind alt+x gridmenu_next_page <-- Go to next page
 -- bind alt+z gridmenu_prev_page <-- Go to previous page
 
--- TODO: Fix unitfromfactory and unitcommand callins to update queue progress
+-- TODO: Fix mess that is handle hover
+-- TODO: Remove selectNextFrame
+-- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
+-- PERF: check out how to improve updateBuildProgress, maybe run it tandem with slowupdate?
+-- PERF: Find a way to know when activecmd changed in an evented way
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -23,6 +27,7 @@ end
 --- CACHED VALUES
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
@@ -121,11 +126,13 @@ local showBuildProgress = true
 local defaultCategoryOpts = {}
 
 local activeCmd
+local gridOpts
 
 local categories = {}
+local currentlyBuildingRectID
 local currentCategory
 local labBuildModeActive = false
-local selectNextFrame, switchedCategory
+local switchedCategory
 
 local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
 local prevQueueNr, prevB, prevB3
@@ -213,7 +220,9 @@ local selectedCellZoom = 0.135 * zoomMult
 local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
-local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
+local redraw, ordermenuHeight, prevAdvplayerlistLeft
+local doUpdate, doUpdateClock
+
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local categoryFontSize, categoryButtonHeight, hotkeyFontSize, priceFontSize, pageFontSize
 local builderButtonSize
@@ -233,6 +242,7 @@ local cellRects = {}
 for i = 1, 12 do
 	cellRects[i] = Rect:new(0, 0, 0, 0)
 end
+local uDefCellIds = {}
 
 local catRects = {}
 catRects[BUILDCAT_ECONOMY] = Rect:new(0, 0, 0, 0)
@@ -267,6 +277,7 @@ local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
+
 local function refreshUnitDefs()
 	unitName = {}
 	unitBuildOptions = {}
@@ -290,6 +301,7 @@ local function refreshUnitDefs()
 		end
 	end
 end
+
 refreshUnitDefs()
 
 -- starting units
@@ -361,8 +373,33 @@ end
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
 -------------------------------------------------------------------------------
+local function updateBuildProgress()
+	currentlyBuildingRectID = nil
 
-local function updateGrid(gridOpts)
+	if not showBuildProgress or not activeBuilderID then
+		return
+	end
+
+	-- get current builder defid in progress, if any
+	local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
+	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
+
+	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
+
+	if not currentlyBuildingRectID then
+		return
+	end
+
+	local rect = cellRects[currentlyBuildingRectID]
+
+	rect.opts.progress = select(2, spGetUnitIsBeingBuilt(unitBuildID))
+end
+
+local function updateGrid()
+	if not gridOpts then
+		return
+	end
+
 	-- update page data
 	local gridOptsCount = table.count(gridOpts)
 
@@ -381,6 +418,9 @@ local function updateGrid(gridOpts)
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 
+	-- well reindex the cellsidsperudef
+	uDefCellIds = {}
+
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
@@ -397,6 +437,7 @@ local function updateGrid(gridOpts)
 			rect.opts.uDefID = uDefID
 
 			if uDefID then
+				uDefCellIds[uDefID] = cellRectID
 				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 
 				local cmd = gridOpts[index]
@@ -407,12 +448,25 @@ local function updateGrid(gridOpts)
 				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 				rect.opts.disabled = units.unitRestricted[uDefID]
 				rect.opts.cmd = cmd
+
+				rect.opts.queuenr = cmd.params[1]
+
+				-- reset progress, we'll update buildprogress later
+				rect.opts.progress = nil
 			else
 				rect.opts.uDefID = nil
 				rect.opts.cmd = nil
 			end
 		end
 	end
+
+	-- local firstUnitDefID = cellRects[1].opts.uDefID
+
+	-- if firstUnitDefID and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
+	-- 	selectNextFrame = -firstUnitDefID
+	-- end
+
+	redraw = true
 end
 
 local function setupCells()
@@ -513,22 +567,12 @@ local function setupCategoryRects()
 end
 
 local function updateCategories(newCategories)
-	if categories == newCategories then
-		return
-	end
-
 	categories = newCategories
-
-	if next(catRects) == nil then
-		setupCategoryRects()
-	end
 
 	for _, cat in pairs(categories) do
 		local rect = catRects[cat]
 
-		if rect:getWidth() ~= 0 then
-			rect.opts.current = cat == currentCategory
-		end
+		rect.opts.current = cat == currentCategory
 	end
 end
 
@@ -536,7 +580,9 @@ end
 --- HOTKEY AND ACTION HANDLING
 -------------------------------------------------------------------------------
 
-local function RefreshCommands()
+local function refreshCommands()
+	gridOpts = nil
+
 	if isPregame and startDefID then
 		activeBuilder = startDefID
 	end
@@ -545,7 +591,6 @@ local function RefreshCommands()
 		return
 	end
 
-	local gridOpts
 	if builderIsFactory then
 		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
 		if activeCmdDescs then
@@ -558,7 +603,7 @@ local function RefreshCommands()
 		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
-	updateGrid(gridOpts)
+	updateGrid()
 end
 
 local function getActionHotkey(action)
@@ -619,18 +664,20 @@ local function reloadBindings()
 	key = getActionHotkey("gridmenu_cycle_builder")
 	cycleBuilderKey = key
 
-	doUpdate = true
+	refreshCommands()
 end
 
 local function setLabBuildMode(value)
 	labBuildModeActive = value
-	doUpdate = true
+	redraw = true
 end
 
 local function setCurrentCategory(category)
 	currentCategory = category
-	setupCategoryRects()
-	doUpdate = true
+
+	updateCategories(categories)
+	refreshCommands()
+	redraw = true
 end
 
 local function queueUnit(uDefID, opts)
@@ -638,7 +685,7 @@ local function queueUnit(uDefID, opts)
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
+				Spring.GiveOrderToUnit(uid, -uDefID, {}, opts)
 			end
 		end
 	end
@@ -651,6 +698,8 @@ local function pickBlueprint(uDefID)
 		WG["areamex"].setAreaMexType(uDefID)
 	end
 	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+
+	-- doUpdateClock = os.clock() + 0.01 -- setactivecmd hasn't updated internal state yet
 end
 
 local function setPregameBlueprint(uDefID)
@@ -669,7 +718,6 @@ local function clearCategory()
 	setLabBuildMode(false)
 	setPregameBlueprint(nil)
 	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-	doUpdate = true
 end
 
 local function gridmenuCategoryHandler(_, _, args)
@@ -694,7 +742,6 @@ local function gridmenuCategoryHandler(_, _, args)
 
 	setCurrentCategory(categories[cIndex])
 	switchedCategory = os.clock()
-	doUpdate = true
 
 	return true
 end
@@ -744,7 +791,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			table.insert(opts, "shift")
 		end
 
-		queueUnit(-uDefID, opts)
+		queueUnit(uDefID, opts)
 
 		return true
 	elseif isPregame and currentCategory then
@@ -756,7 +803,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		setPregameBlueprint(uDefID)
-		doUpdate = true
+		updateGrid()
 		return true
 	elseif activeBuilder and currentCategory then
 		if args[3] and args[3] == "factory" then
@@ -778,7 +825,8 @@ local function nextPageHandler()
 		return
 	end
 	currentPage = currentPage == pages and 1 or currentPage + 1
-	doUpdate = true
+
+	updateGrid()
 end
 
 local function addFactoryToSelection(unitID, unitDefID)
@@ -788,7 +836,6 @@ local function addFactoryToSelection(unitID, unitDefID)
 end
 
 local function addBuilderToSelection(unitID, unitDefID, incrementCount)
-	doUpdate = true
 	builderIsFactory = false
 
 	if not selectedBuilders[unitDefID] then
@@ -846,6 +893,8 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	doUpdateClock = os.clock()
+
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
 	end
@@ -877,7 +926,7 @@ function widget:Initialize()
 	if isPregame then
 		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
 			startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-			doUpdate = true
+			redraw = true
 		end
 	end
 
@@ -904,7 +953,7 @@ function widget:Initialize()
 		useLabBuildMode = value
 		widget:Update(1000)
 		widget:ViewResize()
-		doUpdate = true
+		redraw = true
 	end
 	WG["gridmenu"].setCurrentCategory = function(category)
 		setCurrentCategory(category)
@@ -925,28 +974,28 @@ function widget:Initialize()
 	end
 	WG["buildmenu"].setShowPrice = function(value)
 		showPrice = value
-		doUpdate = true
+		redraw = true
 	end
 	WG["buildmenu"].getAlwaysShow = function()
 		return alwaysShow
 	end
 	WG["buildmenu"].setAlwaysShow = function(value)
 		alwaysShow = value
-		doUpdate = true
+		redraw = true
 	end
 	WG["buildmenu"].getShowRadarIcon = function()
 		return showRadarIcon
 	end
 	WG["buildmenu"].setShowRadarIcon = function(value)
 		showRadarIcon = value
-		doUpdate = true
+		redraw = true
 	end
 	WG["buildmenu"].getShowGroupIcon = function()
 		return showGroupIcon
 	end
 	WG["buildmenu"].setShowGroupIcon = function(value)
 		showGroupIcon = value
-		doUpdate = true
+		redraw = true
 	end
 	WG["buildmenu"].getBottomPosition = function()
 		return stickToBottom
@@ -1128,16 +1177,22 @@ function widget:ViewResize()
 	setupCells()
 
 	checkGuishader(true)
-	clearDrawLists()
-	doUpdate = true
+
+	redraw = true
 end
 
+-- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
 	refreshUnitDefs()
-	clearDrawLists()
-	doUpdate = true
+	redraw = true
 end
 
+-- Sometimes we issue commands the game state hasn't changed yet, to actually
+-- sync state we need to do it a while later.
+--
+-- Unfortunately some callins like UnitCommand are invoked
+-- without having actually updated the internal state of the factory. So they
+-- only schedule a resync instead of syncing state.
 function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
@@ -1145,7 +1200,6 @@ function widget:Update(dt)
 		checkGuishader()
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
-			doUpdate = true
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
@@ -1179,35 +1233,59 @@ function widget:Update(dt)
 		end
 	end
 
-	if selectNextFrame and not isPregame then
-		pickBlueprint(selectNextFrame)
-		selectNextFrame = nil
-		switchedCategory = nil
+	--if selectNextFrame and not isPregame then
+	-- pickBlueprint(selectNextFrame)
+	-- selectNextFrame = nil
+	-- switchedCategory = nil
 
-		doUpdate = true
-	else
-		-- refresh buildmenu if active cmd changed
-		local prevActiveCmd = activeCmd
-
-		if Spring.GetGameFrame() == 0 and WG["pregame-build"] then
-			activeCmd = WG["pregame-build"].selectedID
-			if activeCmd then
-				activeCmd = units.unitName[activeCmd]
-			end
-		else
-			activeCmd = select(4, Spring.GetActiveCommand())
-		end
-
-		if activeCmd ~= prevActiveCmd then
-			doUpdate = true
-		end
-	end
+	-- updateGrid()
+	-- else
+	-- refresh buildmenu if active cmd changed
 
 	if not (isPregame or activeBuilder or alwaysShow) then
 		buildmenuShows = false
+
+		return
 	else
 		buildmenuShows = true
 	end
+
+	local prevActiveCmd = activeCmd
+
+	if isPregame and WG["pregame-build"] then
+		activeCmd = WG["pregame-build"].selectedID
+		if activeCmd then
+			activeCmd = units.unitName[activeCmd]
+		end
+	else
+		activeCmd = select(4, spGetActiveCommand())
+	end
+
+	if activeCmd ~= prevActiveCmd then
+		doUpdate = true
+	end
+
+	-- PERF: Maybe make this slow-ish-update?
+	if isPregame and startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
+		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		doUpdate = true
+	end
+
+	-- Fix for:
+	--   - unitcommand callin still does not have the command queue updated on the factory
+	if doUpdate then
+		refreshCommands()
+
+		doUpdateClock = nil
+		doUpdate = nil
+	elseif doUpdateClock and doUpdateClock > os.clock() then -- avoid os.clock() every frame is this even relevant
+		refreshCommands()
+
+		doUpdateClock = nil
+		doUpdate = nil
+	end
+
+	updateBuildProgress()
 end
 
 -------------------------------------------------------------------------------
@@ -1329,6 +1407,7 @@ local function drawCell(rect)
 	local disabled = rect.opts.disabled
 	local usedZoom = rect.opts.usedZoom
 	local cmd = rect.opts.cmd
+	local queuenr = rect.opts.queuenr
 
 	-- unit icon
 	if disabled then
@@ -1360,7 +1439,7 @@ local function drawCell(rect)
 				and (groups[units.unitGroup[uid]] and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. groups[units.unitGroup[uid]] or nil)
 			or nil,
 		{ units.unitMetalCost[uid], units.unitEnergyCost[uid] },
-		tonumber(cmd.params[1])
+		tonumber(queuenr)
 	)
 
 	-- colorize/highlight unit icon
@@ -1452,10 +1531,10 @@ local function drawCell(rect)
 	end
 
 	-- factory queue number
-	if cmd.params[1] then
+	if queuenr then
 		local queueFontSize = cellInnerSize * 0.29
 		local textPad = math_floor(cellInnerSize * 0.1)
-		local textWidth = font2:GetTextWidth(cmd.params[1]) * queueFontSize
+		local textWidth = font2:GetTextWidth(queuenr) * queueFontSize
 		RectRound(
 			rect.x,
 			rect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365),
@@ -1470,7 +1549,7 @@ local function drawCell(rect)
 			{ 0.25, 0.25, 0.25, 0.95 }
 		)
 		font2:Print(
-			"\255\190\255\190" .. cmd.params[1],
+			"\255\190\255\190" .. queuenr,
 			rect.x + cellPadding + textPad,
 			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
 			queueFontSize,
@@ -1523,48 +1602,46 @@ local function drawCategories()
 	end
 end
 
-local function drawPageAndBackButtons()
-	if (currentCategory and not builderIsFactory) or (builderIsFactory and useLabBuildMode and labBuildModeActive) then
-		-- Back button
-		local backText = "Back"
-		local buttonWidth = backRect:getWidth()
-		local buttonHeight = backRect:getHeight()
-		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight / 2
-		font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize, "co")
-		if not stickToBottom then
-			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-		end
-
-		backRect.opts.keyText = "Shift"
-		backRect.opts.keyTextHeight = font2:GetTextHeight("Shift")
-
-		drawButtonHotkey(backRect)
-		drawButton(backRect)
+local function drawBackButtons()
+	-- Back button
+	local backText = "Back"
+	local buttonWidth = backRect:getWidth()
+	local buttonHeight = backRect:getHeight()
+	local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight / 2
+	font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize, "co")
+	if not stickToBottom then
+		font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 	end
 
-	if pages > 1 then
-		-- Page button
-		local nextKeyText = keyConfig.sanitizeKey(nextPageKey, currentLayout)
-		local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
+	backRect.opts.keyText = "Shift"
+	backRect.opts.keyTextHeight = font2:GetTextHeight("Shift")
 
-		local buttonHeight = nextPageRect:getHeight()
-		local fontHeight = font2:GetTextHeight(nextPageText) * pageFontSize
-		local fontHeightOffset = fontHeight * 0.34
+	drawButtonHotkey(backRect)
+	drawButton(backRect)
+end
 
-		font2:Print(
-			nextPageText,
-			nextPageRect.x + (bgpadding * 3),
-			(nextPageRect.y + (buttonHeight / 2)) - fontHeightOffset,
-			pageFontSize,
-			"o"
-		)
+local function drawPageButtons()
+	-- Page button
+	local nextKeyText = keyConfig.sanitizeKey(nextPageKey, currentLayout)
+	local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
 
-		nextPageRect.opts.keyText = nextKeyText
-		nextPageRect.opts.keyTextHeight = font2:GetTextHeight(nextKeyText)
+	local buttonHeight = nextPageRect:getHeight()
+	local fontHeight = font2:GetTextHeight(nextPageText) * pageFontSize
+	local fontHeightOffset = fontHeight * 0.34
 
-		drawButtonHotkey(nextPageRect)
-		drawButton(nextPageRect)
-	end
+	font2:Print(
+		nextPageText,
+		nextPageRect.x + (bgpadding * 3),
+		(nextPageRect.y + (buttonHeight / 2)) - fontHeightOffset,
+		pageFontSize,
+		"o"
+	)
+
+	nextPageRect.opts.keyText = nextKeyText
+	nextPageRect.opts.keyTextHeight = font2:GetTextHeight(nextKeyText)
+
+	drawButtonHotkey(nextPageRect)
+	drawButton(nextPageRect)
 end
 
 local function drawBuildModeButtons()
@@ -1801,18 +1878,15 @@ local function drawGrid()
 	for i = 1, 12 do
 		drawCell(cellRects[i])
 	end
-
-	local firstUnitDefID = cellRects[1].opts.uDefID
-
-	if firstUnitDefID and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
-		selectNextFrame = -firstUnitDefID
-	end
 end
 
 local function drawBuildMenu()
 	font2:Begin()
 
-	if activeBuilder and not builderIsFactory then
+	local drawBackScreen = (currentCategory and not builderIsFactory)
+		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
+
+	if activeBuilder and not builderIsFactory and not drawBackScreen then
 		drawCategories()
 	end
 
@@ -1824,39 +1898,31 @@ local function drawBuildMenu()
 	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
 
 	drawGrid()
-	drawPageAndBackButtons()
+
+	if drawBackScreen then
+		drawBackButtons()
+	end
+
+	if pages > 1 then
+		drawPageButtons()
+	end
+
 	drawBuilders()
 	drawBuildModeButtons()
 
 	font2:End()
 end
 
-local function drawBuildProgress()
-	if activeBuilderID then
-		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
-		if unitBuildID then
-			local unitBuildDefID = spGetUnitDefID(unitBuildID)
-			if unitBuildDefID then
-				-- loop all shown cells
-				for _, cellRect in pairs(cellRects) do
-					local cellUnitDefID = cellRect.opts.uDefID
-					if unitBuildDefID == cellUnitDefID then
-						local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
-						progress = 1 - progress -- make the effect wind counter-clockwise
-						RectRoundProgress(
-							cellRect.x + cellPadding + iconPadding,
-							cellRect.y + cellPadding + iconPadding,
-							cellRect.xEnd - cellPadding - iconPadding,
-							cellRect.yEnd - cellPadding - iconPadding,
-							cellSize * 0.03,
-							progress,
-							{ 0.08, 0.08, 0.08, 0.6 }
-						)
-					end
-				end
-			end
-		end
-	end
+local function drawBuildProgress(cellRect)
+	RectRoundProgress(
+		cellRect.x + cellPadding + iconPadding,
+		cellRect.y + cellPadding + iconPadding,
+		cellRect.xEnd - cellPadding - iconPadding,
+		cellRect.yEnd - cellPadding - iconPadding,
+		cellSize * 0.03,
+		1 - cellRect.opts.progress, -- make the effect wind counter-clockwise
+		{ 0.08, 0.08, 0.08, 0.6 }
+	)
 end
 
 -------------------------------------------------------------------------------
@@ -1868,12 +1934,13 @@ function widget:KeyPress(key)
 	if key == KEYSYMS.ESCAPE then
 		if currentCategory then
 			clearCategory()
-			doUpdate = true
+			redraw = true
 			return true
 		end
+
 		if useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
-			doUpdate = true
+			redraw = true
 			return true
 		end
 	end
@@ -1931,14 +1998,14 @@ function widget:MousePress(x, y, button)
 			for i, rect in pairs(builderRects) do
 				if rect:contains(x, y) then
 					setActiveBuilder(i)
-					doUpdate = true
+					refreshCommands()
 					return true
 				end
 			end
 
 			if nextBuilderRect:contains(x, y) then
 				cycleBuilder()
-				doUpdate = true
+				refreshCommands()
 				return true
 			end
 
@@ -1946,13 +2013,12 @@ function widget:MousePress(x, y, button)
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
 						setCurrentCategory(cat)
-						doUpdate = true
 						Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 						return true
 					end
 				end
 
-				for cellRectID, cellRect in pairs(cellRects) do
+				for _, cellRect in pairs(cellRects) do
 					local unitDefID = cellRect.opts.uDefID
 					if
 						unitDefID
@@ -1978,7 +2044,7 @@ function widget:MousePress(x, y, button)
 								Spring.GetModKeyState()
 							)
 						end
-						doUpdateClock = os.clock() + 0.01
+
 						return true
 					end
 				end
@@ -2178,14 +2244,14 @@ local function handleButtonHover()
 			end
 
 			if hoveredButton ~= drawnHoveredButton then
-				doUpdate = true
+				redraw = true
 			end
 		end
 	end
 
 	if (not hovering) or (activeBuilder and hoveredButtonNotFound) then
 		if drawnHoveredButton then
-			doUpdate = true
+			redraw = true
 		end
 
 		resetHovered()
@@ -2204,9 +2270,10 @@ local function handleButtonHover()
 			-- cells
 			if hoveredCellID then
 				local hoveredCell = cellRects[hoveredCellID]
-				local cmd = cellRects[hoveredCellID].opts.cmd
-				local uDefID = cellRects[hoveredCellID].opts.uDefID
+				local cmd = hoveredCell.opts.cmd
+				local uDefID = hoveredCell.opts.uDefID
 				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
+				local queuenr = hoveredCell.opts.queuenr
 				if
 					not prevHoveredCellID
 					or hoveredCellID ~= prevHoveredCellID
@@ -2214,9 +2281,9 @@ local function handleButtonHover()
 					or cellIsSelected ~= hoverCellSelected
 					or b ~= prevB
 					or b3 ~= prevB3
-					or cmd.params[1] ~= prevQueueNr
+					or queuenr ~= prevQueueNr
 				then
-					prevQueueNr = cmd.params[1]
+					prevQueueNr = queuenr
 					prevB = b
 					prevB3 = b3
 					prevHoveredCellID = hoveredCellID
@@ -2236,7 +2303,7 @@ local function handleButtonHover()
 									usedZoom = selectedCellZoom
 								elseif (b or b2) and not disableInput then
 									usedZoom = clickCellZoom
-								elseif b3 and not disableInput and cmd.params[1] then
+								elseif b3 and not disableInput and queuenr then
 									-- has queue
 									usedZoom = rightclickCellZoom
 								end
@@ -2282,11 +2349,6 @@ local function handleButtonHover()
 			end
 		end
 	end
-
-	-- draw builders buildoption progress
-	if showBuildProgress then
-		drawBuildProgress()
-	end
 end
 
 -------------------------------------------------------------------------------
@@ -2307,14 +2369,9 @@ function widget:DrawScreen()
 			end
 		end
 	else
-		local now = os.clock()
-		if doUpdate or (doUpdateClock and now >= doUpdateClock) then
-			if doUpdateClock and now >= doUpdateClock then
-				doUpdateClock = nil
-			end
+		if redraw then
 			clearDrawLists()
-			RefreshCommands()
-			doUpdate = nil
+			redraw = nil
 		end
 
 		-- create buildmenu drawlists
@@ -2332,33 +2389,37 @@ function widget:DrawScreen()
 
 		checkGuishaderBuilders()
 		handleButtonHover()
+
+		if currentlyBuildingRectID then
+			drawBuildProgress(cellRects[currentlyBuildingRectID])
+		end
 	end
 end
 
-function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
-		return
-	end
-
-	if not isPregame then
-		return
-	end
-
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-		doUpdate = true
-	end
-
-	if switchedCategory and selectNextFrame then
-		setPregameBlueprint(-selectNextFrame)
-		switchedCategory = nil
-		selectNextFrame = nil
-
-		doUpdate = true
-	end
-end
+-- function widget:DrawWorld()
+-- 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+-- 	if Spring.GetGameFrame() > 0 then
+-- 		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
+-- 		return
+-- 	end
+--
+-- 	if not isPregame then
+-- 		return
+-- 	end
+--
+-- 	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
+-- 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+-- 		redraw = true
+-- 	end
+--
+-- 	-- if switchedCategory and selectNextFrame then
+-- 	-- 	setPregameBlueprint(-selectNextFrame)
+-- 	-- 	switchedCategory = nil
+-- 	-- 	selectNextFrame = nil
+--
+-- 	-- 	redraw = true
+-- 	-- end
+-- end
 
 -------------------------------------------------------------------------------
 --- CHANGE EVENTS
@@ -2374,23 +2435,43 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 end
 
+-- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
 function widget:UnitCommand(_, unitDefID, _, cmdID)
-	if units.isFactory[unitDefID] and cmdID < 0 then
-		-- filter away non build cmd's
-		if doUpdateClock == nil then
-			doUpdateClock = os.clock() + 0.01
-		end
+	Spring.Echo("cmddone: ", cmdID, os.clock())
+	-- if no active builder and cmd is not build return
+	if not activeBuilder or cmdID >= 0 then
+		return
 	end
+
+	-- if builder is not factory or is not currently selected factory return
+	if not builderIsFactory or unitDefID ~= activeBuilder then
+		return
+	end
+
+	-- the command queue of the factory hasn't updated yet
+	-- ugly hack to trigger an update as fast as possible
+	doUpdateClock = os.clock() + 0.01
 end
 
 -- update queue number
-function widget:UnitFromFactory(_, _, _, factID)
-	if Spring.IsUnitSelected(factID) then
-		doUpdateClock = os.clock() + 0.01
+function widget:UnitFromFactory(_, unitDefID, _, _, factDefID)
+	-- if factory is not current active builder return
+	if factDefID ~= activeBuilder then
+		return
 	end
+
+	-- if current grid has no option for currently built unit (e.g. pages) return
+	if not uDefCellIds[unitDefID] then
+		return
+	end
+
+	refreshCommands()
+	redraw = true
 end
 
 function widget:SelectionChanged(newSel)
+	local prevActiveBuilderDefID = activeBuilder
+
 	activeBuilder = nil
 	activeBuilderID = nil
 	builderIsFactory = false
@@ -2401,8 +2482,6 @@ function widget:SelectionChanged(newSel)
 	currentPage = 1
 
 	if #newSel == 0 then
-		widget:Update(1000)
-
 		return
 	end
 
@@ -2431,7 +2510,10 @@ function widget:SelectionChanged(newSel)
 	-- set active builder to first index after updating selection
 	setActiveBuilder(1)
 
-	widget:Update(1000)
+	-- Only update commands if the current defid changed
+	if activeBuilder ~= prevActiveBuilderDefID then
+		refreshCommands()
+	end
 end
 
 function widget:GameStart()
