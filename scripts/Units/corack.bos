@@ -200,7 +200,7 @@ Create()
 	bMoving = FALSE;
 	nanoNozzle = 0;
 	notBuilding = 1;
-	animSpeed = 5;
+	animSpeed = 8;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }

@@ -141,7 +141,8 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- decayrate = 0,				health loss per second while not docked.
 	-- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on.
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
-
+	-- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
+	-- droneminimumidleradius = 0,		Defines the wandering distance of drones from the carrier when it otherwise would have docked the drones, but docking is not enabled.
 	-- },
 
 	-- Notes:
@@ -160,6 +161,7 @@ for weaponDefID = 1, #WeaponDefs do
 	if wdcp.carried_unit then
 		spawnDefs[weaponDefID] = {
 			name = wdcp.carried_unit,
+			name2 = wdcp.carried_unit2,
 			name3 = wdcp.carried_unit3,
 			name4 = wdcp.carried_unit4,
 			feature = wdcp.spawns_feature,
@@ -183,7 +185,9 @@ for weaponDefID = 1, #WeaponDefs do
 			decayRate = wdcp.decayrate,
 			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
-			carrierdeaththroe = wdcp.carrierdeaththroe
+			carrierdeaththroe = wdcp.carrierdeaththroe,
+			holdfireRadius = wdcp.holdfireradius,
+			droneminimumidleradius = wdcp.droneminimumidleradius
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -357,15 +361,17 @@ local function SpawnUnit(spawnData)
 				end
 
 
+				local spareDock = false
+				local dockingpiece
 				if ownerID then
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 					local subUnitCount = carrierMetaList[ownerID].subUnitCount
 					subUnitCount = subUnitCount + 1
 					carrierMetaList[ownerID].subUnitCount = subUnitCount
-					local dockingpiece
 					local dockingpieceindex
 					for i = 1, #carrierMetaList[ownerID].availablePieces do
 						if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
+							spareDock = true
 							dockingpiece = carrierMetaList[ownerID].availablePieces[i].dockingPiece
 							dockingpieceindex = i
 							carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable = false
@@ -388,7 +394,23 @@ local function SpawnUnit(spawnData)
 
 
 				mcEnable(subUnitID)
-				mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				if spareDock == false then
+					mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				else
+					--try to spawn in free dock point (offset relative to unit)
+					local dockPointx
+					local dockPointy
+					local dockPointz
+					
+					local carrierx
+					local carriery
+					local carrierz
+					dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
+					carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
+					--Spring.Echo(dockingpieceindex)
+					--Spring.Debug.TableEcho(Spring.GetUnitPiecePosition(ownerID, dockingpiece))
+					mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
+				end
 				mcDisable(subUnitID)
 
 
@@ -421,6 +443,47 @@ local function SpawnUnit(spawnData)
 end
 
 local function attachToNewCarrier(newCarrier, subUnitID)
+
+	if carrierMetaList[newCarrier] then
+		spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
+		local subUnitCount = carrierMetaList[newCarrier].subUnitCount
+		subUnitCount = subUnitCount + 1
+		carrierMetaList[newCarrier].subUnitCount = subUnitCount
+		local dockingpiece
+		local dockingpieceindex
+		if carrierMetaList[newCarrier].docking then
+			for i = 1, #carrierMetaList[newCarrier].availablePieces do
+				if carrierMetaList[newCarrier].availablePieces[i].dockingPieceAvailable then
+					dockingpiece = carrierMetaList[newCarrier].availablePieces[i].dockingPiece
+					dockingpieceindex = i
+					carrierMetaList[newCarrier].availablePieces[i].dockingPieceAvailable = false
+					break
+				end
+			end
+		else
+			dockingpiece = 1
+			dockingpieceindex = 1
+		end
+		local droneData = {
+			active = true,
+			docked = false, --
+			stayDocked = false,
+			activeDocking = false,
+			inFormation = false,
+			engaged = false,
+			dockingPiece = dockingpiece, --
+			dockingPieceIndex = dockingpieceindex,
+		}
+		carrierMetaList[newCarrier].subUnitsList[subUnitID] = droneData
+		totalDroneCount = totalDroneCount + 1
+	else
+		local oldCarrierID = Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id")
+		if oldCarrierID then
+			carrierMetaList[newCarrier] = carrierMetaList[oldCarrierID]
+			carrierMetaList[newCarrier].docking = nil
+			carrierMetaList[newCarrier].subInitialSpawnData.ownerID = newCarrier
+		end
+	end
 
 
 end
@@ -498,6 +561,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
+					holdfireRadius = spawnDef.holdfireRadius or 0,
+					droneminimumidleradius = spawnDef.droneminimumidleradius or 0,
 				}
 				carrierMetaList[unitID] = carrierData
 				--spSetUnitRulesParam(unitID, "is_carrier_unit", "enabled", PRIVATE)
@@ -544,6 +609,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 			end
 		end
 	elseif carrierMetaList[unitID] and (cmdID ~= CMD.MOVE or cmdID ~= CMD.FIRE_STATE) then
+		--Spring.Echo("hornetdebug unitID:", unitID, " command:", cmdID, " commandParam:", cmdParams)
 		carrierMetaList[unitID].activeRecall = false
 		carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
 		carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
@@ -582,11 +648,16 @@ function gadget:UnitDestroyed(unitID)
 	end
 
 	if carrierMetaList[unitID] then
+		local evolvedCarrierID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
 			if carrierMetaList[unitID].subUnitsList[subUnitID] then
 				local standalone = false
 				local wild = false
-				if carrierMetaList[unitID].carrierDeaththroe == "death" then
+				if evolvedCarrierID then
+					UnDockUnit(unitID, subUnitID)
+					attachToNewCarrier(evolvedCarrierID, subUnitID)
+				elseif carrierMetaList[unitID].carrierDeaththroe == "death" then
 					spDestroyUnit(subUnitID, true)
 
 				elseif carrierMetaList[unitID].carrierDeaththroe == "capture" then
@@ -713,24 +784,36 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local carrierx, carriery, carrierz
 	local targetx, targety, targetz
 	local target
+	local idleTarget
 	local recallDrones = carrierMetaData.activeRecall
 	local attackOrder = false
 	local fightOrder = false
 	local setTargetOrder = false
+	local agressiveDrones = false
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
+	
+	--Spring.Echo("hornetdebug carrier:", carrierID, " command:", cmdID, " commandParam:", cmdParam_1)
 
 	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
 		if carrierStates.firestate == 0 then
-			idleRadius = 0
+			idleRadius = carrierMetaData.holdfireRadius
 			--activeSpawning = false
-		elseif carrierStates.movestate == 0 then
+		elseif carrierStates.firestate == 2 then
+			agressiveDrones = true
+		end
+		if carrierStates.movestate == 0 then
 			idleRadius = 0
 		elseif carrierStates.movestate == 1 then
 			idleRadius = 200
 		end
+	end
+
+	if carrierMetaData.docking then
+	elseif idleRadius == 0 then
+		idleRadius = carrierMetaData.droneminimumidleradius
 	end
 
 	-- local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
@@ -770,6 +853,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		else
 			target = {cmdParam_1, cmdParam_2, cmdParam_3}
 			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
+			fightOrder = true
 		end
 		if targetx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
@@ -855,7 +939,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 				elseif carrierMetaData.subUnitsList[subUnitID].activeDocking == false then
 					HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
 				end
-				if 100*h/mh < carrierMetaData.dockToHealThreshold then
+				if carrierMetaData.docking and 100*h/mh < carrierMetaData.dockToHealThreshold then
 					DockUnitQueue(carrierID, subUnitID)
 				end
 			end
@@ -873,7 +957,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						rx, rz = RandomPointInUnitCircle(5)
 						carrierMetaData.subUnitsCommand.cmdID = nil
 						carrierMetaData.subUnitsCommand.cmdParams = nil
-						if idleRadius == 0 then
+						if carrierMetaData.docking and idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
@@ -923,9 +1007,21 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								end
 							else
 								if fightOrder then
-									local figthRadius = carrierMetaData.radius*0.2
-									rx, rz = RandomPointInUnitCircle(5)
-									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									local cQueue = GetCommandQueue(subUnitID, -1)
+						            for j = 1, (cQueue and #cQueue or 0) do
+							            if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
+								                idleTarget = cQueue[j].params
+								            break
+							            end
+									end
+
+									if idleTarget then
+								        spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+									else
+									    local figthRadius = carrierMetaData.radius*0.2
+									    rx, rz = RandomPointInUnitCircle(5)
+									    spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+									end
 								else
 									spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
 								end
@@ -933,7 +1029,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							-- elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
 						elseif ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
 							orderUpdate = true
-							if idleRadius == 0 then
+							if carrierMetaData.docking and idleRadius == 0 then
 								DockUnitQueue(carrierID, subUnitID)
 							else
 								UnDockUnit(carrierID, subUnitID)
@@ -949,6 +1045,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
 								-- if currently fighting AND not on hold fire
 								engaged = true
+								if agressiveDrones then
+								    idleTarget = cQueue[j].params
+								end
 								break
 							end
 						end
@@ -956,14 +1055,18 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						-- if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
 						if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
 							orderUpdate = true
-							if idleRadius == 0 then
+							if carrierMetaData.docking and idleRadius == 0 then
 								DockUnitQueue(carrierID, subUnitID)
 							else
 								carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 								rx, rz = RandomPointInUnitCircle(5)
 								UnDockUnit(carrierID, subUnitID)
-								spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
-								spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								if idleTarget then
+								    spGiveOrderToUnit(subUnitID, CMD.ATTACK, idleTarget, 0)
+								else
+								    spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+								    spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+								end
 							end
 						end
 					end
@@ -1097,10 +1200,10 @@ function gadget:GameFrame(f)
 	if ((DEFAULT_SPAWN_CHECK_FREQUENCY + lastSpawnCheck) < f) then
 		lastSpawnCheck = f
 		for unitID, _ in pairs(carrierMetaList) do
-			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+			local isDoneBuilding = not Spring.GetUnitIsBeingBuilt(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
 				-- elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
-			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
+			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and isDoneBuilding) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x

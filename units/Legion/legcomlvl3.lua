@@ -1,3 +1,4 @@
+
 return {
 	legcomlvl3 = {
 		maxacc = 0.18,
@@ -13,6 +14,7 @@ return {
 		cancapture = true,
 		canmanualfire = true,
 		canmove = true,
+		capturable = false,
 		capturespeed = 1800,
 		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 3 0",
@@ -70,10 +72,10 @@ return {
 			[8] = "legvp",
 			[9] = "legap",
 			[10] = "coreyes",
-			[11] = "corrad",
+			[11] = "legrad",
 			[12] = "legdrag",
-			[13] = "corllt",
-			[14] = "corrl",
+			[13] = "leglht",
+			[14] = "legrl",
 			[15] = "cordl",
 			[16] = "cortide",
 			[17] = "coruwms",
@@ -86,13 +88,13 @@ return {
 			[24] = "corfrt",
 			[25] = "corfrad",
 			-- Experimental:
-			[26] = "corhp",
-			[27] = "corfhp",
+			[26] = "leghp",
+			[27] = "legfhp",
 			[28] = "legmg",
 			[29] = "leggob",
 			--[29] = "armclaw",
 			--[30] = "armferret",
-			--[31] = "corjamt",
+			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -243,7 +245,7 @@ return {
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 400,
+				range = 500,
 				reloadtime = 1.2,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
@@ -255,7 +257,7 @@ return {
 				weaponacceleration = 50,
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 200,
+				weaponvelocity = 425,
 				damage = {
 					default = 250,
 					subs = 125,

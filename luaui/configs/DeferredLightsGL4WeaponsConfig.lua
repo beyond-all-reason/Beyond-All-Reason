@@ -684,6 +684,12 @@ GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
 										 sustain = 30, lifetime = 125,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+--legperdition
+explosionLightsNames["legperdition_napalmmissile"] =
+GetLightClass("Explosion", "Fire", "Large", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
+										 sustain = 30, lifetime = 1250,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
 
 --legphoenix
 explosionLightsNames["legphoenix_skybeam"] =

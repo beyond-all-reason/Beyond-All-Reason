@@ -25,6 +25,7 @@ return {
 		speed = 51.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "ALL",
 		objectname = "Units/CORMABM.s3o",

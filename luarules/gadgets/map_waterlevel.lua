@@ -20,7 +20,6 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 if gadgetHandler:IsSyncedCode() then
 
 	local waterlevel = Spring.GetModOptions().map_waterlevel
-	local orgFeaturePosY = {}
 
 	function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
@@ -33,7 +32,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-    	Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
+    	Spring.Echo("Map Waterlevel: adjusting water level with: "..waterlevel)
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)

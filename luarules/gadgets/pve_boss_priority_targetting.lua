@@ -29,12 +29,12 @@ local queenUnitDefs = {
 	raptor_matriarch_basic = true,
 	raptor_matriarch_fire = true,
 
-    armscavengerbossv2_veryeasy = true,
-    armscavengerbossv2_easy = true,
-    armscavengerbossv2_normal = true,
-    armscavengerbossv2_hard = true,
-    armscavengerbossv2_veryhard = true,
-    armscavengerbossv2_epic = true,
+    armscavengerbossv2_veryeasy_scav = true,
+    armscavengerbossv2_easy_scav = true,
+    armscavengerbossv2_normal_scav = true,
+    armscavengerbossv2_hard_scav = true,
+    armscavengerbossv2_veryhard_scav = true,
+    armscavengerbossv2_epic_scav = true,
 }
 
 
@@ -48,7 +48,7 @@ queenUnitDefs = nil
 
 local queenTargets = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.customParams.iscommander then
+    if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
         queenTargets[unitDefID] = true
     end
 end

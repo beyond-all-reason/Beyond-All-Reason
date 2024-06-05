@@ -260,10 +260,18 @@ local prevPlayedTime = playedTime
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+if maxMusicVolume > 99 then
+	Spring.SetConfigInt("snd_volmusic", 99)
+	maxMusicVolume = 99
+end
 local volume = Spring.GetConfigInt("snd_volmaster", 80)
+if volume > 80 then
+	Spring.SetConfigInt("snd_volmaster", 80)
+	volume = 80
+end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
+local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -789,14 +797,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()

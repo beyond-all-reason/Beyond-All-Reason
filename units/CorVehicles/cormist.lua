@@ -12,6 +12,7 @@ return {
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "34 18 43",
 		collisionvolumetype = "Box",
+		usepiececollisionvolumes = 1, --------use collisionvolumes.lua
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
@@ -24,6 +25,7 @@ return {
 		speed = 42.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		objectname = "Units/CORMIST.s3o",
 		script = "Units/CORMIST.cob",
 		seismicsignature = 0,

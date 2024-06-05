@@ -25,6 +25,7 @@ return {
 		speed = 93.0,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
+		movestate = 0,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/ARMPT.s3o",
 		radardistance = 1000,

@@ -29,6 +29,7 @@ local SpGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local SpGetFeatureDefID = Spring.GetFeatureDefID
 local SpGetFeatureResurrect = Spring.GetFeatureResurrect
 local SpGetUnitHealth = Spring.GetUnitHealth
+local SpGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local SpGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local SpGetFeatureRadius = Spring.GetFeatureRadius
 local SpGetUnitRadius = Spring.GetUnitRadius
@@ -175,8 +176,7 @@ local function auto_repair_routine(unitID,unitDefID)
 		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
 			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
-				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
-				if buildProgress < 1 then
+				if SpGetUnitIsBeingBuilt(near_unit) then
 					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
 					return
 				end

@@ -27,7 +27,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
     if paralyzer then --check if paralyzer
 		if off_on_stun[uDefID] == "true" then --check if should be turned off on stun
 			-- check to see if this hit will stun 
-			health, maxHealth, paralyzeDamage = Spring.GetUnitHealth(uID)
+			local health, maxHealth, paralyzeDamage = Spring.GetUnitHealth(uID)
 			if paralyzeDamage + damage > maxHealth then
 				-- turn off unit if it will stun
 				Spring.SetUnitCOBValue(uID, COB.ACTIVATION, 0)

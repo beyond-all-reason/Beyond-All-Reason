@@ -19,7 +19,7 @@ function widget:GetInfo()
 		date = "Nov 17, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true -- loaded by default?
+		enabled = true
 	}
 end
 
@@ -153,7 +153,7 @@ function widget:DrawScreen()
 		if isunit == "unit" and (Spring.GetUnitHealth(unitID)) then
 			-- Getunithealth just to make sure that it is in los
 			local unitDefID = Spring.GetUnitDefID(unitID)
-			local _, _, _, _, buildprogress = Spring.GetUnitHealth(unitID)
+			local _, buildprogress = Spring.GetUnitIsBeingBuilt(unitID)
 			metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
 			local text = "   " .. Spring.I18N('ui.reclaimInfo.metal', { metal = metal })
 			local textwidth = 12 * font:GetTextWidth(text)

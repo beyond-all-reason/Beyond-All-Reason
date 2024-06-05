@@ -4,12 +4,33 @@
 #include "exptype.h"
 
 piece  base, turret, A0, A, A1, A2, A3, A4, A51, A52, B, B1, B2, B31, B32, C0, C, C1, C2, C3, C4, C51, C52, D0, D, D1, D2, D3, D4, D51, D52, E, E1, E2, E31, E32, F0, F, F1, F2, F3, F4, F51, F52, container;
+
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, sunheading, unitheading;
 
+lua_solarpoint() 
+{
+	return(0);
+}
+
+solarreturn(status, sunheading) 
+{
+	unitheading = get(HEADING);
+	if (status==1) {
+		turn container to y-axis (0-unitheading) + (sunheading*182) now;
+		turn turret to y-axis (0+unitheading) + (sunheading*(-182)) now;
+		while( get BUILD_PERCENT_LEFT )
+		{
+			sleep 400;
+		}
+		sleep 1800;
+		turn container to x-axis <30> speed <12>;
+	}
+}
 
 Create()
 {
 	dont-cache turret;
+	call-script lua_solarpoint();
 	turn A0 to y-axis <60> now;
 	turn C0 to y-axis <-60> now;
 	turn D0 to y-axis <60> now;
@@ -91,25 +112,8 @@ Create()
 	turn F51 to y-axis <0> speed <12.333>;
 	turn F52 to y-axis <0> speed <12.333>;
 	wait-for-turn F52 around y-axis;
-	call-script lua_solarpoint();
 	return (0);
 }
-
-
-lua_solarpoint() {
-	return(0);
-}
-
-solarreturn(status, sunheading) {
-	unitheading = get(HEADING);
-	if (status==1) {
-		turn container to y-axis 0-unitheading now;
-		turn turret to x-axis <30> speed <12>;
-		turn turret to y-axis sunheading*182 speed <25>;
-	}
-
-}
-
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {

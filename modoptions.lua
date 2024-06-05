@@ -7,6 +7,7 @@
 --  key:      the string used in the script.txt
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
+--  hint:     greyed out text that appears in input field when empty
 --  type:     the option type ('list','string','number','bool')
 --  def:      the default value
 --  min:      minimum value for number options
@@ -571,6 +572,7 @@ local options = {
         key		= "tweakunits",
         name	= "Tweak Units",
         desc	= "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -580,6 +582,7 @@ local options = {
         key     = "tweakdefs",
         name    = "Tweak Defs",
         desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -734,7 +737,7 @@ local options = {
         name	= "Spawner Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "initialbox",
+        def		= "avoid",
         section	= "scav_defense_options",
         items	= {
             { key = "avoid", 		name = "Avoid Players", 	desc="Burrows avoid player units" },
@@ -798,6 +801,7 @@ local options = {
         max		= 3,
         step	= 0.1,
         section	= "scav_defense_options",
+        hidden  = true,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -823,14 +827,18 @@ local options = {
     --	section	= "options_extra",
     --},
 
-	--{
-	--	key		= "april1",
-	--	name	= "Hats (April Fools)",
-	--	desc	= "Hats (April Fools)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
+	-- {
+	-- 	key		= "unithats",
+	-- 	name	= "Unit Hats",
+	-- 	desc	= "Unit Hats, for the current season",
+	-- 	type	= "list",
+	-- 	def		= "disabled",
+	-- 	items	= {
+	-- 		{ key = "disabled",	name = "Disabled" },
+	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
+	-- 	},
+	-- 	section	= "options_extra",
+	-- },
 	--{
 	--	key		= "easter_egg_hunt",
 	--	name	= "Easter Eggs Hunt",
@@ -839,6 +847,31 @@ local options = {
 	--	def		= false,
 	--	section	= "options_extra",
 	--},
+
+    {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Random/Captain/Skill/Fair based startPosType mods. Default: Random.",
+        type    = "list",
+        section = "options_extra",
+        def     = "random",
+        items 	= {
+            { key = "disabled", name = "Disabled",                      desc = "Disable draft mod. Fast-PC place first." },
+            { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
+            { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+        },
+    },
+  
+    {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
+        type   	= "bool",
+        def    	= false,
+        section = "options_extra",
+    },
 
     {
         key 	= "map_waterlevel",
@@ -927,7 +960,7 @@ local options = {
         key    	= "ruins_only_t1",
         name   	= "Ruins: Only T1",
         type   	= "bool",
-        def    	= true,
+        def    	= false,
         hidden 	= true,
         section	= "options_extra",
     },
@@ -1146,6 +1179,15 @@ local options = {
     },
 
     {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key 	= "air_rework",
         name 	= "Air Rework",
         desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
@@ -1158,6 +1200,15 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "energy_share_rework",
+        name 	= "Energy Share Rework",
+        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
@@ -1213,6 +1264,47 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
+    
+    {
+        key 	= "evocom",
+        name 	= "Evolving Commanders",
+        type 	= "bool",
+        def 	= false,
+        section = "options_experimental",
+    },
+
+    {
+        key    	= "evocomleveluprate",
+        name   	= "Commander Evolution Rate",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 20,
+        step   	= 0.1,
+    },
+
+    {
+        key    	= "evocomxpmultiplier",
+        name   	= "Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_experimental",
+		type	= "bool",
+		def		= false,
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

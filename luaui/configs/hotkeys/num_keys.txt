@@ -19,6 +19,17 @@ bind Alt+7 add_to_autogroup 7
 bind Alt+8 add_to_autogroup 8
 bind Alt+9 add_to_autogroup 9
 
+bind Shift+Alt+0 load_autogroup_preset 0
+bind Shift+Alt+1 load_autogroup_preset 1
+bind Shift+Alt+2 load_autogroup_preset 2
+bind Shift+Alt+3 load_autogroup_preset 3
+bind Shift+Alt+4 load_autogroup_preset 4
+bind Shift+Alt+5 load_autogroup_preset 5
+bind Shift+Alt+6 load_autogroup_preset 6
+bind Shift+Alt+7 load_autogroup_preset 7
+bind Shift+Alt+8 load_autogroup_preset 8
+bind Shift+Alt+9 load_autogroup_preset 9
+
 bind 0,0 group focus 0
 bind 1,1 group focus 1
 bind 2,2 group focus 2

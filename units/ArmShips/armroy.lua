@@ -24,6 +24,7 @@ return {
 		speed = 67.2,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROY.s3o",
 		script = "Units/ARMROY.cob",

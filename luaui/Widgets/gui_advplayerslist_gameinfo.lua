@@ -6,14 +6,14 @@ function widget:GetInfo()
 		date	= "april 2017",
 		license	= "GNU GPL, v2 or later",
 		layer	= -3,
-		enabled	= true,	--	loaded by default?
+		enabled	= true,
 	}
 end
 
 local timeNotation = 24
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local font, chobbyInterface, hovering
+local font, hovering
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -30,9 +30,9 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
-local passedTime2 = 0
 local usedTextWidth = 0
 local textWidthClock = 0
+local gameframe = Spring.GetGameFrame()
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -47,12 +47,11 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local _,gamespeed,_ = Spring.GetGameSpeed()
-		gamespeed = string.format("%.2f", gamespeed)
 		local fps = Spring.GetFPS()
 		local titleColor = '\255\200\200\200'
 		local valueColor = '\255\245\245\245'
-		local gameframe = Spring.GetGameFrame()
+		local prevGameframe = gameframe
+		gameframe = Spring.GetGameFrame()
 		local minutes = math.floor((gameframe / 30 / 60))
 		local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
 		if seconds == 0 then
@@ -70,6 +69,9 @@ local function updateValues()
 		elseif minutes > 9 then
 			extraSpacing = 0.7
 		end
+		--local _,gamespeed,_ = Spring.GetGameSpeed()
+		--gamespeed = string.format("%.2f", gamespeed)
+		local gamespeed = string.format("%.2f", (gameframe-prevGameframe) / 30)
 		local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
 		font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		local textWidth = font:GetTextWidth(text) * textsize
@@ -160,15 +162,11 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	updatePosition()
 	passedTime = passedTime + dt
-	passedTime2 = passedTime2 + dt
-	if passedTime > 0.1 then
-		passedTime = passedTime - 0.1
-		updatePosition()
-	end
-	if passedTime2 > 1 then
+	if passedTime > 1 then
 		updateValues()
-		passedTime2 = passedTime2 - 1
+		passedTime = passedTime - 1
 	end
 end
 
@@ -188,15 +186,7 @@ function widget:ViewResize(newX,newY)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
-
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()

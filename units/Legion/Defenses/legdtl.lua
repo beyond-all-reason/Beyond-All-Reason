@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "30 51 30",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		damagemodifier = 0.25,
+		damagemodifier = 0.33,
 		decoyfor = "scavdrag",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,

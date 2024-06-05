@@ -22,6 +22,7 @@ return {
 		speed = 50.7,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",
 		script = "Units/ARMROCK.cob",

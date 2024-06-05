@@ -49,6 +49,7 @@ return {
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
+			airfactory = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",

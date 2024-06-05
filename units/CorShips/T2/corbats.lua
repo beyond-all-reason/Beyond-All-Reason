@@ -23,6 +23,7 @@ return {
 		speed = 53.1,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORBATS.s3o",
 		script = "Units/CORBATS.cob",

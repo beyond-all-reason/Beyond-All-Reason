@@ -86,5 +86,15 @@ else
 			end
 		end
 	end
-
+	
+	function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+		if not mySpec and transportTeam == myTeamID and unitTeam ~= transportTeam and isCommander[unitDefID] then 
+			local _, _, _, isAiTeam = Spring.GetTeamInfo(unitTeam, false)
+			if isAiTeam then return end
+			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation,
+			Spring.GetGameFrame(), 'ud',
+			unitTeam, transportTeam, unitDefID)
+			spSendLuaRulesMsg(msg)
+		end
+	end
 end

@@ -2061,6 +2061,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
+	corsiegebreaker = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	corban = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
@@ -2412,6 +2417,17 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
+	
+	legperdition = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "rocketalt-large",
+	},	
+	legbombard = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "plasma-large-alt",
+	},	
 
 	legbastion = {
 		BaseSoundSelectType = "arm-bld-defense-action-t3",
@@ -2434,6 +2450,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
+	},
+	legamsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
 	},
 	legvp = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2570,6 +2591,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
+	legotter = {
+		BaseSoundSelectType = "cor-tnk-small-amph-sel",
+		BaseSoundMovementType = "cor-tnk-small-amph-ok",
+		BaseSoundWeaponType = "conalt-small",
+	},	
 	leghelios = {
 		BaseSoundSelectType = "cor-veh-small-sel",
 		BaseSoundMovementType = "cor-veh-small-ok",
@@ -2792,10 +2818,14 @@ GUIUnitSoundEffects = {
 	scavtacnukespawner = {},
 	lootdroppod_gold = {},
 	lootdroppod_printer = {},
-	scavengerdroppod = {},
+	scavbeacon_t1 = {},
+	scavbeacon_t2 = {},
+	scavbeacon_t3 = {},
+	scavbeacon_t4 = {},
 	scavengerdroppodfriendly = {},
-	scavempspawner = {},
-	scavtacnukespawner = {},
+	scavmist = {},
+	scavmistxl = {},
+	scavmistxxl = {},
 
 
 	lootboxbronze		= LootboxSoundEffects,

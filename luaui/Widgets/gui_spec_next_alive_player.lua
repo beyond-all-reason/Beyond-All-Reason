@@ -10,9 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local processPlayerChangedFrame, processPlayerChangedPlayerID
+local processTeamDiedFrame, processTeamDiedTeamID
 
 local function switchToTeam(teamID)
 	local oldMapDrawMode = Spring.GetMapDrawMode()
@@ -24,56 +22,51 @@ local function switchToTeam(teamID)
 	end
 end
 
-local function processPlayerChanged(playerID)
-	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
-	if teamID then
-		local _, _, isPlayerTeamDead = Spring.GetTeamInfo(teamID, false)
-		if isPlayerTeamDead and myTeamID == teamID then
-			local myAllyTeamID = Spring.GetMyAllyTeamID()
-			-- first try alive team mates
-			local teamList = Spring.GetTeamList(myAllyTeamID)
-			for _, teamListID in ipairs(teamList) do
-				local _, _, isDead = Spring.GetTeamInfo(teamListID, false)
-				if not isDead then
-					switchToTeam(teamListID)
-					return
-				end
+local function processTeamDied(teamID)
+	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
+	if isDead and Spring.GetMyTeamID() == teamID then
+		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		-- first try alive team mates
+		local teamList = Spring.GetTeamList(myAllyTeamID)
+		for _, teamListID in ipairs(teamList) do
+			local _, _, isDead = Spring.GetTeamInfo(teamListID, false)
+			if not isDead then
+				switchToTeam(teamListID)
+				return
 			end
-			teamList = Spring.GetTeamList()
-			for _, teamListID in ipairs(teamList) do
-				local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamListID, false)
-				if not isDead then
-					switchToTeam(teamListID)
-					return
-				end
+		end
+		teamList = Spring.GetTeamList()
+		for _, teamListID in ipairs(teamList) do
+			local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamListID, false)
+			if not isDead and allyTeamID ~= myAllyTeamID then
+				switchToTeam(teamListID)
+				return
 			end
 		end
 	end
 end
 
 function widget:TeamDied(teamID)
-	spec, fullview = Spring.GetSpectatingState()
-	if spec and myTeamID == teamID then
-		local _, playerID = Spring.GetTeamInfo(teamID, false)
-		processPlayerChangedFrame = Spring.GetGameFrame() + 1
-		processPlayerChangedPlayerID = playerID
+	local spec = Spring.GetSpectatingState()
+	if spec and Spring.GetMyTeamID() == teamID then
+		processTeamDiedFrame = Spring.GetGameFrame() + 1
+		processTeamDiedTeamID = teamID
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	local spec = Spring.GetSpectatingState()
 	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)	-- player can be spec here and team not be dead still
-	if spec and teamID and myTeamID == teamID then
-		processPlayerChangedFrame = Spring.GetGameFrame() + 1
-		processPlayerChangedPlayerID = playerID
+	if spec and teamID and Spring.GetMyTeamID() == teamID then
+		processTeamDiedFrame = Spring.GetGameFrame() + 1
+		processTeamDiedTeamID = teamID
 	end
 end
 
 function widget:GameFrame(f)
-	if processPlayerChangedFrame and processPlayerChangedFrame <= f then
-		processPlayerChanged(processPlayerChangedPlayerID)
-		processPlayerChangedFrame = nil
-		processPlayerChangedPlayerID = nil
+	if processTeamDiedFrame and processTeamDiedFrame <= f then
+		processTeamDied(processTeamDiedTeamID)
+		processTeamDiedFrame = nil
+		processTeamDiedTeamID = nil
 	end
 end

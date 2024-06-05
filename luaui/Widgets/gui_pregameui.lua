@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local draftMode = Spring.GetModOptions().draft_mode
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 6200000))
@@ -275,6 +277,11 @@ function widget:GameFrame(gf)
 end
 
 function widget:Initialize()
+	if (Game.startPosType == 2) and draftMode ~= nil and draftMode ~= "disabled" then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	if Spring.GetGameFrame() > 0 or isReplay then
 		widgetHandler:RemoveWidget()
 		return
