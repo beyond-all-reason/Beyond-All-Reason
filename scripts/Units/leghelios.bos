@@ -3,9 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, flare, barrel;
+//piece  base, turret, flare, barrel;
 
-static-var  restore_delay, gun_1;
+piece base, basePlate, lTrack, rTrack, 
+turretBase, turret, 
+barrel, barrelPlateFrontL, barrelPlateFrontR, barrelPlateRearL, barrelPlateRearR, flare;
+
+static-var  restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -19,8 +23,25 @@ static-var  restore_delay, gun_1;
 
 Create()
 {
+
+	turn barrelPlateFrontL to y-axis <15> now;
+	turn barrelPlateRearL to y-axis <15> now;
+
+	turn barrelPlateFrontR to y-axis <-15> now;
+	turn BarrelPlateFrontL to y-axis <-15> now;
+
+	move barrelPlateFrontR to z-axis [1] now;
+	move barrelPlateFrontL to z-axis [1] now;
+
+	move barrel to z-axis [2] now;
+
 	hide flare;
-	gun_1 = 0;
+
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 200;
+	}
+	
 	restore_delay = 3000;
 }
 
@@ -36,6 +57,16 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <90.000000>;
+
+	turn barrelPlateFrontL to y-axis <15> speed <60>;
+	turn barrelPlateRearL to y-axis <15> speed <60>;
+	turn barrelPlateFrontR to y-axis <-15> speed <60>;
+	turn barrelPlateFrontL to y-axis <-15> speed <60>;
+	wait-for-turn barrelPlateFrontL around y-axis;
+
+	move barrelPlateFrontR to z-axis [0] speed [4];
+	move barrelPlateFrontL to z-axis [0] speed [4];
+	move barrel to z-axis [2] speed [8];
 }
 SetStunned(State)
 {
@@ -54,6 +85,18 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+
+
+	move barrel to z-axis [0] speed [8];
+	move barrelPlateFrontR to z-axis [0] speed [4];
+	move barrelPlateFrontL to z-axis [0] speed [4];
+	wait-for-move barrelPlateFrontL along z-axis;
+
+	turn barrelPlateFrontL to y-axis <0> speed <60>;
+	turn barrelPlateRearL to y-axis <0> speed <60>;
+	turn barrelPlateFrontR to y-axis <0> speed <60>;
+	turn barrelPlateFrontL to y-axis <0> speed <60>;
+
 	turn turret to y-axis heading speed <200.000000>;
 	turn barrel to x-axis -1*pitch speed <200.000000>;
 	
@@ -66,46 +109,27 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	gun_1 = !gun_1;
-	if( gun_1 == 0 )
-	{
-		emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-1.000000] speed [400.000000];
-		wait-for-move barrel along z-axis;
-		move barrel to z-axis [0.000000] speed [1.000000];
-	}
-	if( gun_1 == 1 )
-	{
-		emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-1.000000] speed [400.000000];
-		wait-for-move barrel along z-axis;
-		move barrel to z-axis [0.000000] speed [1.000000];
-	}
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-0.500000] now;
+	wait-for-move barrel along z-axis;
+	move barrel to z-axis [0.000000] speed [0.500000];
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = barrel;
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare;
-		return (0);
-	}
+	piecenum = flare;
+	return (0);
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = turret;
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)
