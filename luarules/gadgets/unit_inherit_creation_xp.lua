@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "May 2024",
 		license = "Public domain",
 		layer = 0,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -24,7 +24,6 @@ local parentsInheritXP = {} -- stores the string that represents the types of un
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
 local mobileUnits = {}
 local unitPowerDefs = {}
-local unitsList = {}
 
 for id, def in pairs(UnitDefs) do
 	if def.customParams.inheritxpratemultiplier then
@@ -59,7 +58,6 @@ local function calculatePowerDiffXP(childID, parentID) -- this function calculat
 end
 
 local initializeList = {}
-local ignoreList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if  builderID and mobileUnits[Spring.GetUnitDefID(unitID)] and string.find(parentsInheritXP[Spring.GetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp
 			childrenWithParents[unitID] = {
@@ -70,7 +68,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				childtype = "MOBILEBUILT",
 			}
 	end
-	unitsList[unitID] = true
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -82,70 +79,69 @@ local lastRunFrame = 0
 local oldChildXPValues = {}
 function gadget:GameFrame(frame)
 	if frame > (lastRunFrame + 30) then
-		for unitID, value in pairs(unitsList) do
-			local parentID
-			if not ignoreList[unitID] then
-				if initializeList[unitID] == true then -- check for parenthood
-					local unitDefID = Spring.GetUnitDefID(unitID)
-					local parentDefID
-					if Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then --estabalishes unit_carrier_spawner parenthood
-						parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
-						parentDefID = Spring.GetUnitDefID(parentID)
-						if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "DRONE") then
-							childrenWithParents[unitID] = {
-								unitid = unitID,
-								parentunitid = parentID,
-								parentxpmultiplier = calculatePowerDiffXP(unitID, parentID),
-								childinheritsXP = childrenInheritXP[unitDefID],
-								childtype = "DRONE",
-							}
-						end
-					end
-					if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then --estabalishes unit_explosion_spawner parenthood
-						parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id")
-						parentDefID = Spring.GetUnitDefID(parentID)
-						if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "BOTCANNON") then
-							childrenWithParents[unitID] = {
-								unitid = unitID,
-								parentunitid = parentID,
-								parentxpmultiplier = calculatePowerDiffXP(unitID, parentID),
-								childinheritsXP = childrenInheritXP[unitDefID],
-								childtype = "BOTCANNON",
-							}
-						end
-					end
-					if childrenWithParents[unitID] then
-						parentID = childrenWithParents[unitID].parentunitid --sets parentID if it's not already set
-						parentDefID = Spring.GetUnitDefID(parentID) -- gets the parentDefID
-					end
-					if parentID ~= nil and childrenInheritXP[parentDefID] and childrenWithParents[unitID] then --if the parent has the unitdef, set childxp to parent xp.
-						local parentTypes = childrenInheritXP[parentDefID]
-						if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correcty type, set xp
-							local parentXP = Spring.GetUnitExperience(parentID)
-							Spring.SetUnitExperience(unitID, parentXP)
-							oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
-						end
-					end
-					if inheritChildrenXP[unitDefID] then -- if parent inherits xp, then add to list of units to inherit xp
-						xpGainParents[unitID] = true
-					end
-					if not xpGainParents[unitID] and not childrenWithParents[unitID] then --if not a parent or a child of a parent who inherits xp, add to ignore list
-						ignoreList[unitID] = true
-					end
-					initializeList[unitID] = nil -- this concludes innitialization
-				end
-				if childrenWithParents[unitID] then
-					parentID = childrenWithParents[unitID].parentunitid
-					local oldXP = oldChildXPValues[unitID] or 0
-					local newXP = Spring.GetUnitExperience(unitID) or 0
-					local parentXP = Spring.GetUnitExperience(parentID) or 0
-					local multiplier = childrenWithParents[unitID].parentxpmultiplier
-					local gainedXP = (parentXP*10000000 + ((newXP-oldXP)*10000000*multiplier))/10000000 --10000000 is to prevent very small numbers being lost during calculation
-					oldChildXPValues[unitID] = newXP
-					Spring.SetUnitExperience(parentID, gainedXP)
+		local parentID
+		for unitID, value in pairs(initializeList) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local parentDefID
+			if Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id") then --estabalishes unit_carrier_spawner parenthood
+				parentID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
+				parentDefID = Spring.GetUnitDefID(parentID)
+				if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "DRONE") then
+					childrenWithParents[unitID] = {
+						unitid = unitID,
+						parentunitid = parentID,
+						parentxpmultiplier = calculatePowerDiffXP(unitID, parentID),
+						childinheritsXP = childrenInheritXP[unitDefID],
+						childtype = "DRONE",
+					}
 				end
 			end
+			if Spring.GetUnitRulesParam(unitID, "parent_unit_id") then --estabalishes unit_explosion_spawner parenthood
+				parentID = Spring.GetUnitRulesParam(unitID, "parent_unit_id")
+				parentDefID = Spring.GetUnitDefID(parentID)
+				if parentsInheritXP[parentDefID] ~= nil and string.find(parentsInheritXP[parentDefID], "BOTCANNON") then
+					childrenWithParents[unitID] = {
+						unitid = unitID,
+						parentunitid = parentID,
+						parentxpmultiplier = calculatePowerDiffXP(unitID, parentID),
+						childinheritsXP = childrenInheritXP[unitDefID],
+						childtype = "BOTCANNON",
+					}
+				end
+			end
+			if childrenWithParents[unitID] then
+				parentID = childrenWithParents[unitID].parentunitid --sets parentID if it's not already set
+				parentDefID = Spring.GetUnitDefID(parentID) -- gets the parentDefID
+			end
+			if parentID ~= nil and childrenInheritXP[parentDefID] and childrenWithParents[unitID] then --if the parent has the unitdef, set childxp to parent xp.
+				local parentTypes = childrenInheritXP[parentDefID]
+				if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correcty type, set xp
+					local parentXP = Spring.GetUnitExperience(parentID)
+					Spring.SetUnitExperience(unitID, parentXP)
+					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
+				end
+			end
+			if inheritChildrenXP[unitDefID] then -- if parent inherits xp, then add to list of units to inherit xp
+				xpGainParents[unitID] = true
+			end
+			if not xpGainParents[unitID] and not childrenWithParents[unitID] then --if not a parent or a child of a parent who inherits xp, add to ignore list
+				ignoreList[unitID] = true
+			end
+			initializeList[unitID] = nil -- this concludes innitialization
 		end
+		
+		
+		for unitID, value in pairs(childrenWithParents) do
+			parentID = childrenWithParents[unitID].parentunitid
+			local oldXP = oldChildXPValues[unitID] or 0
+			local newXP = Spring.GetUnitExperience(unitID) or 0
+			local parentXP = Spring.GetUnitExperience(parentID) or 0
+			local multiplier = childrenWithParents[unitID].parentxpmultiplier
+			local gainedXP = (parentXP*10000000 + ((newXP-oldXP)*10000000*multiplier))/10000000 --10000000 is to prevent very small numbers being lost during calculation
+			oldChildXPValues[unitID] = newXP
+			Spring.SetUnitExperience(parentID, gainedXP)
+		end
+		lastRunFrame = frame
 	end
 end
 
