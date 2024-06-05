@@ -1673,7 +1673,7 @@ if gadgetHandler:IsSyncedCode() then
 			if pastFirstBoss then
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
 			end
 			if t < config.gracePeriod then
 				bossAnger = 0

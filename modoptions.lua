@@ -644,13 +644,14 @@ local options = {
     {
         key		= "raptor_queentimemult",
         name	= "Queen Hatching Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Queen Hatch goes from 0 to 100%",
+        desc	= "(Range: 0.1 - 1). How quickly Queen Hatch goes from 0 to 100%",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 3,
+        max		= 1,
         step	= 0.1,
         section = "raptor_defense_options",
+        hidden  = true,
     },
 
     {
@@ -673,32 +674,33 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 10,
-        step	= 0.1,
+        step	= 1,
         section	= "raptor_defense_options",
     },
 
     {
         key		= "raptor_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        name	= "Waves Amount Multiplier",
+        desc	= "(Range: 1 - 5). How often new waves will spawn. Bigger Number = More Waves",
         type	= "number",
         def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
+        min		= 1,
+        max		= 5,
+        step	= 1,
         section	= "raptor_defense_options",
     },
 
     {
         key		= "raptor_graceperiodmult",
         name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 5). Time before Raptors become active. ",
+        desc	= "(Range: 0.1 - 1). Time before Raptors become active. ",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 5,
+        max		= 1,
         step	= 0.1,
         section	= "raptor_defense_options",
+        hidden  = true,
     },
 
 
@@ -758,13 +760,14 @@ local options = {
     {
         key		= "scav_bosstimemult",
         name	= "Boss Preparation Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Boss Anger goes from 0 to 100%.",
+        desc	= "(Range: 0.1 - 1). How quickly Boss Anger goes from 0 to 100%.",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 3,
+        max		= 1,
         step	= 0.1,
         section	= "scav_defense_options",
+        hidden  = true,
     },
 
     {
@@ -781,27 +784,14 @@ local options = {
 
     {
         key		= "scav_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        name	= "Waves Amount Multiplier",
+        desc	= "(Range: 1 - 5). How often new waves will spawn. Bigger Number = More Waves",
         type	= "number",
         def		= 1,
-        min		= 0.1,
-        max		= 3,
+        min		= 1,
+        max		= 5,
         step	= 0.1,
         section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_graceperiodmult",
-        name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 3). Time before Scavs become active.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "scav_defense_options",
-        hidden  = true,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
