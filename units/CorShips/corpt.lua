@@ -129,7 +129,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 750,
-				reloadtime = 2.5,
+				reloadtime = 2.0,
 				smoketrail = true,
 				smokePeriod = 8,
 				smoketime = 14,
