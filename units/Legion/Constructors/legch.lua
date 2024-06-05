@@ -69,7 +69,7 @@ return {
 			[28] = "cordl",
 			[29] = "legjam",
 			[30] = "legfhp",
-			[31] = "coramsub",
+			[31] = "legamsub",
 			[32] = "corplat",
 			[33] = "corsy",
 			[34] = "cortide",

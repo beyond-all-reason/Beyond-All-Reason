@@ -46,9 +46,9 @@ local labGrids = {
 		"cormuskrat", "corgarp", "cormist", "cormist2",       -- amphib con, amphib tank, missile truck
 	},
 	legvp = {
-		"legcv", "", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
-		"leggat", "leghelios", "legbar", "",         -- raider, leveler, art
-		"legotter", "", "legrail", "",       -- amphib con, amphib tank, missile truck
+		"legcv", "cormlv", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
+		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
+		"legotter", "corgarp", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
 	armavp = {
@@ -143,6 +143,12 @@ local labGrids = {
 		"corseal", "corparrow", "", "",
 		"", "corcrash", "coraak",
 	},
+	
+	legamsub = {
+		"legotter", "", "corgarp", "",
+		"", "legfloat", "", "",
+		"", "corcrash", "coraak",
+	},	
 	-- hover labs
 	armhp = {
 		"armch", "", "armsh", "",
@@ -1310,7 +1316,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "cornanotc", "legavp", "cornanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1427,7 +1433,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "cornanotc", "legavp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 

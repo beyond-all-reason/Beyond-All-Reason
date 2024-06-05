@@ -2451,6 +2451,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
 	},
+	legamsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+	},
 	legvp = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
