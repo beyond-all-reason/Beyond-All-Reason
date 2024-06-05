@@ -11,7 +11,8 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare;  
 
 static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch,
-			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority;
+			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
+			suspendWeapon;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -469,14 +470,40 @@ AmIBored() {
 	return (0);
 }
 
-IncrementTimer()
+//declare variables specific to UnitTimer functions
+
+static-var vortexSpinSpeed1, vortexSpinSpeed2, vortexSpinSpeed3, oldEaterBeamIncrement;
+
+UnitTimer()
 {
 	while ( TRUE ){
+		
+		//eater beam stuff
 		if (torsoPriority == 9){ //if eater beam is aiming, increment
-		eaterBeamIncrement = (eaterBeamIncrement + 1);
+			eaterBeamIncrement = (eaterBeamIncrement + 1);
 		}
-		sleep 500;
-		get PRINT(torsoPriority, eaterBeamIncrement);
+		if (eaterBeamIncrement != oldEaterBeamIncrement){ //check for change in eaterbeam increment, then set rotation speed of the vortexes to telegraph special weapon charge
+			if (eaterBeamIncrement < 10){ //below 5 seconds charge time
+			spin vortex1 around z-axis speed <150>;
+			spin vortex2 around z-axis speed <100>;
+			spin vortex3 around z-axis speed <50>;
+			}
+			if (eaterBeamIncrement > 9 && eaterBeamIncrement < 20){ //5-10 seconds charge time
+			spin vortex1 around z-axis speed <450>;
+			spin vortex2 around z-axis speed <300>;
+			spin vortex3 around z-axis speed <150>;
+			}
+			if (eaterBeamIncrement > 19 && eaterBeamIncrement < 100){ // 11-15 seconds charge time
+			spin vortex1 around z-axis speed <1350>;
+			spin vortex2 around z-axis speed <900>;
+			spin vortex3 around z-axis speed <450>;
+			}
+		}
+		//update values
+		currentHealth = (get HEALTH);
+		oldEaterBeamIncrement = eaterBeamIncrement;
+		get PRINT(torsoPriority, eaterBeamIncrement, currentHealth);
+		sleep 500; //timer repeats every half second
 	}
 }
 
@@ -507,9 +534,9 @@ Create(){
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	//turn head to x-axis <15> now; //tilts head down a little
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
-	spin vortex1 around z-axis speed <600>;
-	spin vortex2 around z-axis speed <400>;
-	spin vortex3 around z-axis speed <200>;
+	spin vortex1 around z-axis speed <150>;
+	spin vortex2 around z-axis speed <100>;
+	spin vortex3 around z-axis speed <50>;
 	animSpeed = 27;
 	gun_1 = 1;
 	torsoaim = 0;
@@ -519,14 +546,16 @@ Create(){
 	torsoPriority = 0;
 	isAimingShotgun = 0;
 	isAimingEaterBeam = 0;
-	eaterBeamIncrement = 20;
+	eaterBeamIncrement = 0;
+	oldEaterBeamIncrement = 0;
 	isAimingDgun = 0;
 	buildHeading = 0;
 	buildPitch = 0;
 	leftArm = 1;
 	rightArm = 1;
+	suspendWeapon = 1;
 	call-script StopWalking();
-	start-script IncrementTimer();
+	start-script UnitTimer();
 }
 
 QueryNanoPiece(piecenum)
@@ -597,6 +626,9 @@ AimFromWeapon1(piecenum)
 
 AimWeapon1(heading, pitch) //pew pew
 {
+	if (suspendWeapon == 1){
+		return (0);
+	}
 	if (torsoPriority > 5){
 		return (0);
 	}
@@ -708,6 +740,9 @@ AimFromWeapon2(piecenum)
 
 AimWeapon2(heading, pitch)
 {
+	if (suspendWeapon == 1){
+		return (0);
+	}
 	if( get PIECE_Y(head) > 0 ){
 		return (0);
 	}
@@ -772,6 +807,9 @@ FireWeapon3()
 
 AimWeapon3(heading, pitch)
 {
+	if (suspendWeapon == 1){
+		return (0);
+	}
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(3));
 	if( reloading ){
@@ -849,6 +887,9 @@ FireWeapon4()
 
 AimWeapon4(heading, pitch)
 {
+	if (suspendWeapon == 1){
+		return (0);
+	}
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	turn railturretr to y-axis heading - torsoaim speed <100.000000>;
@@ -886,6 +927,9 @@ FireWeapon5()
 }
 AimWeapon5(heading, pitch)
 {
+	if (suspendWeapon == 1){
+		return (0);
+	}
 	signal SIG_AIMMIS;
 	set-signal-mask SIG_AIMMIS;
 	turn turretmis to y-axis heading - torsoaim speed <100.000000>;
@@ -923,6 +967,9 @@ FireWeapon6()
 }
 AimWeapon6(heading, pitch)
 {
+	if (suspendWeapon == 0){
+		return (0);
+	}
 	//if( get PIECE_Y(head) > 0 ){
 	//	return (0);
 	//}
@@ -979,10 +1026,13 @@ FireWeapon7()
 }
 AimWeapon7(heading, pitch)
 {
+	if (suspendWeapon == 0){
+		return (0);
+	}
 	//if( get PIECE_Y(head) > 0 ){
 	//	return (0);
 	//}
-	if( eaterBeamIncrement < 20 ){
+	if( eaterBeamIncrement < 30 ){
 		return (0);
 	}
 	var reloading;
