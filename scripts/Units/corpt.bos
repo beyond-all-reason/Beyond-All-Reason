@@ -64,7 +64,7 @@ ResetFire()
 	signal SIG_FIRED;
 	set-signal-mask SIG_FIRED;
 	fired = 1;
-	sleep 2000;
+	sleep 1500;
 	fired = 0;
 }
 
