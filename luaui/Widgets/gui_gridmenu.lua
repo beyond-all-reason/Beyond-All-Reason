@@ -8,7 +8,6 @@
 -- TODO: Fix mess that is handle hover
 -- TODO: Remove selectNextFrame
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
--- PERF: check out how to improve updateBuildProgress, maybe run it tandem with slowupdate?
 -- PERF: Find a way to know when activecmd changed in an evented way
 function widget:GetInfo()
 	return {
@@ -459,6 +458,8 @@ local function updateGrid()
 			end
 		end
 	end
+
+	updateBuildProgress()
 
 	-- local firstUnitDefID = cellRects[1].opts.uDefID
 
@@ -1187,6 +1188,11 @@ function widget:LanguageChanged()
 	redraw = true
 end
 
+function widget:GameFrame()
+	-- build progress updates every sym frame
+	updateBuildProgress()
+end
+
 -- Sometimes we issue commands the game state hasn't changed yet, to actually
 -- sync state we need to do it a while later.
 --
@@ -1284,8 +1290,6 @@ function widget:Update(dt)
 		doUpdateClock = nil
 		doUpdate = nil
 	end
-
-	updateBuildProgress()
 end
 
 -------------------------------------------------------------------------------
@@ -1914,6 +1918,10 @@ local function drawBuildMenu()
 end
 
 local function drawBuildProgress(cellRect)
+	if not cellRect.opts.progress then
+		return
+	end
+
 	RectRoundProgress(
 		cellRect.x + cellPadding + iconPadding,
 		cellRect.y + cellPadding + iconPadding,
@@ -2437,7 +2445,6 @@ end
 
 -- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
 function widget:UnitCommand(_, unitDefID, _, cmdID)
-	Spring.Echo("cmddone: ", cmdID, os.clock())
 	-- if no active builder and cmd is not build return
 	if not activeBuilder or cmdID >= 0 then
 		return
@@ -2461,11 +2468,28 @@ function widget:UnitFromFactory(_, unitDefID, _, _, factDefID)
 	end
 
 	-- if current grid has no option for currently built unit (e.g. pages) return
-	if not uDefCellIds[unitDefID] then
+	local cellId = uDefCellIds[unitDefID]
+	if not cellId then
 		return
 	end
 
-	refreshCommands()
+	local cellRect = cellRects[cellId]
+
+	if not cellRect.opts.queuenr then
+		-- something weird happened lets do a hard update
+		refreshCommands()
+
+		return
+	end
+
+	cellRect.opts.queuenr = cellRect.opts.queuenr - 1
+
+	if cellRect.opts.queuenr < 1 then
+		cellRect.opts.queuenr = nil
+	end
+
+	updateBuildProgress()
+
 	redraw = true
 end
 
