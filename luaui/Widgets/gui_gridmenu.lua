@@ -109,7 +109,6 @@ local myTeamID = Spring.GetMyTeamID()
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 local hoveredButton, drawnHoveredButton
-local pregameBlueprintDefID
 
 -- Configurable values
 local stickToBottom = false
@@ -270,7 +269,6 @@ local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 local showWaterUnits = false
 units.restrictWaterUnits(true)
 
-local unitName = {}
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
@@ -278,7 +276,6 @@ local unitTranslatedTooltip = {}
 local iconTypes = {}
 
 local function refreshUnitDefs()
-	unitName = {}
 	unitBuildOptions = {}
 	unitMetal_extractor = {}
 	unitTranslatedHumanName = {}
@@ -288,7 +285,6 @@ local function refreshUnitDefs()
 
 	-- unit names and icons
 	for udid, ud in pairs(UnitDefs) do
-		unitName[udid] = ud.name
 		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
@@ -394,6 +390,21 @@ local function updateBuildProgress()
 	rect.opts.progress = select(2, spGetUnitIsBeingBuilt(unitBuildID))
 end
 
+local function updateSelectedCell()
+	for i = 1, 12 do
+		local cellRect = cellRects[i]
+
+		if cellRect.opts.uDefID then
+			local cellIsSelected = activeCmd == -cellRect.opts.uDefID
+
+			cellRect.opts.color = cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil
+			cellRect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
+		end
+	end
+
+	redraw = true
+end
+
 local function updateGrid()
 	if not gridOpts then
 		return
@@ -420,6 +431,10 @@ local function updateGrid()
 	-- well reindex the cellsidsperudef
 	uDefCellIds = {}
 
+	local showHotkeys = (builderIsFactory and not useLabBuildMode)
+		or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
+		or (activeBuilder and currentCategory)
+
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
@@ -428,8 +443,9 @@ local function updateGrid()
 			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
 
 			local uDefID
-			if gridOpts[index] then
-				uDefID = -gridOpts[index].id
+			local cmd = gridOpts[index]
+			if cmd then
+				uDefID = -cmd.id
 			end
 
 			local rect = cellRects[cellRectID]
@@ -437,16 +453,13 @@ local function updateGrid()
 
 			if uDefID then
 				uDefCellIds[uDefID] = cellRectID
-				gridOpts[index].hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 
-				local cmd = gridOpts[index]
-
-				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
-					or (isPregame and pregameBlueprintDefID == uDefID)
-				rect.opts.color = cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil
-				rect.opts.usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 				rect.opts.disabled = units.unitRestricted[uDefID]
-				rect.opts.cmd = cmd
+
+				if showHotkeys then
+					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
+					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
+				end
 
 				rect.opts.queuenr = cmd.params[1]
 
@@ -454,11 +467,11 @@ local function updateGrid()
 				rect.opts.progress = nil
 			else
 				rect.opts.uDefID = nil
-				rect.opts.cmd = nil
 			end
 		end
 	end
 
+	updateSelectedCell()
 	updateBuildProgress()
 
 	-- local firstUnitDefID = cellRects[1].opts.uDefID
@@ -692,19 +705,33 @@ local function queueUnit(uDefID, opts)
 	end
 end
 
+local function setActiveCommand(cmd, button, leftClick, rightClick)
+	local didChangeCmd = Spring.SetActiveCommand(cmd, button, leftClick, rightClick, Spring.GetModKeyState())
+
+	if not didChangeCmd then
+		return
+	end
+
+	activeCmd = select(2, spGetActiveCommand())
+
+	updateSelectedCell()
+end
+
 local function pickBlueprint(uDefID)
-	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
-	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
 	if isRepeatMex then
 		WG["areamex"].setAreaMexType(uDefID)
 	end
-	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
-
-	-- doUpdateClock = os.clock() + 0.01 -- setactivecmd hasn't updated internal state yet
+	setActiveCommand(cmd, 1, true, false)
 end
 
 local function setPregameBlueprint(uDefID)
-	pregameBlueprintDefID = uDefID
+	if not isPregame then
+		return
+	end
+
+	activeCmd = -uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
 		WG["pregame-build"].setPreGamestartDefID(uDefID)
 	end
@@ -715,10 +742,14 @@ local function setPregameBlueprint(uDefID)
 end
 
 local function clearCategory()
-	setCurrentCategory(nil)
 	setLabBuildMode(false)
-	setPregameBlueprint(nil)
-	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+
+	if isPregame then
+		setPregameBlueprint(nil)
+	else
+		setCurrentCategory(nil)
+		setActiveCommand(0, 0, false, false)
+	end
 end
 
 local function gridmenuCategoryHandler(_, _, args)
@@ -814,7 +845,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-		pickBlueprint(-uDefID)
+		pickBlueprint(uDefID)
 		return true
 	end
 
@@ -1259,12 +1290,13 @@ function widget:Update(dt)
 	local prevActiveCmd = activeCmd
 
 	if isPregame and WG["pregame-build"] then
-		activeCmd = WG["pregame-build"].selectedID
-		if activeCmd then
-			activeCmd = units.unitName[activeCmd]
+		local selectedId = WG["pregame-build"].selectedID
+
+		if selectedId then
+			activeCmd = -selectedId
 		end
 	else
-		activeCmd = select(4, spGetActiveCommand())
+		activeCmd = select(2, spGetActiveCommand())
 	end
 
 	if activeCmd ~= prevActiveCmd then
@@ -1277,8 +1309,6 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	-- Fix for:
-	--   - unitcommand callin still does not have the command queue updated on the factory
 	if doUpdate then
 		refreshCommands()
 
@@ -1406,11 +1436,9 @@ local function drawCell(rect)
 		return
 	end
 
-	local cellColor = rect.opts.color
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
 	local usedZoom = rect.opts.usedZoom
-	local cmd = rect.opts.cmd
 	local queuenr = rect.opts.queuenr
 
 	-- unit icon
@@ -1447,6 +1475,8 @@ local function drawCell(rect)
 	)
 
 	-- colorize/highlight unit icon
+	local cellColor = rect.opts.color
+
 	if cellColor then
 		gl.Blending(GL.DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
@@ -1513,16 +1543,9 @@ local function drawCell(rect)
 	end
 
 	-- hotkey draw
-	if
-		cmd.hotkey
-		and (
-			(builderIsFactory and not useLabBuildMode)
-			or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
-			or (activeBuilder and currentCategory)
-		)
-	then
-		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
+	local hotkeyText = rect.opts.hotkey
 
+	if hotkeyText then
 		local keyFontSize = priceFontSize * 1.1
 		local hotkeyColor = disabled and "\255\100\100\100" or "\255\215\255\215"
 		font2:Print(
@@ -2040,17 +2063,11 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPregameBlueprint(unitDefID)
 							elseif spGetCmdDescIndex(-unitDefID) then
-								pickBlueprint(-unitDefID)
+								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
-							Spring.SetActiveCommand(
-								spGetCmdDescIndex(-unitDefID),
-								3,
-								false,
-								true,
-								Spring.GetModKeyState()
-							)
+							setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
 						end
 
 						return true
@@ -2111,8 +2128,7 @@ local function handleButtonHover()
 			for cellRectID, cellRect in pairs(cellRects) do
 				if cellRect.opts.uDefID and cellRect:contains(x, y) then
 					hoveredCellID = cellRectID
-					local cmd = cellRect.opts.cmd
-					local uDefID = -cmd.id
+					local uDefID = cellRect.opts.uDefID
 					WG["buildmenu"].hoverID = uDefID
 					gl.Color(1, 1, 1, 1)
 					if WG["tooltip"] then
@@ -2278,9 +2294,8 @@ local function handleButtonHover()
 			-- cells
 			if hoveredCellID then
 				local hoveredCell = cellRects[hoveredCellID]
-				local cmd = hoveredCell.opts.cmd
 				local uDefID = hoveredCell.opts.uDefID
-				local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
+				local cellIsSelected = activeCmd == -uDefID
 				local queuenr = hoveredCell.opts.queuenr
 				if
 					not prevHoveredCellID
