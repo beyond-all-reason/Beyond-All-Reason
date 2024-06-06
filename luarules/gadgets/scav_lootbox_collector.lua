@@ -114,7 +114,7 @@ function gadget:GameFrame(frame)
                                         if math.random(0,SetCount(aliveSpawners)) == 0 and not handledLootboxesList[lootboxID] then
                                             targetLootboxID = lootboxID
                                             local spawnerPosX, spawnerPosY, spawnerPosZ = Spring.GetUnitPosition(spawnerID)
-                                            for j = 1,aliveLootboxesCount*5 do
+                                            for j = 1,5 do
                                                 if math.random() <= config.spawnChance then
                                                     local transportID = Spring.CreateUnit(transportDefID, spawnerPosX+math.random(-1024, 1024), spawnerPosY+100, spawnerPosZ+math.random(-1024, 1024), math.random(0,3), scavTeamID)
                                                     if transportID then
