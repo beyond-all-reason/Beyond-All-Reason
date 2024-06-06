@@ -1,109 +1,111 @@
+#define TA			// This is a TA script
 
-#include "../../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  pelvis, lthigh, lshin, lcalf, lfoot, rthigh, rshin, rcalf, rfoot,
 	torso, ruparm, relbow, rloarm, rbarrel, rflare1, rflare2, luparm, 
 	lelbow, lloarm, lbarrel, lflare1, lflare2;
 
-static-var  gun_1, isMoving, isAiming, wpn1_lasthead;
+static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM3 1024
+#define SIG_MOVE			2
+#define SIG_AIM				4
+#define SIG_AIM_3			8
 
 
 
 walk()
 {
 	//step 1 leg 
-	turn rthigh to x-axis <0> speed <84.0>;
-	turn rshin to x-axis <0> speed <282.0>;
-	turn rcalf to x-axis <0> speed <240.0>;
-	turn rfoot to x-axis <0> speed <120.0>;
+	turn rthigh to x-axis <0> speed <84.000000>;
+	turn rshin to x-axis <0> speed <282.000000>;
+	turn rcalf to x-axis <0> speed <240.000000>;
+	turn rfoot to x-axis <0> speed <120.000000>;
 
-	turn lthigh to x-axis <13> speed <78.0>;
-	turn lshin to x-axis <24> speed <144.0>;
-	turn lcalf to x-axis <-13> speed <78.0>;
-	turn lfoot to x-axis <-23> speed <138.0>;
+	turn lthigh to x-axis <13> speed <78.000000>;
+	turn lshin to x-axis <24> speed <144.000000>;
+	turn lcalf to x-axis <-13> speed <78.000000>;
+	turn lfoot to x-axis <-23> speed <138.000000>;
 
-	turn pelvis to y-axis <0> speed <12.0>;
-	move pelvis to y-axis [0] speed <12.0>;
+	turn pelvis to y-axis <0> speed <12.000000>;
+	move pelvis to y-axis [0] speed <12.000000>;
 	sleep 160;
 
 	//step 2 leg 
-	turn rthigh to x-axis <20> speed <120.0>;
+	turn rthigh to x-axis <20> speed <120.000000>;
 	turn rshin to x-axis <0> now;
-	turn rcalf to x-axis <1> speed <6.0>;
-	turn rfoot to x-axis <-21> speed <126.0>;
+	turn rcalf to x-axis <1> speed <6.000000>;
+	turn rfoot to x-axis <-21> speed <126.000000>;
 
-	turn lthigh to x-axis <-17> speed <180.0>;
-	turn lshin to x-axis <1> speed <138.0>;
-	turn lcalf to x-axis <-10> speed <18.0>;
-	turn lfoot to x-axis <-9> speed <84.0>;
+	turn lthigh to x-axis <-17> speed <180.000000>;
+	turn lshin to x-axis <1> speed <138.000000>;
+	turn lcalf to x-axis <-10> speed <18.000000>;
+	turn lfoot to x-axis <-9> speed <84.000000>;
 
-	turn pelvis to y-axis <4> speed <24.0>;
-	move pelvis to y-axis [1] speed [6.0];
+	turn pelvis to y-axis <4> speed <24.000000>;
+	move pelvis to y-axis [1] speed [6.000000];
 	sleep 160;
 
 	//step 3 leg 
-	turn rthigh to x-axis <36> speed <96.0>;
-	turn rshin to x-axis <9> speed <54.0>;
-	turn rcalf to x-axis <-12> speed <78.0>;
-	turn rfoot to x-axis <1> speed <132.0>;
+	turn rthigh to x-axis <36> speed <96.000000>;
+	turn rshin to x-axis <9> speed <54.000000>;
+	turn rcalf to x-axis <-12> speed <78.000000>;
+	turn rfoot to x-axis <1> speed <132.000000>;
 
-	turn lthigh to x-axis <-14> speed <18.0>;
-	turn lshin to x-axis <-47> speed <288.0>;
-	turn lcalf to x-axis <40> speed <300.0>;
-	turn lfoot to x-axis <20> speed <174.0>;
+	turn lthigh to x-axis <-14> speed <18.000000>;
+	turn lshin to x-axis <-47> speed <288.000000>;
+	turn lcalf to x-axis <40> speed <300.000000>;
+	turn lfoot to x-axis <20> speed <174.000000>;
 
-	turn pelvis to y-axis <0> speed <24.0>;
-	move pelvis to y-axis [0] speed [6.0];
+	turn pelvis to y-axis <0> speed <24.000000>;
+	move pelvis to y-axis [0] speed [6.000000];
 	sleep 160;
 
 	//step 4 leg 
-	turn rthigh to x-axis <13> speed <138.0>;
-	turn rshin to x-axis <24> speed <90.0>;
-	turn rcalf to x-axis <-13> speed <6.0>;
-	turn rfoot to x-axis <-23> speed <144.0>;
+	turn rthigh to x-axis <13> speed <138.000000>;
+	turn rshin to x-axis <24> speed <90.000000>;
+	turn rcalf to x-axis <-13> speed <6.000000>;
+	turn rfoot to x-axis <-23> speed <144.000000>;
 
-	turn lthigh to x-axis <0> speed <84.0>;
-	turn lshin to x-axis <0> speed <282.0>;
-	turn lcalf to x-axis <0> speed <240.0>;
-	turn lfoot to x-axis <0> speed <120.0>;
+	turn lthigh to x-axis <0> speed <84.000000>;
+	turn lshin to x-axis <0> speed <282.000000>;
+	turn lcalf to x-axis <0> speed <240.000000>;
+	turn lfoot to x-axis <0> speed <120.000000>;
 
-	turn pelvis to y-axis <0> speed <12.0>;
-	move pelvis to y-axis [0] speed <12.0>;
+	turn pelvis to y-axis <0> speed <12.000000>;
+	move pelvis to y-axis [0] speed <12.000000>;
 	sleep 160;
 
 	//step 5 leg 
-	turn rthigh to x-axis <-17> speed <180.0>;
-	turn rshin to x-axis <1> speed <138.0>;
-	turn rcalf to x-axis <-10> speed <18.0>;
-	turn rfoot to x-axis <-9> speed <84.0>;
+	turn rthigh to x-axis <-17> speed <180.000000>;
+	turn rshin to x-axis <1> speed <138.000000>;
+	turn rcalf to x-axis <-10> speed <18.000000>;
+	turn rfoot to x-axis <-9> speed <84.000000>;
 
-	turn lthigh to x-axis <20> speed <120.0>;
+	turn lthigh to x-axis <20> speed <120.000000>;
 	turn lshin to x-axis <0> now;
-	turn lcalf to x-axis <1> speed <6.0>;
-	turn lfoot to x-axis <-21> speed <126.0>;
+	turn lcalf to x-axis <1> speed <6.000000>;
+	turn lfoot to x-axis <-21> speed <126.000000>;
 
-	turn pelvis to y-axis <-4> speed <24.0>;
-	move pelvis to y-axis [1] speed [6.0];
+	turn pelvis to y-axis <-4> speed <24.000000>;
+	move pelvis to y-axis [1] speed [6.000000];
 	sleep 160;
 
 	//step 6 leg 
-	turn rthigh to x-axis <-14> speed <18.0>;
-	turn rshin to x-axis <-47> speed <288.0>;
-	turn rcalf to x-axis <40> speed <300.0>;
-	turn rfoot to x-axis <20> speed <174.0>;
+	turn rthigh to x-axis <-14> speed <18.000000>;
+	turn rshin to x-axis <-47> speed <288.000000>;
+	turn rcalf to x-axis <40> speed <300.000000>;
+	turn rfoot to x-axis <20> speed <174.000000>;
 
-	turn lthigh to x-axis <36> speed <96.0>;
-	turn lshin to x-axis <9> speed <54.0>;
-	turn lcalf to x-axis <-12> speed <78.0>;
-	turn lfoot to x-axis <1> speed <132.0>;
+	turn lthigh to x-axis <36> speed <96.000000>;
+	turn lshin to x-axis <9> speed <54.000000>;
+	turn lcalf to x-axis <-12> speed <78.000000>;
+	turn lfoot to x-axis <1> speed <132.000000>;
 
-	turn pelvis to y-axis <0> speed <24.0>;
-	move pelvis to y-axis [0] speed [6.0];
+	turn pelvis to y-axis <0> speed <24.000000>;
+	move pelvis to y-axis [0] speed [6.000000];
 	sleep 160;
 
 
@@ -113,27 +115,54 @@ stopwalk()
 {
 	if( TRUE )
 	{
-		turn rthigh to x-axis <0> speed <84.0>;
-		turn rshin to x-axis <0> speed <282.0>;
-		turn rcalf to x-axis <0> speed <240.0>;
-		turn rfoot to x-axis <0> speed <120.0>;
+		turn rthigh to x-axis <0> speed <84.000000>;
+		turn rshin to x-axis <0> speed <282.000000>;
+		turn rcalf to x-axis <0> speed <240.000000>;
+		turn rfoot to x-axis <0> speed <120.000000>;
 
 
-		turn lthigh to x-axis <0> speed <84.0>;
-		turn lshin to x-axis <0> speed <282.0>;
-		turn lcalf to x-axis <0> speed <240.0>;
-		turn lfoot to x-axis <0> speed <120.0>;
+		turn lthigh to x-axis <0> speed <84.000000>;
+		turn lshin to x-axis <0> speed <282.000000>;
+		turn lcalf to x-axis <0> speed <240.000000>;
+		turn lfoot to x-axis <0> speed <120.000000>;
 
 
-		turn pelvis to y-axis <0> speed <48.0>;
-		move pelvis to y-axis [0] speed <48.0>;
+		turn pelvis to y-axis <0> speed <48.000000>;
+		move pelvis to y-axis [0] speed <48.000000>;
 		wait-for-turn torso around y-axis;
 		sleep 160;
 	}
 }
 
-#define SMOKE_PIECE pelvis
-#include "../../damagedsmoke.h"
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 30;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+
+
 
 Create()
 {
@@ -143,22 +172,23 @@ Create()
 	hide rflare1;
 
 	gun_1 = 0;
-	isMoving = FALSE;
-	isAiming = FALSE;
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
+	bMoving = FALSE;
+	bAiming = FALSE;
+	Static_Var_1 = 3500;
+	start-script SmokeUnit();
 }
 
-StartMoving(reversing)
+StartMoving()
 {
 
-	isMoving = TRUE;
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	if( !isAiming )
+	bMoving = TRUE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	if( !bAiming )
 	{
-		turn pelvis to y-axis <0.0> speed <60.0>;
-		move pelvis to y-axis [0.0] speed [6.0];
+		//Static_Var_8 = 0;
+		turn pelvis to y-axis <0.000000> speed <60.000000>;
+		move pelvis to y-axis [0.000000] speed [6.000000];
 	}
 	while( TRUE )
 	{
@@ -168,62 +198,65 @@ StartMoving(reversing)
 
 StopMoving()
 {
-	isMoving = FALSE;
-	signal SIGNAL_MOVE;
+	bMoving = FALSE;
+	signal SIG_MOVE;
 	start-script stopwalk();
 }
 
-
-
-
-RestoreAfterDelay()
+SweetSpot(piecenum)
 {
-	set-signal-mask SIGNAL_AIM1;
-	sleep 3500;
+	piecenum = torso;
+}
+
+
+RestoreAfterDelay(Func_Var_1)
+{
+	set-signal-mask SIG_AIM;
+	sleep Static_Var_1;
 	
 	turn torso  to y-axis <0> speed <30>;
 	turn rloarm to x-axis <0> speed <320>;
 	turn lloarm to x-axis <0> speed <320>;
 	
-	isAiming = FALSE;
-	wpn1_lasthead = 0xbadface;
+	bAiming = FALSE;
+	wpn1_lasthead = 1000000;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = torso;
+	piecenum = torso;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		pieceIndex = rflare1;
+		piecenum = rflare1;
 	}
 	if( gun_1 == 1 )
 	{
-		pieceIndex = lflare1;
+		piecenum = lflare1;
 	}
 	if( gun_1 == 2 )
 	{
-		pieceIndex = rflare2;
+		piecenum = rflare2;
 	}
 	if( gun_1 == 3 )
 	{
-		pieceIndex = lflare2;
+		piecenum = lflare2;
 	}
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	isAiming = TRUE;
+	signal SIG_AIM;
+	bAiming = TRUE;
 	turn torso to y-axis heading speed <320>;
 	turn rloarm to x-axis <-90> - pitch speed <320>;
 	turn lloarm to x-axis <-90> - pitch speed <320>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
-		wpn1_lasthead = 0xbadface;
+		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 		wait-for-turn rloarm around x-axis;
 	}
@@ -232,12 +265,14 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
 		move rbarrel to y-axis [1.5] speed [1000];
+		show rflare1;
 		sleep 100;
+		hide rflare1;
 		move rbarrel to y-axis [0] speed [6];
 		gun_1 = 1;
 		return (1);
@@ -245,7 +280,9 @@ FireWeapon1()
 	if ( gun_1 == 1 )
 	{
 		move lbarrel to y-axis [1.5] speed [1000];
+		show lflare1;
 		sleep 100;
+		hide lflare1;
 		move lbarrel to y-axis [0] speed [6];
 		gun_1 = 2;
 		return (1);
@@ -253,7 +290,9 @@ FireWeapon1()
 		if( gun_1 == 2 )
 	{
 		move rbarrel to y-axis [1.5] speed [1000];
+		show rflare2;
 		sleep 100;
+		hide rflare2;
 		move rbarrel to y-axis [0] speed [6];
 		gun_1 = 3;
 		return (1);
@@ -261,7 +300,9 @@ FireWeapon1()
 	if ( gun_1 == 3 )
 	{
 		move lbarrel to y-axis [1.5] speed [1000];
+		show lflare2;
 		sleep 100;
+		hide lflare2;
 		move lbarrel to y-axis [0] speed [6];
 		gun_1 = 0;
 		return (1);

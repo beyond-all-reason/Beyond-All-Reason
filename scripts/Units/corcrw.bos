@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, turretl, sleevel, barrell, flarel, turretr, sleever, barrelr, flarer, 
        turretf, sleevef, barrelf, flaref, thrustrr, thrustrl, thrustfr, thrustfl, 
@@ -9,9 +11,9 @@ piece  base, turretl, sleevel, barrell, flarel, turretr, sleever, barrelr, flare
 static-var  restore_delay, v1;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 512
-#define SIGNAL_AIM3 1024
+#define SIG_AIM				4
+#define SIG_AIM_2			8
+#define SIG_AIM_3			16
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -38,7 +40,10 @@ Create()
 	turn thrustfra to x-axis <-90> now; 
 	turn thrustrla to x-axis <-90> now; 
 	turn thrustfla to x-axis <-90> now; 
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script IdleHover();
 }
 
@@ -58,26 +63,29 @@ Deactivate()
 	hide thrustfla;
 }
 
-
-
-QueryWeapon1(pieceIndex)
+SweetSpot(piecenum)
 {
-	pieceIndex = flaref;
+	piecenum = base;
 }
 
-QueryWeapon2(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flarel;
+	piecenum = flaref;
 }
 
-QueryWeapon3(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = flarer;
+	piecenum = flarel;
 }
 
-SetMaxReloadTime(reloadMS)
+QueryTertiary(piecenum)
 {
-	restore_delay = reloadMS * 2;
+	piecenum = flarer;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -86,8 +94,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn base to y-axis <0.0> speed <250.0>;
-	turn base to x-axis <0.0> speed <250.0>;
+	turn base to y-axis <0.000000> speed <250.000000>;
+	turn base to x-axis <0.000000> speed <250.000000>;
 	turn turretf to z-axis <0> speed <250>;
 	turn sleevef to x-axis <0> speed <250>;
 
@@ -110,7 +118,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-StartMoving(reversing)
+StartMoving()
 {
 	sleep 1000;
 }
@@ -121,40 +129,40 @@ StopMoving()
 
 MoveRate0()
 {
-	turn thrustrr to x-axis <0.0> speed <80.0>;
-	turn thrustrl to x-axis <0.0> speed <80.0>;
-	turn thrustfr to x-axis <0.0> speed <80.0>;
-	turn thrustfl to x-axis <0.0> speed <80.0>;
+	turn thrustrr to x-axis <0.000000> speed <80.000000>;
+	turn thrustrl to x-axis <0.000000> speed <80.000000>;
+	turn thrustfr to x-axis <0.000000> speed <80.000000>;
+	turn thrustfl to x-axis <0.000000> speed <80.000000>;
 }
 
 MoveRate1()
 {
-	turn thrustrr to x-axis <8.0> speed <60.0>;
-	turn thrustrl to x-axis <8.0> speed <60.0>;
-	turn thrustfr to x-axis <8.0> speed <60.0>;
-	turn thrustfl to x-axis <8.0> speed <60.0>;
+	turn thrustrr to x-axis <8.000000> speed <60.000000>;
+	turn thrustrl to x-axis <8.000000> speed <60.000000>;
+	turn thrustfr to x-axis <8.000000> speed <60.000000>;
+	turn thrustfl to x-axis <8.000000> speed <60.000000>;
 }
 
 MoveRate2()
 {
-	turn thrustrr to x-axis <18.0> speed <45.0>;
-	turn thrustrl to x-axis <18.0> speed <45.0>;
-	turn thrustfr to x-axis <18.0> speed <45.0>;
-	turn thrustfl to x-axis <18.0> speed <45.0>;
+	turn thrustrr to x-axis <18.000000> speed <45.000000>;
+	turn thrustrl to x-axis <18.000000> speed <45.000000>;
+	turn thrustfr to x-axis <18.000000> speed <45.000000>;
+	turn thrustfl to x-axis <18.000000> speed <45.000000>;
 }
 
 MoveRate3()
 {
-	turn thrustrr to x-axis <0.0> speed <70.0>;
-	turn thrustrl to x-axis <0.0> speed <70.0>;
-	turn thrustfr to x-axis <0.0> speed <70.0>;
-	turn thrustfl to x-axis <0.0> speed <70.0>;
+	turn thrustrr to x-axis <0.000000> speed <70.000000>;
+	turn thrustrl to x-axis <0.000000> speed <70.000000>;
+	turn thrustfr to x-axis <0.000000> speed <70.000000>;
+	turn thrustfl to x-axis <0.000000> speed <70.000000>;
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	
 	
 	var p;
@@ -163,21 +171,21 @@ AimWeapon1(heading, pitch)
 	p = get KTAN(pitch);
 	h = get KTAN(heading);
 	a = get ATAN(h, p);
-	turn turretf to z-axis a speed <200.0>;
+	turn turretf to z-axis a speed <200.000000>;
 
 	a = get HYPOT(h, p);
 	a = get ATAN(a, 1000);
-	turn sleevef to x-axis <0> - a speed <200.0>;
+	turn sleevef to x-axis <0> - a speed <200.000000>;
 	wait-for-turn turretf around z-axis;
 	wait-for-turn sleevef around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
 	var aimto;
 	aimto= <-90> + heading;
 	if (aimto > <90>) {
@@ -186,16 +194,16 @@ AimWeapon2(heading, pitch)
 	if (aimto < <-90>) {
 		aimto = <-90>;
 	}
-	//turn turretl to x-axis  speed <200.0>;
-	turn sleevel to y-axis aimto speed <200.0>;
+	//turn turretl to x-axis  speed <200.000000>;
+	turn sleevel to y-axis aimto speed <200.000000>;
 	wait-for-turn sleevel around y-axis;
 	return (1);
 }
 
-AimWeapon3(heading, pitch)
+AimTertiary(heading, pitch)
 {
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
 	var aimto;
 	aimto= <90> + heading;
 	if (aimto > <90>) {
@@ -204,23 +212,23 @@ AimWeapon3(heading, pitch)
 	if (aimto < <-90>) {
 		aimto = <-90>;
 	}
-	//turn turretr to x-axis heading speed <200.0>;
-	turn sleever to y-axis aimto speed <200.0>;
+	//turn turretr to x-axis heading speed <200.000000>;
+	turn sleever to y-axis aimto speed <200.000000>;
 	wait-for-turn sleever around y-axis;
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 100;
 }
 
-FireWeapon2()
+FireSecondary()
 {
 	sleep 100;
 }
 
-FireWeapon3()
+FireTertiary()
 {
 	sleep 100;
 }

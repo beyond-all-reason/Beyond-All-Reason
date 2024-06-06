@@ -78,6 +78,16 @@ local function maybeRemoveSelf()
     end
 end
 
+---map of reason to unitDefID
+---@type table<string, number>
+local forceShow = {}
+
+local function getForceShowUnitDefID()
+	-- show facing arrow as long as any source wants us to show it (logical OR)
+	local reason = next(forceShow, nil)
+	return reason and forceShow[reason] or nil
+end
+
 local function getVector2dLen( vector )
 	return sqrt( ( vector[1] * vector[1] ) + ( vector[2] * vector[2] ) )
 end
@@ -205,16 +215,17 @@ local function manipulateFacing()
 end
 
 local function drawOrientation()
-	if not ineffect then return end
+	local forceShowUnitDefID = getForceShowUnitDefID()
+	if not ineffect and not forceShowUnitDefID then return end
 
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	local cmdDesc = spGetActiveCmdDesc( idx )
-	if cmdDesc == nil or cmdDesc["type"] ~= 20 then
+	if (cmdDesc == nil or cmdDesc["type"] ~= 20) and not forceShowUnitDefID then
 		return		-- quit here if not a build command
 	end
 
 	-- check for an empty buildlist to avoid to draw for air repair pads
-	local unitDefID = -cmd_id
+	local unitDefID = forceShowUnitDefID or -cmd_id
 	if drawForAll == false and isntFactory[unitDefID] then
 		return
 	end
@@ -228,11 +239,11 @@ local function drawOrientation()
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
 	if not coords then return end
-	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3] )
-
+	
+	local facing = spGetBuildFacing()
+	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3], facing )
 	local transSpace = unitZsize[unitDefID] * 4   --should be ysize but its not there?!?
 	local transX, transZ
-	local facing = spGetBuildFacing()
 	if facing == 0 then
 		transX = 0
 		transZ = transSpace
@@ -281,6 +292,19 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
+
+	WG['easyfacing'] = {}
+	WG['easyfacing'].setForceShow = function(reason, enabled, unitDefID)
+		if enabled then
+			forceShow[reason] = unitDefID
+		else
+			forceShow[reason] = nil
+		end
+	end
+end
+
+function widget:Shutdown()
+	WG['easyfacing'] = nil
 end
 
 function widget:Update()

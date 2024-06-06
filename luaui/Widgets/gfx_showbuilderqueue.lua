@@ -225,15 +225,17 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,_,z = spGetUnitPosition(unitID)
-	local id = unitDefID..'_'..floor(x)..'_'..floor(z)
+	if x then
+		local id = unitDefID..'_'..floor(x)..'_'..floor(z)
 
-	if unitshapes[id] then
-		removeUnitShape(id)
+		if unitshapes[id] then
+			removeUnitShape(id)
+		end
+		command[id] = nil
+		-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
+		createdUnit[id] = unitID
+		createdUnitID[unitID] = id
 	end
-	command[id] = nil
-	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
-	createdUnit[id] = unitID
-	createdUnitID[unitID] = id
 end
 
 local function clearCommandUnit(unitID)

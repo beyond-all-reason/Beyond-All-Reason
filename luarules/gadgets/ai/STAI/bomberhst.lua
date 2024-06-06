@@ -43,7 +43,7 @@ function BomberHST:RemoveRecruit(bmbrbehaviour)
 end
 
 function BomberHST:SetMassLimit()
-	self.squadMassLimit = 0 + (math.max(self.ai.Metal.income * 20, 4000))
+	self.squadMassLimit = 0 + (math.max(self.ai.ecohst.Metal.income * 20, 4000))
 	self:EchoDebug('squadmasslimit',self.squadMassLimit)
 end
 
@@ -177,9 +177,11 @@ function BomberHST:GetTarget(squad)
 		squad.target = bestCell
 		local bu
 		local bv = 0
-		for id,name in pairs(bestCell.units) do
-			local ut = self.ai.armyhst.unitTable[name]
-			self:EchoDebug(id,name,ut.metalCost)
+		for id,M in pairs(bestCell.units) do
+			local unit = game:GetUnitByID(id)
+			local uName = unit:Name()
+			local ut = self.ai.armyhst.unitTable[uName]
+			self:EchoDebug(id,uName,ut.metalCost)
 			if ut.metalCost > bv then
 				bv = ut.metalCost
 				bu = id

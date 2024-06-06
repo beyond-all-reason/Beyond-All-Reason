@@ -1,29 +1,32 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  leg1, leg2, leg3, leg4, base, body;
 
-static-var  isMoving;
+static-var  bMoving;
 
-#define SIGNAL_MOVE 1
+#define SIG_MOVE 1
 walkscr()
 {
-	while( isMoving )
+	while( bMoving )
 	{
-		if( isMoving )
+		if( bMoving )
 		{
-			turn leg1 to z-axis <0.0> now;
+			turn leg1 to z-axis <0.000000> now;
 			sleep 33;
 		}
 
 	}
 }
 
-Movement()
+MotionControl(Func_Var_1)
 {
 	while( TRUE )
 	{
-		if( isMoving )
+		Func_Var_1 = bMoving;
+		if( Func_Var_1 )
 		{
 			call-script walkscr();
 		}
@@ -38,16 +41,17 @@ Movement()
 Create()
 {
 	hide base;
-	isMoving = FALSE;
+	bMoving = FALSE;
 }
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
-StartMoving(reversing)
+
+
+StartMoving()
 {
-	signal SIGNAL_MOVE;
+	signal SIG_MOVE;
 	move leg1 to y-axis [0] speed [28];
 	move leg2 to y-axis [0] speed [28];
 	move base to y-axis [0] speed [28];
@@ -55,12 +59,12 @@ StartMoving(reversing)
 	sleep 150;
 	move leg3 to y-axis [0] speed [28];
 	move leg4 to y-axis [0] speed [28];
-	isMoving = TRUE;
+	bMoving = TRUE;
 }
 
 StopMoving()
 {
-	set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIG_MOVE;
 	stop-spin base around x-axis;
 	turn base to x-axis <0> speed <38>;
 	wait-for-turn base around x-axis;	
@@ -71,7 +75,7 @@ StopMoving()
 	move base to y-axis [2.5] speed [18];
 
 	
-	isMoving = FALSE;
+	bMoving = FALSE;
 }
 
 AimWeapon1()
@@ -89,31 +93,34 @@ FireWeapon1()
 	emit-sfx 4097 from leg1; //Weapon2 detonates the crawling bomb once weapon1 fires
 }
 
-QueryWeapon1(pieceIndex)
+QueryWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromWeapon1(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-QueryWeapon2(pieceIndex)
+QueryWeapon2(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromWeapon2(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
 FireWeapon2()
 {
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = leg1;
+}
 
 Killed(severity, corpsetype)
 {

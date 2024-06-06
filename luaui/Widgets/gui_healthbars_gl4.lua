@@ -1163,24 +1163,22 @@ function widget:GameFrame(n)
 
 	-- check build progress
 	if (n % 1 == 0) then
-		for unitID, buildprogress in pairs(unitBeingBuiltWatch) do
-			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-			if build and build ~= buildprogress then
-				uniformcache[1] = build
+		for unitID, prevProgress in pairs(unitBeingBuiltWatch) do
+			local _, progress = Spring.GetUnitIsBeingBuilt(unitID)
+			if progress and progress ~= prevProgress then
+				uniformcache[1] = progress
 				--Spring.Echo("Health", health/maxHealth, build, math.abs(build - health/maxHealth))
 				--if math.abs(build - health/maxHealth) < 0.005 then uniformcache[1] = 1.0 end
 				gl.SetUnitBufferUniforms(unitID,uniformcache, 0)
-				unitBeingBuiltWatch[unitID] = buildProgress
-				if build == 1 then
+				unitBeingBuiltWatch[unitID] = progress
+				if progress == 1 then
 					removeBarFromUnit(unitID, "building", 'unitBeingBuiltWatch')
 					unitBeingBuiltWatch[unitID] = nil
 				else
 					unitBeingBuiltWatch[unitID] = 1.0
 				end
 			end
-
 		end
-
 	end
 
 	-- check capture progress?

@@ -1,14 +1,15 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack, aimy1;
 
-static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
+static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 512
-#define SIGNAL_MOVE 1
-#define SIGNAL_IDLE 8
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			16
+#define SIG_RESTORE			32
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 
 // For N:\animations\raptor_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
@@ -19,7 +20,7 @@ static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #define RUHAND rsack  
 #define LLHAND lsack  //define these as the left and right head thingies
 #define RLHAND rsack  
-#define SIGNAL_MOVE 1
+#define SIG_WALK 64 //these defines are needed before includes!
 #include "raptor_walk_2legged_v2.h"
 
 #define IDLEMOVESCALE 100
@@ -53,31 +54,44 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 }
 
 
-AimFromWeapon1(pieceIndex)
-	{	pieceIndex=head;	}
+AimFromPrimary(piecenum)
+	{	piecenum=head;	}
 
-QueryWeapon1(pieceIndex)
-	{	pieceIndex=head; }
+QueryPrimary(piecenum)
+	{	piecenum=head; }
 
-AimFromWeapon2(pieceIndex)
-	{	pieceIndex=head;	}
+AimFromSecondary(piecenum)
+	{	piecenum=head;	}
 
-QueryWeapon2(pieceIndex)
-	{	pieceIndex=head; }
+QuerySecondary(piecenum)
+	{	piecenum=head; }
 
-AimFromWeapon3(pieceIndex)
-	{	pieceIndex=head;	}
+AimFromTertiary(piecenum)
+	{	piecenum=head;	}
 
-QueryWeapon3(pieceIndex)
-	{	pieceIndex=head; }
+QueryTertiary(piecenum)
+	{	piecenum=head; }
 
 
 
-AimWeapon1(heading,pitch)
+AimPrimary(heading,pitch)
 {
-    signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-
+    signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	//nasty stuff here
+	/* 	while( 255 > heading )
+		{
+			set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
+			heading = heading + 1000;
+			sleep 1;
+		}
+		while( heading > 255 )
+		{
+			set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
+			heading = heading - 1000;
+			sleep 1;
+		}	
+		*/
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
 	turn aimy1 to y-axis heading speed <175>;
@@ -88,10 +102,10 @@ AimWeapon1(heading,pitch)
 	return (1);
 }
 
-AimWeapon2(heading,pitch)
+AimSecondary(heading,pitch)
 	{
-  	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+  	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
@@ -103,10 +117,10 @@ AimWeapon2(heading,pitch)
 	return(1);
 	}
 
-AimWeapon3(heading,pitch)
+AimTertiary(heading,pitch)
 	{
-  	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+  	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;

@@ -2,7 +2,7 @@
 
 ![Discord](https://img.shields.io/discord/225695362004811776)
 
-Open source RTS game built on top of the Spring RTS Engine
+Open source RTS game built on top of the Recoil RTS Engine
 
 ## Where to download
 

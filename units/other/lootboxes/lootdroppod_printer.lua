@@ -70,7 +70,6 @@ return {
 				impulsefactor = 0.1,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				--model = "Lootboxes/lootbox.s3o",
 				name = "Lootbox",
 				range = 59999,
 				reloadtime = 5,

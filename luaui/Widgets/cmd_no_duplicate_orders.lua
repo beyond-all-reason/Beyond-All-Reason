@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "16 April, 2008",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = true
   }
 end
 
@@ -31,7 +31,7 @@ local GetCommandQueue         = Spring.GetCommandQueue
 local GetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local GetUnitPosition         = Spring.GetUnitPosition
 local GiveOrderToUnit         = Spring.GiveOrderToUnit
-local GetUnitHealth           = Spring.GetUnitHealth
+local GetUnitIsBeingBuilt     = Spring.GetUnitIsBeingBuilt
 
 local buildList = {}
 
@@ -46,8 +46,7 @@ function widget:Initialize()
     widget:PlayerChanged()
   end
   for _,unitID in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
-    local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-    if (buildProgress < 1) then widget:UnitCreated(unitID) end    
+    if GetUnitIsBeingBuilt(unitID) then widget:UnitCreated(unitID) end
   end
 end
 

@@ -25,7 +25,6 @@ return {
 		mygravity = 10000,
 		nochasecategory = "ALL",
 		objectname = "pbr_cube.s3o",
-		--script = "dbg_sphere.cob",
 		seismicsignature = 0,
 		selfdestructas = "blank",
 		sightdistance = 550,

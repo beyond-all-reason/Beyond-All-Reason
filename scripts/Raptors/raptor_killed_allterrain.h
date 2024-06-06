@@ -5,7 +5,7 @@ Killed( severity, corpsetype )
 {
 	isDying = TRUE;
 	corpsetype = 1;
-	signal SIGNAL_MOVE;
+	signal SIG_WALK;
 	emit-sfx 1025 from body;
 	if (RAND(0,100) < 33){
 		if (RAND(0,100)<severity) explode body type FALL | NOHEATCLOUD;
@@ -46,8 +46,8 @@ static-var isDying;
 #include "raptor_killed_2legged.h"
 
 StopMoving(){
-	signal SIGNAL_MOVE;
-	isMoving=FALSE;
+	signal SIG_WALK;
+	bMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		start-script Idle();

@@ -11,6 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_INSERT = CMD.INSERT
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -28,7 +29,7 @@ local metalSpotsList
 function gadget:Initialize()
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
-		Spring.Echo(gadget:GetInfo().name, "Metal map detected, removing self")
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
@@ -36,11 +37,20 @@ end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
+	local isInsert = cmdID == CMD_INSERT
+	if isInsert then
+		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
+	end
+
 	if not isMex[-cmdID] then
 		return true
 	end
 
 	local bx, bz = cmdParams[1], cmdParams[3]
+	if isInsert then
+		bx, bz = cmdParams[4], cmdParams[6] -- this is where the cmd position is placed in prepended commands with commandinsert
+	end
+
 	-- We find the closest metal spot to the assigned command position
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 

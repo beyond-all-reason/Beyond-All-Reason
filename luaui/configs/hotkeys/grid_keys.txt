@@ -95,6 +95,9 @@ bind               sc_t  repeat 1
 bind Shift+sc_t,Shift+sc_t  repeat 0
 bind         Shift+sc_t  repeat 1
 
+bind Ctrl+sc_g,Ctrl+sc_g factoryguard 0
+bind           Ctrl+sc_g factoryguard 1
+
 bind           Any+sc_'  togglelos
 bind          Ctrl+sc_t  toggleoverview
 bind           Alt+sc_o  cameraflip

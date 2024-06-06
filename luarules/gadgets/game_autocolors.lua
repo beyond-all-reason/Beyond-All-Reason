@@ -52,6 +52,7 @@ local corRedColor = "#FF1005" -- Cortex Red
 local scavPurpColor = "#6809A1" -- Scav Purple
 local raptorOrangeColor = "#CC8914" -- Raptor Orange
 local gaiaGrayColor = "#7F7F7F" -- Gaia Grey
+local legGreenColor = "#0CE818" -- Legion Green
 
 -- NEW IceXuick Colors V6
 local ffaColors = {
@@ -667,6 +668,7 @@ else -- UNSYNCED
 		scavpurp = scavPurpColor,
 		raptororange = raptorOrangeColor,
 		gaiagray = gaiaGrayColor,
+		leggren = legGreenColor,
 	}
 
 	local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode

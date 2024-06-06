@@ -185,14 +185,6 @@ end
 --  Calls
 --
 
-local function MakeWords(line)
-  local words = {}
-  for w in string.gmatch(line, "[^%s]+") do
-    table.insert(words, w)
-  end
-  return words
-end
-
 
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
   local callInfoList = actionMap[cmd]
@@ -222,11 +214,11 @@ function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
   end
 
   for _, bAction in ipairs(actions) do
-    local bCmd = bAction["command"]
-    local bOpts = bAction["extra"]
-    local words = MakeWords(bOpts)
+    local cmd = bAction["command"]
+    local extra = bAction["extra"]
+    local words = string.split(extra)
 
-    if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press, actions)) then
+    if (TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions)) then
       return true
     end
   end
@@ -236,7 +228,7 @@ end
 
 
 function actionHandler:TextAction(line)
-  local words = MakeWords(line)
+  local words = string.split(line)
   local cmd = words[1]
   if (cmd == nil) then
     return false

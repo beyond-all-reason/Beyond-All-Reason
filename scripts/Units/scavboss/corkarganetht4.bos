@@ -1,27 +1,29 @@
+#define TA			// This is a TA script
 
-#include "../../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  pelvis, rfhip, rfleg, rffoot, lmhip, lmleg, lmfoot, lbhip, lbleg, 
 		lbfoot, lfhip, lfleg, lffoot, rbhip, rbleg, rbfoot, rmhip, rmleg, rmfoot, 
 		turret, shoulder, rlauncher, rbarrel1, flare1, rbarrel2, flare3, llauncher,
 		lbarrel1, flare2, lbarrel2, flare4, aacover, aimy1, aimx1; 
 
-static-var  isMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
+static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_MOVE 1
+#define SIG_AIM				2
+#define SIG_WALK		4
 
 
 Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	if (isMoving) { //Frame:6
-			turn lbfoot to z-axis <-11.433307> speed <707.0> / animSpeed; //delta=-23.57 
+	if (bMoving) { //Frame:6
+			turn lbfoot to z-axis <-11.433307> speed <707.000778> / animSpeed; //delta=-23.57 
 			turn lbhip to y-axis <-0.286453> speed <1358.593628> / animSpeed; //delta=-45.29 
 			turn lbleg to z-axis <-9.263622> speed <517.908622> / animSpeed; //delta=17.26 
 			turn lffoot to z-axis <-59.009843> speed <510.295249> / animSpeed; //delta=17.01 
 			turn lfhip to y-axis <-55.078676> speed <152.360278> / animSpeed; //delta=-5.08 
 			turn lfleg to z-axis <16.273923> speed <38.217675> / animSpeed; //delta=-1.27 
-			turn llauncher to y-axis <0.0> speed <149.999996> / animSpeed; //delta=-5.00 
+			turn llauncher to y-axis <0.000000> speed <149.999996> / animSpeed; //delta=-5.00 
 			turn lmfoot to z-axis <-52.301176> speed <219.035253> / animSpeed; //delta=7.30 
 			turn lmhip to y-axis <19.631905> speed <588.957155> / animSpeed; //delta=19.63 
 			turn lmleg to z-axis <22.155638> speed <214.669123> / animSpeed; //delta=-7.16 
@@ -35,11 +37,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmhip to y-axis <21.942801> speed <658.284019> / animSpeed; //delta=21.94 
 			turn rmleg to z-axis <-20.320197> speed <159.605897> / animSpeed; //delta=5.32 
 			turn shoulder to x-axis <-0.099338> speed <6.221768> / animSpeed; //delta=0.21 
-			turn turret to z-axis <0.400000> speed <12.0> / animSpeed; //delta=-0.40 
+			turn turret to z-axis <0.400000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 	}
-	while(isMoving) {
-		if (isMoving) { //Frame:11
+	while(bMoving) {
+		if (bMoving) { //Frame:11
 			turn lbfoot to z-axis <-19.620212> speed <245.607139> / animSpeed; //delta=8.19 
 			turn lbhip to y-axis <-3.589625> speed <99.095164> / animSpeed; //delta=-3.30 
 			turn lbleg to z-axis <2.135972> speed <341.987802> / animSpeed; //delta=-11.40 
@@ -61,11 +63,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmhip to y-axis <17.904151> speed <121.159496> / animSpeed; //delta=-4.04 
 			turn rmleg to z-axis <-17.605352> speed <81.445344> / animSpeed; //delta=-2.71 
 			turn shoulder to x-axis <0.233542> speed <9.986381> / animSpeed; //delta=-0.33 
-			turn turret to z-axis <0.800000> speed <12.0> / animSpeed; //delta=-0.40 
-			turn turret to y-axis <0.500000> speed <15.0> / animSpeed; //delta=0.50 
+			turn turret to z-axis <0.800000> speed <12.000000> / animSpeed; //delta=-0.40 
+			turn turret to y-axis <0.500000> speed <15.000000> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:16
+		if (bMoving) { //Frame:16
 			turn lbfoot to z-axis <-23.720323> speed <123.003340> / animSpeed; //delta=4.10 
 			turn lbhip to y-axis <-2.043328> speed <46.388903> / animSpeed; //delta=1.55 
 			turn lbleg to z-axis <3.558429> speed <42.673707> / animSpeed; //delta=-1.42 
@@ -88,11 +90,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmhip to y-axis <13.865500> speed <121.159522> / animSpeed; //delta=-4.04 
 			turn rmleg to z-axis <-14.890504> speed <81.445447> / animSpeed; //delta=-2.71 
 			turn shoulder to x-axis <0.566421> speed <9.986382> / animSpeed; //delta=-0.33 
-			turn turret to z-axis <1.200000> speed <12.0> / animSpeed; //delta=-0.40 
-			turn turret to y-axis <1.0> speed <15.0> / animSpeed; //delta=0.50 
+			turn turret to z-axis <1.200000> speed <12.000000> / animSpeed; //delta=-0.40 
+			turn turret to y-axis <1.000000> speed <15.000000> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:21
+		if (bMoving) { //Frame:21
 			turn lbfoot to z-axis <-16.492328> speed <216.839843> / animSpeed; //delta=-7.23 
 			turn lbhip to y-axis <4.397770> speed <193.232954> / animSpeed; //delta=6.44 
 			turn lbleg to z-axis <-3.138384> speed <200.904367> / animSpeed; //delta=6.70 
@@ -116,11 +118,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-10.295626> speed <137.846348> / animSpeed; //delta=-4.59 
 			turn shoulder to x-axis <1.260909> speed <20.834635> / animSpeed; //delta=-0.69 
 			move turret to y-axis [0.737093] speed [7.500000] / animSpeed; //delta=-0.25 
-			turn turret to x-axis <1.0> speed <30.0> / animSpeed; //delta=-1.00 
-			turn turret to z-axis <1.600000> speed <12.0> / animSpeed; //delta=-0.40 
+			turn turret to x-axis <1.000000> speed <30.000000> / animSpeed; //delta=-1.00 
+			turn turret to z-axis <1.600000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:26
+		if (bMoving) { //Frame:26
 			turn lbfoot to z-axis <-21.852251> speed <160.797679> / animSpeed; //delta=5.36 
 			turn lbhip to y-axis <9.133693> speed <142.077676> / animSpeed; //delta=4.74 
 			turn lbleg to z-axis <0.557655> speed <110.881171> / animSpeed; //delta=-3.70 
@@ -144,11 +146,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-5.700750> speed <137.846272> / animSpeed; //delta=-4.59 
 			turn shoulder to x-axis <1.955397> speed <20.834636> / animSpeed; //delta=-0.69 
 			move turret to y-axis [0.487093] speed [7.500000] / animSpeed; //delta=-0.25 
-			turn turret to x-axis <2.0> speed <30.0> / animSpeed; //delta=-1.00 
-			turn turret to z-axis <2.0> speed <12.0> / animSpeed; //delta=-0.40 
+			turn turret to x-axis <2.000000> speed <30.000000> / animSpeed; //delta=-1.00 
+			turn turret to z-axis <2.000000> speed <12.000000> / animSpeed; //delta=-0.40 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:31
+		if (bMoving) { //Frame:31
 			turn lbfoot to z-axis <-27.212181> speed <160.797884> / animSpeed; //delta=5.36 
 			turn lbhip to y-axis <13.869614> speed <142.077651> / animSpeed; //delta=4.74 
 			turn lbleg to z-axis <4.253695> speed <110.881171> / animSpeed; //delta=-3.70 
@@ -177,7 +179,7 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn turret to y-axis <0.750000> speed <7.499999> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:36
+		if (bMoving) { //Frame:36
 			turn lbfoot to z-axis <-32.231116> speed <150.568071> / animSpeed; //delta=5.02 
 			turn lbhip to y-axis <18.620540> speed <142.527777> / animSpeed; //delta=4.75 
 			turn lbleg to z-axis <7.895835> speed <109.264222> / animSpeed; //delta=-3.64 
@@ -201,12 +203,12 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-8.108981> speed <36.123475> / animSpeed; //delta=1.20 
 			turn shoulder to x-axis <1.303305> speed <28.903882> / animSpeed; //delta=0.96 
 			move turret to y-axis [0.737093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to x-axis <1.0> speed <14.999998> / animSpeed; //delta=0.50 
-			turn turret to z-axis <1.0> speed <14.999998> / animSpeed; //delta=0.50 
+			turn turret to x-axis <1.000000> speed <14.999998> / animSpeed; //delta=0.50 
+			turn turret to z-axis <1.000000> speed <14.999998> / animSpeed; //delta=0.50 
 			turn turret to y-axis <0.500000> speed <7.499999> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:41
+		if (bMoving) { //Frame:41
 			turn lbfoot to z-axis <-37.250062> speed <150.568378> / animSpeed; //delta=5.02 
 			turn lbhip to y-axis <23.371466> speed <142.527777> / animSpeed; //delta=4.75 
 			turn lbleg to z-axis <11.537976> speed <109.264235> / animSpeed; //delta=-3.64 
@@ -230,12 +232,12 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-15.132289> speed <210.699255> / animSpeed; //delta=7.02 
 			turn shoulder to x-axis <0.339843> speed <28.903883> / animSpeed; //delta=0.96 
 			move turret to y-axis [0.862093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to x-axis <0.500000> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to z-axis <0.500000> speed <15.0> / animSpeed; //delta=0.50 
+			turn turret to x-axis <0.500000> speed <15.000001> / animSpeed; //delta=0.50 
+			turn turret to z-axis <0.500000> speed <15.000001> / animSpeed; //delta=0.50 
 			turn turret to y-axis <0.250000> speed <7.500001> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:46
+		if (bMoving) { //Frame:46
 			turn lbfoot to z-axis <-55.477911> speed <546.835463> / animSpeed; //delta=18.23 
 			turn lbhip to y-axis <32.066164> speed <260.840929> / animSpeed; //delta=8.69 
 			turn lbleg to z-axis <21.041351> speed <285.101223> / animSpeed; //delta=-9.50 
@@ -258,12 +260,12 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-22.155599> speed <210.699281> / animSpeed; //delta=7.02 
 			turn shoulder to x-axis <-0.099338> speed <13.175412> / animSpeed; //delta=0.44 
 			move turret to y-axis [0.987093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to x-axis <-0.0> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to z-axis <-0.0> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to y-axis <0.0> speed <7.500001> / animSpeed; //delta=-0.25 
+			turn turret to x-axis <-0.000000> speed <15.000001> / animSpeed; //delta=0.50 
+			turn turret to z-axis <-0.000000> speed <15.000001> / animSpeed; //delta=0.50 
+			turn turret to y-axis <0.000000> speed <7.500001> / animSpeed; //delta=-0.25 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:51
+		if (bMoving) { //Frame:51
 			turn lbfoot to z-axis <-73.705760> speed <546.835463> / animSpeed; //delta=18.23 
 			turn lbhip to y-axis <40.760861> speed <260.840929> / animSpeed; //delta=8.69 
 			turn lbleg to z-axis <30.544722> speed <285.101146> / animSpeed; //delta=-9.50 
@@ -285,11 +287,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmhip to y-axis <-14.435069> speed <155.904942> / animSpeed; //delta=5.20 
 			turn rmleg to z-axis <-8.632600> speed <405.689954> / animSpeed; //delta=-13.52 
 			turn shoulder to x-axis <0.233542> speed <9.986381> / animSpeed; //delta=-0.33 
-			turn turret to z-axis <-0.500000> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to y-axis <-0.500000> speed <15.0> / animSpeed; //delta=-0.50 
+			turn turret to z-axis <-0.500000> speed <15.000000> / animSpeed; //delta=0.50 
+			turn turret to y-axis <-0.500000> speed <15.000000> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:56
+		if (bMoving) { //Frame:56
 			turn lbfoot to z-axis <-62.879527> speed <324.786970> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <35.868021> speed <146.785205> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <20.962242> speed <287.474415> / animSpeed; //delta=9.58 
@@ -312,11 +314,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmhip to y-axis <-9.238234> speed <155.905044> / animSpeed; //delta=5.20 
 			turn rmleg to z-axis <4.890399> speed <405.689980> / animSpeed; //delta=-13.52 
 			turn shoulder to x-axis <0.566421> speed <9.986382> / animSpeed; //delta=-0.33 
-			turn turret to z-axis <-1.0> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to y-axis <-1.0> speed <15.0> / animSpeed; //delta=-0.50 
+			turn turret to z-axis <-1.000000> speed <15.000000> / animSpeed; //delta=0.50 
+			turn turret to y-axis <-1.000000> speed <15.000000> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:61
+		if (bMoving) { //Frame:61
 			turn lbfoot to z-axis <-52.053292> speed <324.787072> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <30.975181> speed <146.785205> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <11.379754> speed <287.474620> / animSpeed; //delta=9.58 
@@ -340,11 +342,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <18.413399> speed <405.690006> / animSpeed; //delta=-13.52 
 			turn shoulder to x-axis <1.260909> speed <20.834635> / animSpeed; //delta=-0.69 
 			move turret to y-axis [0.737093] speed [7.500000] / animSpeed; //delta=-0.25 
-			turn turret to z-axis <-1.500000> speed <15.0> / animSpeed; //delta=0.50 
-			turn turret to y-axis <-1.500000> speed <15.0> / animSpeed; //delta=-0.50 
+			turn turret to z-axis <-1.500000> speed <15.000001> / animSpeed; //delta=0.50 
+			turn turret to y-axis <-1.500000> speed <15.000001> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:66
+		if (bMoving) { //Frame:66
 			turn lbfoot to z-axis <-41.227066> speed <324.786765> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <26.082343> speed <146.785154> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <1.797270> speed <287.474543> / animSpeed; //delta=9.58 
@@ -361,18 +363,18 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rbleg to z-axis <-0.557655> speed <110.881056> / animSpeed; //delta=3.70 
 			turn rffoot to z-axis <27.719495> speed <414.600047> / animSpeed; //delta=13.82 
 			turn rfhip to y-axis <37.233601> speed <137.514043> / animSpeed; //delta=-4.58 
-			turn rfleg to z-axis <0.0> speed <341.792963> / animSpeed; //delta=-11.39 
+			turn rfleg to z-axis <0.000000> speed <341.792963> / animSpeed; //delta=-11.39 
 			turn rlauncher to x-axis <3.560510> speed <62.844731> / animSpeed; //delta=-2.09 
 			turn rmfoot to z-axis <36.895797> speed <262.649887> / animSpeed; //delta=-8.75 
 			turn rmhip to y-axis <1.155430> speed <155.904897> / animSpeed; //delta=5.20 
 			turn rmleg to z-axis <15.727199> speed <80.586021> / animSpeed; //delta=2.69 
 			turn shoulder to x-axis <1.955397> speed <20.834636> / animSpeed; //delta=-0.69 
 			move turret to y-axis [0.487093] speed [7.500000] / animSpeed; //delta=-0.25 
-			turn turret to z-axis <-2.0> speed <14.999998> / animSpeed; //delta=0.50 
-			turn turret to y-axis <-2.0> speed <14.999998> / animSpeed; //delta=-0.50 
+			turn turret to z-axis <-2.000000> speed <14.999998> / animSpeed; //delta=0.50 
+			turn turret to y-axis <-2.000000> speed <14.999998> / animSpeed; //delta=-0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:71
+		if (bMoving) { //Frame:71
 			turn lbfoot to z-axis <-30.400834> speed <324.786970> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <21.189504> speed <146.785154> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <-7.785216> speed <287.474568> / animSpeed; //delta=9.58 
@@ -396,11 +398,11 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <11.121329> speed <138.176093> / animSpeed; //delta=4.61 
 			turn shoulder to x-axis <2.266768> speed <9.341144> / animSpeed; //delta=-0.31 
 			move turret to y-axis [0.612093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to z-axis <-1.400000> speed <18.0> / animSpeed; //delta=-0.60 
+			turn turret to z-axis <-1.400000> speed <18.000000> / animSpeed; //delta=-0.60 
 			turn turret to y-axis <-1.500000> speed <14.999998> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:76
+		if (bMoving) { //Frame:76
 			turn lbfoot to z-axis <-19.574595> speed <324.787175> / animSpeed; //delta=-10.83 
 			turn lbhip to y-axis <16.296667> speed <146.785102> / animSpeed; //delta=-4.89 
 			turn lbleg to z-axis <-17.367701> speed <287.474543> / animSpeed; //delta=9.58 
@@ -425,10 +427,10 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn shoulder to x-axis <1.303305> speed <28.903882> / animSpeed; //delta=0.96 
 			move turret to y-axis [0.737093] speed [3.750000] / animSpeed; //delta=0.12 
 			turn turret to z-axis <-0.800000> speed <17.999998> / animSpeed; //delta=-0.60 
-			turn turret to y-axis <-1.0> speed <14.999998> / animSpeed; //delta=0.50 
+			turn turret to y-axis <-1.000000> speed <14.999998> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:81
+		if (bMoving) { //Frame:81
 			turn lbfoot to z-axis <-11.463393> speed <243.336042> / animSpeed; //delta=-8.11 
 			turn lbhip to y-axis <7.359210> speed <268.123737> / animSpeed; //delta=-8.94 
 			turn lbleg to z-axis <-22.712790> speed <160.352676> / animSpeed; //delta=5.35 
@@ -452,17 +454,17 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rmleg to z-axis <-6.902370> speed <402.534894> / animSpeed; //delta=13.42 
 			turn shoulder to x-axis <0.339843> speed <28.903883> / animSpeed; //delta=0.96 
 			move turret to y-axis [0.862093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to z-axis <-0.200000> speed <18.0> / animSpeed; //delta=-0.60 
-			turn turret to y-axis <-0.500000> speed <15.0> / animSpeed; //delta=0.50 
+			turn turret to z-axis <-0.200000> speed <18.000000> / animSpeed; //delta=-0.60 
+			turn turret to y-axis <-0.500000> speed <15.000001> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
-		if (isMoving) { //Frame:86
+		if (bMoving) { //Frame:86
 			turn lbhip to y-axis <-0.286453> speed <229.369876> / animSpeed; //delta=-7.65 
 			turn lbleg to z-axis <-9.263622> speed <403.475052> / animSpeed; //delta=-13.45 
 			turn lffoot to z-axis <-59.009843> speed <349.278935> / animSpeed; //delta=11.64 
 			turn lfhip to y-axis <-55.078676> speed <185.398757> / animSpeed; //delta=-6.18 
 			turn lfleg to z-axis <16.273923> speed <327.226602> / animSpeed; //delta=-10.91 
-			turn llauncher to x-axis <-0.0> speed <20.466714> / animSpeed; //delta=0.68 
+			turn llauncher to x-axis <-0.000000> speed <20.466714> / animSpeed; //delta=0.68 
 			turn lmfoot to z-axis <-52.301176> speed <258.931413> / animSpeed; //delta=8.63 
 			turn lmhip to y-axis <19.631905> speed <169.910245> / animSpeed; //delta=5.66 
 			turn lmleg to z-axis <22.155638> speed <210.699844> / animSpeed; //delta=-7.02 
@@ -475,56 +477,56 @@ Walk() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg
 			turn rffoot to z-axis <3.538001> speed <103.615031> / animSpeed; //delta=3.45 
 			turn rfhip to y-axis <5.639020> speed <270.107826> / animSpeed; //delta=-9.00 
 			turn rfleg to z-axis <6.296090> speed <26.231794> / animSpeed; //delta=-0.87 
-			turn rlauncher to x-axis <-0.0> speed <72.488744> / animSpeed; //delta=2.42 
+			turn rlauncher to x-axis <-0.000000> speed <72.488744> / animSpeed; //delta=2.42 
 			turn rmfoot to z-axis <51.259395> speed <272.281427> / animSpeed; //delta=-9.08 
 			turn rmhip to y-axis <21.942801> speed <173.236530> / animSpeed; //delta=5.77 
 			turn rmleg to z-axis <-20.320197> speed <402.534817> / animSpeed; //delta=13.42 
 			turn shoulder to x-axis <-0.099338> speed <13.175412> / animSpeed; //delta=0.44 
 			move turret to y-axis [0.987093] speed [3.750000] / animSpeed; //delta=0.12 
-			turn turret to z-axis <0.400000> speed <18.0> / animSpeed; //delta=-0.60 
-			turn turret to y-axis <0.0> speed <15.0> / animSpeed; //delta=0.50 
+			turn turret to z-axis <0.400000> speed <18.000001> / animSpeed; //delta=-0.60 
+			turn turret to y-axis <0.000000> speed <15.000001> / animSpeed; //delta=0.50 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from StopMoving()!
+// Call this from MotionControl()!
 StopWalking() {
 	move lbhip to y-axis [-2.366058] speed [-0.835079];
 	move lfhip to y-axis [-2.366060] speed [-0.835080];
 	move lmhip to y-axis [-2.366058] speed [-0.835079];
-	move pelvis to x-axis [0.0] speed [14.447396];
+	move pelvis to x-axis [0.000000] speed [14.447396];
 	move pelvis to y-axis [2.872063] speed [2.400001];
-	move pelvis to z-axis [0.0] speed [14.447396];
+	move pelvis to z-axis [0.000000] speed [14.447396];
 	move rbhip to y-axis [-2.366058] speed [-0.835079];
 	move rfhip to y-axis [-2.366058] speed [-0.835079];
 	move rmhip to y-axis [-2.366058] speed [-0.835079];
-	move turret to y-axis [1.0] speed [1.500000];
-	turn lbfoot to z-axis <-35.0> speed <141.400156>;
-	turn lbhip to y-axis <45.0> speed <271.718726>;
+	move turret to y-axis [1.000000] speed [1.500000];
+	turn lbfoot to z-axis <-35.000000> speed <141.400156>;
+	turn lbhip to y-axis <45.000001> speed <271.718726>;
 	turn lbleg to z-axis <7.999999> speed <103.581724>;
-	turn lffoot to z-axis <-42.0> speed <143.078810>;
-	turn lfhip to y-axis <-50.0> speed <54.021611>;
-	turn lfleg to z-axis <15.0> speed <110.485919>;
-	turn llauncher to x-axis <0.0> speed <7.589404>;
-	turn llauncher to y-axis <5.0> speed <29.999999>;
-	turn lmfoot to z-axis <-45.0> speed <54.456347>;
-	turn lmhip to y-axis <0.0> speed <117.791431>;
-	turn lmleg to z-axis <15.0> speed <81.138047>;
+	turn lffoot to z-axis <-42.000001> speed <143.078810>;
+	turn lfhip to y-axis <-50.000000> speed <54.021611>;
+	turn lfleg to z-axis <15.000000> speed <110.485919>;
+	turn llauncher to x-axis <0.000000> speed <7.589404>;
+	turn llauncher to y-axis <5.000000> speed <29.999999>;
+	turn lmfoot to z-axis <-45.000001> speed <54.456347>;
+	turn lmhip to y-axis <0.000000> speed <117.791431>;
+	turn lmleg to z-axis <15.000000> speed <81.138047>;
 	turn rbfoot to z-axis <29.999997> speed <152.867420>;
-	turn rbhip to y-axis <-45.0> speed <77.602820>;
+	turn rbhip to y-axis <-45.000001> speed <77.602820>;
 	turn rbleg to z-axis <-7.999999> speed <80.695092>;
-	turn rffoot to z-axis <42.0> speed <230.772001>;
-	turn rfhip to y-axis <50.0> speed <266.165882>;
-	turn rfleg to z-axis <-15.0> speed <127.776541>;
-	turn rlauncher to x-axis <0.0> speed <14.497749>;
-	turn rmfoot to z-axis <45.0> speed <54.456285>;
-	turn rmhip to y-axis <0.0> speed <131.656804>;
-	turn rmleg to z-axis <-15.0> speed <81.138001>;
+	turn rffoot to z-axis <42.000001> speed <230.772001>;
+	turn rfhip to y-axis <50.000000> speed <266.165882>;
+	turn rfleg to z-axis <-15.000000> speed <127.776541>;
+	turn rlauncher to x-axis <0.000000> speed <14.497749>;
+	turn rmfoot to z-axis <45.000001> speed <54.456285>;
+	turn rmhip to y-axis <0.000000> speed <131.656804>;
+	turn rmleg to z-axis <-15.000000> speed <81.138001>;
 	turn shoulder to x-axis <0.108055> speed <5.780777>;
 	turn shoulder to y-axis <0.209980> speed <-0.074110>;
-	turn turret to x-axis <0.0> speed <6.0>;
-	turn turret to y-axis <0.0> speed <3.0>;
-	turn turret to z-axis <0.0> speed <3.600000>;
+	turn turret to x-axis <0.000000> speed <6.000000>;
+	turn turret to y-axis <0.000000> speed <3.000000>;
+	turn turret to z-axis <0.000000> speed <3.600000>;
 }
 // REMEMBER TO animspeed = 5 in Create() !!
 UnitSpeed(){
@@ -541,17 +543,48 @@ UnitSpeed(){
 		sleep 164;
 	}
 }
-StartMoving(reversing){
-	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
-	isMoving=TRUE;
+StartMoving(){
+	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
+	bMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIGNAL_MOVE;
-	isMoving=FALSE;
+	signal SIG_WALK;
+	bMoving=FALSE;
 	call-script StopWalking();
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	var Func_Var_4;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+	
+			emit-sfx smoketype from turret;
+
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
 }
 
 
@@ -561,7 +594,27 @@ StopMoving(){
 #define UNITSIZE 10
 #define MAXTILT 100
 
-#include "../../unit_hitbyweaponid_and_smoke.h"
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+}
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	return (100); //return damage percent
+}
+
 
 Create()
 {
@@ -572,75 +625,83 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	gun_1 = 1;
-	isMoving = FALSE;
-	isAiming = FALSE;
+	bMoving = FALSE;
+	bAiming = FALSE;
 	animSpeed = 4;
 	wpnheading  = 0;
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	start-script SmokeUnit();
 	return (0);
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = turret;
+	return (0);
+}
 
-
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare1;
+		piecenum = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		pieceIndex = flare2;
+		piecenum = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		pieceIndex = flare3;
+		piecenum = flare3;
 	}
 	if( gun_1 == 4 )
 	{
-		pieceIndex = flare4;
+		piecenum = flare4;
 
 	}
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = aimy1;
+	piecenum = aimy1;
 	return (0);
 }
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIG_AIM;
 	sleep 3000;
 	turn aimx1 to x-axis <0> speed <80>;
 	turn aimy1 to y-axis <0> speed <80>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	isAiming = FALSE;
+	bAiming = FALSE;
 	wpnheading  = 0;
 }
 
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	if (isAiming == 1) return;
-	turn aimy1 to y-axis heading speed <85.0>;
-	turn aimx1 to x-axis <0.0> - pitch speed <85.0>;
+	signal SIG_AIM;
+	if (bAiming == 1) return;
+	turn aimy1 to y-axis heading speed <85.00000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 2000){
-		isAiming = 1;
+		bAiming = 1;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		isAiming = 0;
+		bAiming = 0;
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	if( gun_1 == 1 )
 	{
@@ -678,8 +739,8 @@ FireWeapon1()
 
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	signal SIGNAL_MOVE;
-	signal SIGNAL_AIM1;
+	signal SIG_WALK;
+	signal SIG_AIM;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;
@@ -693,6 +754,7 @@ DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\co
 			turn lfhip to y-axis <-38.463640> speed <44.341702> ; //delta=13.30 
 			turn lfleg to z-axis <-36.009560> speed <92.906797> ; //delta=27.87 
 			turn llauncher to x-axis <-13.992956> speed <46.643188> ; //delta=13.99 
+			//explode lmfoot type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lmfoot;
 			turn lmhip to y-axis <-1.461104> speed <2.835061> ; //delta=-0.85 
 			turn lmleg to z-axis <9.584743> speed <8.508384> ; //delta=2.55 
@@ -710,8 +772,11 @@ DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\co
 			turn rffoot to z-axis <38.762194> speed <102.834008> ; //delta=-30.85 
 			turn rfhip to y-axis <41.576885> speed <24.260957> ; //delta=-7.28 
 			turn rfleg to z-axis <28.496495> speed <94.889257> ; //delta=-28.47 
+			//explode rlauncher type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rlauncher;
+			//explode rbarrel2 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbarrel2;
+			//explode rbarrel1 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbarrel1;
 			turn rmhip to y-axis <-4.037522> speed <27.445978> ; //delta=-8.23 
 			turn rmleg to z-axis <29.673303> speed <194.153022> ; //delta=-58.25 
@@ -984,8 +1049,8 @@ DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\co
 			move llauncher to z-axis [2.691125] speed [7.572222] ; //delta=-0.76 
 			move llauncher to y-axis [-6.809508] speed [16.108060] ; //delta=1.61 
 			move pelvis to y-axis [-14.204828] speed [1.600599] ; //delta=-0.16 
-			turn pelvis to x-axis <-0.0> speed <2.386064> ; //delta=0.24 
-			turn pelvis to z-axis <-0.0> speed <4.246612> ; //delta=0.42 
+			turn pelvis to x-axis <-0.000000> speed <2.386064> ; //delta=0.24 
+			turn pelvis to z-axis <-0.000000> speed <4.246612> ; //delta=0.42 
 			turn rbfoot to z-axis <71.858617> speed <86.024184> ; //delta=-8.60 
 			turn rbleg to z-axis <14.443630> speed <53.924924> ; //delta=5.39 
 			move rffoot to x-axis [0.457422] speed [1.166426] ; //delta=0.12 

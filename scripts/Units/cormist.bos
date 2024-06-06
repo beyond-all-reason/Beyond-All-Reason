@@ -1,13 +1,31 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  flare1, flare2, base, gun, turret, exhaust;
 
-static-var  gun_1, restore_delay;
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+	}
+	sleep 22;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+	}
+	sleep 20;
+}
 
 
 #define BASEPIECE base
@@ -15,47 +33,63 @@ static-var  gun_1, restore_delay;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
-#define RECOIL_POWER 5000
-#include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.10>
-#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+#include "unit_hitbyweaponid_and_smoke.h"
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
 	hide flare2;
 	hide exhaust;
 	hide flare1;
-	gun_1 = 0;
-	call-script TB_Init();
-}
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	START_TILTBANK;
-}
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	gun_1 = flare1;
+	call-script InitState();
 }
 
 Activate()
 {
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	start-script RequestState(1);
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -64,10 +98,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.0> speed <90.021978>;
-	turn gun to x-axis <0.0> speed <50.010989>;
+	turn turret to y-axis <0.000000> speed <90.021978>;
+	turn gun to x-axis <0.000000> speed <50.010989>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
+	start-script RequestState(1);
 }
 SetStunned(State)
 {
@@ -82,35 +117,59 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	start-script RequestState(0);
 	turn turret to y-axis heading speed <250.060440>;
-	turn gun to x-axis <0.0> - pitch speed <150.032967>;
+	turn gun to x-axis <0.000000> - pitch speed <150.032967>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
-	emit-sfx 1024 + 0 from exhaust;
+	if( gun_1 == 0 )
+	{
+		emit-sfx 1024 + 0 from exhaust;
+		show flare1;
+		sleep 150;
+		hide flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		emit-sfx 1024 + 0 from exhaust;
+		show flare2;
+		sleep 150;
+		hide flare2;
+	}
 	gun_1 = !gun_1;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = gun;
+	piecenum = gun;
 }
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare1 + gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flare2;
+	}
 }
 
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {
@@ -120,6 +179,9 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode exhaust type BITMAPONLY | NOHEATCLOUD;
+		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -128,6 +190,9 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode exhaust type FALL | NOHEATCLOUD;
+		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -136,11 +201,17 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type SMOKE | FALL | NOHEATCLOUD;
+		//explode exhaust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode exhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -1,28 +1,35 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2;
 
-static-var  Stunned, oldHead;
+static-var  Static_Var_1, oldHead;
+static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
+#define SIG_MOVE			2
 
-#define SIGNAL_AIM2 512
+#define SIG_AIM_2			4
+
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
 
 
+#define BASEPIECE base
+#define HITSPEED <10.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 8
+#define MAXTILT 200
 
-#define RB_MASS 40
-#define RB_LENGTH 8
-#define RB_WIDTH 3
-#define RB_PITCH_ACCELERATION 10
-#define RB_ROLL_ACCELERATION 8
-#define RB_WAKE_PIECE wake1
-#define RB_WAKE_CEG 1024 + 1
-#define RB_BOWSPLASH_PIECE wake2
-#define RB_BOWSPLASH_CEG 1024 + 2
-
-#include "../bar_ships_common.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -32,6 +39,27 @@ Lights()
 		    emit-sfx 1024 + 0 from blink;
 		}
 		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.11> )
+		{
+			rockSpeed = <1.25> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*2;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
 	}
 }
 
@@ -44,7 +72,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.0>;
+	spin radar around y-axis speed <0.000000>;
 	return (0);
 }
 
@@ -84,11 +112,12 @@ Create()
 	hide blink;
 	hide antiflare;
 	hide ground;
-
-	start-script InitRockBoat();
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script BoatPhysics();
-	start-script Activate();
+	Static_Var_1 = 0;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
 }
 
 Activate()
@@ -102,23 +131,55 @@ Deactivate()
 	start-script Stop();
 }
 
-
-StartMoving(reversing)
+waveSplash()
 {
+	while( TRUE )
+	{
+		turn base to x-axis <-1.0> speed <1.0>;
+		move base to y-axis [0.23] speed [0.17];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <1.0>;
+		move base to y-axis [0.0] speed [0.17];
+		wait-for-turn base around x-axis;
+	}
+}
 
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from wake1;
+		if (bowtime) emit-sfx 1024 + 2 from wake2;
+        bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 12000 / waketime;
+	}
 }
 
 StopMoving()
 {
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <1.0>;
+	move base to y-axis [0.0] speed [0.17];
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
-
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
 
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
 	move dtl to x-axis [-10] speed [5];
 	move dbl to x-axis [-10] speed [5];
 	move dtr to x-axis [10] speed [5];
@@ -128,19 +189,19 @@ AimWeapon1(heading, pitch)
 	return(1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 150;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = antiflare;
+	piecenum = antiflare;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = antiflare;
+	piecenum = antiflare;
 }
 
 Killed(severity, corpsetype)
@@ -150,12 +211,20 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoemit2 type BITMAPONLY | NOHEATCLOUD;
+		//explode door1 type BITMAPONLY | NOHEATCLOUD;
+		//explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type BITMAPONLY | NOHEATCLOUD;
+		//explode antiflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode antiflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -163,10 +232,21 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoemit1 type SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door1 type BITMAPONLY | NOHEATCLOUD;
+		//explode radar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type BITMAPONLY | NOHEATCLOUD;
+		//explode antiflare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode nanoemit2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode radar type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode antiflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

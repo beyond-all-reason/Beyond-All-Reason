@@ -4,8 +4,8 @@ local function selfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
 	Constructing = {}
 	--Constructing[scav] = false
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(scav)
-	if buildProgress == 1 then
+	local inProgress = Spring.GetUnitIsBeingBuilt(scav)
+	if not inProgress then
 		if selfdx[scav] then
 			oldselfdx[scav] = selfdx[scav]
 		end

@@ -18,17 +18,22 @@ COB_HEADER_FIELDS = (
 	"OffsetToNamesArray",
 )
 
+COB_TAK_HEADER_FIELDS = (
+	"OffsetToSoundNameArray",
+	"NumberOfSounds"
+)
+
 
 
 class COB(object):
 
 	def write_strings(self, strings):
 		offsets = []
-		content = b""
+		content = ""
 		for s in strings:
 			offsets.append(self._offset)
 			s += '\0'
-			content += s.encode('utf-8')
+			content += s
 			self._offset += len(s)
 
 		return offsets, content
@@ -39,7 +44,7 @@ class COB(object):
 		for code in functions_code_array:
 			self._content += code
 			code_offsets.append(code_offset)
-			code_offset += len(code) // 4
+			code_offset += len(code) / 4
 			self._offset += len(code)
 
 		return code_offsets
@@ -52,17 +57,20 @@ class COB(object):
 			self._offset += len(array) * 4
 
 	def __init__(self, function_names, functions_code, piece_names, static_vars, sound_names):
-		self._content = b""
+		self._content = ""
+		is_tak = len(sound_names) > 0
 		header = {
-			"VersionSignature"                  : 4,
+			"VersionSignature"                  : is_tak and 6 or 4,
 			"NumberOfScripts"                   : len(function_names),
 			"NumberOfPieces"                    : len(piece_names),
-			"TotalScriptLen"                    : sum(len(c) for c in functions_code.values()) // 4,
+			"TotalScriptLen"                    : sum(len(c) for c in functions_code.values()) / 4,
 			"NumberOfStaticVars"                : len(static_vars),
 			"Unknown_2"                         : 0,
 			"NumberOfSounds"                    : len(sound_names)
 		}
 		self._offset = len(COB_HEADER_FIELDS) * 4
+		if is_tak:
+			self._offset += len(COB_TAK_HEADER_FIELDS) * 4
 
 		header['OffsetToScriptCode'] = self._offset
 
@@ -89,7 +97,8 @@ class COB(object):
 		self.write_array(piece_name_offsets)
 
 		self.write_array(tuple(header[n] for n in COB_HEADER_FIELDS), True)
-
+		if is_tak:
+			self.write_array(tuple(header[n] for n in COB_TAK_HEADER_FIELDS), True)
 		self._content += script_name_content + piece_name_content
 
 	def get_content(self):

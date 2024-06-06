@@ -1,21 +1,45 @@
+#define TA			// This is a TA script
 
-#include "../../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, tube, door1, door2, flare1, flare2, flare3, aimpoint;
 
-static-var  isOpen, restore_delay, firepoint;
+static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, firepoint;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-
-#include "../../opencloseanim.h"
+#define SIG_AIM				2
 
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../../unit_hitbyweaponid_and_smoke.h"
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
 
-Open()
+
+Go()
 {
 	set ARMORED to 0;
 	
@@ -26,14 +50,14 @@ Open()
 	turn door2 to x-axis <0> speed <300>;
 	wait-for-turn door2 around x-axis;
 	
-	isOpen = 1;
+	Static_Var_1 = 1;
 }
 
-Close()
+Stop()
 {
 	set ARMORED to 1;
-	isOpen = 0;
-	turn tube to y-axis <0.0> speed <300.0>;
+	Static_Var_1 = 0;
+	turn tube to y-axis <0.000000> speed <300.000000>;
 	wait-for-turn tube around y-axis;
 	
 	turn door1 to x-axis <-90> speed <300>;
@@ -43,6 +67,37 @@ Close()
 	wait-for-move tube along y-axis;
 }
 
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
@@ -51,28 +106,33 @@ Create()
 	hide flare2;
 	hide flare1;
 	restore_delay = 2000;
-	isOpen = 0;
-	start-script OpenCloseAnim(1);
-	SLEEP_UNTIL_UNITFINISHED;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script RequestState(0);
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
 	
 	firepoint = 0;
 	
-	start-script OpenCloseAnim(0);
+	start-script SmokeUnit();
+	start-script RequestState(1);
 }
 
 Activate()
 {
-	start-script OpenCloseAnim(1);
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script OpenCloseAnim(0);
+	start-script RequestState(1);
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 3;
+	restore_delay = Func_Var_1 * 3;
 }
 
 static-var  Stunned;
@@ -82,7 +142,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script OpenCloseAnim(0);
+	start-script RequestState(1);
 }
 SetStunned(State)
 {
@@ -97,17 +157,17 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	start-script OpenCloseAnim(1);
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	while( !isOpen )
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
 	{
 		sleep 100;
 	}
 	// dont need turn
-	//turn post to y-axis heading speed <300.0>;
+	//turn post to y-axis heading speed <300.000000>;
 	//wait-for-turn post around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -118,24 +178,27 @@ Shot1()
 	return (TRUE);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	firepoint = firepoint + 1;
 	if (firepoint >= 3) firepoint = 0;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	if (firepoint == 0 ) pieceIndex = flare1;
-	if (firepoint == 1 ) pieceIndex = flare2;
-	if (firepoint == 2 ) pieceIndex = flare3;
+	if (firepoint == 0 ) piecenum = flare1;
+	if (firepoint == 1 ) piecenum = flare2;
+	if (firepoint == 2 ) piecenum = flare3;
 }
 
-
-
-AimFromWeapon1(pieceIndex)
+SweetSpot(piecenum)
 {
-	pieceIndex = aimpoint;
+	piecenum = base;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = aimpoint;
 }
 
 Killed(severity, corpsetype)

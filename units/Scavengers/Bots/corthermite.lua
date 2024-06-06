@@ -18,6 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 15000,
+		mass = 150000,
 		maxslope = 50,
 		speed = 42.3,
 		maxwaterdepth = 60,
@@ -50,18 +51,13 @@ return {
 				collisionvolumescales = "64.3684997559 30.844833374 66.5386505127",
 				collisionvolumetype = "Box",
 				damage = 10000,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 10,
-				hitdensity = 100,
 				metal = 1523,
 				object = "Units/scavboss/corthermite_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 			heap = {
 				blocking = false,
@@ -69,17 +65,12 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 5000,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 3,
 				footprintz = 3,
-				hitdensity = 100,
 				metal = 909,
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "all",
 			},
 		},
 		sfxtypes = {
@@ -141,7 +132,8 @@ return {
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "heatray2",
+				soundstart = "heatray1s",
+				soundstartvolume = 70,
 				soundtrigger = 1,
 				targetmoveerror = 0,
 				thickness = 6,
@@ -150,11 +142,11 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 3000,
-					vtol = 750,
+					default = 2000,
+					vtol = 550,
 				},
 			},
-			
+
 			tmaw = {
 				accuracy = 700,
 				areaofeffect = 128,
@@ -176,7 +168,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flameGFXTime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
@@ -201,7 +192,7 @@ return {
 					subs = 10,
 				}
 			},
-			
+
 		},
 		weapons = {
 			[1] = {

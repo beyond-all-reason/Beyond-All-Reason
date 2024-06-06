@@ -25,7 +25,7 @@ local gun_1 = 0
 local dmgPieces = { piece "turret" }
 
 -- Signal definitions
-local SIGNAL_AIM1 = 1
+local SIG_AIM = 1
 
 -- includes
 	include "dmg_smoke.lua"
@@ -48,9 +48,9 @@ function script.Create()
 end
 
 function script.AimWeapon1(heading, pitch)
-	Signal( SIGNAL_AIM1)
-	SetSignalMask( SIGNAL_AIM1)
-	Turn( turret , y_axis, heading, math.rad(15.0) )
+	Signal( SIG_AIM)
+	SetSignalMask( SIG_AIM)
+	Turn( turret , y_axis, heading, math.rad(15.000000) )
 	Turn( spindle , x_axis,(math.rad(60.005495) * gun_1) - pitch, math.rad(200.038462) )
 	--Spring.Echo(gun_1,gun_1*60)
 	WaitForTurn(turret, y_axis)
@@ -60,53 +60,53 @@ end
 
 function script.FireWeapon1()
 	if  gun_1 == 0  then
-		Move(barrel1 , z_axis, -6.0, 9000  )
+		Move(barrel1 , z_axis, -6.000000, 9000  )
 		EmitSfx( flare1,  1024 + 0 )
 		Sleep( 100)
-		Move( barrel1 , z_axis, 0.0 , 6.0 )
+		Move( barrel1 , z_axis, 0.000000 , 6.000000 )
 	end
 	if  gun_1 == 1  then
 	
-		Move(barrel2 , y_axis, -5.0  )
-		Move(barrel2 , z_axis, -3.0  )
+		Move(barrel2 , y_axis, -5.000000  )
+		Move(barrel2 , z_axis, -3.000000  )
 		EmitSfx( flare2,  1024 + 0 )
 		Sleep( 100)
-		Move( barrel2 , y_axis, 0.0 , 5.0 )
-		Move( barrel2 , z_axis, 0.0 , 3.0 )
+		Move( barrel2 , y_axis, 0.000000 , 5.000000 )
+		Move( barrel2 , z_axis, 0.000000 , 3.000000 )
 	end
 	if  gun_1 == 2  then
 	
-		Move(barrel3 , y_axis, -5.0  )
-		Move(barrel3 , z_axis, 3.0  )
+		Move(barrel3 , y_axis, -5.000000  )
+		Move(barrel3 , z_axis, 3.000000  )
 		EmitSfx( flare3,  1024 + 0 )
 		Sleep( 100)
-		Move(barrel3 , y_axis, 0.0 , 5.0 )
-		Move(barrel3 , z_axis, 0.0 , 3.0 )
+		Move(barrel3 , y_axis, 0.000000 , 5.000000 )
+		Move(barrel3 , z_axis, 0.000000 , 3.000000 )
 	end
 	if  gun_1 == 3  then
 	
-		Move(barrel4 , z_axis, 6.0  )
+		Move(barrel4 , z_axis, 6.000000  )
 		EmitSfx(flare4,  1024 + 0 )
 		Sleep( 100)
-		Move(barrel4 , z_axis, 0.0 , 6.0 )
+		Move(barrel4 , z_axis, 0.000000 , 6.000000 )
 	end
 	if  gun_1 == 4  then
 	
-		Move( barrel5 , y_axis, 5.0  )
-		Move( barrel5 , z_axis, 3.0  )
+		Move( barrel5 , y_axis, 5.000000  )
+		Move( barrel5 , z_axis, 3.000000  )
 		EmitSfx( flare5,  1024 + 0 )
 		Sleep( 100)
-		Move( barrel5 , y_axis, 0.0 , 5.0 )
-		Move( barrel5 , z_axis, 0.0 , 3.0 )
+		Move( barrel5 , y_axis, 0.000000 , 5.000000 )
+		Move( barrel5 , z_axis, 0.000000 , 3.000000 )
 	end
 	if  gun_1 == 5  then
 	
-		Move( barrel6 , y_axis, 5.0  )
-		Move( barrel6 , z_axis, -3.0  )
+		Move( barrel6 , y_axis, 5.000000  )
+		Move( barrel6 , z_axis, -3.000000  )
 		EmitSfx( flare6,  1024 + 0 )
 		Sleep( 100)
-		Move( barrel6 , y_axis, 0.0 , 5.0 )
-		Move( barrel6 , z_axis, 0.0 , 3.0 )
+		Move( barrel6 , y_axis, 0.000000 , 5.000000 )
+		Move( barrel6 , z_axis, 0.000000 , 3.000000 )
 	end
 	gun_1 = gun_1 + 1
 	if  gun_1 == 6  then
@@ -115,7 +115,7 @@ function script.FireWeapon1()
 	end
 end
 
-function script.QueryWeapon1(pieceIndex)
+function script.QueryWeapon1(piecenum)
 
 	if  gun_1 == 0  then
 	

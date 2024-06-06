@@ -1,13 +1,58 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, drive, emit1, emit2, emit3,emit4;
 
-static-var  resourceRate;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
-#define SIGNAL_TURNON 4
+#define SIG_ACTIVATE			2
 
+
+Go()
+{
+	spin drive around y-axis speed Static_Var_1 accelerate Static_Var_2;
+}
+
+Stop()
+{
+	stop-spin drive around y-axis decelerate Static_Var_3;
+	wait-for-turn drive around y-axis;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
@@ -15,11 +60,23 @@ Create()
 	hide emit2;
 	hide emit4;
 	hide emit1;
-	resourceRate = 0;
+	Static_Var_1 = 0;
+	Static_Var_2 = 91;
+	Static_Var_3 = 182;
+	dont-shade drive;
+	dont-cache drive;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
 }
 
-EmitBubbles()
+Activate()
 {
+	start-script RequestState(0);
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
 	while( TRUE )
 	{
 		emit-sfx 259 from emit1;
@@ -30,25 +87,20 @@ EmitBubbles()
 	}
 }
 
-Activate()
-{
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
-	spin drive around y-axis speed resourceRate accelerate 90;
-	start-script EmitBubbles();
-}
-
 Deactivate()
 {
-	signal SIGNAL_TURNON;
-	stop-spin drive around y-axis decelerate 180;
+	start-script RequestState(1);
+	signal SIG_ACTIVATE;
 }
 
-
-SetSpeed(windOrMetal)
+SweetSpot(piecenum)
 {
-	resourceRate = windOrMetal * 20;
-	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
+	piecenum = base;
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 20;
 }
 
 Killed(severity, corpsetype)

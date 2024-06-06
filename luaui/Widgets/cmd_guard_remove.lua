@@ -12,36 +12,42 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
-VFS.Include("LuaRules/Configs/customcmds.h.lua")
+
+local spGetGameFrame = Spring.GetGameFrame
+local spGetCommandQueue = Spring.GetCommandQueue
 
 local CMD_GUARD = CMD.GUARD
 local CMD_PATROL = CMD.PATROL
-
-local doCommandRemove = false
 
 local removableCommand = {
 	[CMD_GUARD] = true,
 	[CMD_PATROL] = true,
 }
 
+-- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
+-- extreme performance issues by parsing all of those commands. So we track units that have recieved
+-- commands in the last 5 frames and skip any that are touched
+local recentUnits = {}
+local updateTime = 0
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
-function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if not doCommandRemove then
+function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
+
+	if not cmdOpts.shift then
 		return false
 	end
 
-	if not cmdOpts.shift then
-		doCommandRemove = false
+	if recentUnits[unitID] then
 		return false
 	end
 
 	if validUnit[unitDefID] then
-		local cmd = Spring.GetCommandQueue(unitID, -1)
+		recentUnits[unitID] = spGetGameFrame()
+		local cmd = spGetCommandQueue(unitID, 2)
 		if cmd then
 			for c = 1, #cmd do
 				if removableCommand[cmd[c].id] then
@@ -51,12 +57,21 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 		end
 	end
 
-	doCommandRemove = false
 	return false
 end
 
-function widget:KeyPress(key, modifier, isRepeat)
-	if not isRepeat and (key == KEYSYMS.LSHIFT or key == KEYSYMS.RSHIFT) then
-		doCommandRemove = true
+function widget:Update(dt)
+	updateTime = updateTime + dt
+	if updateTime < 0.25 then
+		return
 	end
+
+	-- Clear all recent units that are outside of the time window
+	for i, t in pairs(recentUnits) do
+		if t < spGetGameFrame() - 5 then
+			recentUnits[i] = nil;
+		end
+	end
+
+	updateTime = 0
 end

@@ -2,7 +2,7 @@ local foot1 = piece "foot1"
 local foot2 = piece "foot2"
 local body = piece "body"
 
-local SIGNAL_MOVE = 2
+local SIG_WALK = 2
 
 local tspeed = math.rad (180)
 local ta = math.rad (30)
@@ -15,8 +15,8 @@ local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
 
 function walk()
-	Signal(SIGNAL_MOVE)
-	SetSignalMask(SIGNAL_MOVE)		
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)		
 	while (true) do
 		Turn (foot1, x_axis, ta, tspeed)
 		Turn (foot2, x_axis, -ta, tspeed)
@@ -32,7 +32,7 @@ function walk()
 end
 
 function stopwalk()
-	Signal(SIGNAL_MOVE) --stop the walk thread
+	Signal(SIG_WALK) --stop the walk thread
 	Turn (foot1, x_axis, 0, tspeed)
 	Turn (foot2, x_axis, 0, tspeed)
 	Turn (body, x_axis, math.rad (0), math.rad (45))

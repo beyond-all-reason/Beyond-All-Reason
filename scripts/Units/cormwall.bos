@@ -1,13 +1,15 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, lid, sleeve, flare1, flare2, flare3, flare4, flare5, flare6, flare7;
 
 static-var  restore_delay, deploy_state, animate_speed, close_speed;
 static-var  barrel;
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_TURNON 4
+#define SIG_AIM				2
+#define SIG_DEPLOY			4
 
 static-var  Stunned;
 SetStunned(State)
@@ -21,8 +23,8 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
+	signal SIG_DEPLOY;
+	set-signal-mask SIG_DEPLOY;
 	turn lid to z-axis <0> speed <1>*animate_speed;
 	move sleeve to y-axis [0] speed [0.133]*animate_speed;
 	deploy_state = 0;
@@ -43,19 +45,21 @@ Create()
 	//close_speed = <8.4375>;
 	//close_speed = <27>;
 
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
 	set ARMORED to 1;
 	//start-script RestoreAfterDelay();
 }
 
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Deploy()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
+	signal SIG_DEPLOY;
+	set-signal-mask SIG_DEPLOY;
 	set ARMORED to 0;
 	if (deploy_state==0 OR deploy_state==1)
 	{
@@ -75,10 +79,10 @@ Deploy()
 
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	if (get WEAPON_RELOADSTATE(1) < get GAME_FRAME)
 	{
 		start-script Deploy();
@@ -104,16 +108,19 @@ Shot1()
 
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = barrel;
+	piecenum = barrel;
 }
 
-
-
-AimFromWeapon1(pieceIndex)
+SweetSpot(piecenum)
 {
-	pieceIndex = flare1;
+	piecenum = base;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = flare1;
 }
 
 Killed(severity, corpsetype)

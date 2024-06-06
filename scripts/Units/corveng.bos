@@ -1,9 +1,11 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  missile1, missile2, base, thrust1, thrust2;
 
-static-var  gun_1;
+static-var  Static_Var_2;
 
 
 
@@ -13,7 +15,27 @@ static-var  gun_1;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "air_barrelroll.h"
+
+static-var maxSpeed, currentSpeed;
+BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
+{
+	currentSpeed = (get CURRENT_SPEED);
+	maxSpeed = (get MAX_SPEED);
+	
+	while (TRUE){
+		sleep 2000;
+		currentSpeed = (get CURRENT_SPEED);
+		//get PRINT(maxSpeed, currentSpeed);
+		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
+		{
+			turn base to z-axis <240.054945> speed <120.027473>;
+			wait-for-turn base around z-axis;
+			turn base to z-axis <120.027473> speed <180.043956>;
+			wait-for-turn base around z-axis;
+			turn base to z-axis <0.000000> speed <120.027473>;
+		}
+	}
+}
 
 Create()
 {
@@ -36,37 +58,44 @@ Deactivate()
 	hide thrust2;
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
 	return (1);
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary(Func_Var_1)
 {
-	gun_1 = !gun_1;
+	Static_Var_2 = !Static_Var_2;
+	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = gun_1;
+	piecenum = Static_Var_2;
+	return (0);
 }
 
-FireWeapon2()
+FireSecondary(Func_Var_1)
 {
-	gun_1 = !gun_1;
+	Static_Var_2 = !Static_Var_2;
+	return (0);
 }
 
-QueryWeapon2(pieceIndex)
+QuerySecondary(piecenum)
 {
-	pieceIndex = gun_1;
+	piecenum = Static_Var_2;
+	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

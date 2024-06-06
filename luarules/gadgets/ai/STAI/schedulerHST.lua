@@ -61,8 +61,10 @@ function SchedulerHST:BehavioursScheduler()
 end
 
 SchedulerHST.MScheduler = {
+
+	'EcoHST',
+-- 	'OverviewHST',
 	'LosHST',
-	'OverviewHST',
 	'TargetHST',
 	'DamageHST',
 	'ScoutHST',
@@ -76,6 +78,7 @@ SchedulerHST.BScheduler = {
 	'BootBST',
 	'CommanderBST',
 	'BuildersBST',
+	'EngineerBST',
 	'LabsBST',
 	'ScoutBST',
 	'RaidBST',

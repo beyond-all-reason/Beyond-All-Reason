@@ -13,7 +13,7 @@ local dmgPieces = { piece "base", piece "flare1", piece "flare2" }
 include "dmg_smoke.lua"
 
 --signals
-local SIGNAL_AIM1 = 1
+local SIG_AIM = 1
 
 function script.Create()
 	Hide(flare1)
@@ -41,8 +41,8 @@ function script.AimFromWeapon1()
 end
 
 function script.AimWeapon1( heading, pitch )
-		Signal(SIGNAL_AIM1)
-		SetSignalMask(SIGNAL_AIM1)
+		Signal(SIG_AIM)
+		SetSignalMask(SIG_AIM)
 		Turn(turret, y_axis, heading, math.rad(30.005495))
 		Turn(sleeves, x_axis, -pitch, math.rad(45.005495))
 		WaitForTurn(turret, y_axis)
@@ -55,14 +55,14 @@ function script.FireWeapon1()
 		EmitSfx(flare1, 1024+0)
 		Move (barrel1, z_axis, -1.500000)
 		Sleep (150)
-		Move (barrel1, z_axis, 0.0, 1.0)
+		Move (barrel1, z_axis, 0.000000, 1.000000)
 	end
 	
 	if currBarrel == 2 then
 		EmitSfx(flare2, 1024+0)
 		Move (barrel2, z_axis, -1.500000)
 		Sleep (150)
-		Move (barrel2, z_axis, 0.0, 1.0)
+		Move (barrel2, z_axis, 0.000000, 1.000000)
 	end
 
 	currBarrel = currBarrel + 1

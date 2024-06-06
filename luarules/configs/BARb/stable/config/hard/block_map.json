@@ -41,7 +41,7 @@
 			"offset": [0, 4]
 		},
 		"fac_strider": {                        //t3 factory 9x9
-			"type": ["rectangle", "special"],
+			"type": ["rectangle", "factory"],
 			"size": [9, 9],
 			"yard":[20, 5],
 			"offset": [0, 5],

@@ -12,13 +12,7 @@ if addon.InGetInfo then
 end
 
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
-local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
-if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
-	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
-end
-if not backgroundTexture then
-	backgroundTexture = loadscreens[1]
-end
+local backgroundTexture = loadscreens[math.random(#loadscreens)]
 
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 if string.find(backgroundTexture, "guide") then
@@ -131,6 +125,11 @@ if showTips then
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
 end
 
+if math.random(1,8) == 1 then
+	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
+	randomTip = Spring.I18N('tips.loadscreen.donations')
+end
+
 -- for guishader
 local function CheckHardware()
 	if not (gl.CopyToTexture ~= nil) then
@@ -206,7 +205,7 @@ local borderSize = math.max(1, math.floor(vsy * 0.0027))
 local fontSize = 40
 local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
 local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
-local font2Size = 46
+local font2Size = 45
 local font2 = gl.LoadFont(fontfile2, font2Size*fontScale, (font2Size/4)*fontScale, 1.3)
 
 function DrawStencilTexture()
@@ -431,18 +430,21 @@ function addon.DrawLoadScreen()
 	local posY = posYorg
 
 	-- tip
-	local lineHeight = font2Size * 1.12
+	local tipTextSize = height*0.7
+	local tipTextLineHeight = tipTextSize * 1.17
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
-	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((lineHeight * #tipLines)/vsy)
+	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((tipTextLineHeight * #tipLines)/vsy)
 	if showTips and not showTipBackground and not showTipAboveBar then
 		if #tipLines > 1 then
-			posY = posY + ( (lineHeight*0.75/vsy) * (#tipLines-1) )
+			posY = posY + ( (tipTextLineHeight*0.75/vsy) * (#tipLines-1) )
 			tipPosYtop = posY
 		else
-			tipPosYtop = posY - (lineHeight* 0.2/vsy)
+			tipPosYtop = posY - (tipTextLineHeight* 0.2/vsy)
 		end
 	end
+
+	local barTextSize = height*0.55
 
 	if guishader then
 		if not blurShader then
@@ -587,7 +589,6 @@ function addon.DrawLoadScreen()
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
 		gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
-		local barTextSize = height*0.54
 		font:SetTextColor(0.88,0.88,0.88,1)
 		font:SetOutlineColor(0,0,0,0.85)
 		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
@@ -608,14 +609,13 @@ function addon.DrawLoadScreen()
 		end
 
 		-- tip text
-		local barTextSize = height*0.74
 		gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (tipPosYtop*vsy)-(barTextSize*0.75), 0)
+		gl.Translate(vsx/2, (tipPosYtop*vsy)-(tipTextSize*0.75), 0)
 		font2:SetTextColor(1,1,1,1)
 		font2:SetOutlineColor(0,0,0,0.8)
 		for i,line in pairs(tipLines) do
-			font2:Print(line, 0, -lineHeight*(i-1), barTextSize, "oac")
+			font2:Print(line, 0, -tipTextLineHeight*(i-1), tipTextSize, "oac")
 		end
 		gl.PopMatrix()
 	end

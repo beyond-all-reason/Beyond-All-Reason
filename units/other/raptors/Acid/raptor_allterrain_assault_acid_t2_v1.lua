@@ -61,7 +61,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray", --cob 1024
+				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
@@ -86,7 +86,6 @@ return {
 				burst = 2,
 				burstrate = 0.5,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,

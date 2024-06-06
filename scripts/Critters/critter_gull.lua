@@ -1,4 +1,6 @@
 local wingr = piece "rwing"
+local base = piece "base"
+local flare = piece "flare"
 local wingl = piece "lwing"
 local flapSpeed = math.rad(360)
 local volume 			= 0.5
@@ -47,4 +49,38 @@ function flapWings()
 			lastSound = GetGameFrame ()
 		end]]--
 	end
+end
+
+
+function script.AimFromWeapon1()
+	return flare
+end
+function script.AimFromWeapon2()
+	return flare
+end
+
+function script.QueryWeapon1()
+	return flare
+end
+
+function script.QueryWeapon2()
+	return flare
+end
+
+
+function script.AimWeapon1(heading, pitch)
+	return true
+end
+function script.AimWeapon2(heading, pitch)
+	return true
+end
+
+function script.FireWeapon1()
+	return true
+end
+function script.FireWeapon2()
+	return true
+end
+
+function script.Shot1()
 end

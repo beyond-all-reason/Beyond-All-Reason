@@ -401,12 +401,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local function isComplete(u)
-		local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(u)
-		if buildProgress and buildProgress>=1 then
-			return true
-		else
-			return false
-		end
+		return not Spring.GetUnitIsBeingBuilt(u)
 	end
 
 

@@ -1,12 +1,35 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, flare, launcher, turret, hinge, door;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*5;
+			turn base to z-axis rockAng speed rockSpeed*5;
+			wait-for-turn base around x-axis;
+			wait-for-turn base around z-axis;			
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -14,19 +37,19 @@ static-var  restore_delay;
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
-
-#define WATER_ROCK_UNITSIZE 10
-#include "../floatmotion.h"
 
 
 Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script FloatMotion();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
 }
 
 static-var  Stunned;
@@ -35,8 +58,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.0> speed <90.021978>;
-	turn launcher to x-axis <0.0> speed <50.010989>;
+	turn turret to y-axis <0.000000> speed <90.021978>;
+	turn launcher to x-axis <0.000000> speed <50.010989>;
 
 	turn hinge to x-axis <0> speed <270>;
 
@@ -56,10 +79,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	move door to z-axis [3.5] speed [15];
 	turn hinge to x-axis <75> speed <270>;
 	turn turret to y-axis heading speed <80.016484>;
@@ -70,26 +93,30 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	emit-sfx 256 | 3 from flare;
 	sleep 250;
 	return (0);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = launcher;
+	piecenum = launcher;
 	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 	return (0);
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

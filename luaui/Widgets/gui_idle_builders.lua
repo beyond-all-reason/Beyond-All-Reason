@@ -19,6 +19,7 @@ local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
 local maxGroups = 9
+local showRez = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -34,7 +35,7 @@ local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRe
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFullBuildQueue = Spring.GetFullBuildQueue
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -72,37 +73,48 @@ local existingGroups = {}
 local clicks = {}
 
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
-local qCount = {}
 local idleList = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
 local isBuilder = {}
 local isFactory = {}
+local isResurrector = {}
 local unitHumanName = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
-		isBuilder[unitDefID] = true
-	end
-	if unitDef.isFactory then
-		isFactory[unitDefID] = true
-	end
+local function refreshUnitDefs()
+	isBuilder = {}
+	isFactory = {}
+	isResurrector = {}
+	unitHumanName = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
+			isBuilder[unitDefID] = true
+		end
 
-	if unitDef.translatedHumanName then
-		unitHumanName[unitDefID] = unitDef.translatedHumanName
+		if unitDef.isFactory then
+			isFactory[unitDefID] = true
+		end
+
+		if unitDef.canResurrect then
+			isResurrector[unitDefID] = true
+		end
+
+		if unitDef.translatedHumanName then
+			unitHumanName[unitDefID] = unitDef.translatedHumanName
+		end
 	end
 end
 
 local function isIdleBuilder(unitID)
 	local udef = spGetUnitDefID(unitID)
-	local qCount = 0
-	if isBuilder[udef] then
+
+	if isBuilder[udef] or (showRez and isResurrector[udef]) then
+
 		--- can build
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
 			--- has no build queue
-			local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-			if buildProgress == 1 then
+			if not spGetUnitIsBeingBuilt(unitID) then
 				--- isnt under construction
 				if isFactory[udef] then
 					return true
@@ -113,13 +125,13 @@ local function isIdleBuilder(unitID)
 				end
 			end
 		elseif isFactory[udef] then
+			local qCount = 0
 			for _, thing in ipairs(buildQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count
 				end
 			end
 			if qCount <= nearIdle then
-				qCount[unitID] = qCount
 				return true
 			end
 		end
@@ -169,7 +181,6 @@ local function updateList()
 	end
 
 	idleList = {}
-	qCount = {}
 	local myUnits = spGetTeamUnitsSorted(myTeamID)
 	for unitDefID, units in pairs(myUnits) do
 		if type(units) == 'table' then
@@ -457,6 +468,11 @@ function widget:ViewResize()
 	end
 end
 
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
+end
+
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
@@ -473,6 +489,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	refreshUnitDefs()
 	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()

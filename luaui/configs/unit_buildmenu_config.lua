@@ -73,9 +73,6 @@ local function restrictWindUnits(disable)
 end
 
 local function restrictGeothermalUnits(disable)
-	if disable then
-		Spring.Echo("Restricting Geothermal Power Plants: No vents", disable)
-	end
 	for unitDefID,_ in pairs(isGeothermal) do
 		unitRestricted[unitDefID] = disable
 	end

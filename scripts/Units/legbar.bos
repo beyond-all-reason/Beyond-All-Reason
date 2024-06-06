@@ -1,22 +1,24 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
-piece  base, flare, turret, barrel, sleeve;
+piece  base, tracks, shell, aimy1, turret, aimx1, sleeve, barrel, cover, flare;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.0>;
-	turn base to z-axis <0> - anglez speed <50.0>;
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis <0> - anglez speed <50.000000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.0> speed <20.0>;
-	turn base to x-axis <0.0> speed <20.0>;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
 }
 
 #define BASEPIECE base
@@ -26,17 +28,17 @@ RockUnit(anglex, anglez)
 #define MAXTILT 100
 
 
-StartMoving(reversing)
+StartMoving()
 {
 	turn base to x-axis <-7> speed <11>;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0> speed <11>;
+	turn base to x-axis <0> speed <5>;
 }
 StopMoving()
 {
-	turn base to x-axis <1> speed <5>;
+	turn base to x-axis <2> speed <5>;
 	wait-for-turn base around x-axis;
-	turn base to x-axis <0> speed <5>;
+	turn base to x-axis <0> speed <10>;
 }
 Create()
 {
@@ -45,9 +47,9 @@ Create()
 	restore_delay = 3000;
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = reloadMS * 2;
+	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -57,8 +59,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn turret to y-axis <0.0> speed <90.0>;
-	turn sleeve to x-axis <0.0> speed <50.0>;
+	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	turn aimx1 to x-axis <0.000000> speed <50.000000>;
 }
 SetStunned(State)
 {
@@ -71,39 +73,60 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+	start-script undeploy();
 }
 
-AimWeapon1(heading, pitch)
+deploy()
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <90.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+	move turret to y-axis [4] speed [10];
+	move barrel to z-axis [5] speed [7.5];
+	turn cover to x-axis <160> speed <200>;
+}
+
+undeploy()
+{
+	move turret to y-axis [0] speed [5];
+	move barrel to z-axis [0] speed [15];
+	turn cover to x-axis <0> speed <400>;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	start-script deploy();
+	turn aimy1 to y-axis heading speed <90.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimx1 around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.0];
+	move barrel to z-axis [2.500000] speed [500.000000];
+	turn cover to x-axis <100> speed <500>;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.0] speed [3.0];
+	move barrel to z-axis [5.000000] speed [3.000000];
+	turn cover to x-axis <160> speed <150>;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = sleeve;
+	piecenum = aimx1;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flare;
+	piecenum = flare;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {
@@ -112,9 +135,9 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		
+		//explode shell type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -122,9 +145,9 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
-		explode sleeve type FALL | NOHEATCLOUD;
+		explode shell type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -132,16 +155,16 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode shell type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode shell type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		
+		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -41,7 +41,6 @@ return {
 			unitgroup = 'explo',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			rockstrength = 0,
 			subfolder = "other/scavengers",
 			techlevel = 3,
 		},

@@ -81,7 +81,6 @@ return {
 				burst = 2,
 				burstrate = 0.3,
 				cegtag = "blob_trail_green",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,

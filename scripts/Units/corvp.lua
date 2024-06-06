@@ -2,7 +2,7 @@ local pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf,cagelight,cag
 
 local spray = 0;
 
-local SIGNAL_TURNON = 2;
+local SIG_ACTIVATE = 2;
 local SIG_OPENCLOSE = 4;
 
 include("include/util.lua");
@@ -49,28 +49,28 @@ function script.Create()
 end
 
 function script.QueryNanoPiece()
-	local pieceIndex;
+	local piecenum;
 	if (spray == 0) then
-		pieceIndex = nano1;
+		piecenum = nano1;
 	end
 	if (spray == 1) then
-		pieceIndex = nano2;
+		piecenum = nano2;
 	end
 	if (spray == 2) then
-		pieceIndex = nano3;
+		piecenum = nano3;
 	end
 	if (spray == 3) then
-		pieceIndex = nano4;
+		piecenum = nano4;
 	end
 	spray = spray + 1;
 	if(spray == 4) then
 		spray = 0;
 	end
-	return pieceIndex;
+	return piecenum;
 end
 
 function Activate_real()
-	UnitScript.Signal(SIGNAL_TURNON);
+	UnitScript.Signal(SIG_ACTIVATE);
 	UnitScript.StartThread(open);
 
 end
@@ -80,8 +80,8 @@ function script.Activate()
 end
 
 function Deactivate_real()
-	UnitScript.Signal(SIGNAL_TURNON);
-	UnitScript.SetSignalMask(SIGNAL_TURNON);
+	UnitScript.Signal(SIG_ACTIVATE);
+	UnitScript.SetSignalMask(SIG_ACTIVATE);
 	Sleep(5000);
 	UnitScript.StartThread(close);
 end

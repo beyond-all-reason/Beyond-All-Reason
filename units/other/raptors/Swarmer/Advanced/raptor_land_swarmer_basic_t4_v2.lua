@@ -57,7 +57,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -109,7 +108,6 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

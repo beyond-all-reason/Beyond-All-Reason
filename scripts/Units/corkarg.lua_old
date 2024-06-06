@@ -28,9 +28,9 @@ local sfxFall = SFX.FALL
 local sfxExplode = SFX.EXPLODE
 --------------------------------------------------------------------------------
 -- Signal definitions
-local SIGNAL_MOVE = 1
-local SIGNAL_IDLE = 8
-local SIGNAL_AIM1 = 2
+local SIG_WALK = 1
+local SIG_RESTORE = 8
+local SIG_AIM = 2
 
 local TORSO_SPEED_YAW = math.rad(240)
 local ARM_SPEED_PITCH = math.rad(120)
@@ -106,8 +106,8 @@ end
 
 
 local function Walk()
-        Signal(SIGNAL_MOVE)
-        SetSignalMask(SIGNAL_MOVE)
+        Signal(SIG_WALK)
+        SetSignalMask(SIG_WALK)
         Turn(pelvis, x_axis, math.rad(10), math.rad(30))
         while true do
                 --left leg up, right leg back
@@ -161,13 +161,13 @@ function script.StartMoving()
 end
 
 function script.StopMoving() 
-        Signal(SIGNAL_MOVE)
+        Signal(SIG_WALK)
         StartThread(RestorePose)
 end
 
 local function RestoreAfterDelay()
-        Signal(SIGNAL_IDLE)
-        SetSignalMask(SIGNAL_IDLE)
+        Signal(SIG_RESTORE)
+        SetSignalMask(SIG_RESTORE)
         Sleep(RESTORE_DELAY)
         armsFree = true
         Turn(torso, y_axis, 0,  TORSO_SPEED_YAW)
@@ -179,8 +179,8 @@ end
 function script.AimWeapon(num, heading, pitch)
         if num == 1 then
                 if bJumping then return false end
-                Signal(SIGNAL_AIM1)
-                SetSignalMask(SIGNAL_AIM1)
+                Signal(SIG_AIM)
+                SetSignalMask(SIG_AIM)
                 armsFree = false
                 Turn(torso, y_axis, heading,  TORSO_SPEED_YAW)
                 Turn(luparm, x_axis, -pitch, ARM_SPEED_PITCH)

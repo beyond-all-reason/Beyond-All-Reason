@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -40,9 +40,7 @@ local isAirplantNames = {
 -- convert unitname -> unitDefID
 local isAirplant = {}
 for unitName, params in pairs(isAirplantNames) do
-	if not UnitDefNames[unitName] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..unitName)
-	else
+	if UnitDefNames[unitName] then
 		isAirplant[UnitDefNames[unitName].id] = params
 	end
 end

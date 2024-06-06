@@ -30,9 +30,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSpawnCEG = Spring.SpawnCEG
 
-local spusCallAsUnit = Spring.UnitScript.CallAsUnit
-local spusEmitSfx    = Spring.UnitScript.EmitSfx
-
 local wadeDepth = {}
 local wadeSfxID = {}
 
@@ -108,28 +105,30 @@ function gadget:GameFrame(n)
 	if n%fold_frames == 0 then
 		if (n <= fold_frames) then
 			local minheight = Spring.GetGroundExtremes()
-			if minheight > 20 then 
+			if minheight > 20 then
 				gadgetHandler:RemoveGadget(self)
-				return 
+				return
 			end
 		end
-		
-		local listData = unitsData
-		for i = current_fold, unitsCount, n_folds do
-			local unitID = listData[i]
-			local data = unit[unitID]
-			local unitDefID = data.defid
-			if data and data.h and unitWadeCeg[unitDefID] then
-				local x,y,z = spGetUnitPosition(unitID)
-				local h = data.h
 
-				if y and y > h and y <= 0 then
-					local _, _, _, speed = spGetUnitVelocity(unitID)
-					if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
-						-- 1 is the pieceID, most likely it's usually the base piece
-						-- but even if it isn't, it doesn't really matter
-						--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-						spSpawnCEG(unitWadeCeg[unitDefID], x, 0, z, 0, 0, 0)
+		local listData = unitsData
+		if current_fold and unitsCount then
+			for i = current_fold, unitsCount, n_folds do	-- this line errors sometimes: "attempt to compare number with nil" therefore the nil check above
+				local unitID = listData[i]
+				local data = unit[unitID]
+				local unitDefID = data.defid
+				if data and data.h and unitWadeCeg[unitDefID] then
+					local x,y,z = spGetUnitPosition(unitID)
+					local h = data.h
+
+					if y and y > h and y <= 0 then
+						local _, _, _, speed = spGetUnitVelocity(unitID)
+						if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
+							-- 1 is the pieceID, most likely it's usually the base piece
+							-- but even if it isn't, it doesn't really matter
+							--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+							spSpawnCEG(unitWadeCeg[unitDefID], x, 0, z, 0, 0, 0)
+						end
 					end
 				end
 			end

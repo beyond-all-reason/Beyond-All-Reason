@@ -27,7 +27,7 @@ function widget:DefaultCommand(targetType, targetID, engineCmd)
   end
 
   if engineCmd == CMD.REPAIR then
-    if select(5, Spring.GetUnitHealth(targetID)) < 1 then
+    if Spring.GetUnitIsBeingBuilt(targetID) then
       return
     end
 

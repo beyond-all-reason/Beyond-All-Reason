@@ -1,13 +1,15 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
-piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, lflare,
-		ljet, lthrust, lwing, lmislink, lmissile,  lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;
+piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, 
+		ljet, lthrust, lwing, lmislink, lmissile, lflare, lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;
 
-static-var  gun_1, restore_delay;
+static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIG_AIM				2
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -20,6 +22,36 @@ static-var  gun_1, restore_delay;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
@@ -34,9 +66,13 @@ Create()
 	hide rflare;
 	hide lflare;
 	gun_1 = rflare;
+	call-script InitState();
 	turn rwing to z-axis <-60> speed <90>;
 	turn lwing to z-axis <60> speed <90>;	
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script IdleHover();
 }
 
@@ -44,14 +80,22 @@ Activate()
 {
 	show rthrust;
 	show lthrust;
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide rthrust;
 	hide lthrust;
+	start-script RequestState(1);	
 }
 
+// start block: following block returns weapon in straight position after firing
+//SetMaxReloadTime(Func_Var_1)
+//{
+//	restore_delay = Func_Var_1 * 2;
+//	return (0);
+//}
 
 //static-var  Stunned;
 //ExecuteRestoreAfterDelay()
@@ -71,7 +115,7 @@ Deactivate()
 //}
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
    	turn rjet to x-axis <0> speed <90>;
@@ -90,15 +134,22 @@ RestoreAfterDelay()
 
 
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = rflare + gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = rflare;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = lflare;
+	}
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	turn rwing to z-axis <0> speed <90>;
 	turn lwing to z-axis <0> speed <90>;
 	turn rwing to x-axis <90> speed <90>;
@@ -115,24 +166,33 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
+//		show rflare;
 		show rmissile;
 		sleep 150;
+//		hide rflare;
 		hide rmissile;
+		gun_1 = lflare;
+		return (0);
 	}
 	if( gun_1 == 1 )
 	{
+//		show lflare;
 		show lmissile;
 		sleep 150;
+//		hide lflare;
 		hide lmissile;
+		gun_1 = rflare;
 	}
-	gun_1 = !gun_1;
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

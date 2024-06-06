@@ -1,9 +1,11 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr;
 
-static-var  inAileronRoll, gun_3;
+static-var  Static_Var_1, gun_3;
 
 
 #define BASEPIECE base
@@ -14,15 +16,15 @@ static-var  inAileronRoll, gun_3;
 
 MoveRate2()
 {
-	if( Rand( 1, 10 ) == 1 AND ( !inAileronRoll ) )
+	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
 	{
-		inAileronRoll = 1;
-		turn base to z-axis <240.0> speed <120.0>;
+		Static_Var_1 = 1;
+		turn base to z-axis <240.000000> speed <120.000000>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <120.0> speed <180.0>;
+		turn base to z-axis <120.000000> speed <180.000000>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <0.0> speed <120.0>;
-		inAileronRoll = 0;
+		turn base to z-axis <0.000000> speed <120.000000>;
+		Static_Var_1 = 0;
 	}
 }
 
@@ -31,7 +33,7 @@ Create()
 	hide thrusta;
 	hide thrustb;
 	gun_3=0;
-	inAileronRoll = 0;
+	Static_Var_1 = 0;
 }
 
 Activate()
@@ -58,18 +60,22 @@ Deactivate()
 }
 
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = fan;
+	piecenum = fan;
 }
 
-FireWeapon1()
+FirePrimary(Func_Var_1)
 {
+	sleep 5;
 	sleep 1000;
 }
 
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

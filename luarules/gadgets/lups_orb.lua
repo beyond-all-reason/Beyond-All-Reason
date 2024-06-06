@@ -181,6 +181,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local IsPosInLos = Spring.IsPosInLos
 local GetUnitPosition = Spring.GetUnitPosition
@@ -224,7 +225,7 @@ local function addUnit(unitID, unitDefID)
 			break
 		else
 			fx.options.unit = unitID
-			fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
+			fx.options.under_construction = spGetUnitIsBeingBuilt(unitID)
 			AddFxs(unitID, LupsAddFX(fx.class, fx.options))
 			fx.options.unit = nil
 		end
@@ -244,16 +245,14 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress and buildProgress >= 1 then
+	if not spGetUnitIsBeingBuilt(unitID) then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress and buildProgress >= 1 then
+	if not spGetUnitIsBeingBuilt(unitID) then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
 	end
@@ -267,7 +266,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 					break
 				elseif not select(3, Spring.GetUnitIsStunned(unitID)) then -- not inbuild
 					fx.options.unit = unitID
-					fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
+					fx.options.under_construction = spGetUnitIsBeingBuilt(unitID)
 					AddFxs(unitID, LupsAddFX(fx.class, fx.options))
 					fx.options.unit = nil
 				end
@@ -287,7 +286,7 @@ local function CheckForExistingUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		if UnitEffects[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+		if UnitEffects[unitDefID] and not spGetUnitIsBeingBuilt(unitID) then
 			local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
 			if not inBuild then
 				addUnit(unitID, unitDefID)

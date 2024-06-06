@@ -269,12 +269,13 @@ lightCacheTable[16] = 1
 local lightParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable light parameters
 	posx = 1, posy = 2, posz = 3, radius = 4,
 	r = 9, g = 10, b = 11, a = 12,
-	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, animtype = 20 -- unused
-	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE!
+	lifetime = 18, sustain = 19, animtype = 20, -- animtype unused
+
+	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE! -- Nope, beherith ate these like a greedy boy
+	color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point lights only, colortime in seconds for unit-attached
 }
 
 local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
@@ -367,7 +368,7 @@ local function initGL4()
 				-- for cone, this is center.xyz and height
 				-- for beam this is center.xyz and radiusleft
 			{id = 4, name = 'worldposrad2', size = 4},
-				-- for spot, this is 0
+				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
 			{id = 5, name = 'lightcolor', size = 4},
@@ -565,10 +566,10 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
 		lightparams[20] = animtype or 0
-		lightparams[21] = 0 -- unused
-		lightparams[22] = 0 --unused
-		lightparams[23] = 0 --unused
-		lightparams[24] = 0 --unused
+		lightparams[21] = r2 or 0
+		lightparams[22] = g2 or 0
+		lightparams[23] = b2 or 0
+		lightparams[24] = colortime or 0
 		lightparams[pieceIndexPos] = pieceIndex or 0
 	else
 		lightparams = px_or_table
@@ -809,8 +810,7 @@ end
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
-		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress < 1 then return end
+		if Spring.GetUnitIsBeingBuilt(unitID) then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
@@ -962,7 +962,6 @@ local function LoadLightConfig()
 	return success and success2
 end
 
-local mapinfo = nil
 local nightFactor = 1 --0.33
 local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
@@ -974,7 +973,8 @@ for wdid, wd in pairs(WeaponDefs) do
 		targetable[wdid] = true
 	end
 end
-local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if targetable[weaponID] and py-300 > Spring.GetGroundHeight(px, pz) then	-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
@@ -986,13 +986,12 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			lightParamTable[1] = px
 			lightParamTable[2] = py
 			lightParamTable[3] = pz
-			--Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
 			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 		end
 	end
 end
 
-local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashLights[weaponID] then
 		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
 		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
@@ -1000,14 +999,12 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 			lightParamTable[1] = px
 			lightParamTable[2] = py
 			lightParamTable[3] = pz
-			--Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
 			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 		end
 	end
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
-	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
@@ -1078,39 +1075,35 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft')
-	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
-	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
-
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
-	
+
 	deferredLightShader:Delete()
 	local ram = 0
-	for lighttype, vbo in pairs(unitLightVBOMap) do ram = ram + vbo:Delete() end 
+	for lighttype, vbo in pairs(unitLightVBOMap) do ram = ram + vbo:Delete() end
 	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
-	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end 	
+	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
 	ram = ram + cursorPointLightVBO:Delete()
-	
-	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000) 
+
+	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000)
 	--Spring.Echo("featureDefLights", table.countMem(featureDefLights))
 	--Spring.Echo("unitEventLights", table.countMem(unitEventLights))
 	--Spring.Echo("unitDefLights", table.countMem(unitDefLights))
 	--Spring.Echo("projectileDefLights", table.countMem(projectileDefLights))
 	--Spring.Echo("explosionLights", table.countMem(explosionLights))
-	
-	-- Note, these must be nil'ed manually, because 
+
+	-- Note, these must be nil'ed manually, because
 	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
 	unitDefLights = nil
 	featureDefLights = nil
 	unitEventLights = nil
-	muzzleFlashLights = nil 
-	projectileDefLights = nil 
-	explosionLights  = nil 
-	gibLight = nil 
-	
+	muzzleFlashLights = nil
+	projectileDefLights = nil
+	explosionLights  = nil
+	gibLight = nil
+
 	--collectgarbage("collect")
 	--collectgarbage("collect")
-	
+
 end
 
 local windX = 0
@@ -1218,7 +1211,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
 	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID)
 end
-local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedLights(unitID)
 end
 
@@ -1305,13 +1298,13 @@ local function updateProjectileLights(newgameframe)
 				if newgameframe then
 					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
-					if lightType == 'point' then
-						local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
-					elseif lightType == 'cone' then
+					if lightType ~= 'beam' then
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
-					end -- NOTE: WE DONT UPDATE BEAM POS!
-					if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
+						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
+							projectileID, px,py,pz, nil, dx,dy,dz)
+						if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+					end
+
 				end
 			else
 				-- add projectile
@@ -1333,19 +1326,21 @@ local function updateProjectileLights(newgameframe)
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
 
+
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
 						if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
 
+						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+
 						if lightType == 'beam' then
-							local dx,dy,dz = spGetProjectileVelocity(projectileID)
 							lightParamTable[5] = px + dx
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
-						elseif lightType == 'cone' then
-
-							local dx,dy,dz = spGetProjectileVelocity(projectileID)						lightParamTable[5] = dx
+						else
+							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
+							lightParamTable[5] = dx
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
@@ -1376,9 +1371,12 @@ local function updateProjectileLights(newgameframe)
 			-- SO says we can modify or remove elements while iterating, we just cant add
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then
-				if newgameframe then
-					updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
+			if px then -- this means that this projectile
+				local lightType = trackedProjectileTypes[projectileID]
+				if newgameframe and lightType ~= 'beam' then
+					local dx,dy,dz = spGetProjectileVelocity(projectileID)
+					updateLightPosition(projectileLightVBOMap[lightType],
+						projectileID, px,py,pz, nil, dx,dy,dz )
 				end
 			else
 				numremoved = numremoved + 1
@@ -1686,10 +1684,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
-
-	widgetHandler:RegisterGlobal('GadgetCrashingAircraft', GadgetCrashingAircraft)
-	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
-	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end

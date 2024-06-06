@@ -19,6 +19,25 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
+	local scavengerAITeamID = 999
+	local raptorsAITeamID = 999
+
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+			scavengerAITeamID = i - 1
+			break
+		end
+	end
+	for i = 1, #teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+			raptorsAITeamID = i - 1
+			break
+		end
+	end
+
 	local scumSpawnerIDs = {}
 
 
@@ -78,7 +97,10 @@ if gadgetHandler:IsSyncedCode() then
 				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
 				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-				scavengerdroppodbeacon_scav = {radius = 800, growthrate = 0.8},
+				scavbeacon_t1_scav = {radius = 400, growthrate = 0.4},
+				scavbeacon_t2_scav = {radius = 600, growthrate = 0.6},
+				scavbeacon_t3_scav = {radius = 800, growthrate = 0.8},
+				scavbeacon_t4_scav = {radius = 1000, growthrate = 1},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
 			if UnitDefNames[unitDefName] then
@@ -94,7 +116,7 @@ if gadgetHandler:IsSyncedCode() then
 				if footprintX and footprintZ then
 					footprintSquare = (footprintX+footprintZ)*0.5
 				end
-				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.1*footprintSquare}
+				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*150, growthrate = 0.05*footprintSquare}
 			end
 		end
 
@@ -217,8 +239,8 @@ if gadgetHandler:IsSyncedCode() then
 		return scumID
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID)
-		if scumSpawnerIDs[unitDefID] then
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if scumSpawnerIDs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
 			local px, py, pz = Spring.GetUnitPosition(unitID)
 			local gf = Spring.GetGameFrame()
 

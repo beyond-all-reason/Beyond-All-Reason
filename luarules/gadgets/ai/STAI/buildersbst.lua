@@ -9,6 +9,7 @@ function BuildersBST:Init()
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
+	self.position = u:GetPosition()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(u)
 	self.id = u:ID()
 	self.mtype = mtype
@@ -20,15 +21,32 @@ function BuildersBST:Init()
 	self.queue = self.ai.taskshst.roles[self.role]
 	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
 	self.unit:ElectBehaviour()
+
 end
 
 function BuildersBST:OwnerBuilt()
+	self:EngineerhstBuilderBuild()
+
 end
+
+function BuildersBST:EngineerhstBuilderBuild()
+	for engineerName,builderName in pairs(self.ai.armyhst.engineers) do
+		if self.name == builderName then
+			self.ai.engineerhst.Builders[self.id] = {}
+			self.ai.engineerhst:EngineersNeeded()
+			return
+		end
+	end
+end
+
+
 
 function BuildersBST:OwnerDead()
 	if self.unit ~= nil then
 		self.ai.buildingshst.roles[self.id] = nil
+		self.ai.engineerhst.Builders[self.id] = nil
 		self.ai.buildingshst:ClearMyProjects(self.id)
+
 	end
 end
 
@@ -89,6 +107,7 @@ function BuildersBST:Update()
 		return
 	end
 	local f = self.game:Frame()
+	self.position.x,self.position.y,self.position.z = self.unit:Internal():GetRawPos()
 	if not self:IsActive() then
 		return
 	end
@@ -143,7 +162,7 @@ function BuildersBST:specialFilter(cat,param,name)
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
 		if self.unit:Internal():CanBuild(self.game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200 and self.role == 'eco' then
+			if self.ai.ecohst.Metal.reserves > 100 and self.ai.ecohst.Energy.income > 200 and self.role == 'eco' then
 				name = newName
 			end
 		end
@@ -152,7 +171,7 @@ function BuildersBST:specialFilter(cat,param,name)
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
 		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 1000 and self.ai.Energy.income > 4000 and self.role == 'eco' then
+			if   self.ai.ecohst.Energy.income > 4000 and self.role == 'eco' then
 				name = newName
 			end
 		end
@@ -184,10 +203,9 @@ end
 
 function BuildersBST:findPlace(utype, value,cat,loc)
 	if not value or not cat or not utype then return end
-
 	local POS = nil
 	local builder = self.unit:Internal()
-	local builderPos =  self.ai.tool:UnitPos(self)
+	local builderPos =  self.position
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
 	if loc and type(loc) == 'table' then
@@ -196,17 +214,24 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 				if category == 'selfCat' then
 					category = cat
 				end
+				self:EchoDebug('category',category)
+
 				POS = site:searchPosNearCategories(utype, builder,loc.min, loc.max,{category},loc.neighbours, loc.number)
+				self:EchoDebug('POS',POS)
 				if POS then
 					break
 				end
 			end
 		end
 		if not POS and loc.list then
+
 			POS = site:searchPosInList(utype, builder, loc.min,loc.max,loc.list,loc.neighbours)
+			self:EchoDebug('POS2',POS)
 		end
 		if not POS and loc.himself then
-			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+-- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
+			self:EchoDebug('POS3',POS)
 		end
 	end
 	--factory will get position in labshst
@@ -238,7 +263,8 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		for id,lab in pairs(self.ai.labshst.labs) do
 			self:EchoDebug(mtype,lab.level,self.ai.armyhst.factoryMobilities[lab.name][1],currentLevel)
 			if mtype == self.ai.armyhst.factoryMobilities[lab.name][1] and lab.level >= currentLevel then
-				if not self.ai.buildingshst:unitsNearCheck(lab.position,390,10+(5*lab.level),{'_nano_'}) then
+				local lp = lab.position
+				if not self.ai.buildingshst:unitsNearCheck(lp.x,lp.y,lp.z,390,10+(5*lab.level),{'_nano_'}) then
 					self:EchoDebug( self.name, ' can push up self mtype ', lab.name)
 					currentLevel = lab.level
 					target = lab
@@ -247,13 +273,17 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		end
 		if target then
 			self:EchoDebug(self.name,' search position for nano near ',target.name )
-			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
+-- 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
+			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, nil, maxDist,builder)
+
 		end
 		if not POS then
 			local lab = self.ai.labshst:ClosestHighestLevelFactory(builder,5000)
 			if lab then
 				self:EchoDebug("searching for top level factory")
-				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
+-- 				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
+				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, nil, maxDist,builder)
+
 			end
 		end
 	end

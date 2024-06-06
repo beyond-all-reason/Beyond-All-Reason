@@ -1,27 +1,24 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl, blink;
 
-static-var  landingPadSelector, oldHead;
+static-var  Static_Var_1, oldHead;
 static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM1 256
+#define SIG_MOVE			2
+#define SIG_AIM				3
 
+#define BASEPIECE base
+#define HITSPEED <10.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 200
 
-#define RB_MASS 40
-#define RB_LENGTH 8
-#define RB_WIDTH 3
-#define RB_PITCH_ACCELERATION 10
-#define RB_ROLL_ACCELERATION 8
-#define RB_WAKE_PIECE wake
-#define RB_WAKE_CEG 1024 + 1
-#define RB_BOWSPLASH_PIECE bow
-#define RB_BOWSPLASH_CEG 1024 + 2
-
-#include "../bar_ships_common.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -36,6 +33,26 @@ Lights()
 	start-script Lights();
 }
 
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.11> )
+		{
+			rockSpeed = <1.25> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*2;
+			wait-for-turn base around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+
 
 Go()
 {
@@ -45,7 +62,7 @@ Go()
 
 Stop()
 {
-	spin dish around y-axis speed <0.0>;
+	spin dish around y-axis speed <0.000000>;
 	return (0);
 }
 
@@ -59,10 +76,12 @@ Create()
 	hide wake;
 	hide nano1;
 	hide nano2;
-	landingPadSelector = 0;
-	start-script InitRockBoat();
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script BoatPhysics();
+	Static_Var_1 = 0;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
 }
 
 StartBuilding()
@@ -90,27 +109,59 @@ Deactivate()
 	start-script Stop();
 }
 
-StartMoving(reversing)
+waveSplash()
 {
+	while( TRUE )
+	{
+		turn base to x-axis <-1.0> speed <1.0>;
+		move base to y-axis [0.23] speed [0.17];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <1.0>;
+		move base to y-axis [0.0] speed [0.17];
+		wait-for-turn base around x-axis;
+	}
+}
 
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 12000 / waketime;
+	}
 }
 
 StopMoving()
 {
-
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <1.0>;
+	move base to y-axis [0.0] speed [0.17];
 }
 
-
-
-QueryLandingPad(pieceIndex1, pieceIndex2)
+SweetSpot(piecenum)
 {
-	pieceIndex1 = 1;
-	pieceIndex2 = 2;
-	landingPadSelector = !landingPadSelector;
-	if( landingPadSelector )
+	piecenum = base;
+}
+
+QueryLandingPad(Func_Var_1, Func_Var_2)
+{
+	Func_Var_1 = 1;
+	Func_Var_2 = 2;
+	Static_Var_1 = !Static_Var_1;
+	if( Static_Var_1 )
 	{
-		pieceIndex1 = 2;
-		pieceIndex2 = 1;
+		Func_Var_1 = 2;
+		Func_Var_2 = 1;
 	}
 }
 
@@ -146,10 +197,10 @@ RestoreAfterDelay()
 }
 
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	move dbl to x-axis [-5.6] speed [8];
 	move dbl to z-axis [-5.6] speed [8];
 	move dbr to x-axis [5.6] speed [8];
@@ -163,19 +214,19 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	sleep 150;
 }
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = anti;
+	piecenum = anti;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = anti;
+	piecenum = anti;
 }
 
 Killed(severity, corpsetype)
@@ -189,6 +240,14 @@ Killed(severity, corpsetype)
 		explode beam2 type BITMAPONLY | NOHEATCLOUD;
 		explode nano2 type BITMAPONLY | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
+		//explode wake type BITMAPONLY | NOHEATCLOUD;
+		//explode pad1 type BITMAPONLY | NOHEATCLOUD;
+		//explode pad0 type BITMAPONLY | NOHEATCLOUD;
+		//explode anti type BITMAPONLY | NOHEATCLOUD;
+		//explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type BITMAPONLY | NOHEATCLOUD;
+		//explode dtl type BITMAPONLY | NOHEATCLOUD;
+		//explode dtr type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -200,6 +259,14 @@ Killed(severity, corpsetype)
 		explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type FALL | NOHEATCLOUD;
+		//explode pad1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad0 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode anti type FALL | NOHEATCLOUD;
+		//explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -211,6 +278,14 @@ Killed(severity, corpsetype)
 		explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad0 type SMOKE | FALL | NOHEATCLOUD;
+		//explode anti type SMOKE | FALL | NOHEATCLOUD;
+		//explode dbl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -220,5 +295,13 @@ Killed(severity, corpsetype)
 		explode beam2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode pad1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode pad0 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode anti type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode dbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

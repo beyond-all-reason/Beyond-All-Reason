@@ -1,10 +1,33 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, thrust, wingl, wingr, turretl, turretr, flarer, flarel, fan;
 
-static-var  gun_1;
+static-var  gun_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
+// Signal definitions
+#define SIG_MOVE			2
+
+
+activatescr()
+{
+	turn wingl to y-axis <-90> speed <90>;
+	turn wingr to y-axis <90> speed <90>;
+	spin fan around y-axis speed <250> accelerate <10>;
+	sleep 1000;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	turn wingl to y-axis <0> speed <90>;
+	turn wingr to y-axis <0> speed <90>;
+	stop-spin fan around y-axis decelerate <2>;
+	sleep 1000;
+}
 
 #define BASEPIECE base
 #define HITSPEED <100.0>
@@ -17,50 +40,119 @@ static-var  gun_1;
 #define IDLEBASEPIECE base
 #include "idlehover.h"
 
+StopMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	sleep 15;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
 Create()
 {
 	hide flarel;
 	hide flarer;
 	hide thrust;
 	gun_1 = base;
-	SLEEP_UNTIL_UNITFINISHED;
+	Static_Var_2 = 3000;
+	call-script InitState();
+	start-script StopMoving();	
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script IdleHover();
 }
 
 Activate()
 {
 	show thrust;
-	spin fan around y-axis speed <250> accelerate <10>;
-	turn wingl to y-axis <-90> speed <90>;
-	turn wingr to y-axis <90> speed <90>;
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide thrust;
-	turn wingl to y-axis <0> speed <90>;
-	turn wingr to y-axis <0> speed <90>;
-	stop-spin fan around y-axis decelerate <2>;
+	start-script RequestState(1);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
 }
 
 
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
 {
-	pieceIndex = flarel + gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = flarel;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flarer;
+	}
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	return (1);
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = base;
+	piecenum = base;
 }
 
-FireWeapon1()
+FirePrimary()
 {
+	if( gun_1 == 0 )
+	{
+		sleep 150;
+	}
+	if( gun_1 == 1 )
+	{
+		sleep 150;
+	}
 	gun_1 = !gun_1;
 }
 

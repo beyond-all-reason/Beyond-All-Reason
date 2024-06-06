@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, vent, turret, sleeve, barrel1, flare1, barrel2, flare2,
        barrel3, flare3;
@@ -7,14 +9,12 @@ piece  base, vent, turret, sleeve, barrel1, flare1, barrel2, flare2,
 static-var reloading_barrel_1, reloading_barrel_2;
 
 // Signal definitions
-#define SIGNAL_AIM1_1				2
-#define SIGNAL_AIM2 512
-#define SIGNAL_AIM3 1024
+#define SIG_AIM_1				2
+#define SIG_AIM_2				4
+#define SIG_AIM_3				8
 
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -117,6 +117,7 @@ AimControl()
 }
 
 
+static-var  Stunned;
 SetStunned(State)
 {
     Stunned = State;
@@ -131,7 +132,7 @@ RestoreAfterDelay()
 	while (Stunned) {
 		sleep 1;
     }
-	turn sleeve to x-axis <0.0> speed <25.0>;
+	turn sleeve to x-axis <0.000000> speed <25.000000>;
 	//restore_position = 1;
 }
 
@@ -152,7 +153,10 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide flare3;
-	SLEEP_UNTIL_UNITFINISHED;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
 	start-script AimControl();
 	start-script SmokeVents();
 	//call-script InitState();
@@ -161,12 +165,12 @@ Create()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIGNAL_AIM1_1;
-	set-signal-mask SIGNAL_AIM1_1;
+	signal SIG_AIM_1;
+	set-signal-mask SIG_AIM_1;
 
 	//We can do this any time
 	restore_position = 0;
-	turn sleeve to x-axis <0.0> - pitch speed <25.0>;
+	turn sleeve to x-axis <0.000000> - pitch speed <25.000000>;
 	start-script RestoreAfterDelay();
 
 	// let AimControl know what to aim at
@@ -184,8 +188,8 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
 	aimy1target = heading;
 	while ( TRUE )
 	{
@@ -204,8 +208,8 @@ AimWeapon2(heading, pitch)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
 	aimy1target = heading;
 	while ( TRUE )
 	{
@@ -232,7 +236,7 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from flare1;
 	move barrel1 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel1 to z-axis [0.0] speed [1.000549];
+	move barrel1 to z-axis [0.000000] speed [1.000549];
 
 }
 
@@ -245,7 +249,7 @@ FireWeapon2()
 	emit-sfx 1024 + 0 from flare2;
 	move barrel2 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel2 to z-axis [0.0] speed [1.000549];
+	move barrel2 to z-axis [0.000000] speed [1.000549];
 
 }
 
@@ -258,41 +262,49 @@ FireWeapon3()
 	emit-sfx 1024 + 0 from flare3;
 	move barrel3 to z-axis [-3.001648] now;
 	sleep 100;
-	move barrel3 to z-axis [0.0] speed [1.000549];
+	move barrel3 to z-axis [0.000000] speed [1.000549];
 
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	pieceIndex = sleeve;
+	piecenum = sleeve;
 }
 
-QueryWeapon1(pieceIndex)
+AimFromWeapon1(piecenum)
 {
-	pieceIndex = flare1;
+	piecenum = sleeve;
 }
 
-AimFromWeapon2(pieceIndex)
+QueryWeapon1(piecenum)
 {
-	pieceIndex = sleeve;
+	piecenum = flare1;
 }
 
-QueryWeapon2(pieceIndex)
+AimFromWeapon2(piecenum)
 {
-	pieceIndex = flare2;
+	piecenum = sleeve;
 }
 
-AimFromWeapon3(pieceIndex)
+QueryWeapon2(piecenum)
 {
-	pieceIndex = sleeve;
+	piecenum = flare2;
 }
 
-QueryWeapon3(pieceIndex)
+AimFromWeapon3(piecenum)
 {
-	pieceIndex = flare3;
+	piecenum = sleeve;
 }
 
+QueryWeapon3(piecenum)
+{
+	piecenum = flare3;
+}
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

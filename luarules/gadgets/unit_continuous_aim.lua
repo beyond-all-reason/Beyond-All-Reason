@@ -53,9 +53,9 @@ local convertedUnitsNames = {
 	['armbanth'] = 1,
 	['corkorg'] = 1,
 	['armvang'] = 3,
-	['armcrus'] = 5,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
+  
 	['armflash'] = 6,
 	['corgator'] = 6,
 	['armdecade'] = 6,
@@ -79,6 +79,7 @@ local convertedUnitsNames = {
 	['cordecom'] = 5,
 	['armdecom'] = 5,
 
+	['legah'] = 5,
 	['legbal'] = 5,
 	['legbastion'] = 5,
 	['legcen'] = 2,
@@ -109,13 +110,15 @@ local convertedUnitsNames = {
 	['leegmech'] = 5,
 	['legionnaire'] = 5,
 	['legvenator'] = 5,
+  ['legmed'] = 5,
 }
+--if Spring.GetModOptions().emprework then
+	--convertedUnitsNames['armdfly'] = 50
+--end
 -- convert unitname -> unitDefID
 local convertedUnits = {}
 for name, params in pairs(convertedUnitsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		convertedUnits[UnitDefNames[name].id] = params
 	end
 end
@@ -132,9 +135,7 @@ local spamUnitsTeamsNames = { --{unitDefID = {teamID = totalcreated,...}}
 -- convert unitname -> unitDefID
 local spamUnitsTeams = {}
 for name, params in pairs(spamUnitsTeamsNames) do
-	if not UnitDefNames[name] then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
-	else
+	if UnitDefNames[name] then
 		spamUnitsTeams[UnitDefNames[name].id] = params
 	end
 end

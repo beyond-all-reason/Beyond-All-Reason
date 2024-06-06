@@ -1,5 +1,7 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 
 piece   door1, door3, door5, door2, door6, door4, base, fan1, fan2;
@@ -7,12 +9,7 @@ piece   door1, door3, door5, door2, door6, door4, base, fan1, fan2;
 static-var door;
 static-var  Stunned;
 
-Create(){
-	spin fan1 around y-axis speed <25>;
-	spin fan2 around y-axis speed <25>;
-}
-
-Start()
+Create()
 {
 	spin fan1 around y-axis speed <25>;
 	spin fan2 around y-axis speed <25>;
@@ -20,8 +17,8 @@ Start()
 }
 Stop()
 {
-	spin fan1 around y-axis speed <0.0>;
-	spin fan2 around y-axis speed <0.0>;
+	spin fan1 around y-axis speed <0.0000>;
+	spin fan2 around y-axis speed <0.0000>;
 	return (0);
 }
 
@@ -86,11 +83,15 @@ SetStunned(State)
 	if (Stunned) {
 	    call-script Stop();
 	} else {
-	    call-script Start();
+	    call-script Create();
 	}
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

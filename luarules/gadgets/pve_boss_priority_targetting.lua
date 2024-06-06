@@ -21,7 +21,7 @@ local queenUnitDefs = {
     raptor_queen_hard = true,
     raptor_queen_veryhard = true,
     raptor_queen_epic = true,
-    
+
     raptor_matriarch_spectre = true,
 	raptor_matriarch_electric = true,
 	raptor_matriarch_acid = true,
@@ -29,18 +29,18 @@ local queenUnitDefs = {
 	raptor_matriarch_basic = true,
 	raptor_matriarch_fire = true,
 
-    armscavengerbossv2_veryeasy = true,
-    armscavengerbossv2_easy = true,
-    armscavengerbossv2_normal = true,
-    armscavengerbossv2_hard = true,
-    armscavengerbossv2_veryhard = true,
-    armscavengerbossv2_epic = true,
+    armscavengerbossv2_veryeasy_scav = true,
+    armscavengerbossv2_easy_scav = true,
+    armscavengerbossv2_normal_scav = true,
+    armscavengerbossv2_hard_scav = true,
+    armscavengerbossv2_veryhard_scav = true,
+    armscavengerbossv2_epic_scav = true,
 }
 
 
 local queenUnits = {}
-for unitDefName, isqueen in pairs(queenUnitDefs) do 
-	if UnitDefNames[unitDefName] then 
+for unitDefName, isqueen in pairs(queenUnitDefs) do
+	if UnitDefNames[unitDefName] then
 		queenUnits[UnitDefNames[unitDefName].id] = isqueen
 	end
 end
@@ -48,7 +48,7 @@ queenUnitDefs = nil
 
 local queenTargets = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.customParams.iscommander then
+    if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
         queenTargets[unitDefID] = true
     end
 end
@@ -80,7 +80,7 @@ function gadget:GameFrame(frame)
             local queenx,queeny,queenz = Spring.GetUnitPosition(queenID)
             local surroundingUnits = Spring.GetUnitsInSphere(queenx, queeny, queenz, 750)
             for i = 1,#surroundingUnits do
-                if aliveTargets[surroundingUnits[i]] then
+				if aliveTargets[surroundingUnits[i]] and Spring.GetUnitAllyTeam(surroundingUnits[i]) ~= Spring.GetUnitAllyTeam(queenID) then
                     Spring.GiveOrderToUnit(queenID, CMD.STOP, 0, 0)
                     Spring.GiveOrderToUnit(queenID, CMD.ATTACK, {surroundingUnits[i]}, 0)
                     break

@@ -44,7 +44,7 @@ end
 function ScoutHST:ClosestSpot2(scoutbst)
 	self:EchoDebug('closestSpot2')
 	local scout = scoutbst.unit:Internal()
-	local scoutPos = scout:GetPosition()
+	--local scoutPos = scout:GetPosition()
 	local mtype = scoutbst.mtype
 	local network = scoutbst.network
 	mtype = mtype or 'air'--CAUTION
@@ -54,12 +54,12 @@ function ScoutHST:ClosestSpot2(scoutbst)
 	local bestIndex = nil
 	local bestDistance = 0
 	local spot = networkSpots[math.random(1,#networkSpots)]
-	if self.ai.maphst:UnitCanGoHere(scout,spot) then
-		local X,Z = self.ai.maphst:PosToGrid(spot)
-		if self:TargetAvailable(X,Z,scoutbst.id) then
-			bestPos = spot
-		end
+	--if self.ai.maphst:UnitCanGoHere(scout,spot) then
+	local X,Z = self.ai.maphst:PosToGrid(spot)
+	if self:TargetAvailable(X,Z,scoutbst.id) then
+		bestPos = spot
 	end
+	--end
 
 -- 	for index,spot in pairs(networkSpots) do
 --

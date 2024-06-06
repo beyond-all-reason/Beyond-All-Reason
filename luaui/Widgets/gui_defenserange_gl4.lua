@@ -253,7 +253,10 @@ local function initUnitList()
 		['corantiship'] = { weapons = { 3 } },
 
 		-- SCAVENGERS
-		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
+		['scavbeacon_t1_scav'] = { weapons = { 1 } },
+		['scavbeacon_t2_scav'] = { weapons = { 1 } },
+		['scavbeacon_t3_scav'] = { weapons = { 1 } },
+		['scavbeacon_t4_scav'] = { weapons = { 1 } },
 
 		['armannit3'] = { weapons = { 1 } },
 		['armminivulc'] = { weapons = { 1 } },
@@ -265,9 +268,7 @@ local function initUnitList()
 	-- convert unitname -> unitDefID
 	unitDefRings = {}
 	for unitName, ranges in pairs(unitDefRingsNames) do
-		if not UnitDefNames[unitName] then
-			Spring.Echo('WARNING... gfx_defenserange_gl4: couldnt apply ranges for unit name: '..unitName)
-		else
+		if UnitDefNames[unitName] then
 			unitDefRings[UnitDefNames[unitName].id] = ranges
 		end
 	end
@@ -294,7 +295,7 @@ local function initUnitList()
 		scavlist[k] = true
 	end
 	for k,v in pairs(scavlist) do
-		if UnitDefNames[unitName[k] .. '_scav'] then 
+		if UnitDefNames[unitName[k] .. '_scav'] then
 			mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
 		end
 	end

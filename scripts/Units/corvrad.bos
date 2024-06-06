@@ -1,13 +1,14 @@
+#define TA			// This is a TA script
 
-#include "../recoil_common_includes.h"
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  base, dish, blink;
 
 static-var  Stunned;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_TURNON 4
+#define SIG_ACTIVATE			2
 
 
 #define BASEPIECE base
@@ -16,13 +17,7 @@ static-var  Stunned;
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.18>
-#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -39,26 +34,15 @@ Lights()
 
 Create()
 {
-	call-script TB_Init();
-}
-
-StartMoving(reversing)
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	START_TILTBANK;
-}
-
-StopMoving()
-{
-	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	dont-cache dish;
+	dont-shade dish;
+	return (0);
 }
 
 Activate()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
 	start-script Lights();
 	spin dish around y-axis speed <100.021978>;
 	return (0);
@@ -66,9 +50,9 @@ Activate()
 
 Deactivate()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
-	turn dish to y-axis <0.0> speed <100.0>;
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	turn dish to y-axis <0.000000> speed <100.000000>;
 	wait-for-turn dish around y-axis;
 	return (0);
 }
@@ -77,13 +61,17 @@ SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    spin dish around y-axis speed <0.0>;
+	    spin dish around y-axis speed <0.000000>;
 	} else {
 	    spin dish around y-axis speed <100.021978>;
 	}
 }
 
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

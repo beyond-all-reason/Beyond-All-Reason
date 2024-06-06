@@ -390,7 +390,6 @@ local function switchPlayerCam()
 	end
 end
 
-local passedTime = 0
 local sec = 0.5
 function widget:Update(dt)
 
@@ -457,11 +456,8 @@ function widget:Update(dt)
 		createList()
 	end
 
-	passedTime = passedTime + dt
-	if passedTime > 0.1 then
-		passedTime = 0
-		updatePosition()
-	end
+	updatePosition()
+
 	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			local mx, my, mb = Spring.GetMouseState()
@@ -536,7 +532,7 @@ function widget:DrawScreen()
 					prevLockPlayerID = lockPlayerID
 				end
 			end
-			if myTeamPlayerID and (lockPlayerID or (alwaysDisplayName and isSpec)) then
+			if myTeamPlayerID and alwaysDisplayName and isSpec then
 				if lockPlayerID then
 					prevLockPlayerID = lockPlayerID
 					lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()

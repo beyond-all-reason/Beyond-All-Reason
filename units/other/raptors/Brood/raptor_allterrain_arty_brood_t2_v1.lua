@@ -58,7 +58,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -88,7 +87,6 @@ return {
 				craterboost = 0.2,
 				cratermult = 0.2,
 				edgeeffectiveness = 0.63,
-				--explosiongenerator = "custom:ELECTRIC_EXPLOSION",
 				explosiongenerator = "custom:dirt",
 				impulseboost = 0,
 				impulsefactor = 0.4,

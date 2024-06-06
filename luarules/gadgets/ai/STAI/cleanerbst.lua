@@ -8,6 +8,7 @@ function CleanerBST:Init()
 	self.DebugEnabled = false
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
+	self.position = self.unit:Internal():GetPosition()
 	self:EchoDebug("init")
 	self.cleaningRadius = 390
 	self.frameCounter = 0
@@ -47,9 +48,13 @@ end
 
 function CleanerBST:Clean(targetId)
 	self:EchoDebug("clean this",targetId)
-	local target = self.game:GetUnitByID(targetId)
-	local exec = self.unit:Internal():Reclaim(target)
-	self:EchoDebug('exec',exec,'target',targetId)
+	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
+	if not currentOrder or not  currentOrder.id or currentOrder.id ~= 90 then
+		local target = self.game:GetUnitByID(targetId)
+
+		local exec = self.unit:Internal():Reclaim(target)
+		self:EchoDebug('exec',exec,'target',targetId)
+	end
 end
 
 function CleanerBST:reset()
@@ -58,7 +63,7 @@ function CleanerBST:reset()
 end
 
 function CleanerBST:ecoCondition()
-	if self.ai.Metal.full < 0.5  or self.ai.Energy.income > 5000 then
+	if self.ai.ecohst.Metal.full < 0.5  or (self.ai.ecohst.Energy.income > 5000 and self.ai.ecohst.Metal.full < 0.75) then
 		local team = self.game:GetTeamID()
 		local counter = 0
 		for name,v in pairs(self.ai.armyhst._fus_) do
@@ -75,7 +80,7 @@ end
 function CleanerBST:Search()
 	self:EchoDebug(self.id,'search fo cleanables')
 	if not self:ecoCondition() then return end
-	local unitsNear = self.game:getUnitsInCylinder(self.unit:Internal():GetPosition(), self.cleaningRadius)
+	local unitsNear = self.game:getUnitsInCylinder(self.position, self.cleaningRadius)
 	if not unitsNear  then return false end
 	for idx, tg in pairs(unitsNear) do
 		self:EchoDebug('target',tg)
@@ -92,6 +97,10 @@ function CleanerBST:Search()
 end
 
 function CleanerBST:Patroling()
-	local uPos = self.unit:Internal():GetPosition()
-	self.unit:Internal():Patrol({uPos.x,uPos.y,uPos.z,0})
+-- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
+	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
+
+	if not currentOrder or not  currentOrder.id  then
+		self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
+	end
 end

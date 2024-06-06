@@ -50,7 +50,6 @@ return {
 		unitname = "lootboxgold",
 		upright = true,
 		usebuildinggrounddecal = false,
-		--waterline = 0,
 		yardmap = "oooo oooo oooo oooo",
 		reclaimable = false,
 		customparams = {

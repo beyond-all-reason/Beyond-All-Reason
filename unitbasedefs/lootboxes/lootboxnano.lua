@@ -190,7 +190,6 @@ local createNanoUnitDef = function(tier)
 		terraformspeed = 1000 * parameters.sizeMultiplier,
 		turnrate = 1,
 		upright = true,
-		usebuildinggrounddecal = true,
 		workertime = 100 * parameters.sizeMultiplier,
 		reclaimable = false,
 		--yardmap = "oooo",

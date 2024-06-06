@@ -53,9 +53,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		checkStartPlayers()
 	end
-	function gadget:PlayerChanged(playerID)
-		checkStartPlayers()
-	end
 
 	function gadget:GameFrame(gameFrame)
 		-- cleanup periodically
