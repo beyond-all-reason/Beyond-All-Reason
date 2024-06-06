@@ -2525,14 +2525,14 @@ function widget:SelectionChanged(newSel)
 		end
 	end
 
+	-- set active builder to first index after updating selection
+	setActiveBuilder(1)
+
 	if activeBuilder and not builderIsFactory then
 		updateCategories(CONFIG.buildCategories)
 	else
 		updateCategories({})
 	end
-
-	-- set active builder to first index after updating selection
-	setActiveBuilder(1)
 
 	-- Only update commands if the current defid changed
 	if activeBuilder ~= prevActiveBuilderDefID then
