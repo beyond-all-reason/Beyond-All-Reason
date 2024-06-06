@@ -12,7 +12,11 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 
 static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch,
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
-			suspendWeapon;
+			
+			//for turbofire weapons
+			turboMisAimReady,
+			
+			suspendWeapon, turboWeaponSelect;//debug row
 
 // Signal definitions
 #define SIG_AIM 2
@@ -472,7 +476,9 @@ AmIBored() {
 
 //declare variables specific to UnitTimer functions
 
-static-var vortexSpinSpeed1, vortexSpinSpeed2, vortexSpinSpeed3, oldEaterBeamIncrement;
+static-var vortexSpinSpeed1, vortexSpinSpeed2, vortexSpinSpeed3, oldEaterBeamIncrement,
+//debug
+testTurboCounter, lastSelect;
 
 UnitTimer()
 {
@@ -502,7 +508,22 @@ UnitTimer()
 		//update values
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		get PRINT(torsoPriority, eaterBeamIncrement, currentHealth);
+		
+		//disable expired turbo weapons
+		if (turboWeaponSelect != 8){
+		turboMisAimReady = 0;
+		}
+		
+		//debug switching between normal and turbo modes
+		testTurboCounter = testTurboCounter+1;
+		if (testTurboCounter > 14){
+			turboWeaponSelect = 8;
+		}
+		if (testTurboCounter > 28){
+			turboWeaponSelect = 0;
+			testTurboCounter = 0;
+		}
+		get PRINT(torsoPriority, eaterBeamIncrement, turboWeaponSelect, testTurboCounter);
 		sleep 500; //timer repeats every half second
 	}
 }
@@ -548,12 +569,19 @@ Create(){
 	isAimingEaterBeam = 0;
 	eaterBeamIncrement = 0;
 	oldEaterBeamIncrement = 0;
+	
+	//turbo variable initiations
+	turboMisAimReady = 0;
+	
+	
 	isAimingDgun = 0;
 	buildHeading = 0;
 	buildPitch = 0;
 	leftArm = 1;
 	rightArm = 1;
-	suspendWeapon = 1;
+	suspendWeapon = 1; //debug
+	turboWeaponSelect = 8; //change to enable turbo weapon during debug
+	testTurboCounter = 0; //debug
 	call-script StopWalking();
 	start-script UnitTimer();
 }
@@ -927,7 +955,7 @@ FireWeapon5()
 }
 AimWeapon5(heading, pitch)
 {
-	if (suspendWeapon == 1){
+	if (suspendWeapon == 0){
 		return (0);
 	}
 	signal SIG_AIMMIS;
@@ -941,6 +969,10 @@ AimWeapon5(heading, pitch)
 		wait-for-turn misbox around x-axis;
 	}
 	wpn5_lasthead = heading;
+	if (turboWeaponSelect == 8){ //don't shoot this weapon if turbo weapon is enabled
+		turboMisAimReady = 1;
+		return (0);
+	}
 	return (1);
 }
 
@@ -1026,7 +1058,7 @@ FireWeapon7()
 }
 AimWeapon7(heading, pitch)
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	//if( get PIECE_Y(head) > 0 ){
@@ -1066,6 +1098,37 @@ AimWeapon7(heading, pitch)
 		start-script ResumeBuilding();
 	}
 	start-script RestoreAfterDelay();
+	return (1);
+}
+
+QueryWeapon8(piecenum) //TURBO back missile launcher
+{
+	piecenum = misflare;
+	return (0);
+}
+
+AimFromWeapon8(piecenum)
+{
+	piecenum = turretmis;
+	return (0);
+}
+
+FireWeapon8()
+{
+	emit-sfx 1024 + 2 from misflare;
+	return (0);
+}
+AimWeapon8(heading, pitch)
+{
+	if (suspendWeapon == 0){
+		return (0);
+	}
+	if (turboweaponselect != 8){
+		return (0);
+	}
+	if (turboMisAimReady == 0){
+		return (0);
+	}
 	return (1);
 }
 
