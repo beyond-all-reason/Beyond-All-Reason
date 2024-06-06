@@ -97,7 +97,10 @@ if gadgetHandler:IsSyncedCode() then
 				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
 				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-				scavengerdroppodbeacon_scav = {radius = 800, growthrate = 0.8},
+				scavbeacon_t1_scav = {radius = 400, growthrate = 0.4},
+				scavbeacon_t2_scav = {radius = 600, growthrate = 0.6},
+				scavbeacon_t3_scav = {radius = 800, growthrate = 0.8},
+				scavbeacon_t4_scav = {radius = 1000, growthrate = 1},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
 			if UnitDefNames[unitDefName] then
@@ -113,7 +116,7 @@ if gadgetHandler:IsSyncedCode() then
 				if footprintX and footprintZ then
 					footprintSquare = (footprintX+footprintZ)*0.5
 				end
-				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.1*footprintSquare}
+				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*150, growthrate = 0.05*footprintSquare}
 			end
 		end
 

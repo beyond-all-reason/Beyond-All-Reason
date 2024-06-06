@@ -155,7 +155,7 @@ local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
-local font, chobbyInterface, showUnitID
+local font, showUnitID
 local RectRound, UiElement, UiUnit, bgpadding, elementCorner
 
 local maxWidth = 0
@@ -329,12 +329,6 @@ if useSelection then
 	function widget:SelectionChanged(sel)
 		selectedUnits = sel
 		selectedUnitsCount = Spring.GetSelectedUnitsCount()
-	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
@@ -837,7 +831,6 @@ local function drawStats(uDefID, uID)
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end

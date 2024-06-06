@@ -21,7 +21,7 @@ return {
 		leavetracks = true,
 		health = 820,
 		maxslope = 16,
-		speed = 45.0,
+		speed = 55.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		movestate = 0,
@@ -108,37 +108,6 @@ return {
 			},
 		},
 		weapondefs = {
-			bogus_missile = {
-				areaofeffect = 48,
-				avoidfeature = false,
-				canattackground = false,
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				impulseboost = 0,
-				impulsefactor = 0,
-				metalpershot = 0,
-				name = "Missiles",
-				proximityPriority  = 100,
-				range = 700,
-				reloadtime = 0.5,
-				soundhitwet = "splshbig",
-				startvelocity = 450,
-				tolerance = 9000,
-				turnrate = 33000,
-				turret = true,
-				weaponacceleration = 101,
-				weapontimer = 0.1,
-				weapontype = "Cannon",
-				weaponvelocity = 650,
-				damage = {
-					default = 0,
-				},
-				customparams = {
-					bogus = 1
-				}
-			},
 			armtruck_aa = {
 				areaofeffect = 48,
 				avoidfeature = false,
@@ -207,7 +176,7 @@ return {
 				name = "Light g2g missile launcher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 575,
+				range = 525,
 				reloadtime = 3.33333,
 				smoketrail = true,
 				smokePeriod = 8,
@@ -231,29 +200,20 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 350,
 				damage = {
-					default = 75,
-					vtol = 160,
+					default = 86,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR",
-				def = "BOGUS_MISSILE",
-				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
-			},
-			[2] = {
-				badtargetcategory = "NOTAIR",
 				def = "ARMTRUCK_AA",
 				onlytargetcategory = "VTOL",
-				slaveto = 1,
 			},
-			[3] = {
-				badtargetcategory = "NOTAIR",
+			[2] = {
+				badtargetcategory = "VTOL",
 				def = "ARMTRUCK_MISSILE",
 				onlytargetcategory = "SURFACE",
-				slaveto = 1,
 			},
 		},
 	},

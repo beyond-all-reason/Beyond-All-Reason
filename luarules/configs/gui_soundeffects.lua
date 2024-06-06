@@ -2451,6 +2451,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
 	},
+	legamsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+	},
 	legvp = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
@@ -2813,10 +2818,14 @@ GUIUnitSoundEffects = {
 	scavtacnukespawner = {},
 	lootdroppod_gold = {},
 	lootdroppod_printer = {},
-	scavengerdroppod = {},
+	scavbeacon_t1 = {},
+	scavbeacon_t2 = {},
+	scavbeacon_t3 = {},
+	scavbeacon_t4 = {},
 	scavengerdroppodfriendly = {},
-	scavempspawner = {},
-	scavtacnukespawner = {},
+	scavmist = {},
+	scavmistxl = {},
+	scavmistxxl = {},
 
 
 	lootboxbronze		= LootboxSoundEffects,

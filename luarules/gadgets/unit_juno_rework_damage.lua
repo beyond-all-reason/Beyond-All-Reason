@@ -2,9 +2,9 @@ function gadget:GetInfo()
 	return {
 		name = 'Juno Rework Damage',
 		desc = 'Handles Juno damage',
-		author = 'Niobium, Bluestone, Hornet',
+		author = 'Niobium, Bluestone, Hornet',--rework by Hornet, elements of older Juno code from prior authors
 		version = 'v3.0',
-		date = '05/2013',--rework 05/05/2024
+		date = '05/2024',--original 05/2013
 		license = 'GNU GPL, v2 or later',
 		layer = 0,
 		enabled = Spring.GetModOptions().junorework
@@ -41,7 +41,7 @@ local tokillUnitsNames = {
 }
 
 --emp these
-local toStunUnitsNames = {
+local toStunUnitsNames = {--this could maybe use customparams later, at least in part to detect mines
 		['armarad'] = true,
 		['armaser'] = true,
 		['armason'] = true,
@@ -75,6 +75,9 @@ local toStunUnitsNames = {
 		['cormine1'] = true,
 		['cormine2'] = true,
 		['cormine3'] = true,
+		['armfmine3'] = true,		
+		['corfmine3'] = true,
+
 }
 
 
@@ -274,50 +277,75 @@ local todenyUnitsNames = {
 
 		local curtime = SpGetGameSeconds()
 
-		for counter, expl in pairs(centers) do
-			if expl.t >= curtime - effectlength then
-				local q = 1
-				if expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
-					q = (1 / fadetime) * Mmin(curtime - expl.t, expl.t + effectlength - curtime)
-				end
+		if Spring.GetGameFrame() % 15 == 0 then
 
-				local unitIDsBig = SpGetUnitsInCylinder(expl.x, expl.z, q * radius)
-
-				for i = 1, #unitIDsBig do
-					-- linear and not O(n^2)
-					local unitID = unitIDsBig[i]
-					local unitDefID = SpGetUnitDefID(unitID)
-					if todenyUnits[unitDefID] then
-						local px, py, pz = Spring.GetUnitPosition(unitID)
-						local dx = expl.x - px
-						local dz = expl.z - pz
-						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
-							-- linear and not O(n^2)
-							Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
-							SpDestroyUnit(unitID, true, false)
-						end
+			for counter, expl in pairs(centers) do
+				if expl.t >= curtime - effectlength then
+					local q = 1
+					if expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
+						q = (1 / fadetime) * Mmin(curtime - expl.t, expl.t + effectlength - curtime)
 					end
-					--[[
-					--this mostly works but has a loop I can't chase out atm, and some weirdness at the end of the effect that applies a stun all over again
-					if toTarpitUnits[unitDefID] and Spring.GetModOptions().emprework then--useless without it, just adds visual noise
-						local px, py, pz = Spring.GetUnitPosition(unitID)
-						local dx = expl.x - px
-						local dz = expl.z - pz
-						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
-							-- linear and not O(n^2)
-							Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
-							local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-							Spring.AddUnitDamage (unitID, maxHealth*2, 5, 99, WeaponDefNames["corjuno_juno_pulse"].id)---...close enough?
-						end
-					end--]]--
-				end
-			else
-				--SendToUnsynced("RemoveFromCenters", counter)
-				table.remove(centers, counter)
-			end
 
-			if expl.t + fadetime >= curtime or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
-				update = true -- fast update during fade in/out
+					local unitIDsBig = SpGetUnitsInCylinder(expl.x, expl.z, q * radius)
+
+					for i = 1, #unitIDsBig do
+						-- linear and not O(n^2)
+						local unitID = unitIDsBig[i]
+						local unitDefID = SpGetUnitDefID(unitID)
+						if todenyUnits[unitDefID] then
+							local px, py, pz = Spring.GetUnitPosition(unitID)
+							local dx = expl.x - px
+							local dz = expl.z - pz
+							if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
+								-- linear and not O(n^2)
+								Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+								SpDestroyUnit(unitID, true, false)
+							end
+						end
+
+						
+						if toStunUnits[unitDefID] then
+							local px, py, pz = Spring.GetUnitPosition(unitID)
+							local dx = expl.x - px
+							local dz = expl.z - pz
+
+							--does the cyl search above not already do this...?
+							if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
+								-- linear and not O(n^2)
+								local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+								--Spring.Echo(paralyzeDamage, maxHealth*1.2)
+								if (paralyzeDamage < maxHealth*1.2) then--try to prevent excessive stun times, also needless restuns 
+									Spring.AddUnitDamage (unitID, maxHealth*2, 5, 99, WeaponDefNames["corjuno_juno_pulse_ghost"].id)---...close enough?
+									Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+								end
+	
+								--SpDestroyUnit(unitID, true, false)
+							end
+						end
+
+						--[[
+						--this mostly works but has a loop I can't chase out atm, and some weirdness at the end of the effect that applies a stun all over again
+						if toTarpitUnits[unitDefID] and Spring.GetModOptions().emprework then--useless without it, just adds visual noise
+							local px, py, pz = Spring.GetUnitPosition(unitID)
+							local dx = expl.x - px
+							local dz = expl.z - pz
+							if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
+								-- linear and not O(n^2)
+								Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+								local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+								Spring.AddUnitDamage (unitID, maxHealth*2, 5, 99, WeaponDefNames["corjuno_juno_pulse_ghost"].id)---...close enough?
+							end
+						end--]]--
+					end
+				else
+					--SendToUnsynced("RemoveFromCenters", counter)
+					table.remove(centers, counter)
+				end
+
+				if expl.t + fadetime >= curtime or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
+					update = true -- fast update during fade in/out
+				end
+
 			end
 		end
 

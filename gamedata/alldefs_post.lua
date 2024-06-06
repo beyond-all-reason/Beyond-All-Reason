@@ -224,6 +224,7 @@ function UnitDef_Post(name, uDef)
 				armscab = true,
 				corfmd = true,
 				corsilo = true,
+				legsilo =  true,
 				cormabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
@@ -240,6 +241,7 @@ function UnitDef_Post(name, uDef)
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or uDef.customparams.iscommander then
 				uDef.customparams.combatradius = 0
+				uDef.customparams.evolution_health_transfer = "percentage"
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
 				else
@@ -283,6 +285,7 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				legperdition = true,
 				armemp_scav = true,
 				cortron_scav = true,
 			}
@@ -298,6 +301,7 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				leglrpc = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -662,6 +666,24 @@ function UnitDef_Post(name, uDef)
 			else
 				uDef.collide = true
 			end
+		end
+	end
+
+	--Juno Rework
+	if modOptions.junorework == true then
+		if name == "armjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
+		end
+		if name == "corjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
 		end
 	end
 

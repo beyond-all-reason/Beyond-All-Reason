@@ -36,15 +36,21 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
+local legionLobberUnitsT1 = "leglob_scav leggob_scav leghades_scav leghelios_scav legsh_scav"
+local legionLobberUnitsT2 = "legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
+local legionLobberUnitsT3 = "legstr_scav leginfestor_scav legbart_scav legsrail_scav legmrv_scav legfloat_scav"
+local legionLobberUnitsT4 = "leginf_scav legsco_scav leginc_scav legmed_scav"
+
 customDefs.armsilo = {
 	weapondefs = {
 		nuclear_missile = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -53,12 +59,13 @@ customDefs.armsilo = {
 customDefs.corsilo = {
 	weapondefs = {
 		crblmssl = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -67,13 +74,14 @@ customDefs.corsilo = {
 customDefs.armjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -82,39 +90,25 @@ customDefs.armjuno = {
 customDefs.corjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
 
 customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
+	decoyfor = "corcom_scav",
 }
 
 customDefs.armclaw = {
@@ -141,6 +135,375 @@ customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
 
+customDefs.legcom = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 1000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 3,
+			range = 450,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl2 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 2000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 4,
+			range = 500,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl3 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 3000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 6,
+			range = 550,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl4 = {
+	weapondefs = {
+		napalmmissile2 = {
+			accuracy = 0.2,
+			areaofeffect = 10,
+			avoidfeature = false,
+			avoidfriendly = false,
+			burst = 1,
+			burstrate = 0.025,
+			collidefriendly = false,
+			commandfire = true,
+			craterareaofeffect = 116,
+			craterboost = 0.1,
+			cratermult = 0.1,
+			edgeeffectiveness = 0.15,
+			energypershot = 4000,
+			explosiongenerator = "custom:botrailspawn",
+			gravityaffected = "true",
+			heightboostfactor = 8,
+			hightrajectory = 1,
+			impulseboost = 0.5,
+			impulsefactor = 0.5,
+			leadbonus = 0,
+			metalpershot = 0,
+			model = "Units/CORMINE2.s3o",
+			movingaccuracy = 600,
+			mygravity = 4.8,
+			name = "Long range bot cannon",
+			noselfdamage = true,
+			projectiles = 4,
+			range = 600,
+			reloadtime = 0.9,
+			sprayangle = 2500,
+			stockpile = true,
+			stockpiletime = 15,
+			soundhit = "xplonuk1xs",
+			soundhitwet = "splshbig",
+			soundstart = "lrpcshot3",
+			soundstartvolume = 50,
+			turret = true,
+			trajectoryheight = 1,
+			waterbounce = true,
+			bounceSlip = 0.74,
+			bouncerebound = 0.5,
+			numbounce = 10,
+			weapontype = "Cannon",
+			weaponvelocity = 2000,
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+			damage = {
+				default = 0,
+				shields = 0,
+			},
+		},
+	},
+	weapons = {
+		[3] = {
+			def = "NAPALMMISSILE2",
+			onlytargetcategory = "SURFACE",
+		},
+	}
+}
+
+customDefs.legcomlvl5 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 5000,
+			projectiles = 5,
+			range = 650,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl6 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 6000,
+			projectiles = 6,
+			range = 700,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl7 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 7000,
+			projectiles = 3,
+			range = 750,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl8 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 8000,
+			projectiles = 5,
+			range = 800,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl9 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 9000,
+			projectiles = 2,
+			range = 850,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl10 = {
+	weapondefs = {
+		napalmmissile = {
+			energypershot = 10000,
+			projectiles = 4,
+			range = 900,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
 
 -- local scavConstructorsList = {
 -- 	-- rezzers

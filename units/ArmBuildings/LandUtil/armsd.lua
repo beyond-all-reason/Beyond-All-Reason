@@ -20,7 +20,7 @@ return {
 		idletime = 1800,
 		levelground = false,
 		health = 2650,
-		maxslope = 36,
+		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMSD.s3o",
 		onoffable = true,
