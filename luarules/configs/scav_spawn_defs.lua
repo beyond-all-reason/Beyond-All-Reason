@@ -21,7 +21,7 @@ economyScale = (economyScale*0.5)+0.5
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       		= 3 * 60,
+		gracePeriod       		= 180,
 		bossTime      	  		= 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate   		= 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -40,7 +40,7 @@ local difficultyParameters = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       		= 2 * 60,
+		gracePeriod       		= 120,
 		bossTime      	  		= 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate   		= 200 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 210 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -58,7 +58,7 @@ local difficultyParameters = {
 		bossResistanceMult   	= 1.5,
 	},
 	[difficulties.normal] = {
-		gracePeriod       		= 1 * 60,
+		gracePeriod       		= 90,
 		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate   		= 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -76,7 +76,7 @@ local difficultyParameters = {
 		bossResistanceMult  	= 2,
 	},
 	[difficulties.hard] = {
-		gracePeriod       		= 1 * 60,
+		gracePeriod       		= 80,
 		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate   		= 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -94,7 +94,7 @@ local difficultyParameters = {
 		bossResistanceMult   	= 2.5,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       		= 1 * 60,
+		gracePeriod       		= 70,
 		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate  			= 140 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -112,7 +112,7 @@ local difficultyParameters = {
 		bossResistanceMult   	= 3,
 	},
 	[difficulties.epic] = {
-		gracePeriod       		= 1 * 60,
+		gracePeriod       		= 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate   		= 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate   		= 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
