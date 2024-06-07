@@ -36,12 +36,13 @@ local spValidUnitID = Spring.ValidUnitID
 --------------------------------------------------------------------------------
 -- TODO:
 -- [x] Add health-based brightening
--- [ ] Add shield based darkening 
+-- [x] Add shield based darkening 
 -- [ ] Optimize shader
 -- [ ] Combine Effects of techniques
--- [ ] LightningOrb() TOO EXPENSIVE!
+-- [x] LightningOrb() TOO EXPENSIVE!
 	-- do multiple wraps, like 4 instead of 18 goddamn passes!
 -- [ ] Ensure SphereVBO indices to triangles are ordered bottom to top!
+-- [x] Draw order is incorrect, we are drawing after gadget's shield jitter
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -82,6 +83,7 @@ local corgateShieldSphere = table.merge(defaults, {
 	size = 11,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+	isShield = true,
 })
 
 local armjunoShieldSphere = table.merge(defaults, {
@@ -103,6 +105,7 @@ local armgateShieldSphere = table.merge(defaults, {
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+	isShield = true, 
 })
 
 local UnitEffects = {
@@ -133,7 +136,7 @@ local UnitEffects = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
 	["corgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true , isShiedl } },
 		{ class = 'ShieldSphere', options = corgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
@@ -213,7 +216,7 @@ for unitname, effect in pairs(UnitEffects) do
 				
 				attr[5] = 1 -- margin
 				attr[6] = 0 -- precision
-				attr[7] = 1 -- gameframe
+				attr[7] = (opts.isShield and 1) or 0  -- isShield
 				attr[8] = 1 -- technique
 				--Spring.Echo(unitname)
 				--Spring.Debug.TableEcho(opts)
@@ -255,7 +258,7 @@ layout (location = 1) in vec3 normals;
 layout (location = 2) in vec2 uvs;
 
 layout (location = 3) in vec4 posrad; // time is gameframe spawned :D
-layout (location = 4) in vec4 margin_teamID_gf_technique;
+layout (location = 4) in vec4 margin_teamID_shield_technique;
 layout (location = 5) in vec4 color1;
 layout (location = 6) in vec4 color2;
 layout (location = 7) in uvec4 instData; // unitID, teamID, ??
@@ -303,7 +306,7 @@ void main()
 		return;
 	}
 	
-	vec3 modelWorldPos = uni[instData.y].drawPos.xyz;
+	vec3 modelWorldPos = uni[instData.y].drawPos.xyz;// + vec3(100,100,100);
 	unitID_vs = 0.1 + float(uni[instData.y].composite >> 16 ) / 256000.0;
 	
 	float modelRot = uni[instData.y].drawPos.w;
@@ -311,7 +314,11 @@ void main()
 		
 	vec4 vertexWorldPos = vec4(1);
 	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
-	vertexWorldPos.xyz = rotY * ( flippedPos * posrad.w + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
+
+	
+	float radius = 0.99 * posrad.w;
+	
+	vertexWorldPos.xyz = rotY * ( flippedPos * (radius) + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
 	
 	gl_Position = cameraViewProj * vertexWorldPos;
 
@@ -326,13 +333,13 @@ void main()
 	//vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
 	color1_vs.rgb = camToWorldPos.xyz;
 	float angle = dot(normal,camToWorldPos); //*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
-	opac_vs = pow( abs( angle ) , margin_teamID_gf_technique.x);
+	opac_vs = pow( abs( angle ) , margin_teamID_shield_technique.x);
 	//opac_vs = 1.0;
 	//color1_vs.rgb = vec3(angle);
 	
 	vec4 color2_vs;
 	if (color1.r < 0) { // negative numbers mean teamcolor
-		vec4 teamcolor = teamColor[int(margin_teamID_gf_technique.y)];
+		vec4 teamcolor = teamColor[int(margin_teamID_shield_technique.y)];
 		//	ShieldSphereParticle.Default.colormap1 = {{(r*0.45)+0.3, (g*0.45)+0.3, (b*0.45)+0.3, 0.6}}
 		//ShieldSphereParticle.Default.colormap2 = {{r*0.5, g*0.5, b*0.5, 0.66} }
 		color1_vs = vec4(teamcolor.rgb, 0.5);
@@ -341,10 +348,15 @@ void main()
 		color2_vs.rgb = color2_vs.rgb * 0.5;
 	}else{ // base color
 		color1_vs = color1;
-		color2_vs = color2_vs;
+		color2_vs = color2;
 	}
 	
 	color1_vs = mix(color1_vs, color2_vs, opac_vs);
+	
+	if (margin_teamID_shield_technique.z > 0.5){
+		float shieldPower = clamp(uni[instData.y].userDefined[0].z, 0, 1);
+		color1_vs = mix(vec4(0.8,0.4, 0,1.0),color1_vs,  shieldPower);
+	}
 	
 	float relHealth  = clamp(uni[instData.y].health/uni[instData.y].maxHealth, 0, 1);
 	//color1_vs.rgb *= 1.0 + relHealth;
@@ -355,7 +367,7 @@ void main()
 	modelPos_vs.w = relHealth;
 	gameFrame_vs = (timeInfo.x + timeInfo.w) ;
 	
-	technique_vs = int(floor(margin_teamID_gf_technique.w));
+	technique_vs = int(floor(margin_teamID_shield_technique.w));
 	
 }
 ]]
@@ -640,7 +652,7 @@ local function initGL4()
   --Spring.Echo("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength
-		  {id = 4, name = 'margin_teamID_gf_technique', size = 4}, --  emit dir
+		  {id = 4, name = 'margin_teamID_shield_technique', size = 4}, --  emit dir
 		  {id = 5, name = 'color1', size = 4}, --- color
 		  {id = 6, name = 'color2', size = 4}, --- color
 		  {id = 7, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
@@ -673,7 +685,7 @@ end
 -- Widget Interface
 --------------------------------------------------------------------------------
 
-function widget:DrawWorld()
+function widget:DrawWorldPreParticles()
 	DrawOrbs(false)
 end
 
@@ -702,7 +714,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 
 		local instanceCache = orbUnitDefs[unitDefID]
 		instanceCache[6] = unitTeam
-		instanceCache[7] = Spring.GetGameFrame()
+		--instanceCache[7] = Spring.GetGameFrame()
 		
 		--Spring.Echo("Added lups orb")
 		pushElementInstance(orbVBO,
