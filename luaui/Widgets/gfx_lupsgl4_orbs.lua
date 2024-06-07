@@ -365,7 +365,7 @@ void main()
 	modelPos_vs = vec4(position.xzy*posrad.w, 0);
 	//modelPos_vs.z = fract(modelPos_vs.z * 10);
 	modelPos_vs.w = relHealth;
-	gameFrame_vs = (timeInfo.x + timeInfo.w) ;
+	gameFrame_vs = timeInfo.z;
 	
 	technique_vs = int(floor(margin_teamID_shield_technique.w));
 	
