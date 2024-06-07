@@ -81,7 +81,7 @@ end
 
 local oldChildXPValues = {}
 function gadget:GameFrame(frame)
-	if frame%30 then
+	if frame%30 == 0 then
 		local parentID
 		for unitID, value in pairs(initializeList) do
 			local unitDefID = spGetUnitDefID(unitID)
