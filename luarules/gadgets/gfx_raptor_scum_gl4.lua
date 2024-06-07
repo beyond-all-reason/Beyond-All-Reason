@@ -42,6 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local scums = {} -- {posx = 123, posz = 123, radius = 123, spawnframe = 0, growthrate = 1.0} -- in elmos per sec
+	local scumArray = {} -- this will be the array of actual scums
 	local scumIndex = 0
 	local numscums = 0
 	local scumBins = {} -- a table keyed with (posx / 1024) + 1024 + (posz/1024), values are tables of scumindexes that can overlap that bin
@@ -158,7 +159,45 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	GG.IsPosInRaptorScum = IsPosInScum --(x,y,z)
+	
+	local function GetRandomScumID(startID)
+		if numscums < 1 then return end
+		local scumID = startID or next(scums) -- so we can start iterating from anywhere
+		if not scumID then return end -- return nil on no scums
+		local randomindex = math.random(1, numscums)
+		for i = 1, randomindex do 
+			scumID = next(scums)
+		end
+		return scumID
+	end
+	
+	GG.GetRandomScumID =  GetRandomScumID -- Returns nil or scumID
 
+	local function GetRandomPositionInScum()
+		local scumID = GetRandomScumID()
+		if not scumID then return end
+		local px, pz
+
+		local scum   = scums[scumID]
+		local radius = GetScumCurrentRadius(scum)
+		local attempts = 0
+		repeat
+			attempts = attempts + 1 
+			local randAngle = math.random() * math.pi
+			
+			local r = radius * math.sqrt(math.random())
+			local theta = math.random() * 2 * math.pi
+
+			local x = scum.posx + r * math.cos(theta)
+			local z = scum.posz + r * math.sin(theta)
+			if x > 128 and x < Game.mapSizeX - 128 and z > 128 and z < Game.mapSizeZ - 128 and r > 32 then 
+				px,pz = x,z
+			end
+		until (px and pz) and (attempts < 10)
+		return px,pz
+	end
+	
+	GG.GetRandomPositionInScum = GetRandomPositionInScum -- Returns nil or (X, Z)
 
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
@@ -271,7 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 				if scums[scumID] then
 					numscums = numscums - 1
 				end
-				UpdateBins(instanceID, true)
+				UpdateBins(scumID, true)
 			end
 			scumRemoveQueue[n] = nil
 		end
