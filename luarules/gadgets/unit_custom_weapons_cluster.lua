@@ -91,12 +91,29 @@ for wdid, wdef in pairs(WeaponDefs) do
     if wdef.customParams and wdef.customParams[customParamName] then
         dataTable[wdid] = {}
         dataTable[wdid].number  = tonumber(wdef.customParams.number) or defaultSpawnNum
-        dataTable[wdid].def     = wdef.customParams.def              or string.gsub(wdef.name, '_[^_]+', '') .. '_' .. defaultSpawnDef
+        dataTable[wdid].def     = wdef.customParams.def
         dataTable[wdid].projDef = -1
         dataTable[wdid].projTtl = defaultSpawnTtl
         dataTable[wdid].projVel = defaultVelocity / GAME_SPEED
 
+        -- Enforce limits, eg the projectile count, at init.
         dataTable[wdid].number  = min(dataTable[wdid].number, maxSpawnNumber)
+
+        -- When the cluster munition name isn't specified, search for the default.
+        if dataTable[wdid].def == nil then
+            local captures = string.match(wdef.name, '([^_]+)')
+            for ii = 1, #captures do
+                local possibleName = table.concat(captures, '_', 1, ii)
+                if UnitDefNames[possibleName] ~= nil then
+                    dataTable[wdid].def = possibleName .. '_' .. defaultSpawnDef
+                end
+            end
+            -- There's still the chance we haven't found anything, so:
+            if dataTable[wdid].def == nil then
+                Spring.Echo('[clustermun] [warn] Did not find cluster munition for weapon id ' .. wdid)
+                dataTable[wdid] = nil
+            end
+        end
     end
 end
 
