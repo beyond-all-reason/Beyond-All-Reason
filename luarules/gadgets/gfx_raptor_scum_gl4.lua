@@ -104,6 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 				scavbeacon_t4_scav = {radius = 1000, growthrate = 1},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
+			scumParams.growthrate = 60
 			if UnitDefNames[unitDefName] then
 				scumSpawnerIDs[UnitDefNames[unitDefName].id] = scumParams
 			end
@@ -320,7 +321,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 
 	local texcolorheight = "LuaUI/images/raptor_scum/alien_guts_colorheight.dds"
 	local texnormalspec =  "LuaUI/images/raptor_scum/alien_guts_normalspec.dds"
-	local texdistortion =  "LuaUI/images/lavadistortion.png"
+	local texdistortion =  "LuaUI/images/lavadistortion.dds"
 	local resolution = 32
 
 	local scumVBO = nil
