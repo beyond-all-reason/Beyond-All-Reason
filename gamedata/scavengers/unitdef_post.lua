@@ -124,13 +124,13 @@ local function scavUnitDef_Post(name, uDef)
 	 		if uDef.maxdec then
 	 			uDef.maxdec  = uDef.maxdec * 1.5
 	 		end
-	 		if uDef.builddistance then
-	 			uDef.builddistance = uDef.builddistance * 1.25
-	 		end
-			if uDef.workertime then
-				uDef.workertime = uDef.workertime * 4
-			end
 	 	end
+		if uDef.builddistance then
+			uDef.builddistance = uDef.builddistance * 1.25
+		end
+		if uDef.workertime then
+			uDef.workertime = uDef.workertime * 4
+		end
 	end
 
 	-- Remove commander customparams from _scav commanders
