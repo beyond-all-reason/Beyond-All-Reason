@@ -447,12 +447,12 @@ local LandUnitsList = {
 		[1] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -464,12 +464,12 @@ local LandUnitsList = {
 		[2] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -481,12 +481,12 @@ local LandUnitsList = {
 		[3] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -497,14 +497,14 @@ local LandUnitsList = {
 		},
 		[4] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -518,14 +518,14 @@ local LandUnitsList = {
 		},
 		[5] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -539,14 +539,14 @@ local LandUnitsList = {
 		},
 		[6] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -754,11 +754,11 @@ local SeaUnitsList = {
 		[1] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -766,11 +766,11 @@ local SeaUnitsList = {
 		[2] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -778,11 +778,11 @@ local SeaUnitsList = {
 		[3] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -790,34 +790,42 @@ local SeaUnitsList = {
 		[4] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 		[5] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 		[6] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 
 		},
 		[7] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 	},
