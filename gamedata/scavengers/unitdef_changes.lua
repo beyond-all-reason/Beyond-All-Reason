@@ -45,12 +45,27 @@ customDefs.armsilo = {
 	weapondefs = {
 		nuclear_missile = {
 			stockpile = true,
-			stockpiletime = 30,
+			stockpiletime = 120,
 			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
-				stockpileLimit = 1,
+				stockpilelimit = 10,
+			},
+		},
+	},
+}
+
+customDefs.legsilo = {
+	weapondefs = {
+		legicbm = {
+			stockpile = true,
+			stockpiletime = 120,
+			reloadtime = 10,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+				stockpilelimit = 10,
 			},
 		},
 	},
@@ -60,12 +75,12 @@ customDefs.corsilo = {
 	weapondefs = {
 		crblmssl = {
 			stockpile = true,
-			stockpiletime = 30,
+			stockpiletime = 120,
 			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
-				stockpileLimit = 1,
+				stockpilelimit = 10,
 			},
 		},
 	},
