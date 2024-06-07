@@ -4,7 +4,7 @@ function gadget:GetInfo()
         desc    = 'Custom behavior for projectiles that explode and split on impact.',
         author  = 'efrec',
         version = '1.1',
-        date    = '2024-05-20',
+        date    = '2024-06-07',
         license = 'GNU GPL, v2 or later',
         layer   = 0,
         enabled = true
