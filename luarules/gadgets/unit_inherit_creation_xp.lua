@@ -27,7 +27,6 @@ local inheritChildrenXP = {} -- stores the value of XP rate to be derived from u
 local childrenInheritXP = {} -- stores the string that represents the types of units that will inherit the parent's XP when created
 local parentsInheritXP = {} -- stores the string that represents the types of units the parent will gain xp from
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
-local parentsWithChildren = {} --stores the parents that have children to be removed from checks in unitdestroyed callin
 local mobileUnits = {}
 local unitPowerDefs = {}
 
@@ -125,9 +124,7 @@ function gadget:GameFrame(frame)
 					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
 				end
 			end
-			if parentID then
-				parentsWithChildren[parentID] = true --add parent to watchlist to delete children relationship with dead parents
-			end
+
 			initializeList[unitID] = nil -- this concludes innitialization
 		end
 		
@@ -151,11 +148,4 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 
 	childrenWithParents[unitID] = nil --removes units from lists when destroyed
 	initializeList[unitID] = nil
-	if parentsWithChildren[unitID] then --if parent dies, remove its children from watch list
-		for id, data in pairs(childrenWithParents) do
-			if data.parentunitid == unitID then
-				childrenWithParents[id] = nil
-			end
-		end
-	end
 end
