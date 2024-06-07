@@ -899,6 +899,8 @@ local function UnitCaptureStartedHealthbars(unitID, step) -- step is negative fo
 	if debugmode then Spring.Echo("UnitCaptureStartedHealthbars", unitID) end
     --gl.SetFeatureBufferUniforms(featureID, 0.5, 2) -- update GL
 	local capture = select(4, Spring.GetUnitHealth(unitID))
+	uniformcache[1] = capture
+	gl.SetUnitBufferUniforms(unitID, uniformcache, 5)
 	unitCaptureWatch[unitID] = capture
 	addBarForUnit(unitID, Spring.GetUnitDefID(unitID), 'capture', 'UnitCaptureStartedHealthbars')
 
