@@ -261,8 +261,8 @@ while number < #packedSpheres do
             for jj = #packedSpheres + 1, target do packedSpheres[jj] = {} end
             packedSpheres[target] = RandomVector3(target)
         -- Then fill in any gaps.
-        elseif target == number and number <= maxSpawnNumber then
-            if packedSpheres[number] == nil then
+        elseif target == number then
+            if #packedSpheres[number] == 0 then
                 packedSpheres[number] = RandomVector3(number)
             end
         end
