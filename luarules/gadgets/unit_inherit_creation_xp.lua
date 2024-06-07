@@ -79,11 +79,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	initializeList[unitID] = true --must initialize after finishing building otherwise child XP inheritance won't happen
 end
 
-local childrenGroupingIncriment = 1
-local childrenGroups = {}
 local oldChildXPValues = {}
 function gadget:GameFrame(frame)
-	if frame then
+	if frame%30 then
 		local parentID
 		for unitID, value in pairs(initializeList) do
 			local unitDefID = spGetUnitDefID(unitID)
@@ -126,21 +124,12 @@ function gadget:GameFrame(frame)
 					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
 				end
 			end
-
-			if childrenWithParents[unitID] then
-				table.insert(childrenGroups[childrenGroupingIncriment], unitID)--i can't seem to get this working right
-				childrenGroupingIncriment = childrenGroupingIncriment+1-----------------------------------------
-				if childrenGroupingIncriment == 31 then --this resets the grouping incriment
-					childrenGroupingIncriment = 1
-				end
-			end
-
-			initializeList[unitID] = nil -- this concludes initialization
+			initializeList[unitID] = nil -- this concludes innitialization
 		end
 		
 		
-		for unitID, value in pairs(childrenGroups[frame]) do --this also broke the script
-			local oldXP = oldChildXPValues[unitID] or 0 ---------------------------------------
+		for unitID, value in pairs(childrenWithParents) do
+			local oldXP = oldChildXPValues[unitID] or 0
 			local newXP = spGetUnitExperience(unitID) or 0
 			if newXP > oldXP then
 				parentID = childrenWithParents[unitID].parentunitid
