@@ -368,7 +368,7 @@ function gadget:Initialize()
     end
 end
 
-function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, _)
+function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projID)
     if not dataTable[weaponDefID] then return end
     local weaponData = dataTable[weaponDefID]
     local deflection = GetSurfaceDeflection(ex, ey, ez)
