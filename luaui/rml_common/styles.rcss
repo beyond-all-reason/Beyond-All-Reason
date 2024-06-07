@@ -6,7 +6,7 @@ body {
     box-sizing: border-box;
     font-family: "Exo 2";
     font-weight: normal;
-    font-size: 20px;
+    font-size: 20dp;
 }
 
 body * {
@@ -120,39 +120,86 @@ thead, tbody, tfoot {
 }
 
 /* Input Elements */
+
+input:disabled, textarea:disabled,
+button:disabled, select:disabled, option:disabled {
+    background-color: #000;
+    color: #666;
+    cursor: not-allowed;
+    focus: none;
+}
+
+input.button, input.submit, 
 button, select {
+    display: inline-block;
     background-color: #222;
-    border: 1px #666;
-    border-radius: 4px;
-    padding: 4px;
-    margin: 2px;
+    border: 2dp #666;
+    border-radius: 4dp;
+    padding: 4dp;
+    margin: 2dp;
     cursor: pointer;
 }
 
+select {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    height: 1.8em;
+    padding-left: 6dp;
+}
+
+select selectvalue {
+    display: block;
+    flex-grow: 1;
+}
+
+select selectarrow {
+    display: block;
+    width: 1em;
+    height: 100%;
+    background-color: #666;
+}
+
+select selectbox option {
+    padding: 4dp;
+    background-color: #000;
+    border-width: 0 2dp 0 2dp;
+    border-color: #666;
+}
+
+select selectbox option:last-child {
+    border-bottom-width: 2dp;
+}
+
+select selectbox option:nth-child(even) {
+    background-color: #222;
+}
+
+select selectbox option:hover {
+    background-color: #444;
+}
+
+input.button:hover, input.submit:hover, 
 button:hover, select:hover {
     background-color: #444;
 }
 
+input.button:active, input.submit:active,
 button:active, select:active {
     background-color: #666;
 }
 
-button:disabled, select:disabled {
-    background-color: #000;
-    color: #666;
-    cursor: not-allowed;
-}
-
 input.radio, input.checkbox {
-    width: 10px;
-    height: 10px;
-    border: 1px #666;
-    background: #fff;
-    tab-index: auto;
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    border: 2dp #666;
+    background: #000;
+    cursor: pointer;
 }
 
 input.radio {
-    border-radius: 5px;
+    border-radius: 2em;
 }
 
 input.radio:hover, input.checkbox:hover {
@@ -160,26 +207,53 @@ input.radio:hover, input.checkbox:hover {
 }
 
 input.radio:active, input.checkbox:active {
-    background: #ccc;
+    background: #fff;
 }
 
 input.radio:checked, input.checkbox:checked {
-    background: #222;
+    background: #ddd;
 }
 
-input.text {
-    background-color: #fff;
-    color: #555;
-    border: 2px #999;
-    padding: 5px;
-    tab-index: auto;
-    cursor: text;
+input.radio:active, input.checkbox:active,
+input.radio:checked, input.checkbox:checked {
+    box-shadow: #000 inset 0 0 0 1dp;
+}
+
+input.text, input.password, textarea  {
+    background-color: #000;
+    color: #ccc;
+    border: 2dp #999;
+    padding: 5dp;
     box-sizing: border-box;
+    cursor: text;
     text-align: left;
 }
 
-input.text, textarea {
-    text-align: left;
+input.range {
+    height: 0.8em;
+    cursor: pointer;
+}
+
+input.range sliderbar {
+    background-color: #888;
+    border-radius: 2em;
+    width: 0.8em;
+}
+
+input.range:hover sliderbar, input.range:active sliderbar {
+    background-color: #aaa;
+}
+
+input.range slidertrack {
+    background-color: #555;
+    border-radius: 0.4em;
+    height: 0.4em;
+    margin: 0.2em 0;
+}
+
+input:focus-visible, textarea:focus-visible,
+button:focus-visible, select:focus-visible {
+    box-shadow: #00ffe1 0 0 6dp 2dp;
 }
 
 /* RmlUi Elements */
@@ -192,46 +266,39 @@ handle[move_target] {
     cursor: move;
 }
 
+scrollbarvertical,
+scrollbarhorizontal {
+    cursor: pointer;
+}
+
 scrollbarvertical {
-    width: 6px;
+    width: 6dp;
+    margin: 4dp 2dp 4dp 0;
+    scrollbar-margin: 2dp;
 }
 
 scrollbarhoriztonal {
-    height: 6px;
+    height: 6dp;
+    margin: 0 4dp 2dp 6dp;
+    scrollbar-margin: 2dp;
 }
 
 scrollbarvertical slidertrack,
 scrollbarhorizontal slidertrack {
-    background: #333;
-    border-color: #888;
-}
-
-scrollbarvertical slidertrack {
-    border-left-width: 1px;
-}
-
-scrollbarhorizontal slidertrack {
-    height: 6px;
-    border-top-width: 1px;
+    background-color: #333;
+    border-radius: 2em;
 }
 
 scrollbarvertical sliderbar,
 scrollbarhorizontal sliderbar {
-    background: #888;
-    border-color: #666;
+    background-color: #888;
+    border-radius: 3dp;
+    margin: 0 1dp;
 }
 
-scrollbarvertical sliderbar {
-    border-width: 1px 0;
-    margin-left: 1px;
-}
-
-scrollbarhorizontal sliderbar {
-    height: 6px;
-    border-width: 0 1px;
-    margin-top: 1px;
-}
-
-scrollbarcorner {
-    background: #888;
+scrollbarvertical:hover sliderbar,
+scrollbarhorizontal:hover sliderbar,
+scrollbarvertical:hover sliderbar,
+scrollbarhorizontal:hover sliderbar {
+    background-color: #aaa;
 }

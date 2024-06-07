@@ -5,9 +5,9 @@
 
 .container {
     background-color: #000A;
-    border: 2px black;
-    border-radius: 8px;
-    padding: 8px;
+    border: 2dp black;
+    border-radius: 8dp;
+    padding: 8dp;
 }
 
 .title-bar {
@@ -32,31 +32,30 @@ tabset > tabs > tab {
 }
 
 tabset > tabs > tab:selected {
-    border-bottom: 1px white;
-    margin-bottom: -1px;
+    border-bottom: 1dp white;
+    margin-bottom: -1dp;
 }
 
 tabset panels {
     display: block;
     flex-grow: 1;
-    min-width: 800px;
-    min-height: 600px;
-    max-height: 800px;
+    min-width: 800dp;
+    min-height: 600dp;
+    max-height: 800dp;
     overflow-y: scroll;
 }
 
-code.example-code {
+textarea.example-code {
     position: relative;
     display: block;
-    padding: 1em;
+    padding: 0.5em;
     background-color: black;
-    font-size: 16px;
-    border: 1px gray;
+    font-size: 18dp;
+    border: 1dp gray;
     border-radius: 1em;
+    width: 100%;
 }
 
-code.example-code textarea {
-    position: relative;
-    display: block;
-    width: 100%;
+textarea.example-code scrollbarvertical {
+    margin: 0.5em 0.25em;
 }

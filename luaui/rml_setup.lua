@@ -30,7 +30,16 @@ RmlGuard = true
 
 	Contexts created with the Lua API are automatically disposed of when the LuaUi environment is unloaded
 ]]
-RmlUi.CreateContext("shared")
+
+local oldCreateContext = RmlUi.CreateContext
+
+local function NewCreateContext(name)
+	local context = oldCreateContext(name)
+	context.dp_ratio = Spring.GetConfigFloat("ui_scale", 1)
+	return context
+end
+
+RmlUi.CreateContext = NewCreateContext
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
