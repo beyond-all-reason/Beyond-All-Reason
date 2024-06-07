@@ -1166,7 +1166,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if tracy then
-				tracy.Message(string.format("spawnCreepStructure: %s, flatCheck=%d, occupancyCheck=%d, scumCheck=%d", unitDefName, flatCheck, occupancyCheck, scumCheck))
+				--tracy.Message(string.format("spawnCreepStructure: %s, flatCheck=%d, occupancyCheck=%d, scumCheck=%d", unitDefName, flatCheck, occupancyCheck, scumCheck))
+				-- testing determined that its mostly occupancy and scum check failing, as expected
 			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
 			for _ = 1,100 do
@@ -1221,25 +1222,28 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				local currentCountOfTurretDef = Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id)
-				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (currentCountOfTurretDef <= maxAllowedToSpawn) then
-						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
-							local attempts = 0
-							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
-							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
-							local footprintAvg = 128
-							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*4 -- this is about (8 + 8) * 4 == 64 on average
-							end
-							repeat
-								attempts = attempts + 1
-								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32) -- call with 96 on average
-								if turretUnitID then
-									currentCountOfTurretDef = currentCountOfTurretDef + 1
-									setRaptorXP(turretUnitID)
-									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+				
+				if currentCountOfTurretDef < UnitDefNames[uName].maxThisUnit then  -- cause nutty raptors sets maxThisUnit which results in nil returns from Spring.CreateUnit!
+					for i = 1, math.ceil(numOfTurrets) do
+						if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (currentCountOfTurretDef <= maxAllowedToSpawn) then
+							if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
+								local attempts = 0
+								local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+								local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+								local footprintAvg = 128
+								if footprintX and footprintZ then
+									footprintAvg = ((footprintX+footprintZ))*4 -- this is about (8 + 8) * 4 == 64 on average
 								end
-							until turretUnitID or attempts > 100
+								repeat
+									attempts = attempts + 1
+									local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32) -- call with 96 on average
+									if turretUnitID then
+										currentCountOfTurretDef = currentCountOfTurretDef + 1
+										setRaptorXP(turretUnitID)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+									end
+								until turretUnitID or attempts > 100
+							end
 						end
 					end
 				end
