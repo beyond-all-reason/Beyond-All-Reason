@@ -64,7 +64,7 @@ local spGetUnitRadius    = Spring.GetUnitRadius
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spSpawnProjectile  = Spring.SpawnProjectile
 
-local GAME_SPEED         = 30
+local GAME_SPEED         = Game.gameSpeed
 local mapGravity         = Game.gravity / GAME_SPEED / GAME_SPEED * -1
 
 local SetWatchExplosion  = Script.SetWatchExplosion
