@@ -1146,20 +1146,27 @@ if gadgetHandler:IsSyncedCode() then
 		local spawnPosX, spawnPosY, spawnPosZ
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
+			local flatCheck, occupancyCheck, scumCheck = 0,0,0
 			for _ = 1,100 do
 				spawnPosX = mRandom(spread, MAPSIZEX - spread)
 				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true) -- 90% of map should be flat
+				flatCheck = flatCheck + 1
 				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread) -- spread about 96 is suspicious, Probably this fails the most ofte
+					occupancyCheck = occupancyCheck + 1
 				end
 				if canSpawnStructure then
-					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) -- this is a func of creep coverage, assume ~50 % of map covered
+					scumCheck = scumCheck + 1
 				end
 				if canSpawnStructure then
 					break
 				end
+			end
+			if tracy then
+				tracy.Message(string.format("spawnCreepStructure: %s, flatCheck=%d, occupancyCheck=%d, scumCheck=%d", unitDefName, flatCheck, occupancyCheck, scumCheck))
 			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
 			for _ = 1,100 do
@@ -1188,6 +1195,10 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitBlocking(structureUnitID, false, false)
 				tracy.ZoneEnd()
 				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+			else 
+				if tracy then
+					tracy.Message(string.format("spawnCreepStructure: Failed to spawn %s at %d*%d*%d ", unitDefName, spawnPosX, spawnPosY, spawnPosZ ))
+				end
 			end
 		end
 		tracy.ZoneEnd()
@@ -1218,11 +1229,11 @@ if gadgetHandler:IsSyncedCode() then
 							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
 							local footprintAvg = 128
 							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*4
+								footprintAvg = ((footprintX+footprintZ))*4 -- this is about (8 + 8) * 4 == 64 on average
 							end
 							repeat
 								attempts = attempts + 1
-								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
+								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32) -- call with 96 on average
 								if turretUnitID then
 									currentCountOfTurretDef = currentCountOfTurretDef + 1
 									setRaptorXP(turretUnitID)
