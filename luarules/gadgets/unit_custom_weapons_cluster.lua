@@ -101,11 +101,11 @@ for wdid, wdef in pairs(WeaponDefs) do
 
         -- When the cluster munition name isn't specified, search for the default.
         if dataTable[wdid].def == nil then
-            local captures = string.match(wdef.name, '([^_]+)')
-            for ii = 1, #captures do
-                local possibleName = table.concat(captures, '_', 1, ii)
-                if UnitDefNames[possibleName] ~= nil then
-                    dataTable[wdid].def = possibleName .. '_' .. defaultSpawnDef
+            local search = ''
+            for word in string.gmatch(wdef.name, '([^_]+)') do
+                search = search == '' and word or search .. '_' .. word
+                if UnitDefNames[search] ~= nil then
+                    dataTable[wdid].def = search .. '_' .. defaultSpawnDef
                 end
             end
             -- There's still the chance we haven't found anything, so:
