@@ -504,7 +504,7 @@ out vec4 fragColor;
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 
-	#define time (gameFrame_vs * 0.03333333)
+	#define time gameFrame_vs
 
 	vec3 LightningOrb(vec2 vUv, vec3 color) {
 		vec2 uv = NORM2SNORM(vUv);
