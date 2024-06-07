@@ -166,7 +166,7 @@ for udid, udef in pairs(UnitDefs) do
     -- todo: Seems likely that the same goes for wall-like units, then.
     if udef.armorType == Game.armorTypes.wall or udef.armorType == Game.armorTypes.indestructible then
         unitBulk[udid] = 0.9
-    elseif udef.name == 'armclaw' or udef.name == 'cormaw' or udef.name == 'legjaw' then
+    elseif udef.customParams and udef.customParams.neutral_when_closed then -- Dragon turrets
         unitBulk[udid] = 0.8
     else
         unitBulk[udid] = min(
