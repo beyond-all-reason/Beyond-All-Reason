@@ -560,14 +560,14 @@ local LandUnitsList = {
 		},
 		[7] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -1483,7 +1483,9 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Air)
-addNewSquad({ type = "healerLand", minAnger = tierConfiguration[2].minAnger, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[2].minAnger, units = { "5 armrectr_scav","5 cornecro_scav",}, weight = 10, maxAnger = 1000}) --Rezzers
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armrectr_scav","10 cornecro_scav",}, weight = 20, maxAnger = 1000}) --Rezzers
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[6].minAnger, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = tierConfiguration[2].maxAnger}) --Rovers/Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --T1 Veh Raid
