@@ -144,7 +144,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -568,7 +568,7 @@ if gadgetHandler:IsSyncedCode() then
 				role = newSquad.role
 			end
 			if not newSquad.life then
-				newSquad.life = 10
+				newSquad.life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult)
 			end
 
 
@@ -1147,7 +1147,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
 			local flatCheck, occupancyCheck, scumCheck = 0,0,0
-			for _ = 1,100 do
+			for _ = 1,5 do
 				spawnPosX = mRandom(spread, MAPSIZEX - spread)
 				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1170,7 +1170,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- testing determined that its mostly occupancy and scum check failing, as expected
 			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
-			for _ = 1,100 do
+			for _ = 1,5 do
 				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1242,7 +1242,7 @@ if gadgetHandler:IsSyncedCode() then
 										setRaptorXP(turretUnitID)
 										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
 									end
-								until turretUnitID or attempts > 100
+								until turretUnitID or attempts > 10
 							end
 						end
 					end
@@ -1592,29 +1592,29 @@ if gadgetHandler:IsSyncedCode() then
 				if config.raptorBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "healer"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if config.raptorBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "artillery"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if config.raptorBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "kamikaze"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if UnitDefNames[defs.unitName].canFly then
 					squadCreationQueue.role = "aircraft"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 
@@ -1780,7 +1780,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n%30 == 16 then
 			t = GetGameSeconds()
-			playerAggression = playerAggression*0.995
+			local burrowCount = SetCount(burrows)
+			playerAggression = playerAggression*0.998
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("raptorPlayerAggressionLevel", playerAggressionLevel)
 			if not queenID then
@@ -1788,21 +1789,24 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			if pastFirstQueen then
+			if pastFirstQueen or Spring.GetModOptions().raptor_graceperiodmult <= 1 then
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - config.gracePeriod) * 100), 999), 0)
 			else
 				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100), 999), 0)
 			end
 			if t < config.gracePeriod then
 				queenAnger = 0
-				minBurrows = SetCount(humanTeams)*(t/config.gracePeriod)
+				minBurrows = 4*(t/config.gracePeriod)
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 4
+					if burrowCount <= 2 then
+						playerAggression = playerAggression + 0.1
+					end
 				else
 					queenAnger = 100
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 4
 				end
 				queenAngerAggressionLevel = queenAngerAggressionLevel + ((playerAggression*0.01)/(config.queenTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAggression*0.01)/(config.queenTime/3600))
@@ -1817,7 +1821,7 @@ if gadgetHandler:IsSyncedCode() then
 				updateQueenLife()
 			end
 
-			local burrowCount = SetCount(burrows)
+			
 			if burrowCount < minBurrows then
 				SpawnBurrow()
 				timeOfLastSpawn = t
