@@ -941,6 +941,8 @@ local function cycleBuilder()
 			break
 		end
 	end
+
+	refreshCommands()
 end
 
 function widget:Initialize()
