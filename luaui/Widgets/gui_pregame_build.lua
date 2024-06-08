@@ -389,6 +389,11 @@ function widget:MousePress(mx, my, button)
 		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
 			return true
 		end
+	elseif button == 3 and #buildQueue > 0 then -- remove units from buildqueue one by one
+		-- TODO: If mouse is over a building, remove only that building instead
+		table.remove(buildQueue, #buildQueue)
+
+		return true
 	end
 end
 
