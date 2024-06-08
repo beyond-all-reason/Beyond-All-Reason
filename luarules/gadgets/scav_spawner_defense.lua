@@ -1284,7 +1284,7 @@ if gadgetHandler:IsSyncedCode() then
 									setScavXP(turretUnitID)
 									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
 								end
-							until turretUnitID or attempts > 100
+							until turretUnitID or attempts > 10
 						end
 					end
 				end
