@@ -1786,6 +1786,29 @@ local unitGrids = {
 		}
 	},
 
+	legdecom = {
+		{
+			{ "legmex", "legsolar", "legwin", },               -- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide" },           -- T1 converter, uw ms storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
+		},
+		{
+			{ "leglht", },                                   -- LLT
+			{ "legrl", },                                    -- basic AA
+			{ },                                             --
+		},
+		{
+			{ "corrad", },                                   -- radar
+			{ },                                             --
+			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+		},
+		{
+			{ },                                             --
+			{ },                                             -- empty row
+			{ },                                             --
+		}
+	},
+
 	--fark
 	armfark = {
 		{

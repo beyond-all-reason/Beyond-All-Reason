@@ -24,6 +24,7 @@ local armorDefs = {
 		"corcomlvl10",
 		"cordecom",
 		"corcomcon",
+		"legdecom",
 		"legcom",
 		"legcomlvl2",
 		"legcomlvl3",

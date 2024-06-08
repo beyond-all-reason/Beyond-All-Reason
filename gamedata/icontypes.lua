@@ -2159,6 +2159,11 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdecom = {
+		bitmap = "icons/legcom.png",
+		size = 1.60000002
+	},
+
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999

@@ -49,6 +49,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
+		releaseheld  = true,
 		script = "Units/CORCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
