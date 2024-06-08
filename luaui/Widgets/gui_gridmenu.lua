@@ -512,7 +512,7 @@ local function setupCategoryRects()
 	-- set up rects
 	if stickToBottom then
 		local x1 = categoriesRect.x
-		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / #categories
+		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / #CONFIG.buildCategories
 		local contentWidth = categoriesRect.xEnd - categoriesRect.x
 
 		for i, cat in ipairs(CONFIG.buildCategories) do
@@ -524,15 +524,13 @@ local function setupCategoryRects()
 				y1 + contentHeight - 2,
 				defaultCategoryOpts[i]
 			)
-
-			if cat == currentCategory then
-				y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
-
-				currentCategoryRect:set(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2)
-			end
 		end
+
+		local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
+
+		currentCategoryRect:set(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2)
 	else
-		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / #categories))
+		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / #CONFIG.buildCategories))
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
 		local y2 = categoriesRect.yEnd
 		for i, cat in ipairs(CONFIG.buildCategories) do
@@ -545,17 +543,14 @@ local function setupCategoryRects()
 				y2 - activeAreaMargin - padding,
 				defaultCategoryOpts[i]
 			)
-
-			if cat == currentCategory then
-				x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
-				currentCategoryRect:set(
-					x1,
-					y2 - categoryButtonHeight + padding,
-					x1 + buttonWidth,
-					y2 - activeAreaMargin - padding
-				)
-			end
 		end
+		local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
+		currentCategoryRect:set(
+			x1,
+			y2 - categoryButtonHeight + padding,
+			x1 + buttonWidth,
+			y2 - activeAreaMargin - padding
+		)
 	end
 end
 
@@ -1598,19 +1593,19 @@ end
 
 local function drawCategories()
 	if currentCategory then
-		-- local rect = currentCategoryRect
+		local rect = currentCategoryRect
 
-		-- local fontHeight = rect.opts.nameHeight * categoryFontSize
-		-- local fontHeightOffset = fontHeight * 0.34
-		-- font2:Print(
-		-- 	rect.opts.name,
-		-- 	rect.x + (bgpadding * 7),
-		-- 	(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
-		-- 	categoryFontSize,
-		-- 	"o"
-		-- )
+		local fontHeight = rect.opts.nameHeight * categoryFontSize
+		local fontHeightOffset = fontHeight * 0.34
+		font2:Print(
+			rect.opts.name,
+			rect.x + (bgpadding * 7),
+			(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
+			categoryFontSize,
+			"o"
+		)
 
-		-- drawButton(rect)
+		drawButton(rect)
 
 		return
 	end
