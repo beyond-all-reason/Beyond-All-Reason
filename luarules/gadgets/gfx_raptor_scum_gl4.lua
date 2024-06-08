@@ -1001,7 +1001,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 
 	local function HandleScumCreated(cmd, posx, posz, radius, growthrate, gf, scumID)
 
-		Spring.Echo("Scum Created Unsynced", cmd, posx, posz, radius, growthrate, gf, scumID)
+		--Spring.Echo("Scum Created Unsynced", cmd, posx, posz, radius, growthrate, gf, scumID)
 		AddOrUpdateScum(posx, nil, posz, radius, growthrate, scumID)
 	end
 
