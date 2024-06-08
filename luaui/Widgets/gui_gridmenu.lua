@@ -723,9 +723,12 @@ local function setCurrentCategory(category)
 		if isPregame then
 			-- here we repeat setPregameBlueprint, but we can't have circular dependencies
 			activeCmd = firstCmd
+
 			if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
 				WG["pregame-build"].setPreGamestartDefID(-firstCmd)
 			end
+
+			updateSelectedCell()
 		else
 			pickBlueprint(-firstCmd)
 		end
@@ -1306,26 +1309,18 @@ function widget:Update(dt)
 
 	local prevActiveCmd = activeCmd
 
-	if isPregame and WG["pregame-build"] then
-		local selectedId = WG["pregame-build"].selectedID
-
-		if selectedId then
-			activeCmd = -selectedId
-		end
-	else
-		activeCmd = select(2, spGetActiveCommand())
-	end
-
-	if activeCmd ~= prevActiveCmd then
-		doUpdate = true
-	end
-
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
 		local startUnit = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 		if not startDefID or startDefID ~= startUnit then
 			startDefID = startUnit
+			doUpdate = true
+		end
+	else
+		activeCmd = select(2, spGetActiveCommand())
+
+		if activeCmd ~= prevActiveCmd then
 			doUpdate = true
 		end
 	end
@@ -1950,7 +1945,7 @@ local function drawBuildMenu()
 	end
 
 	-- lab build mode button
-	if builderIsFactory or useLabBuildMode then
+	if builderIsFactory and useLabBuildMode then
 		drawBuildModeButtons()
 	end
 
