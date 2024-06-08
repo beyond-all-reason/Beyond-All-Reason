@@ -278,6 +278,23 @@ function UnitDef_Post(name, uDef)
         		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
         		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
 				end
+				local levelsTable = {}
+				for i = modOptions.evocomlevelcap, 9 do
+					if i <= 10 then -- <- this 10 is because max level of evocom is 10
+						table.insert(levelsTable, i)
+					end
+				end
+				for _, level in ipairs(levelsTable) do
+					local cortexEvocomLevels = "corcomlvl" .. level
+					local armadaEvocomLevels = "armcomlvl" .. level
+					local legionEvocomLevels = "legcomlvl" .. level
+					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
+						uDef.customparams.evolution_announcement = nil
+						uDef.customparams.evolution_announcement_size = nil
+						uDef.customparams.evolution_target = nil
+						uDef.customparams.evolution_condition = nil
+					end
+				end
 			end
 		end
 
