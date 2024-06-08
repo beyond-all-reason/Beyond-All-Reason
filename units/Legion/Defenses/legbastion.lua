@@ -113,7 +113,7 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidfriendly = true,
-				beamtime = 1,
+				beamtime = 0.1,
 				camerashake = 0.1,
 				corethickness = 0.4,
 				craterareaofeffect = 120,
@@ -146,7 +146,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 4500,
+					default = 45,
 				},
 			},
 		},
