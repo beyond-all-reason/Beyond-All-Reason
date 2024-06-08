@@ -131,7 +131,7 @@ return {
 			evolution_condition = "timer",
 			evolution_timer = 99999,
 			combatradius = 0,
-			inheritxpratemultiplier = 0.5,
+			inheritxpratemultiplier = 0.25,
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 		},
