@@ -258,9 +258,14 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
+				elseif name == "legcom" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
+				uDef.customparams.evolution_announcement_size = 18.5
+				uDef.customparams.evolution_target = "legcomlvl2"
+				uDef.customparams.evolution_condition = "timer"
 				elseif name == "legcomlvl2" then
-					uDef.energymake = 50
-					uDef.metalmake = 3
+				uDef.energymake = 50
+				uDef.metalmake = 3
 				elseif name == "legcomlvl3" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
 				uDef.energymake = 75
