@@ -493,7 +493,6 @@ AimPrimary(heading, pitch)
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 		bAiming = 0;
-		//waitForAim = 0
 	}
 	wpnheading = heading;
 	stop-spin rbarrel around z-axis decelerate <10>;
@@ -507,9 +506,6 @@ AimPrimary(heading, pitch)
 		start-script reloadWaitCounter();
 		return (0);
 	}
-	//if (waitForAim = 1){
-	//	return (0);
-	//}
 	start-script RestoreAfterDelay();
 	return (1);
 }
