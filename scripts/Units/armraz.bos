@@ -447,6 +447,7 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
+	primaryShotCount = primaryShotCount+1;
 	if( gun_1 == 0 )
 	{
 		piecenum = rflare;
@@ -497,13 +498,12 @@ AimPrimary(heading, pitch)
 	wpnheading = heading;
 	stop-spin rbarrel around z-axis decelerate <10>;
 	stop-spin lbarrel around z-axis decelerate <10>;
-	primaryShotCount = primaryShotCount+1;
 	if (primaryShotCount == -1){
 		return (0);
 	}
-	if (primaryShotCount > 6){
+	if (primaryShotCount > 6){ //change this number (6 originally) to change the number of shots per burst. The burstrate will be defined by reloadTime in the unitdef
 		reloadStartFrame = (get GAME_FRAME);
-		reloadStartFrame = reloadStartFrame+19;
+		reloadStartFrame = reloadStartFrame+19; //WeaponDef Substitute! instead of defining reloadTime between shots, use reloadStartFrame+(frames), where (number) is the number of frames you want to delay before next burst.
 		start-script reloadWaitCounter();
 		return (0);
 	}
