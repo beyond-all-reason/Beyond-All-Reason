@@ -1009,24 +1009,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Multipliers Modoptions
 
-	-- Health
-	if uDef.health then
-		local x = modOptions.multiplier_maxdamage
-		if x ~= 1 then
-			if uDef.health * x > 15000000 then
-				uDef.health = 15000000
-			else
-				uDef.health = uDef.health * x
-			end
-			if uDef.autoheal then
-				uDef.autoheal = uDef.autoheal * x
-			end
-			if uDef.idleautoheal then
-				uDef.idleautoheal = uDef.idleautoheal * x
-			end
-		end
-	end
-
 	-- Max Speed
 	if uDef.speed then
 		local x = modOptions.multiplier_maxvelocity
@@ -1066,26 +1048,6 @@ function UnitDef_Post(name, uDef)
 
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
-	end
-
-	-- Unit Cost
-	if uDef.metalcost then
-		local x = modOptions.multiplier_metalcost
-		if x ~= 1 then
-			uDef.metalcost = math.min(uDef.metalcost * x, 16000000)
-		end
-	end
-	if uDef.energycost then
-		local x = modOptions.multiplier_energycost
-		if x ~= 1 then
-			uDef.energycost = math.min(uDef.energycost * x, 16000000)
-		end
-	end
-	if uDef.buildtime then
-		local x = modOptions.multiplier_buildtimecost
-		if x ~= 1 then
-			uDef.buildtime = math.min(uDef.buildtime * x, 16000000)
-		end
 	end
 
 	--energystorage

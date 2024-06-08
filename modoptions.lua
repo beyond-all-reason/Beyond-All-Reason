@@ -409,19 +409,6 @@ local options = {
     },
 
     {
-        key		= "multiplier_maxdamage",
-        name	= "Health Multiplier",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        hidden	= true,
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-    },
-
-    {
         key		= "multiplier_maxvelocity",
         name	= "Unit Max Velocity Multiplier",
         desc	= "(Range 0.1 - 10).",
@@ -467,45 +454,6 @@ local options = {
         min		= 0.1,
         max		= 10,
         step	= 0.1,
-    },
-
-    {
-        key		= "multiplier_metalcost",
-        name	= "Unit Cost Multiplier - Metal",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
-    },
-
-    {
-        key		= "multiplier_energycost",
-        name	= "Unit Cost Multiplier - Energy",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
-    },
-
-    {
-        key		= "multiplier_buildtimecost",
-        name	= "Unit Cost Multiplier - Time",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
     },
 
     {
@@ -644,14 +592,13 @@ local options = {
     {
         key		= "raptor_queentimemult",
         name	= "Queen Hatching Time Multiplier",
-        desc	= "(Range: 0.1 - 1). How quickly Queen Hatch goes from 0 to 100%",
+        desc	= "(Range: 0.1 - 2). How quickly Queen Hatch goes from 0 to 100%",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 1,
+        max		= 2,
         step	= 0.1,
         section = "raptor_defense_options",
-        hidden  = true,
     },
 
     {
@@ -693,14 +640,13 @@ local options = {
     {
         key		= "raptor_graceperiodmult",
         name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 1). Time before Raptors become active. ",
+        desc	= "(Range: 0.1 - 3). Time before Raptors become active. ",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 1,
+        max		= 3,
         step	= 0.1,
         section	= "raptor_defense_options",
-        hidden  = true,
     },
 
 
@@ -760,14 +706,13 @@ local options = {
     {
         key		= "scav_bosstimemult",
         name	= "Boss Preparation Time Multiplier",
-        desc	= "(Range: 0.1 - 1). How quickly Boss Anger goes from 0 to 100%.",
+        desc	= "(Range: 0.1 - 2). How quickly Boss Anger goes from 0 to 100%.",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 1,
+        max		= 2,
         step	= 0.1,
         section	= "scav_defense_options",
-        hidden  = true,
     },
 
     {

@@ -16,7 +16,19 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 (0.67+(Spring.GetModOptions().multiplier_energyproduction*0.33)) *
 math.max(1, (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) + (((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)) * 0.5))
 
-economyScale = (economyScale*0.5)+0.5
+if Spring.GetModOptions().raptor_graceperiodmult ~= 1 then
+	economyScale = economyScale * (0.75 + (Spring.GetModOptions().raptor_graceperiodmult*0.25))
+end
+
+if Spring.GetModOptions().multiplier_shieldpower ~= 1 then
+	economyScale = economyScale * (0.75 + (Spring.GetModOptions().multiplier_shieldpower*0.25))
+end
+
+if Spring.GetModOptions().multiplier_buildpower ~= 1 then
+	economyScale = economyScale * (0.85 + (Spring.GetModOptions().multiplier_buildpower*0.15))
+end
+
+economyScale = (economyScale*0.5)+0.5 -- since we're both making waves bigger, and shorter, we want each to be only half influenced by this
 
 local burrowName = 'raptor_hive'
 
@@ -310,7 +322,7 @@ local optionValues = {
 		turretSpawnRate   = 120 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 1,
 		angerBonus        = 0.1*economyScale,
-		maxXP			  = 0.5,
+		maxXP			  = 0.5 * economyScale,
 		spawnChance       = 0.1,
 		damageMod         = 0.4,
 		maxBurrows        = 1000,
@@ -318,7 +330,7 @@ local optionValues = {
 		maxRaptors		  = 25*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_veryeasy',
-		queenResistanceMult   = 0.5,
+		queenResistanceMult   = 0.5 * economyScale,
 	},
 
 	[difficulties.easy] = {
@@ -329,7 +341,7 @@ local optionValues = {
 		turretSpawnRate   = 100 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 1,
 		angerBonus        = 0.15*economyScale,
-		maxXP			  = 1,
+		maxXP			  = 1 * economyScale,
 		spawnChance       = 0.2,
 		damageMod         = 0.6,
 		maxBurrows        = 1000,
@@ -337,7 +349,7 @@ local optionValues = {
 		maxRaptors		  = 30*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_easy',
-		queenResistanceMult   = 0.75,
+		queenResistanceMult   = 0.75 * economyScale,
 	},
 	[difficulties.normal] = {
 		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -347,7 +359,7 @@ local optionValues = {
 		turretSpawnRate   = 80 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.20*economyScale,
-		maxXP			  = 1.5,
+		maxXP			  = 1.5 * economyScale,
 		spawnChance       = 0.3,
 		damageMod         = 0.8,
 		maxBurrows        = 1000,
@@ -355,7 +367,7 @@ local optionValues = {
 		maxRaptors		  = 35*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_normal',
-		queenResistanceMult   = 1,
+		queenResistanceMult   = 1 * economyScale,
 	},
 	[difficulties.hard] = {
 		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -365,7 +377,7 @@ local optionValues = {
 		turretSpawnRate   = 60 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.25*economyScale,
-		maxXP			  = 2,
+		maxXP			  = 2 * economyScale,
 		spawnChance       = 0.4,
 		damageMod         = 1,
 		maxBurrows        = 1000,
@@ -373,7 +385,7 @@ local optionValues = {
 		maxRaptors		  = 40*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_hard',
-		queenResistanceMult   = 1.33,
+		queenResistanceMult   = 1.33 * economyScale,
 	},
 	[difficulties.veryhard] = {
 		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -383,7 +395,7 @@ local optionValues = {
 		turretSpawnRate   = 40 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.30*economyScale,
-		maxXP			  = 2.5,
+		maxXP			  = 2.5 * economyScale,
 		spawnChance       = 0.5,
 		damageMod         = 1.2,
 		maxBurrows        = 1000,
@@ -391,7 +403,7 @@ local optionValues = {
 		maxRaptors		  = 45*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_veryhard',
-		queenResistanceMult   = 1.67,
+		queenResistanceMult   = 1.67 * economyScale,
 	},
 	[difficulties.epic] = {
 		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -401,7 +413,7 @@ local optionValues = {
 		turretSpawnRate   = 20 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.35*economyScale,
-		maxXP			  = 3,
+		maxXP			  = 3 * economyScale,
 		spawnChance       = 0.6,
 		damageMod         = 1.4,
 		maxBurrows        = 1000,
@@ -409,7 +421,7 @@ local optionValues = {
 		maxRaptors		  = 50*economyScale,
 		raptorPerPlayerMultiplier = 0.25,
 		queenName         = 'raptor_queen_epic',
-		queenResistanceMult   = 2,
+		queenResistanceMult   = 2 * economyScale,
 	},
 
 	-- [difficulties.survival] = {
