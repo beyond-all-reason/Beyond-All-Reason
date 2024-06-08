@@ -1147,7 +1147,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
 			local flatCheck, occupancyCheck, scumCheck = 0,0,0
-			for _ = 1,100 do
+			for _ = 1,5 do
 				spawnPosX = mRandom(spread, MAPSIZEX - spread)
 				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1170,7 +1170,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- testing determined that its mostly occupancy and scum check failing, as expected
 			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
-			for _ = 1,100 do
+			for _ = 1,5 do
 				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1242,7 +1242,7 @@ if gadgetHandler:IsSyncedCode() then
 										setRaptorXP(turretUnitID)
 										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
 									end
-								until turretUnitID or attempts > 100
+								until turretUnitID or attempts > 10
 							end
 						end
 					end
