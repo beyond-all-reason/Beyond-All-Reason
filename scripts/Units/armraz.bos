@@ -5,7 +5,7 @@
 
 piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel, rflare, luparm, lblimb, lflimb, lcannon, lbarrel, lflare;
 
-static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
+static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount, primaryShotCount, reloadStartFrame, thisFrame; 
 
 // Signal definitions
 #define SIG_WALK			2
@@ -412,6 +412,7 @@ Create()
 	wpnheading  = 0;
 	animSpeed = 6;
 	shotcount = 0;
+	primaryShotCount = 0;
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -436,6 +437,7 @@ RestoreAfterDelay(Func_Var_1)
 	wait-for-turn aimx1 around x-axis;
 	bAiming = FALSE;
 	wpnheading  = 0;
+	primaryShotCount = 0;
 }
 
 AimFromPrimary(piecenum)
@@ -464,6 +466,17 @@ QueryPrimary(piecenum)
 
 }
 
+reloadWaitCounter()
+{
+	primaryShotCount = -1;
+	while (reloadStartFrame > thisFrame){
+		thisFrame = (get GAME_FRAME);
+		sleep 100;
+	}
+	primaryShotCount = 0;
+	return (0);
+}
+
 AimPrimary(heading, pitch)
 {
 	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
@@ -479,14 +492,27 @@ AimPrimary(heading, pitch)
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 		bAiming = 0;
+		//waitForAim = 0
 	}
 	wpnheading = heading;
 	stop-spin rbarrel around z-axis decelerate <10>;
 	stop-spin lbarrel around z-axis decelerate <10>;
+	primaryShotCount = primaryShotCount+1;
+	if (primaryShotCount == -1){
+		return (0);
+	}
+	if (primaryShotCount > 6){
+		reloadStartFrame = (get GAME_FRAME);
+		reloadStartFrame = reloadStartFrame+19;
+		start-script reloadWaitCounter();
+		return (0);
+	}
+	//if (waitForAim = 1){
+	//	return (0);
+	//}
 	start-script RestoreAfterDelay();
 	return (1);
 }
-
 
 FirePrimary()
 {

@@ -110,8 +110,8 @@ return {
 				beamburst = true,
 				beamdecay = 1,
 				beamtime = 0.07,
-				burst = 6,
-				burstrate = 0.06667,
+				--burst = 6, --this is handled in the armraz.bos, within AimPrimary()
+				--burstrate = 0.06667, --set the burstrate with reloadtime instead
 				corethickness = 0.35,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -125,10 +125,10 @@ return {
 				laserflaresize = 8.8,
 				name = "Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
-				proximitypriority = 1.3,
+				--proximitypriority = 1.3, --do not use, makes stuttery targetting
 				pulsespeed = 8,
 				range = 475,
-				reloadtime = 0.63333,
+				reloadtime = 0.06667, --reloadtime acts like burstrate, actual delay between bursts defined in armraz.bos
 				rgbcolor = "0.75 0 0",
 				rgbcolor2 = "0.9 0.9 0.6",
 				soundhitdry = "",
