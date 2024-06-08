@@ -6,7 +6,6 @@
 -- bind alt+z gridmenu_prev_page <-- Go to previous page
 
 -- TODO: Fix mess that is handleButtonHover
--- FIXME: When gridmenu is enbaled with no unit selected categories do not draw
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
 function widget:GetInfo()
 	return {
@@ -1196,6 +1195,12 @@ function widget:ViewResize()
 		buildersRect:set(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
 	end
 
+	cellPadding = math_floor(cellSize * CONFIG.cellPadding)
+	iconPadding = math_max(1, math_floor(cellSize * CONFIG.iconPadding))
+	cornerSize = math_floor(cellSize * CONFIG.iconCornerSize)
+	cellInnerSize = cellSize - cellPadding - cellPadding
+	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
+
 	setupCategoryRects()
 	setupCells()
 
@@ -1671,75 +1676,68 @@ local function drawPageButtons()
 end
 
 local function drawBuildModeButtons()
-	-- lab build mode button
-	if builderIsFactory and useLabBuildMode then
-		if labBuildModeActive then
-			local fontSize = pageFontSize * 1.2
-			local buildModeText = "\255\245\245\245" .. "Build Mode"
-			local containerHeight = categoriesRect:getHeight()
-			local fontHeight = font2:GetTextHeight(buildModeText) * fontSize
-			local fontWidth = font2:GetTextWidth(buildModeText) * fontSize
-			local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
-			local left = center - (fontWidth / 2)
-			local fontHeightOffset = fontHeight * 0.3
-			font2:Print(
-				buildModeText,
-				left,
-				(categoriesRect.y + (containerHeight / 2)) - fontHeightOffset,
-				fontSize,
-				"o"
-			)
-		else
-			local hotkeys = ""
-			for i = 1, #categoryKeys do
-				hotkeys = hotkeys .. keyConfig.sanitizeKey(categoryKeys[i], currentLayout)
-			end
+	if labBuildModeActive then
+		local fontSize = pageFontSize * 1.2
+		local buildModeText = "\255\245\245\245" .. "Build Mode"
+		local containerHeight = categoriesRect:getHeight()
+		local fontHeight = font2:GetTextHeight(buildModeText) * fontSize
+		local fontWidth = font2:GetTextWidth(buildModeText) * fontSize
+		local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+		local left = center - (fontWidth / 2)
+		local fontHeightOffset = fontHeight * 0.3
+		font2:Print(buildModeText, left, (categoriesRect.y + (containerHeight / 2)) - fontHeightOffset, fontSize, "o")
 
-			if stickToBottom then
-				local rect = labBuildModeRect
-				local fullText = "\255\245\245\245" .. "Enable Build Mode"
-				local buildModeText, _ =
-					font2:WrapText(fullText, categoriesRect:getWidth() - (bgpadding * 2), nil, pageFontSize * 1.1)
-				local buttonHeight = rect:getHeight()
-				local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
-				local fontHeightOffset = fontHeight * 0.24
-				font2:Print(
-					buildModeText,
-					rect.x + (bgpadding * 3),
-					(rect.y + (buttonHeight / 2)) - fontHeightOffset,
-					pageFontSize,
-					"n"
-				)
+		return
+	end
 
-				-- draw hotkeys differently for this button
-				local keyFontHeight = font2:GetTextHeight(hotkeys) * hotkeyFontSize
-				local keyFontWidth = font2:GetTextWidth(hotkeys) * hotkeyFontSize
-				local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
-				local left = center - (keyFontWidth / 2)
+	local hotkeys = ""
+	for i = 1, #categoryKeys do
+		hotkeys = hotkeys .. keyConfig.sanitizeKey(categoryKeys[i], currentLayout)
+	end
 
-				local text = "\255\215\255\215" .. hotkeys
-				font2:Print(text, left, rect.y + (keyFontHeight * 0.8), hotkeyFontSize, "o")
-				drawButton(labBuildModeRect)
-			else
-				local buildModeText = "\255\245\245\245" .. "Enable Build Mode"
-				local buttonHeight = labBuildModeRect:getHeight()
-				local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
-				local fontHeightOffset = fontHeight * 0.24
-				font2:Print(
-					buildModeText,
-					labBuildModeRect.x + (bgpadding * 3),
-					(labBuildModeRect.y + (buttonHeight / 2)) - fontHeightOffset,
-					pageFontSize,
-					"o"
-				)
+	if stickToBottom then
+		local rect = labBuildModeRect
+		local fullText = "\255\245\245\245" .. "Enable Build Mode"
+		local buildModeText, _ =
+			font2:WrapText(fullText, categoriesRect:getWidth() - (bgpadding * 2), nil, pageFontSize * 1.1)
+		local buttonHeight = rect:getHeight()
+		local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
+		local fontHeightOffset = fontHeight * 0.24
+		font2:Print(
+			buildModeText,
+			rect.x + (bgpadding * 3),
+			(rect.y + (buttonHeight / 2)) - fontHeightOffset,
+			pageFontSize,
+			"n"
+		)
 
-				labBuildModeRect.opts.keyText = hotkeys
-				labBuildModeRect.opts.keyTextHeight = font2:GetTextHeight(hotkeys)
+		-- draw hotkeys differently for this button
+		local keyFontHeight = font2:GetTextHeight(hotkeys) * hotkeyFontSize
+		local keyFontWidth = font2:GetTextWidth(hotkeys) * hotkeyFontSize
+		local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+		local left = center - (keyFontWidth / 2)
 
-				drawButtonHotkey(labBuildModeRect)
-				drawButton(labBuildModeRect)
-			end
-		end
+		local text = "\255\215\255\215" .. hotkeys
+		font2:Print(text, left, rect.y + (keyFontHeight * 0.8), hotkeyFontSize, "o")
+		drawButton(labBuildModeRect)
+	else
+		local buildModeText = "\255\245\245\245" .. "Enable Build Mode"
+		local buttonHeight = labBuildModeRect:getHeight()
+		local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
+		local fontHeightOffset = fontHeight * 0.24
+		font2:Print(
+			buildModeText,
+			labBuildModeRect.x + (bgpadding * 3),
+			(labBuildModeRect.y + (buttonHeight / 2)) - fontHeightOffset,
+			pageFontSize,
+			"o"
+		)
+
+		labBuildModeRect.opts.keyText = hotkeys
+		labBuildModeRect.opts.keyTextHeight = font2:GetTextHeight(hotkeys)
+
+		drawButtonHotkey(labBuildModeRect)
+		drawButton(labBuildModeRect)
 	end
 end
 
@@ -1798,9 +1796,6 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 end
 
 local function drawBuilders()
-	if not activeBuilder or selectedBuildersCount <= 1 then
-		return
-	end
 	builderRects = {}
 
 	-- reset builders rect to fix placement issues
@@ -1916,13 +1911,6 @@ local function drawBuildMenu()
 		drawCategories()
 	end
 
-	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * CONFIG.cellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * CONFIG.iconPadding))
-	cornerSize = math_floor(cellSize * CONFIG.iconCornerSize)
-	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * CONFIG.priceFontSize) + 0.5)
-
 	drawGrid()
 
 	if drawBackScreen then
@@ -1933,8 +1921,14 @@ local function drawBuildMenu()
 		drawPageButtons()
 	end
 
-	drawBuilders()
-	drawBuildModeButtons()
+	if not activeBuilder or selectedBuildersCount <= 1 then
+		drawBuilders()
+	end
+
+	-- lab build mode button
+	if not builderIsFactory or not useLabBuildMode then
+		drawBuildModeButtons()
+	end
 
 	font2:End()
 end
@@ -2538,6 +2532,8 @@ function widget:SelectionChanged(newSel)
 	else
 		updateCategories({})
 	end
+
+	redraw = true
 
 	-- Only update commands if the current defid changed
 	if activeBuilder ~= prevActiveBuilderDefID then
