@@ -157,6 +157,9 @@ return {
 			[1] = {
 				def = "cor_heat_laser",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
+                maindir = "0 0 1",
+                maxangledif = 40,
 			},
 		},
 	},

@@ -247,6 +247,9 @@ return {
 			[1] = {
 				def = "thunder",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
+                maindir = "0 0 1",
+                maxangledif = 40,
 			},
 			[2] = {
 				def = "EMPMISSILE",
