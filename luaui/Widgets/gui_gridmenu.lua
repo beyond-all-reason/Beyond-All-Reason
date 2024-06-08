@@ -371,6 +371,13 @@ end
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
 -------------------------------------------------------------------------------
+local function formatPrice(price)
+	if price >= 1000 then
+		return string.format("%s %03d", formatPrice(math_floor(price / 1000)), price % 1000)
+	end
+	return price
+end
+
 local function updateBuildProgress()
 	currentlyBuildingRectID = nil
 
@@ -461,6 +468,17 @@ local function updateGrid()
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
+				end
+
+				local iconType = units.unitIconType[uDefID]
+				rect.opts.groupIcon = iconTypes[iconType]
+				rect.opts.unitGroup = groups[units.unitGroup[uDefID]]
+				rect.opts.metalCost = units.unitMetalCost[uDefID]
+				rect.opts.energyCost = units.unitEnergyCost[uDefID]
+
+				if showPrice then
+					rect.opts.metalPrice = formatPrice(rect.opts.metalCost)
+					rect.opts.energyPrice = formatPrice(rect.opts.energyCost)
 				end
 
 				rect.opts.queuenr = cmd.params[1]
@@ -673,6 +691,15 @@ local function setActiveCommand(cmd, button, leftClick, rightClick)
 	updateSelectedCell()
 end
 
+local function pickBlueprint(uDefID)
+	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex then
+		WG["areamex"].setAreaMexType(uDefID)
+	end
+	setActiveCommand(cmd)
+end
+
 local function setCurrentCategory(category)
 	local changedCategory = category and currentCategory ~= category
 
@@ -688,11 +715,35 @@ local function setCurrentCategory(category)
 	if changedCategory and autoSelectFirst and (activeBuilder or isPregame) then
 		local firstCellCmdOpt = gridOpts[1 + (currentPage - 1) * cellCount]
 		local firstCmd = firstCellCmdOpt and firstCellCmdOpt.id
-		if firstCmd then
-			setActiveCommand(spGetCmdDescIndex(firstCmd))
 
-			updateSelectedCell()
+		if not firstCmd then
+			return
 		end
+
+		if isPregame then
+			-- here we repeat setPregameBlueprint, but we can't have circular dependencies
+			activeCmd = firstCmd
+			if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
+				WG["pregame-build"].setPreGamestartDefID(-firstCmd)
+			end
+		else
+			pickBlueprint(-firstCmd)
+		end
+	end
+end
+
+local function setPregameBlueprint(uDefID)
+	if not isPregame then
+		return
+	end
+
+	activeCmd = uDefID and -uDefID
+	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
+		WG["pregame-build"].setPreGamestartDefID(uDefID)
+	end
+
+	if not uDefID then
+		setCurrentCategory(nil)
 	end
 end
 
@@ -704,30 +755,6 @@ local function queueUnit(uDefID, opts)
 				spGiveOrderToUnit(uid, -uDefID, {}, opts)
 			end
 		end
-	end
-end
-
-local function pickBlueprint(uDefID)
-	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex then
-		WG["areamex"].setAreaMexType(uDefID)
-	end
-	setActiveCommand(cmd)
-end
-
-local function setPregameBlueprint(uDefID)
-	if not isPregame then
-		return
-	end
-
-	activeCmd = -uDefID
-	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
-		WG["pregame-build"].setPreGamestartDefID(uDefID)
-	end
-
-	if not uDefID then
-		setCurrentCategory(nil)
 	end
 end
 
@@ -953,7 +980,10 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+
+	if not isPregame then
+		widget:SelectionChanged(Spring.GetSelectedUnits())
+	end
 
 	WG["gridmenu"] = {}
 	WG["gridmenu"].getAlwaysReturn = function()
@@ -1456,12 +1486,12 @@ local function drawCell(rect)
 		disabled and 0 or nil,
 		"#" .. uid,
 		showRadarIcon
-				and ((units.unitIconType[uid] and iconTypes[units.unitIconType[uid]]) and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. iconTypes[units.unitIconType[uid]] or nil)
+				and (rect.opts.groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. rect.opts.groupIcon or nil)
 			or nil,
 		showIcon
-				and (groups[units.unitGroup[uid]] and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. groups[units.unitGroup[uid]] or nil)
+				and (rect.opts.unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. rect.opts.unitGroup or nil)
 			or nil,
-		{ units.unitMetalCost[uid], units.unitEnergyCost[uid] },
+		{ rect.opts.metalCost, rect.opts.energyCost },
 		tonumber(queuenr)
 	)
 
@@ -1504,17 +1534,11 @@ local function drawCell(rect)
 	gl.Texture(false)
 
 	-- price
-	if showPrice then
+	local metalPrice = rect.opts.metalPrice
+	if metalPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
-		local function AddSpaces(price)
-			if price >= 1000 then
-				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
-			end
-			return price
-		end
-		local metalPrice = AddSpaces(units.unitMetalCost[uid])
-		local energyPrice = AddSpaces(units.unitEnergyCost[uid])
+		local energyPrice = rect.opts.energyPrice
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
 		font2:Print(
@@ -1921,12 +1945,12 @@ local function drawBuildMenu()
 		drawPageButtons()
 	end
 
-	if not activeBuilder or selectedBuildersCount <= 1 then
+	if activeBuilder and selectedBuildersCount > 1 then
 		drawBuilders()
 	end
 
 	-- lab build mode button
-	if not builderIsFactory or not useLabBuildMode then
+	if builderIsFactory or useLabBuildMode then
 		drawBuildModeButtons()
 	end
 
@@ -2340,20 +2364,19 @@ local function handleButtonHover()
 								cellColor = { 1, 0.85, 0.2, 0.25 }
 							end
 
-							local unsetShowPrice
-							if not showPrice then
-								unsetShowPrice = true
-								showPrice = true
-							end
-
 							hoveredCell.opts.usedZoom = usedZoom
 							hoveredCell.opts.color = cellColor
 
+							if not showPrice then
+								hoveredCell.opts.metalPrice = formatPrice(hoveredCell.opts.metalCost)
+								hoveredCell.opts.energyPrice = formatPrice(hoveredCell.opts.energyCost)
+							end
+
 							drawCell(hoveredCell)
 
-							if unsetShowPrice then
-								showPrice = false
-								unsetShowPrice = nil
+							if not showPrice then
+								hoveredCell.opts.metalPrice = nil
+								hoveredCell.opts.energyPrice = nil
 							end
 						end
 					end)
