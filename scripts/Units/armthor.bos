@@ -10,12 +10,15 @@ static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, cu
 
 static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
 
+static-var burstShotCount, suspendBurstWeapon, burstTimerIncrement, reloadTimeSubstitute, burstQuantitySubstitute; //added for burstfire fix
+
 #define SIG_MOVE 1
 #define SIG_AIM_1			2
 #define SIG_AIM_2			4 //rlauncher
 #define SIG_AIM_3			8
 #define SIG_AIM_4			16
 #define SIG_AIM_5			32 //llauncher
+#define SIG_BURST_RELOADTIME_TIMER	64
 
 UnitSpeed()
 {
@@ -56,6 +59,9 @@ Create()
 	last_rempslv_heading = -1000000;
 	last_tesla_heading = -1000000;
 	last_tesla_pitch = -1000000;
+	reloadTimeSubstitute = 93; //adjust this value (in frames) for weapon reloadTime. 30 frames in a second.
+	burstQuantitySubstitute = 10; //adjust this value for number of shots per burst
+	start-script reloadTimer();
 }
 
 StartMoving()
@@ -89,6 +95,7 @@ RestoreAfterDelay_tesla()
 	last_tesla_pitch = -1000000;
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
+	suspendBurstWeapon = 0;
 }
 
 RestoreAfterDelay_EMP_missile()
@@ -133,18 +140,43 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
+
+reloadTimer()
+{
+	while( TRUE )
+	{
+		sleep 33;
+		burstTimerIncrement = burstTimerIncrement+1;
+		if (burstTimerIncrement > reloadTimeSubstitute){
+		currentBarrel = !currentBarrel;
+		suspendBurstWeapon = 0;
+		burstShotCount = 0;
+		}
+	}
+}
+
 //Weapon 1: Double Heavy Tesla Cannon
 //===================================
 AimWeapon1(heading, pitch)
 {
+	get PRINT(currentBarrel, burstShotCount, suspendBurstWeapon, burstTimerIncrement);
 	signal SIG_AIM_1;
 	set-signal-mask SIG_AIM_1;
 	turn turret to y-axis heading speed <45.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	last_tesla_heading = heading;
 	last_tesla_pitch = pitch;
+	if (suspendBurstWeapon == 1){
+		return (0);
+	}
+	if (burstShotCount > burstQuantitySubstitute){ // change the number of shots per burst. The burstrate will be defined by reloadTime in the unitdef
+		suspendBurstWeapon = 1;
+		start-script RestoreAfterDelay_tesla();
+		return (0);
+	}
+	burstTimerIncrement = 0;
 	start-script RestoreAfterDelay_tesla();
 	return (1);
 }
@@ -207,7 +239,7 @@ FireWeapon1()
 		wait-for-move rtbarrel along z-axis;
 		stop-spin rtbarrel around z-axis decelerate <15>;
 	}
-	currentBarrel = !currentBarrel;
+	burstShotCount = burstShotCount + 1;
 }
 
 AimFromWeapon1(piecenum)

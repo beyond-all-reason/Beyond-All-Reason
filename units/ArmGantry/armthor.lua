@@ -117,14 +117,14 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				beamttl = 1,
-				burst = 10,
-				burstrate = 0.03333,
+				--burst = 10, --this is handled in the armraz.bos, within AimWeapon1()
+				--burstrate = 0.03333,--set the burstrate with reloadtime instead
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				duration = 2,
 				edgeeffectiveness = 0.15,
-				energypershot = 350,
+				energypershot = 35, --all 10 shots is 350 energy same as before
 				explosiongenerator = "custom:genericshellexplosion-large-lightning-thor",
 				fallOffRate = 0.5,
 				firestarter = 50,
@@ -136,7 +136,7 @@ return {
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
 				range = 540,
-				reloadtime = 3.1,
+				reloadtime = 0.03333, --was 3.1 pre-fix --reloadtime acts like burstrate, actual delay between bursts defined in armraz.bos
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lasrfir2",
 				soundhitwet = "sizzle",
@@ -247,6 +247,7 @@ return {
 			[1] = {
 				def = "thunder",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				def = "EMPMISSILE",
