@@ -1233,6 +1233,18 @@ local options = {
     },
 
     {
+        key    	= "evocomlevelcap",
+        name   	= "Commander Level Cap",
+        desc   	= "(Range 5 - 10) Changes the Evolving Commanders maximum level",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 10,
+        min    	= 5,
+        max    	= 10,
+        step   	= 1,
+    },
+
+    {
 		key		= "forceallunits",
 		name	= "Force Load All Units (For modders/devs)",
 		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
