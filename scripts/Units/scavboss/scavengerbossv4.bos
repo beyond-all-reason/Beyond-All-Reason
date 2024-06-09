@@ -8,7 +8,8 @@
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
-		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare, flare1, flare2, flare3, flare4, flare5, flare6;  
+		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare, flare1, flare2, flare3, flare4, flare5, flare6,
+		laserflarelight;  
 
 static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch,
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
