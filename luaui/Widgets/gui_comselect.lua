@@ -10,14 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-
-
-local myTeamID = Spring.GetMyTeamID()
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetMyTeamID = Spring.GetMyTeamID
-local spSendCommands = Spring.SendCommands
-
-
+local myTeamID
 
 local commanderList = {}
 local commanderIds = {}
@@ -33,7 +26,6 @@ function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 	if commanderIds[unitDefID] then
 		table.insert(commanderList, unitID)
-		--Spring.Echo('hornet comsel adding com')
 	end
 end
 
@@ -51,26 +43,21 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 end
 
 
-
-
-
 -- comm selection functionality
 local commIndex = 1
 local function SelectComm()
-	--Spring.Echo('hornet comsel tab')
 	local commCount = #commanderList
 
 	if commCount <= 0 then
-		--Spring.Echo('hornet comsel 0 coms')
 		return
 	end
-	
+
 	-- This check deals with the case of spectators selecting
 	-- teams with different numbers of commanders.
 	if commCount < commIndex then
 		commIndex = commCount
 	end
-	
+
 	local unitID
 	-- Loop long enough to check every commander.
 	-- The most recently Ctrl+C selected commander is checked last.
@@ -85,9 +72,10 @@ local function SelectComm()
 			break
 		end
 	end
-	
+
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	Spring.SelectUnit(unitID, shift)
+
 	if not shift then
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		Spring.SetCameraTarget(x, y, z)
@@ -124,7 +112,6 @@ function widget:Initialize()
 	RefreshList()
 end
   
-
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("selectcomm")
