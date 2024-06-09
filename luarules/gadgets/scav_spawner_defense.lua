@@ -1142,7 +1142,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if mRandom() <= config.spawnChance then
+					if mRandom() <= config.spawnChance and loopCounter == 1 then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
