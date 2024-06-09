@@ -197,6 +197,7 @@ local unitOrderTable = {
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS
 	['corgarp']        = 005910,
+	['legamphtank']    = 005920,
 
 	-- T2 LAND ATTACK
 	['armgremlin']     = 006005,

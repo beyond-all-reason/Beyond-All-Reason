@@ -44,7 +44,7 @@ return {
 			[7] = "legbar",
 			[8] = "legrail",
 			[9] = "cormlv",
-			[10] = "corgarp",
+			[10] = "legamphtank",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

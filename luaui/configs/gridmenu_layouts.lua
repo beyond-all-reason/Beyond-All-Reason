@@ -48,7 +48,7 @@ local labGrids = {
 	legvp = {
 		"legcv", "cormlv", "leghades", "corfav",       -- T1 con, minelayer, gator, scout
 		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
-		"legotter", "corgarp", "legrail", "",       -- amphib con, amphib tank, missile truck
+		"legotter", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
 	armavp = {
@@ -145,9 +145,9 @@ local labGrids = {
 	},
 	
 	legamsub = {
-		"legotter", "", "corgarp", "",
-		"", "legfloat", "", "",
-		"", "corcrash", "coraak",
+		"legotter", "legdecom", "legamphtank", "", 		-- amphibious con, decoy com, t1 amphibious tank, idk
+		"",         "legfloat", "",            "", 		-- idk, t2 floating tank, idk, idk
+		"",         "corcrash", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
 	},	
 	-- hover labs
 	armhp = {

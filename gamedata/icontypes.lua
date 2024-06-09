@@ -2059,6 +2059,7 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
+	
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2226,6 +2227,10 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	legamphtank = {
+		bitmap = "icons/amphib_tank.png",
+		size = 1.35000002
 	},
 	leghp = {
 		bitmap = "icons/factory_hover.png",
