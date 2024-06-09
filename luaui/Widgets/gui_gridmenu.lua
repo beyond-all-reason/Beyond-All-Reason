@@ -470,9 +470,9 @@ local function updateGrid()
 					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
 				end
 
-				local iconType = units.unitIconType[uDefID]
-				rect.opts.groupIcon = iconTypes[iconType]
-				rect.opts.unitGroup = groups[units.unitGroup[uDefID]]
+				rect.opts.groupIcon = showRadarIcon and iconTypes[units.unitIconType[uDefID]]
+				rect.opts.unitGroup = showGroupIcon and groups[units.unitGroup[uDefID]]
+
 				rect.opts.metalCost = units.unitMetalCost[uDefID]
 				rect.opts.energyCost = units.unitEnergyCost[uDefID]
 
@@ -483,8 +483,6 @@ local function updateGrid()
 
 				-- reset progress, we'll update buildprogress later
 				rect.opts.progress = nil
-			else
-				rect.opts.uDefID = nil
 			end
 		end
 	end
@@ -591,10 +589,12 @@ local function refreshCommands()
 	end
 
 	if not activeBuilder then
-		return
-	end
-
-	if builderIsFactory then
+		if alwaysShow then
+			gridOpts = {}
+		else
+			return
+		end
+	elseif builderIsFactory then
 		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
 		if activeCmdDescs then
 			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
@@ -1006,8 +1006,7 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setUseLabBuildMode = function(value)
 		useLabBuildMode = value
-		widget:ViewResize()
-		redraw = true
+		updateGrid()
 	end
 	WG["gridmenu"].setCurrentCategory = function(category)
 		setCurrentCategory(category)
@@ -1035,21 +1034,21 @@ function widget:Initialize()
 	end
 	WG["buildmenu"].setAlwaysShow = function(value)
 		alwaysShow = value
-		redraw = true
+		refreshCommands()
 	end
 	WG["buildmenu"].getShowRadarIcon = function()
 		return showRadarIcon
 	end
 	WG["buildmenu"].setShowRadarIcon = function(value)
 		showRadarIcon = value
-		redraw = true
+		updateGrid()
 	end
 	WG["buildmenu"].getShowGroupIcon = function()
 		return showGroupIcon
 	end
 	WG["buildmenu"].setShowGroupIcon = function(value)
 		showGroupIcon = value
-		redraw = true
+		updateGrid()
 	end
 	WG["buildmenu"].getBottomPosition = function()
 		return stickToBottom
@@ -1464,7 +1463,8 @@ local function drawCell(rect)
 		gl.Color(1, 1, 1, 1)
 	end
 
-	local showIcon = showGroupIcon
+	local groupIcon = rect.opts.groupIcon
+	local unitGroup = rect.opts.unitGroup
 
 	UiUnit(
 		rect.x + cellPadding + iconPadding,
@@ -1480,12 +1480,8 @@ local function drawCell(rect)
 		nil,
 		disabled and 0 or nil,
 		"#" .. uid,
-		showRadarIcon
-				and (rect.opts.groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. rect.opts.groupIcon or nil)
-			or nil,
-		showIcon
-				and (rect.opts.unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. rect.opts.unitGroup or nil)
-			or nil,
+		groupIcon and (groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. groupIcon or nil) or nil,
+		unitGroup and (unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. unitGroup or nil) or nil,
 		{ rect.opts.metalCost, rect.opts.energyCost },
 		tonumber(queuenr)
 	)
@@ -2118,7 +2114,7 @@ local function setHoveredRect(rect)
 end
 
 local function handleButtonHover()
-	if not (isPregame or activeBuilder) then
+	if not alwaysShow and not (isPregame or activeBuilder) then
 		return
 	end
 	local x, y, b, b2, b3 = Spring.GetMouseState()
@@ -2522,6 +2518,11 @@ function widget:SelectionChanged(newSel)
 	currentPage = 1
 
 	if #newSel == 0 then
+		-- If no selection, we still have to draw empty cells
+		if alwaysShow then
+			refreshCommands()
+		end
+
 		return
 	end
 
