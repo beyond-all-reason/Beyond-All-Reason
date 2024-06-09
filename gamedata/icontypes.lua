@@ -2023,9 +2023,17 @@ local icontypes = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
+	legaceb = {
+		bitmap = "icons/corfast_1.3.png",
+		size = 1.16999996
+	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999
+	},
+	legacluster = {
+		bitmap = "icons/def_t2_arty.png",
+		size = 1.57499993
 	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
@@ -2045,6 +2053,10 @@ local icontypes = {
 	},
 	legap = {
 		bitmap = "icons/factory_air.png",
+		size = 1.52250004
+	},
+	legamsub = {
+		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
 	legassistdrone = {
@@ -2271,6 +2283,14 @@ local icontypes = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
 	},
+	leglraa = {
+		bitmap = "icons/aa_longrange_railgun_t2.png",
+		size = 1.88999987,
+	},
+	leglrpc = {
+		bitmap = "icons/leglrpc.png",
+		size = 2.41499972
+	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
 		size = 1.85
@@ -2358,6 +2378,10 @@ local icontypes = {
 	legsh = {
 		bitmap = "icons/hover_raid.png",
 		size = 1
+	},
+	legsilo = {
+		bitmap = "icons/nuke.png",
+		size = 2.51999998
 	},
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
@@ -3047,9 +3071,21 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	scavengerdroppodbeacon = {
+	scavbeacon_t1 = {
+		bitmap = "icons/beacon.png",
+		size = 1.25
+	},
+	scavbeacon_t2 = {
+		bitmap = "icons/beacon.png",
+		size = 1.5
+	},
+	scavbeacon_t3 = {
 		bitmap = "icons/beacon.png",
 		size = 1.74299991
+	},
+	scavbeacon_t4 = {
+		bitmap = "icons/beacon.png",
+		size = 2
 	},
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",

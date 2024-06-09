@@ -1,4 +1,9 @@
-﻿# March 2024
+﻿# June 2024
+• [Proposed Units Rework Modoption] Whistler and Lasher speeds increased by 10 (45->55, 42->52), ground range reduced by 50 (575->525, 600->550), and ground dps increased by 15% (22->25).  Script improvements should have them no longer try to aim at ground targets outside of ground range but within air range.  The goal of the speed change is to allow the units to more easily follow your main forces and provide support, with the reduced range to offset the improvement to kiting.  
+• [Herring] unit now switches between ground missiles and longer range tracking aa missiles (750 range).  No change to ground missile stats.  Unit now takes 50% damage from emp instead of 30%.
+• [Dragon Claw/Maw] Damage taken while closed increased from 25%->33%.  Dragon Claw range reduced 440->430
+
+# March 2024
 • [Proposed Units Rework Modoption] Rework to Whistler and Lasher added to modoption, which has the units switch between longer range tracking aa missiles and non-tracking ground missiles.  Mauser, Quaker, Stiletto changes removed from modoption.  
 • [Mauser + Quaker] Rework from proposed_unit_reworks modoption moved to main game with a few additional changes.  This rework aims to give these units a more mobile and aggressive role, which reduces the role overlap with the heavier T2 veh artillery options.  Their ranges are reduced by 120, speed increased by 20%, acceleration increased 50%, health increased 20%, and accuracy is improved.  
 • [Stiletto] Rework from proposed_unit_reworks modoption moved to main game.  This rework aims to give the stiletto a more specialized role for disabling specific targets while being less efficient as a defensive option against groups.  The unit's metal and energy costs are doubled, buildpower cost increased 50%, health increased by 30%, paralyze time increased from 10s->20s, bomb count reduced from 5->3, aoe reduced from 240->200, emp damage per bomb increased 4000->6000

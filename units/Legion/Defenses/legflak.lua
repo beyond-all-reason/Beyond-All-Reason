@@ -140,7 +140,7 @@ return {
 				soundhitvolume = 7.5,
 				soundstartvolume = 5,
 				stages = 0,
-				thickness = 0.91,
+				--thickness = 0.91,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "LaserCannon",

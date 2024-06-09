@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece   base, flare, platform, barrelbase, barrel, lida, lidb;
+piece   base, aimy1, aimx1, turret, sleeve, sleeve2, barrel, flare, fflap, lflap, rflap, lflaph, rflaph;
 
 static-var  deployed, restore_delay, statechg_DesiredState, statechg_StateChanging, tilt;
 
@@ -13,13 +13,24 @@ static-var  deployed, restore_delay, statechg_DesiredState, statechg_StateChangi
 
 activatescr()
 {
-	turn lida to z-axis <120> speed <50>;
-	turn lidb to z-axis <-120> speed <50>;
-	wait-for-turn lida around z-axis;
+	turn lflaph to x-axis <100> speed <50>;
+	turn rflaph to x-axis <100> speed <50>;
+	turn fflap to x-axis <100> speed <50>;
+	wait-for-turn fflap around x-axis;
 
 
-	move platform to y-axis [30] speed [100];
-	wait-for-move platform along y-axis;
+	move aimy1 to y-axis [20] speed [20];
+	wait-for-move aimy1 along y-axis;
+	
+	wait-for-move aimy1 along y-axis;
+	move sleeve to y-axis [10] speed [33];
+	wait-for-move sleeve along y-axis;
+	
+	move sleeve2 to y-axis [10] speed [33];
+	wait-for-move sleeve2 along y-axis;
+	
+	move barrel to y-axis [10] speed [33];
+	wait-for-move barrel along y-axis;
 	deployed = 1;
 	return (0);
 }
@@ -28,22 +39,21 @@ deactivatescr()//jesus this is a daisy chain
 {
 
 	deployed = 0;
-	turn barrelbase to x-axis <0> speed <30>;
-	wait-for-turn barrelbase around y-axis;
-	sleep 500;
-
 	
-	turn platform to y-axis <0> speed <40>;
-	wait-for-turn platform around y-axis;
-	move platform to y-axis [-40] speed [50];
-	wait-for-move platform along y-axis;
-
-
-
-	turn lida to z-axis <0> speed <40>;
-	turn lidb to z-axis <0> speed <40>;
-	wait-for-turn lida around z-axis;
-
+	turn aimy1 to y-axis <0> speed <30>;
+	turn aimx1 to x-axis <0> speed <30>;
+	
+	move aimy1 to y-axis [0] speed [10];
+	wait-for-move aimy1 along y-axis;
+	
+	move sleeve to y-axis [0] speed [10];
+	move sleeve2 to y-axis [0] speed [10];
+	move barrel to y-axis [0] speed [10];
+	
+	turn lflaph to x-axis <0> speed <50>;
+	turn rflaph to x-axis <0> speed <50>;
+	turn fflap to x-axis <0> speed <50>;
+	
 
 	sleep 1000;
 	return (0);
@@ -99,9 +109,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	
-	move barrel to y-axis [29] now;
-	move platform to y-axis [-40] now;//unpack
+	turn lflaph to y-axis <120> now;
+	turn lflap to y-axis <-120> now;
+	turn rflaph to y-axis <-120> now;
+	turn rflap to y-axis <120> now;
 	
 	hide flare;
 	deployed = 0;
@@ -162,13 +173,12 @@ AimPrimary(heading, pitch)
 	{
 		sleep 250;
 	}
-	
 
-	turn platform to y-axis heading speed <50>;
-	wait-for-turn platform around y-axis;
-	tilt = (pitch/6);//this should not be needed yet here we are
-	turn barrelbase to x-axis tilt speed <30>;
-	wait-for-turn barrelbase around x-axis;
+	turn aimy1 to y-axis heading speed <50>;
+	tilt = (pitch/4);//this should not be needed yet here we are
+	turn aimx1 to x-axis tilt speed <30>;
+	
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -177,9 +187,14 @@ FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
 	emit-sfx 1024 + 1 from flare;
-	move barrel to y-axis [19] now;
+	move sleeve to y-axis [5] now;
+	move sleeve2 to y-axis [5] now;
+	move barrel to y-axis [5] now;
 	sleep 100;
-	move barrel to y-axis [29] speed [60];
+	move sleeve to y-axis [10] speed [5];
+	move sleeve2 to y-axis [10] speed [4];
+	move barrel to y-axis [10] speed [3];
+	
 	start-script RequestState(1);
 	return (0);
 }
@@ -205,36 +220,36 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lida type FIRE | SMOKE | FALL | BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode lflap type FIRE | SMOKE | FALL | BITMAPONLY | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode lidb type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve2 type BITMAPONLY | NOHEATCLOUD;
+		explode rflap type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lida type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode lflap type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode lidb type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rflap type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lida type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode lflap type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lidb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode sleeve2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rflap type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

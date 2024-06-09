@@ -253,7 +253,10 @@ local function initUnitList()
 		['corantiship'] = { weapons = { 3 } },
 
 		-- SCAVENGERS
-		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
+		['scavbeacon_t1_scav'] = { weapons = { 1 } },
+		['scavbeacon_t2_scav'] = { weapons = { 1 } },
+		['scavbeacon_t3_scav'] = { weapons = { 1 } },
+		['scavbeacon_t4_scav'] = { weapons = { 1 } },
 
 		['armannit3'] = { weapons = { 1 } },
 		['armminivulc'] = { weapons = { 1 } },
