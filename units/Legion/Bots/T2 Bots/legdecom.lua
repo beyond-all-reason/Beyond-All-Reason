@@ -76,7 +76,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert2',
-			decoyfor = "corcom",
+			decoyfor = "legcom",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
