@@ -1,9 +1,10 @@
 --
 -- Actions exposed:
 --
--- bind z gridmenu_key 1 1 <-- Sets the first grid key, useful for german keyboard layout. Unnecessary if using the Bar Swap Y Z widget
--- bind alt+x gridmenu_next_page <-- Go to next page
--- bind alt+z gridmenu_prev_page <-- Go to previous page
+-- gridmenu_key 1 1 <-- Sets the first grid key
+-- gridmenu_next_page <-- Go to next page
+-- gridmenu_prev_page <-- Go to previous page
+-- gridmenu_cycle_builder <-- Go to next selected builder menu
 
 -- TODO: Fix mess that is handleButtonHover
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
