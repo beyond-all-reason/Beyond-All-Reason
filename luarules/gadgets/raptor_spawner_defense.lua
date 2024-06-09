@@ -1781,7 +1781,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%30 == 16 then
 			t = GetGameSeconds()
 			local burrowCount = SetCount(burrows)
-			playerAggression = playerAggression*0.998
+			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("raptorPlayerAggressionLevel", playerAggressionLevel)
 			if not queenID then
@@ -1802,7 +1802,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
 					minBurrows = 4
 					if burrowCount <= 2 then
-						playerAggression = playerAggression + 0.1
+						playerAggression = playerAggression + 1
 					end
 				else
 					queenAnger = 100
