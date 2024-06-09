@@ -35,7 +35,7 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		return
 	end
 
-	local found = commanderList:removeFirst(unitID)
+	local found = table.removeFirst(commanderList, unitID)
 
 	-- if not found then
 	-- 	error("unit is a commander but was not on the list!", unitID)
