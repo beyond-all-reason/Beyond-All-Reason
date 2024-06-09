@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().scav_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -139,7 +139,7 @@ if gadgetHandler:IsSyncedCode() then
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().scav_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -558,7 +558,7 @@ if gadgetHandler:IsSyncedCode() then
 				role = newSquad.role
 			end
 			if not newSquad.life then
-				newSquad.life = 10
+				newSquad.life = math.ceil(10*Spring.GetModOptions().scav_spawntimemult)
 			end
 
 
@@ -842,6 +842,10 @@ if gadgetHandler:IsSyncedCode() then
 
 			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod) or (canSpawnBurrow and config.burrowSpawnType == "avoid") then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+			end
+
+			if canSpawnBurrow and (positionCheckLibrary.LandOrSeaCheck(spawnPosX, spawnPosY, spawnPosZ, config.burrowSize) == "mixed" or positionCheckLibrary.LandOrSeaCheck(spawnPosX, spawnPosY, spawnPosZ, config.burrowSize) == "death") then
+				canSpawnBurrow = false
 			end
 
 			if canSpawnBurrow then
@@ -1280,7 +1284,7 @@ if gadgetHandler:IsSyncedCode() then
 									setScavXP(turretUnitID)
 									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
 								end
-							until turretUnitID or attempts > 100
+							until turretUnitID or attempts > 10
 						end
 					end
 				end
@@ -1538,8 +1542,8 @@ if gadgetHandler:IsSyncedCode() then
 				if config.scavBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "healer"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 20 then
-						squadCreationQueue.life = 20
+					if squadCreationQueue.life < math.ceil(20*Spring.GetModOptions().scav_spawntimemult) then
+						squadCreationQueue.life = math.ceil(20*Spring.GetModOptions().scav_spawntimemult)
 					end
 				end
 				if config.scavBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
@@ -1549,15 +1553,15 @@ if gadgetHandler:IsSyncedCode() then
 				if config.scavBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "kamikaze"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().scav_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().scav_spawntimemult)
 					end
 				end
 				if UnitDefNames[defs.unitName].canFly then
 					squadCreationQueue.role = "aircraft"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().scav_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().scav_spawntimemult)
 					end
 				end
 
@@ -1662,7 +1666,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n%30 == 16 then
 			t = GetGameSeconds()
-			playerAggression = playerAggression*0.995
+			local burrowCount = SetCount(burrows)
+			playerAggression = playerAggression*0.998
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("scavPlayerAggressionLevel", playerAggressionLevel)
 			if not bossID then
@@ -1670,21 +1675,20 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			if pastFirstBoss then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
-			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
-			end
+			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = SetCount(humanTeams)*(t/config.gracePeriod)
+				minBurrows = 4*(t/config.gracePeriod)
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 4
+					if burrowCount <= 2 then
+						playerAggression = playerAggression + 0.1
+					end
 				else
 					bossAnger = 100
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 4
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
@@ -1699,7 +1703,6 @@ if gadgetHandler:IsSyncedCode() then
 				updateBossLife()
 			end
 
-			local burrowCount = SetCount(burrows)
 			if burrowCount < minBurrows then
 				SpawnBurrow()
 				timeOfLastSpawn = t

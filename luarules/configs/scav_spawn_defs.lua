@@ -10,117 +10,124 @@ local difficulties = {
 }
 
 local difficulty = difficulties[Spring.GetModOptions().scav_difficulty]
+local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
+(0.67+(Spring.GetModOptions().multiplier_metalextraction*0.33)) *
+(0.67+(Spring.GetModOptions().multiplier_energyconversion*0.33)) *
+(0.67+(Spring.GetModOptions().multiplier_energyproduction*0.33)) *
+math.max(1, (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) + (((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)) * 0.5))
+
+economyScale = (economyScale*0.5)+0.5
 
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 500 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 180,
+		bossTime      	  		= 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate   		= 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 500 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 1,
-		angerBonus        		= 0.1,
-		maxXP			  		= 0.1,
+		angerBonus        		= 0.1 * economyScale,
+		maxXP			  		= 0.1 * economyScale,
 		spawnChance       		= 0.1,
 		damageMod         		= 0.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 15,
+		minScavs		  		= 5 * economyScale,
+		maxScavs		  		= 15 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryeasy_scav',
-		bossResistanceMult   	= 1,
+		bossResistanceMult   	= 1 * economyScale,
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 420 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 120,
+		bossTime      	  		= 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate   		= 200 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 210 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 420 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 1,
-		angerBonus        		= 0.15,
-		maxXP			  		= 0.2,
+		angerBonus        		= 0.15 * economyScale,
+		maxXP			  		= 0.2 * economyScale,
 		spawnChance       		= 0.2,
 		damageMod         		= 0.75,
 		maxBurrows        		= 1000,
-		minScavs		  		= 10,
-		maxScavs		  		= 20,
+		minScavs		  		= 10 * economyScale,
+		maxScavs		  		= 20 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_easy_scav',
-		bossResistanceMult   	= 1.5,
+		bossResistanceMult   	= 1.5 * economyScale,
 	},
 	[difficulties.normal] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 380 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 90,
+		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate   		= 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 380 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 3,
-		angerBonus        		= 0.2,
-		maxXP			  		= 0.3,
+		angerBonus        		= 0.2 * economyScale,
+		maxXP			  		= 0.3 * economyScale,
 		spawnChance       		= 0.3,
 		damageMod         		= 1,
 		maxBurrows        		= 1000,
-		minScavs		  		= 15,
-		maxScavs		  		= 25,
+		minScavs		  		= 15 * economyScale,
+		maxScavs		  		= 25 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_normal_scav',
-		bossResistanceMult  	= 2,
+		bossResistanceMult  	= 2 * economyScale,
 	},
 	[difficulties.hard] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 160 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 340 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 80,
+		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate   		= 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 340 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 3,
-		angerBonus        		= 0.25,
-		maxXP			  		= 0.4,
+		angerBonus        		= 0.25 * economyScale,
+		maxXP			  		= 0.4 * economyScale,
 		spawnChance       		= 0.4,
 		damageMod         		= 1.25,
 		maxBurrows        		= 1000,
-		minScavs		  		= 20,
-		maxScavs		  		= 30,
+		minScavs		  		= 20 * economyScale,
+		maxScavs		  		= 30 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_hard_scav',
-		bossResistanceMult   	= 2.5,
+		bossResistanceMult   	= 2.5 * economyScale,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate  			= 140 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 320 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 70,
+		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate  			= 140 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 320 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 3,
-		angerBonus        		= 0.30,
-		maxXP			  		= 0.5,
+		angerBonus        		= 0.30 * economyScale,
+		maxXP			  		= 0.5 * economyScale,
 		spawnChance       		= 0.5,
 		damageMod         		= 1.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 25,
-		maxScavs		  		= 35,
+		minScavs		  		= 25 * economyScale,
+		maxScavs		  		= 35 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryhard_scav',
-		bossResistanceMult   	= 3,
+		bossResistanceMult   	= 3 * economyScale,
 	},
 	[difficulties.epic] = {
-		gracePeriod       		= 1 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
-		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
+		gracePeriod       		= 60,
+		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate   		= 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate   		= 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate   		= 260 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult    		= 3,
-		angerBonus        		= 0.35,
-		maxXP			  		= 0.6,
+		angerBonus        		= 0.35 * economyScale,
+		maxXP			  		= 0.6 * economyScale,
 		spawnChance       		= 0.6,
 		damageMod         		= 2,
 		maxBurrows        		= 1000,
-		minScavs		  		= 30,
-		maxScavs		  		= 40,
+		minScavs		  		= 30 * economyScale,
+		maxScavs		  		= 40 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_epic_scav',
-		bossResistanceMult   	= 3.5,
+		bossResistanceMult   	= 3.5 * economyScale,
 	},
 
 }
@@ -440,12 +447,12 @@ local LandUnitsList = {
 		[1] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -457,12 +464,12 @@ local LandUnitsList = {
 		[2] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -474,12 +481,12 @@ local LandUnitsList = {
 		[3] = {
 			--Armada
 			["armck_scav"] = 1,
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
 			["armch_scav"] = 1,
 			--Cortex
 			["corck_scav"] = 1,
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corcv_scav"] = 1,
 			["corch_scav"] = 1,
 			--Legion
@@ -490,14 +497,14 @@ local LandUnitsList = {
 		},
 		[4] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -511,14 +518,14 @@ local LandUnitsList = {
 		},
 		[5] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -532,14 +539,14 @@ local LandUnitsList = {
 		},
 		[6] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -553,14 +560,14 @@ local LandUnitsList = {
 		},
 		[7] = {
 			--Armada
-			["armrectr_scav"] = 40,
+			["armrectr_scav"] = 20,
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
 			["armdecom_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
-			["cornecro_scav"] = 40,
+			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
@@ -747,11 +754,11 @@ local SeaUnitsList = {
 		[1] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -759,11 +766,11 @@ local SeaUnitsList = {
 		[2] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -771,11 +778,11 @@ local SeaUnitsList = {
 		[3] = {
 			--Armada
 			["armcs_scav"] = 1,
-			["armrecl_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armch_scav"] = 1,
 			--Cortex
 			["corcs_scav"] = 1,
-			["correcl_scav"] = 1,
+			["correcl_scav"] = 20,
 			["corch_scav"] = 1,
 			--Legion
 			["legch_scav"] = 1,
@@ -783,34 +790,42 @@ local SeaUnitsList = {
 		[4] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 		[5] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 		[6] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 
 		},
 		[7] = {
 			--Armada
 			["armacsub_scav"] = 1,
+			["armrecl_scav"] = 20,
 			["armmls_scav"] = 1,
 			--Cortex
 			["coracsub_scav"] = 1,
+			["correcl_scav"] = 20,
 			["cormls_scav"] = 1,
 		},
 	},
@@ -1476,7 +1491,9 @@ for tier, _ in pairs(AirUnitsList) do
 end
 
 ------Tier 1 0-25% (Land and Air)
-addNewSquad({ type = "healerLand", minAnger = tierConfiguration[2].minAnger, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[2].minAnger, units = { "5 armrectr_scav","5 cornecro_scav",}, weight = 10, maxAnger = 1000}) --Rezzers
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armrectr_scav","10 cornecro_scav",}, weight = 20, maxAnger = 1000}) --Rezzers
+addNewSquad({ type = "healerLand", minAnger = tierConfiguration[6].minAnger, units = { "20 armrectr_scav","20 cornecro_scav",}, weight = 40, maxAnger = 1000}) --Rezzers
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = tierConfiguration[2].maxAnger}) --Rovers/Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[2].minAnger, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = tierConfiguration[2].maxAnger}) --T1 Veh Raid

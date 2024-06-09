@@ -106,6 +106,57 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- },
   
+
+
+
+
+
+--------------------------------------------------------------------------------
+--from Zero-K Morph
+--------------------------------------------------------------------------------
+-- This function is terrible. The data structure of commands does not lend itself to a fundamentally nicer system though.
+
+	local unitTargetCommand = {
+		[CMD.GUARD] = true,
+		--[CMD_ORBIT] = true,
+	}
+
+	local singleParamUnitTargetCommand = {
+		[CMD.REPAIR] = true,
+		[CMD.ATTACK] = true,
+	}
+
+	local function ReAssignAssists(newUnit,oldUnit)
+		local allUnits = Spring.GetAllUnits(newUnit)
+		for _,unitID in pairs(allUnits) do
+			--local unitID = allUnits[i]
+			
+			if GG.GetUnitTarget(unitID) == oldUnit then
+				GG.SetUnitTarget(unitID, newUnit)
+			end
+			
+			local cmds = Spring.GetCommandQueue(unitID, -1)
+			for j = 1, #cmds do
+				local cmd = cmds[j]
+				local params = cmd.params
+				if (unitTargetCommand[cmd.id] or (singleParamUnitTargetCommand[cmd.id] and #params == 1)) and (params[1] == oldUnit) then
+					params[1] = newUnit
+					local opts = (cmd.options.meta and CMD.OPT_META or 0) + (cmd.options.ctrl and CMD.OPT_CTRL or 0) + (cmd.options.alt and CMD.OPT_ALT or 0)
+					Spring.GiveOrderToUnit(unitID, CMD.INSERT, {cmd.tag, cmd.id, opts, params[1], params[2], params[3]}, 0)
+					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
+				end
+			end
+		end
+	end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+	
+
+
+
+
 	function Evolve(unitID, newUnit)
 		local x,y,z = spGetUnitPosition(unitID)
 		if not z then
@@ -115,12 +166,15 @@ if gadgetHandler:IsSyncedCode() then
 		local experience = spGetUnitExperience(unitID)
 		local team = spGetUnitTeam(unitID)
 		local states = spGetUnitStates(unitID)
+		local wantCloakState = Spring.GetUnitRulesParam(unitID, "wantcloak")
 		local dx, dy, dz = spGetUnitDirection(unitID)
+		local heading = Spring.GetUnitHeading(unitID)
+		local face = Spring.GetFacingFromHeading(heading)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
-		local commandQueue = spGetUnitCommands(unitID, -1)
+		local commandQueue = Spring.GetCommandQueue(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
-		local newUnitID = spCreateUnit(newUnit, x,y,z, 0, team)
+		local newUnitID = spCreateUnit(newUnit, x,y,z, face, team)
 
 		if newUnitID then
 			local announcement = nil
@@ -147,10 +201,39 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitExperience(newUnitID, experience)
 			spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 			spSetUnitDirection(newUnitID, dx, dy, dz)
+			
+
+			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
+			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
+			spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
+			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      {states.cloak and 1 or 0 },  { })
+			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
+			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
+			
+			ReAssignAssists(newUnitID,unitID)
+
 
 			if commandQueue[1] then
 				for _,command in pairs(commandQueue) do
-					spGiveOrderToUnit(newUnitID, command.id, command.params, command.options)
+					local coded = command.options.coded + (command.options.shift and 0 or CMD.OPT_SHIFT) -- orders without SHIFT can appear at positions other than the 1st due to CMD.INSERT; they'd cancel any previous commands if added raw
+					if command.id < 0 then -- repair case for construction
+						local units = Spring.GetUnitsInRectangle(command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16)
+						local allyTeam = Spring.GetUnitAllyTeam(unitID)
+						local notFound = true
+						for j = 1, #units do
+							local areaUnitID = units[j]
+							if allyTeam == Spring.GetUnitAllyTeam(areaUnitID) and Spring.GetUnitDefID(areaUnitID) == -command.id then
+								Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
+								notFound = false
+								break
+							end
+						end
+						if notFound then
+							Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+						end
+					else
+						Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+					end
 				end
 			end
 
@@ -158,12 +241,6 @@ if gadgetHandler:IsSyncedCode() then
 				spGiveOrderToUnit(transporter, CMD.LOAD_UNITS, { newUnitID }, 0)
 			end
 
-			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
-			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
-			spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      { states.cloak     and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
-			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
 		end
 	end
 
@@ -267,7 +344,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
 			lastPowerCheck = f	
-			
 			
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
