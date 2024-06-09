@@ -476,10 +476,8 @@ local function updateGrid()
 				rect.opts.metalCost = units.unitMetalCost[uDefID]
 				rect.opts.energyCost = units.unitEnergyCost[uDefID]
 
-				if showPrice then
-					rect.opts.metalPrice = formatPrice(rect.opts.metalCost)
-					rect.opts.energyPrice = formatPrice(rect.opts.energyCost)
-				end
+				rect.opts.metalPrice = showPrice and formatPrice(rect.opts.metalCost)
+				rect.opts.energyPrice = showPrice and formatPrice(rect.opts.energyCost)
 
 				rect.opts.queuenr = cmd.params[1]
 
@@ -1030,7 +1028,7 @@ function widget:Initialize()
 	end
 	WG["buildmenu"].setShowPrice = function(value)
 		showPrice = value
-		redraw = true
+		updateGrid()
 	end
 	WG["buildmenu"].getAlwaysShow = function()
 		return alwaysShow
@@ -1984,7 +1982,6 @@ function widget:KeyPress(key)
 
 		if useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
-			redraw = true
 			return true
 		end
 	end
