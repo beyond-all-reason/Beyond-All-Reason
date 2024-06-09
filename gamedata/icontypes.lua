@@ -3179,7 +3179,7 @@ for name, params in pairs(icontypes) do
 	newIcontypes[name] = params
 	newIcontypes[name..'_scav'] = { size = params.size or 1 }
 	if params.bitmap then
-		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('\/', '\/inverted\/')
+		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('/', '/inverted/')
 	end
 end
 
