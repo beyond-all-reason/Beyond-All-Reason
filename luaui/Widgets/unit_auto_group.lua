@@ -245,6 +245,59 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	end
 end
 
+local loadAutogroupDataFromOldName = function()
+	local data = widgetHandler.configData["Auto Group"]
+	gotConfigData = true
+	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
+		if data.immediate ~= nil then
+			immediate = data.immediate
+			verbose = data.verbose
+			addall = data.addall
+		end
+		if data.persist ~= nil then
+			persist = data.persist
+		end
+		local groupData = data.groups
+		if groupData and type(groupData) == 'table' then
+			for _, nam in ipairs(groupData) do
+				if type(nam) == 'table' then
+					local gr = UnitDefNames[nam[1]]
+					if gr ~= nil then
+						unit2group[gr.id] = tonumber(nam[2])
+					end
+				end
+			end
+		end
+		presets[1] = unit2group
+	end
+	if data and type(data) == 'table' and data.version and (data.version + 0) >= 5 then
+		if data.immediate ~= nil then
+			immediate = data.immediate
+			verbose = data.verbose
+			addall = data.addall
+		end
+		if data.persist ~= nil then
+			persist = data.persist
+		end
+		local groupData = data.presets
+		if groupData and type(groupData) == 'table' and groupData[1] and type(groupData[1]) == 'table' then
+			for p, preset in pairs(groupData) do
+				for _, group in ipairs(preset) do
+					if type(group) == 'table' then
+						local gr = UnitDefNames[group[1]]
+						if gr then
+							presets[p][gr.id] = tonumber(group[2])
+						else
+							rejectedUnits[p][group[1]] = tonumber(group[2])
+						end
+					end
+				end
+			end
+		end
+	end
+	unit2group = presets[currPreset]
+	addAllUnits()
+end
 
 function widget:Initialize()
 
@@ -305,63 +358,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	builtInPlace[unitID] = nil
+
+	if not gotConfigData then
+		loadAutogroupDataFromOldName()
+	end
 end
 
 function widget:GameFrame(n)
-	seenFrames = seenFrames + 1
-	if seenFrames>1 and (not gotConfigData) then -- init config from normal autogroups
-		local data = widgetHandler.configData["Auto Group"]
-		gotConfigData = true
-		if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
-			if data.immediate ~= nil then
-				immediate = data.immediate
-				verbose = data.verbose
-				addall = data.addall
-			end
-			if data.persist ~= nil then
-				persist = data.persist
-			end
-			local groupData = data.groups
-			if groupData and type(groupData) == 'table' then
-				for _, nam in ipairs(groupData) do
-					if type(nam) == 'table' then
-						local gr = UnitDefNames[nam[1]]
-						if gr ~= nil then
-							unit2group[gr.id] = tonumber(nam[2])
-						end
-					end
-				end
-			end
-			presets[1] = unit2group
-		end
-		if data and type(data) == 'table' and data.version and (data.version + 0) >= 5 then
-			if data.immediate ~= nil then
-				immediate = data.immediate
-				verbose = data.verbose
-				addall = data.addall
-			end
-			if data.persist ~= nil then
-				persist = data.persist
-			end
-			local groupData = data.presets
-			if groupData and type(groupData) == 'table' and groupData[1] and type(groupData[1]) == 'table' then
-				for p, preset in pairs(groupData) do
-					for _, group in ipairs(preset) do
-						if type(group) == 'table' then
-							local gr = UnitDefNames[group[1]]
-							if gr then
-								presets[p][gr.id] = tonumber(group[2])
-							else
-								rejectedUnits[p][group[1]] = tonumber(group[2])
-							end
-						end
-					end
-				end
-			end
-		end
-		unit2group = presets[currPreset]
-		addAllUnits()
-	end
 	for unitID, unitDefID in pairs(toBeAddedLater) do
 		if unitHealth[unitDefID] and GetUnitHealth(unitID) == unitHealth[unitDefID] then
 			local gr = unit2group[unitDefID]
