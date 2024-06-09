@@ -107,17 +107,14 @@ function widget:PlayerChanged()
 	end
 end
 
-function widget:Initialize()
-	myTeamID = Spring.GetMyTeamID()
-	RefreshList()
-end
-  
-
 function widget:Shutdown()
 	widgetHandler:RemoveAction("selectcomm")
 end
 
 
 function widget:Initialize()
+	myTeamID = Spring.GetMyTeamID()
+	RefreshList()
+
 	widgetHandler:AddAction("selectcomm", SelectComm, nil, 'p')
 end
