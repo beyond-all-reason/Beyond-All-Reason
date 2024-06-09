@@ -3,18 +3,18 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
+//INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 80
 
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
-		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare;  
+		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare, flare1, flare2, flare3, flare4, flare5, flare6;  
 
 static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, isAimingDgun, buildHeading, buildPitch,
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
 			
 			//for turbofire weapons
-			turboMisAimReady,
+			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange,
 			
 			suspendWeapon, turboWeaponSelect;//debug row
 
@@ -24,6 +24,8 @@ static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIn
 #define SIG_AIM_2 8
 #define SIG_FIRE1 16
 #define SIG_AIMMIS 32
+#define SIG_LARM 64
+#define SIG_AIM3 128
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -516,15 +518,14 @@ UnitTimer()
 		
 		//debug switching between normal and turbo modes
 		testTurboCounter = testTurboCounter+1;
-		if (testTurboCounter > 14){
-			turboWeaponSelect = 8;
+		if (testTurboCounter > 140){
+			turboWeaponSelect = 10;
 		}
-		if (testTurboCounter > 28){
+		if (testTurboCounter > 280){
 			turboWeaponSelect = 0;
 			testTurboCounter = 0;
 		}
-		get PRINT(torsoPriority, eaterBeamIncrement, turboWeaponSelect, testTurboCounter);
-		sleep 500; //timer repeats every half second
+		sleep 50; //timer repeats every half second
 	}
 }
 
@@ -548,6 +549,9 @@ Create(){
 	hide Ref_Point;
 	hide ltoesflare;
 	hide rtoesflare;
+	hide flare;
+	hide flare2;
+	hide flare3;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn flare to x-axis <90> now;
@@ -569,6 +573,8 @@ Create(){
 	isAimingEaterBeam = 0;
 	eaterBeamIncrement = 0;
 	oldEaterBeamIncrement = 0;
+	lastTurboWeapon10Shot = 1;
+	disableTurbo10ShotChange = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
@@ -654,8 +660,11 @@ AimFromWeapon1(piecenum)
 
 AimWeapon1(heading, pitch) //pew pew
 {
-	if (suspendWeapon == 1){
+	if (suspendWeapon == 0){
 		return (0);
+	}
+	if (turboWeaponSelect == 10){
+	return (0);
 	}
 	if (torsoPriority > 5){
 		return (0);
@@ -727,6 +736,9 @@ AimWeapon1(heading, pitch) //pew pew
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
 	isAiming = 1;
+	if (turboWeaponSelect == 10){
+		return (0);
+	}
 	if( isBuilding == 1 )
 	{
 		start-script ResumeBuilding();
@@ -843,10 +855,10 @@ AimWeapon3(heading, pitch)
 	if( reloading ){
 		return(0);
 	}
-	if (torsoPriority > 8){
+	if (torsoPriority > 9){
 		return (0);
 	}
-	torsoPriority = 8;
+	torsoPriority = 9;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = 1;
@@ -857,6 +869,7 @@ AimWeapon3(heading, pitch)
 	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
 	//wait-for-turn biggun around x-axis;
+	wpn5_lasthead = heading;
 	return (1);
 }
 
@@ -955,7 +968,7 @@ FireWeapon5()
 }
 AimWeapon5(heading, pitch)
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	signal SIG_AIMMIS;
@@ -999,16 +1012,16 @@ FireWeapon6()
 }
 AimWeapon6(heading, pitch)
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	//if( get PIECE_Y(head) > 0 ){
 	//	return (0);
 	//}
-	if (torsoPriority > 9){
+	if (torsoPriority > 10){
 		return (0);
 	}
-	torsoPriority = 9;
+	torsoPriority = 10;
 	rightarm = 0;
 	leftarm = 0;
 	//call-script FixArms(0, 1);
@@ -1097,7 +1110,6 @@ AimWeapon7(heading, pitch)
 	{
 		start-script ResumeBuilding();
 	}
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1120,7 +1132,7 @@ FireWeapon8()
 }
 AimWeapon8(heading, pitch)
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	if (turboweaponselect != 8){
@@ -1132,6 +1144,205 @@ AimWeapon8(heading, pitch)
 	return (1);
 }
 
+QueryWeapon9(piecenum) //TURBO left arm shotgun
+{
+	piecenum = lflare;
+	return (0);
+}
+
+AimFromWeapon9(piecenum)
+{
+	piecenum = biggun;
+	return (0);
+}
+
+FireWeapon9()
+{
+	//emit-sfx 1024 + 0 from lflare;
+	move barrel to y-axis [-1.5] now;
+	move barrel to y-axis [0] speed [5];
+	sleep 50;
+	//call-script bigfire();
+	signal SIG_LARM;
+	set-signal-mask SIG_LARM;
+	torsoPriority = 0;
+	turn rloarm to  x-axis <-38> speed <30.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	turn ruparm to  x-axis <0> speed <30.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	return (0);
+}
+
+AimWeapon9(heading, pitch)
+{
+	if (suspendWeapon == 1){
+		return (0);
+	}
+	if (turboweaponselect != 9){
+		return (0);
+	}
+	var reloading;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isAiming = 1;
+	leftArm = 0;
+	//call-script FixArms(1, 0);
+	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn biggun to  x-axis <-85> speed <360.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
+	turn luparm to 	x-axis <5> - pitch speed <360.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	wait-for-turn torso around y-axis;
+	//wait-for-turn biggun around x-axis;
+	//wait-for-turn luparm around x-axis;
+	//wait-for-turn biggun around x-axis;
+	wpn5_lasthead = heading;
+	//start-script RestoreAfterDelay();
+	return (1);
+}
+
+QueryWeapon10(piecenum) //TURBO gatling laser gun right arm
+{
+	get PRINT(torsoPriority, lastTurboWeapon10Shot, turboWeaponSelect, testTurboCounter);
+	if (lastTurboWeapon10Shot == 1) piecenum = flare1;
+	if (lastTurboWeapon10Shot == 2) piecenum = flare2;
+	if (lastTurboWeapon10Shot == 3) piecenum = flare3;
+	if (lastTurboWeapon10Shot == 4) piecenum = flare4;
+	if (lastTurboWeapon10Shot == 5) piecenum = flare5;
+	if (lastTurboWeapon10Shot == 6) piecenum = flare6;
+	//torsoPriority = 0;
+	return (0);
+}
+
+AimFromWeapon10(piecenum)
+{
+	piecenum = ruparm;
+	return (0);
+}
+
+AimWeapon10(heading, pitch) //pew pew
+{
+	if (suspendWeapon == 0){
+		return (0);
+	}
+	if (torsoPriority > 8){
+		return (0);
+	}
+	if (turboWeaponSelect != 10){
+		return (0);
+	}
+	torsoPriority = 8;
+	rightarm = 0;
+	//call-script FixArms(0, 1);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn torso to  y-axis heading + <10> speed <75.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	
+	
+	var gun_xz;
+    gun_xz = get PIECE_XZ(rloarm);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+    
+    var turret_xz;
+    turret_xz = get PIECE_XZ(flare);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+    
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+    
+    
+    var hull_xz;
+    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(Ref_Point);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+	
+	var cauaim;
+    var cauface;
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    
+    //var torsoaim;
+    torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
+	//torsoaim = heading;
+	
+	turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <75.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+	}
+	wpn1_lasthead = heading;
+	//wait-for-turn rloarm around x-axis;
+	//wait-for-turn ruparm around x-axis;
+	isAiming = 1;
+	if( isBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon10()
+{
+	spin barrelr around y-axis speed <891.000000>;
+	torsoPriority = 0;
+	sleep 50;
+	return (1);
+}
+
+Shot10(zero)
+{
+	//signal SIG_FIRE1;
+	//set-signal-mask SIG_FIRE1;
+	//emit-sfx 1024 + 3 from flare;
+	if (lastTurboWeapon10Shot == 1 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 2;
+	disableTurbo10ShotChange = 1;
+	}
+	if (lastTurboWeapon10Shot == 2 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 3;
+	disableTurbo10ShotChange = 1;
+	}
+	if (lastTurboWeapon10Shot == 3 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 4;
+	disableTurbo10ShotChange = 1;
+	}
+	if (lastTurboWeapon10Shot == 4 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 5;
+	disableTurbo10ShotChange = 1;
+	}
+	if (lastTurboWeapon10Shot == 5 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 6;
+	disableTurbo10ShotChange = 1;
+	}
+	if (lastTurboWeapon10Shot == 6 && disableTurbo10ShotChange == 0){
+	lastTurboWeapon10Shot = 1;
+	disableTurbo10ShotChange = 1;
+	}
+	disableTurbo10ShotChange = 0;
+	return(1);
+}
+	
 SprayNano(heading, pitch){
 	set-signal-mask SIG_AIM;
 	sleep 1000;
