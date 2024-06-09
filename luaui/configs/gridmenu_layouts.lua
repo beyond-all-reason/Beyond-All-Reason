@@ -145,7 +145,7 @@ local labGrids = {
 	},
 	
 	legamsub = {
-		"legotter", "", "corgarp", "",
+		"legotter", "legdecom", "corgarp", "",
 		"", "legfloat", "", "",
 		"", "corcrash", "coraak",
 	},	
