@@ -140,7 +140,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 500,
 				model = "legbomb.s3o",
-				name = "Long range hellfire",
+				name = "Long-Range Tactical Hellfire Napalm Shell",
 				energypershot = 17000,
 				noselfdamage = true,
 				range = 2300,

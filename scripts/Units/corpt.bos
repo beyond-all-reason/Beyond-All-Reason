@@ -5,12 +5,14 @@
 
 piece base, turret, launcher, radar, wake1, flare1, flare2, flare3, blink;
 
-static-var  gun_1, restore_delay;
+static-var  gun_1, restore_delay, fired, aiming;
 
 // Signal definitions
 #define SIG_MOVE			2
 #define SIG_AIM				4
-#define SIG_AIM_3			8
+#define SIG_AIM_2			8
+#define SIG_FIRED			16
+#define SIG_AIMING			32
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -49,10 +51,31 @@ Create()
 	hide flare2;
 	hide flare3;
 	hide wake1;
+	fired = 0;
+	aiming = 0;
 	gun_1 = 1;
 	restore_delay = 3000;
 	start-script Lights();
 	return (0);
+}
+
+ResetFire()
+{
+	signal SIG_FIRED;
+	set-signal-mask SIG_FIRED;
+	fired = 1;
+	sleep 1500;
+	fired = 0;
+}
+
+
+ResetAiming()
+{
+	signal SIG_AIMING;
+	set-signal-mask SIG_AIMING;
+	aiming = 1;
+	sleep 500;
+	aiming = 0;
 }
 
 Activate()
@@ -119,16 +142,22 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	start-script ResetAiming();
 	turn turret to y-axis heading speed <300.000000>;
 	turn launcher to x-axis <0> - pitch speed <300>;  //?
 	wait-for-turn turret around y-axis;
 	wait-for-turn launcher around x-axis;
 	start-script RestoreAfterDelay();
+	if(fired == 1)
+	{
+		return (0);
+	}
 	return (1);
 }
 
 FirePrimary()
 {
+	start-script ResetFire();
 	++gun_1;
 	if( gun_1 == 4 )
 	{
@@ -144,6 +173,61 @@ AimFromPrimary(piecenum)
 }
 
 QueryPrimary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = flare2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare3;
+	}
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	if(aiming == 1)
+	{
+		return (0);
+	}
+	turn turret to y-axis heading speed <300.000000>;
+	turn launcher to x-axis <0> - pitch speed <300>;  //?
+	wait-for-turn turret around y-axis;
+	wait-for-turn launcher around x-axis;
+	start-script RestoreAfterDelay();
+	sleep 33;
+	if(fired == 1)
+	{
+		return (0);
+	}
+	return (1);
+}
+
+FireSecondary()
+{
+	start-script ResetFire();
+	++gun_1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+	}
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = launcher;
+	return (0);
+}
+
+QuerySecondary(piecenum)
 {
 	if( gun_1 == 1 )
 	{

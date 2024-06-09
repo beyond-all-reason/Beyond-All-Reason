@@ -60,7 +60,11 @@ function scav_Wdef_Post(name, wDef)
             wDef.customparams.spawnrate = 1
         end
         if wDef.customparams.spawns_name and (not string.find(wDef.customparams.spawns_name, "_scav")) then
-            wDef.customparams.spawns_name = wDef.customparams.spawns_name .. "_scav"
+            local spawnNames = string.split(wDef.customparams.spawns_name)
+            wDef.customparams.spawns_name = ""
+            for _, spawnName in pairs(spawnNames) do
+                wDef.customparams.spawns_name = wDef.customparams.spawns_name .. spawnName .. "_scav" .. " "
+            end
         end
     end
     return wDef

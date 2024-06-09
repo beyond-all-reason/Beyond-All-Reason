@@ -52,10 +52,12 @@ if gadgetHandler:IsSyncedCode() then
 		['armmine1'] = true,
 		['armmine2'] = true,
 		['armmine3'] = true,
+		['armfmine3'] = true,	
 		['cormine1'] = true,
 		['cormine2'] = true,
 		['cormine3'] = true,		
 		['cormine4'] = true,		
+		['corfmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,

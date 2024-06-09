@@ -1956,7 +1956,9 @@ end
 function gadgetHandler:Update(deltaTime)
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
+		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)
 		g:Update(deltaTime)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
