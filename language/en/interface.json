@@ -118,15 +118,15 @@
 			"aiName": "%{name} (AI)",
 			"desynced": "desynced",
 			"chat": {
-				"needSupport": "I need unit support!",
-				"needMetal": "I need metal!",
-				"needMetalAmount": "I need %{amount} metal!",
-				"needEnergy": "I need energy!",
+				"needSupport": "requests unit support!",
+				"needMetal": "requests metal!",
+				"needMetalAmount": "requests %{amount} metal!",
+				"needEnergy": "requests energy!",
 				"needEnergyAmount": "I need %{amount} energy!",
-				"giveMetal": "I sent %{amount} metal to %{name}",
-				"giveEnergy": "I sent %{amount} energy to %{name}",
-				"takeTeam": "I took %{name}.",
-				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
+				"giveMetal": "sent %{amount} metal to %{name}",
+				"giveEnergy": "sent %{amount} energy to %{name}",
+				"takeTeam": "took %{name}.",
+				"takeTeamAmount": "took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
 		},
 		"music": {
