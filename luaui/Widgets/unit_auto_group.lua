@@ -328,6 +328,10 @@ function widget:Initialize()
 	if GetGameFrame() > 0 then
 		addAllUnits()
 	end
+
+	if not gotConfigData then
+		loadAutogroupDataFromOldName()
+	end
 end
 
 function widget:Shutdown()
@@ -358,10 +362,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	builtInPlace[unitID] = nil
-
-	if not gotConfigData then
-		loadAutogroupDataFromOldName()
-	end
 end
 
 function widget:GameFrame(n)
