@@ -15,7 +15,7 @@ static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIn
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
 			
 			//for turbofire weapons
-			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange,
+			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange,
 			
 			suspendWeapon, turboWeaponSelect;//debug row
 
@@ -520,7 +520,7 @@ UnitTimer()
 		//debug switching between normal and turbo modes
 		testTurboCounter = testTurboCounter+1;
 		if (testTurboCounter > 140){
-			turboWeaponSelect = 10;
+			turboWeaponSelect = 11;
 		}
 		if (testTurboCounter > 280){
 			turboWeaponSelect = 0;
@@ -576,6 +576,7 @@ Create(){
 	oldEaterBeamIncrement = 0;
 	lastTurboWeapon10Shot = 1;
 	disableTurbo10ShotChange = 0;
+	disableTurbo11BarrelChange = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
@@ -661,7 +662,7 @@ AimFromWeapon1(piecenum)
 
 AimWeapon1(heading, pitch) //pew pew
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	if (turboWeaponSelect == 10){
@@ -929,7 +930,10 @@ FireWeapon4()
 
 AimWeapon4(heading, pitch)
 {
-	if (suspendWeapon == 1){
+	if (suspendWeapon == 0){
+		return (0);
+	}
+	if (turboweaponselect == 11){
 		return (0);
 	}
 	signal SIG_AIM_2;
@@ -1200,7 +1204,6 @@ AimWeapon9(heading, pitch)
 
 QueryWeapon10(piecenum) //TURBO gatling laser gun right arm
 {
-	get PRINT(torsoPriority, lastTurboWeapon10Shot, turboWeaponSelect, testTurboCounter);
 	if (lastTurboWeapon10Shot == 1) piecenum = flare1;
 	if (lastTurboWeapon10Shot == 2) piecenum = flare2;
 	if (lastTurboWeapon10Shot == 3) piecenum = flare3;
@@ -1219,7 +1222,7 @@ AimFromWeapon10(piecenum)
 
 AimWeapon10(heading, pitch) //pew pew
 {
-	if (suspendWeapon == 0){
+	if (suspendWeapon == 1){
 		return (0);
 	}
 	if (torsoPriority > 8){
@@ -1342,6 +1345,92 @@ Shot10(zero)
 	}
 	disableTurbo10ShotChange = 0;
 	return(1);
+}
+
+QueryWeapon11(piecenum) //TURBO back LRPC's
+{
+	if (gun_1 == 1 && disableTurbo11BarrelChange == 0){
+		piecenum = railflarer;
+	}
+	if (gun_1 == 0 && disableTurbo11BarrelChange == 0){
+		piecenum = railflarel;
+	}
+}
+
+AimFromWeapon11(piecenum)
+{
+	if (gun_1){
+		piecenum = railflarer;
+	}
+	else {
+		piecenum = railflarel;
+	}
+}
+
+FireWeapon11()
+{	
+	if (gun_1 == 1 && disableTurbo11BarrelChange == 0){
+		emit-sfx 1024 + 0 from railflarer;
+		move barrel1r to z-axis [-3.000000] speed [500.000000];
+		move barrel2r to z-axis [-3.000000] speed [500.000000];
+		move barrel3r to z-axis [-3.000000] speed [500.000000];
+		move barrel4r to z-axis [-3.000000] speed [500.000000];
+		wait-for-move barrel1r along z-axis;
+		move barrel1r to z-axis [0.000000] speed [3.000000];	
+		move barrel2r to z-axis [0.000000] speed [3.000000];	
+		move barrel3r to z-axis [0.000000] speed [3.000000];	
+		move barrel4r to z-axis [0.000000] speed [3.000000];
+		gun_1 = 1;
+		disableTurbo11BarrelChange = 1;
+		get PRINT(torsoPriority, disableTurbo11BarrelChange, turboWeaponSelect, testTurboCounter);
+	}
+	if (gun_1 == 0 && disableTurbo11BarrelChange == 0) {
+		emit-sfx 1024 + 0 from railflarel;
+		move barrel1l to z-axis [-3.000000] speed [500.000000];
+		move barrel2l to z-axis [-3.000000] speed [500.000000];
+		move barrel3l to z-axis [-3.000000] speed [500.000000];
+		move barrel4l to z-axis [-3.000000] speed [500.000000];
+		wait-for-move barrel1l along z-axis;
+		move barrel1l to z-axis [0.000000] speed [3.000000];	
+		move barrel2l to z-axis [0.000000] speed [3.000000];	
+		move barrel3l to z-axis [0.000000] speed [3.000000];	
+		move barrel4l to z-axis [0.000000] speed [3.000000];
+		gun_1 = 0;
+		disableTurbo11BarrelChange = 1;
+	}
+	disableTurbo11BarrelChange = 0;
+	gun_1 = !gun_1;
+}
+
+EndBurst11()
+{
+	
+}
+
+AimWeapon11(heading, pitch)
+{
+	if (suspendWeapon == 0){
+		return (0);
+	}
+	if (turboweaponselect != 11){
+		return (0);
+	}
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn railturretr to y-axis heading - torsoaim speed <100.000000>;
+	turn railsleever to x-axis <0> - pitch speed <200.000000>;
+	turn railturretl to y-axis heading - torsoaim speed <100.000000>;
+	turn railsleevel to x-axis <0> - pitch speed <200.000000>;
+	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 3000) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
+	{
+		wpn4_lasthead = 1000000;
+		wait-for-turn railturretr around y-axis;
+		wait-for-turn railsleever around x-axis;
+		wait-for-turn railturretl around y-axis;
+		wait-for-turn railsleevel around x-axis;
+	}
+	wpn4_lasthead = heading;
+	return (1);
 }
 	
 SprayNano(heading, pitch){
