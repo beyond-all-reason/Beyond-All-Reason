@@ -89,11 +89,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     function gadget:UnitDecloaked(unitID)
-        if cloakedUnits[unitID] then
-            cloakedUnits[unitID] = nil
-        end
-        if checkedUnits[unitID] then
-            checkedUnits[unitID] = nil
-        end
+        cloakedUnits[unitID] = nil
+        checkedUnits[unitID] = nil
     end
 end
