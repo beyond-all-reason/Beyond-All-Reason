@@ -143,10 +143,11 @@ local unitOrderTable = {
 
 	['armfav']         = 004410, --VEH
 	['corfav']         = 004420,
+	['legscout']       = 004430,
 
 	['armsh']          = 004500, --HOVER
 	['corsh']          = 004510,
-	['legsh']         = 004520,
+	['legsh']          = 004520,
 
 	-- EMP
 	['corbw']          = 004800, --EMP

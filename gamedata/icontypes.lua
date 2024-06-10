@@ -2380,6 +2380,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
 	},
+	legscout = {
+		bitmap = "icons/vehicle.png",
+		size = 0.57749999
+	},
 	legsh = {
 		bitmap = "icons/hover_raid.png",
 		size = 1

@@ -2245,7 +2245,18 @@ local unitLights = {
 		cannisterlight = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -9, posy = 10, posz = -9, radius = 14,
+			lightConfig = { posx = 9, posy = 10, posz = -9, radius = 14,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legscout'] = {
+		bodylight = {
+			lightType = 'point',
+			pieceName = 'bodylight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
 							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
 							r = 0.2, g = 1, b = 0.2, a = 0.09,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,

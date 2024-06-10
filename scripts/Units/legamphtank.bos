@@ -72,7 +72,7 @@ deploy(){
 undeploy(){
 	//turn barrelSleeve to 
 	turn turret to y-axis <0> speed <75>;
-	turn barrelPivot to x-axis <0.000000> speed 64;
+	turn barrelPivot to x-axis <0.000000> speed <64>;
 	turn barrelSleeve to z-axis <0> speed <30>;
 
 
