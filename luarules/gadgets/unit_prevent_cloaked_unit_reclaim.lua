@@ -11,6 +11,8 @@ function gadget:GetInfo()
 end
 
 local canReclaim = {}
+local cloakedUnits = {}
+local checkedUnits = {}
 
 local maxBuildDist = 0
 
@@ -26,6 +28,7 @@ if gadgetHandler:IsSyncedCode() then
     local GetUnitPosition = Spring.GetUnitPosition
     local GetUnitsInCylinder = Spring.GetUnitsInCylinder
     local GetUnitDefID = Spring.GetUnitDefID
+    local GetUnitIsCloaked = Spring.GetUnitIsCloaked
     
 
     function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
@@ -36,22 +39,28 @@ if gadgetHandler:IsSyncedCode() then
     end
     
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
-        local x, y, z = GetUnitPosition(unitID)
-        local units = GetUnitsInCylinder(x, z, maxBuildDist)
-        for _, bID in pairs(units) do
-            local unitDefID = GetUnitDefID(bID)
-            if canReclaim[unitDefID] then
-                local cmd, target = GetUnitWorkerTask(bID)
-                if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) and not IsUnitInRadar(unitID, GetUnitAllyTeam(bID)) then
-                    local _, _, cmdTag = GetUnitCurrentCommand(bID, 1)
-                    GiveOrderToUnit(bID, CMD.REMOVE, {cmdTag}, {})
+        if (cloakedUnits[unitID]) and (not checkedUnits[unitID]) then  -- only needs to be checked when the unit barely is cloaked
+            checkedUnits[unitID] = true
+            local x, y, z = GetUnitPosition(unitID)
+            local units = GetUnitsInCylinder(x, z, maxBuildDist)
+            for _, bID in pairs(units) do
+                local unitDefID = GetUnitDefID(bID)
+                if canReclaim[unitDefID] then
+                    local cmd, target = GetUnitWorkerTask(bID)
+                    if cmd == CMD.RECLAIM and target == unitID and (GetUnitAllyTeam(bID) ~= GetUnitAllyTeam(unitID)) and not IsUnitInRadar(unitID, GetUnitAllyTeam(bID)) then
+                        local _, _, cmdTag = GetUnitCurrentCommand(bID, 1)
+                        GiveOrderToUnit(bID, CMD.REMOVE, {cmdTag}, {})
+                    end
                 end
             end
         end
         return true
     end
 
-    local function initBuilder(unitID, unitDefID)
+    local function initUnit(unitID, unitDefID)
+        if GetUnitIsCloaked(unitID) then
+            cloakedUnits[unitID] = true
+        end
         if canReclaim[unitDefID] then
             if canReclaim[unitDefID] > maxBuildDist then
                 maxBuildDist = canReclaim[unitDefID]
@@ -60,7 +69,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     function gadget:UnitCreated(unitID, unitDefID)
-        initBuilder(unitID, unitDefID)
+        initUnit(unitID, unitDefID)
     end
 
     function gadget:Initialize()
@@ -73,7 +82,20 @@ if gadgetHandler:IsSyncedCode() then
         local units = GetAllUnits()
         for _,unitID in ipairs(units) do
             local unitDefID = GetUnitDefID(unitID)
-            initBuilder(unitID, unitDefID)
+            initUnit(unitID, unitDefID)
+        end
+    end
+
+    function gadget:UnitCloaked(unitID)
+        cloakedUnits[unitID] = true
+    end
+
+    function gadget:UnitDecloaked(unitID)
+        if cloakedUnits[unitID] then
+            cloakedUnits[unitID] = nil
+        end
+        if checkedUnits[unitID] then
+            checkedUnits[unitID] = nil
         end
     end
 end
