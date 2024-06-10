@@ -682,7 +682,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "SURFACE",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
-				--fastautoretargeting = true,
+				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 1,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
@@ -728,6 +729,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "SURFACE",
 				def = "turbomachinegun",
 				onlytargetcategory = "NOTSUB",
+				--burstControlWhenOutOfArc = 3,
+				fastautoretargeting = true,
 			},
 			[11] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
