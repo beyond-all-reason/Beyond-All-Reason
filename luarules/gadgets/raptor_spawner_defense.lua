@@ -715,7 +715,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spread = config.burrowSize*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
 
-			if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+			if config.useScum then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
 				for _ = 1,100 do
 					spawnPosX = mRandom(spread, MAPSIZEX - spread)
 					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)

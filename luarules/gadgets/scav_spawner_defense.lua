@@ -725,7 +725,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.burrowSpawnType ~= "avoid" then
-				if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+				if config.useScum then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
 					for _ = 1,1000 do
 						spawnPosX = mRandom(spread, MAPSIZEX - spread)
 						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
@@ -1142,7 +1142,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if mRandom() <= config.spawnChance then
+					if mRandom() <= config.spawnChance and loopCounter == 1 then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
