@@ -2263,6 +2263,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['leggat'] = {
+		bodylight = {
+			lightType = 'point',
+			pieceName = 'body',
+			lightConfig = { posx = 4.5, posy = 3, posz = 21, radius = 24,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		bodylight = {
+			lightType = 'point',
+			pieceName = 'body',
+			lightConfig = { posx = 4.5, posy = 4, posz = 20, radius = 24,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['armack'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
