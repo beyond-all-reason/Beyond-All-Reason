@@ -36,6 +36,7 @@ return {
 			[3] = "legfloat",
 			[4] = "corcrash",
 			[5] = "coraak",
+			[6] = "legdecom",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
