@@ -508,13 +508,14 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
+			["legaceb_scav"] = 1,
+			["legdecom_scav"] = 1,
 		},
 		[5] = {
 			--Armada
@@ -529,13 +530,14 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
+			["legaceb_scav"] = 1,
+			["legdecom_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -550,13 +552,14 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
+			["legaceb_scav"] = 1,
+			["legdecom_scav"] = 1,
 		},
 		[7] = {
 			--Armada
@@ -571,13 +574,14 @@ local LandUnitsList = {
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["legaceb_scav"] = 1,
 			["cordecom_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
+			["legaceb_scav"] = 1,
+			["legdecom_scav"] = 1,
 		},
 	},
 }
@@ -1332,6 +1336,7 @@ local squadSpawnOptionsTable = {
 		["legcomlvl8_scav"]  = { minAnger = 70, maxAnger = 90, maxAlive = 2 },
 		["legcomlvl9_scav"]  = { minAnger = 80, maxAnger = 100, maxAlive = 3 },
 		["legcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 3 },
+		["legdecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 3 },
 	}
 }
 
