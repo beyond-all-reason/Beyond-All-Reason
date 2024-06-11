@@ -70,6 +70,7 @@ local unitOrderTable = {
 	['cormls']         = 003500, --SHIP
 
 	['armdecom']       = 003600, --SUPPORT COMS
+	['legdecom']       = 003650,
 	['cordecom']       = 003700,
 
 	['cormando']       = 003800, --COMMANDO
@@ -144,10 +145,11 @@ local unitOrderTable = {
 
 	['armfav']         = 004410, --VEH
 	['corfav']         = 004420,
+	['legscout']       = 004430,
 
 	['armsh']          = 004500, --HOVER
 	['corsh']          = 004510,
-	['legsh']         = 004520,
+	['legsh']          = 004520,
 
 	-- EMP
 	['corbw']          = 004800, --EMP
@@ -198,6 +200,7 @@ local unitOrderTable = {
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS
 	['corgarp']        = 005910,
+	['legamphtank']    = 005920,
 
 	-- T2 LAND ATTACK
 	['armgremlin']     = 006005,

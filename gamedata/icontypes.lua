@@ -2059,6 +2059,7 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
+	
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2159,6 +2160,11 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdecom = {
+		bitmap = "icons/legcom.png",
+		size = 1.60000002
+	},
+
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2226,6 +2232,10 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	legamphtank = {
+		bitmap = "icons/amphib_tank.png",
+		size = 1.35000002
 	},
 	leghp = {
 		bitmap = "icons/factory_hover.png",
@@ -2374,6 +2384,10 @@ local icontypes = {
 	legsco = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
+	},
+	legscout = {
+		bitmap = "icons/vehicle.png",
+		size = 0.57749999
 	},
 	legsh = {
 		bitmap = "icons/hover_raid.png",

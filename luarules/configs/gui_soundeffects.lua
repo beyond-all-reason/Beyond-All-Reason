@@ -2330,7 +2330,12 @@ GUIUnitSoundEffects = {
 	},
 
 	-- LEGION COMMANDER
-	legcom = {
+
+	legdecom = {
+		BaseSoundSelectType = "cor-com-sel",
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundWeaponType = "fastemg-small",
+	},	legcom = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "fastemg-small",
