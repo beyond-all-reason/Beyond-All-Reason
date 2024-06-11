@@ -287,6 +287,7 @@ local armorDefs = {
 		"corsent",
         "armmlv",
 		"cormlv",
+		"legmlv",
 		"corpyro",
         "armarad",
 		"armaser",

@@ -2603,7 +2603,7 @@ GUIUnitSoundEffects = {
 	},
 	leghades = {
 		BaseSoundSelectType = "arm-veh-small-sel",
-		BaseSoundMovementType = "arm-veh-small-ok",
+		BaseSoundMovementType = "cor-veh-tiny-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legbar = {
@@ -2620,6 +2620,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "fastemg-medium",
+	},
+	legmlv = {
+		BaseSoundSelectType = "cor-veh-tiny-sel",
+		BaseSoundMovementType = "cor-veh-tiny-ok",
+		BaseSoundWeaponType = "mine-small",
 	},
 	-- LEGION T2 VEHICLES
 	legacv = {

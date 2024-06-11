@@ -35,6 +35,7 @@ local unitOrderTable = {
 
 	['armmlv']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
+	['legmlv']         = 002250,
 
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,

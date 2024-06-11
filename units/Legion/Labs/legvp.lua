@@ -43,7 +43,7 @@ return {
 			[6] = "leggat",
 			[7] = "legbar",
 			[8] = "legrail",
-			[9] = "cormlv",
+			[9] = "legmlv",
 			[10] = "corgarp",
 		},
 		customparams = {

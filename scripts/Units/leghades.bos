@@ -3,11 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare, turret, base, barrel;
+piece  base, armor, aimy1, turret, aimx1, sleeve, barrel, flare, casing, wheelfl, wheelfr, wheelml, wheelmr, wheelbl, wheelbr;
 
-static-var  restore_delay;
+static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
 
 // Signal definitions
+#define SIG_MOVE 			2
 #define SIG_AIM				2
 
 
@@ -18,12 +19,58 @@ static-var  restore_delay;
 #define UNITSIZE 1
 #define MAXTILT 100
 
+Steering(heading, steery, currentSpeed)
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*2;
+		
+		turn wheelfl to y-axis steery speed <120>;
+		turn wheelfr to y-axis steery speed <120>;
+		turn wheelbl to y-axis 0 - steery speed <120>;
+		turn wheelbr to y-axis 0 - steery speed <120>;
+		
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = currentSpeed * 50; //original speed 7
+		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing	
+		
+		spin wheelfl around x-axis speed  (<1> * wheelSpeed);
+		spin wheelfr around x-axis speed  (<1> * wheelSpeed);
+		spin wheelml around x-axis speed  (<1> * wheelSpeed);         
+		spin wheelmr around x-axis speed  (<1> * wheelSpeed);			
+		spin wheelbl around x-axis speed  (<1> * wheelSpeed);			
+		spin wheelbr around x-axis speed  (<1> * wheelSpeed);	
+		sleep 66;
+		oldheading = heading;
+	}
+}
 
 Create()
 {
 	hide flare;
 	restore_delay = 3000;
+	moveSpeed = get MAX_SPEED;
+	oldheading = get HEADING;
 }
+
+StartMoving()
+{
+    start-script Steering();
+}
+
+StopMoving()
+{
+    stop-spin wheelfl around x-axis;
+    stop-spin wheelfr around x-axis;
+    stop-spin wheelml around x-axis;
+    stop-spin wheelmr around x-axis;
+    stop-spin wheelbl around x-axis;
+    stop-spin wheelbr around x-axis;
+}
+
 
 SetMaxReloadTime(Func_Var_1)
 {
@@ -36,8 +83,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.016484>;
-	turn barrel to x-axis <0.000000> speed <50.005495>;
+	turn aimy1 to y-axis <0.000000> speed <90>;
+	turn aimx1 to x-axis <0.000000> speed <50>;
 }
 SetStunned(State)
 {
@@ -56,10 +103,10 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <250.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <240.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn barrel around x-axis;
+	turn aimy1 to y-axis heading speed <250.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <240.000000>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimx1 around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -68,8 +115,8 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
     emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.5] now;
-	move barrel to z-axis [0.000000] speed [2.5];
+	move barrel to z-axis [-1.5] now;
+	move barrel to z-axis [0.000000] speed [3];
 }
 
 AimFromPrimary(piecenum)
@@ -94,7 +141,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
 		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		//explode barrel2 type BITMAPONLY | NOHEATCLOUD;
 		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
@@ -105,7 +152,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type FALL | NOHEATCLOUD;
 		//explode barrel2 type FALL | NOHEATCLOUD;
 		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -116,7 +163,7 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type SMOKE | FALL | NOHEATCLOUD;
+		explode armor type SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -124,7 +171,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode armor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
