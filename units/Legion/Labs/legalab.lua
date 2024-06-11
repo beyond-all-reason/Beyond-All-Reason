@@ -51,6 +51,7 @@ return {
 			[15] = "corspy",
 			[16] = "corspec",
 			[17] = "cormando",
+			[18] = "legdecom",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

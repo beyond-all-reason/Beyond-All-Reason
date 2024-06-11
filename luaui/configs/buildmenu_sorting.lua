@@ -69,6 +69,7 @@ local unitOrderTable = {
 	['cormls']         = 003500, --SHIP
 
 	['armdecom']       = 003600, --SUPPORT COMS
+	['legdecom']       = 003650,
 	['cordecom']       = 003700,
 
 	['cormando']       = 003800, --COMMANDO
