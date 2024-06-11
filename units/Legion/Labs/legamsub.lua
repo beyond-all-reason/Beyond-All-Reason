@@ -32,10 +32,11 @@ return {
 		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
 		buildoptions = {
 			[1] = "legotter",
-			[2] = "corgarp",
+			[2] = "legamphtank",
 			[3] = "legfloat",
 			[4] = "corcrash",
 			[5] = "coraak",
+			[6] = "legdecom",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
