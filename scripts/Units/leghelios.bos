@@ -5,9 +5,11 @@
 
 //piece  base, turret, flare, barrel;
 
-piece base, basePlate, lTrack, rTrack, 
-turretBase, turret, 
-barrel, barrelPlateFrontL, barrelPlateFrontR, barrelPlateRearL, barrelPlateRearR, flare;
+// piece base, basePlate, lTrack, rTrack, 
+// turretBase, turret, 
+// barrel, barrelPlateFrontL, barrelPlateFrontR, barrelPlateRearL, barrelPlateRearR, flare;
+
+piece base, tracks, turret, barrel, flare;
 
 static-var  restore_delay, shotcount;
 
@@ -24,16 +26,16 @@ static-var  restore_delay, shotcount;
 Create()
 {
 	shotcount = 0;
-	turn barrelPlateFrontL to y-axis <-15> now;
-	turn barrelPlateRearL to y-axis <-15> now;
+	// turn barrelPlateFrontL to y-axis <-15> now;
+	// turn barrelPlateRearL to y-axis <-15> now;
 
-	turn barrelPlateFrontR to y-axis <15> now;
-	turn BarrelPlateRearR to y-axis <15> now;
+	// turn barrelPlateFrontR to y-axis <15> now;
+	// turn BarrelPlateRearR to y-axis <15> now;
 
-	move barrelPlateFrontR to z-axis [-1] now;
-	move barrelPlateFrontL to z-axis [-1] now;
+	// move barrelPlateFrontR to z-axis [-1] now;
+	// move barrelPlateFrontL to z-axis [-1] now;
 
-	move barrel to z-axis [-2] now;
+	// move barrel to z-axis [-2] now;
 
 	hide flare;
 
@@ -58,15 +60,15 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.000000> speed <90.000000>;
 
-	turn barrelPlateFrontL to y-axis <-15> speed <60>;
-	turn barrelPlateRearL to y-axis <-15> speed <60>;
-	turn barrelPlateFrontR to y-axis <15> speed <60>;
-	turn barrelPlateRearR to y-axis <15> speed <60>;
-	wait-for-turn barrelPlateFrontL around y-axis;
+	// turn barrelPlateFrontL to y-axis <-15> speed <60>;
+	// turn barrelPlateRearL to y-axis <-15> speed <60>;
+	// turn barrelPlateFrontR to y-axis <15> speed <60>;
+	// turn barrelPlateRearR to y-axis <15> speed <60>;
+	// wait-for-turn barrelPlateFrontL around y-axis;
 
-	move barrelPlateFrontR to z-axis [0] speed [4];
-	move barrelPlateFrontL to z-axis [0] speed [4];
-	move barrel to z-axis [-2] speed [8];
+	// move barrelPlateFrontR to z-axis [0] speed [4];
+	// move barrelPlateFrontL to z-axis [0] speed [4];
+	// move barrel to z-axis [-2] speed [8];
 	turn barrel to x-axis <0> speed <60>;
 }
 SetStunned(State)
@@ -88,15 +90,15 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 
 
-	move barrel to z-axis [0] speed [8];
-	move barrelPlateFrontR to z-axis [0] speed [4];
-	move barrelPlateFrontL to z-axis [0] speed [4];
-	//wait-for-move barrelPlateFrontL along z-axis;
+	// move barrel to z-axis [0] speed [8];
+	// move barrelPlateFrontR to z-axis [0] speed [4];
+	// move barrelPlateFrontL to z-axis [0] speed [4];
+	// //wait-for-move barrelPlateFrontL along z-axis;
 
-	turn barrelPlateFrontL to y-axis <0> speed <60>;
-	turn barrelPlateRearL to y-axis <0> speed <60>;
-	turn barrelPlateFrontR to y-axis <0> speed <60>;
-	turn barrelPlateRearR to y-axis <0> speed <60>;
+	// turn barrelPlateFrontL to y-axis <0> speed <60>;
+	// turn barrelPlateRearL to y-axis <0> speed <60>;
+	// turn barrelPlateFrontR to y-axis <0> speed <60>;
+	// turn barrelPlateRearR to y-axis <0> speed <60>;
 
 	turn turret to y-axis heading speed <200.000000>;
 	turn barrel to x-axis <0.000000> - pitch speed <200.0>;
