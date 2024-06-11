@@ -65,7 +65,7 @@ return {
 				footprintz = 2,
 				height = 9,
 				metal = 122,
-				object = "Units/armpincer_dead.s3o",
+				object = "Units/legamphtank_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
