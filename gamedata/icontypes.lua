@@ -2229,7 +2229,7 @@ local icontypes = {
 		size = 0.75
 	},
 	leghelios = {
-		bitmap = "icons/vehicle_t1_tank.png",
+		bitmap = "icons/vehicle_t1_tank_laser.png",
 		size = 0.94999999
 	},
 	leghp = {
