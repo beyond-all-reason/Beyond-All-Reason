@@ -372,6 +372,44 @@ end
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
 -------------------------------------------------------------------------------
+
+-- Retrieve from buildunit_ cmdParams on factories the number of de/enqueued units
+-- Reference should be FactoryCAI GetCountMultiplierFromOptions in engine
+local function cmdParamsToFactoryQueueChange(cmdParams)
+	local count = cmdParams.right and -1 or 1
+
+	if cmdParams.shift then
+		count = count * 5
+	end
+
+	if cmdParams.ctrl then
+		count = count * 20
+	end
+
+	return count
+end
+
+local function updateQueueNr(unitDefID, count)
+	-- if current grid has no option for currently built unit (e.g. pages) return
+	local cellId = uDefCellIds[unitDefID]
+	if not cellId then
+		return
+	end
+
+	local cellRect = cellRects[cellId]
+	local queuenr = cellRect.opts.queuenr or 0
+
+	cellRect.opts.queuenr = queuenr + count
+
+	if cellRect.opts.queuenr < 1 then
+		cellRect.opts.queuenr = nil
+	end
+
+	redraw = true
+
+	return true
+end
+
 local function formatPrice(price)
 	if price >= 1000 then
 		return string.format("%s %03d", formatPrice(math_floor(price / 1000)), price % 1000)
@@ -399,6 +437,8 @@ local function updateBuildProgress()
 	local rect = cellRects[currentlyBuildingRectID]
 
 	rect.opts.progress = select(2, spGetUnitIsBeingBuilt(unitBuildID))
+
+	redraw = true
 end
 
 local function updateSelectedCell()
@@ -2458,7 +2498,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 end
 
 -- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
-function widget:UnitCommand(_, unitDefID, _, cmdID)
+function widget:UnitCommand(_, unitDefID, _, cmdID, _, cmdParams, _)
 	-- if no active builder and cmd is not build return
 	if not activeBuilder or cmdID >= 0 then
 		return
@@ -2469,42 +2509,32 @@ function widget:UnitCommand(_, unitDefID, _, cmdID)
 		return
 	end
 
+	local queueCount = cmdParamsToFactoryQueueChange(cmdParams)
+
+	updateQueueNr(-cmdID, queueCount)
+
 	-- the command queue of the factory hasn't updated yet
-	-- ugly hack to trigger an update as fast as possible
-	doUpdateClock = os.clock() + 0.01
+	-- ugly hack to schedule an update if our prediction fails
+	-- 500ms is our heuristic for a really bad scenario
+	doUpdateClock = os.clock() + 0.5
 end
 
 -- update queue number
-function widget:UnitFromFactory(_, unitDefID, _, _, factDefID)
+-- UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
+function widget:UnitFromFactory(_, unitDefID, _, factoryID, factDefID)
 	-- if factory is not current active builder return
 	if factDefID ~= activeBuilder then
 		return
 	end
 
-	-- if current grid has no option for currently built unit (e.g. pages) return
-	local cellId = uDefCellIds[unitDefID]
-	if not cellId then
+	-- If factory is in repeat, queue does not change
+	local factoryRepeat = select(4, Spring.GetUnitStates(factoryID, false, true))
+
+	if factoryRepeat then
 		return
 	end
 
-	local cellRect = cellRects[cellId]
-
-	if not cellRect.opts.queuenr then
-		-- something weird happened lets do a hard update
-		refreshCommands()
-
-		return
-	end
-
-	cellRect.opts.queuenr = cellRect.opts.queuenr - 1
-
-	if cellRect.opts.queuenr < 1 then
-		cellRect.opts.queuenr = nil
-	end
-
-	updateBuildProgress()
-
-	redraw = true
+	updateQueueNr(unitDefID, -1)
 end
 
 function widget:SelectionChanged(newSel)
