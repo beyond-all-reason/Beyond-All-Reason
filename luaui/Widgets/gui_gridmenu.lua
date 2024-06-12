@@ -249,7 +249,15 @@ catRects[BUILDCAT_UTILITY] = Rect:new(0, 0, 0, 0)
 catRects[BUILDCAT_PRODUCTION] = Rect:new(0, 0, 0, 0)
 local currentCategoryRect = Rect:new(0, 0, 0, 0)
 
+local maxBuilderRects = 5
+local nextBuilderRect = Rect:new(0, 0, 0, 0, {
+	name = "›",
+})
 local builderRects = {}
+for i = 1, maxBuilderRects do
+	builderRects[i] = Rect:new(0, 0, 0, 0)
+end
+
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
 	name = "Back",
@@ -260,7 +268,6 @@ local categoriesRect = Rect:new(0, 0, 0, 0)
 local labBuildModeRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
-local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame
 
 -------------------------------------------------------------------------------
@@ -534,6 +541,27 @@ local function updateGrid()
 	redraw = true
 end
 
+local function setupBuilderRects()
+	local currentX = buildersRect.xEnd
+	local y = buildersRect.y + iconMargin
+	local yEnd = buildersRect.yEnd + iconMargin
+
+	for i = 1, maxBuilderRects do
+		currentX = currentX + bgpadding + iconMargin + builderButtonSize
+		builderRects[i]:set(currentX - builderButtonSize, y, currentX, yEnd)
+	end
+
+	-- draw hint
+	nextBuilderRect:set(
+		0, -- We set x and xEnd dynamically depending on amount of selected builders
+		y + buildersRect:getHeight() * 0.2,
+		0,
+		-- We set x and xEnd dynamically depending on amount of selected builders
+		yEnd - buildersRect:getHeight() * 0.2
+	)
+	nextBuilderRect.opts.nameHeight = font2:GetTextHeight(nextBuilderRect.opts.name)
+end
+
 local function setupCells()
 	local cellRectID = 0
 
@@ -618,6 +646,37 @@ local function updateCategories(newCategories)
 	end
 end
 
+local function updateBuilders()
+	local builderTypes = 0
+
+	for unitDefID, count in pairsByKeys(selectedBuilders) do
+		builderTypes = builderTypes + 1
+
+		builderRects[builderTypes].opts.uDefID = unitDefID
+		builderRects[builderTypes].opts.count = count
+
+		if builderTypes == maxBuilderRects then
+			break
+		end
+	end
+
+	-- grow buildersRect according to current number of selected builders
+	buildersRect.xEnd = builderRects[builderTypes].xEnd
+
+	local keyText = nextBuilderRect.opts.keyText
+
+	-- PERF: Move to a more static place, we only need to set this when viewresize or reloadbindings
+	local hotkeyWidth = keyText and (font2:GetTextWidth(keyText) * hotkeyFontSize) + (bgpadding * 2) or 0
+
+	nextBuilderRect.x = buildersRect.xEnd + (bgpadding * 3)
+	nextBuilderRect.xEnd = buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth + (bgpadding * 3)
+
+	-- PERF: Move to a more static place, we only need to set this when viewresize or reloadbindings
+	nextBuilderRect.opts.keyTextHeight = font2:GetTextHeight(keyText)
+
+	redraw = true
+end
+
 -------------------------------------------------------------------------------
 --- HOTKEY AND ACTION HANDLING
 -------------------------------------------------------------------------------
@@ -637,6 +696,7 @@ local function refreshCommands()
 		end
 	elseif builderIsFactory then
 		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+
 		if activeCmdDescs then
 			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
 		end
@@ -706,7 +766,8 @@ local function reloadBindings()
 	nextPageKey = key
 
 	key = getActionHotkey("gridmenu_cycle_builder")
-	cycleBuilderKey = key
+
+	nextBuilderRect.opts.keyText = keyConfig.sanitizeKey(key, currentLayout) or nil
 
 	refreshCommands()
 end
@@ -944,42 +1005,44 @@ end
 ---Set active builder based on index in selectedBuilders
 ---@param index number
 ---@return nil
-local function setActiveBuilder(index)
-	local i = 0
-	for builder, _ in pairsByKeys(selectedBuilders) do
-		i = i + 1
-		if i == index then
-			for unitDefID, unitIDs in pairs(spGetSelectedUnitsSorted()) do
-				if builder == unitDefID then
-					addBuilderToSelection(unitIDs[1], unitDefID, false)
+local function setActiveBuilder(index, selectedUnitsSorted)
+	selectedUnitsSorted = selectedUnitsSorted or spGetSelectedUnitsSorted()
 
-					if units.isFactory[unitDefID] then
-						addFactoryToSelection(unitIDs[1], unitDefID)
-					end
-					break
-				end
+	for i = 1, maxBuilderRects do
+		local rect = builderRects[i]
+
+		if i == index then
+			local unitDefID = rect.opts.uDefID
+			local unitID = selectedUnitsSorted[unitDefID][1]
+
+			addBuilderToSelection(unitID, unitDefID, false)
+
+			if units.isFactory[unitDefID] then
+				addFactoryToSelection(unitID, unitDefID)
 			end
+
+			builderRects[i].opts.current = true
+		else
+			builderRects[i].opts.current = nil
 		end
 	end
 end
 
 ---Switch to next builder type out of selected builders
 local function cycleBuilder()
-	if selectedBuildersCount <= 1 then
+	if selectedBuildersCount < 2 then
 		return
 	end
 	-- find the index that is currently active
-	local index = 0
-	for unitDefID, _ in pairsByKeys(selectedBuilders) do
-		index = index + 1
-		if unitDefID == activeBuilder then
-			-- loop through selections
-			local activeIndex = (index % selectedBuildersCount) + 1
-			setActiveBuilder(activeIndex)
-
+	local index = nil
+	for i = 1, maxBuilderRects do
+		if activeBuilder == builderRects[i].opts.uDefID then
+			index = i
 			break
 		end
 	end
+
+	setActiveBuilder((index % maxBuilderRects) + 1)
 
 	refreshCommands()
 end
@@ -1276,6 +1339,7 @@ function widget:ViewResize()
 
 	setupCategoryRects()
 	setupCells()
+	setupBuilderRects()
 
 	checkGuishader(true)
 
@@ -1306,6 +1370,7 @@ function widget:Update(dt)
 		checkGuishader()
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
+			updateBuilders() -- builder rects are defined dynamically
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
@@ -1330,6 +1395,7 @@ function widget:Update(dt)
 			or ordermenuHeight ~= prevOrdermenuHeight
 		then
 			widget:ViewResize()
+			updateBuilders() -- builder rects are defined dynamically
 			prevAdvplayerlistLeft = advplayerlistLeft
 		end
 
@@ -1419,7 +1485,7 @@ local function drawButton(rect)
 	local dim = disabled and 0.4 or 1.0
 
 	if rect.opts.icon then
-		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
+		local iconSize = math.min(math.floor(rect:getHeight() * 1.1), categoryButtonHeight)
 		local icon = ":l:" .. rect.opts.icon
 		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
@@ -1661,7 +1727,7 @@ local function drawCategories()
 		font2:Print(
 			rect.opts.name,
 			rect.x + (bgpadding * 7),
-			(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
+			(rect.y + rect:getHeight() / 2) - fontHeightOffset,
 			categoryFontSize,
 			"o"
 		)
@@ -1679,7 +1745,7 @@ local function drawCategories()
 		font2:Print(
 			rect.opts.name,
 			rect.x + (bgpadding * 7),
-			(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
+			(rect.y + rect:getHeight() / 2) - fontHeightOffset,
 			categoryFontSize,
 			"o"
 		)
@@ -1712,6 +1778,7 @@ local function drawPageButtons()
 	local nextKeyText = keyConfig.sanitizeKey(nextPageKey, currentLayout)
 	local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
 
+	-- PERF: Move to a more static place, we only need to set this when viewresize or reloadbindings
 	nextPageRect.opts.keyText = nextKeyText
 	nextPageRect.opts.keyTextHeight = font2:GetTextHeight(nextKeyText)
 
@@ -1797,8 +1864,16 @@ local function drawBuildModeButtons()
 	end
 end
 
-local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highlightOpacity)
-	local hovered = hoveredButton == rect:getId()
+local function drawBuilder(rect)
+	local zoom = 0.05
+	local highlightOpacity = 0
+	local hovered = rect.opts.hovered
+	local count = rect.opts.count
+	local unitDefID = rect.opts.uDefID
+	local lightness = rect.opts.current and 1.0 or 0.5
+
+	-- draw button
+
 	lightness = hovered and lightness + 0.25 or lightness
 	zoom = hovered and zoom + 0.1 or zoom
 	local rectSize = rect.xEnd - rect.x
@@ -1852,39 +1927,14 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 end
 
 local function drawBuilders()
-	builderRects = {}
-
-	-- reset builders rect to fix placement issues
-	buildersRect.xEnd = buildersRect.x
-
-	local padding = math_floor(builderButtonSize / 12)
-	local builderTypes = 0
-	local builderButtons = {}
-	for unitDefID, count in pairsByKeys(selectedBuilders) do
-		builderTypes = builderTypes + 1
-
-		-- place at the end of the bounds of the container
-		local rect =
-			Rect:new(buildersRect.xEnd, buildersRect.y, buildersRect.xEnd + builderButtonSize, buildersRect.yEnd)
-
-		-- grow container
-		buildersRect:set(buildersRect.x, buildersRect.y, rect.xEnd + padding, buildersRect.yEnd)
-		builderRects[builderTypes] = rect
-		builderButtons[builderTypes] = { unitDefID, count, rect }
-
-		-- avoid overflow
-		if builderTypes > 5 then
-			break
-		end
-	end
-
 	-- draw background
-	local height = backgroundRect.yEnd - backgroundRect.y
+	local height = backgroundRect:getHeight()
 	local posY = backgroundRect.y
+
 	UiElement(
 		buildersRect.x,
 		buildersRect.y,
-		buildersRect.xEnd + (bgpadding * 2),
+		buildersRect.xEnd + bgpadding * 2,
 		buildersRect.yEnd + bgpadding + (iconMargin * 2),
 		(backgroundRect.x > 0 and 1 or 0),
 		1,
@@ -1896,59 +1946,26 @@ local function drawBuilders()
 		1
 	)
 
-	-- draw buttons
-	for builderType, params in pairsByKeys(builderButtons) do
-		-- correct position so its withing the background
-		builderRects[builderType].x = builderRects[builderType].x + bgpadding + iconMargin
-		builderRects[builderType].y = builderRects[builderType].y + iconMargin
-		builderRects[builderType].xEnd = builderRects[builderType].xEnd + bgpadding + iconMargin
-		builderRects[builderType].yEnd = builderRects[builderType].yEnd + iconMargin
-
-		drawBuilderIcon(
-			params[1],
-			builderRects[builderType],
-			params[2],
-			activeBuilder == params[1] and 1.0 or 0.5,
-			0.05,
-			0
-		)
+	-- draw builders
+	for i = 1, math_min(selectedBuildersCount, maxBuilderRects) do
+		drawBuilder(builderRects[i])
 	end
 
-	local hotkey = keyConfig.sanitizeKey(cycleBuilderKey, currentLayout) or nil
-	local hotkeyWidth = hotkey and (font2:GetTextWidth(hotkey) * hotkeyFontSize) + (bgpadding * 2) or 0
-	local text = "›"
-
-	-- draw hint
-	local keyTextHeight = font2:GetTextHeight(text)
-
-	local rect = Rect:new(
-		buildersRect.xEnd + (bgpadding * 3),
-		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2) + iconMargin,
-		buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth + (bgpadding * 3),
-		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2) + iconMargin,
-		{
-			keyText = text,
-			keyTextHeight = keyTextHeight,
-		}
-	)
-
-	local rectHeight = rect:getHeight()
+	-- draw next builder button
+	local rectHeight = nextBuilderRect:getHeight()
 	local fontSize = rectHeight * 1.2
-	local textHeight = keyTextHeight * fontSize
-
-	rect.opts.hovered = hoveredButton == rect:getId()
+	local textHeight = nextBuilderRect.opts.nameHeight * fontSize
 
 	font2:Print(
-		"\255\255\255\255" .. text,
-		rect.x + math_floor(rectHeight * 0.2),
-		rect.y + ((rect.yEnd - rect.y) / 2) - math_floor(textHeight / 2),
+		"\255\255\255\255" .. nextBuilderRect.opts.name,
+		nextBuilderRect.x + math_floor(rectHeight * 0.2),
+		nextBuilderRect.y + (rectHeight / 2) - math_floor(textHeight / 2),
 		fontSize,
 		"o"
 	)
 
-	drawButton(rect)
-	drawButtonHotkey(rect)
-	nextBuilderRect = rect
+	drawButton(nextBuilderRect)
+	drawButtonHotkey(nextBuilderRect)
 end
 
 local function drawGrid()
@@ -1977,7 +1994,7 @@ local function drawBuildMenu()
 		drawPageButtons()
 	end
 
-	if activeBuilder and selectedBuildersCount > 1 then
+	if selectedBuildersCount > 1 and activeBuilder then
 		drawBuilders()
 	end
 
@@ -2519,6 +2536,7 @@ function widget:UnitFromFactory(_, unitDefID, _, factoryID, factDefID)
 	updateQueueNr(unitDefID, -1)
 end
 
+-- PERF: Fix convoluted setActiveBuilder and multiple calls to getselectedsorted
 function widget:SelectionChanged(newSel)
 	local prevActiveBuilderDefID = activeBuilder
 
@@ -2541,7 +2559,8 @@ function widget:SelectionChanged(newSel)
 
 	-- Here we do selected sorted to save the GetUnitDefIDs we would have to do
 	-- if we used the newSel
-	for unitDefID, unitIDs in pairs(spGetSelectedUnitsSorted()) do
+	local selectedUnitsSorted = spGetSelectedUnitsSorted()
+	for unitDefID, unitIDs in pairs(selectedUnitsSorted) do
 		if units.isBuilder[unitDefID] then
 			local isFactory = units.isFactory[unitDefID]
 
@@ -2555,16 +2574,15 @@ function widget:SelectionChanged(newSel)
 		end
 	end
 
-	-- set active builder to first index after updating selection
-	setActiveBuilder(1)
-
 	if activeBuilder and not builderIsFactory then
 		updateCategories(CONFIG.buildCategories)
 	else
 		updateCategories({})
 	end
 
-	redraw = true
+	-- set active builder to first index after updating selection
+	updateBuilders()
+	setActiveBuilder(1, selectedUnitsSorted)
 
 	-- Only update commands if the current defid changed
 	if activeBuilder ~= prevActiveBuilderDefID then
