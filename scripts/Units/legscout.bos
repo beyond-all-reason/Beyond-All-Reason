@@ -101,7 +101,7 @@ Steering(heading, steery, currentSpeed)
 		heading = get HEADING;
 		steery = (heading - oldheading)*3;
 		turn body to y-axis steery speed <120>;
-		turn body to z-axis steery speed <15>;		
+		turn body to z-axis steery speed <7.5>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rTyre around x-axis speed currentSpeed;
