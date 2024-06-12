@@ -24,6 +24,7 @@ local armorDefs = {
 		"corcomlvl10",
 		"cordecom",
 		"corcomcon",
+		"legdecom",
 		"legcom",
 		"legcomlvl2",
 		"legcomlvl3",
@@ -287,6 +288,7 @@ local armorDefs = {
 		"corsent",
         "armmlv",
 		"cormlv",
+		"legmlv",
 		"corpyro",
         "armarad",
 		"armaser",
@@ -398,6 +400,7 @@ local armorDefs = {
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",
+		"legamsub",
 
 		"legcv",
 		"legck",

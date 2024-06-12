@@ -224,6 +224,7 @@ function UnitDef_Post(name, uDef)
 				armscab = true,
 				corfmd = true,
 				corsilo = true,
+				legsilo =  true,
 				cormabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
@@ -257,9 +258,14 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_condition = "timer"
+				elseif name == "legcom" then
+				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
+				uDef.customparams.evolution_announcement_size = 18.5
+				uDef.customparams.evolution_target = "legcomlvl2"
+				uDef.customparams.evolution_condition = "timer"
 				elseif name == "legcomlvl2" then
-					uDef.energymake = 50
-					uDef.metalmake = 3
+				uDef.energymake = 50
+				uDef.metalmake = 3
 				elseif name == "legcomlvl3" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
 				uDef.energymake = 75
@@ -277,6 +283,23 @@ function UnitDef_Post(name, uDef)
         		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
         		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
 				end
+				local levelsTable = {}
+				for i = modOptions.evocomlevelcap, 9 do
+					if i <= 10 then -- <- this 10 is because max level of evocom is 10
+						table.insert(levelsTable, i)
+					end
+				end
+				for _, level in ipairs(levelsTable) do
+					local cortexEvocomLevels = "corcomlvl" .. level
+					local armadaEvocomLevels = "armcomlvl" .. level
+					local legionEvocomLevels = "legcomlvl" .. level
+					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
+						uDef.customparams.evolution_announcement = nil
+						uDef.customparams.evolution_announcement_size = nil
+						uDef.customparams.evolution_target = nil
+						uDef.customparams.evolution_condition = nil
+					end
+				end
 			end
 		end
 
@@ -284,6 +307,7 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				legperdition = true,
 				armemp_scav = true,
 				cortron_scav = true,
 			}
@@ -299,6 +323,7 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				leglrpc = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -412,6 +437,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 
 			end
+		elseif name == "coraap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corcrw"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4"
@@ -663,6 +691,24 @@ function UnitDef_Post(name, uDef)
 			else
 				uDef.collide = true
 			end
+		end
+	end
+
+	--Juno Rework
+	if modOptions.junorework == true then
+		if name == "armjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
+		end
+		if name == "corjuno" then
+			uDef.metalcost = 500
+			uDef.energycost = 12000
+			uDef.buildtime = 15000
+			uDef.weapondefs.juno_pulse.energypershot = 7000
+			uDef.weapondefs.juno_pulse.metalpershot = 100
 		end
 	end
 
@@ -988,24 +1034,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Multipliers Modoptions
 
-	-- Health
-	if uDef.health then
-		local x = modOptions.multiplier_maxdamage
-		if x ~= 1 then
-			if uDef.health * x > 15000000 then
-				uDef.health = 15000000
-			else
-				uDef.health = uDef.health * x
-			end
-			if uDef.autoheal then
-				uDef.autoheal = uDef.autoheal * x
-			end
-			if uDef.idleautoheal then
-				uDef.idleautoheal = uDef.idleautoheal * x
-			end
-		end
-	end
-
 	-- Max Speed
 	if uDef.speed then
 		local x = modOptions.multiplier_maxvelocity
@@ -1045,26 +1073,6 @@ function UnitDef_Post(name, uDef)
 
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
-	end
-
-	-- Unit Cost
-	if uDef.metalcost then
-		local x = modOptions.multiplier_metalcost
-		if x ~= 1 then
-			uDef.metalcost = math.min(uDef.metalcost * x, 16000000)
-		end
-	end
-	if uDef.energycost then
-		local x = modOptions.multiplier_energycost
-		if x ~= 1 then
-			uDef.energycost = math.min(uDef.energycost * x, 16000000)
-		end
-	end
-	if uDef.buildtime then
-		local x = modOptions.multiplier_buildtimecost
-		if x ~= 1 then
-			uDef.buildtime = math.min(uDef.buildtime * x, 16000000)
-		end
 	end
 
 	--energystorage

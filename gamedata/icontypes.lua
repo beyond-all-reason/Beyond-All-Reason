@@ -2023,9 +2023,17 @@ local icontypes = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
+	legaceb = {
+		bitmap = "icons/corfast_1.3.png",
+		size = 1.16999996
+	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999
+	},
+	legacluster = {
+		bitmap = "icons/def_t2_arty.png",
+		size = 1.57499993
 	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
@@ -2047,6 +2055,11 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
+	legamsub = {
+		bitmap = "icons/factory_amph.png",
+		size = 1.52250004
+	},
+	
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2147,6 +2160,11 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdecom = {
+		bitmap = "icons/legcom.png",
+		size = 1.60000002
+	},
+
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2215,6 +2233,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
 	},
+	legamphtank = {
+		bitmap = "icons/amphib_tank.png",
+		size = 1.35000002
+	},
 	leghp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -2270,6 +2292,14 @@ local icontypes = {
 	leglupara = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
+	},
+	leglraa = {
+		bitmap = "icons/aa_longrange_railgun_t2.png",
+		size = 1.88999987,
+	},
+	leglrpc = {
+		bitmap = "icons/leglrpc.png",
+		size = 2.41499972
 	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
@@ -2355,9 +2385,17 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
 	},
+	legscout = {
+		bitmap = "icons/vehicle.png",
+		size = 0.57749999
+	},
 	legsh = {
 		bitmap = "icons/hover_raid.png",
 		size = 1
+	},
+	legsilo = {
+		bitmap = "icons/nuke.png",
+		size = 2.51999998
 	},
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
@@ -2406,6 +2444,10 @@ local icontypes = {
 	legwint2 = {
 		bitmap = "icons/wind.png",
 		size = 1.67999995
+	},
+	legmlv = {
+		bitmap = "icons/cormlv_1.0.png",
+		size = 1.04999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
@@ -3047,9 +3089,21 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	scavengerdroppodbeacon = {
+	scavbeacon_t1 = {
+		bitmap = "icons/beacon.png",
+		size = 1.25
+	},
+	scavbeacon_t2 = {
+		bitmap = "icons/beacon.png",
+		size = 1.5
+	},
+	scavbeacon_t3 = {
 		bitmap = "icons/beacon.png",
 		size = 1.74299991
+	},
+	scavbeacon_t4 = {
+		bitmap = "icons/beacon.png",
+		size = 2
 	},
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",

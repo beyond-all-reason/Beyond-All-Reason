@@ -69,25 +69,30 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
     end
 end
 
+local lastTurretFrame = 0
 function gadget:GameFrame(frame)
-    if frame%30 == 9 then
-        for unitID, data in pairs(aliveBuilders) do
-            if Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0 then
-                --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
-                    --Spring.Echo(data.unitDefName, "Isn't building anything")
-                    local turretOptions = {}
-                    for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
-                        --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
-                        if buildOptionID and UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0 then
-                            turretOptions[#turretOptions+1] = buildOptionID
-                            --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
+    if frame > lastTurretFrame + 300 then
+        if frame%30 == 9 then
+            for unitID, data in pairs(aliveBuilders) do
+                if Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0 then
+                    --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
+                    if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
+                        --Spring.Echo(data.unitDefName, "Isn't building anything")
+                        local turretOptions = {}
+                        for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
+                            --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
+                            if buildOptionID and UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0 then
+                                turretOptions[#turretOptions+1] = buildOptionID
+                                --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
+                            end
                         end
-                    end
-                    if #turretOptions > 1 then
-                        local turret = turretOptions[math.random(1, #turretOptions)]
-                        local x,y,z = Spring.GetUnitPosition(unitID)
-                        Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
+                        if #turretOptions > 1 then
+                            local turret = turretOptions[math.random(1, #turretOptions)]
+                            local x,y,z = Spring.GetUnitPosition(unitID)
+                            Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
+                            lastTurretFrame = frame
+                            break
+                        end
                     end
                 end
             end

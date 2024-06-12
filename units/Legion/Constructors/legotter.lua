@@ -73,7 +73,7 @@ return {
 			[28] = "cordl",
 			[29] = "legjam",
 			[30] = "legfhp",
-			[31] = "coramsub",
+			[31] = "legamsub",
 			[32] = "corplat",
 			[33] = "corsy",
 			[34] = "cortide",
@@ -106,7 +106,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				metal = 105,
-				object = "Units/cormuskrat_dead.s3o",
+				object = "Units/legotter_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

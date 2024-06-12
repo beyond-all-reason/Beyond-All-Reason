@@ -96,6 +96,7 @@ return {
 				explosiongenerator = "custom:juno-explo-mini",
 				impulseboost = 0,
 				impulsefactor = 0,
+				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",
         		mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
