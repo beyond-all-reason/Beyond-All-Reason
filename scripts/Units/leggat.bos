@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 //piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
-piece body, bars, bodyLight, tracks, turret, sleeve, barrel, flare, smoke1, smoke2;
+piece body, bars, tracks, turret, sleeve, barrel, flare, smoke1, smoke2;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, wpn1_lasthead;
 
@@ -59,7 +59,6 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
-	hide bodyLight;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

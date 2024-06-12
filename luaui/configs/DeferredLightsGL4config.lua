@@ -2264,7 +2264,7 @@ local unitLights = {
 		},
 	},
 	['leggat'] = {
-		bodylight = {
+		gatbodylighta = {
 			lightType = 'point',
 			pieceName = 'body',
 			lightConfig = { posx = 4.5, posy = 3, posz = 21, radius = 24,
@@ -2273,7 +2273,7 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-		bodylight = {
+		gatbodylightb = {
 			lightType = 'point',
 			pieceName = 'body',
 			lightConfig = { posx = 4.5, posy = 4, posz = 20, radius = 24,
