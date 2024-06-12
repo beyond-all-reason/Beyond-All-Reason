@@ -104,9 +104,9 @@ local CONFIG = {
 
 -------------------------------------------------------------------------------
 
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local isSpec
+local myTeamID
+local startDefID
 
 local hoveredButton, drawnHoveredButton
 
@@ -261,7 +261,7 @@ local labBuildModeRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
 local nextBuilderRect = Rect:new(0, 0, 0, 0)
-local isPregame = Spring.GetGameFrame() == 0 and not isSpec
+local isPregame
 
 -------------------------------------------------------------------------------
 --- Unit prep
@@ -985,6 +985,10 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	myTeamID = Spring.GetMyTeamID()
+	isSpec = Spring.GetSpectatingState()
+	isPregame = Spring.GetGameFrame() == 0 and not isSpec
+
 	doUpdateClock = os.clock()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1016,11 +1020,7 @@ function widget:Initialize()
 
 	-- Get our starting unit
 	if isPregame then
-		local startUnit = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-
-		if not startDefID or startDefID ~= startUnit then
-			startDefID = startUnit
-		end
+		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
 	widget:ViewResize()
@@ -2464,24 +2464,6 @@ function widget:DrawScreen()
 		end
 	end
 end
-
--- function widget:DrawWorld()
--- 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
--- 	if Spring.GetGameFrame() > 0 then
--- 		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
--- 		return
--- 	end
---
--- 	if not isPregame then
--- 		return
--- 	end
---
--- 	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
--- 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
--- 		redraw = true
--- 	end
---
--- end
 
 -------------------------------------------------------------------------------
 --- CHANGE EVENTS
