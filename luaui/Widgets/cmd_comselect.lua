@@ -87,6 +87,9 @@ local function handleSelectComm(_, _, args)
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		Spring.SetCameraTarget(x, y, z)
 	end
+
+	-- Halt the action chain, subsequent actions are not triggered
+	return true
 end
 
 function widget:PlayerChanged()
