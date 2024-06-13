@@ -147,7 +147,6 @@ local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 local categoryKeys = {}
 local keyLayout = {}
 local nextPageKey
-local cycleBuilderKey
 
 -------------------------------------------------------------------------------
 --- RECT HELPER
@@ -660,6 +659,10 @@ local function updateBuilders()
 		end
 	end
 
+	if builderTypes == 0 then
+		return
+	end
+
 	-- grow buildersRect according to current number of selected builders
 	buildersRect.xEnd = builderRects[builderTypes].xEnd
 
@@ -980,28 +983,6 @@ local function nextPageHandler()
 	updateGrid()
 end
 
-local function addFactoryToSelection(unitID, unitDefID)
-	builderIsFactory = true
-	selectedFactoryUID = unitID
-	activeBuilder = unitDefID
-end
-
-local function addBuilderToSelection(unitID, unitDefID, incrementCount)
-	builderIsFactory = false
-
-	if not selectedBuilders[unitDefID] then
-		selectedBuildersCount = selectedBuildersCount + 1
-	end
-
-	if incrementCount then
-		local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
-		selectedBuilders[unitDefID] = count + 1
-	end
-
-	activeBuilder = unitDefID
-	activeBuilderID = unitID
-end
-
 ---Set active builder based on index in selectedBuilders
 ---@param index number
 ---@return nil
@@ -1011,19 +992,25 @@ local function setActiveBuilder(index, selectedUnitsSorted)
 	for i = 1, maxBuilderRects do
 		local rect = builderRects[i]
 
+		builderRects[i].opts.current = nil
+
 		if i == index then
 			local unitDefID = rect.opts.uDefID
 			local unitID = selectedUnitsSorted[unitDefID][1]
 
-			addBuilderToSelection(unitID, unitDefID, false)
+			if unitID then
+				activeBuilder = unitDefID
+				activeBuilderID = unitID
 
-			if units.isFactory[unitDefID] then
-				addFactoryToSelection(unitID, unitDefID)
+				if units.isFactory[unitDefID] then
+					builderIsFactory = true
+					selectedFactoryUID = unitID
+				else
+					builderIsFactory = false
+				end
+
+				builderRects[i].opts.current = true
 			end
-
-			builderRects[i].opts.current = true
-		else
-			builderRects[i].opts.current = nil
 		end
 	end
 end
@@ -1033,16 +1020,21 @@ local function cycleBuilder()
 	if selectedBuildersCount < 2 then
 		return
 	end
-	-- find the index that is currently active
+
+	-- find the index we want to switch to
 	local index = nil
-	for i = 1, maxBuilderRects do
+	for i = 1, selectedBuildersCount do
 		if activeBuilder == builderRects[i].opts.uDefID then
-			index = i
+			index = i % selectedBuildersCount
 			break
 		end
 	end
 
-	setActiveBuilder((index % maxBuilderRects) + 1)
+	if not index then
+		return
+	end
+
+	setActiveBuilder(index + 1)
 
 	refreshCommands()
 end
@@ -1947,7 +1939,7 @@ local function drawBuilders()
 	)
 
 	-- draw builders
-	for i = 1, math_min(selectedBuildersCount, maxBuilderRects) do
+	for i = 1, selectedBuildersCount do
 		drawBuilder(builderRects[i])
 	end
 
@@ -2090,7 +2082,9 @@ function widget:MousePress(x, y, button)
 				end
 			end
 
-			for i, rect in pairs(builderRects) do
+			for i = 1, selectedBuildersCount do
+				local rect = builderRects[i]
+
 				if rect:contains(x, y) then
 					setActiveBuilder(i)
 					refreshCommands()
@@ -2562,16 +2556,19 @@ function widget:SelectionChanged(newSel)
 	local selectedUnitsSorted = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(selectedUnitsSorted) do
 		if units.isBuilder[unitDefID] then
-			local isFactory = units.isFactory[unitDefID]
-
-			for _, unitID in pairs(unitIDs) do
-				addBuilderToSelection(unitID, unitDefID, true)
-
-				if isFactory then
-					addFactoryToSelection(unitID, unitDefID)
-				end
-			end
+			selectedBuilders[unitDefID] = #unitIDs
+			selectedBuildersCount = selectedBuildersCount + 1
 		end
+
+		if selectedBuildersCount == maxBuilderRects then
+			return
+		end
+	end
+
+	if selectedBuildersCount > 0 then
+		-- set active builder to first index after updating selection
+		updateBuilders()
+		setActiveBuilder(1, selectedUnitsSorted)
 	end
 
 	if activeBuilder and not builderIsFactory then
@@ -2579,10 +2576,6 @@ function widget:SelectionChanged(newSel)
 	else
 		updateCategories({})
 	end
-
-	-- set active builder to first index after updating selection
-	updateBuilders()
-	setActiveBuilder(1, selectedUnitsSorted)
 
 	-- Only update commands if the current defid changed
 	if activeBuilder ~= prevActiveBuilderDefID then
