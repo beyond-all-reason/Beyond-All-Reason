@@ -1362,7 +1362,10 @@ function widget:Update(dt)
 		checkGuishader()
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
-			updateBuilders() -- builder rects are defined dynamically
+
+			if not isPregame then
+				updateBuilders() -- builder rects are defined dynamically
+			end
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
@@ -1387,7 +1390,9 @@ function widget:Update(dt)
 			or ordermenuHeight ~= prevOrdermenuHeight
 		then
 			widget:ViewResize()
-			updateBuilders() -- builder rects are defined dynamically
+			if not isPregame then
+				updateBuilders() -- builder rects are defined dynamically
+			end
 			prevAdvplayerlistLeft = advplayerlistLeft
 		end
 
@@ -1409,12 +1414,9 @@ function widget:Update(dt)
 
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
-		local startUnit = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
-		if not startDefID or startDefID ~= startUnit then
-			startDefID = startUnit
-			doUpdate = true
-		end
+		doUpdate = true
 	else
 		activeCmd = select(2, spGetActiveCommand())
 
@@ -2565,11 +2567,14 @@ function widget:SelectionChanged(newSel)
 		end
 	end
 
-	if selectedBuildersCount > 0 then
-		-- set active builder to first index after updating selection
-		updateBuilders()
-		setActiveBuilder(1, selectedUnitsSorted)
+	-- if no builders are selected, there's nothing to do
+	if selectedBuildersCount == 0 then
+		return
 	end
+
+	-- set active builder to first index after updating selection
+	updateBuilders()
+	setActiveBuilder(1, selectedUnitsSorted)
 
 	if activeBuilder and not builderIsFactory then
 		updateCategories(CONFIG.buildCategories)
