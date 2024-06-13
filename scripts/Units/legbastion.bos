@@ -5,7 +5,7 @@
 
 piece  base, base2, base3, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
 
-static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging, firetime;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -18,16 +18,16 @@ static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gam
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <3.00>
+//#define MAX_AIMY1_VELOCITY <3.00>
 #define AIMY1_maxacc<0.16>
-#define AIMY1_JERK <0.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
+//#define AIMY1_JERK <0.5>
+//#define AIMY1_PRECISION <1.2>
+//#define AIMY1_RESTORE_SPEED <1.0>
 
 static-var timetozero, deceleratethreshold;
 static-var Stunned;
 
-static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
+static-var oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
 
 
 activatescr () {
@@ -157,43 +157,76 @@ lua_UnitScriptLight(lightIndex, count) {
 
 Create()
 {
-
-
+	firetime = 75;
+	oldhead = 0;
+	targetswap = 0;
 	state=1;
 	call-script InitState();
+	isfiring = 0;
 	
-	dakka = 0;
-	lastfired = get(GAME_FRAME);
+	lastfired = get(GAME_FRAME)-200;
 	shotcount = 0;
-	//Static_Var_3 = 0;
-	restore_delay = 2000;
+	restore_delay = 4000;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
+	start-script SweepFire();
 	start-script SpinIdle();
 }
 
-RestoreAfterDelay() {
-	//get PRINT(888);
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
 
-	sleep restore_delay;
-	gameframe = get(GAME_FRAME);
-	while(lastfired+200>gameframe) {
-		sleep 20;
-		gameframe = get(GAME_FRAME);
-	}
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+	if (Stunned) {
+        return (1);
+    }
 	
+	//get PRINT(888);
+    //signal SIG_AIM;
+
+	gameframe = get(GAME_FRAME);
+	
+		//get PRINT(8888, lastfired+200, gameframe);
+	
+	//something is very wrong here, this loop seems to not sleep, and then just 'give up'.
+	//while(lastfired+200>gameframe) {
+		//gameframe = get(GAME_FRAME);
+		//get PRINT(88881, lastfired+200, gameframe);
+		//sleep 20;
+	//}
+	
+		//get PRINT(88889);
+    isfiring = 0;
+	oldhead = -1000000;
+	timer = 0;
+	targetswap = 0;
+
 	if(state==1) {
-		dakka = 0;
-		turn sauronarms to x-axis <0.000000> speed <85>;
+		turn sauronarms to x-axis <0.000000> speed <5>;
 		turn sauron to y-axis <0> speed <35>;
 		start-script SpinIdle();
 	}
-	return (0);
+	
+	
+	
+	//get PRINT(88888);
+	
+	return (0);	
 }
+
+RestoreAfterDelay()
+{
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
 
 SpinIdle() {
 	spin ring1 around x-axis speed <90> accelerate <200>;
@@ -214,36 +247,77 @@ SpinFiring() {
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-//this used to sweepfire, mothballed for now until engine update
-Enlighten() {
-	//get PRINT(999);
+//using incinerator code now, might be too laggy as it has waitforturns
+AimPrimary(heading, pitch)
+{
+	if (state==0) return 0;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn sauron to y-axis heading speed <25>;
+	turn sauronarms to x-axis -1*pitch speed <10>;
+	if (get ABS(oldhead - heading) > 500)
+	{
+		targetswap = 1;
+	}
+	gameframe = get(GAME_FRAME);
+	//get PRINT(1, lastfired, gameframe);
+	//if (lastfired+firetime>gameframe) return (0);
+	//lastfired = gameframe;
+	
+	if (get ABS(oldhead - heading) < 500)
+	{
+		//skip the wait just do it
+		oldhead = heading;
+		isfiring = 1;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	
+	wait-for-turn sauron around y-axis;
+	wait-for-turn sauronarms around x-axis;
+	start-script RestoreAfterDelay();
+	isfiring = 1;
+	oldhead = heading;
+	return (1);
+}
+
+
+
+SweepFire()
+{
 	signal SIG_LIGHT;
 	set-signal-mask SIG_LIGHT;
-	
-	
-
-	while (dakka == 1) {
-		timer = timer + 1;
-		if (timer<295) {
-			//get PRINT(timer);
-			//emit-sfx 2048 from fireline;
-			sleep 100;
-		} else {
-			start-script SpinIdle();
-			timer = 0;
-			dakka = 0;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			emit-sfx 2048 from fireline;
+			timer = timer + 1;
 		}
+		if (timer > 150)
+		{
+			//signal SIG_AIM;
+			//timer = 0;
+			start-script RestoreAfterDelay();
+		}
+		sleep 20;
 	}
 }
 
 
+
+
+/*
 AimPrimary(heading, pitch) {
 	
 	if (state==0) return (0);
 	
 	gameframe = get(GAME_FRAME);
 	//get PRINT(lastfired, gameframe);
-	//if (lastfired+100>gameframe) return (0);
+	//if (lastfired+firetime>gameframe) return (0);
 	lastfired = gameframe;
 	
 	//get PRINT(1, heading, pitch);
@@ -260,14 +334,18 @@ AimPrimary(heading, pitch) {
 
 	return (1);
 }
+//*/
 
 FirePrimary()
 {
+	gameframe = get(GAME_FRAME);
+	//get PRINT(1, lastfired, gameframe);
+	//if (lastfired+firetime>gameframe) return (0);
+	lastfired = gameframe;
 	//get PRINT(11);
 	start-script SpinFiring();
 	timer = 0;
-	dakka = 1;
-	start-script Enlighten();
+	//start-script Enlighten();
 	//sleep 150;
 	start-script RestoreAfterDelay();
 	shotcount = shotcount + 1;
@@ -331,6 +409,9 @@ AimPrimary(heading, pitch) {
 			aimy1position = aimy1position + aimy1velocity; 
 			turn sauron to y-axis aimy1position now;
 			aimy1delta = aimy1target - aimy1position ; 	
+			
+			
+			turn sauronarms to x-axis 0-pitch now;
 		}
 		sleep 30;		
 	}
