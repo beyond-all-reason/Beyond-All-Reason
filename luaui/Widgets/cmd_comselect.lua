@@ -37,7 +37,7 @@ local function handleSelectComm(_, _, args)
 			focusCamera = true
 		elseif arg == "append" then
 			appendSelection = true
-		elseif arg == "ignoreselected" then
+		elseif arg == "includeselected" then
 			includeSelected = true
 		end
 	end
