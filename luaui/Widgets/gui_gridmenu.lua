@@ -133,7 +133,7 @@ local labBuildModeActive = false
 
 local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
 local prevQueueNr, prevB, prevB3
-local activeBuilder, activeBuilderID, builderIsFactory, selectedFactoryUID
+local activeBuilder, activeBuilderID, builderIsFactory
 local buildmenuShows = false
 
 -------------------------------------------------------------------------------
@@ -426,11 +426,12 @@ end
 local function updateBuildProgress()
 	currentlyBuildingRectID = nil
 
-	if not showBuildProgress or not activeBuilderID then
+	-- If we dont show build progress, or dont have a selected factory: nothing
+	-- to do
+	if not showBuildProgress or not builderIsFactory then
 		return
 	end
 
-	-- get current builder defid in progress, if any
 	local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
 	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
 
@@ -698,7 +699,7 @@ local function refreshCommands()
 			return
 		end
 	elseif builderIsFactory then
-		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+		local activeCmdDescs = Spring.GetUnitCmdDescs(activeBuilderID)
 
 		if activeCmdDescs then
 			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
@@ -1002,12 +1003,7 @@ local function setActiveBuilder(index, selectedUnitsSorted)
 				activeBuilder = unitDefID
 				activeBuilderID = unitID
 
-				if units.isFactory[unitDefID] then
-					builderIsFactory = true
-					selectedFactoryUID = unitID
-				else
-					builderIsFactory = false
-				end
+				builderIsFactory = units.isFactory[unitDefID]
 
 				builderRects[i].opts.current = true
 			end
@@ -2493,14 +2489,10 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 end
 
 -- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
-function widget:UnitCommand(_, unitDefID, _, cmdID, _, cmdParams, _)
-	-- if no active builder and cmd is not build return
-	if not activeBuilder or cmdID >= 0 then
-		return
-	end
-
-	-- if builder is not factory or is not currently selected factory return
-	if not builderIsFactory or unitDefID ~= activeBuilder then
+function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
+	-- if theres no factory as active builder, cmd is not build return or cmd
+	-- is not to build a unit: nothing to do
+	if not builderIsFactory or cmdID >= 0 or activeBuilderID ~= unitID then
 		return
 	end
 
@@ -2516,9 +2508,9 @@ end
 
 -- update queue number
 -- UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-function widget:UnitFromFactory(_, unitDefID, _, factoryID, factDefID)
+function widget:UnitFromFactory(_, unitDefID, _, factoryID)
 	-- if factory is not current active builder return
-	if factDefID ~= activeBuilder then
+	if factoryID ~= activeBuilderID then
 		return
 	end
 
@@ -2535,6 +2527,7 @@ end
 -- PERF: Fix convoluted setActiveBuilder and multiple calls to getselectedsorted
 function widget:SelectionChanged(newSel)
 	local prevActiveBuilderDefID = activeBuilder
+	local prevActiveBuilderID = activeBuilderID
 
 	activeBuilder = nil
 	activeBuilderID = nil
@@ -2563,7 +2556,7 @@ function widget:SelectionChanged(newSel)
 		end
 
 		if selectedBuildersCount == maxBuilderRects then
-			return
+			break
 		end
 	end
 
@@ -2582,8 +2575,9 @@ function widget:SelectionChanged(newSel)
 		updateCategories({})
 	end
 
-	-- Only update commands if the current defid changed
-	if activeBuilder ~= prevActiveBuilderDefID then
+	-- If the defid of the builder has changed, or if it is a factory and the
+	-- unit has changed (due to having to update queue): refresh everything
+	if activeBuilder ~= prevActiveBuilderDefID or (builderIsFactory and activeBuilderID ~= prevActiveBuilderID) then
 		refreshCommands()
 	end
 end
