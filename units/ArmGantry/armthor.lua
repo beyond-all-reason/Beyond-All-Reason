@@ -221,6 +221,8 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
+				fireTolerance = 1820,
+				tolerance = 1820,
 				laserflaresize = 8.8,
 				name = "Long Range EMP laser",
 				noselfdamage = true,
@@ -247,6 +249,7 @@ return {
 			[1] = {
 				def = "thunder",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
 			},
 			[2] = {
 				def = "EMPMISSILE",

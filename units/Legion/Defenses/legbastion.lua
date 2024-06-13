@@ -113,7 +113,7 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidfriendly = true,
-				beamtime = 1,
+				beamtime = 0.1,
 				camerashake = 0.1,
 				corethickness = 0.4,
 				craterareaofeffect = 120,
@@ -146,8 +146,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 4500,
+					default = 155,
 				},
+				
+				customparams = {
+					sweepfire=4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}			
 			},
 		},
 		weapons = {

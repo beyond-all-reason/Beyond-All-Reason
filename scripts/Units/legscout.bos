@@ -99,7 +99,7 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (heading - oldheading)*3;
+		steery = (heading - oldheading)*3/2;
 		turn body to y-axis steery speed <120>;
 		turn body to z-axis steery speed <15>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);

@@ -437,6 +437,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 
 			end
+		elseif name == "coraap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corcrw"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4"
