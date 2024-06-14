@@ -2006,7 +2006,9 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
+		tracy.ZoneBeginN("G:DrawWorldPreUnit:" .. g.ghInfo.name)
 		g:DrawWorldPreUnit()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

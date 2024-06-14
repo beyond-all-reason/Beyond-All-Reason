@@ -376,17 +376,19 @@ local function refreshUnitInfo()
 						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
-					end
+					--end
+
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
 						unitExempt = true
 						local forkd = weaponDef.customParams.spark_forkdamage
 						local forkn = weaponDef.customParams.spark_maxunits or 1
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-						unitDefInfo[unitDefID].mindps = nil
-						unitDefInfo[unitDefID].maxdps = nil
+						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+							unitDefInfo[unitDefID].mindps = nil
+							unitDefInfo[unitDefID].maxdps = nil
+						end
 					end
 				end
 
@@ -407,7 +409,23 @@ local function refreshUnitInfo()
 					setEnergyAndMetalCosts(weaponDef)
 
 					if weaponDef.paralyzer ~= true then
-						calculateLaserDPS(weaponDef, defDmg)
+					
+					
+						if weaponDef.customParams then
+
+							if weaponDef.customParams.sweepfire then
+								Spring.Echo(weaponDef.minIntensity)
+								Spring.Echo(weaponDef.customParams.sweepfire)
+								Spring.Echo(unitDefInfo[unitDefID].maxdps)
+								Spring.Echo(unitDefInfo[unitDefID].mindps)
+								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / math.max(weaponDef.minIntensity, 0.5)
+								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
+							else
+								calculateLaserDPS(weaponDef, defDmg)
+							end
+						else
+							calculateLaserDPS(weaponDef, defDmg)
+						end
 					else
 						-- calculate laser emp dmg
 						minIntensity = math.max(weaponDef.minIntensity, 0.5)

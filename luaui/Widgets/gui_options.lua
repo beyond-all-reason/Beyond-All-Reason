@@ -6132,7 +6132,6 @@ function init()
 		local filteredOptions = {}
 		for i, option in pairs(options) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				--local name = string.gsub(option.name, "(\\[0-9]+)+", "")
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
 				if string.find(string.lower(name), string.lower(inputText), nil, true) then

@@ -229,6 +229,9 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "corvac_scav" --corprinter
 
 		end
+	elseif name == "coraap_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions+1] = "corcrw_scav"
 	elseif name == "corgant_scav" or name == "leggant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav"
