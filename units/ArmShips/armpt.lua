@@ -180,7 +180,7 @@ return {
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 0.36667,
-				rgbcolor = "1 0 0",
+				rgbcolor = "1 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir1",
