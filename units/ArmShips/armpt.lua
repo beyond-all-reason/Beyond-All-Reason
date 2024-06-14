@@ -170,7 +170,7 @@ return {
 				duration = 0.02,
 				edgeeffectiveness = 0.15,
 				energypershot = 0,
-				explosiongenerator = "custom:laserhit-small-red",
+				explosiongenerator = "custom:laserhit-small-yellow",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,
