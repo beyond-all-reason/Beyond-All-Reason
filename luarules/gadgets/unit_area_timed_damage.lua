@@ -219,7 +219,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			return 0, 0
 		elseif params.atd_damage_ceg then
 			local _,_,_, x,y,z = Spring.GetUnitPosition(unitID, true)
-			Spring.SpawnCEG(params.atd_damage_ceg, x, y + 8, z, 0, 0, 0, 0, damage)
+			if y > 0 then
+				Spring.SpawnCEG(params.atd_damage_ceg, x, y + 8, z, 0, 0, 0, 0, damage)
+			else
+				return 0, 0
+			end
 			-- return damage * damageRate, impulse * impulseRate
 		end
 	end
