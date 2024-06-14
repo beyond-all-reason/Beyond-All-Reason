@@ -105,6 +105,7 @@ return {
 			evolution_condition = "timer",
 			evolution_timer = 600,
 			iscommander = true,
+			isevocom = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -312,7 +313,7 @@ return {
 					commanders = 1,
 				},
 			},
-			napalmmissile = {
+			napalmmissile = { --unused, left here in case it replaces the Dgun again.
 				areaofeffect = 200,
 				avoidfeature = false,
 				burnblow = true,
