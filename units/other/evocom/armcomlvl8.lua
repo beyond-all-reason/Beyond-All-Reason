@@ -2,7 +2,7 @@ return {
 	armcomlvl8	= {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 112,
+		autoheal = 5,
 		maxdec = 1.125,
 		energycost = 90000,
 		metalcost = 9000,
@@ -37,7 +37,7 @@ return {
 		idletime = 450,
 		sightemitheight = 40,
 		mass = 99999,
-		health = 13200,
+		health = 11400,
 		maxslope = 20,
 		speed = 60,
 		maxwaterdepth = 35,
