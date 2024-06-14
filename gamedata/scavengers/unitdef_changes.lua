@@ -152,7 +152,7 @@ customDefs.corscavdtl = {
 
 customDefs.legcom = {
 	weapondefs = {
-		napalmmissile2 = {
+		botcannon2 = {
 			accuracy = 0.2,
 			areaofeffect = 10,
 			avoidfeature = false,
@@ -211,7 +211,7 @@ customDefs.legcom = {
 	},
 	weapons = {
 		[3] = {
-			def = "NAPALMMISSILE2",
+			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
 	}
@@ -219,7 +219,7 @@ customDefs.legcom = {
 
 customDefs.legcomlvl2 = {
 	weapondefs = {
-		napalmmissile2 = {
+		botcannon2 = {
 			accuracy = 0.2,
 			areaofeffect = 10,
 			avoidfeature = false,
@@ -278,7 +278,7 @@ customDefs.legcomlvl2 = {
 	},
 	weapons = {
 		[3] = {
-			def = "NAPALMMISSILE2",
+			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
 	}
@@ -286,7 +286,7 @@ customDefs.legcomlvl2 = {
 
 customDefs.legcomlvl3 = {
 	weapondefs = {
-		napalmmissile2 = {
+		botcannon2 = {
 			accuracy = 0.2,
 			areaofeffect = 10,
 			avoidfeature = false,
@@ -345,7 +345,7 @@ customDefs.legcomlvl3 = {
 	},
 	weapons = {
 		[3] = {
-			def = "NAPALMMISSILE2",
+			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
 	}
@@ -353,7 +353,7 @@ customDefs.legcomlvl3 = {
 
 customDefs.legcomlvl4 = {
 	weapondefs = {
-		napalmmissile2 = {
+		botcannon2 = {
 			accuracy = 0.2,
 			areaofeffect = 10,
 			avoidfeature = false,
@@ -412,7 +412,7 @@ customDefs.legcomlvl4 = {
 	},
 	weapons = {
 		[3] = {
-			def = "NAPALMMISSILE2",
+			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
 	}
@@ -420,7 +420,7 @@ customDefs.legcomlvl4 = {
 
 customDefs.legcomlvl5 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 5000,
 			projectiles = 5,
 			range = 650,
@@ -437,7 +437,7 @@ customDefs.legcomlvl5 = {
 
 customDefs.legcomlvl6 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 6000,
 			projectiles = 6,
 			range = 700,
@@ -454,7 +454,7 @@ customDefs.legcomlvl6 = {
 
 customDefs.legcomlvl7 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 7000,
 			projectiles = 3,
 			range = 750,
@@ -471,7 +471,7 @@ customDefs.legcomlvl7 = {
 
 customDefs.legcomlvl8 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 8000,
 			projectiles = 5,
 			range = 800,
@@ -488,7 +488,7 @@ customDefs.legcomlvl8 = {
 
 customDefs.legcomlvl9 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 9000,
 			projectiles = 2,
 			range = 850,
@@ -505,7 +505,7 @@ customDefs.legcomlvl9 = {
 
 customDefs.legcomlvl10 = {
 	weapondefs = {
-		napalmmissile = {
+		botcannon = {
 			energypershot = 10000,
 			projectiles = 4,
 			range = 900,
