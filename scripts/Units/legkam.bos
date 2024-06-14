@@ -75,6 +75,9 @@ Deactivate()
 
 AimWeapon1()
 {
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	sleep 100;
 	return (TRUE);
 }
 
@@ -90,8 +93,6 @@ AimWeapon3()
 
 FireWeapon1()
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	emit-sfx 1024 from base;
 	emit-sfx 2048 + 2 from firepoint; //Weapon3 creates a dragon's eye once weapon1 fires
 	sleep 1000;

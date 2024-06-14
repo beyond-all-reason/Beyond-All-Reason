@@ -112,6 +112,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
+				energypershot=60,
 				explosiongenerator = "custom:laserhit-medium-yellow",
 				firestarter = 90,
 				impulseboost = 0,

@@ -392,7 +392,7 @@ function widget:AddConsoleLine(lines, priority)
 
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
-		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 
 			-- system message
