@@ -113,6 +113,23 @@ return {
 					default = 50,
 					subs = 20,
 				},
+				customparams = {
+					area_timed_damage = true,
+					atd_stable_ceg = "fire-area-150",
+					atd_damage_ceg = "burnflamexl",
+					atd_resistance = "_NAPALM_",
+					atd_duration = 10,
+				},
+			},
+			napalmbombs_area = {
+				areaofeffect = 150,
+				explosiongenerator = "burnold", -- I have no idea
+				damage = {
+					default = 30,
+					shields = 30 / 10, -- assuming explosions damage shields
+					subs    = 30 / 10, -- seems unlikely I can skip these
+					vtol    = 30 / 20, -- units with canFly no longer immune
+				},
 			},
 		},
 		weapons = {
