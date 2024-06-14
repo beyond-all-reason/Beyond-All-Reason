@@ -89,7 +89,7 @@ local function AddTimedAreaDef(id, def)
 	local thing = (isUnitDef and 'udef ' or 'wdef ') .. def.name
 	if not def.customParams.atd_duration or def.customParams.atd_duration < 0 then
 		Spring.Echo('[area_timed_damage] [warn] Invalid atd_duration for ' .. thing)
-		AreaTable[id] = nil
+		if isUnitDef then OnDeathAreaDefs[id]=nil else WeaponAreaDefs[id]=nil end
 	end
 end
 
