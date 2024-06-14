@@ -217,6 +217,7 @@ return {
 				cratermult = 0,
 				duration = 0.01,
 				edgeeffectiveness = 0.15,
+				energypershot=70,
 				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
 				impulseboost = 0,
