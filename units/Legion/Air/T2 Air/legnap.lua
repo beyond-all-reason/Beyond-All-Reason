@@ -114,11 +114,10 @@ return {
 					subs = 20,
 				},
 				customparams = {
-					area_timed_damage = true,
-					atd_stable_ceg = "fire-area-150",
-					atd_damage_ceg = "burnflamexl",
-					atd_resistance = "_NAPALM_",
-					atd_duration = 10,
+					area_duration = 10,
+					area_stable_ceg = "fire-area-150",
+					area_damage_ceg = "burnflamexl",
+					area_resistance = "_NAPALM_",
 				},
 			},
 			napalmbombs_area = {
