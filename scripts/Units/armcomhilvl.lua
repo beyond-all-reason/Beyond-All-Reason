@@ -12,7 +12,7 @@ local weapons = {
 	[3] = "dgun",
 	[4] = "tachcannon",
 	[5] = "laser",
-	[6] = "dgun",
+	[6] = "flashbang",
 	[7] = "dgun",
 	[8] = "dgun",
 	[9] = "dgun",
@@ -52,6 +52,11 @@ local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
+local spGetUnitStates = Spring.GetUnitStates
+local spSetUnitArmored = Spring.SetUnitArmored
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spSetUnitCloak = Spring.SetUnitCloak
 
 -- for the AimPrimary script, to skip wait-for-turn if needed
 local last_primary_heading = -1000000
@@ -884,6 +889,38 @@ function ResumeBuilding()
 	return (0)
 end
 
+local unitStates = {}
+local wasHitTriggerWindow = 0
+local flashbangReloadFrame = 0
+local flashbangArmorDurationFrame = 0
+local lastFrameCheckHealth = 0
+function TimerCheck()
+	while true do
+		local health = spGetUnitHealth(unitID)
+		local frame = GetGameFrame()
+		unitStates = spGetUnitStates(unitID)
+		if health < (lastFrameCheckHealth - 50) then
+			wasHitTriggerWindow = frame + 150
+			if frame < wasHitTriggerWindow and flashbangReloadFrame < frame then
+				if unitStates.cloak == true then
+					spSetUnitArmored(unitID, true)
+					flashbangReloadFrame = frame+570
+					flashbangArmorDurationFrame = frame+120
+					EmitSfx(nano, 2048+5)
+					EmitSfx(nano, SFX.CEG+3)
+					Sleep(1000)
+					spSetUnitCloak(unitID, true)
+				end
+			end
+		end
+		if flashbangArmorDurationFrame < frame then
+			spSetUnitArmored(unitID, false)
+		end
+		lastFrameCheckHealth = health
+		Sleep(500)
+	end
+end
+
 function script.Create()
 	--Turn(lflare, 1,math.rad(90)) -- WHY?
 	--Turn(nano, 1,math.rad(90)) -- WHY?
@@ -915,6 +952,7 @@ function script.Create()
 	animSpeed = 4
 	StartThread(UnitSpeed)
 	StartThread(StopWalking)
+	StartThread(TimerCheck)
 end
 
 function ShowCrown()
@@ -952,6 +990,8 @@ function script.AimFromWeapon(weapon)
     elseif weapons[weapon] == "tachcannon" then
         return luparm
     elseif weapons[weapon] == "dronepointer" then
+        return nano
+	elseif weapons[weapon] == "flashbang" then
         return nano
 	end
 end
@@ -1024,6 +1064,8 @@ function script.AimWeapon(weapon, heading, pitch)
         end
     elseif weapons[weapon] == "dronepointer" then
 			return false
+	elseif weapons[weapon] == "flashbang" then
+			return false
 	end
 end
 
@@ -1055,6 +1097,9 @@ function script.FireWeapon(weapon)
     elseif weapons[weapon] == "dronepointer" then
 		Sleep(100)
 		return false
+	elseif weapons[weapon] == "flashbang" then
+		Sleep(100)
+		return false
 	end
 end
 
@@ -1068,6 +1113,8 @@ function script.QueryWeapon(weapon)
     elseif weapons[weapon] == "tachcannon" then
 		return lflare
     elseif weapons[weapon] == "dronepointer" then
+		return nano
+	elseif weapons[weapon] == "flashbang" then
 		return nano
 	end
 end
