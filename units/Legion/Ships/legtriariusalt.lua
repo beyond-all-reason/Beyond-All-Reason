@@ -4,10 +4,10 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
 		buildangle = 16384,
-		energycost = 8000,
-		metalcost = 800,
+		energycost = 12000,
+		metalcost = 1250,
 		buildpic = "CORROY.DDS",
-		buildtime = 11000,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 1",
@@ -107,7 +107,7 @@ return {
 
 		weapondefs = {
 			hplasma = {
-				areaofeffect = 24,
+				areaofeffect = 50,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -119,7 +119,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Medium g2g plasma cannon",
 				noselfdamage = true,
-				range = 475,
+				range = 775,
 				reloadtime = 1.3,
 				size = 1.8,
 				soundhit = "xplosml3",
