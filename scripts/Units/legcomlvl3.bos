@@ -566,6 +566,9 @@ AimPrimary(heading, pitch) //pew pew
 	if (isAimingDgun){
 		return (0);
 	}
+	if (isAimingBotCannon == 1){
+		return (0);
+	}
 	rightarm = 0;
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
@@ -628,7 +631,8 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	if (isAimingDgun){
+	if (isAimingBotCannon == 1)
+	{
 		return (0);
 	}
 	rightarm = 0;
