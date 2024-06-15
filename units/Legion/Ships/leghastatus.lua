@@ -21,7 +21,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 2,
 		idletime = 900,
-		health = 2150,
+		health = 2280,
 		speed = 79.0,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",

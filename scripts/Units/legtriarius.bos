@@ -167,7 +167,7 @@ AimWeapon2(Func_Var_1, Func_Var_2)
 
 FireWeapon1()
 {
-	start-script RockZ(-9,aimDir);
+	start-script RockZ(-3,aimDir);
 
 	    emit-sfx 1024 + 0 from flarea1;
 		move barrel1 to z-axis [-7.500000] speed [100.000000];
@@ -180,12 +180,13 @@ FireWeapon1()
 
 AimFromWeapon1(Func_Var_1)
 {
-	Func_Var_1 = 4;
+	Func_Var_1 = barrel1;
 	return (0);
 }
 
-QueryWeapon1(Func_Var_1)
+QueryWeapon1(piecenum)
 {
+	piecenum = flarea1;
 	return (0);
 }
 

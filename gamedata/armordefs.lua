@@ -558,11 +558,17 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
+		"legcs",
+		"legvelite",
+		"leghastatus",
+		"legoptio",
+		"legpt",
 	},
 
 	hvyboats = {
 		"armroy",
 		"corroy",
+		"legtriarus",
 		"corarch",
 		"armaas",
 		"armcrus",
@@ -582,6 +588,7 @@ local armorDefs = {
 	subs = {
 		"armsub",
 		"corsub",
+		"legstingray",
         "armsubk",
 		"corshark",
         "corssub",
