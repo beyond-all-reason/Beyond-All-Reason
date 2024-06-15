@@ -183,17 +183,9 @@ local CMD_BLUEPRINT_PLACE_DESCRIPTION = {
 local CMD_BLUEPRINT_CREATE_DESCRIPTION = {
 	id = CMD_BLUEPRINT_CREATE,
 	type = CMDTYPE.ICON,
-	name = "Save BP",
+	name = "Save Blueprint",
 	cursor = nil,
 	action = "blueprint_create",
-}
-
-local CMD_BLUEPRINT_CREATE_SELECTIONORDER_DESCRIPTION = {
-	id = CMD_BLUEPRINT_CREATE_SELECTIONORDER,
-	type = CMDTYPE.ICON,
-	name = "Save Ordered BP",
-	cursor = nil,
-	action = "blueprint_create_selectionorder",
 }
 
 local BLUEPRINT_FILE_PATH = "LuaUI/config/blueprints.json"
@@ -730,7 +722,6 @@ function widget:CommandsChanged()
 
 		if addCreateCommand then
 			customCommands[#customCommands + 1] = CMD_BLUEPRINT_CREATE_DESCRIPTION
-			customCommands[#customCommands + 1] = CMD_BLUEPRINT_CREATE_SELECTIONORDER_DESCRIPTION
 		end
 	end
 end
@@ -769,15 +760,6 @@ local function handleBlueprintPrevAction()
 end
 
 local function handleBlueprintCreateAction()
-	local unitIDs = selectedUnitsOrder
-
-	createBlueprint(unitIDs, false)
-	setSelectedBlueprintIndex(#blueprints)
-
-	return true
-end
-
-local function handleBlueprintCreateOrderedAction()
 	local unitIDs = selectedUnitsOrder
 
 	createBlueprint(unitIDs, true)
@@ -913,8 +895,6 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
-	elseif cmdID == CMD_BLUEPRINT_CREATE_SELECTIONORDER then
-		handleBlueprintCreateOrderedAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
 		local selectedBlueprint = getSelectedBlueprint()
 
@@ -1138,7 +1118,6 @@ function widget:Initialize()
 	loadedBlueprints = true
 
 	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleBlueprintCreateAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "blueprint_create_selectionorder", handleBlueprintCreateOrderedAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_prev", handleBlueprintPrevAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
@@ -1165,7 +1144,6 @@ function widget:Shutdown()
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create_selectionorder", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
