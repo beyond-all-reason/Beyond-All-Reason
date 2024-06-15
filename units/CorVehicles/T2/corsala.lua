@@ -133,6 +133,8 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-yellow",
 				firestarter = 90,
+				fireTolerance = 1820,
+				tolerance = 1820,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "HeatRay",
@@ -157,6 +159,7 @@ return {
 			[1] = {
 				def = "cor_heat_laser",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
 			},
 		},
 	},

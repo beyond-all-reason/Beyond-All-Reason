@@ -6,7 +6,7 @@
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
     rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, eyeflare, cagelight, cagelight_emit, headmount, hatpoint, crown, medalsilver, medalbronze, medalgold, torsofrontmarker;
 
-static-var bMoving, bAiming, Busy, gun_6, gun_3, gun_2, gun_eye, counter,
+static-var bMoving, bAiming, Busy, gun_6, gun_3, gun_2, gun_eye, counter, shieldUp,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
 
 // for the AimPrimary script, to skip wait-for-turn if needed
@@ -770,7 +770,21 @@ UnitSpeed(){
 }
 
 
-
+UnitTimer()
+{
+	while (TRUE)
+	{
+		shieldUp = get SHIELD_POWER;
+		if (shieldUp > 40000000){
+			set ARMORED to 1;
+			sleep 500;
+		}
+		else{
+			set ARMORED to 0;
+			sleep 3000;
+		}
+	}
+}
 
 Create()
 {
@@ -821,6 +835,7 @@ Create()
 	currentSpeed = 100;
 	//call-script TeleportControl();
 	start-script UnitSpeed();
+	start-script UnitTimer();
 }
 
 lua_UnitScriptLight(lightIndex, count) 

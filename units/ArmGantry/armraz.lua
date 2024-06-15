@@ -118,7 +118,10 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-red",
+				energypershot=75,
 				firestarter = 10,
+				fireTolerance = 3640,
+				tolerance = 3640,
 				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
@@ -154,6 +157,7 @@ return {
 				def = "MECH_RAPIDLASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 2,--seems to have 40 deg burst limit arc limit with both the above compounding
 			},
 		},
 	},

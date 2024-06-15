@@ -120,7 +120,7 @@ return {
 				cratermult = 0,
 				duration = 10,
 				edgeeffectiveness = 0.85,
-				energypershot = 1000,
+				energypershot = 500,
 				explosiongenerator = "custom:laserhit-large-green",
 				impulseboost = 0,
 				impulsefactor = 0,

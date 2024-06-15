@@ -2059,6 +2059,7 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
+	
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2159,6 +2160,11 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	legdecom = {
+		bitmap = "icons/legcom.png",
+		size = 1.60000002
+	},
+
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2226,6 +2232,10 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	legamphtank = {
+		bitmap = "icons/amphib_tank.png",
+		size = 1.35000002
 	},
 	leghp = {
 		bitmap = "icons/factory_hover.png",
@@ -2375,6 +2385,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
 	},
+	legscout = {
+		bitmap = "icons/vehicle.png",
+		size = 0.57749999
+	},
 	legsh = {
 		bitmap = "icons/hover_raid.png",
 		size = 1
@@ -2430,6 +2444,10 @@ local icontypes = {
 	legwint2 = {
 		bitmap = "icons/wind.png",
 		size = 1.67999995
+	},
+	legmlv = {
+		bitmap = "icons/cormlv_1.0.png",
+		size = 1.04999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
@@ -3179,7 +3197,7 @@ for name, params in pairs(icontypes) do
 	newIcontypes[name] = params
 	newIcontypes[name..'_scav'] = { size = params.size or 1 }
 	if params.bitmap then
-		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('\/', '\/inverted\/')
+		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('/', '/inverted/')
 	end
 end
 
