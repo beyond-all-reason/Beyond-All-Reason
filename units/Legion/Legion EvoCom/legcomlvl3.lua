@@ -387,7 +387,7 @@ return {
 				name = "Long range bot cannon",
 				noselfdamage = true,
 				projectiles = 2,
-				range = 600,
+				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2800,
 				stockpile = true,
