@@ -116,6 +116,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				burst=2,
+				burstrate = 0.001,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 3,

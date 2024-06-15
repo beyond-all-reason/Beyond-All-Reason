@@ -71,6 +71,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	turn sleeve to y-axis 0 speed <100.000000>;
 	spin barrel around z-axis speed <600.000000>;
 	sleep restore_delay;
 	spin barrel around z-axis speed <300.000000>;

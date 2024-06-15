@@ -40,7 +40,10 @@ return {
 			[6] = "legtriarius",--
 			[7] = "legsub",--
 			[8] = "correcl",
-			[9] = "legoptio"
+			[9] = "legoptio",
+			[10] = "leghastatusalt",
+			[11] = "legtriariusalt"
+
 		},
 		customparams = {
 			unitgroup = 'builder',

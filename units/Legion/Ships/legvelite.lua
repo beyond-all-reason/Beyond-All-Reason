@@ -108,7 +108,7 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 6,
-				burstrate = 0.05,
+				burstrate = 0.07,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
