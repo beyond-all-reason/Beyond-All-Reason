@@ -127,7 +127,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Cleansing Light",
+				name = "Heavy g2g Cleansing Heat Ray",
 				noselfdamage = true,
 				predictboost = 0.3,
 				proximitypriority = 1,
