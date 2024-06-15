@@ -15,6 +15,10 @@ function setup()
 	end
 	widgetHandler:EnableWidget(widgetName, true)
 
+	widget = widgetHandler:FindWidget(widgetName)
+	assert(widget)
+	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
+
 	initialCameraState = Spring.GetCameraState()
 
 	Spring.SetCameraState({
