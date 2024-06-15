@@ -1235,11 +1235,11 @@ local options = {
     {
         key    	= "evocomlevelcap",
         name   	= "Commander Level Cap",
-        desc   	= "(Range 5 - 10) Changes the Evolving Commanders maximum level",
+        desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_experimental",
         def    	= 10,
-        min    	= 5,
+        min    	= 2,
         max    	= 10,
         step   	= 1,
     },
