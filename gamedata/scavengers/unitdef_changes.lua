@@ -150,140 +150,6 @@ customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
 
-customDefs.legcom = {
-	weapondefs = {
-		botcannon2 = {
-			accuracy = 0.2,
-			areaofeffect = 10,
-			avoidfeature = false,
-			avoidfriendly = false,
-			burst = 1,
-			burstrate = 0.025,
-			collidefriendly = false,
-			commandfire = true,
-			craterareaofeffect = 116,
-			craterboost = 0.1,
-			cratermult = 0.1,
-			edgeeffectiveness = 0.15,
-			energypershot = 1000,
-			explosiongenerator = "custom:botrailspawn",
-			gravityaffected = "true",
-			heightboostfactor = 8,
-			hightrajectory = 1,
-			impulseboost = 0.5,
-			impulsefactor = 0.5,
-			leadbonus = 0,
-			metalpershot = 0,
-			model = "Units/CORMINE2.s3o",
-			movingaccuracy = 600,
-			mygravity = 4.8,
-			name = "Long range bot cannon",
-			noselfdamage = true,
-			projectiles = 3,
-			range = 450,
-			reloadtime = 0.9,
-			sprayangle = 2500,
-			stockpile = true,
-			stockpiletime = 15,
-			soundhit = "xplonuk1xs",
-			soundhitwet = "splshbig",
-			soundstart = "lrpcshot3",
-			soundstartvolume = 50,
-			turret = true,
-			trajectoryheight = 1,
-			waterbounce = true,
-			bounceSlip = 0.74,
-			bouncerebound = 0.5,
-			numbounce = 10,
-			weapontype = "Cannon",
-			weaponvelocity = 2000,
-			customparams = {
-				spawns_name = legionLobberUnitsT1,
-				spawns_mode = "random_locked",
-				spawns_expire = 999999,
-				spawns_surface = "LAND", -- Available: "LAND SEA"
-			},
-			damage = {
-				default = 0,
-				shields = 0,
-			},
-		},
-	},
-	weapons = {
-		[3] = {
-			def = "BOTCANNON2",
-			onlytargetcategory = "SURFACE",
-		},
-	}
-}
-
-customDefs.legcomlvl2 = {
-	weapondefs = {
-		botcannon2 = {
-			accuracy = 0.2,
-			areaofeffect = 10,
-			avoidfeature = false,
-			avoidfriendly = false,
-			burst = 1,
-			burstrate = 0.025,
-			collidefriendly = false,
-			commandfire = true,
-			craterareaofeffect = 116,
-			craterboost = 0.1,
-			cratermult = 0.1,
-			edgeeffectiveness = 0.15,
-			energypershot = 2000,
-			explosiongenerator = "custom:botrailspawn",
-			gravityaffected = "true",
-			heightboostfactor = 8,
-			hightrajectory = 1,
-			impulseboost = 0.5,
-			impulsefactor = 0.5,
-			leadbonus = 0,
-			metalpershot = 0,
-			model = "Units/CORMINE2.s3o",
-			movingaccuracy = 600,
-			mygravity = 4.8,
-			name = "Long range bot cannon",
-			noselfdamage = true,
-			projectiles = 4,
-			range = 500,
-			reloadtime = 0.9,
-			sprayangle = 2500,
-			stockpile = true,
-			stockpiletime = 15,
-			soundhit = "xplonuk1xs",
-			soundhitwet = "splshbig",
-			soundstart = "lrpcshot3",
-			soundstartvolume = 50,
-			turret = true,
-			trajectoryheight = 1,
-			waterbounce = true,
-			bounceSlip = 0.74,
-			bouncerebound = 0.5,
-			numbounce = 10,
-			weapontype = "Cannon",
-			weaponvelocity = 2000,
-			customparams = {
-				spawns_name = legionLobberUnitsT1,
-				spawns_mode = "random_locked",
-				spawns_expire = 999999,
-				spawns_surface = "LAND", -- Available: "LAND SEA"
-			},
-			damage = {
-				default = 0,
-				shields = 0,
-			},
-		},
-	},
-	weapons = {
-		[3] = {
-			def = "BOTCANNON2",
-			onlytargetcategory = "SURFACE",
-		},
-	}
-}
-
 customDefs.legcomlvl3 = {
 	weapondefs = {
 		botcannon2 = {
@@ -344,7 +210,7 @@ customDefs.legcomlvl3 = {
 		},
 	},
 	weapons = {
-		[3] = {
+		[5] = {
 			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
@@ -411,7 +277,7 @@ customDefs.legcomlvl4 = {
 		},
 	},
 	weapons = {
-		[3] = {
+		[5] = {
 			def = "BOTCANNON2",
 			onlytargetcategory = "SURFACE",
 		},
