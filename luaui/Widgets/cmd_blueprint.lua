@@ -162,6 +162,15 @@ end
 -- widget code
 -- ===========
 
+local sounds = {
+	createBlueprint = "LuaUI/Sounds/buildbar_add.wav",
+	deleteBlueprint = "LuaUI/Sounds/buildbar_rem.wav",
+	selectBlueprint = "LuaUI/Sounds/buildbar_hover.wav",
+	activateBlueprint = "LuaUI/Sounds/buildbar_add.wav",
+	spacing = "LuaUI/Sounds/buildbar_hover.wav",
+	facing = "LuaUI/Sounds/buildbar_hover.wav",
+}
+
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 local actionHotkeys
@@ -458,6 +467,8 @@ local function setBlueprintPlacementActive(active)
 
 	if active then
 		widget:SelectionChanged(Spring.GetSelectedUnits())
+
+		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
 	else
 		WG["api_blueprint"].setActiveBlueprint(nil)
 		WG["api_blueprint"].setBlueprintPositions({})
@@ -741,6 +752,8 @@ local function handleBlueprintNextAction()
 
 	setSelectedBlueprintIndex(nextIndex(selectedBlueprintIndex, #blueprints))
 
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+
 	return true
 end
 
@@ -756,6 +769,8 @@ local function handleBlueprintPrevAction()
 
 	setSelectedBlueprintIndex(prevIndex(selectedBlueprintIndex, #blueprints))
 
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+
 	return true
 end
 
@@ -764,6 +779,8 @@ local function handleBlueprintCreateAction()
 
 	createBlueprint(unitIDs, true)
 	setSelectedBlueprintIndex(#blueprints)
+
+	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -784,6 +801,8 @@ local function handleBlueprintDeleteAction()
 	end
 
 	deleteBlueprint(selectedBlueprintIndex)
+
+	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -806,6 +825,9 @@ local function handleFacingAction(_, _, args)
 
 	if newFacing then
 		setBlueprintFacing(newFacing)
+
+		Spring.PlaySoundFile(sounds.facing, 0.75, "ui")
+
 		return true
 	end
 end
@@ -832,6 +854,9 @@ local function handleSpacingAction(_, _, args)
 
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
+
+		Spring.PlaySoundFile(sounds.spacing, 0.75, "ui")
+
 		return true
 	end
 end
@@ -855,7 +880,7 @@ function widget:MouseWheel(up, value)
 		return
 	end
 
-	local alt, ctrl, meta, shift = unpack(state.modKeys)
+	local alt, ctrl, meta, shift = unpack(state.modKeys or {})
 
 	if not alt then
 		return
