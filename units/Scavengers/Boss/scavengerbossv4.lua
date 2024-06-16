@@ -1,13 +1,14 @@
-local multiplier = 1.4
+local multiplier = 1.4 --this number is based on the old health ratios between armscavengerbossv2's difficulty levels. Changing this increases the disparity between difficulty levels.
 
 local baseValues = {
-	health = 400000, --half hp compared to armscavengerbossv2.lua because of 66% damage reduction with
 	autoHeal = 10,
-	minigunDamage = 700,
-	topTurretsDamage = 3000,
-	shotgunProjectiles = 20,
-	torpedoDamage = 2500,
 	botCannonProjectiles = 3,
+	health = 400000, --half hp compared to armscavengerbossv2.lua because of 50% damage reduction with ARMORED condition
+	minigunDamage = 333, -- this number*15 = dps of normal gun, *60 for special gun dps
+	missileDamage = 3500,
+	shotgunProjectiles = 20,
+	topTurretsDamage = 2000,
+	torpedoDamage = 2500,
 }
 
 local difficultyParams  = {}
@@ -263,8 +264,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 200,
 				damage = {
 					-- commanders = 375,
-					default = 2500, --278.4375,
-					subs = 1250,
+					default = stats.torpedoDamage,
+					subs = stats.torpedoDamage/2,
 				},
 			},
 			shotgunarm = {
@@ -281,7 +282,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "GaussCannon",
 				noselfdamage = true,
 				predictboost = 1,
-				projectiles = 20,
+				projectiles = stats.shotgunProjectiles,
 				range = 1300,
 				reloadtime = 12,
 				rgbcolor = "0.8 0.4 1.0",
@@ -386,8 +387,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = 1000,
-					subs = 500,
+					default = stats.missileDamage/3,
+					vtol = stats.missileDamage,
 				},
 			},
 			eaterbeam = {
@@ -530,8 +531,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = 1000,
-					subs = 500,
+					default = stats.missileDamage/3,
+					vtol = stats.missileDamage,
 				},
 			},
 			turbo_shotgunarm = {
@@ -556,7 +557,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				mygravity = 0.32,
 				name = "TURBO Napalm Shotgun",
 				noselfdamage = true,
-				projectiles = 30,
+				projectiles = stats.shotgunProjectiles*1.5,
 				range = 1300,
 				reloadtime = 15,
 				rgbcolor = "1 0.25 0.1",
@@ -621,8 +622,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage                   = {
-					default              = stats.minigunDamage,
-					vtol				 = stats.minigunDamage/3,
+					default              = stats.minigunDamage*4,
+					vtol				 = (stats.minigunDamage*4)/3,
 				},
 			},
 			turbo_shoulderturrets = {
@@ -667,7 +668,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
-				burst = 3,
+				burst = stats.botCannonProjectiles,
 				burstrate = 0.75,
 				cegtag = "arty-botrail",
 				collidefriendly = false,
