@@ -349,7 +349,6 @@ local function setHoveredRect(rect)
 
 	rect.opts.hovered = true
 	hoveredRect = true
-	redraw = true
 end
 
 local function setHoveredRectTooltip(rect, text, title)
@@ -368,6 +367,7 @@ local function updateHoverState()
 
 	if not isAbove then
 		resetHovered()
+
 		return
 	end
 
