@@ -315,7 +315,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_veryeasy_turboshotgunarm'] = {
+    ['scavengerbossv4_veryeasy_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -323,7 +323,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_easy_turboshotgunarm'] = {
+    ['scavengerbossv4_easy_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -331,7 +331,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_normal_turboshotgunarm'] = {
+    ['scavengerbossv4_normal_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -339,7 +339,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_hard_turboshotgunarm'] = {
+    ['scavengerbossv4_hard_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -347,7 +347,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_veryhard_turboshotgunarm'] = {
+    ['scavengerbossv4_veryhard_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -355,7 +355,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_epic_turboshotgunarm'] = {
+    ['scavengerbossv4_epic_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -363,7 +363,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_veryeasy_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_veryeasy_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -371,7 +371,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_easy_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_easy_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -379,7 +379,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_normal_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_normal_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -387,7 +387,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_hard_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_hard_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -395,7 +395,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_veryhard_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_veryhard_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
@@ -403,7 +403,7 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_epic_scav_turboshotgunarm'] = {
+    ['scavengerbossv4_epic_scav_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 15,
