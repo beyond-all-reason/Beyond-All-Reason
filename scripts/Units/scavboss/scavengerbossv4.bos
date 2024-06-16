@@ -514,7 +514,7 @@ UnitTimer()
 		spin vortex2 around z-axis speed <900>;
 		spin vortex3 around z-axis speed <450>;
 		}
-		if (damageAggro > 4000000){ //if damaged enough, enable eater beam and enter vulnerable state
+		if (damageAggro > 8000000){ //if damaged enough, enable eater beam and enter vulnerable state
 		enableEaterBeam = 1;
 		damageAggro = 0;
 		set ARMORED to 0;
