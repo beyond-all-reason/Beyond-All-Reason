@@ -638,7 +638,6 @@ UnitTimer()
 HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 {
 	damageAggro = dmg + damageAggro;
-	get PRINT(dmg, damageAggro, isArmored);
 	return (100); //the return value is a percentage of the damage. 100 = 100%
 }
 

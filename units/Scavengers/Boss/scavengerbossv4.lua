@@ -9,6 +9,7 @@ local baseValues = {
 	shotgunProjectiles = 20,
 	topTurretsDamage = 2000,
 	torpedoDamage = 2500,
+	turboShotgunArmBurst = 2,
 }
 
 local difficultyParams  = {}
@@ -539,9 +540,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				accuracy = 1000,
 				areaofeffect = 150,
 				avoidfeature = false,
-				burst = 2,
+				burst = stats.turboShotgunArmBurst,
 				burstrate = 0.90,
-				--proximitypriority = 1.2,
 				cegtag = "burnflame",
 				collidefriendly = false,
 				colormap = "0.75 0.73 0.67 0.024   0.37 0.4 0.30 0.021   0.22 0.21 0.14 0.018  0.024 0.014 0.009 0.03   0.0 0.0 0.0 0.008",
@@ -550,6 +550,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:burnfire",
+				explosionscar = true,
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
@@ -557,7 +558,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				mygravity = 0.32,
 				name = "TURBO Napalm Shotgun",
 				noselfdamage = true,
-				projectiles = stats.shotgunProjectiles*1.5,
+				projectiles = stats.shotgunProjectiles,
 				range = 1300,
 				reloadtime = 15,
 				rgbcolor = "1 0.25 0.1",

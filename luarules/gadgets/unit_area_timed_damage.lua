@@ -315,103 +315,23 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_veryeasy_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_easy_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
     ['scavengerbossv4_normal_turbo_shotgunarm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
-        time = 15,
+        time = 12,
         damage = 20,
         range = 150,
         resistance = "test",
     },
-    ['scavengerbossv4_hard_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_veryhard_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_epic_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_veryeasy_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_easy_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_normal_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_hard_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_veryhard_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_epic_scav_turbo_shotgunarm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
+
 }
+--duplicate entry for scavengerbossv4
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_shotgunarm', 'scavengerbossv4_easy_turbo_shotgunarm', 'scavengerbossv4_hard_turbo_shotgunarm', 'scavengerbossv4_veryhard_turbo_shotgunarm', 'scavengerbossv4_epic_turbo_shotgunarm',
+ 'scavengerbossv4_veryeasy_scav_turbo_shotgunarm', 'scavengerbossv4_easy_scav_turbo_shotgunarm', 'scavengerbossv4_normal_scav_turbo_shotgunarm', 'scavengerbossv4_hard_scav_turbo_shotgunarm', 'scavengerbossv4_veryhard_scav_turbo_shotgunarm', 'scavengerbossv4_epic_scav_turbo_shotgunarm'}
+for _, name in pairs(scavengerBossV4Table) do
+	TimedDamageWeaponsNames[name] = table.copy(TimedDamageWeaponsNames['scavengerbossv4_normal_turbo_shotgunarm'])
+end
+
 -- convert weaponname -> weaponDefID
 local TimedDamageWeapons = {}
 for name, params in pairs(TimedDamageWeaponsNames) do
