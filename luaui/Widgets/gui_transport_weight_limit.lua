@@ -182,6 +182,21 @@ function widget:GameFrame(n)
 	end
 end
 
+local cursorGround = { 0, 0, 0 }
+
+function widget:Update()
+	if not next(unitstodraw) then
+		return
+	end
+
+	local mx, my = Spring.GetMouseState()
+	local _, coords = Spring.TraceScreenRay(mx, my, true)
+
+	if type(coords) == "table" then
+		cursorGround = coords
+	end
+end
+
 local previousOsClock = os.clock()
 local currentRotationAngle = 0
 local currentRotationAngleOpposite = 0
@@ -218,14 +233,6 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local alpha = 1
-	local mx, my = Spring.GetMouseState()
-	local _, coords = Spring.TraceScreenRay(mx, my, true)
-	local cursorGround = { 0, 0, 0 }
-
-	if type(coords) == "table" then
-		cursorGround = coords
-	end
-
 	for unitID, opts in pairs(unitstodraw) do
 		local pos = opts.pos
 		local xDiff = cursorGround[1] - pos[1]
