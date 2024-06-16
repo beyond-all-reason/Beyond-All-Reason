@@ -222,11 +222,15 @@ local function UpdateTimedAreas()
 				holes[sizeh] = index
 				sizeh = sizeh + 1
 			end
-		elseif index == #group then
+		elseif index == sizeg then
 			group[index] = nil
-			holes[sizeh] = nil
-			sizeg = sizeg -1
-			sizeh = sizeh -1
+			sizeg = sizeg - 1
+			for ii, cursor in pairs(holes) do
+				if cursor == index then
+					table.remove(holes, ii)
+					sizeh = sizeh - 1
+				end
+			end
 		end
 	end
 	nfree[frame] = sizeh
