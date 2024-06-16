@@ -130,6 +130,7 @@ local labBuildModeActive = false
 
 local activeBuilder, activeBuilderID, builderIsFactory
 local buildmenuShows = false
+local hoveredRect = false
 
 -------------------------------------------------------------------------------
 --- KEYBIND VALUES
@@ -320,6 +321,10 @@ startUnits = nil
 -------------------------------------------------------------------------------
 
 local function resetHovered()
+	if not hoveredRect then
+		return
+	end
+
 	for _, rects in ipairs({ catRects, builderRects, cellRects }) do
 		for _, rect in pairs(rects) do
 			rect.opts.hovered = false
@@ -330,6 +335,9 @@ local function resetHovered()
 	nextBuilderRect.opts.hovered = false
 	backRect.opts.hovered = false
 	nextPageRect.opts.hovered = false
+
+	hoveredRect = false
+	redraw = true
 end
 
 local function setHoveredRect(rect)
@@ -340,6 +348,7 @@ local function setHoveredRect(rect)
 	resetHovered()
 
 	rect.opts.hovered = true
+	hoveredRect = true
 	redraw = true
 end
 
@@ -509,17 +518,19 @@ local function updateQueueNr(unitDefID, count)
 	end
 
 	local cellRect = cellRects[cellId]
-	local queuenr = cellRect.opts.queuenr or 0
+	local previousQueuenr = cellRect.opts.queuenr
+	local queuenr = math_max((previousQueuenr or 0) + count, 0)
 
-	cellRect.opts.queuenr = queuenr + count
-
-	if cellRect.opts.queuenr < 1 then
-		cellRect.opts.queuenr = nil
+	if queuenr < 1 then
+		queuenr = nil
 	end
 
-	redraw = true
+	if previousQueuenr == cellRect.opts.queuenr then
+		return
+	end
 
-	return true
+	cellRect.opts.queuenr = queuenr
+	redraw = true
 end
 
 local function formatPrice(price)
@@ -1542,12 +1553,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if doUpdate then
-		refreshCommands()
-
-		doUpdateClock = nil
-		doUpdate = nil
-	elseif doUpdateClock and doUpdateClock > os.clock() then -- avoid os.clock() every frame is this even relevant
+	if doUpdate or (doUpdateClock and doUpdateClock > os.clock()) then
 		refreshCommands()
 
 		doUpdateClock = nil
