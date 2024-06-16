@@ -514,7 +514,7 @@ UnitTimer()
 		spin vortex2 around z-axis speed <900>;
 		spin vortex3 around z-axis speed <450>;
 		}
-		if (damageAggro > 8000000){ //if damaged enough, enable eater beam and enter vulnerable state
+		if (damageAggro > 4000000){ //if damaged enough, enable eater beam and enter vulnerable state
 		enableEaterBeam = 1;
 		damageAggro = 0;
 		set ARMORED to 0;
@@ -533,7 +533,7 @@ UnitTimer()
 		cycle = cycle+1;
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		//damageAggro = damageAggro+rand(10000, 50000);
+		damageAggro = damageAggro+rand(10000, 50000);
 		isArmored = get ARMORED;
 		
 		//turboWeapon Selector
@@ -631,7 +631,7 @@ UnitTimer()
 		//debug
 		//eaterBeamIncrement = specialIncrementThreshold;
 		
-		sleep 100; //timer repeats every half second
+		sleep 500; //timer repeats every half second
 	}
 }
 

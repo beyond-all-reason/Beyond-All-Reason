@@ -1,53 +1,38 @@
-local difficultyParams = {
-	["veryeasy"] = {
-		health = 400000,
-		autoHeal = 0,
-		dgunStockpile = 60,
-		dgunReload = 6,
-		minigunDamage = 1000,
-		topTurretsDamage = 1000,
-	},
-	["easy"] = {
-		health = 600000,
-		autoHeal = 5,
-		dgunStockpile = 50,
-		dgunReload = 5,
-		minigunDamage = 600,
-		topTurretsDamage = 2000,
-	},
-	["normal"] = {
-		health = 800000,
-		autoHeal = 10,
-		dgunStockpile = 40,
-		dgunReload = 4,
-		minigunDamage = 700,
-		topTurretsDamage = 3000,
-	},
-	["hard"] = {
-		health = 1000000,
-		autoHeal = 15,
-		dgunStockpile = 30,
-		dgunReload = 3,
-		minigunDamage = 800,
-		topTurretsDamage = 4000,
-	},
-	["veryhard"] = {
-		health = 1500000,
-		autoHeal = 20,
-		dgunStockpile = 20,
-		dgunReload = 2,
-		minigunDamage = 1000,
-		topTurretsDamage = 5000,
-	},
-	["epic"] = {
-		health = 2000000,
-		autoHeal = 25,
-		dgunStockpile = 10,
-		dgunReload = 1,
-		minigunDamage = 1200,
-		topTurretsDamage = 6000,
-	},
+local multiplier = 1.4
+
+local baseValues = {
+	health = 400000, --half hp compared to armscavengerbossv2.lua because of 66% damage reduction with
+	autoHeal = 10,
+	minigunDamage = 700,
+	topTurretsDamage = 3000,
+	shotgunProjectiles = 20,
+	torpedoDamage = 2500,
+	botCannonProjectiles = 3,
 }
+
+local difficultyParams  = {}
+local difficultyLevels = {"veryeasy", "easy","normal", "hard", "veryhard", "epic"}
+for _, level in pairs(difficultyLevels) do
+	local m
+	if level == "veryeasy" then
+		m = multiplier^-2
+	elseif level == "easy" then
+		m = multiplier^-1
+	elseif level == "normal" then
+		m = 1
+	elseif level == "hard" then
+		m = multiplier
+	elseif level == "veryhard" then
+		m = multiplier^2
+	elseif level == "epic" then
+		m = multiplier^3
+	end
+	difficultyParams[level] = {}
+	for key, value in pairs(baseValues) do
+	difficultyParams[level][key] = math.floor(value*m + 0.5) --rounds to nearest whole number
+	end	
+end
+
 local unitsTable = {}
 for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["scavengerbossv4_" .. difficulty] = {
@@ -239,8 +224,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage                   = {
-					default              = stats.minigunDamage*3,
-					vtol				 = stats.minigunDamage,
+					default              = stats.minigunDamage,
+					vtol				 = stats.minigunDamage/3,
 				},
 			},
 			torpedo = {
@@ -475,7 +460,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,
-				name = "Darkmatter Photon-Disruptor",
+				name = "SPECIAL Darkmatter Photon-Disruptor",
 				noexplode = true,
 				noselfdamage = true,
 				range = 800,
