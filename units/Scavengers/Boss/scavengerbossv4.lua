@@ -433,8 +433,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
 				damage = {
-					commanders = 10000,
-					default = 50000,
+					commanders = 3000,
+					default = 20000,
 				},
 			},
 			special_disintegratorxl = {
