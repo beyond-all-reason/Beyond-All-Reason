@@ -105,7 +105,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			i18nfromunit = 'armscavengerbossv2',
+			i18nfromunit = 'scavengerbossv4',
 			stockpileLimit = 1,
 		},
 		featuredefs = {
