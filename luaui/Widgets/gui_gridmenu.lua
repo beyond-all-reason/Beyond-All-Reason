@@ -352,6 +352,14 @@ local function setHoveredRect(rect)
 	redraw = true
 end
 
+local function setHoveredRectTooltip(rect, text, title)
+	setHoveredRect(rect)
+
+	if WG["tooltip"] then
+		WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, title)
+	end
+end
+
 local function updateHoverState()
 	-- local x, y, b, b2, b3 = Spring.GetMouseState()
 	local x, y = Spring.GetMouseState()
@@ -374,29 +382,26 @@ local function updateHoverState()
 				return
 			end
 
-			setHoveredRect(cellRect)
-
 			local uDefID = cellRect.opts.uDefID
 			WG["buildmenu"].hoverID = uDefID
 
-			if WG["tooltip"] then
-				local text
-				local textColor = "\255\215\255\215"
-				if cellRect.opts.disabled then
-					text = Spring.I18N("ui.buildMenu.disabled", {
-						unit = unitTranslatedHumanName[uDefID],
-						textColor = textColor,
-						warnColor = "\255\166\166\166",
-					})
-				else
-					text = unitTranslatedHumanName[uDefID]
-				end
-				local tooltip = unitTranslatedTooltip[uDefID]
-				if unitMetal_extractor[uDefID] then
-					tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
-				end
-				WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. tooltip, nil, nil, text)
+			local text
+			local textColor = "\255\215\255\215"
+			if cellRect.opts.disabled then
+				text = Spring.I18N("ui.buildMenu.disabled", {
+					unit = unitTranslatedHumanName[uDefID],
+					textColor = textColor,
+					warnColor = "\255\166\166\166",
+				})
+			else
+				text = unitTranslatedHumanName[uDefID]
 			end
+			local tooltip = unitTranslatedTooltip[uDefID]
+			if unitMetal_extractor[uDefID] then
+				tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+			end
+
+			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text)
 
 			return
 		end
@@ -406,16 +411,12 @@ local function updateHoverState()
 	if not currentCategory then
 		for cat, catRect in pairs(catRects) do
 			if catRect:contains(x, y) then
-				setHoveredRect(catRect)
+				local text = categoryTooltips[cat]
+					.. "\255\240\240\240 - Hotkey: \255\215\255\215["
+					.. catRect.opts.keyText
+					.. "]"
 
-				if WG["tooltip"] then
-					local text = categoryTooltips[cat]
-						.. "\255\240\240\240 - Hotkey: \255\215\255\215["
-						.. catRect.opts.keyText
-						.. "]"
-
-					WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, cat)
-				end
+				setHoveredRectTooltip(catRect, text, cat)
 
 				return
 			end
@@ -425,11 +426,7 @@ local function updateHoverState()
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
-			setHoveredRect(backRect)
-			if WG["tooltip"] then
-				local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage")
-				WG["tooltip"].ShowTooltip("buildmenu", text)
-			end
+			setHoveredRectTooltip(backRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage"))
 
 			return
 		end
@@ -438,11 +435,7 @@ local function updateHoverState()
 	if pages > 1 then
 		-- paginator buttons
 		if nextPageRect and nextPageRect:contains(x, y) then
-			setHoveredRect(nextPageRect)
-			if WG["tooltip"] then
-				local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage")
-				WG["tooltip"].ShowTooltip("buildmenu", text)
-			end
+			setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
 
 			return
 		end
@@ -451,44 +444,36 @@ local function updateHoverState()
 	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
 		-- build mode button
 		if labBuildModeRect and labBuildModeRect:contains(x, y) then
-			setHoveredRect(labBuildModeRect)
-
-			if WG["tooltip"] then
-				local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr")
-				WG["tooltip"].ShowTooltip("buildmenu", text)
-			end
+			setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
 
 			return
 		end
 	end
 
 	-- builder buttons
-	for i, rect in pairs(builderRects) do
-		if rect:contains(x, y) then
-			setHoveredRect(rect)
-
-			local index = 0
-			for unitDefID, _ in pairsByKeys(selectedBuilders) do
-				index = index + 1
-				if index == i then
-					if WG["tooltip"] then
-						WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. unitTranslatedHumanName[unitDefID])
-					end
-				end
-			end
+	if selectedBuildersCount > 1 then
+		if nextBuilderRect:contains(x, y) then
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
 
 			return
 		end
-	end
 
-	if nextBuilderRect:contains(x, y) then
-		setHoveredRect(nextBuilderRect)
-		if WG["tooltip"] then
-			local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder")
-			WG["tooltip"].ShowTooltip("buildmenu", text)
+		for _, rect in pairs(builderRects) do
+			if rect:contains(x, y) then
+				-- if we reached the first inactive builderRect we stop checking
+				if not rect.opts.uDefID then
+					break
+				end
+
+				setHoveredRectTooltip(
+					rect,
+					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID],
+					unitTranslatedTooltip[rect.opts.uDefID]
+				)
+
+				return
+			end
 		end
-
-		return
 	end
 
 	resetHovered()
