@@ -3,7 +3,7 @@ local multiplier = 1.4 --this number is based on the old health ratios between a
 local baseValues = {
 	autoHeal = 10,
 	botCannonProjectiles = 3,
-	health = 400000, --half hp compared to armscavengerbossv2.lua because of 50% damage reduction with ARMORED condition
+	health = 800000,
 	minigunDamage = 333, -- this number*15 = dps of normal gun, *60 for special gun dps
 	missileDamage = 3500,
 	shotgunProjectiles = 20,
