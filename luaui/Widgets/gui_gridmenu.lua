@@ -467,8 +467,8 @@ local function updateHoverState()
 
 				setHoveredRectTooltip(
 					rect,
-					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID],
-					unitTranslatedTooltip[rect.opts.uDefID]
+					unitTranslatedTooltip[rect.opts.uDefID],
+					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
 				)
 
 				return
