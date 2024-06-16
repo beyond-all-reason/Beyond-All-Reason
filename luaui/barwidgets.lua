@@ -1426,6 +1426,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
