@@ -173,10 +173,6 @@ function Rect:new(x1, y1, x2, y2, opts)
 		end
 	end
 
-	function this:getId()
-		return self.x .. self.y .. self.yEnd .. self.xEnd
-	end
-
 	function this:getWidth()
 		return self.xEnd - self.x
 	end
