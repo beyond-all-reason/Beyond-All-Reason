@@ -21,7 +21,7 @@ static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIn
 			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, switchTurboThreshold,
 			
 			//for special weapons
-			enableEaterBeam, specialIncrementThreshold,
+			enableEaterBeam, specialIncrementThreshold, eaterBeamDisableCycle,
 			
 			//for sensor logic
 			incrimentSensedVTOL, incrimentSensedGroundScout, incrimentSensedGroundNear,	groundScoutSensed,  groundNearSensed, VTOLsensed,
@@ -499,7 +499,7 @@ UnitTimer()
 		if (torsoPriority == 10){ //if eater beam is aiming, increment
 			eaterBeamIncrement = (eaterBeamIncrement + 1);
 		}
-		if (eaterBeamIncrement < 10){ //below 5 seconds charge time
+		if (enableEaterBeam == 1 && eaterBeamIncrement < 10){ //below 5 seconds charge time
 		spin vortex1 around z-axis speed <150>;
 		spin vortex2 around z-axis speed <100>;
 		spin vortex3 around z-axis speed <50>;
@@ -518,6 +518,13 @@ UnitTimer()
 		enableEaterBeam = 1;
 		damageAggro = 0;
 		set ARMORED to 0;
+		eaterBeamDisableCycle = cycle+40;
+		}
+		if (enableEaterBeam == 1 OR eaterBeamIncrement >= specialIncrementThreshold){ // telegraph eater beam and special charge
+		show nano;
+		}
+		else{
+		hide nano;
 		}
 		
 		
@@ -573,13 +580,40 @@ UnitTimer()
 			if (turboWeaponSelect == 8 OR turboWeaponSelect == 11){
 				specialWeaponSelect = 12; //special botcannon
 			}
+			
+			//change turbo telegraph lights showing
+			hide laserflarelight;
+			hide lflare;
+			hide misflare;
+			hide railflarer;
+			hide railflarel;
+			if (turboWeaponSelect == 8){  //turbo missile launcher lights
+			show misflare;
+			}
+			if (turboWeaponSelect == 9){ //turbo shotgun arm lights
+			show lflare;
+			}
+			if (turboWeaponSelect == 10){ //turbo gatlinggun lights
+			show laserflarelight;
+			}
+			if (turboWeaponSelect == 11){ //turbo lrpc lights
+			show railflarer;
+			show railflarel;
+			}
 		}
 		//disable expired weapons
 		if (turboWeaponSelect != 8){
 		turboMisAimReady = 0;
 		}
-		if (eaterBeamIncrement > specialIncrementThreshold){
+		if (eaterBeamIncrement > specialIncrementThreshold OR eaterBeamDisableCycle < cycle){
 			enableEaterBeam = 0;
+		}
+		
+		//reset telegraphs
+		if (eaterBeamIncrement < 1 && enableEaterBeam == 0){ //eater beam charged reset
+		spin vortex1 around z-axis speed <25>;
+		spin vortex2 around z-axis speed <50>;
+		stop-spin vortex3 around z-axis;
 		}
 		
 		//if vulnerable period expired (while aiming eaterbeam) then restore armored condition
@@ -593,6 +627,9 @@ UnitTimer()
 		groundScoutSensed = 0; //this variable prevents ground_near sensor weapon from aiming/firing when set to 1
 		VTOLsensed = 0;
 		groundNearSensed = 0;
+		
+		//debug
+		//eaterBeamIncrement = specialIncrementThreshold;
 		
 		sleep 100; //timer repeats every half second
 	}
@@ -666,6 +703,7 @@ Create(){
 	highestSensorValue = 0;
 	damageAggro = 0;
 	specialIncrementThreshold = 30;
+	eaterBeamDisableCycle = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
