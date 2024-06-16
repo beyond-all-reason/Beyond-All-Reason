@@ -53,7 +53,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["scavengerbossv4_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
-		autoheal = 0,--stats.autoHeal,--10,
+		autoheal = stats.autoHeal,--10,
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
@@ -79,7 +79,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		footprintz = 2,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 0,
+		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 40,
 		mass = 9999999,
