@@ -17,7 +17,7 @@ end
 
 ---------------------------------------------------------------------------------------------------------------
 --
--- Unit setup -- ! todo: Do this for all the units with area timed damage
+-- Unit setup guide -- ! todo: Do this for all the units with area timed damage
 --
 -- (1) CustomParams. Add these properties to the unit (for ondeath) and/or weapon (for onhit).
 --
@@ -25,14 +25,11 @@ end
 --	area_ongoingCEG  -  <string> | nil  -  Name of the CEG that appears continuously for the duration.
 --	area_damagedCEG  -  <string> | nil  -  Name of the CEG that appears on anything damaged by the effect.
 --	area_damageType  -  <string> | nil  -  The 'type' of the damage, which can be resisted. Be uncreative.
+--	area_weaponName  -  <string> | nil  -  The full unit name + weapon name of the dummy area weapon.
 --
--- (2) WeaponDefs. Add a new weapondef with its name set to:
---		(a) the base weapon name plus "_area" for a specific weapon, and/or
---		(b) "area_timed_damage" for an on-death hazard or any unmatched weapons; that is, if only the
---			weaponDef named "area_timed_damage" is defined, it will be used both for any weapons without
---			a matching name and for the on-death explosion, if any.
+-- (2) WeaponDefs. Add a new weapondef with its name set to the one specified in the area_weaponName.
 --
---	Only a few properties of this weaponDef are used -- those that modify explosions:
+--	Only a few properties of this weaponDef are used – those that modify explosions:
 --    areaofeffect        -  Important.
 --    explosiongenerator  -  Important.
 --    impulse*            -  Important. Set to 0 in most cases. -- todo: might change
@@ -51,33 +48,32 @@ end
 --
 ---------------------------------------------------------------------------------------------------------------
 
+-- Configuration
+
+local areaImpulseRate = 0.25                   -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
+local frameResolution = 3                      -- The bin size, in frames, to loop over groups of areas.
+local loopDuration    = 0.5                    -- The time between area procs. Adjusts damage automagically.
+
+local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
+
+---------------------------------------------------------------------------------------------------------------
+
+-- Pull all the area params into tables.
+
 local weaponAreaParams  = {}
 local onDeathAreaParams = {}
 local timedAreaParams   = {}
 
 local function AddTimedAreaDef(defID, def, isUnitDef)
-	local areaWeaponDef
-	if isUnitDef then
-		areaWeaponDef = WeaponDefNames[def.name .. "_area_timed_damage"]
-	else
-		areaWeaponDef = WeaponDefNames[def.name .. "_area"]
-		if not areaWeaponDef then
-			local name = ""
-			for word in string.gmatch(def.name, "([^_]+)") do
-				name = name == "" and word or name.."_"..word
-				if UnitDefNames[name] and WeaponDefNames[name.."_area_timed_damage"] then
-					areaWeaponDef = WeaponDefNames[name.."_area_timed_damage"]
-				end
-			end
-		end
-	end
+	local weaponName = def.customParams.area_weaponName or def.name.."_"..defaultWeaponName
+	local areaWeaponDef = WeaponDefNames[weaponName]
+
 	if not areaWeaponDef then
 		Spring.Echo('[area_timed_damage] [warn] Did not find area weapon for ' .. def.name)
 		return
 	end
-	def.atd_wdef = areaWeaponDef -- can cycle
 
-	-- We need both the customParams and the dummy area weapon's weaponDef.
+	-- We need both the input def's customParams and the dummy area weapon's weaponDef.
 	def.area_weaponDef = areaWeaponDef
 	if isUnitDef then
 		onDeathAreaParams[defID] = def.customParams
@@ -86,11 +82,18 @@ local function AddTimedAreaDef(defID, def, isUnitDef)
 	end
 	timedAreaParams[areaWeaponDef.id] = def.customParams
 
-	-- Remove invalid durations.
-	local thing = (isUnitDef and 'udef ' or 'wdef ') .. def.name
+	-- Remove misconfigured area weapons.
+	local remove = false
 	if def.customParams.area_duration < 0 then
-		Spring.Echo('[area_timed_damage] [warn] Invalid area_duration for ' .. thing)
-		if isUnitDef then onDeathAreaParams[defID]=nil else weaponAreaParams[defID]=nil end
+		Spring.Echo('[area_timed_damage] [warn] Invalid area_duration for ' .. def.name)
+		remove = true
+	end
+	if def == areaWeaponDef then
+		Spring.Echo('[area_timed_damage] [warn] Removed self-respawning area weapon from ' .. def.name)
+		remove = true
+	end
+	if remove then
+		if isUnitDef then onDeathAreaParams[defID] = nil else weaponAreaParams[defID] = nil end
 	end
 end
 
@@ -119,8 +122,6 @@ end
 ---------------------------------------------------------------------------------------------------------------
 
 local function StartTimedArea(x, y, z, weaponParams)
-	if not weaponParams then return end
-
 	local elevation = math.max(0, Spring.GetGroundHeight(x, z))
 	if y <= elevation + weaponParams.atd_radius * 0.5 then
 		-- This interval won't recur for another 30 frames; if you want immediate damage
@@ -225,14 +226,17 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local immunity = unitDef.customParams.area_immunities
 		if immunity and string.find(immunity, weaponParams.area_damageType, 1, true) then
 			return 0, 0
-		elseif weaponParams.area_damagedCEG then
+		else
 			local _,_,_, x,y,z = Spring.GetUnitPosition(unitID, true)
-			if y > 0 then
+			if y > -8 then
+				damage = damage * loopRate
+				if weaponParams.area_damagedCEG then
 				Spring.SpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+				end
+				return damage, areaImpulseRate
 			else
 				return 0, 0
 			end
-			-- return damage * damageRate, impulse * impulseRate
 		end
 	end
 	return damage, 1
@@ -240,9 +244,13 @@ end
 
 function gadget:FeaturePreDamaged(featureID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	local weaponParams = timedAreaParams[weaponDefID]
-	if weaponParams and weaponParams.area_damagedCEG then
+	if weaponParams then
+		damage = damage * loopRate
+		if weaponParams.area_damagedCEG then
 		local _,_,_, x,y,z = Spring.GetFeaturePosition(featureID, true)
 		Spring.SpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+		end
+		return damage, areaImpulseRate
 	end
 	return damage, 1
 end
