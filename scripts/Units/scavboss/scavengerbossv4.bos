@@ -27,7 +27,7 @@ static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIn
 			incrimentSensedVTOL, incrimentSensedGroundScout, incrimentSensedGroundNear,	groundScoutSensed,  groundNearSensed, VTOLsensed,
 			incrimentSensedFar, highestSensorValue,
 			
-			suspendWeapon, turboWeaponSelect, specialWeaponSelect;//debug row
+			suspendWeapon, turboWeaponSelect, specialWeaponSelect, isArmored;//debug row
 // Signal definitions
 #define SIG_AIM 2
 #define SIG_WALK 4
@@ -520,6 +520,7 @@ UnitTimer()
 		set ARMORED to 0;
 		eaterBeamDisableCycle = cycle+40;
 		}
+		
 		if (enableEaterBeam == 1 OR eaterBeamIncrement >= specialIncrementThreshold){ // telegraph eater beam and special charge
 		show nano;
 		}
@@ -532,7 +533,8 @@ UnitTimer()
 		cycle = cycle+1;
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		damageAggro = damageAggro+rand(10000, 50000);
+		//damageAggro = damageAggro+rand(10000, 50000);
+		isArmored = get ARMORED;
 		
 		//turboWeapon Selector
 		if (switchTurboThreshold < cycle){ 
@@ -617,11 +619,9 @@ UnitTimer()
 		}
 		
 		//if vulnerable period expired (while aiming eaterbeam) then restore armored condition
-		if (torsoPriority != 10){
+		if (enableEaterBeam == 0){
 		set ARMORED to 1;
 		}
-		
-		get PRINT(turboWeaponSelect, specialWeaponSelect, eaterBeamIncrement, enableEaterBeam);
 		
 		//reset logic
 		groundScoutSensed = 0; //this variable prevents ground_near sensor weapon from aiming/firing when set to 1
@@ -635,10 +635,11 @@ UnitTimer()
 	}
 }
 
-HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 {
 	damageAggro = dmg + damageAggro;
-	return (0);
+	get PRINT(dmg, damageAggro, isArmored);
+	return (100); //the return value is a percentage of the damage. 100 = 100%
 }
 
 //vars to declare: 
