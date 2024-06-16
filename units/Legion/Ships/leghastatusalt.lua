@@ -104,7 +104,7 @@ return {
 		},
 		weapondefs = {
 			legheatray = {
-				areaofeffect = 42,
+				areaofeffect = 22,
 				avoidfeature = false,
 				beamburst = true,
 				burst = 10,
@@ -136,7 +136,7 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				damage = {
-					default = 12,
+					default = 11,
 				},
 			},
 		},

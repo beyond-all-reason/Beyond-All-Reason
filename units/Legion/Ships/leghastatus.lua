@@ -104,7 +104,7 @@ return {
 		},
 		weapondefs = {
 			hplasma = {
-				areaofeffect = 24,
+				areaofeffect = 40,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -124,9 +124,9 @@ return {
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 260,
+				weaponvelocity = 360,
 				damage = {
-					default = 50,
+					default = 55,
 					vtol = 30,
 				},
 
