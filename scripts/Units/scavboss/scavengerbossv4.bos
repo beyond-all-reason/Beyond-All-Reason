@@ -514,7 +514,11 @@ UnitTimer()
 		spin vortex2 around z-axis speed <900>;
 		spin vortex3 around z-axis speed <450>;
 		}
-		
+		if (damageAggro > 8000000){ //if damaged enough, enable eater beam and enter vulnerable state
+		enableEaterBeam = 1;
+		damageAggro = 0;
+		set ARMORED to 0;
+		}
 		
 		
 		//update values
@@ -583,7 +587,7 @@ UnitTimer()
 		set ARMORED to 1;
 		}
 		
-		get PRINT(turboWeaponSelect, damageAggro, eaterBeamIncrement, enableEaterBeam);
+		get PRINT(turboWeaponSelect, specialWeaponSelect, eaterBeamIncrement, enableEaterBeam);
 		
 		//reset logic
 		groundScoutSensed = 0; //this variable prevents ground_near sensor weapon from aiming/firing when set to 1
@@ -597,11 +601,6 @@ UnitTimer()
 HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
 	damageAggro = dmg + damageAggro;
-	if (damageAggro > 8000000){
-		enableEaterBeam = 1;
-		damageAggro = 0;
-		set ARMORED to 0;
-	}
 	return (0);
 }
 
@@ -1126,10 +1125,10 @@ AimWeapon6(heading, pitch)
 	isAimingEaterBeam = 1;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
-	turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <390.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <-38> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <390.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	//turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	//turn luparm to  x-axis <0> speed <390.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	//turn rloarm to  x-axis <-38> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	//turn ruparm to  x-axis <0> speed <390.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	stop-spin barrelr around y-axis;
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
@@ -1143,7 +1142,7 @@ AimWeapon6(heading, pitch)
 	return (1);
 }
 
-QueryWeapon7(piecenum) //eater beam
+QueryWeapon7(piecenum) //SPECIAL dgun
 {
 	piecenum = nano;
 	//torsoPriority = 0;
@@ -1196,10 +1195,10 @@ AimWeapon7(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
-	turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <0> speed <100.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <100.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	//turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	//turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	//turn rloarm to  x-axis <0> speed <100.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	//turn ruparm to  x-axis <0> speed <100.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	stop-spin barrelr around y-axis;
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
@@ -1266,7 +1265,7 @@ FireWeapon9()
 	set-signal-mask SIG_LARM;
 	torsoPriority = 0;
 	turn rloarm to  x-axis <-38> speed <30.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <30.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	//turn ruparm to  x-axis <0> speed <30.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	return (0);
 }
 
@@ -1583,10 +1582,10 @@ AimWeapon12(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
-	turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <0> speed <100.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <100.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	//turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	//turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	//turn rloarm to  x-axis <0> speed <100.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	//turn ruparm to  x-axis <0> speed <100.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	stop-spin barrelr around y-axis;
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;

@@ -480,8 +480,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 1,
-				stockpile = true,
-				stockpiletime = 1,
 				sprayangle = 5500,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
@@ -772,7 +770,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				impulsefactor = 0.123,
 				name = "Spam Unit Sensor",
 				noselfdamage = true,
-				range = 400,
+				range = 500,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
 				size = 0,		--when this is aiming, sensor_ground_near cannot aim.
 				soundhit = "",
@@ -799,7 +797,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				impulsefactor = 0.123,
 				name = "Nearby Ground Unit Sensor",
 				noselfdamage = true,
-				range = 800,
+				range = 1000,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
 				size = 0,
 				soundhit = "",
