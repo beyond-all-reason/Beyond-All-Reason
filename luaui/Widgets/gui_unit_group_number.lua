@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "May 2022",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -49,15 +49,17 @@ local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local vbocachetable = {}
-for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve mem allocs
+for i = 1, 18 do
+	vbocachetable[i] = 0
+end -- init this caching table to preserve mem allocs
 
 local function initGL4()
-	local grid = 1/16
-	for i=0,9 do
-		numbersToUvs[i] = {grid,0,  1.0 - i*grid, 1.0 - (i+1)* grid} --xXyY
+	local grid = 1 / 16
+	for i = 0, 9 do
+		numbersToUvs[i] = { grid, 0, 1.0 - i * grid, 1.0 - (i + 1) * grid } --xXyY
 	end
-	
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
 	shaderConfig.HEIGHTOFFSET = 0
@@ -79,13 +81,15 @@ local function initGL4()
 		return false
 	end
 
-	if debugmode then unitGroupVBO.debug = true end
+	if debugmode then
+		unitGroupVBO.debug = true
+	end
 	return true
 end
 
 local function RemovePrimitive(unitID)
-	if unitGroupVBO.instanceIDtoIndex[unitID] then 
-		local oldgroup = unitIDtoGroup[unitID] 
+	if unitGroupVBO.instanceIDtoIndex[unitID] then
+		local oldgroup = unitIDtoGroup[unitID]
 		grouptounitID[oldgroup][unitID] = nil
 		unitIDtoGroup[unitID] = nil
 		popElementInstance(unitGroupVBO, unitID)
@@ -96,32 +100,32 @@ function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 	RemovePrimitive(unitID, "VisibleUnitRemoved")
 end
 
-local function AddPrimitiveAtUnit(unitID, noUpload, reason, groupNumber, gf)
+local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
 	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true then
-		if debugmode then Spring.Echo("Warning: Unit Groups GL4 attempted to add an invalid unitID:", unitID) end
+		if debugmode then
+			Spring.Echo("Warning: Unit Groups GL4 attempted to add an invalid unitID:", unitID)
+		end
 		return nil
 	end
 	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
-	do 
-		vbocachetable[1] = groupNumberSize -- length
-		vbocachetable[2] = groupNumberSize -- widgth
-		vbocachetable[3] = 0 -- cornersize
-		vbocachetable[4] = groupNumberHeight	  -- height
-		--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
-		vbocachetable[6] = 4 -- numvertices, 4 is a quad
+	vbocachetable[1] = groupNumberSize -- length
+	vbocachetable[2] = groupNumberSize -- widgth
+	vbocachetable[3] = 0 -- cornersize
+	vbocachetable[4] = groupNumberHeight -- height
+	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
+	vbocachetable[6] = 4 -- numvertices, 4 is a quad
 
-		vbocachetable[7] = gf -- could prove useful?
-		vbocachetable[8] = 1  -- size mult
-		vbocachetable[9] = 1.0 -- alpha
-		--vbocachetable[10] = 0 -- unused
-		
-		local uvset = numbersToUvs[groupNumber]
-		vbocachetable[11] = uvset[1] -- uv's of the atlas
-		vbocachetable[12] = uvset[2]
-		vbocachetable[13] = uvset[3]
-		vbocachetable[14] = uvset[4]
-	end
-	
+	vbocachetable[7] = gf -- could prove useful?
+	vbocachetable[8] = 1 -- size mult
+	vbocachetable[9] = 1.0 -- alpha
+	--vbocachetable[10] = 0 -- unused
+
+	local uvset = numbersToUvs[groupNumber]
+	vbocachetable[11] = uvset[1] -- uv's of the atlas
+	vbocachetable[12] = uvset[2]
+	vbocachetable[13] = uvset[3]
+	vbocachetable[14] = uvset[4]
+
 	unitIDtoGroup[unitID] = groupNumber
 
 	return pushElementInstance(
@@ -130,12 +134,13 @@ local function AddPrimitiveAtUnit(unitID, noUpload, reason, groupNumber, gf)
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
-		unitID) -- last one should be UNITID!
+		unitID
+	) -- last one should be UNITID!
 end
 
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
 	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
@@ -152,21 +157,31 @@ function widget:Initialize()
 		return
 	end
 	initGL4()
-	for i = 0,9 do grouptounitID[i] = {} end
+	for i = 0, 9 do
+		grouptounitID[i] = {}
+	end
 	unitIDtoGroup = {}
 end
 
 function widget:Shutdown()
-	if unitGroupShader then unitGroupShader:Finalize() end
-	if unitGroupVBO and unitGroupVBO.VBO then unitGroupVBO:Delete() end
-	if unitGroupVBO and unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end
+	if unitGroupShader then
+		unitGroupShader:Finalize()
+	end
+	if unitGroupVBO and unitGroupVBO.VBO then
+		unitGroupVBO:Delete()
+	end
+	if unitGroupVBO and unitGroupVBO.VAO then
+		unitGroupVBO.VAO:Delete()
+	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+-- function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function widget:UnitDestroyed(unitID)
 	crashing[unitID] = nil
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+-- widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+function widget:UnitDamaged(unitID, unitDefID)
 	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		crashing[unitID] = true
 		RemovePrimitive(unitID)
@@ -174,7 +189,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 local drawFrame = 0
-local nonEmptyGroups = {} 
+local nonEmptyGroups = {}
 local maxNumGroups = 10
 
 function widget:DrawWorld()
@@ -183,58 +198,58 @@ function widget:DrawWorld()
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end
-	
+
 	-- GL4 management --
 	-- one important thing to note, is that we dont ever expect this change for two different groups in one frame.
 	-- only update 1 group at a time
 
-		local groupList = GetGroupList()
-		for inGroup, _ in pairs(groupList) do
-			nonEmptyGroups[inGroup] = drawFrame -- mark the non empty ones
-			if inGroup == drawFrame % maxNumGroups then 
-				local units = GetGroupUnits(inGroup)
-				local thisGroupFrames = grouptounitID[inGroup]
-				for i=1, #units do
-					local unitID = units[i]
-					if not crashing[unitID] and unitIDtoGroup[unitID] ~= inGroup then -- not same as previous
-						-- remove from old
-						if unitIDtoGroup[unitID] then 
-							grouptounitID[unitIDtoGroup[unitID]][unitID] = nil
-						end
-						AddPrimitiveAtUnit(unitID, false, "", inGroup, gameFrame)
+	local groupList = GetGroupList()
+	for inGroup, _ in pairs(groupList) do
+		nonEmptyGroups[inGroup] = drawFrame -- mark the non empty ones
+		if inGroup == drawFrame % maxNumGroups then
+			local units = GetGroupUnits(inGroup)
+			local thisGroupFrames = grouptounitID[inGroup]
+			for i = 1, #units do
+				local unitID = units[i]
+				if not crashing[unitID] and unitIDtoGroup[unitID] ~= inGroup then -- not same as previous
+					-- remove from old
+					if unitIDtoGroup[unitID] then
+						grouptounitID[unitIDtoGroup[unitID]][unitID] = nil
 					end
-					-- mark as updated
-					thisGroupFrames[unitID] = drawFrame
+					AddPrimitiveAtUnit(unitID, false, inGroup, gameFrame)
 				end
-				
-				for unitID, lastupdate in pairs(thisGroupFrames) do
-					if lastupdate < drawFrame then 
-						RemovePrimitive(unitID)
-						thisGroupFrames[unitID] = nil
-					end
+				-- mark as updated
+				thisGroupFrames[unitID] = drawFrame
+			end
+
+			for unitID, lastupdate in pairs(thisGroupFrames) do
+				if lastupdate < drawFrame then
+					RemovePrimitive(unitID)
+					thisGroupFrames[unitID] = nil
 				end
 			end
 		end
-		
-		for i = 0, maxNumGroups do 
-			if nonEmptyGroups[i] and (nonEmptyGroups[i] < drawFrame - maxNumGroups) then 
-				local thisGroupFrames = grouptounitID[i]
-				-- this group hasnt been gotten, so it needs deletion
-				for unitID, lastupdate in pairs(thisGroupFrames) do
-					if lastupdate < drawFrame then 
-						RemovePrimitive(unitID)
-						thisGroupFrames[unitID] = nil
-					end
+	end
+
+	for i = 0, maxNumGroups do
+		if nonEmptyGroups[i] and (nonEmptyGroups[i] < drawFrame - maxNumGroups) then
+			local thisGroupFrames = grouptounitID[i]
+			-- this group hasnt been gotten, so it needs deletion
+			for unitID, lastupdate in pairs(thisGroupFrames) do
+				if lastupdate < drawFrame then
+					RemovePrimitive(unitID)
+					thisGroupFrames[unitID] = nil
 				end
 			end
 		end
-		
-		if unitGroupVBO.usedElements > 0 then 
-			-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
-			gl.Texture(0, healthbartexture)
-			unitGroupShader:Activate()
-			unitGroupVBO.VAO:DrawArrays(GL.POINTS,unitGroupVBO.usedElements)
-			unitGroupShader:Deactivate()
-			gl.Texture(0, false)
-		end
+	end
+
+	if unitGroupVBO.usedElements > 0 then
+		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
+		gl.Texture(0, healthbartexture)
+		unitGroupShader:Activate()
+		unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)
+		unitGroupShader:Deactivate()
+		gl.Texture(0, false)
+	end
 end
