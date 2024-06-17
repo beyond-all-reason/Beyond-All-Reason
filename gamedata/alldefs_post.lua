@@ -843,19 +843,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.proposed_unit_reworks == true then
-		if name == "armvp" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "armsam" then
-					uDef.buildoptions[ix] = "armsam2"
-				end
-			end
-		end
-		if name == "corvp" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "cormist" then
-					uDef.buildoptions[ix] = "cormist2"
-				end
-			end
+		if name == "corbw" then
+			uDef.weapondefs.bladewing_lyzer.damage.default = 800
 		end
 	end
 

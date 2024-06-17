@@ -5,86 +5,51 @@
 
 piece  flare1, flare2, base, gun, turret, exhaust;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay, gun_1, fired, aiming;
 
 // Signal definitions
-#define SIG_AIM				2
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 22;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 20;
-}
-
+#define SIG_AIM				4
+#define SIG_AIM_2			8
+#define SIG_FIRED			16
+#define SIG_AIMING			32
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <75.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 2
+#define UNITSIZE 1
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
-	hide flare2;
-	hide exhaust;
 	hide flare1;
+	hide flare2;
+	hide flare1;
+	hide flare2;
+	fired = 0;
+	aiming = 0;
 	gun_1 = flare1;
-	call-script InitState();
+	restore_delay = 3000;
 }
 
-Activate()
+ResetFire()
 {
-	start-script RequestState(0);
+	signal SIG_FIRED;
+	set-signal-mask SIG_FIRED;
+	fired = 1;
+	sleep 2000;
+	fired = 0;
 }
 
-Deactivate()
+
+ResetAiming()
 {
-	start-script RequestState(1);
+	signal SIG_AIMING;
+	set-signal-mask SIG_AIMING;
+	aiming = 1;
+	sleep 500;
+	aiming = 0;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -98,11 +63,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    fired = 0;
 	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn gun to x-axis <0.000000> speed <50.010989>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn gun around x-axis;
-	start-script RequestState(1);
 }
 SetStunned(State)
 {
@@ -117,21 +79,27 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	start-script RequestState(0);
+	start-script ResetAiming();
 	turn turret to y-axis heading speed <250.060440>;
-	turn gun to x-axis <0.000000> - pitch speed <150.032967>;
+	turn gun to x-axis -1*pitch speed <200>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
+	//sleep 300;
+	if(fired == 1)
+	{
+		return (0);
+	}
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	start-script ResetFire();
 	if( gun_1 == 0 )
 	{
 		emit-sfx 1024 + 0 from exhaust;
@@ -147,30 +115,75 @@ FirePrimary()
 		hide flare2;
 	}
 	gun_1 = !gun_1;
+	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = gun;
 }
-QueryPrimary(piecenum)
+
+QueryWeapon1(piecenum)
 {
+	piecenum = gun_1;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	if(aiming == 1)
+	{
+		return (0);
+	}
+	turn turret to y-axis heading speed <250.060440>;
+	turn gun to x-axis -1*pitch speed <200>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn gun around x-axis;
+	start-script RestoreAfterDelay();
+	sleep 33;
+	if(fired == 1)
+	{
+		return (0);
+	}
+	return (1);
+}
+
+FireWeapon2()
+{
+	start-script ResetFire();
 	if( gun_1 == 0 )
 	{
-		piecenum = flare1;
+		emit-sfx 1024 + 0 from exhaust;
+		show flare1;
+		sleep 150;
+		hide flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare2;
+		emit-sfx 1024 + 0 from exhaust;
+		show flare2;
+		sleep 150;
+		hide flare2;
 	}
+	gun_1 = !gun_1;
+	return (0);
 }
 
+AimFromWeapon2(piecenum)
+{
+	piecenum = gun;
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum = gun_1;
+}
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
 }
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
