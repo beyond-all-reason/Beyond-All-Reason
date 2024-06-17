@@ -1134,10 +1134,11 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
+		hidden 	= true,
     },
 
     {
@@ -1235,11 +1236,11 @@ local options = {
     {
         key    	= "evocomlevelcap",
         name   	= "Commander Level Cap",
-        desc   	= "(Range 5 - 10) Changes the Evolving Commanders maximum level",
+        desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_experimental",
         def    	= 10,
-        min    	= 5,
+        min    	= 2,
         max    	= 10,
         step   	= 1,
     },

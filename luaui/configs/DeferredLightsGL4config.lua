@@ -20641,6 +20641,33 @@ local unitEventLightsNames = {
 	},
 }
 
+--duplicate lights from armcom for Armada Evocom
+local armComTable = {'armcomlvl2', 'armcomlvl3', 'armcomlvl4', 'armcomlvl5', 'armcomlvl6', 'armcomlvl7', 'armcomlvl8', 'armcomlvl9', 'armcomlvl10'}
+for _, name in pairs(armComTable) do
+	unitLights[name] = table.copy(unitLights['armcom'])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked['armcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['armcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['armcom'])
+end
+
+--duplicate lights from corcom for Cortex Evocom
+local corComTable = {'corcomlvl2', 'corcomlvl3', 'corcomlvl4', 'corcomlvl5', 'corcomlvl6', 'corcomlvl7', 'corcomlvl8', 'corcomlvl9', 'corcomlvl10'}
+for _, name in pairs(corComTable) do
+	unitLights[name] = table.copy(unitLights['corcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['corcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['corcom'])
+end
+
+--duplicate lights from armcom for Legion Evocom (and temporarily legcom)
+local legComTable = {'legcom', 'legcomlvl2', 'legcomlvl3', 'legcomlvl4', 'legcomlvl5', 'legcomlvl6', 'legcomlvl7', 'legcomlvl8', 'legcomlvl9', 'legcomlvl10'}
+for _, name in pairs(legComTable) do
+	unitLights[name] = table.copy(unitLights['armcom'])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked['armcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['armcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['armcom'])
+end
+
+
 --AND THE REST
 ---unitEventLightsNames -> unitEventLights
 local unitEventLights = {}

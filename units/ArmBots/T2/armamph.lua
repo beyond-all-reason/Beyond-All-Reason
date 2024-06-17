@@ -120,7 +120,7 @@ return {
 				name = "Light g2a missile launcher",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 2,
+				reloadtime = 2.1,
 				smoketrail = true,
 				smokePeriod = 5,
 				smoketime = 12,
@@ -145,7 +145,7 @@ return {
 				customparams = {
 				},
 				damage = {
-					vtol = 85,
+					vtol = 90,
 				},
 			},
 			armamph_weapon1 = {
