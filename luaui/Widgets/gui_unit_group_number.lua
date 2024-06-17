@@ -12,9 +12,7 @@ end
 
 local hideBelowGameframe = 100
 
-local GetGroupList = Spring.GetGroupList
 local GetGroupUnits = Spring.GetGroupUnits
-local GetGameFrame = Spring.GetGameFrame
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -28,6 +26,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitCanFly[unitDefID] = true
 	end
 end
+
+local gameFrame = 0
+local maxNumGroups = 9
 
 ------------------------------------------- Begin GL4 stuff -----------------------------------------
 -- GL4 notes
@@ -147,20 +148,63 @@ function widget:PlayerChanged()
 	end
 end
 
+function widget:GroupChanged(groupID)
+	-- We need to check diff with previous group units to remove units that
+	-- had their group unset
+	local unitsToBeRemoved = {}
+
+	-- Make sure to do a copy, lua references tables by value
+	for unitID, _ in pairs(grouptounitID[groupID]) do
+		unitsToBeRemoved[unitID] = true
+	end
+
+	for _, unitID in ipairs(GetGroupUnits(groupID)) do
+		local previousUnitGroup = unitIDtoGroup[unitID]
+
+		unitsToBeRemoved[unitID] = nil
+
+		if not crashing[unitID] and previousUnitGroup ~= groupID then -- not same as previous
+			-- remove from old
+			if previousUnitGroup then
+				grouptounitID[previousUnitGroup][unitID] = nil
+			end
+
+			grouptounitID[groupID][unitID] = true
+
+			AddPrimitiveAtUnit(unitID, false, groupID, gameFrame)
+		end
+	end
+
+	for unitID, _ in pairs(unitsToBeRemoved) do
+		RemovePrimitive(unitID)
+	end
+end
+
 function widget:Initialize()
 	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
+
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
+
 	initGL4()
-	for i = 0, 9 do
-		grouptounitID[i] = {}
-	end
+
+	gameFrame = Spring.GetGameFrame()
 	unitIDtoGroup = {}
+
+	if gameFrame > 0 then
+		for i = 1, maxNumGroups do
+			grouptounitID[i] = {}
+		end
+
+		for i = 1, maxNumGroups do
+			widget:GroupChanged(i)
+		end
+	end
 end
 
 function widget:Shutdown()
@@ -188,60 +232,13 @@ function widget:UnitDamaged(unitID, unitDefID)
 	end
 end
 
-local drawFrame = 0
-local nonEmptyGroups = {}
-local maxNumGroups = 10
+function widget:GameFrame(gf)
+	gameFrame = gf
+end
 
 function widget:DrawWorld()
-	drawFrame = drawFrame + 1
-	local gameFrame = GetGameFrame()
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
-	end
-
-	-- GL4 management --
-	-- one important thing to note, is that we dont ever expect this change for two different groups in one frame.
-	-- only update 1 group at a time
-
-	local groupList = GetGroupList()
-	for inGroup, _ in pairs(groupList) do
-		nonEmptyGroups[inGroup] = drawFrame -- mark the non empty ones
-		if inGroup == drawFrame % maxNumGroups then
-			local units = GetGroupUnits(inGroup)
-			local thisGroupFrames = grouptounitID[inGroup]
-			for i = 1, #units do
-				local unitID = units[i]
-				if not crashing[unitID] and unitIDtoGroup[unitID] ~= inGroup then -- not same as previous
-					-- remove from old
-					if unitIDtoGroup[unitID] then
-						grouptounitID[unitIDtoGroup[unitID]][unitID] = nil
-					end
-					AddPrimitiveAtUnit(unitID, false, inGroup, gameFrame)
-				end
-				-- mark as updated
-				thisGroupFrames[unitID] = drawFrame
-			end
-
-			for unitID, lastupdate in pairs(thisGroupFrames) do
-				if lastupdate < drawFrame then
-					RemovePrimitive(unitID)
-					thisGroupFrames[unitID] = nil
-				end
-			end
-		end
-	end
-
-	for i = 0, maxNumGroups do
-		if nonEmptyGroups[i] and (nonEmptyGroups[i] < drawFrame - maxNumGroups) then
-			local thisGroupFrames = grouptounitID[i]
-			-- this group hasnt been gotten, so it needs deletion
-			for unitID, lastupdate in pairs(thisGroupFrames) do
-				if lastupdate < drawFrame then
-					RemovePrimitive(unitID)
-					thisGroupFrames[unitID] = nil
-				end
-			end
-		end
 	end
 
 	if unitGroupVBO.usedElements > 0 then
