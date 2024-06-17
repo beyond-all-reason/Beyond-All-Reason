@@ -297,6 +297,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 };
 
 
+uniform float reflectionPass = 0.0;
+
 #line 10468
 void main()
 {
@@ -319,8 +321,11 @@ void main()
 	float radius = 0.99 * posrad.w;
 	
 	vertexWorldPos.xyz = rotY * ( flippedPos * (radius) + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
-	
-	gl_Position = cameraViewProj * vertexWorldPos;
+	if (reflectionPass < 0.5){
+		gl_Position = cameraViewProj * vertexWorldPos;
+	}else{
+		gl_Position = reflectionViewProj * vertexWorldPos;
+	}
 
 	
 
@@ -383,7 +388,7 @@ uniform sampler2D mask;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
-uniform int reflectionPass = 0;
+uniform float reflectionPass = 0.0;
 
 #define DISTORTION 0.01
 in DataVS {
@@ -642,6 +647,7 @@ local function initGL4()
         mask = 1,
         },
 	uniformFloat = {
+		reflectionPass = 0.0,
       },
     },
     "orbShader GL4"
@@ -669,14 +675,14 @@ end
 --------------------------------------------------------------------------------
 -- Draw Iteration
 --------------------------------------------------------------------------------
-local function DrawOrbs(isReflection)
+local function DrawOrbs(reflectionPass)
 	if orbVBO.usedElements > 0 then
 		gl.DepthTest(true)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove both state changes
 		--gl.Culling(GL.FRONT)
 		gl.Culling(false)
 		orbShader:Activate()
-		--orbShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
+		orbShader:SetUniform("reflectionPass", (reflectionPass and 1 ) or 0 )
 		drawInstanceVBO(orbVBO)
 		orbShader:Deactivate()
 	end
@@ -685,12 +691,19 @@ end
 -- Widget Interface
 --------------------------------------------------------------------------------
 local lastDrawFrame = -1
-function widget:DrawWorldPreParticles() -- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+function widget:DrawWorldPreParticles() 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
+	-- If water is present on the map, then it gets called again between the two for the refraction pass
+	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
 	local thisDrawFrame = Spring.GetDrawFrame()
 	if lastDrawFrame ~= thisDrawFrame then 
 		lastDrawFrame = thisDrawFrame
-		DrawOrbs(false)
+		DrawOrbs(false) 
 	end
+end
+
+function widget:DrawWorldReflection()
+	DrawOrbs(true)
 end
 
 function widget:Initialize()
