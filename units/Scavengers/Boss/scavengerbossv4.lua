@@ -416,7 +416,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				laserflaresize = 2,
 				name = "Heavy long-range g2g tachyon accelerator beam",
 				noselfdamage = true,
-				proximitypriority = -0.2,
+				--proximitypriority = -0.2,
 				range = 500,
 				reloadtime = 0.33,
 				rgbcolor = "0.5 0.2 0.8",
