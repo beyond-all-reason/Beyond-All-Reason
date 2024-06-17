@@ -311,7 +311,7 @@ local TimedDamageWeaponsNames = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
         time = 15,
-        damage = 30,
+        damage = 175,
         range = 150,
         resistance = "test",
     },
