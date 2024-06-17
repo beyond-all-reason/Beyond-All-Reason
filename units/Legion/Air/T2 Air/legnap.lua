@@ -115,19 +115,19 @@ return {
 				},
 				customparams = {
 					area_duration = 10,
-					area_stable_ceg = "fire-area-150",
-					area_damage_ceg = "burnflamexl",
-					area_resistance = "_NAPALM_",
+					area_ongoingCEG = "fire-area-150",
+					area_damagedCEG = "burnflamexl",
+					area_damageType = "napalm",
+					-- Test omitted area weapon name that matches fallback value:
+					-- area_weaponName = "legnap_napalmbombs_area_timed_damage",
 				},
 			},
-			napalmbombs_area = {
+			napalmbombs_area_timed_damage = {
 				areaofeffect = 150,
-				explosiongenerator = "burnold", -- I have no idea
+				explosiongenerator = "burnold", -- replace me
 				damage = {
 					default = 30,
-					shields = 30 / 10, -- assuming explosions damage shields
-					subs    = 30 / 10, -- seems unlikely I can skip these
-					vtol    = 30 / 20, -- units with canFly no longer immune
+					vtol    = 3,
 				},
 			},
 		},
