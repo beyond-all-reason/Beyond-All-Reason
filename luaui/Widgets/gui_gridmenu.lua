@@ -199,8 +199,14 @@ local advplayerlistLeft = vsx * 0.8
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
+
 local hoverCellZoom = 0.1 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
+local clickCellZoom = 0.125 * zoomMult
+
+local hoverCellColor = { 0.63, 0.63, 0.63, 0 }
+local selectedCellColor = { 1, 0.85, 0.2, 0.25 }
+local clickCellColor = { 0.3, 0.8, 0.25, 0.2 }
 
 local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
@@ -321,10 +327,15 @@ local function resetHovered()
 		return
 	end
 
-	for _, rects in ipairs({ catRects, builderRects, cellRects }) do
+	for _, rects in ipairs({ catRects, builderRects }) do
 		for _, rect in pairs(rects) do
 			rect.opts.hovered = false
 		end
+	end
+
+	for _, rect in pairs(cellRects) do
+		rect.opts.hovered = false
+		rect.opts.clicked = false
 	end
 
 	labBuildModeRect.opts.hovered = false
@@ -336,19 +347,22 @@ local function resetHovered()
 	redraw = true
 end
 
-local function setHoveredRect(rect)
-	if rect.opts.hovered then
+local function setHoveredRect(rect, clicked)
+	if rect.opts.hovered and not hoveredRect then
 		return
 	end
 
 	resetHovered()
 
-	rect.opts.hovered = true
 	hoveredRect = true
+	rect.opts.hovered = true
+	if clicked then
+		rect.opts.clicked = true
+	end
 end
 
-local function setHoveredRectTooltip(rect, text, title)
-	setHoveredRect(rect)
+local function setHoveredRectTooltip(rect, text, title, clicked)
+	setHoveredRect(rect, clicked)
 
 	if WG["tooltip"] then
 		WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, title)
@@ -356,8 +370,7 @@ local function setHoveredRectTooltip(rect, text, title)
 end
 
 local function updateHoverState()
-	-- local x, y, b, b2, b3 = Spring.GetMouseState()
-	local x, y = Spring.GetMouseState()
+	local x, y, left, _, right = Spring.GetMouseState()
 	local isAbove = backgroundRect:contains(x, y)
 		or (selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)))
 
@@ -369,7 +382,6 @@ local function updateHoverState()
 
 	Spring.SetMouseCursor("cursornormal")
 
-	-- pre process + 'highlight' under the icons
 	for _, cellRect in pairs(cellRects) do
 		if cellRect:contains(x, y) then
 			if not cellRect.opts.uDefID then
@@ -397,7 +409,7 @@ local function updateHoverState()
 				tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
 			end
 
-			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text)
+			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
 
 			return
 		end
@@ -1669,11 +1681,14 @@ local function drawCell(rect)
 	end
 
 	if disabled then
+	elseif rect.opts.clicked then
+		cellColor = clickCellColor
+		usedZoom = clickCellZoom
 	elseif rect.opts.selected then
-		cellColor = { 1, 0.85, 0.2, 0.25 }
+		cellColor = selectedCellColor
 		usedZoom = selectedCellZoom
 	elseif rect.opts.hovered then
-		cellColor = { 0.63, 0.63, 0.63, 0 }
+		cellColor = hoverCellColor
 		usedZoom = hoverCellZoom
 	end
 
