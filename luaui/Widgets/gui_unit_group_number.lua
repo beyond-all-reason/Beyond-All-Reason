@@ -43,6 +43,9 @@ local debugmode = false
 -- Managment:
 local unitIDtoGroup = {} -- keys unitID's to group numbers
 local grouptounitID = {}
+for i = 1, maxNumGroups do
+	grouptounitID[i] = {}
+end
 
 local numbersToUvs = {}
 
@@ -197,10 +200,6 @@ function widget:Initialize()
 	unitIDtoGroup = {}
 
 	if gameFrame > 0 then
-		for i = 1, maxNumGroups do
-			grouptounitID[i] = {}
-		end
-
 		for i = 1, maxNumGroups do
 			widget:GroupChanged(i)
 		end
