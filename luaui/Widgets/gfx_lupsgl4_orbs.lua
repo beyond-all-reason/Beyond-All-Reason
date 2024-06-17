@@ -684,9 +684,13 @@ end
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
-
-function widget:DrawWorldPreParticles()
-	DrawOrbs(false)
+local lastDrawFrame = -1
+function widget:DrawWorldPreParticles() -- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+	local thisDrawFrame = Spring.GetDrawFrame()
+	if lastDrawFrame ~= thisDrawFrame then 
+		lastDrawFrame = thisDrawFrame
+		DrawOrbs(false)
+	end
 end
 
 function widget:Initialize()
