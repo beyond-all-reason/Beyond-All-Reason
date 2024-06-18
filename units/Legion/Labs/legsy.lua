@@ -42,7 +42,8 @@ return {
 			[8] = "correcl",
 			[9] = "legoptio",
 			[10] = "leghastatusalt",
-			[11] = "legtriariusalt"
+			[11] = "legtriariusalt",
+			[12] = "legtriariusnorock"
 
 		},
 		customparams = {
