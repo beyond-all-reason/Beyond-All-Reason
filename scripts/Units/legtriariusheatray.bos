@@ -30,9 +30,9 @@ Create()
 	hide flare2;
 	hide ground;
 	restore_delay = 3000;
-	//start-script InitRockBoat();
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
-	//start-script BoatPhysics();
+	start-script BoatPhysics();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -104,7 +104,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <100.0>;
+	turn turret to y-axis heading speed <80.0>;
 	turn sleeve2 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <40.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve2 around x-axis;
@@ -132,6 +132,7 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = flare2;
 }
 
+////legboat todo: mortar
 
 
 Killed(severity, corpsetype)

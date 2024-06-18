@@ -1,5 +1,5 @@
 return {
-	legtriarius = {
+	legtriariusheatray = {
 		maxacc = 0.02757,
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
@@ -137,7 +137,7 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 16,
+				soundstartvolume = 28,
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
 				thickness = 3.5,
@@ -150,32 +150,42 @@ return {
 					vtol = 110,
 				},
 			},
-			plasma = {
-				areaofeffect = 64,
+			mortar = {
+
+
+				cegtag = "arty-big",--mightbe large
+
+
+
+				accuracy = 250,
+				areaofeffect = 185,
 				avoidfeature = false,
-				craterareaofeffect = 0,
+				craterareaofeffect = 200,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				edgeeffectiveness = 0.60,
+				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
-				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				impulsefactor = 1.5,
+				name = "Mortar",
 				noselfdamage = true,
-				range = 710,
-				reloadtime = 2.5,
-				soundhit = "xplomed2",
-				soundhitwet = "splssml",
-				soundstart = "cannhvy1",
+				range = 850,
+				reloadtime = 4,
+				size = 1.8,
+				soundhit = "xplosml3",
+				soundhitwet = "splshbig",
+				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 320,
+				weaponvelocity = 430,
 				damage = {
-					default = 385,
-					vtol = 45,
+					default = 400,
+					subs = 90,
+					vtol = 90,
 				},
-			},
+			}
 		},
 		weapons = {
 			[1] = {
@@ -184,7 +194,12 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 			},
-
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "mortar",
+				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+			},
 		},
 	},
 }

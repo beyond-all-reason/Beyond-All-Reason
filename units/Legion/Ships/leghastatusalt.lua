@@ -124,7 +124,7 @@ return {
 				impulsefactor = 0,
 				name = "HeatRay",
 				noselfdamage = true,
-				range = 460,
+				range = 455,
 				reloadtime = 1.3,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
@@ -137,7 +137,7 @@ return {
 				weapontype = "BeamLaser",
 				damage = {
 					default = 10,
-					vtol = 5,
+					vtol = 2,
 				},
 			},
 		},
