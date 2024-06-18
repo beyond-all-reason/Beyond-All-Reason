@@ -42,9 +42,9 @@ return {
 			[8] = "correcl",
 			[9] = "legoptio",
 			[10] = "leghastatusalt",
-			[11] = "legtriariusalt",--portent
-			[12] = "legtriariusdrone"
-			[13] = "legtriariusmortar"
+			[11] = "legportent",
+			[12] = "legtriariusdrone",
+			[13] = "legtriariusheatray"--mortar
 
 		},
 		customparams = {

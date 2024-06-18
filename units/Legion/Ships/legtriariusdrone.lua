@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		energycost = 8000,
 		metalcost = 920,
-		buildpic = "CORROY.DDS",
+		buildpic = "legtriariusdrone.DDS",
 		buildtime = 11500,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -150,6 +150,59 @@ return {
 					vtol = 110,
 				},
 			},
+
+
+
+			rangefinder = {
+				areaofeffect = 4,
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "",
+				gravityaffected = "true",
+				hightrajectory = 1,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				name = "Rangefinder",
+				noselfdamage = true,
+				range = 1000,
+				reloadtime = 2.5,
+				size = 0,
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 360,
+				damage = {
+					default = 0,
+				},
+				customparams = {
+					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
+					engagementrange = 1000,
+					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 8, 				--Spawnrate roughly in seconds.
+					maxunits = 2,				--Will spawn units until this amount has been reached.
+					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					decayrate = 4,
+					carrierdeaththroe = "death",
+					dockingarmor = 0.2,
+					dockinghealrate = 16,
+					docktohealthreshold = 66,
+					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					dockingHelperSpeed = 5,
+					dockingpiecestart = 10,		--First model piece to be used for docking.
+					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
+					dockingpieceend = 11,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+				}
+			},
+
+
 		},
 		weapons = {
 			[1] = {
@@ -157,6 +210,12 @@ return {
 				def = "heatroy",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
+			},
+		
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "rangefinder",
+				onlytargetcategory = "SURFACE",
 			},
 
 		},

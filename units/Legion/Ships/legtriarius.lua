@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		energycost = 8000,
 		metalcost = 920,
-		buildpic = "CORROY.DDS",
+		buildpic = "legtriarius.DDS",
 		buildtime = 11500,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
