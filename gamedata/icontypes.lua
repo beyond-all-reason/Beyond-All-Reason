@@ -707,10 +707,6 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
-	armsam2 = {
-		bitmap = "icons/vehicle_t1_missile.png",
-		size = 1.04999995
-	},
 	armsb = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
@@ -1544,10 +1540,6 @@ local icontypes = {
 		size = 1.88999987
 	},
 	cormist = {
-		bitmap = "icons/vehicle_t1_missile.png",
-		size = 1.04999995
-	},
-	cormist2 = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
