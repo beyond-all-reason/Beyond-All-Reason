@@ -537,7 +537,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					vtol = stats.missileDamage,
 				},
 			},
-			turbo_shotgunarm = {
+			turbo_napalm = {
 				accuracy = 1000,
 				areaofeffect = 150,
 				avoidfeature = false,
@@ -869,7 +869,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			},
 			[9] = {
 				badtargetcategory = "VTOL",
-				def = "turbo_shotgunarm",
+				def = "turbo_napalm",
 				onlytargetcategory = "SURFACE",
 			},
 			[10] = {
