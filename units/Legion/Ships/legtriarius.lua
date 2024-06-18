@@ -34,7 +34,7 @@ return {
 		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 280,
+		turnrate = 295,
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weaponsub',
