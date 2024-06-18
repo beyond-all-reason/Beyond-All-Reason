@@ -47,8 +47,6 @@ for i = 1, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
-local numbersToUvs = {}
-
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -60,8 +58,8 @@ local function initGL4()
 		local vbocachetable = {}
 
 		-- Initialize the cache table
-		for i = 1, 18 do
-			vbocachetable[i] = 0
+		for j = 1, 18 do
+			vbocachetable[j] = 0
 		end
 
 		-- Fill in static things
@@ -219,9 +217,11 @@ function widget:Shutdown()
 	if unitGroupShader then
 		unitGroupShader:Finalize()
 	end
+
 	if unitGroupVBO and unitGroupVBO.VBO then
 		unitGroupVBO:Delete()
 	end
+
 	if unitGroupVBO and unitGroupVBO.VAO then
 		unitGroupVBO.VAO:Delete()
 	end
