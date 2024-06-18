@@ -52,16 +52,38 @@ local numbersToUvs = {}
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
-local vbocachetable = {}
-for i = 1, 18 do
-	vbocachetable[i] = 0
-end -- init this caching table to preserve mem allocs
+local vbocachetables = {} -- A table of tables for speed
 
 local function initGL4()
 	local grid = 1 / 16
 	for i = 0, 9 do
-		numbersToUvs[i] = { grid, 0, 1.0 - i * grid, 1.0 - (i + 1) * grid } --xXyY
+		local vbocachetable = {}
+		
+		-- Initialize the cache table
+		for i = 1, 18 do
+			vbocachetable[i] = 0
+		end 
+		
+		-- Fill in static things
+		vbocachetable[1] = groupNumberSize -- length
+		vbocachetable[2] = groupNumberSize -- widgth
+		vbocachetable[3] = 0 -- cornersize
+		vbocachetable[4] = groupNumberHeight -- height
+		--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
+		vbocachetable[6] = 4 -- numvertices, 4 is a quad
+		vbocachetable[8] = 1 -- size mult
+		vbocachetable[9] = 1.0 -- alpha
+
+		-- Save the UV's we just generated
+		local x, X, y, Y =  grid, 0, 1.0 - i * grid, 1.0 - (i + 1) * grid -- xXyY
+		vbocachetable[11] = x
+		vbocachetable[12] = X
+		vbocachetable[13] = y
+		vbocachetable[14] = Y
+
+		vbocachetables[i] = vbocachetable
 	end
+
 
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
@@ -111,25 +133,13 @@ local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
 		end
 		return nil
 	end
-	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
-	vbocachetable[1] = groupNumberSize -- length
-	vbocachetable[2] = groupNumberSize -- widgth
-	vbocachetable[3] = 0 -- cornersize
-	vbocachetable[4] = groupNumberHeight -- height
-	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
-	vbocachetable[6] = 4 -- numvertices, 4 is a quad
+	
+	local vbocachetable = vbocachetables[groupNumber]
 
-	vbocachetable[7] = gf -- could prove useful?
-	vbocachetable[8] = 1 -- size mult
-	vbocachetable[9] = 1.0 -- alpha
-	--vbocachetable[10] = 0 -- unused
-
-	local uvset = numbersToUvs[groupNumber]
-	vbocachetable[11] = uvset[1] -- uv's of the atlas
-	vbocachetable[12] = uvset[2]
-	vbocachetable[13] = uvset[3]
-	vbocachetable[14] = uvset[4]
-
+	-- Save the current gameframe for animation purposes
+	-- All other variables of each instance are unchanged thus can be used directly from the cached table
+	vbocachetable[7] = gf 
+	
 	unitIDtoGroup[unitID] = groupNumber
 
 	return pushElementInstance(
