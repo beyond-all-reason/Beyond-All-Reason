@@ -22,7 +22,7 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		health = 2280,
-		speed = 79.0,
+		speed = 80,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
@@ -137,6 +137,7 @@ return {
 				weapontype = "BeamLaser",
 				damage = {
 					default = 10,
+					vtol = 5,
 				},
 			},
 		},
