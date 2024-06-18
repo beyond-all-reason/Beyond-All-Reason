@@ -844,7 +844,12 @@ function UnitDef_Post(name, uDef)
 
 	if modOptions.proposed_unit_reworks == true then
 		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 800
+			uDef.weapondefs.bladewing_lyzer.damage.default = 600
+		end
+		if name == "armdfly" then
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
+			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
 		end
 	end
 
@@ -1234,7 +1239,7 @@ function WeaponDef_Post(name, wDef)
 
 		--Air rework
 		if modOptions.air_rework == true then
-			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LaserCannon" then
+			if wDef.weapontype == "BeamLaser" then
 				wDef.damage.vtol = wDef.damage.default * 0.25
 			end
 			if wDef.range == 300 and wDef.reloadtime == 0.4 then
