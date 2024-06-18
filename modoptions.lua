@@ -633,7 +633,7 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
-        step	= 1,
+        step	= 0.1,
         section	= "raptor_defense_options",
     },
 
@@ -798,7 +798,7 @@ local options = {
             { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
-  
+
     {
         key 	= "unit_market",
         name 	= "Unit Market",
@@ -1200,7 +1200,7 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
-    
+
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
