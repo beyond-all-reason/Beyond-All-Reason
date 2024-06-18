@@ -327,6 +327,7 @@ local function refreshUnitInfo()
 					unitDef.customParams.isevocom  or -- use primary weapon for evolving commanders
 					unitDef.name == 'armcom'       or -- ignore underwater secondary
 					unitDef.name == 'corcom'       or 
+					unitDef.name == 'legcom'       or
 					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
 					unitDef.name == 'corpun'       or

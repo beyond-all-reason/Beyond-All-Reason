@@ -98,17 +98,19 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			combatradius = 600,
-			evolution_announcement = "Legion commanders have upgraded to level 3",
-			evolution_announcement_size = 18.5,
-			evolution_target = "legcomlvl3",
-			evolution_condition = "timer",
-			evolution_timer = 600,
 			iscommander = true,
+			isevocom = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			evolution_announcement = "Legion commanders have upgraded to level 3",
+			evolution_announcement_size = 18.5,
+			evolution_health_transfer = "percentage",
+			evolution_target = "legcomlvl3",
+			evolution_condition = "timer",
+			evolution_timer = 99999,
+			combatradius = 0,
 		},
 		featuredefs = {
 			dead = {
@@ -312,7 +314,7 @@ return {
 					commanders = 1,
 				},
 			},
-			napalmmissile = {
+			napalmmissile = { --unused, left here in case it replaces the Dgun again.
 				areaofeffect = 200,
 				avoidfeature = false,
 				burnblow = true,
