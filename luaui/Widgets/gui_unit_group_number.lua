@@ -58,12 +58,12 @@ local function initGL4()
 	local grid = 1 / 16
 	for i = 0, 9 do
 		local vbocachetable = {}
-		
+
 		-- Initialize the cache table
 		for i = 1, 18 do
 			vbocachetable[i] = 0
-		end 
-		
+		end
+
 		-- Fill in static things
 		vbocachetable[1] = groupNumberSize -- length
 		vbocachetable[2] = groupNumberSize -- widgth
@@ -75,7 +75,7 @@ local function initGL4()
 		vbocachetable[9] = 1.0 -- alpha
 
 		-- Save the UV's we just generated
-		local x, X, y, Y =  grid, 0, 1.0 - i * grid, 1.0 - (i + 1) * grid -- xXyY
+		local x, X, y, Y = grid, 0, 1.0 - i * grid, 1.0 - (i + 1) * grid -- xXyY
 		vbocachetable[11] = x
 		vbocachetable[12] = X
 		vbocachetable[13] = y
@@ -83,7 +83,6 @@ local function initGL4()
 
 		vbocachetables[i] = vbocachetable
 	end
-
 
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
@@ -133,13 +132,13 @@ local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
 		end
 		return nil
 	end
-	
+
 	local vbocachetable = vbocachetables[groupNumber]
 
 	-- Save the current gameframe for animation purposes
 	-- All other variables of each instance are unchanged thus can be used directly from the cached table
-	vbocachetable[7] = gf 
-	
+	vbocachetable[7] = gf
+
 	unitIDtoGroup[unitID] = groupNumber
 
 	return pushElementInstance(
