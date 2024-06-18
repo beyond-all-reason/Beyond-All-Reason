@@ -845,12 +845,41 @@ function UnitDef_Post(name, uDef)
 	if modOptions.proposed_unit_reworks == true then
 		if name == "corbw" then
 			uDef.weapondefs.bladewing_lyzer.damage.default = 600
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
 		end
 		if name == "armdfly" then
 			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
 			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
 			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
 		end
+		if name == "armspid" then
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
+		end
+		if name == "corgator" then
+			uDef.weapondefs.gator_laserx.damage.vtol = 14
+		end
+		if name == "corak" then
+			uDef.weapondefs.gator_laser.damage.vtol = 7
+		end
+		if name == "armpw" then
+			uDef.weapondefs.emg.damage.vtol = 3
+		end
+		if name == "armsh" then
+			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		end
+		if name == "corsh" then
+			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		end
+		if uDef.customparams.paralyzemultiplier then
+			if uDef.customparams.paralyzemultiplier < 0.03 then
+				uDef.customparams.paralyzemultiplier = 0
+			elseif uDef.customparams.paralyzemultiplier < 0.5 then
+				uDef.customparams.paralyzemultiplier = 0.2
+			else
+				uDef.customparams.paralyzemultiplier = 1
+			end
+		end	
 	end
 
 	--Lategame Rebalance
