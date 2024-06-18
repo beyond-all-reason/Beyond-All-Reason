@@ -9,7 +9,7 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
 		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare, flare1, flare2, flare3, flare4, flare5, flare6,
-		laserflarelight, sensorflare1, sensorflare2, sensorflare3;  
+		laserflarelight, sensorflare1, sensorflare2, sensorflare3, eaterbeamflare;  
 
 static-var isAiming, isBuilding, isAimingShotgun, isAimingEaterBeam, eaterBeamIncrement, buildHeading, buildPitch,
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
@@ -533,7 +533,7 @@ UnitTimer()
 		cycle = cycle+1;
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		damageAggro = damageAggro+rand(10000, 50000);
+		damageAggro = damageAggro+rand(20000, 80000);
 		isArmored = get ARMORED;
 		
 		//turboWeapon Selector
@@ -666,6 +666,10 @@ Create(){
 	hide flare;
 	hide flare2;
 	hide flare3;
+	hide flare4;
+	hide flare5;
+	hide flare6;
+	hide eaterbeamflare;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn flare to x-axis <90> now;
@@ -682,7 +686,7 @@ Create(){
 	bMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
-	torsoPriority = 0;
+	//torsopriority = 0;
 	isAimingShotgun = 0;
 	isAimingEaterBeam = 0;
 	eaterBeamIncrement = 0;
@@ -708,6 +712,12 @@ Create(){
 	//turbo variable initiations
 	turboMisAimReady = 0;
 	
+	turn flare1 to  x-axis <90> speed <1000.0000>;
+	turn flare2 to  x-axis <90> speed <1000.0000>;
+	turn flare3 to  x-axis <90> speed <1000.0000>;
+	turn flare4 to  x-axis <90> speed <1000.0000>;
+	turn flare5 to  x-axis <90> speed <1000.0000>;
+	turn flare6 to  x-axis <90> speed <1000.0000>;
 	
 	buildHeading = 0;
 	buildPitch = 0;
@@ -727,10 +737,11 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
-
 RestoreAfterDelay(){
 	set-signal-mask SIG_AIM;
-	sleep 1000;
+	sleep 100;
+	torsopriority = 0;
+	sleep 900;
 	turn torso to  y-axis <0> speed <45.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	turn biggun to  x-axis <-38> speed <30.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
 	turn luparm to  x-axis <0> speed <30.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
@@ -743,7 +754,6 @@ RestoreAfterDelay(){
 	isAiming = 0;
 	rightarm = 1;
 	leftarm = 1;
-	torsoPriority = 0;
 	wpn1_lasthead = 1000000;
 	wpn4_lasthead = 1000000;
 	wpn5_lasthead = 1000000;
@@ -775,7 +785,7 @@ SweetSpot(piecenum)
 QueryWeapon1(piecenum) //gatling laser gun right arm
 {
 	piecenum = flare;
-	//torsoPriority = 0;
+	////torsopriority = 0;
 	return (0);
 }
 
@@ -801,7 +811,7 @@ AimWeapon1(heading, pitch) //pew pew
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading + <10> speed <75.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading + <10> speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	
 	
 	var gun_xz;
@@ -852,7 +862,7 @@ AimWeapon1(heading, pitch) //pew pew
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	
-	turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	//turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <75.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -877,8 +887,8 @@ AimWeapon1(heading, pitch) //pew pew
 FireWeapon1()
 {
 	spin barrelr around y-axis speed <600.000000>;
-	sleep 50;
-	torsoPriority = 0;
+	sleep 100;
+	//torsopriority = 0;
 	return (1);
 }
 
@@ -921,7 +931,7 @@ AimWeapon2(heading, pitch)
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
@@ -940,7 +950,7 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	sleep 100;
-	torsoPriority = 0;
+	//torsopriority = 0;
 	return (0);
 }
 
@@ -966,8 +976,8 @@ FireWeapon3()
 	turn luparm to x-axis <5> speed <100>;
 	turn biggun to x-axis <-85> speed <100>;
 	move barrel to y-axis [0] speed [5];
-	sleep 50;
-	torsoPriority = 0;
+	sleep 100;
+	//torsopriority = 0;
 	//call-script bigfire();
 	return (0);
 }
@@ -985,18 +995,22 @@ AimWeapon3(heading, pitch)
 	if (torsoPriority > 9){
 		return (0);
 	}
+	if (turboweaponselect == 9){
+		return (0);
+	}
 	torsoPriority = 9;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = 1;
 	leftArm = 0;
 	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn biggun to  x-axis <-85> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
 	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
 	//wait-for-turn biggun around x-axis;
 	wpn5_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1121,14 +1135,14 @@ AimWeapon5(heading, pitch)
 
 QueryWeapon6(piecenum) //eater beam
 {
-	piecenum = nano;
-	//torsoPriority = 0;
+	piecenum = eaterbeamflare;
+	////torsopriority = 0;
 	return (0);
 }
 
 AimFromWeapon6(piecenum)
 {
-	piecenum = nano;
+	piecenum = eaterbeamflare;
 	return (0);
 }
 
@@ -1136,8 +1150,8 @@ FireWeapon6()
 {
 	//emit-sfx 1024 + 2 from misflare;
 	//isAimingEaterBeam = 0;
-	sleep 50;
-	torsoPriority = 0;
+	sleep 100;
+	//torsopriority = 0;
 	return (0);
 }
 AimWeapon6(heading, pitch)
@@ -1161,7 +1175,7 @@ AimWeapon6(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAimingEaterBeam = 1;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	//turn biggun to  x-axis <-38> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
 	//turn luparm to  x-axis <0> speed <390.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
@@ -1183,7 +1197,7 @@ AimWeapon6(heading, pitch)
 QueryWeapon7(piecenum) //SPECIAL dgun
 {
 	piecenum = nano;
-	//torsoPriority = 0;
+	////torsopriority = 0;
 	return (0);
 }
 
@@ -1199,8 +1213,8 @@ FireWeapon7()
 	//isAimingEaterBeam = 0;
 	eaterBeamIncrement = 0;
 	enableEaterBeam = 0;
-	torsoPriority = 0;
-	sleep 50;
+	//torsopriority = 0;
+	sleep 100;
 	return (0);
 }
 AimWeapon7(heading, pitch)
@@ -1231,7 +1245,7 @@ AimWeapon7(heading, pitch)
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	//turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
 	//turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
@@ -1246,6 +1260,7 @@ AimWeapon7(heading, pitch)
 	{
 		start-script ResumeBuilding();
 	}
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1301,8 +1316,8 @@ FireWeapon9()
 	//call-script bigfire();
 	signal SIG_LARM;
 	set-signal-mask SIG_LARM;
-	torsoPriority = 0;
-	turn rloarm to  x-axis <-38> speed <30.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	//torsopriority = 0;
+	//turn rloarm to  x-axis <-38> speed <30.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
 	//turn ruparm to  x-axis <0> speed <30.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	return (0);
 }
@@ -1325,7 +1340,7 @@ AimWeapon9(heading, pitch)
 	isAiming = 1;
 	leftArm = 0;
 	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn biggun to  x-axis <-85> speed <360.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
 	turn luparm to 	x-axis <5> - pitch speed <360.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
@@ -1333,7 +1348,7 @@ AimWeapon9(heading, pitch)
 	//wait-for-turn luparm around x-axis;
 	//wait-for-turn biggun around x-axis;
 	wpn5_lasthead = heading;
-	//start-script RestoreAfterDelay();
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1345,7 +1360,7 @@ QueryWeapon10(piecenum) //TURBO gatling laser gun right arm
 	if (lastTurboWeapon10Shot == 4) piecenum = flare4;
 	if (lastTurboWeapon10Shot == 5) piecenum = flare5;
 	if (lastTurboWeapon10Shot == 6) piecenum = flare6;
-	//torsoPriority = 0;
+	////torsopriority = 0;
 	return (0);
 }
 
@@ -1371,7 +1386,7 @@ AimWeapon10(heading, pitch) //pew pew
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading + <10> speed <75.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading + <10> speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	
 	
 	var gun_xz;
@@ -1422,7 +1437,7 @@ AimWeapon10(heading, pitch) //pew pew
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	
-	turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	//turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <75.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -1444,8 +1459,8 @@ AimWeapon10(heading, pitch) //pew pew
 FireWeapon10()
 {
 	spin barrelr around y-axis speed <891.000000>;
-	torsoPriority = 0;
-	sleep 50;
+	//torsopriority = 0;
+	sleep 100;
 	return (1);
 }
 
@@ -1567,10 +1582,10 @@ AimWeapon11(heading, pitch)
 	return (1);
 }
 
-QueryWeapon12(piecenum) //bot cannon
+QueryWeapon12(piecenum) //SPECIAL bot cannon
 {
 	piecenum = nano;
-	//torsoPriority = 0;
+	////torsopriority = 0;
 	return (0);
 }
 
@@ -1586,8 +1601,8 @@ FireWeapon12()
 	//isAimingEaterBeam = 0;
 	eaterBeamIncrement = 0;
 	enableEaterBeam = 0;
-	torsoPriority = 0;
-	sleep 50;
+	//torsopriority = 0;
+	sleep 100;
 	return (0);
 }
 AimWeapon12(heading, pitch)
@@ -1618,7 +1633,7 @@ AimWeapon12(heading, pitch)
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	//torsoaim = heading;
 	//turn biggun to  x-axis <0> speed <100.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
 	//turn luparm to  x-axis <0> speed <100.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
@@ -1633,6 +1648,7 @@ AimWeapon12(heading, pitch)
 	{
 		start-script ResumeBuilding();
 	}
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1761,7 +1777,7 @@ StartBuilding(heading, pitch)
 {
 	signal SIG_AIM;
 	isBuilding		= 1;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <150.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	
 	set INBUILDSTANCE to 1;
 	buildHeading = heading;

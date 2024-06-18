@@ -8,6 +8,7 @@ local baseValues = {
 	missileDamage = 3500,
 	shotgunProjectiles = 20,
 	shotgunSprayAnglePercentageMultiplier = 100,
+	shotgunDamage = 600,
 	topTurretsDamage = 2000,
 	torpedoDamage = 2500,
 	turboShotgunArmBurst = 2,
@@ -206,7 +207,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				laserflaresize = 30,
 				name = "Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
-				--proximitypriority = 1.2,
 				pulsespeed =  q8,
 				range = 800,
 				reloadtime = 0.40,
@@ -302,7 +302,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "Cannon",
 				weaponvelocity = 900,
 				damage = {
-					default = 600,
+					default = stats.shotgunDamage,
 				},
 			},
 			shoulderturrets = {
@@ -405,7 +405,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				craterareaofeffect = 150,
 				cratermult = 0,
 				cylindertargeting = 3.0,
-				edgeeffectiveness = 0.05,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 90,
 				firetolerance = 90,
@@ -435,8 +435,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
 				damage = {
-					commanders = 3000,
-					default = 20000,
+					commanders = 5000,
+					default = 50000,
 				},
 			},
 			special_disintegratorxl = {
@@ -576,7 +576,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				damage = {
-					default = 30,
+					default = stats.shotgunDamage/3,
 				},
 			},
 			turbo_machinegun = {
@@ -832,7 +832,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "SURFACE",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 1,
 			},
 			[2] = {
@@ -854,22 +853,19 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "SURFACE",
 				def = "missilelauncher",
 				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
 			},
 			[6] = {
 				def = "eaterbeam",
-				fastautoretargeting = true,
 				badtargetcategory = "VTOL GROUNDSCOUT",
+				--burstControlWhenOutOfArc = 2,
 			},
 			[7] = {
 				def = "special_disintegratorxl",
-				fastautoretargeting = true,
 			},
 			[8] = {
 				badtargetcategory = "SURFACE",
 				def = "turbo_missilelauncher",
 				onlytargetcategory = "NOTSUB",
-				fastautoretargeting = true,
 			},
 			[9] = {
 				badtargetcategory = "VTOL",
@@ -880,8 +876,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "SURFACE",
 				def = "turbo_machinegun",
 				onlytargetcategory = "NOTSUB",
-				--burstControlWhenOutOfArc = 3,
-				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 3,
 			},
 			[11] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -892,7 +887,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "special_botcannon",
 				onlytargetcategory = "SURFACE",
-				fastautoretargeting = true,
 			},
 			[13] = {
 				def = "sensor_vtol",
