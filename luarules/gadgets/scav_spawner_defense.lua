@@ -725,7 +725,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.burrowSpawnType ~= "avoid" then
-				if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+				if config.useScum then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
 					for _ = 1,1000 do
 						spawnPosX = mRandom(spread, MAPSIZEX - spread)
 						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
@@ -1142,7 +1142,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if mRandom() <= config.spawnChance then
+					if mRandom() <= config.spawnChance and loopCounter == 1 then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
@@ -1667,7 +1667,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%30 == 16 then
 			t = GetGameSeconds()
 			local burrowCount = SetCount(burrows)
-			playerAggression = playerAggression*0.998
+			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("scavPlayerAggressionLevel", playerAggressionLevel)
 			if not bossID then
@@ -1684,7 +1684,7 @@ if gadgetHandler:IsSyncedCode() then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
 					minBurrows = 4
 					if burrowCount <= 2 then
-						playerAggression = playerAggression + 0.1
+						playerAggression = playerAggression + 1
 					end
 				else
 					bossAnger = 100

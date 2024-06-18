@@ -35,7 +35,7 @@ return {
 		workertime = 100,
 		yardmap = "ooooooo ooooooo ooooooo oocccoo oocccoo oocccoo oocccoo",
 		buildoptions = {
-			[1] = "corfav",
+			[1] = "legscout",
 			[2] = "legcv",
 			[3] = "legotter",
 			[4] = "leghades",
@@ -43,8 +43,8 @@ return {
 			[6] = "leggat",
 			[7] = "legbar",
 			[8] = "legrail",
-			[9] = "cormlv",
-			[10] = "corgarp",
+			[9] = "legmlv",
+			[10] = "legamphtank",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

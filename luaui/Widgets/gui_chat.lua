@@ -2093,7 +2093,7 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 end
 
 function widget:AddConsoleLine(lines, priority)
-	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
 		processAddConsoleLine(spGetGameFrame(), line, true)
 	end

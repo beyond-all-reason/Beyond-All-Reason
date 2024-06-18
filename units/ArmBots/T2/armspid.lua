@@ -18,8 +18,6 @@ return {
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		energymake = 0.7,
-		energyupkeep = 0.7,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

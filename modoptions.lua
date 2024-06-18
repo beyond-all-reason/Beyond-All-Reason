@@ -633,7 +633,7 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
-        step	= 1,
+        step	= 0.1,
         section	= "raptor_defense_options",
     },
 
@@ -798,7 +798,7 @@ local options = {
             { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
-  
+
     {
         key 	= "unit_market",
         name 	= "Unit Market",
@@ -1134,10 +1134,11 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
+		hidden 	= true,
     },
 
     {
@@ -1199,7 +1200,7 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
-    
+
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1230,6 +1231,18 @@ local options = {
         min    	= 0.1,
         max    	= 10,
         step   	= 0.1,
+    },
+
+    {
+        key    	= "evocomlevelcap",
+        name   	= "Commander Level Cap",
+        desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 10,
+        min    	= 2,
+        max    	= 10,
+        step   	= 1,
     },
 
     {

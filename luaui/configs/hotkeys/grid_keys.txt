@@ -122,7 +122,7 @@ bind               sc_`  drawinmap
 
 bind          Ctrl+sc_e  select AllMap++_ClearSelection_SelectAll+
 bind           Ctrl+tab  select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
-bind                tab  select AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+
+bind                tab  selectcomm
 bind               sc_q  select Visible+_InPrevSel+_ClearSelection_SelectAll+
 bind          Ctrl+sc_q  select PrevSelection++_ClearSelection_SelectPart_50+
 bind          Ctrl+sc_w  select AllMap+_InPrevSel+_ClearSelection_SelectAll+

@@ -3,12 +3,15 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, turret, lwheel,rwheel, mlauncher;
+piece  flare1, flare2, base, turret, lwheel, rwheel, mlauncher;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, gun_1, fired, aiming;
 
 // Signal definitions
 #define SIG_AIM				4
+#define SIG_AIM_2			8
+#define SIG_FIRED			16
+#define SIG_AIMING			32
 
 #define BASEPIECE base
 #define HITSPEED <75.0>
@@ -24,8 +27,28 @@ Create()
 	hide flare2;
 	hide flare1;
 	hide flare2;
+	fired = 0;
+	aiming = 0;
 	gun_1 = flare1;
 	restore_delay = 3000;
+}
+
+ResetFire()
+{
+	signal SIG_FIRED;
+	set-signal-mask SIG_FIRED;
+	fired = 1;
+	sleep 3000;
+	fired = 0;
+}
+
+ResetAiming()
+{
+	signal SIG_AIMING;
+	set-signal-mask SIG_AIMING;
+	aiming = 1;
+	sleep 500;
+	aiming = 0;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -39,6 +62,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    fired = 0;
 	turn turret to y-axis <0.000000> speed <90.021978>;
 }
 SetStunned(State)
@@ -54,18 +78,28 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	start-script ResetAiming();
 	turn turret to y-axis heading speed <250.060440>;
+	turn mlauncher to x-axis -1*pitch speed <200>;
 	wait-for-turn turret around y-axis;
+	wait-for-turn mlauncher around x-axis;
 	start-script RestoreAfterDelay();
+	//sleep 300;
+	if(fired == 1)
+	{
+		return (0);
+	}
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	start-script ResetFire();
 	if( gun_1 == 0 )
 	{
 		show flare1;
@@ -82,12 +116,62 @@ FirePrimary()
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = mlauncher;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
+{
+	piecenum = gun_1;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	if(aiming == 1)
+	{
+		return (0);
+	}
+	turn turret to y-axis heading speed <250.060440>;
+	turn mlauncher to x-axis -1*pitch speed <200>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn mlauncher around x-axis;
+	start-script RestoreAfterDelay();
+	//sleep 300;
+	if(fired == 1)
+	{
+		return (0);
+	}
+	return (1);
+}
+
+FireWeapon2()
+{
+	start-script ResetFire();
+	if( gun_1 == 0 )
+	{
+		show flare1;
+		sleep 150;
+		hide flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		show flare2;
+		sleep 150;
+		hide flare2;
+	}
+	gun_1 = !gun_1;
+	return (0);
+}
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = mlauncher;
+}
+
+QueryWeapon2(piecenum)
 {
 	piecenum = gun_1;
 }
