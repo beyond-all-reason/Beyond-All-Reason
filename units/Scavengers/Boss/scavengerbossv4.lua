@@ -691,7 +691,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				--mygravity = 0.22,
 				name = "SPECIAL Epic Squad Cannon",
 				noselfdamage = true,
-				proximitypriority = 1.2,
+				proximitypriority = -1,
 				range = 45250,
 				reloadtime = 1,
 				sprayangle = 1200,
