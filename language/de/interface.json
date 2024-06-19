@@ -976,7 +976,6 @@
 				"sndvolmusic": "Musik",
 				"loadscreen_music": "Im Ladebildschirm anfangen",
 				"loadscreen_music_descr": "Musik während des Ladebildschirms beim Spielstart abspielen",
-				"scav_messages": "Plünderer-Textbenachrichtigung",
 				"scav_voicenotifs": "Plünderer-Sprachbenachrichtigung",
 				"scav_voicenotifs_descr": "Plünderer-Ansagerstimme umschalten",
 				"notifications_tutorial": "Tutorialmodus",

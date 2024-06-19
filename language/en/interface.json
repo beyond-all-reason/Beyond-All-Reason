@@ -1099,7 +1099,6 @@
 				"sndvolmusic": "music",
 				"loadscreen_music": "starts at loadscreen",
 				"loadscreen_music_descr": "Music when displaying the startup load screen",
-				"scav_messages": "Scavenger written notifications",
 				"scav_voicenotifs": "Scavenger voice notifications",
 				"scav_voicenotifs_descr": "Toggle the scavenger announcer voice",
 				"notifications_set": "Voice",
