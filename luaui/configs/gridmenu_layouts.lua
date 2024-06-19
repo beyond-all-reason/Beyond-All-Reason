@@ -1700,7 +1700,7 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ "armmine1", "armmine2", "armmine3", },    -- light mine, med mine, heavy mine
+			{ "","armmine1", "armmine2", "armmine3" },    -- light mine, med mine, heavy mine
 			{ },                          --
 			{ },                                    --
 		},
@@ -1723,7 +1723,7 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
+			{ "","cormine1", "cormine2", "cormine3" },   -- light mine, med mine, heavy mine
 			{ },                          --
 			{ },                                    --
 		},
@@ -1745,7 +1745,7 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
+			{ "","cormine1", "cormine2", "cormine3" },   -- light mine, med mine, heavy mine
 			{ },                          --
 			{ },                                    --
 		},
