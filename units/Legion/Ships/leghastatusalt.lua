@@ -107,7 +107,7 @@ return {
 				areaofeffect = 22,
 				avoidfeature = false,
 				beamburst = true,
-				burst = 10,
+				burst = 9,
 				burstrate = 0.03,
 				beamTTL = 6,
 				beamdecay = 0.7,
