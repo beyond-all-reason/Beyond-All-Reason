@@ -1,12 +1,20 @@
 local UDN = UnitDefNames
 local wallChance = 0
-local scavMaxUnits = Spring.GetModOptions().maxunits
+local ScavengerTeamID = Spring.GetGaiaTeamID()
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		ScavengerTeamID = i - 1
+		break
+	end
+end
 
 function BPWallOrPopup(faction, tier)
 	if ScavengerTeamID then
 		wallChance = Spring.GetTeamUnitCount(ScavengerTeamID)
 	end
-	if math.random(1, scavMaxUnits*0.9) > wallChance then
+	if math.random(1, Spring.GetTeamMaxUnits(ScavengerTeamID)*0.9) > wallChance then
 		local r = math.random(0,20)
 		if tier == 1 then
 			if faction == "arm" then

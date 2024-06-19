@@ -46,18 +46,13 @@ return {
 				collisionvolumescales = "65.8518981934 75.545135498 65.7558898926",
 				collisionvolumetype = "Box",
 				damage = 1350,
-				energy = 0,
 				featuredead = "HEAP",
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 20,
-				hitdensity = 100,
 				metal = 388,
 				object = "Units/corjuno_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
@@ -65,18 +60,13 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 675,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
 				height = 4,
-				hitdensity = 100,
 				metal = 192,
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -158,9 +148,15 @@ return {
 				},
 				damage = {
 					default = 1,
-					mines = 1000,
+					mines = 1,
 				},
 			},
+			juno_pulse_ghost = {--juno rework needs this to avoid loops
+				damage = {
+					default = 1,
+					mines = 1,
+				},
+			}
 		},
 		weapons = {
 			[1] = {

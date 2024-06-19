@@ -64,6 +64,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	stop-spin turret around y-axis;
 	if( gun_1 == 1 )
 	{
 		turn sleeve to z-axis <0.000000> speed <400.000000>;

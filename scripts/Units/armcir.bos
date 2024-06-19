@@ -60,6 +60,7 @@ AimPrimary(heading, pitch)
 {
     signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	stop-spin aimy1 around y-axis;
 	turn aimy1 to y-axis heading speed <250>;
 	turn aimx1 to x-axis 0 - pitch speed <250>;
 	wait-for-turn aimy1 around y-axis;

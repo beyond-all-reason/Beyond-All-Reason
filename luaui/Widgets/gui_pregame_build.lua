@@ -193,7 +193,16 @@ function widget:Initialize()
 		return selBuildQueueDefID
 	end
 	WG['pregame-build'].setPreGamestartDefID = function(value)
-		setPreGamestartDefID(value)
+		local inBuildOptions = {}
+		for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+			inBuildOptions[opt] = true
+		end
+
+		if inBuildOptions[value] then
+			setPreGamestartDefID(value)
+		else
+			setPreGamestartDefID(nil)
+		end
 	end
 
 	WG['pregame-build'].setBuildQueue = function(value)
@@ -246,7 +255,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 
 	gl.DepthTest(false)
 	gl.Color(borderColor)
-	
+
 	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
 							 { v = { bx + bw, by, bz - bh } },
 							 { v = { bx + bw, by, bz + bh } },
@@ -308,7 +317,7 @@ function widget:MousePress(x, y, button)
 				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 				local _, _, meta, shift = Spring.GetModKeyState()
-				
+
 				if (meta or not shift) and cx ~= -100 then
 					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
 
@@ -450,6 +459,18 @@ function widget:DrawWorld()
 		end
 	end
 
+	if startDefID == UnitDefNames["armcom"].id then
+		if corToArm[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = corToArm[selBuildQueueDefID]
+			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+		end
+	elseif startDefID == UnitDefNames["corcom"].id then
+		if armToCor[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = armToCor[selBuildQueueDefID]
+			selBuildQueueDefID = armToCor[selBuildQueueDefID]
+		end
+	end
+
 	-- Draw all the buildings
 	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 	for b = 1, #buildQueue do
@@ -570,11 +591,12 @@ end
 function widget:GetConfigData()
 	return {
 		buildQueue = buildQueue,
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.buildQueue and Spring.GetGameFrame() == 0 and data.gameID and data.gameID == Game.gameID then
+	if data.buildQueue and Spring.GetGameFrame() == 0 and data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")) then
 		buildQueue = data.buildQueue
 	end
 end

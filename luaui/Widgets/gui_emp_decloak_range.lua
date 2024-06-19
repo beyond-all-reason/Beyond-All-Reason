@@ -7,7 +7,7 @@ function widget:GetInfo()
         license   = "The BSD License",
         layer     = 0,
         version   = 5,
-        enabled   = true  -- loaded by default
+        enabled   = true
     }
 end
 
@@ -19,7 +19,6 @@ end
 -- v4 Floris Added fade on camera distance changed to thicker and more transparant line style + options + onlyDrawRangeWhenSelected
 -- v5 Floris: Renamed to EMP + decloak range and disabled autocloak
 
-
 --------------------------------------------------------------------------------
 -- OPTIONS
 --------------------------------------------------------------------------------
@@ -30,8 +29,6 @@ local showLineGlow 				= true		-- a ticker but faint 2nd line will be drawn unde
 local opacityMultiplier			= 1.3
 local fadeMultiplier			= 1.2		-- lower value: fades out sooner
 local circleDivs				= 64		-- detail of range circle
-local autoCloakSpy				= false
-local autoCloakGremlin			= false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -60,7 +57,6 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local units = {}
-local cmdCloak = 37382
 
 local chobbyInterface
 
@@ -79,16 +75,15 @@ for udid, ud in pairs(UnitDefs) do
     end
 end
 
-function cloakSpy(unitID)
-	if autoCloakSpy then
-		spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
-	end
+local function addSpy(unitID, unitDefID)
+	units[unitID] = { isSpy[unitDefID][1], isSpy[unitDefID][2] }  -- decloakdistance, selfdblastradius
 end
 
-function processGremlin(unitID)
-	if autoCloakGremlin then
-		spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
-	end
+local function addGremlin(unitID, unitDefID)
+	units[unitID] = { isGremlin[unitDefID], 0 }   -- decloakdistance, 0
+end
+
+local function processGremlin(unitID)
     spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, 0) -- 0 == hold pos
     spGiveOrderToUnit(unitID, cmdFireState, { 0 }, 0) -- hold fire
 end
@@ -96,7 +91,6 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-		cloakSpy(unitID)
     end
     if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
@@ -122,20 +116,11 @@ function widget:UnitEnteredLos(unitID, unitTeam)
     end
 end
 
-function addSpy(unitID, unitDefID)
-	units[unitID] = { isSpy[unitDefID][1], isSpy[unitDefID][2] }  -- decloakdistance, selfdblastradius
-end
-
-function addGremlin(unitID, unitDefID)
-	units[unitID] = {isGremlin[unitDefID], 0}   -- decloakdistance, 0
-end
-
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
 
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloakSpy(unitID)
     end
     if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
@@ -146,7 +131,6 @@ end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloakSpy(unitID)
     end
     if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
@@ -158,7 +142,6 @@ end
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloakSpy(unitID)
     end
     if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
@@ -182,7 +165,6 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-
     if Spring.IsGUIHidden() then return end
 
 	local camX, camY, camZ = spGetCameraPosition()
@@ -233,6 +215,23 @@ function widget:DrawWorldPreUnit()
     glDepthTest(false)
 end
 
+local function resetUnits()
+	units = {}
+	local visibleUnits = spGetAllUnits()
+	if visibleUnits ~= nil then
+		for i=1,#visibleUnits do
+			local unitID = visibleUnits[i]
+			local unitDefID = GetUnitDefID(unitID)
+			if isSpy[unitDefID] then
+				addSpy(unitID, unitDefID)
+			end
+			if isGremlin[unitDefID] then
+				addGremlin(unitID, unitDefID)
+			end
+		end
+	end
+end
+
 function widget:PlayerChanged(playerID)
     local prevTeamID = myTeamID
     local prevFullview = fullview
@@ -246,21 +245,4 @@ end
 
 function widget:Initialize()
     resetUnits()
-end
-
-function resetUnits()
-    units = {}
-    local visibleUnits = spGetAllUnits()
-    if visibleUnits ~= nil then
-        for i=1,#visibleUnits do
-            local unitID = visibleUnits[i]
-            local unitDefID = GetUnitDefID(unitID)
-            if isSpy[unitDefID] then
-                addSpy(unitID, unitDefID)
-            end
-            if isGremlin[unitDefID] then
-                addGremlin(unitID, unitDefID)
-            end
-        end
-    end
 end

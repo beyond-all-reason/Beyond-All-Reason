@@ -32,9 +32,9 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 1000					-- starting removing critters at this total unit count
-local maxTotalunits			= 2300				-- finished removing critters at this total unit count
-local minimumCritters		= 0.08					-- dont remove further than (0.1 == 10%) of critters
+local minTotalUnits			= 1600					-- starting removing critters at this total unit count
+local maxTotalunits			= 3200				-- finished removing critters at this total unit count
+local minimumCritters		= 0.15					-- dont remove further than (0.1 == 10%) of critters
 local minCritters				= math.ceil((Game.mapSizeX*Game.mapSizeZ)/6000000)				-- dont remove below this amount
 local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
 local companionRadiusAfterStart = 13
@@ -181,20 +181,19 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 end
 
 local function setGaiaUnitSpecifics(unitID)
-	if Spring.GetModOptions().april1extra ~= true then
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitNoSelect(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitNoMinimap(unitID, true)
-		Spring.SetUnitMaxHealth(unitID, 2)
-		Spring.SetUnitBlocking(unitID, false)
-		Spring.SetUnitSensorRadius(unitID, 'los', 0)
-		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-		for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-			Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
-		end
+	Spring.SetUnitNeutral(unitID, true)
+	Spring.SetUnitNoSelect(unitID, true)
+	Spring.SetUnitStealth(unitID, true)
+	Spring.SetUnitNoMinimap(unitID, true)
+	Spring.SetUnitMaxHealth(unitID, 2)
+	Spring.SetUnitBlocking(unitID, false)
+	Spring.SetUnitSensorRadius(unitID, 'los', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
+		Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
+		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
 	end
 end
 
@@ -220,7 +219,7 @@ function gadget:Initialize()
 
 	local mapname = Game.mapName:lower()
 	for name, config in pairs(critterConfig) do
-		if string.find(mapname, name) then
+		if string.find(mapname, name, 1, true) then
 			mapConfig = config
 			break
 		end

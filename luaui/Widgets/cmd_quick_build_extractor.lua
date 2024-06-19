@@ -210,10 +210,10 @@ function widget:Update(dt)
 
 
 	-- Set up ghost
-	if extractor and selectedSpot then
+	if extractor and (selectedSpot or (selectedPos and metalMap)) then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
-		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
-		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot)
+		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z }
+		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot, metalMap)
 		if not cmd then
 			clearGhostBuild()
 			return

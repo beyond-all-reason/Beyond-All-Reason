@@ -57,7 +57,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {

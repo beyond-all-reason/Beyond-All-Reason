@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "February 2016",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -310,8 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 			InsertLandAtAirbaseCommands(unitID)
 		end
 
-		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-		if buildProgress == 1.0 then
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end

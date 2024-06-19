@@ -78,7 +78,9 @@ local convertedUnitsNames = {
 	['armcom'] = 5,
 	['cordecom'] = 5,
 	['armdecom'] = 5,
+	['legdecom'] = 5,
 
+	['legah'] = 5,
 	['legbal'] = 5,
 	['legbastion'] = 5,
 	['legcen'] = 2,
@@ -111,6 +113,9 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
   ['legmed'] = 5,
 }
+--if Spring.GetModOptions().emprework then
+	--convertedUnitsNames['armdfly'] = 50
+--end
 -- convert unitname -> unitDefID
 local convertedUnits = {}
 for name, params in pairs(convertedUnitsNames) do

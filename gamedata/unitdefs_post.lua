@@ -3,9 +3,8 @@ VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
 
-local scavengersEnabled = true
+local scavengersEnabled = false
 if Spring.GetTeamList then
-	scavengersEnabled = false
 	local teamList = Spring.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -14,7 +13,7 @@ if Spring.GetTeamList then
 		end
 	end
 end
-if Spring.GetModOptions().ruins == "enabled" then
+if Spring.GetModOptions().ruins == "enabled" or Spring.GetModOptions().forceallunits == true then
 	scavengersEnabled = true
 end
 

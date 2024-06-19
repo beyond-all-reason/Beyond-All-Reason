@@ -241,8 +241,13 @@ end
 		color
 ]]
 WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
-	local xcen = (left + right) / 2
-	local ycen = (top + bottom) / 2
+	gl.PushMatrix()
+	gl.Translate(left, bottom, 0)
+	right = right - left
+	top = top - bottom
+	left, bottom = 0, 0
+	local xcen = (right-left)*0.5
+	local ycen = (top-bottom)*0.5
 	local alpha = 360 * progress
 	local alpha_rad = math.rad(alpha)
 	local beta_rad = math.pi / 2 - alpha_rad
@@ -294,8 +299,12 @@ WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progre
 	end
 
 	gl.Color(color[1], color[2], color[3], color[4])
+	gl.Translate(xcen, ycen, 0)
+	gl.Scale(-1, 1, 1)	-- flip direction horizontally
+	gl.Translate(-xcen, -ycen, 0)
 	gl.Shape(GL.TRIANGLE_FAN, list)
 	gl.Color(1, 1, 1, 1)
+	gl.PopMatrix()
 end
 
 --[[

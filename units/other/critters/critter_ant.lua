@@ -38,7 +38,7 @@ return {
 		script = "Critters/critter_ant.cob",
 		seismicsignature = 0,
 		selfdestructcountdown = 0,
-		sightdistance = 500,
+		sightdistance = 0,
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
@@ -59,65 +59,5 @@ return {
 			nohealthbars = true,
 			subfolder = "other/critters",
 		},
-		
-		
-		
-
-		
-		weapondefs = {
-			eyelaser = {
-				areaofeffect = 8,
-				avoidfeature = false,
-				beamtime = 0.7,
-				corethickness = 0.2,
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.3,
-				energypershot = 0,
-				explosiongenerator = "custom:laserhit-tiny-red",
-				firestarter = 5,
-				impactonly = 1,
-				impulseboost = 0,
-				impulsefactor = 0,
-				laserflaresize = 3.146,
-				name = "LightLaser",
-				noselfdamage = true,
-				proximitypriority = 2,
-				range = 266,
-				reloadtime = 2,
-				rgbcolor = "1 0 0",
-				soundhitdry = "",
-				soundhitwet = "sizzle",
-				soundstart = "penbray1",
-				soundtrigger = 1,
-				targetborder = 0.75,
-				targetmoveerror = 0.1,
-				thickness = 1.25,
-				tolerance = 7000,
-				turret = false,
-				weapontype = "BeamLaser",
-				weaponvelocity = 2250,
-				customparams = {
-					nohealthbars = true,
-				},
-				damage = {
-					default = 25,
-					vtol = 2,
-				},
-			},
-		},
-		weapons = {
-			[1] = {
-				badtargetcategory = "VTOL",
-				def = "EYELASER",
-				onlytargetcategory = "",
-			},
-		},		
-				
-		
-				
-		
-		
 	},
 }

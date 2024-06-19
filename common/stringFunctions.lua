@@ -1,17 +1,43 @@
-local base64 = VFS.Include('common/luaUtilities/base64.lua')
+local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
 if not string.split then
 	-- Split a string into a table of substrings, based on a delimiter.
 	-- If not supplied, delimiter defaults to whitespace.
 	-- Consecutive delimiters are treated as one.
 	-- string.split(csvText, ',')	csvText:split(',')
-	function string:split(delimiter)
-		delimiter = delimiter or '%s'
+	function string.split(val, delimiter)
+		delimiter = delimiter or "%s"
 		local results = {}
-		for part in self:gmatch("[^" .. delimiter .. "]+") do
+		for part in string.gmatch(val, "[^" .. delimiter .. "]+") do
 			table.insert(results, part)
 		end
 		return results
+	end
+end
+
+if not string.trim then
+	-- fast (for LuaJIT) space trimming, e.g.: " a sd   ".trim() == "a sd"
+	function string.trim(str)
+		if str == "" then
+			return str
+		else
+			local startPos = 1
+			local endPos = #str
+
+			while startPos < endPos and str:byte(startPos) <= 32 do
+				startPos = startPos + 1
+			end
+
+			if startPos >= endPos then
+				return ""
+			else
+				while endPos > 0 and str:byte(endPos) <= 32 do
+					endPos = endPos - 1
+				end
+
+				return str:sub(startPos, endPos)
+			end
+		end
 	end
 end
 
@@ -29,7 +55,7 @@ if not string.lines then
 	function string:lines()
 		local text = {}
 		local function helper(line)
-			text[#text+1] = line
+			text[#text + 1] = line
 			return ""
 		end
 		helper((self:gsub("(.-)\r?\n", helper)))
@@ -45,9 +71,9 @@ if not string.partition then
 			return self, nil, nil
 		else
 			if seppos == 1 then
-				return nil, sep, self:sub(sep:len()+1)
+				return nil, sep, self:sub(sep:len() + 1)
 			else
-				return self:sub(1, seppos -1), sep, self:sub(seppos + sep:len())
+				return self:sub(1, seppos - 1), sep, self:sub(seppos + sep:len())
 			end
 		end
 	end

@@ -12,7 +12,7 @@ function widget:GetInfo()
 		date = "October 2021",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 		handler = true,
 	}
 end
@@ -23,7 +23,7 @@ end
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
@@ -248,22 +248,30 @@ local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
-local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+local function refreshUnitDefs()
+	unitName = {}
+	unitBuildOptions = {}
+	unitMetal_extractor = {}
+	unitTranslatedHumanName = {}
+	unitTranslatedTooltip = {}
+	iconTypes = {}
+	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
 
--- unit names and icons
-for udid, ud in pairs(UnitDefs) do
-	unitName[udid] = ud.name
-	unitBuildOptions[udid] = ud.buildOptions
-	unitTranslatedHumanName[udid] = ud.translatedHumanName
-	unitTranslatedTooltip[udid] = ud.translatedTooltip
-	if ud.customParams.metal_extractor then
-		unitMetal_extractor[udid] = ud.customParams.metal_extractor
-	end
-	if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
-		iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+	-- unit names and icons
+	for udid, ud in pairs(UnitDefs) do
+		unitName[udid] = ud.name
+		unitBuildOptions[udid] = ud.buildOptions
+		unitTranslatedHumanName[udid] = ud.translatedHumanName
+		unitTranslatedTooltip[udid] = ud.translatedTooltip
+		if ud.customParams.metal_extractor then
+			unitMetal_extractor[udid] = ud.customParams.metal_extractor
+		end
+		if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
+			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+		end
 	end
 end
-orgIconTypes = nil
+refreshUnitDefs()
 
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
@@ -1008,6 +1016,12 @@ function widget:ViewResize()
 	end
 
 	checkGuishader(true)
+	clearDrawLists()
+	doUpdate = true
+end
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
 	clearDrawLists()
 	doUpdate = true
 end
@@ -1809,7 +1823,8 @@ local function drawBuildProgress()
 				for cellRectID, cellRect in pairs(cellRects) do
 					local cellUnitDefID = cellCmds[cellRectID].id * -1
 					if unitBuildDefID == cellUnitDefID then
-						local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+						local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
+						progress = 1 - progress -- make the effect wind counter-clockwise
 						RectRoundProgress(
 							cellRect.x + cellPadding + iconPadding,
 							cellRect.y + cellPadding + iconPadding,
@@ -1831,9 +1846,17 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if currentCategory and key == KEYSYMS.ESCAPE then
-		clearCategory()
-		doUpdate = true
+	if key == KEYSYMS.ESCAPE then
+		if currentCategory then
+			clearCategory()
+			doUpdate = true
+			return true
+		end
+		if useLabBuildMode and labBuildModeActive then
+			setLabBuildMode(false)
+			doUpdate = true
+			return true
+		end
 	end
 end
 
@@ -1988,9 +2011,13 @@ local function handleButtonHover()
 						else
 							text = unitTranslatedHumanName[uDefID]
 						end
+						local tooltip = unitTranslatedTooltip[uDefID]
+						if unitMetal_extractor[uDefID] then
+							tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+						end
 						WG["tooltip"].ShowTooltip(
 							"buildmenu",
-							"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
+							"\255\240\240\240" .. tooltip,
 							nil,
 							nil,
 							text
@@ -2075,7 +2102,7 @@ local function handleButtonHover()
 				end
 			end
 
-			if builderIsFactory and not labBuildModeActive then
+			if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
 				-- build mode button
 				if labBuildModeRect and labBuildModeRect:contains(x, y) then
 					hoveredButton = labBuildModeRect:getId()
@@ -2361,7 +2388,7 @@ function widget:GetConfigData()
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
 		stickToBottom = stickToBottom,
-		gameID = Game.gameID,
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 	}
 end

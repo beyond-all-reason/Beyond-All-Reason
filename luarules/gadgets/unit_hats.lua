@@ -79,21 +79,26 @@ local vikings = {
 local kings = {
 	["Chisato"] = true,
 }
-local goldMedals = {
+local goldMedals = {	-- Nation Wars winners
+	["Nezah"] = true,
+	["[waa]Delfea"] = true,
+	["[waa]Eural"] = true,
+	["Kuchy"] = true,
+	["Darkclone"] = true,
+	["[200IQ]DrSmashy"] = true,
+
 }
 local silverMedals = {
 }
 local bronzeMedals = {
 }
 local uniques = {--playername, hat ident, CaSe MaTtErS
-	['PtaQ'] = 'ptaq',
-	['Hornet'] = 'hornet',
 }
 
 function gadget:GameFrame(gf)
 	if gf == 90 then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
-		
+
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
 
 			if not spec then
@@ -115,7 +120,7 @@ function gadget:GameFrame(gf)
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
-						
+
 						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv then
