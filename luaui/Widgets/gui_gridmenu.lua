@@ -338,11 +338,11 @@ local function resetHovered()
 		rect.opts.clicked = false
 	end
 
+	WG["buildmenu"].hoverID = nil
 	labBuildModeRect.opts.hovered = false
 	nextBuilderRect.opts.hovered = false
 	backRect.opts.hovered = false
 	nextPageRect.opts.hovered = false
-
 	hoveredRect = false
 	redraw = true
 end
@@ -2309,9 +2309,6 @@ end
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-	if WG["buildmenu"] then
-		WG["buildmenu"].hoverID = nil
-	end
 	if not (activeBuilder or alwaysShow) then
 		if WG["guishader"] and dlistGuishader then
 			if dlistGuishader then
