@@ -151,7 +151,6 @@ local GL_ONE = GL.ONE
 
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
 
@@ -5585,10 +5584,6 @@ function init()
 	end
 	if devMode or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
-	end
-
-	if not scavengersAIEnabled then
-		options[getOptionByID('scav_voicenotifs')] = nil
 	end
 
 	if not GetWidgetToggleValue('Grid menu') then
