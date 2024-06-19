@@ -739,6 +739,30 @@ local icontypes = {
 		bitmap = "icons/armcomboss.png",
 		size = 4.19999981
 	},
+	scavengerbossv4_easy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_epic = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_hard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_normal = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryeasy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryhard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
