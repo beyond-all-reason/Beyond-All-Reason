@@ -1738,6 +1738,28 @@ local unitGrids = {
 			{ },                          --
 		}
 	},
+	legmlv = {
+		{
+			{ }, --
+			{ },            --
+			{ },          --
+		},
+		{
+			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
+			{ },                          --
+			{ },                                    --
+		},
+		{
+			{ "", "coreyes", "cordrag", },                 -- camera, dragon's teeth
+			{ },                          --
+			{ },                                       --
+		},
+		{
+			{ },        --
+			{ },                                             --
+			{ },                          --
+		}
+	},
 
 	--Decoy commanders
 	armdecom = {
@@ -1749,12 +1771,12 @@ local unitGrids = {
 		{
 			{ "armllt", },                                   -- LLT
 			{ "armrl", },                                    -- basic AA
-			{ },                                             --
+			{ "","armmine1", "armmine2", "armmine3", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ "armrad", },                                   -- radar
 			{ },                                             --
-			{ "armmine1", "armmine2", "armmine3", },         -- light mine, med mine, heavy mine
+			{ },                                             --
 		},
 		{
 			{ },                                             --
@@ -1772,12 +1794,12 @@ local unitGrids = {
 		{
 			{ "corllt", },                                   -- LLT
 			{ "corrl", },                                    -- basic AA
-			{ },                                             --
+			{ "","cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ "corrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ },                                             --
 		},
 		{
 			{ },                                             --
@@ -1795,12 +1817,12 @@ local unitGrids = {
 		{
 			{ "leglht", },                                   -- LLT
 			{ "legrl", },                                    -- basic AA
-			{ },                                             --
+			{ "","cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ "corrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ },                                             --
 		},
 		{
 			{ },                                             --
@@ -1841,14 +1863,14 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
+			{ "corhllt", "corpyro", "cortoast","cormine2", },                    -- HLLT, pyro, toaster, medmine
 			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
 			{ "cordl", "corroy", "cortermite", "coramph", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{  },                                          
 		},
 		{
 			{ "corlab", "corck", },                                   -- bot lab, bot con
@@ -1865,14 +1887,14 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "legdtr", "legstr", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
+			{ "legdtr", "legstr", "legacluster", "cormine2",},               -- dragon's jaw, strider, t2 cluster arty, medmine
 			{ "legflak", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
 			{ "cordl", "legfloat", "legsrail", },               -- coastal torp launcher, triton, arquebus
 		},
 		{
 			{ "corarad", "coreyes", "legforti", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{ },                                          
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
