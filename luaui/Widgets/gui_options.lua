@@ -2807,8 +2807,6 @@ function init()
 		  end,
 		},
 
-		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
-
 		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
