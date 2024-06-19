@@ -4,7 +4,7 @@ local baseValues = {
 	autoHeal = 10,
 	botCannonProjectiles = 3,
 	disintegratorBurst = 1, --cannot be lower than 1
-	health = 800000,
+	health = 650000,
 	minigunDamage = 333, -- this number*15 = dps of normal gun, *60 for special gun dps
 	missileDamage = 3500,
 	shotgunProjectiles = 20,
@@ -84,7 +84,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/scavengerbossv4.s3o",
 		pushresistant = true,
-		radardistance = 500,
+		radardistance = 2000,
 		radaremitheight = 54,
 		reclaimable = false,
 		releaseheld  = true,
@@ -94,7 +94,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		selfdestructcountdown = 5,
 		showplayername = true,
 		sightdistance = 1500,
-		sonardistance = 500,
+		sonardistance = 1000,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
@@ -228,9 +228,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
-				damage                   = {
-					default              = stats.minigunDamage,
-					vtol				 = stats.minigunDamage/3,
+				damage = {
+					default = stats.minigunDamage,
+					vtol = stats.minigunDamage/3,
 				},
 			},
 			torpedo = {
@@ -275,7 +275,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 600,
 				damage = {
-					-- commanders = 375,
 					default = stats.torpedoDamage,
 				},
 			},
@@ -432,7 +431,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "Heavy long-range g2g tachyon accelerator beam",
 				noselfdamage = true,
 				--proximitypriority = -0.2,
-				range = 500,
+				range = 600,
 				reloadtime = 0.33,
 				rgbcolor = "0.5 0.2 0.8",
 				rgbcolor2 = "0.6 0.4 0.8",
@@ -913,9 +912,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSUB",
 			},
 			[12] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "VTOL GROUNDSCOUT SHIP WEAPON",
 				def = "special_botcannon",
-				onlytargetcategory = "NOWEAPON",
+				onlytargetcategory = "SURFACE",
 			},
 			[13] = {
 				def = "sensor_vtol",

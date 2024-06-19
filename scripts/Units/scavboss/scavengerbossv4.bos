@@ -489,8 +489,7 @@ AmIBored() {
 //declare variables specific to UnitTimer functions
 
 static-var vortexSpinSpeed1, vortexSpinSpeed2, vortexSpinSpeed3, oldEaterBeamIncrement,
-//debug
-testTurboCounter, lastSelect;
+ lastSelect;
 
 UnitTimer()
 {
@@ -726,7 +725,6 @@ Create(){
 	rightArm = 1;
 	suspendWeapon = 1; //debug
 	turboWeaponSelect = 11; //this always starts with 11, the backcannons
-	testTurboCounter = 0; //debug
 	call-script StopWalking();
 	start-script UnitTimer();
 	set ARMORED to 1;
