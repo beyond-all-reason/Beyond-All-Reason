@@ -3,6 +3,7 @@ local multiplier = 1.4 --this number is based on the old health ratios between a
 local baseValues = {
 	autoHeal = 10,
 	botCannonProjectiles = 3,
+	disintegratorBurst = 1, --cannot be lower than 1
 	health = 800000,
 	minigunDamage = 333, -- this number*15 = dps of normal gun, *60 for special gun dps
 	missileDamage = 3500,
@@ -10,7 +11,7 @@ local baseValues = {
 	shotgunSprayAnglePercentageMultiplier = 100,
 	shotgunDamage = 600,
 	topTurretsDamage = 2000,
-	torpedoDamage = 2500,
+	torpedoDamage = 1500,
 	turboShotgunArmBurst = 2,
 }
 
@@ -224,6 +225,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				thickness = 5.5,
 				tolerance = 4500,
 				turret = true,
+				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage                   = {
@@ -232,42 +234,49 @@ for difficulty, stats in pairs(difficultyParams) do
 				},
 			},
 			torpedo = {
-				areaofeffect = 16,
 				avoidfeature = false,
-				avoidfriendly = true,
+				avoidfriendly = false,
+				avoidground = false,
+				bouncerebound = 0.6,
+				bounceslip = 0.6,
 				burnblow = true,
-				cegtag = "torpedotrail-tiny",
-				collidefriendly = true,
+				burst = 2,
+				burstrate = 0.25,
+				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.55,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
-				flighttime = 1.8,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-small-uw",
+				flighttime = 1.75,
+				groundbounce = true,
+				gravityaffected = "true",
+				mygravity = 0.2,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
-				name = "Level1TorpedoLauncher",
+				model = "cordepthcharge.s3o",
+				name = "Depthcharge launcher",
 				noselfdamage = true,
-				predictboost = 1,
-				range = 1000,
-				reloadtime = 0.8,
-				soundhit = "xplosml3",
-				soundhitwet = "sizzle",
+				numbounce = 1,
+				range = 600,
+				reloadtime = 0.75,
+				soundhit = "xplodep2",
+				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
-				startvelocity = 230,
-				tracks = false,
-				turnrate = 2500,
+				soundhitvolume = 3,
+				soundhitwetvolume = 12,
+				startvelocity = 190,
+				tracks = true,
+				trajectoryHeight = 0.60,
+				turnrate = 64000,
 				turret = true,
 				waterweapon = true,
-				weaponacceleration = 50,
-				weapontimer = 3,
+				weaponacceleration = 75,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 200,
+				weaponvelocity = 600,
 				damage = {
 					-- commanders = 375,
 					default = stats.torpedoDamage,
-					subs = stats.torpedoDamage/2,
 				},
 			},
 			shotgunarm = {
@@ -298,11 +307,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				sprayangle = (6000*stats.shotgunSprayAnglePercentageMultiplier/100),
 				tolerance = 6000,
 				turret = true,
+				waterweapon = true,
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
 				damage = {
 					default = stats.shotgunDamage,
+					subs = stats.shotgunDamage/4,
 				},
 			},
 			shoulderturrets = {
@@ -335,11 +346,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundstart = "cannhvy2",
 				sprayangle = 300,
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
 					default = stats.topTurretsDamage,
 					shields = stats.topTurretsDamage/3,
+					subs = stats.topTurretsDamage/4,
 				},
 			},
             missilelauncher = {
@@ -383,6 +396,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				trajectoryheight = 0.45,
 				turnrate = 99000,
 				turret = true,
+				waterweapon = true,
 				weaponacceleration = 600,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
@@ -391,6 +405,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				damage = {
 					default = stats.missileDamage/6,
 					vtol = stats.missileDamage,
+					subs = stats.missileDamage/4,
 				},
 			},
 			eaterbeam = {
@@ -432,6 +447,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				tilelength = 75,
 				tolerance = 10000,
 				turret = true,
+				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
 				damage = {
@@ -444,8 +460,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
-				burst = 6,
-				burstrate = 0,
+				burst = stats.disintegratorBurst,
+				burstrate = 2,
 				bouncerebound = 0,
 				cameraShake = 500,
 				cegtag = "gausscannonprojectilexl",
@@ -466,8 +482,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "SPECIAL Darkmatter Photon-Disruptor",
 				noexplode = true,
 				noselfdamage = true,
+				projectiles = 3,
 				range = 1200,
-				reloadtime = 1,
+				reloadtime = 5,
 				sprayangle = 6500,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
@@ -527,6 +544,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				trajectoryheight = 0.45,
 				--turnrate = 99000,
 				turret = true,
+				waterweapon = true,
 				weaponacceleration = 600,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
@@ -577,6 +595,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 450,
 				damage = {
 					default = stats.shotgunDamage/3,
+					subs = stats.shotgunDamage/4,
 				},
 			},
 			turbo_machinegun = {
@@ -621,11 +640,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				thickness = 5.5,
 				tolerance = 4500,
 				turret = true,
+				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
-				damage                   = {
-					default              = stats.minigunDamage*4,
-					vtol				 = (stats.minigunDamage*4)/3,
+				damage = {
+					default = stats.minigunDamage*4,
+					vtol = (stats.minigunDamage*4)/3,
+					subs = stats.minigunDamage,
 				},
 			},
 			turbo_shoulderturrets = {
@@ -657,11 +678,13 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundtrigger = true,
 				sprayangle = 1200,
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
 					default = stats.topTurretsDamage,
 					shields = stats.topTurretsDamage/3,
+					subs = stats.topTurretsDamage/4,
 				},
 			},
 			special_botcannon = {
@@ -693,7 +716,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 45250,
-				reloadtime = 1,
+				reloadtime = 5,
 				sprayangle = 1200,
 				stockpile = true,
 				stockpiletime = 3,
@@ -707,6 +730,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				bounceSlip = 0.74,
 				bouncerebound = 0.5,
 				numbounce = 10,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				customparams = {
@@ -739,6 +763,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhitwet = "",
 				soundstart = "",
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				damage = {
@@ -766,6 +791,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhitwet = "",
 				soundstart = "",
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				damage = {
@@ -793,6 +819,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhitwet = "",
 				soundstart = "",
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				damage = {
@@ -820,6 +847,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhitwet = "",
 				soundstart = "",
 				turret = true,
+				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 4000,
 				damage = {
@@ -829,7 +857,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "SURFACE",
+				badtargetcategory = "VTOL",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 1,
@@ -842,12 +870,12 @@ for difficulty, stats in pairs(difficultyParams) do
 			[3] = {
 				badtargetcategory = "VTOL",
 				def = "shotgunarm",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[4] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "shoulderturrets",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
             [5] = {
 				badtargetcategory = "SURFACE",
@@ -860,6 +888,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				--burstControlWhenOutOfArc = 2,
 			},
 			[7] = {
+				badtargetcategory = "VTOL",
 				def = "special_disintegratorxl",
 			},
 			[8] = {
@@ -870,7 +899,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			[9] = {
 				badtargetcategory = "VTOL",
 				def = "turbo_napalm",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 			[10] = {
 				badtargetcategory = "SURFACE",
@@ -881,12 +910,12 @@ for difficulty, stats in pairs(difficultyParams) do
 			[11] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "turbo_shoulderturrets",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[12] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "special_botcannon",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOWEAPON",
 			},
 			[13] = {
 				def = "sensor_vtol",
