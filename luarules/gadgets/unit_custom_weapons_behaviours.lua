@@ -232,7 +232,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	applyingFunctions.torpwaterpen = function (proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
-        Spring.SetProjectileVelocity(proID,vx,0,vz)
+		--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
+		--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+		
+		local bypass = false
+		local targetType, targetID = Spring.GetProjectileTarget(proID)
+		
+		if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then--ground attack borks it; skip
+			local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
+			if (unitPosY ~= nil) and unitPosY<-10 then
+				bypass = true
+				Spring.SetProjectileVelocity(proID,vx/1.3,vy/6,vz/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+			end
+		end
+		
+		if not bypass then
+			Spring.SetProjectileVelocity(proID,vx,0,vz)
+		end
     end
 
 	applyingFunctions.cannonwaterpen = function (proID)
