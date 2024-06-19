@@ -81,6 +81,35 @@ local unitlist = {
 	{'corllt', 'corptl'},
 }
 
+
+
+local legionUnitlist = {
+	--{'cormakr','corfmkr'},
+	--{'cordrag','corfdrag'},
+	--{'cormstor', 'coruwms'},
+	--{'corestor', 'coruwes'},
+	{'legrl','corfrt'},
+	{'leghp','legfhp'},
+	{'legrad','corfrad'},
+	{'legmg','corfhlt'},
+	--{'cortarg','corfatf'},
+	--{'cormmkr','coruwmmm'},
+	--{'corfus','coruwfus'},
+	--{'corflak','corenaa'},
+	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
+	{'legsolar','cortide'},
+	{'leglab','corsy'},--soon(tm)
+	{'leglht','cortl'},--these seem fussy, reason currently unknown
+	{'leglht', 'corptl'},
+	--{'cornanotc','cornanotcplat'},
+	{'legvp','legamsub'},
+	--{'corap','corplat'},
+	--{'corasp','corfasp'},
+	--{'corgeo','coruwgeo'},
+	--{'corageo','coruwageo'},
+}
+
+
 local ptlCons = {
 	['armbeaver'] = true,
 	['cormuskrat'] = true,
@@ -256,6 +285,14 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+	
+	if Spring.GetModOptions().experimentallegionfaction then	
+		for _,v in ipairs(legionUnitlist) do 
+			table.insert(unitlist, v)
+		end
+	end
+
+	
 	local uDefNames = UnitDefNames
 	for _,unitNames in ipairs(unitlist) do
 		for i, unitName in ipairs(unitNames) do
