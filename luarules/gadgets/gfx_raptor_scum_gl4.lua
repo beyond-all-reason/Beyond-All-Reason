@@ -111,7 +111,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] then
+			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) then
 				local footprintX = unitDef.xsize*0.5 -- why the fuck is this footprint *2??????
 				local footprintZ = unitDef.zsize*0.5 -- why the fuck is this footprint *2??????
 				local footprintSquare = 2
