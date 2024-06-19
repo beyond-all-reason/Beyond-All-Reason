@@ -391,7 +391,6 @@ local function updateHoverState()
 			end
 
 			local uDefID = cellRect.opts.uDefID
-			WG["buildmenu"].hoverID = uDefID
 
 			local text
 			local textColor = "\255\215\255\215"
@@ -410,6 +409,7 @@ local function updateHoverState()
 			end
 
 			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
+			WG["buildmenu"].hoverID = uDefID
 
 			return
 		end
