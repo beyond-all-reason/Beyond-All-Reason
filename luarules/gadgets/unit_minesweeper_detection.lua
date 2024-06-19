@@ -72,9 +72,7 @@ function gadget:Initialize()
 	end
 end
 
-
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	--Spring.Echo('hornet poi 79 minesweeperIDs[unitDefID], unitDefID, unitID', minesweeperIDs[unitDefID], unitDefID, unitID)
 	if minesweeperIDs[unitDefID] then
 		minesweepers[unitID] = unitDefID
