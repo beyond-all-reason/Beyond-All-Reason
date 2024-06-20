@@ -739,6 +739,30 @@ local icontypes = {
 		bitmap = "icons/armcomboss.png",
 		size = 4.19999981
 	},
+	scavengerbossv4_easy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_epic = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_hard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_normal = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryeasy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryhard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
@@ -2413,6 +2437,10 @@ local icontypes = {
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
+	},
+	legsnapper = {
+		bitmap = "icons/corroach_0.9.png",
+		size = 0.94499993
 	},
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",

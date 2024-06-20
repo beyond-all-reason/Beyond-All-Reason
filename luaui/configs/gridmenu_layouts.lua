@@ -31,7 +31,7 @@ local labGrids = {
 	legalab = {
 		"legack", "legaceb", "legstr", "corspy",               -- T2 con, freaker, strider, spy
 		"corvoyr", "corspec", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
-		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
+		"legbart", "legsnapper", "legshot", "leginc",             -- belcher, snapper, shotgun, incinerator
 	},
 	-- T1 vehicle
 	armvp = {

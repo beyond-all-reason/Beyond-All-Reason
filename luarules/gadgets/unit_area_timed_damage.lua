@@ -315,7 +315,23 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
+    ['scavengerbossv4_normal_turbo_napalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 12,
+        damage = 20,
+        range = 150,
+        resistance = "test",
+    },
+
 }
+--duplicate entry for scavengerbossv4
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
+ 'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
+for _, name in pairs(scavengerBossV4Table) do
+	TimedDamageWeaponsNames[name] = table.copy(TimedDamageWeaponsNames['scavengerbossv4_normal_turbo_napalm'])
+end
+
 -- convert weaponname -> weaponDefID
 local TimedDamageWeapons = {}
 for name, params in pairs(TimedDamageWeaponsNames) do

@@ -61,6 +61,7 @@ local armorDefs = {
 	crawlingbombs = {
 		"armvader",
 		"corroach",
+		"legsnapper",
 		"corsktl",
 	},
 	walls = {

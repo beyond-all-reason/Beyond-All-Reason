@@ -95,7 +95,7 @@ local function scavUnitDef_Post(name, uDef)
 	
 	-- Set autoheal of scav units
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") then
+		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4")then
 			if not string.find(name, "scavbeacon") then
 				uDef.health = uDef.health * 1.25
 				uDef.hidedamage = true
