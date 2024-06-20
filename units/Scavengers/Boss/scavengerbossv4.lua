@@ -1,17 +1,21 @@
-local multiplier = 1.4 --this number is based on the old health ratios between armscavengerbossv2's difficulty levels. Changing this increases the disparity between difficulty levels.
+local multiplier = 1.15 --this number is based on the old health ratios between armscavengerbossv2's difficulty levels. Changing this increases the disparity between difficulty levels.
+local playerCountScale = 1
+if Spring.Utilities.Gametype.IsScavengers() then
+	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+end
 
 local baseValues = {
 	autoHeal = 10,
-	botCannonProjectiles = 3,
+	botCannonProjectiles = 3*playerCountScale,
 	disintegratorBurst = 1, --cannot be lower than 1
 	health = 650000,
-	minigunDamage = 333, -- this number*15 = dps of normal gun, *60 for special gun dps
-	missileDamage = 3500,
+	minigunDamage = 333*playerCountScale, -- this number*15 = dps of normal gun, *60 for special gun dps
+	missileDamage = 3500*playerCountScale,
 	shotgunProjectiles = 20,
 	shotgunSprayAnglePercentageMultiplier = 100,
-	shotgunDamage = 600,
-	topTurretsDamage = 2000,
-	torpedoDamage = 1500,
+	shotgunDamage = 600*playerCountScale,
+	topTurretsDamage = 2000*playerCountScale,
+	torpedoDamage = 1500*playerCountScale,
 	turboShotgunArmBurst = 2,
 }
 
@@ -20,9 +24,9 @@ local difficultyLevels = {"veryeasy", "easy","normal", "hard", "veryhard", "epic
 for _, level in pairs(difficultyLevels) do
 	local m
 	if level == "veryeasy" then
-		m = multiplier^-2
+		m = multiplier^-4
 	elseif level == "easy" then
-		m = multiplier^-1
+		m = multiplier^-2
 	elseif level == "normal" then
 		m = 1
 	elseif level == "hard" then
@@ -47,6 +51,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
+		power = 16600000,
 		builddistance = 750,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
