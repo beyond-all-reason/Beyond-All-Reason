@@ -67,9 +67,6 @@ Movement(myMoving)
 
 Create()
 {
-	spin left around z-axis speed <-300.000000>;
-	spin right around z-axis speed <300.000000>;
-
 	isMoving = FALSE;
 	start-script Movement();
 }
