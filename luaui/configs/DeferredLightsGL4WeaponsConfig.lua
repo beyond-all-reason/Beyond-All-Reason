@@ -852,7 +852,18 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
 											sustain = 10, lifetime = 400,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
-
+--scavengerbossv4
+explosionLightsNames['scavengerbossv4_normal_turbo_napalm'] =
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
+										 sustain = 40, lifetime = 150,
+										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
+--duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
+ 'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
+for _, name in pairs(scavengerBossV4Table) do
+	explosionLightsNames[name] = table.copy(explosionLightsNames['scavengerbossv4_normal_turbo_napalm'])
+end
 -- --armanni
 -- projectileDefLightsNames["armanni_ata"] =
 -- GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,

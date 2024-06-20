@@ -166,6 +166,16 @@ local soundData = {
 		rolloff = 1.1,
 	},
 
+	-- GLOBAL EVENTS not in use currently
+	['global-events'] = {
+		gain = 1.0 * 0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.1 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 8,
+		rolloff = 0.2,
+	},
+
 	-- BOMB SOUNDS / More maxconcurrent
 	['bombs'] = {
 		gain = 1.2 * 0.3,

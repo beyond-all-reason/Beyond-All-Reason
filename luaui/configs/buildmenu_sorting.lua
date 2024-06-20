@@ -193,9 +193,7 @@ local unitOrderTable = {
 	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
-	['armsam2']        = 005801, --LAND + AA
 	['cormist']        = 005810,
-	['cormist2']       = 005811,
 	['legrail']		   = 005811,
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS
@@ -252,6 +250,7 @@ local unitOrderTable = {
 
 	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
+	['legsnapper']       = 006825,
 	['corsktl']        = 006830,
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
@@ -331,13 +330,16 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
+	['legpt']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
 	['corpt']          = 009110,
+	['legvelite']      = 009120,
 
 	['armpship']       = 009200, --MAIN BATTLE
 	['corpship']       = 009210,
+	['leghastatus']    = 009210,
 	['armroy']         = 009220,
 	['corroy']         = 009230,
 

@@ -61,6 +61,7 @@ local armorDefs = {
 	crawlingbombs = {
 		"armvader",
 		"corroach",
+		"legsnapper",
 		"corsktl",
 	},
 	walls = {
@@ -137,7 +138,6 @@ local armorDefs = {
 		"armrl",
 		"armrock",
 		"armsam",
-		"armsam2",
 		"armscab",
 		"armsd",
 		"armsh",
@@ -210,7 +210,6 @@ local armorDefs = {
 		"cormex",
 		"cormh",
 		"cormist",
-		"cormist2",
 		"cormmkr",
 		"cormoho",
 		"cormort",
@@ -558,11 +557,19 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
+		"legcs",
+		"legvelite",
+		"leghastatus",
+		"leghastatusalt",
+		"legoptio",
+		"legpt",
 	},
 
 	hvyboats = {
 		"armroy",
 		"corroy",
+		"legtriarus",
+		"legtriarusalt",
 		"corarch",
 		"armaas",
 		"armcrus",
@@ -582,6 +589,7 @@ local armorDefs = {
 	subs = {
 		"armsub",
 		"corsub",
+		"legstingray",
         "armsubk",
 		"corshark",
         "corssub",
