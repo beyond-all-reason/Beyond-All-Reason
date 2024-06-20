@@ -24,7 +24,7 @@ local rawTriggers, rawActions
 
 --============================================================--
 
-local function LoadMission()
+local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	rawTriggers = mission.Triggers
 	rawActions = mission.Actions
@@ -62,7 +62,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	LoadMission();
+	loadMission();
 end
 
 ----------------------------------------------------------------

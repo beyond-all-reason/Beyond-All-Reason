@@ -26,7 +26,7 @@ local types, triggers
 
 --============================================================--
 
-local function TriggerValid(trigger)
+local function triggerValid(trigger)
 	if not trigger.settings.active then return false end
 
 	for _, prerequisiteTrigger in pairs(trigger.settings.prerequisites) do
@@ -47,8 +47,8 @@ end
 
 ----------------------------------------------------------------
 
-local function ActivateTrigger(trigger)
-	if not TriggerValid(trigger) then
+local function activateTrigger(trigger)
+	if not triggerValid(trigger) then
 		return
 	end
 
@@ -66,12 +66,12 @@ end
 
 ----------------------------------------------------------------
 
-local function CheckTimeElapsed(trigger, gameframe)
+local function checkTimeElapsed(trigger, gameframe)
 	local targetframe = trigger.parameters.gameFrame
 	local interval = trigger.parameters.interval
 
 	if gameframe == targetframe or (trigger.settings.repeating and gameframe > targetframe and (gameframe - targetframe) % interval == 0) then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 		return
 	end
 end
@@ -82,39 +82,39 @@ end
 
 ----------------------------------------------------------------
 
-local function CheckUnitExists(trigger)
+local function checkUnitExists(trigger)
 	local quantity = trigger.parameters.quantity or 1
 
 	local units = Spring.GetTeamUnitsByDefs(trigger.parameters.unitDef.team, trigger.parameters.unitDef.getName())
 	if #units >= quantity then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 		return
 	end
 end
 
 ----------------------------------------------------------------
 
-local function CheckUnitNotExists(trigger)
+local function checkUnitNotExists(trigger)
 	local unit = trigger.parameters.unit
 
 	if unit.type == actionsDefs.type.name then
 		if trackedUnits[unit.ID] == nil then
-			ActivateTrigger(trigger)
+			activateTrigger(trigger)
 			return
 		end
 	elseif unit.type == actionsDefs.type.unitID then
 		if not Spring.IsValidUnit(unit.ID) then
-			ActivateTrigger(trigger)
+			activateTrigger(trigger)
 			return
 		end
 	elseif unit.type == actionsDefs.type.unitDefID then
 		if #(Spring.GetTeamUnitsByDefs(unit.team, unit.ID)) == 0 then
-			ActivateTrigger(trigger)
+			activateTrigger(trigger)
 			return
 		end
 	elseif unit.type == actionsDefs.type.unitDefName then
 		if #(Spring.GetTeamUnitsByDefs(unit.team, UnitDefNames[unit.ID])) == 0 then
-			ActivateTrigger(trigger)
+			activateTrigger(trigger)
 			return
 		end
 	end
@@ -122,34 +122,34 @@ end
 
 ----------------------------------------------------------------
 
-local function CheckUnitKilled(trigger, unitID, unitDefID)
+local function checkUnitKilled(trigger, unitID, unitDefID)
 	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 	end
 end
 
 ----------------------------------------------------------------
 
-local function CheckUnitCaptured(trigger, unitID, unitDefID)
+local function checkUnitCaptured(trigger, unitID, unitDefID)
 	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 	end
 end
 
 ----------------------------------------------------------------
 
-local function CheckConstructionStarted(trigger, unitID, unitDefID)
+local function checkConstructionStarted(trigger, unitID, unitDefID)
 	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 		return
 	end
 end
 
 ----------------------------------------------------------------
 
-local function CheckConstructionFinished(trigger, unitID, unitDefID)
+local function checkConstructionFinished(trigger, unitID, unitDefID)
 	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 		return
 	end
 end
@@ -160,9 +160,9 @@ end
 
 ----------------------------------------------------------------
 
-local function CheckTeamDestroyed(trigger, teamID)
+local function checkTeamDestroyed(trigger, teamID)
 	if teamID == trigger.parameters.teamID then
-		ActivateTrigger(trigger)
+		activateTrigger(trigger)
 	end
 end
 
@@ -185,11 +185,11 @@ end
 function gadget:GameFrame(n)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
-			CheckTimeElapsed(trigger, n)
+			checkTimeElapsed(trigger, n)
 		elseif trigger.type == types.UnitExists then
-			CheckUnitExists(trigger)
+			checkUnitExists(trigger)
 		elseif trigger.type == types.UnitNotExists then
-			CheckUnitNotExists(trigger)
+			checkUnitNotExists(trigger)
 		end
 	end
 end
@@ -199,7 +199,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.UnitKilled then
-			CheckUnitKilled(trigger, unitID, unitDefID)
+			checkUnitKilled(trigger, unitID, unitDefID)
 		end
 	end
 
@@ -225,7 +225,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.UnitCaptured then
-			CheckUnitCaptured(trigger, unitID, unitDefID)
+			checkUnitCaptured(trigger, unitID, unitDefID)
 		end
 	end
 end
@@ -235,7 +235,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.ConstructionStarted then
-			CheckConstructionStarted(trigger, unitID, unitDefID)
+			checkConstructionStarted(trigger, unitID, unitDefID)
 		end
 	end
 end
@@ -245,7 +245,7 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.ConstructionFinished then
-			CheckConstructionFinished(trigger, unitID, unitDefID)
+			checkConstructionFinished(trigger, unitID, unitDefID)
 		end
 	end
 end
@@ -255,7 +255,7 @@ end
 function gadget:TeamDied(teamID)
 	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.TeamDestroyed then
-			CheckTeamDestroyed(trigger, teamID)
+			checkTeamDestroyed(trigger, teamID)
 		end
 	end
 end

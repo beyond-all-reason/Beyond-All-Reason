@@ -141,15 +141,15 @@ function gadget:Initialize()
 		return
 	end
 
-	GG['MissionAPI'].tracker = {}
+	GG['MissionAPI'].Tracker = {}
 
-	GG['MissionAPI'].tracker.addTimer = addTimer
-	GG['MissionAPI'].tracker.removeTimer = removeTimer
+	GG['MissionAPI'].Tracker.addTimer = addTimer
+	GG['MissionAPI'].Tracker.removeTimer = removeTimer
 
-	GG['MissionAPI'].tracker.addCollider = addCollider
-	GG['MissionAPI'].tracker.removeCollider = removeCollider
+	GG['MissionAPI'].Tracker.addCollider = addCollider
+	GG['MissionAPI'].Tracker.removeCollider = removeCollider
 
-	GG['MissionAPI'].tracker.units = trackedUnits
+	GG['MissionAPI'].Tracker.units = trackedUnits
 end
 
 ----------------------------------------------------------------

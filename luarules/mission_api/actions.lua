@@ -1,7 +1,7 @@
 --============================================================--
 
-local trackedUnits = GG['MissionAPI'].TrackedUnits
-local triggers = GG['MissionAPI'].Triggers
+local trackedUnits = GGMissionAPI.TrackedUnits
+local triggers = GGMissionAPI.Triggers
 local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
 
 --============================================================--
@@ -10,13 +10,13 @@ local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
 
 --============================================================--
 
-local function EnableTrigger(triggerID)
+local function enableTrigger(triggerID)
 	triggers[triggerID].settings.active = true
 end
 
 ----------------------------------------------------------------
 
-local function DisableTrigger(triggerID)
+local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
@@ -26,7 +26,7 @@ end
 
 --============================================================--
 
-local function IssueOrders(unit, orders)
+local function issueOrders(unit, orders)
 	local units = unit.GetUnits()
 	Spring.GiveOrderArrayToUnitArray(units, orders)
 end
@@ -37,7 +37,7 @@ end
 
 --============================================================--
 
-local function SpawnUnits(name, unitDef, quantity, position, facing, construction)
+local function spawnUnits(name, unitDef, quantity, position, facing, construction)
 	if quantity == 0 then return end
 
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
@@ -59,7 +59,7 @@ end
 
 ----------------------------------------------------------------
 
-local function DespawnUnits(unit)
+local function despawnUnits(unit)
 	local units = unit.GetUnits()
 
 	for _, id in ipairs(units) do
@@ -69,7 +69,7 @@ end
 
 ----------------------------------------------------------------
 
-local function TransferUnits(unit, newTeam, given)
+local function transferUnits(unit, newTeam, given)
 	local units = unit.GetUnits()
 
 	for _, id in ipairs(units) do
@@ -83,8 +83,8 @@ end
 
 --============================================================--
 
-local function SpawnExplosion(position, direction, params)
-	SpawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
+local function spawnExplosion(position, direction, params)
+	spawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
 end
 
 --============================================================--
@@ -93,7 +93,7 @@ end
 
 --============================================================--
 
-local function SendMessage(message)
+local function sendMessage(message)
 	Spring.Echo(message)
 end
 
@@ -103,7 +103,7 @@ end
 
 --============================================================--
 
-local function Custom(func)
+local function custom(func)
 	func()
 end
 
@@ -111,31 +111,31 @@ end
 
 return {
 	-- Triggers
-	['EnableTrigger'] = EnableTrigger,
-	['DisableTrigger'] = DisableTrigger,
+	EnableTrigger = enableTrigger,
+	DisableTrigger = disableTrigger,
 
 	-- Orders
-	['IssueOrders'] = IssueOrders,
+	IssueOrders = issueOrders,
 
 	-- Build Options
 
 	-- Units
-	['SpawnUnits'] = SpawnUnits,
-	['DespawnUnits'] = DespawnUnits,
-	['TransferUnits'] = TransferUnits,
+	SpawnUnits = spawnUnits,
+	DespawnUnits = despawnUnits,
+	TransferUnits = transferUnits,
 
 	-- SFX
-	['SpawnExplosion'] = SpawnExplosion,
+	SpawnExplosion = spawnExplosion,
 
 	-- Map
 
 	-- Media
-	['SendMessage'] = SendMessage,
+	SendMessage = sendMessage,
 
 	-- Win Condition
 
 	-- Custom
-	['Custom'] = Custom,
+	Custom = custom,
 }
 
 --============================================================--

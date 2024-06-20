@@ -4,7 +4,7 @@
 
 --============================================================--
 
-local trackedUnits = GG['MissionAPI'].tracker.units
+local trackedUnits = GG['MissionAPI'].Tracker.units
 
 --============================================================--
 
@@ -17,7 +17,7 @@ local trackedUnits = GG['MissionAPI'].tracker.units
 -- @string module The name of the module logging the error
 -- @string object The name of the object with the missing field
 -- @string field The name of the missing field
-local function ErrorMissingField(file, module, object, field)
+local function errorMissingField(file, module, object, field)
 	Spring.Log(file, LOG.ERROR, string.format("[%s] '%s' is missing field '%s'", module, object, field))
 end
 
@@ -30,7 +30,7 @@ end
 -- @string field The name of the invalid field
 -- @string expected The expected type of the field
 -- @string got The actual type of the field
-local function ErrorUnexpectedType(file, module, object, field, expected, got)
+local function errorUnexpectedType(file, module, object, field, expected, got)
 	Spring.Log(file, LOG.ERROR, string.format("[%s] Field '%s' in '%s' has an unexpected type. Expected %s, got %s", module, field, object, expected, got))
 end
 
@@ -43,7 +43,7 @@ end
 -- @string field The name of the invalid field
 -- @number expected The expected length of the array
 -- @number got The actual length of the array
-local function ErrorUnexpectedArraySize(file, module, object, field, expected, got)
+local function errorUnexpectedArraySize(file, module, object, field, expected, got)
 	Spring.Log(file, LOG.ERROR, string.format("[%s] Field '%s' in '%s' is array of unexpected size. Expected %i, got %i", module, field, object, expected, got))
 end
 
@@ -58,19 +58,19 @@ end
 -- @string expectedType The expected type of the field being checked
 -- @bool required If the field is required to have a value
 -- @treturn bool False if any validity error is found
-local function CheckField(fileName, moduleName, objectName, fieldName, field, expectedType, required)
+local function checkField(fileName, moduleName, objectName, fieldName, field, expectedType, required)
 	fileName = fileName or 'types.lua'
 	moduleName = moduleName or 'Mission API'
 
 	local out = true
 
 	if required and field == nil then
-		ErrorMissingField(fileName, moduleName, objectName, fieldName)
+		errorMissingField(fileName, moduleName, objectName, fieldName)
 		out = false
 	end
 
 	if field and type(field) ~= expectedType then
-		ErrorUnexpectedType(fileName, moduleName, objectName, fieldName, expectedType, type(field))
+		errorUnexpectedType(fileName, moduleName, objectName, fieldName, expectedType, type(field))
 		out = false
 	end
 
@@ -84,7 +84,7 @@ end
 --============================================================--
 
 --- Metatable for Collider objects
-local Collider = { 
+local collider = { 
 	__name = 'Collider', -- Meta name used for type checking
 
 	position = {0, 0}, -- {x, z} position of the collider
@@ -97,7 +97,7 @@ local Collider = {
 
 	units = {}, -- units inside the collider on last poll
 }
-Collider.__index = Collider
+collider.__index = collider
 
 ----------------------------------------------------------------
 
@@ -108,7 +108,7 @@ Collider.__index = Collider
 -- @func onEnter Function called when a unit enters the collider. UnitID and UnitDefID are passed as arguments
 -- @func onLeave Function called when a unit leaves the collider. UnitID and UnitDefID are passed as arguments
 -- @treturn table Instance derived from the Collider metatable
-function Collider:new(position, scale, team, onEnter, onLeave)
+function collider:new(position, scale, team, onEnter, onLeave)
 	local object = {}
 
 	setmetatable(object, self)
@@ -130,30 +130,30 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @return boolean False if any validity errors are found
-function Collider:validate(file, module)
+function collider:validate(file, module)
 	local out = true
 
 	if not self.position then
-		ErrorMissingField(file, module, self.__name, 'position')
+		errorMissingField(file, module, self.__name, 'position')
 	elseif type(self.position) ~= 'table' then
-		ErrorUnexpectedType(file, module, self.__name, 'position', 'table', type(self.position))
+		errorUnexpectedType(file, module, self.__name, 'position', 'table', type(self.position))
 	elseif #self.position ~= 2 then
 		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'position' in 'Collider' has unexpected length, expected 2, got %i", module, #self.position))
 	end
 
 	if not self.scale then
-		ErrorMissingField(file, module, self.__name, 'scale')
+		errorMissingField(file, module, self.__name, 'scale')
 	elseif type(self.scale) ~= 'number' and type(self.scale) ~= 'table' then
-		ErrorUnexpectedType(file, module, self.__name, 'scale', 'table or number', type(self.scale))
+		errorUnexpectedType(file, module, self.__name, 'scale', 'table or number', type(self.scale))
 	elseif type(self.scale) == 'table' and #self.scale ~= 2 then
 		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'scale' in 'Collider' has unexpected length, expected 2, got %i", module, #self.position))
 	end
 
-	out = out and CheckField(file, module, self.__name, 'width', self.width, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'height', self.height, 'number', false)
-	out = out and CheckField(file, module, self.__name, 'team', self.team, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'onEnter', self.onEnter, 'function', false)
-	out = out and CheckField(file, module, self.__name, 'onLeave', self.onLeave, 'function', false)
+	out = out and checkField(file, module, self.__name, 'width', self.width, 'number', true)
+	out = out and checkField(file, module, self.__name, 'height', self.height, 'number', false)
+	out = out and checkField(file, module, self.__name, 'team', self.team, 'number', true)
+	out = out and checkField(file, module, self.__name, 'onEnter', self.onEnter, 'function', false)
+	out = out and checkField(file, module, self.__name, 'onLeave', self.onLeave, 'function', false)
 
 	return out
 end
@@ -162,7 +162,7 @@ end
 
 --- Gets all units inside the collider, filtered with the collider's teamID
 -- @treturn table {[1] = UnitID, ...}
-function Collider:getUnits()
+function collider:getUnits()
 	local units = {}
 
 	if not self.height then
@@ -176,7 +176,7 @@ end
 ----------------------------------------------------------------
 
 --- Polls the collider, checking if any units have entered or left and updating the current units table
-function Collider:poll()
+function collider:poll()
 	local currentUnits = self.getUnits()
 
 	if self.onEnter then
@@ -205,7 +205,7 @@ end
 --============================================================--
 
 --- Metatable for Timer objects
-local Timer = {
+local timer = {
 	__name = 'Timer', -- Meta name used for type checking
 
 	count = 0, -- Current count of frames since started
@@ -217,7 +217,7 @@ local Timer = {
 	onUpdate = nil, -- Function called every frame with the alpha (0.0 - 1.0) of the timer, for LERPing
 	onFinished = nil, -- Function called when the timer finishes
 }
-Timer.__index = Timer
+timer.__index = timer
 
 ----------------------------------------------------------------
 
@@ -227,7 +227,7 @@ Timer.__index = Timer
 -- @func onUpdate Function called every frame that the timer is running. Passes the alpha (0.0 - 1.0) of the timer as argument
 -- @func onFinished Function called when the timer finishes
 -- @treturn table Instance derived from the Timer metatable
-function Timer:new(length, loop, onUpdate, onFinished)
+function timer:new(length, loop, onUpdate, onFinished)
 	local object = {}
 
 	setmetatable(object, self)
@@ -249,13 +249,13 @@ end
 --- Validates the Timer's parameters
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
-function Timer:validate(file, module)
+function timer:validate(file, module)
 	local out = true
 
-	out = out and CheckField(file, module, self.__name, 'length', self.length, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'loop', self.loop, 'bool', false)
-	out = out and CheckField(file, module, self.__name, 'onUpdate', self.onUpdate, 'function', false)
-	out = out and CheckField(file, module, self.__name, 'onFinished', self.onFinished, 'function', false)
+	out = out and checkField(file, module, self.__name, 'length', self.length, 'number', true)
+	out = out and checkField(file, module, self.__name, 'loop', self.loop, 'bool', false)
+	out = out and checkField(file, module, self.__name, 'onUpdate', self.onUpdate, 'function', false)
+	out = out and checkField(file, module, self.__name, 'onFinished', self.onFinished, 'function', false)
 
 	return out
 end
@@ -263,21 +263,21 @@ end
 ----------------------------------------------------------------
 
 --- Starts the timer. If paused, will continue at the state the timer was paused
-function Timer:start()
+function timer:start()
 	self.running = true
 end
 
 ----------------------------------------------------------------
 
 --- Pauses the timer, does not reset the timer's current state
-function Timer:pause()
+function timer:pause()
 	self.running = false
 end
 
 ----------------------------------------------------------------
 
 --- Stops the timer and resets its current state
-function Timer:stop()
+function timer:stop()
 	self.count = 0
 	self.running = false
 end
@@ -285,7 +285,7 @@ end
 ----------------------------------------------------------------
 
 --- Polls the timer, incrementing its count and calling the appropriate functions
-function Timer:poll()
+function timer:poll()
 	if not self.running then return end
 
 	self.count = self.count + 1
@@ -306,7 +306,7 @@ end
 --============================================================--
 
 --- Metatable for Unit objects
-local Unit = {
+local unit = {
 	__name = 'Unit', -- Meta name for type checking
 
 	TYPE = {
@@ -320,7 +320,7 @@ local Unit = {
 	ID = 0, -- The name or ID of the given type
 	team = Spring.ALL_UNITS, -- The teamID to use for filtering units
 }
-Unit.__index = Unit
+unit.__index = unit
 
 ----------------------------------------------------------------
 
@@ -329,7 +329,7 @@ Unit.__index = Unit
 -- @tparam string|number ID The name or ID of the given type
 -- @number team The teamID to use for filtering units
 -- @treturn table Instance derived from the Unit metatable
-function Unit:new(type, ID, team)
+function unit:new(type, ID, team)
 	local object = {}
 	setmetatable(object, self)
 
@@ -346,22 +346,22 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function Unit:validate(file, module)
+function unit:validate(file, module)
 	file = file or 'types.lua'
 	module = module or 'Mission API'
 
 	if self.ID == nil then
-		ErrorMissingField(file, module, self.__name, 'ID')
+		errorMissingField(file, module, self.__name, 'ID')
 		return false
 	end
 
 	if not self.type then
-		ErrorMissingField(file, module, self.__name, 'type')
+		errorMissingField(file, module, self.__name, 'type')
 		return false
 	end
 
 	if not self.team then
-		ErrorMissingField(file, module, self.__name, 'team')
+		errorMissingField(file, module, self.__name, 'team')
 		return false
 	end
 
@@ -392,7 +392,7 @@ end
 -- @number unitID The unitID of the unit to compare to
 -- @number unitDefID the unitDefID of the unit to compare to
 -- @treturn boolean True if the Unit matches the unitID or unitDefID
-function Unit:isUnit(unitID, unitDefID)
+function unit:isUnit(unitID, unitDefID)
 	if not self.teamIsTeam(self.team, Spring.GetUnitTeam(unitID)) then return false end
 
 	if self.type == self.TYPES.NAME then
@@ -413,7 +413,7 @@ end
 -- Unit.TYPE.ID will just return the ID. Does not check if the ID is valid
 -- Unit.TYPE.DEF_ID or Unit.TYPE.DEF_NAME returns all existing units of the given type and with the given teamID
 -- @treturn table {[1] = unitID, ...}
-function Unit:getUnits() 
+function unit:getUnits() 
 	if self.type == self.TYPE.NAME then
 		return trackedUnits[self.ID]
 	elseif self.type == self.TYPE.ID then
@@ -429,7 +429,7 @@ end
 
 --- Checks if the Unit exists
 -- @treturn boolean True if unit exists. For types other than Unit.TYPE.ID, will return true if any matching units exist
-function Unit:exists()
+function unit:exists()
 	local units = self.getUnits()
 
 	for _, unitID in ipairs(units) do
@@ -443,7 +443,7 @@ end
 
 ----------------------------------------------------------------
 
-function Unit:teamIsTeam(teamA, teamB)
+function unit:teamIsTeam(teamA, teamB)
 	if teamA == teamB then return true end
 
 	if teamA == Spring.ALL_UNITS or teamB == Spring.ALL_UNITS then
@@ -492,7 +492,7 @@ end
 --============================================================--
 
 --- Metatable for UnitDef objects
-local UnitDef = {
+local unitDef = {
 	__name = 'UnitDef', -- Meta name for type checking
 
 	TYPE = {
@@ -504,7 +504,7 @@ local UnitDef = {
 	ID = 0, -- The name or ID of the given type
 	team = Spring.ALL_UNITS, -- The teamID used for filtering units
 }
-UnitDef.__index = UnitDef
+unitDef.__index = unitDef
 
 ----------------------------------------------------------------
 
@@ -513,7 +513,7 @@ UnitDef.__index = UnitDef
 -- @tparam string|number ID The name or ID of the given type
 -- @number team The teamID used for filtering units
 -- @treturn table Instance derived from the UnitDef metatable
-function UnitDef:new(type, ID, team)
+function unitDef:new(type, ID, team)
 	local object = {}
 	setmetatable(object, self)
 
@@ -530,12 +530,12 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function UnitDef:validate(file, module)
+function unitDef:validate(file, module)
 	file = file or 'types.lua'
 	module = module or 'Mission API'
 
 	if self.ID == nil then
-		ErrorMissingField(file, module, self.__name, 'ID')
+		errorMissingField(file, module, self.__name, 'ID')
 		return false
 	end
 
@@ -561,7 +561,7 @@ end
 
 --- Convenience function for getting the UnitDefID
 -- @treturn number The ID converted to a UnitDefID
-function UnitDef:getID()
+function unitDef:getID()
 	if self.type == self.TYPE.ID then 
 		return self.ID
 	elseif self.type == self.TYPE.NAME then 
@@ -573,7 +573,7 @@ end
 
 --- Convenience function for getting the UnitDefName
 -- @treturn string The ID converted to a UnitDefName
-function UnitDef:getName()
+function unitDef:getName()
 	if self.type == self.TYPE.NAME then
 		return self.ID
 	elseif self.type == self.TYPE.ID then
@@ -585,7 +585,7 @@ end
 
 --- Gets all units that match the UnitDef
 -- @treturn table {[1] = unitID, ...}
-function UnitDef:getUnits()
+function unitDef:getUnits()
 	return Spring.GetTeamUnitsByDefs(self.team, self.getID())
 end
 
@@ -593,7 +593,7 @@ end
 
 --- Checks if any unit exists matching the UnitDef
 -- @treturn boolean True if any matching unit exists
-function UnitDef:exists()
+function unitDef:exists()
 	return #(self.getUnits()) > 0
 end
 
@@ -604,13 +604,13 @@ end
 --============================================================--
 
 --- Metatable for Vec2 objects
-local Vec2 = {
+local vec2 = {
 	__name = 'Vec2', -- Meta name for type checking
 
 	x = 0, -- X value
 	z = 0, -- Z value
 }
-Vec2.__index = Vec2
+vec2.__index = vec2
 
 ----------------------------------------------------------------
 
@@ -618,7 +618,7 @@ Vec2.__index = Vec2
 -- @number x The X value
 -- @number z The Z value
 -- @treturn table Instance derived from Vec2 metatable
-function Vec2:new(x, z)
+function vec2:new(x, z)
 	local object = {}
 
 	setmetatable(object, self)
@@ -635,11 +635,11 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function Vec2:validate(file, module)
+function vec2:validate(file, module)
 	local out = true
 
-	out = out and CheckField(file, module, self.__name, 'x', self.x, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'z', self.z, 'number', true)
+	out = out and checkField(file, module, self.__name, 'x', self.x, 'number', true)
+	out = out and checkField(file, module, self.__name, 'z', self.z, 'number', true)
 
 	return out
 end
@@ -651,14 +651,14 @@ end
 --============================================================--
 
 --- Metatable for Vec3 objects
-local Vec3 = {
+local vec3 = {
 	__name = 'Vec3', -- Meta name used for type checking
 
 	x = 0, -- X value
 	y = 0, -- Y value (height)
 	z = 0, -- Z value
 }
-Vec3.__index = Vec3
+vec3.__index = vec3
 
 ----------------------------------------------------------------
 
@@ -667,7 +667,7 @@ Vec3.__index = Vec3
 -- @number y The Y value (height)
 -- @number z The Z value
 -- @treturn table Instance derived from the Vec3 metatable
-function Vec3:new(x, y, z)
+function vec3:new(x, y, z)
 	local object = {}
 
 	setmetatable(object, self)
@@ -685,12 +685,12 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function Vec2:validate(file, module)
+function vec2:validate(file, module)
 	local out = true
 
-	out = out and CheckField(file, module, self.__name, 'x', self.x, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'y', self.y, 'number', true)
-	out = out and CheckField(file, module, self.__name, 'z', self.z, 'number', true)
+	out = out and checkField(file, module, self.__name, 'x', self.x, 'number', true)
+	out = out and checkField(file, module, self.__name, 'y', self.y, 'number', true)
+	out = out and checkField(file, module, self.__name, 'z', self.z, 'number', true)
 
 	return out
 end
@@ -698,12 +698,12 @@ end
 --============================================================--
 
 return {
-	['Collider'] = Collider,
-	['Timer'] = Timer,
-	['Unit'] = Unit,
-	['UnitDef'] = UnitDef,
-	['Vec2'] = Vec2,
-	['Vec3'] = Vec3,
+	Collider = collider,
+	Timer = timer,
+	Unit = unit,
+	UnitDef = unitDef,
+	Vec2 = vec2,
+	Vec3 = vec3,
 }
 
 --============================================================--
