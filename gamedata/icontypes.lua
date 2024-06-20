@@ -2438,6 +2438,10 @@ local icontypes = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
 	},
+	legsnapper = {
+		bitmap = "icons/corroach_0.9.png",
+		size = 0.94499993
+	},
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995

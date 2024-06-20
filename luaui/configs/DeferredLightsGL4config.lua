@@ -14054,6 +14054,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legsnapper'] = {
+		base = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 6, posz = -1.5, radius = 14,
+							color2r = 1, color2g = 1, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.75, a = 0.08,
+							modelfactor = 0.95, specular = 0.5, scattering = 0.75, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 4.4, posz = 7.2, radius = 12,
+							color2r = 0.1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.20,
+							modelfactor = 0.6, specular = 0, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legca'] = {
 		nanolight = {
 			lightType = 'point',
