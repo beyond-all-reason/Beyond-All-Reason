@@ -250,6 +250,7 @@ local unitOrderTable = {
 
 	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
+	['legsnapper']       = 006825,
 	['corsktl']        = 006830,
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
