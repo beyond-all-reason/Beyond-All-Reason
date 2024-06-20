@@ -58,7 +58,12 @@ end
 -- presumes normalized vectors
 local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
 	-- Note: this function oftern returns nan, cause numerical instability causes the dot product to be greater than 1!
-	return math.acos(DotProduct(x1, y1, z1, x2, y2, z2))
+	local rawDot = DotProduct(x1, y1, z1, x2, y2, z2)
+
+	-- protection from numerical instability
+	local dot = math.clamp(rawDot, -1, 1)
+
+	return math.acos(dot)
 end
 
 -- presumes normalized vectors
