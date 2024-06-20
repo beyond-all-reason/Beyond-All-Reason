@@ -524,7 +524,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["armscavengerbossv2_veryeasy_scav"] = {
+    ["scavengerbossv4_veryeasy_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",
@@ -553,7 +553,7 @@ local unitListNames = {
             spawnTimer = 4,
         },
     },
-    ["armscavengerbossv2_easy_scav"] = {
+    ["scavengerbossv4_easy_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",
@@ -582,7 +582,7 @@ local unitListNames = {
             spawnTimer = 4,
         },
     },
-    ["armscavengerbossv2_normal_scav"] = {
+    ["scavengerbossv4_normal_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",
@@ -611,7 +611,7 @@ local unitListNames = {
             spawnTimer = 4,
         },
     },
-    ["armscavengerbossv2_hard_scav"] = {
+    ["scavengerbossv4_hard_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",
@@ -640,7 +640,7 @@ local unitListNames = {
             spawnTimer = 4,
         },
     },
-    ["armscavengerbossv2_veryhard_scav"] = {
+    ["scavengerbossv4_veryhard_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",
@@ -669,7 +669,7 @@ local unitListNames = {
             spawnTimer = 4,
         },
     },
-    ["armscavengerbossv2_epic_scav"] = {
+    ["scavengerbossv4_epic_scav"] = {
         [1] = {
             name = "scavmist_scav",
             type = "ground",

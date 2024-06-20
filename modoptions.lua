@@ -633,7 +633,7 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
-        step	= 1,
+        step	= 0.1,
         section	= "raptor_defense_options",
     },
 
@@ -798,7 +798,7 @@ local options = {
             { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
         },
     },
-  
+
     {
         key 	= "unit_market",
         name 	= "Unit Market",
@@ -1134,11 +1134,10 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
-		hidden 	= true,
     },
 
     {
@@ -1200,7 +1199,7 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
-    
+
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",

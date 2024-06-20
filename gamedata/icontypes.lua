@@ -739,6 +739,30 @@ local icontypes = {
 		bitmap = "icons/armcomboss.png",
 		size = 4.19999981
 	},
+	scavengerbossv4_easy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_epic = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_hard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_normal = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryeasy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryhard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
@@ -2148,6 +2172,11 @@ local icontypes = {
 		bitmap = "icons/legcom_off.png",
 		size = 2.20000005
 	},
+	legcs = {
+		bitmap = "icons/ship_worker.png",
+		size = 1.39649999
+	},
+
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
@@ -2224,6 +2253,14 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	leghastatus = {
+		bitmap = "icons/ship_pship.png",
+		size = 1.25999999
+	},
+	leghastatusalt = {
+		bitmap = "icons/ship_pship.png",
+		size = 1.25999999
 	},
 	legamphtank = {
 		bitmap = "icons/amphib_tank.png",
@@ -2341,6 +2378,10 @@ local icontypes = {
 		bitmap = "icons/hover_gun.png",
 		size = 1
 	},
+	legoptio = {
+		bitmap = "icons/ship_t2_aa_flak.png",
+		size = 1.36499989
+	},
 	legotter = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
@@ -2356,6 +2397,10 @@ local icontypes = {
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
+	},
+	legpt = {
+		bitmap = "icons/ship.png",
+		size = 1.14999998
 	},
 	legrad = {
 		bitmap = "icons/radar_t1.png",
@@ -2417,10 +2462,34 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
+	legsy = {
+		bitmap = "icons/factory_ship.png",
+		size = 1.52250004
+	},
+
+	legtriarius = {
+		bitmap = "icons/ship_destroyer.png",
+		size = 1.51199996
+	},
+	legtriariusalt = {
+		bitmap = "icons/ship_destroyer.png",
+		size = 1.51199996
+	},
+	legstingray = {
+		bitmap = "icons/sub.png",
+		size = 1.29999995
+	},
+
+
 	legvcarry = {
 		bitmap = "icons/vehicle_t2_carry.png",
 		size = 1.64999998
 	},
+	legvelite = {
+		bitmap = "icons/ship_raid.png",
+		size = 1.15499997
+	},
+
 	legvenator = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992

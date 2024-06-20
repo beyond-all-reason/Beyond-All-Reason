@@ -151,7 +151,6 @@ local GL_ONE = GL.ONE
 
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
 
@@ -2806,13 +2805,6 @@ function init()
 			  end
 		  end,
 		},
-
-		{ id = "scav_messages", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.scav_messages'), type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
-		  end,
-		},
-		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
 
 		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
@@ -5592,11 +5584,6 @@ function init()
 	end
 	if devMode or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
-	end
-
-	if not scavengersAIEnabled then
-		options[getOptionByID('scav_voicenotifs')] = nil
-		options[getOptionByID('scav_messages')] = nil
 	end
 
 	if not GetWidgetToggleValue('Grid menu') then
