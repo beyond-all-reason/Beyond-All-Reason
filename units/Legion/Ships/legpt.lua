@@ -130,7 +130,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0.3,
 				range = 600,
-				reloadtime = 3.75,
+				reloadtime = 4.75,
 				soundhit = "xplodep1",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
