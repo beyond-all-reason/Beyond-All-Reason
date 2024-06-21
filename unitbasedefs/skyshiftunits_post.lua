@@ -2,11 +2,54 @@ local function skyshiftUnitTweaks(name, uDef)
 
 ---------------------------------------------
 			--------------------
-			-----ARMADA AIR-----
+			---ARMADA AIR T1 ---
 			--------------------
 ---------------------------------------------
 	if name == "armca" then
 		uDef.health = 720
+	end
+	
+	if name == "armpeep" then
+		uDef.acceleration = 0.8
+		uDef.blocking = false
+		uDef.maxdec = 0.8
+		uDef.energycost = 1550
+		uDef.metalcost = 52
+		uDef.buildpic = "ARMPEEP.DDS"
+		uDef.buildtime = 2800
+		uDef.canfly = true
+		uDef.canmove = true
+		uDef.category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT"
+		uDef.collide = false
+		uDef.cruisealtitude = 280
+		uDef.explodeas = "tinyExplosionGeneric"
+		uDef.footprintx = 2
+		uDef.footprintz = 2
+		uDef.idleautoheal = 5
+		uDef.idletime = 1800
+		uDef.maxacc = 0.8
+		uDef.maxaileron = 0.03
+		uDef.maxbank = 0.9
+		uDef.health = 89
+		uDef.maxelevator = 0.01065
+		uDef.maxpitch = 0.625
+		uDef.maxrudder = 0.025
+		uDef.maxslope = 10
+		uDef.speed = 200.0
+		uDef.maxwaterdepth = 0
+		uDef.objectname = "Units/ARMPEEP.s3o"
+		uDef.radardistance = 2850
+		uDef.script = "Units/ARMPEEP.cob"
+		uDef.seismicsignature = 0
+		uDef.selfdestructas = "tinyExplosionGenericSelfd"
+		uDef.selfdestructcountdown = 1
+		uDef.sightdistance = 1200
+		uDef.speedtofront = 0.06417
+		uDef.turnradius = 2
+		uDef.turnrate = 1500
+		uDef.usesmoothmesh = true
+		uDef.wingangle = 0.06315
+		uDef.wingdrag = 0.0575
 	end
 	
 	if name == "armfig" then
@@ -36,7 +79,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.625
 		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 205
+		uDef.speed = 315
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/ARMFIG.s3o"
@@ -121,7 +164,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.14
 		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
-		uDef.speed = 140
+		uDef.speed = 175
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "MOBILE"
@@ -179,7 +222,9 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 	
 	if name == "armkam" then
+		uDef.acceleration = 0.7
 		uDef.airstrafe = false
+		uDef.attackSafetyDistance = 200
 		uDef.blocking = false
 		uDef.energycost = 2600
 		uDef.metalcost = 240
@@ -193,7 +238,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.explodeas = "smallExplosionGeneric"
 		uDef.footprintx = 2
 		uDef.footprintz = 2
-		uDef.hoverattack = true
+		uDef.hoverattack = false
 		uDef.idleautoheal = 5
 		uDef.idletime = 1800
 		uDef.health = 1320
@@ -202,9 +247,9 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxdec = 0.5
 		uDef.maxslope = 10
 		uDef.maxpitch = 0.45
-		uDef.maxrudder = 0.004
+		uDef.maxrudder = 0.014
 		uDef.maxwaterdepth = 0
-		uDef.speed = 90
+		uDef.speed = 220
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/ARMKAM.s3o"
 		uDef.script = "Units/ARMKAM.cob"
@@ -212,15 +257,15 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "smallExplosionGenericSelfd"
 		uDef.sightdistance = 520
 		uDef.turninplaceanglelimit = 360
-		uDef.turnradius = 6
-		uDef.turnrate = 375
+		uDef.turnradius = 5
+		uDef.turnrate = 300
 		uDef.weapondefs = {
 			med_emg = {
 				accuracy = 13,
-				areaofeffect = 240,
+				areaofeffect = 280,
 				avoidfeature = false,
 				avoidfriendly = false,
-				burst = 9,
+				burst = 2,
 				burstrate = 0.05,
 				burnblow = true,
 				collidefriendly = false,
@@ -230,7 +275,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				dance = 75,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:flak",
-				flightTime = 3.4,
+				flightTime = 2.8,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
@@ -239,7 +284,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				noselfdamage = true,
 				ownerExpAccWeight = 2.0,
 				range = 900,
-				reloadtime = 5.5,
+				reloadtime = 2.5,
 				smokePeriod = 4,
 				smoketime = 16,
 				smoketrail = true,
@@ -252,16 +297,16 @@ local function skyshiftUnitTweaks(name, uDef)
 				texture1 = "null",
 				texture2 = "smoketrail",
 				tracks = true,
-				tolerance = 2400,
+				tolerance = 10000,
 				turnrate = 5000,
-				turret = false,
-				weaponacceleration = 700,
+				turret = true,
+				weaponacceleration = 250,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 250,
+				weaponvelocity = 500,
 				wobble = 75,
 				damage = {
 					default = 1,
-					vtol = 70,
+					vtol = 110,
 				},
 			},
 		}
@@ -278,6 +323,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.acceleration = 0.35
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
+		uDef.attackSafetyDistance = 40
 		uDef.blocking = false
 		uDef.maxdec = 0.1
 		uDef.energycost = 440
@@ -302,21 +348,21 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxrudder = 0.00578
 		uDef.maxslope = 10
 		uDef.maxwaterdepth = 0
-		uDef.speed = 250
+		uDef.speed = 340
 		uDef.objectname = "Units/ARMSFIG.s3o"
 		uDef.script = "Units/ARMSFIG.cob"
 		uDef.seismicsignature = 0
 		uDef.selfdestructas = "smallExplosionGenericAir"
 		uDef.sightdistance = 230
 		uDef.speedtofront = 0.07
-		uDef.turnradius = 64
+		uDef.turnradius = 55
 		uDef.turnrate = 750
 		uDef.usesmoothmesh = true
 		uDef.wingangle = 0.06278
 		uDef.wingdrag = 0.235
 		uDef.weapondefs = {
 			arm_laser = {
-				accuracy = 13,
+				accuracy = 16,
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = false,
@@ -347,7 +393,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				damage = {
-					default = 10,
+					default = 12,
 				},
 			},
 		}
@@ -359,16 +405,64 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 
-
+---------------------------------------------
+			--------------------
+			---ARMADA AIR T2 ---
+			--------------------
+---------------------------------------------
 
 
 
 
 ---------------------------------------------
 			--------------------
-			-----CORTEX AIR-----
+			---CORTEX AIR T1 ---
 			--------------------
 ---------------------------------------------
+
+
+	if name == "corfink" then
+		uDef.acceleration = 0.6
+		uDef.blocking = false
+		uDef.maxdec = 0.6
+		uDef.energycost = 1450
+		uDef.metalcost = 51
+		uDef.buildpic = "CORFINK.DDS"
+		uDef.buildtime = 2400
+		uDef.canfly = true
+		uDef.canmove = true
+		uDef.category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT"
+		uDef.collide = false
+		uDef.cruisealtitude = 280
+		uDef.explodeas = "tinyExplosionGeneric"
+		uDef.footprintx = 2
+		uDef.footprintz = 2
+		uDef.idleautoheal = 5
+		uDef.idletime = 1800
+		uDef.maxacc = 0.8
+		uDef.maxaileron = 0.0144
+		uDef.maxbank = 0.9
+		uDef.health = 100
+		uDef.maxelevator = 0.01065
+		uDef.maxpitch = 0.625
+		uDef.maxrudder = 0.025
+		uDef.maxslope = 10
+		uDef.speed = 205.0
+		uDef.maxwaterdepth = 0
+		uDef.objectname = "Units/CORFINK.s3o"
+		uDef.radardistance = 2800
+		uDef.script = "Units/CORFINK.cob"
+		uDef.seismicsignature = 0
+		uDef.selfdestructas = "tinyExplosionGenericSelfd"
+		uDef.selfdestructcountdown = 1
+		uDef.sightdistance = 1200
+		uDef.speedtofront = 0.06125
+		uDef.turnradius = 2
+		uDef.turnrate = 1500
+		uDef.usesmoothmesh = true
+		uDef.wingangle = 0.06315
+		uDef.wingdrag = 0.06
+	end
 
 	if name == "corca" then
 		uDef.health = 720
@@ -401,7 +495,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.625
 		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 195
+		uDef.speed = 305
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/CORVENG.s3o"
@@ -491,7 +585,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.14
 		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
-		uDef.speed = 135
+		uDef.speed = 170
 		uDef.maxwaterdepth = 0
 		uDef.noautofire = true
 		uDef.nochasecategory = "VTOL"
@@ -545,7 +639,8 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 	
 	if name == "corbw" then
-		uDef.acceleration = 0.5
+		uDef.acceleration = 0.5		
+		uDef.attackSafetyDistance = 40
 		uDef.blocking = false
 		uDef.maxdec = 0.4
 		uDef.energycost = 700
@@ -573,7 +668,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.maxpitch = 0.60
 		uDef.maxrudder = 0.012
 		uDef.maxslope = 10
-		uDef.speed = 230
+		uDef.speed = 330
 		uDef.maxwaterdepth = 0
 		uDef.nochasecategory = "COMMANDER"
 		uDef.objectname = "Units/CORBW.s3o"
@@ -582,7 +677,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "tinyExplosionGenericSelfd"
 		uDef.sightdistance = 364
 		uDef.turninplaceanglelimit = 360
-		uDef.turnradius = 24
+		uDef.turnradius = 38
 		uDef.turnrate = 400
 		uDef.upright = false
 		uDef.usesmoothmesh = 0
@@ -591,8 +686,8 @@ local function skyshiftUnitTweaks(name, uDef)
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
-				beamdecay = 0.5,
-				beamtime = 0.1,
+				--beamdecay = 0.5,
+				beamtime = 0.25,
 				beamttl = 1,
 				collidefriendly = false,
 				corethickness = 0.12,
@@ -609,11 +704,11 @@ local function skyshiftUnitTweaks(name, uDef)
 				laserflaresize = 6.6,
 				name = "Light EMP laser",
 				noselfdamage = true,
-				paralyzer = true,
-				paralyzetime = 7,
+				paralyzer = false,
+				--paralyzetime = 7,
 				range = 220,
-				reloadtime = 2.4,
-				rgbcolor = "0.7 0.7 1",
+				reloadtime = 0.5,
+				rgbcolor = "0.95 0.45 0.08",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
@@ -625,16 +720,14 @@ local function skyshiftUnitTweaks(name, uDef)
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 1600,
+					default = 11,
 				},
 			},
 		}
 		uDef.weapons = {
 			[1] = {
 				def = "BLADEWING_LYZER",
-				maindir = "0 0 1",
-				maxangledif = 90,
-				onlytargetcategory = "EMPABLE",
+				onlytargetcategory = "NOTSUB",
 			},
 		}
 	end
@@ -642,6 +735,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	if name == "corcut" then
 		uDef.acceleration = 1
 		uDef.airstrafe = false
+		uDef.attackSafetyDistance = 200
 		uDef.blocking = false
 		uDef.maxdec = 0.85
 		uDef.energycost = 2600
@@ -657,19 +751,18 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.explodeas = "mediumexplosiongeneric"
 		uDef.footprintx = 3
 		uDef.footprintz = 3
-		uDef.hoverattack = true
+		uDef.hoverattack = false
 		uDef.idleautoheal = 5
 		uDef.idletime = 1800
-		uDef.health = 1500
+		uDef.health = 1600
 		uDef.maxacc = 0.065
 		uDef.maxbank = 0.8
 		uDef.maxdec = 0.85
-		uDef.maxelevator = 0.08
 		uDef.maxpitch = 0.45
-		uDef.maxrudder = 0.004
+		uDef.maxrudder = 0.014
 		uDef.maxslope = 10
 		uDef.maxwaterdepth = 0
-		uDef.speed = 90
+		uDef.speed = 215
 		uDef.nochasecategory = "NOTAIR"
 		uDef.objectname = "Units/CORCUT.s3o"
 		uDef.script = "Units/CORCUT.cob"
@@ -678,10 +771,10 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.sightdistance = 595
 		uDef.turninplaceanglelimit = 360
 		uDef.turnradius = 6
-		uDef.turnrate = 700
+		uDef.turnrate = 300
 		uDef.weapondefs = {
 			med_emg = {
-				areaofeffect = 80,
+				areaofeffect = 90,
 				avoidfeature = false,
 				burnblow = true,
 				craterareaofeffect = 0,
@@ -704,7 +797,7 @@ local function skyshiftUnitTweaks(name, uDef)
 				tolerance = 10000,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 450,
 				damage = {
 					default = 1,
 					vtol = 190,
@@ -720,7 +813,11 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 	
-	
+---------------------------------------------
+			--------------------
+			---CORTEX AIR T2 ---
+			--------------------
+---------------------------------------------	
 	
 	
 	
