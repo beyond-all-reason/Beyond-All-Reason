@@ -1,45 +1,52 @@
-local multiplier = 1.15 --this number is based on the old health ratios between armscavengerbossv2's difficulty levels. Changing this increases the disparity between difficulty levels.
 local playerCountScale = 1
 if Spring.Utilities.Gametype.IsScavengers() then
-	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+	playerCountScale = (#Spring.GetTeamList() - 2) /
+		8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
 
-local baseValues = {
-	autoHeal = 10,
-	botCannonProjectiles = 3*playerCountScale,
-	disintegratorBurst = 1, --cannot be lower than 1
-	health = 650000,
-	minigunDamage = 333*playerCountScale, -- this number*15 = dps of normal gun, *60 for special gun dps
-	missileDamage = 3500*playerCountScale,
-	shotgunProjectiles = 20,
-	shotgunSprayAnglePercentageMultiplier = 100,
-	shotgunDamage = 600*playerCountScale,
-	topTurretsDamage = 2000*playerCountScale,
-	torpedoDamage = 1500*playerCountScale,
-	turboShotgunArmBurst = 2,
+local baseValues = { --format: {value, multiplier}
+
+	--health related
+	autoHeal = { 10, 1.15 },
+	health = { 650000, 1.15 },
+
+	--DPS related
+	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
+	disintegratorBurst = { 1, 1.15 }, -- cannot be lower than 1
+	minigunDamage = { 333 * playerCountScale, 1.15 },
+	missileDamage = { 3500 * playerCountScale, 1.15 },
+	shotgunDamage = { 600 * playerCountScale, 1.15 },
+	topTurretsDamage = { 2000 * playerCountScale, 1.15 },
+	torpedoDamage = { 1500 * playerCountScale, 1.15 },
+
+	shotgunProjectiles = { 20, 1.15 },
+	shotgunSprayAnglePercentageMultiplier = { 100, 1.15 },
+
+	--AI Behaviors
+	turboWeaponOffTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation delay.
+	turboWeaponOnTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation duration.
+
+	--non-damage weapon behavior
+	turboShotgunArmBurst = { 2, 1.15 },
 }
 
-local difficultyParams  = {}
-local difficultyLevels = {"veryeasy", "easy","normal", "hard", "veryhard", "epic"}
+local difficultyParams = {}
+local difficultyLevels = { "veryeasy", "easy", "normal", "hard", "veryhard", "epic" }
+local levelMultipliers = { -- this defines the ^power for the multiplier values
+	veryeasy = -2,
+	easy = -1,
+	normal = 0,
+	hard = 1,
+	veryhard = 2,
+	epic = 3,
+}
+
 for _, level in pairs(difficultyLevels) do
-	local m
-	if level == "veryeasy" then
-		m = multiplier^-4
-	elseif level == "easy" then
-		m = multiplier^-2
-	elseif level == "normal" then
-		m = 1
-	elseif level == "hard" then
-		m = multiplier
-	elseif level == "veryhard" then
-		m = multiplier^2
-	elseif level == "epic" then
-		m = multiplier^3
-	end
 	difficultyParams[level] = {}
-	for key, value in pairs(baseValues) do
-	difficultyParams[level][key] = math.floor(value*m + 0.5) --rounds to nearest whole number
-	end	
+	for key, pair in pairs(baseValues) do
+		local base, individualMultiplier = pair[1], pair[2]
+		difficultyParams[level][key] = math.floor(base * individualMultiplier ^ (levelMultipliers[level] or 0) + 0.5)
+	end
 end
 
 local unitsTable = {}
@@ -762,6 +769,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 900,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -790,6 +799,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,		--when this is aiming, sensor_ground_near cannot aim.
 				soundhit = "",
 				soundhitwet = "",
@@ -818,6 +829,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -846,6 +859,38 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 99999,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
+				size = 0,
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
+				turret = true,
+				waterweapon = true,
+				weapontype = "Cannon",
+				weaponvelocity = 4000,
+				damage = {
+					default = 0,
+				},
+			},
+				setting_turbo_delay = { --
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "",
+				gravityaffected = "true",
+				hightrajectory = 1,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				name = "TurboWeaponGapDelay",
+				noselfdamage = true,
+				projectiles = math.floor((10/stats.turboWeaponOnTime*100) + 0.5), -- after delay, when 200-300 additional projectiles are fired, the turbo weapon is disabled.
+				range = 99999, 
+				reloadtime = 1/stats.turboWeaponOffTime*100, --when 10+(health%/4) shots are fired, select a turbo weapon and enable it.
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -935,6 +980,9 @@ for difficulty, stats in pairs(difficultyParams) do
 			},
 			[16] = {
 				def = "sensor_ground_far",
+			},
+			[17] = {
+				def = "setting_turbo_delay",
 			},
 		},
 	}

@@ -18,7 +18,7 @@ static-var isAiming, isBuilding, isAimingEaterBeam, eaterBeamIncrement, buildHea
 			cycle, farSenseWaitThreshold, damageAggro,
 			
 			//for turbofire weapons
-			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, switchTurboThreshold,
+			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, turboOffTime, turboOnTime, turboWeaponChangeIncriment,
 			
 			//for special weapons
 			enableEaterBeam, specialIncrementThreshold, eaterBeamDisableCycle,
@@ -534,13 +534,16 @@ UnitTimer()
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
 		damageAggro = damageAggro+rand(20000, 80000);
+		turboOffTime = 10+currentHealth/5; //this defines the portion of the turboWeaponChangeIncriment timer that turbo weapons are off.
+		
 		
 		//turboWeapon Selector
-		if (switchTurboThreshold < cycle){ 
+		if (turboWeaponChangeIncriment > turboOffTime && turboWeaponSelect == 0){ 
 			incrimentSensedVTOL	= (incrimentSensedVTOL + rand(1, 15)) / 2;
 			incrimentSensedGroundScout = (incrimentSensedGroundScout + rand(1, 15)) / 2;
 			incrimentSensedGroundNear = (incrimentSensedGroundNear + rand(1, 15)) / 2;
 			incrimentSensedFar = (incrimentSensedFar + rand(1, 15)) / 2;
+			turboOnTime = turboOffTime+rand(200, 300); //this defines the portion of turboWeaponChangeIncriment timer that turbo weapons are selected, then kept activated.
 			
 			//figure out the highest value
 			highestSensorValue = incrimentSensedGroundNear; // Assume one is highest, arbitrarily
@@ -571,7 +574,6 @@ UnitTimer()
 			turboWeaponSelect = 11;
 			incrimentSensedFar = 0;
 			}
-			switchTurboThreshold = ((currentHealth / 4) + rand(20,35) + cycle); //given get HEALTH returns 1-100 as a percent of health, this makes switching turbo weapons more frequent and erratic as HP dwindles
 			
 			//select special weapons
 			if (turboWeaponSelect == 9 OR turboWeaponSelect == 10){
@@ -581,27 +583,23 @@ UnitTimer()
 			if (turboWeaponSelect == 8 OR turboWeaponSelect == 11){
 				specialWeaponSelect = 12; //special botcannon
 			}
-			
-			//change turbo telegraph lights showing
-			hide laserflarelight;
-			hide lflare;
-			hide misflare;
-			hide railflarer;
-			hide railflarel;
-			if (turboWeaponSelect == 8){  //turbo missile launcher lights
-			show misflare;
-			}
-			if (turboWeaponSelect == 9){ //turbo shotgun arm lights
-			show lflare;
-			}
-			if (turboWeaponSelect == 10){ //turbo gatlinggun lights
-			show laserflarelight;
-			}
-			if (turboWeaponSelect == 11){ //turbo lrpc lights
-			show railflarer;
-			show railflarel;
-			}
 		}
+		if (turboWeaponChangeIncriment > turboOnTime){
+			turboWeaponChangeIncriment = 0;
+			turboWeaponSelect = 0;
+		}
+			
+		
+		//change turbo telegraph lights showing
+		if (turboWeaponSelect == 8){show misflare;}  //turbo missile launcher lights
+		else{hide misflare;}
+		if (turboWeaponSelect == 9){show lflare;}//turbo shotgun arm lights
+		else{hide lflare;}
+		if (turboWeaponSelect == 10){show laserflarelight;} //turbo gatlinggun lights
+		else{hide laserflarelight;}
+		if (turboWeaponSelect == 11){show railflarer; show railflarel;} //turbo lrpc lights
+		else{hide railflarer; hide railflarel;}
+		
 		//disable expired weapons
 		if (turboWeaponSelect != 8){
 		turboMisAimReady = 0;
@@ -629,6 +627,7 @@ UnitTimer()
 		
 		//debug
 		//eaterBeamIncrement = specialIncrementThreshold;
+		//get PRINT(turboWeaponSelect, turboWeaponChangeIncriment, turboOffTime, turboOnTime);
 		
 		sleep 500; //timer repeats every half second
 	}
@@ -695,19 +694,17 @@ Create(){
 	disableTurbo10ShotChange = 0;
 	disableTurbo11BarrelChange = 0;
 	specialWeaponSelect = 0;
-	incrimentSensedVTOL = 0;
-	incrimentSensedGroundScout = 0;
-	incrimentSensedGroundNear = 0;
 	groundScoutSensed = 0;
-	switchTurboThreshold = 0;
+	turboOffTime = 0;
+	turboOnTime = 10000;
 	cycle = 0;
 	groundNearSensed = 0;
 	VTOLsensed = 0;
-	incrimentSensedFar = 0;
 	highestSensorValue = 0;
 	damageAggro = 0;
 	specialIncrementThreshold = 30;
 	eaterBeamDisableCycle = 0;
+	turboWeaponChangeIncriment = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
@@ -724,10 +721,16 @@ Create(){
 	leftArm = 1;
 	rightArm = 1;
 	suspendWeapon = 1; //debug
-	turboWeaponSelect = 11; //this always starts with 11, the backcannons
+	turboWeaponSelect = 0;
 	call-script StopWalking();
 	start-script UnitTimer();
 	set ARMORED to 1;
+	
+	//innitialize AI behavior
+	incrimentSensedVTOL	= (incrimentSensedVTOL + rand(15, 30)) / 2;
+	incrimentSensedGroundScout = (incrimentSensedGroundScout + rand(15, 30)) / 2;
+	incrimentSensedGroundNear = (incrimentSensedGroundNear + rand(15, 30)) / 2;
+	incrimentSensedFar = 0;
 }
 
 QueryNanoPiece(piecenum)
@@ -980,7 +983,7 @@ AimWeapon3(heading, pitch)
 	if (torsoPriority > 9){
 		return (0);
 	}
-	if (turboweaponselect == 9){
+	if (turboWeaponSelect == 9){
 		return (0);
 	}
 	torsoPriority = 9;
@@ -1057,7 +1060,7 @@ AimWeapon4(heading, pitch)
 	if (suspendWeapon == 0){
 		return (0);
 	}
-	if (turboweaponselect == 11){
+	if (turboWeaponSelect == 11){
 		return (0);
 	}
 	signal SIG_AIM_2;
@@ -1262,7 +1265,7 @@ AimWeapon8(heading, pitch)
 	if (suspendWeapon == 0){
 		return (0);
 	}
-	if (turboweaponselect != 8){
+	if (turboWeaponSelect != 8){
 		return (0);
 	}
 	if (turboMisAimReady == 0){
@@ -1303,7 +1306,7 @@ AimWeapon9(heading, pitch)
 	if (suspendWeapon == 0){
 		return (0);
 	}
-	if (turboweaponselect != 9){
+	if (turboWeaponSelect != 9){
 		return (0);
 	}
 	var reloading;
@@ -1311,6 +1314,10 @@ AimWeapon9(heading, pitch)
 	if( reloading ){
 		return (0);
 	}
+		if (torsoPriority > 11){
+		return (0);
+	}
+	torsoPriority = 11;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = 1;
@@ -1537,7 +1544,7 @@ AimWeapon11(heading, pitch)
 	if (suspendWeapon == 0){
 		return (0);
 	}
-	if (turboweaponselect != 11){
+	if (turboWeaponSelect != 11){
 		return (0);
 	}
 	signal SIG_AIM_2;
@@ -1732,7 +1739,37 @@ AimFromWeapon16(piecenum)
 {
 	piecenum = sensorflare3;
 }
-	
+
+AimWeapon17(heading, pitch) //TURBO gap delay setting
+{
+	return (1);
+}
+
+FireWeapon17()
+{
+	if (turboWeaponChangeIncriment <= turboOffTime){ //this is influenced by reloadtime only. This sets the duration of the delay between turbo weapon selections
+		turboWeaponChangeIncriment = turboWeaponChangeIncriment+1;
+	}
+	sleep 100;
+	return (1);
+}
+
+QueryWeapon17(piecenum)
+{
+	piecenum = sensorflare3;
+}
+
+AimFromWeapon17(piecenum)
+{
+	piecenum = sensorflare3;
+}
+
+Shot17(zero)
+{
+	if (turboWeaponChangeIncriment > turboOffTime){ //this incriments 1 per shot in the projectiles = x weapondef. The higher the projectile count, the shorter the duration of the turboWeaponSelect
+		turboWeaponChangeIncriment = turboWeaponChangeIncriment+1;
+	}
+}
 	
 SprayNano(heading, pitch){
 	set-signal-mask SIG_AIM;
