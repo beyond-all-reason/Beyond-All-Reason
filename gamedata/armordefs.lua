@@ -39,6 +39,12 @@ local armorDefs = {
 	scavboss = {
 		"armcomboss",
 		"corcomboss",
+		"scavengerbossv4_veryeasy",
+		"scavengerbossv4_easy",
+		"scavengerbossv4_normal",
+		"scavengerbossv4_hard",
+		"scavengerbossv4_veryhard",
+		"scavengerbossv4_epic",
 	},
 	indestructable = {
 		"xmasball1_1",
