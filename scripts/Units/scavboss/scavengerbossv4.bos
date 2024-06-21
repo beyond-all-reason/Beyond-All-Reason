@@ -18,7 +18,7 @@ static-var isAiming, isBuilding, isAimingEaterBeam, eaterBeamIncrement, buildHea
 			cycle, farSenseWaitThreshold, damageAggro,
 			
 			//for turbofire weapons
-			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, switchTurboThreshold, turboWeaponDelayIncriment,
+			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, turboOffTime, turboOnTime, turboWeaponChangeIncriment,
 			
 			//for special weapons
 			enableEaterBeam, specialIncrementThreshold, eaterBeamDisableCycle,
@@ -534,18 +534,16 @@ UnitTimer()
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
 		damageAggro = damageAggro+rand(20000, 80000);
+		turboOffTime = 10+currentHealth/5; //this defines the portion of the turboWeaponChangeIncriment timer that turbo weapons are off.
 		
 		
-		//turboWeaponSelect Delayer
-		if (switchTurboThreshold < cycle && turboWeaponDelayIncriment <= 10+currentHealth/4){
-			turboWeaponSelect = 0;
-		}
 		//turboWeapon Selector
-		if (turboWeaponDelayIncriment > 10+currentHealth/4){ 
+		if (turboWeaponChangeIncriment > turboOffTime && turboWeaponSelect == 0){ 
 			incrimentSensedVTOL	= (incrimentSensedVTOL + rand(1, 15)) / 2;
 			incrimentSensedGroundScout = (incrimentSensedGroundScout + rand(1, 15)) / 2;
 			incrimentSensedGroundNear = (incrimentSensedGroundNear + rand(1, 15)) / 2;
 			incrimentSensedFar = (incrimentSensedFar + rand(1, 15)) / 2;
+			turboOnTime = turboOffTime+rand(200, 300); //this defines the portion of turboWeaponChangeIncriment timer that turbo weapons are selected, then kept activated.
 			
 			//figure out the highest value
 			highestSensorValue = incrimentSensedGroundNear; // Assume one is highest, arbitrarily
@@ -576,7 +574,6 @@ UnitTimer()
 			turboWeaponSelect = 11;
 			incrimentSensedFar = 0;
 			}
-			switchTurboThreshold = ((currentHealth / 4) + rand(20,35) + cycle); //given get HEALTH returns 1-100 as a percent of health, this makes switching turbo weapons more frequent and erratic as HP dwindles
 			
 			//select special weapons
 			if (turboWeaponSelect == 9 OR turboWeaponSelect == 10){
@@ -586,9 +583,12 @@ UnitTimer()
 			if (turboWeaponSelect == 8 OR turboWeaponSelect == 11){
 				specialWeaponSelect = 12; //special botcannon
 			}
-			//reset delay
-			turboWeaponDelayIncriment = 0;
 		}
+		if (turboWeaponChangeIncriment > turboOnTime){
+			turboWeaponChangeIncriment = 0;
+			turboWeaponSelect = 0;
+		}
+			
 		
 		//change turbo telegraph lights showing
 		if (turboWeaponSelect == 8){show misflare;}  //turbo missile launcher lights
@@ -627,7 +627,7 @@ UnitTimer()
 		
 		//debug
 		//eaterBeamIncrement = specialIncrementThreshold;
-		get PRINT(turboWeaponSelect, turboWeaponDelayIncriment, switchTurboThreshold, cycle);
+		//get PRINT(turboWeaponSelect, turboWeaponChangeIncriment, turboOffTime, turboOnTime);
 		
 		sleep 500; //timer repeats every half second
 	}
@@ -695,7 +695,8 @@ Create(){
 	disableTurbo11BarrelChange = 0;
 	specialWeaponSelect = 0;
 	groundScoutSensed = 0;
-	switchTurboThreshold = 0;
+	turboOffTime = 0;
+	turboOnTime = 10000;
 	cycle = 0;
 	groundNearSensed = 0;
 	VTOLsensed = 0;
@@ -703,7 +704,7 @@ Create(){
 	damageAggro = 0;
 	specialIncrementThreshold = 30;
 	eaterBeamDisableCycle = 0;
-	turboWeaponDelayIncriment = 0;
+	turboWeaponChangeIncriment = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
@@ -1313,6 +1314,10 @@ AimWeapon9(heading, pitch)
 	if( reloading ){
 		return (0);
 	}
+		if (torsoPriority > 11){
+		return (0);
+	}
+	torsoPriority = 11;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = 1;
@@ -1737,15 +1742,14 @@ AimFromWeapon16(piecenum)
 
 AimWeapon17(heading, pitch) //TURBO gap delay setting
 {
-	if (turboWeaponSelect > 0){
-		return (0);
-	}
 	return (1);
 }
 
 FireWeapon17()
 {
-	turboWeaponDelayIncriment = turboWeaponDelayIncriment+1;
+	if (turboWeaponChangeIncriment <= turboOffTime){ //this is influenced by reloadtime only. This sets the duration of the delay between turbo weapon selections
+		turboWeaponChangeIncriment = turboWeaponChangeIncriment+1;
+	}
 	sleep 100;
 	return (1);
 }
@@ -1759,7 +1763,13 @@ AimFromWeapon17(piecenum)
 {
 	piecenum = sensorflare3;
 }
-	
+
+Shot17(zero)
+{
+	if (turboWeaponChangeIncriment > turboOffTime){ //this incriments 1 per shot in the projectiles = x weapondef. The higher the projectile count, the shorter the duration of the turboWeaponSelect
+		turboWeaponChangeIncriment = turboWeaponChangeIncriment+1;
+	}
+}
 	
 SprayNano(heading, pitch){
 	set-signal-mask SIG_AIM;

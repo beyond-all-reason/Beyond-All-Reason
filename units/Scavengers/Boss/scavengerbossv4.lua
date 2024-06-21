@@ -23,7 +23,8 @@ local baseValues = { --format: {value, multiplier}
 	shotgunSprayAnglePercentageMultiplier = { 100, 1.15 },
 
 	--AI Behaviors
-	turboWeaponGapDelay = {100, 1.4}, --{percentage, multiplier} the divisor of setting_turbo_delay reloadtime. Increasing the multiplier will make a greater variance in the amount of turboweapon delay.
+	turboWeaponOffTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation delay.
+	turboWeaponOnTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation duration.
 
 	--non-damage weapon behavior
 	turboShotgunArmBurst = { 2, 1.15 },
@@ -768,6 +769,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 900,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -796,6 +799,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,		--when this is aiming, sensor_ground_near cannot aim.
 				soundhit = "",
 				soundhitwet = "",
@@ -824,6 +829,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -852,6 +859,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				range = 99999,
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -864,8 +873,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					default = 0,
 				},
 			},
-				setting_turbo_delay = { --this only aims when the other sensors are not aiming.
-				areaofeffect = 4,
+				setting_turbo_delay = { --
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -878,8 +886,11 @@ for difficulty, stats in pairs(difficultyParams) do
 				impulsefactor = 0.123,
 				name = "TurboWeaponGapDelay",
 				noselfdamage = true,
-				range = 99999,
-				reloadtime = 1/stats.turboWeaponGapDelay*100, --increasing firerate decreases the delay between turbo weapon activations. Every time this fires is a count of +1, once 10+%health/4 is reached a new turbo weapon is selected.
+				projectiles = math.floor((10/stats.turboWeaponOnTime*100) + 0.5), -- after delay, when 200-300 additional projectiles are fired, the turbo weapon is disabled.
+				range = 99999, 
+				reloadtime = 1/stats.turboWeaponOffTime*100, --when 10+(health%/4) shots are fired, select a turbo weapon and enable it.
+				rgbcolor = "0.7 0.3 1.0",
+				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
