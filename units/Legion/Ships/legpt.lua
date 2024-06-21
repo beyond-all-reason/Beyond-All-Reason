@@ -28,7 +28,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/legpt.s3o",
-		radardistance = 600,
+		radardistance = 720,
 		radaremitheight = 25,
 		script = "Units/legpt.cob",
 		seismicsignature = 0,

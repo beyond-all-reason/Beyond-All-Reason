@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 4050,
-		speed = 64,
+		speed = 58,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
 		movestate = 0,
@@ -146,25 +146,24 @@ return {
 				weaponvelocity = 1200,
 				damage = {
 					commanders = 260,
-					default = 530,
+					default = 470,
 					vtol = 110,
 				},
 			},
 			mortar = {
 
 
-				cegtag = "arty-big",--mightbe large
-
+				cegtag = "arty-large",
 
 
 				accuracy = 250,
-				areaofeffect = 185,
+				areaofeffect = 130,
 				avoidfeature = false,
-				craterareaofeffect = 200,
+				craterareaofeffect = 130,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.60,
-				explosiongenerator = "custom:genericshellexplosion-small",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 0.123,
@@ -181,7 +180,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 330,
 				damage = {
-					default = 500,
+					default = 250,
 					subs = 90,
 					vtol = 90,
 				},
