@@ -27,7 +27,11 @@ local GetProjectileDirection = Spring.GetProjectileDirection
 local GetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGameFrame = Spring.GetGameFrame
+
 local SpawnCEG = Spring.SpawnCEG
+-- Helpful debug wrapper:
+-- SpawnCEG = function(ceg,x,y,z,dx,dy,dz) Spring.Echo(ceg,x,y,z); Spring.SpawnCEG(ceg,x,y,z,dx,dy,dz) end
+
 local random = math.random
 
 local gameFrame = 0
@@ -71,7 +75,7 @@ end
 
 -----------------------------------------------------------------------------------------
 local starbursts = {} 
-local starburstWeapons = {}
+local starburstWeapons = {} -- {wDID = {startHeight, cegName, nofueltime, maxtime,  }}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == 'StarburstLauncher' then
@@ -161,6 +165,7 @@ function gadget:Initialize()
 	for wDID,_ in pairs(missileWeapons) do
         Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "missile"
+		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
     end
 	
 	for wDID, _ in pairs(starburstWeapons) do
@@ -171,6 +176,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
+	--Spring.Echo("gadget:ProjectileCreated",proID, proOwnerID, weaponDefID)
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
 	if watchedWeaponType == nil then return end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
@@ -190,9 +196,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 		end
 		local gf = GetGameFrame()
 		starbursts[proID] = {
-			weaponDefID,
 			groundHeight + starburstWeapons[weaponDefID][1],
-			gf,
 			starburstWeapons[weaponDefID][2],
 			gf + starburstWeapons[weaponDefID][3],
 			gf + starburstWeapons[weaponDefID][4],
@@ -257,20 +261,20 @@ function gadget:GameFrame(gf)
     end	
 	
 	for proID, missile in pairs(starbursts) do
-		if gf <= missile[6] then
+		if gf <= missile[4] then
 			local x, y, z = GetProjectilePosition(proID)
 			if y and y > 0 then
 				local dirX, dirY, dirZ = GetProjectileDirection(proID)
-				if gf <= missile[5] or gf % 2 == 1 then
+				if gf <= missile[3] or gf % 2 == 1 then
 					-- add extra missiletrail
-					SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
-					if y <= missile[8] or (y <= missile[9] and gf % 2 == 1) then
+					SpawnCEG(missile[2], x, y, z, dirX, dirY, dirZ)
+					if y <= missile[6] or (y <= missile[7] and gf % 2 == 1) then
 						-- add ground dust
-						SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
+						SpawnCEG(missile[5], x, missile[1], z, dirX, dirY, dirZ)
 					end
-					if y <= missile[11] or (y <= missile[12] and gf % 2 == 1) then
+					if y <= missile[9] or (y <= missile[10] and gf % 2 == 1) then
 						--add ground fire
-						SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
+						SpawnCEG(missile[8], x, missile[1], z, dirX, dirY, dirZ)
 					end
 				end
 			else
