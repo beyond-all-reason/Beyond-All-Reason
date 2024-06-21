@@ -21,7 +21,7 @@ static-var isAiming, isBuilding, isAimingEaterBeam, eaterBeamIncrement, buildHea
 			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, turboOffTime, turboOnTime, turboWeaponChangeIncriment,
 			
 			//for special weapons
-			enableEaterBeam, specialIncrementThreshold, eaterBeamDisableCycle,
+			enableEaterBeam, specialIncrementThreshold, eaterBeamDisableCycle, eaterBeamBonusGiven,
 			
 			//for sensor logic
 			incrimentSensedVTOL, incrimentSensedGroundScout, incrimentSensedGroundNear,	groundScoutSensed,  groundNearSensed, VTOLsensed,
@@ -520,6 +520,13 @@ UnitTimer()
 		set ARMORED to 0;
 		eaterBeamDisableCycle = cycle+40;
 		}
+		if (enableEaterBeam == 1 && eaterBeamBonusGiven == 0){ //this gauruntees that the eater beam will get at least a little charge each time it starts
+			eaterBeamIncrement = eaterBeamIncrement + rand(1, 4);
+			eaterBeamBonusGiven = 1;
+		}
+		if (enableEaterBeam == 0){
+			eaterBeamBonusGiven = 0; //this resets bonus, allowing it to be given next time eater beam is enabled
+		}
 		
 		if (enableEaterBeam == 1 OR eaterBeamIncrement >= specialIncrementThreshold){ // telegraph eater beam and special charge
 		show nano;
@@ -705,6 +712,7 @@ Create(){
 	specialIncrementThreshold = 30;
 	eaterBeamDisableCycle = 0;
 	turboWeaponChangeIncriment = 0;
+	eaterBeamBonusGiven = 0;
 	
 	//turbo variable initiations
 	turboMisAimReady = 0;
