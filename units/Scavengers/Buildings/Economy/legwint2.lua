@@ -38,7 +38,7 @@ return {
 			unitgroup = 'energy',
 			energymultiplier = 10, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
 			model_author = "Yzch",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landeconomy",
