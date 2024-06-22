@@ -110,17 +110,17 @@ local function initGL4()
 	return true
 end
 
-local function RemovePrimitive(unitID)
-	if unitGroupVBO.instanceIDtoIndex[unitID] then
-		local oldgroup = unitIDtoGroup[unitID]
-		grouptounitID[oldgroup][unitID] = nil
+local function RemovePrimitive(unitID, groupID)
+	groupID = groupID or unitIDtoGroup[unitID]
+
+	if groupID then
+		grouptounitID[groupID][unitID] = nil
 		unitIDtoGroup[unitID] = nil
+	end
+
+	if unitGroupVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(unitGroupVBO, unitID)
 	end
-end
-
-function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
-	RemovePrimitive(unitID, "VisibleUnitRemoved")
 end
 
 local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
@@ -128,6 +128,7 @@ local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
 		if debugmode then
 			Spring.Echo("Warning: Unit Groups GL4 attempted to add an invalid unitID:", unitID)
 		end
+
 		return nil
 	end
 
@@ -154,7 +155,6 @@ end
 function widget:PlayerChanged()
 	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
-		return
 	end
 end
 
@@ -186,7 +186,7 @@ function widget:GroupChanged(groupID)
 	end
 
 	for unitID, _ in pairs(unitsToBeRemoved) do
-		RemovePrimitive(unitID)
+		RemovePrimitive(unitID, groupID)
 	end
 end
 
@@ -218,18 +218,25 @@ function widget:Shutdown()
 		unitGroupShader:Finalize()
 	end
 
-	if unitGroupVBO and unitGroupVBO.VBO then
-		unitGroupVBO:Delete()
-	end
+	if unitGroupVBO then
+		if unitGroupVBO.VBO then
+			unitGroupVBO:Delete()
+		end
 
-	if unitGroupVBO and unitGroupVBO.VAO then
-		unitGroupVBO.VAO:Delete()
+		if unitGroupVBO.VAO then
+			unitGroupVBO.VAO:Delete()
+		end
 	end
 end
 
--- function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-function widget:UnitDestroyed(unitID)
-	crashing[unitID] = nil
+-- MetaUnitRemoved handles taken and destroyed at the same time
+-- function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+function widget:MetaUnitRemoved(unitID, unitDefID)
+	if unitCanFly[unitDefID] then
+		crashing[unitID] = nil
+	end
+
+	RemovePrimitive(unitID)
 end
 
 -- widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
