@@ -53,6 +53,7 @@ local notificationList = {}
 local notificationOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
+local gameover = false
 
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -527,7 +528,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then
 		return
 	end
-
+	if gameover then
+		return
+	end
 	if spIsUnitAllied(unitID) or unitTeam == gaiaTeamID then
 		return
 	end
@@ -804,15 +807,18 @@ function widget:GameStart()
 end
 
 function widget:GameOver()
+	gameover = true
 	queueNotification('BattleEnded',true)
 	--widgetHandler:RemoveWidget()
 end
 
 function widget:GamePaused(playerID, isGamePaused)
-	if isGamePaused then
-		queueNotification('GamePaused',true)
-	else
-		queueNotification('GameUnpaused', true)
+	if not gameover then
+		if isGamePaused then
+			queueNotification('GamePaused',true)
+		else
+			queueNotification('GameUnpaused', true)
+		end
 	end
 end
 
