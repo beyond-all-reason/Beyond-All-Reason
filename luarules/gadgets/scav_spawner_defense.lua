@@ -1354,7 +1354,7 @@ if gadgetHandler:IsSyncedCode() then
 					bossResistance[attackerDefID].damage = (damage * 4 * config.bossResistanceMult)
 					bossResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.95)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.80)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
