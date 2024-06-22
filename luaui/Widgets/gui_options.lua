@@ -2529,7 +2529,7 @@ function init()
 			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
-		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
+		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 3, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", value)
 			  Spring.SendCommands("GroundDecals " .. value)
@@ -3018,7 +3018,7 @@ function init()
 			  Spring.SetConfigInt("DoubleClickTime", value)
 		  end,
 		},
-	
+
 		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
 		  onload = function(i)
 		  end,
@@ -3029,7 +3029,7 @@ function init()
 			  Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
 		  end,
 		},
-	
+
 
 
 		{ id = "label_ui_camera", group = "control", name = Spring.I18N('ui.settings.option.label_camera'), category = types.basic },
