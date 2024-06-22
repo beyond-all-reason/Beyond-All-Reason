@@ -85,7 +85,7 @@ end
 if Spring.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
 	scavengersEnabled = true
-elseif scavengersEnabled and Spring.GetModOptions().ruins == "scav_only" then
+elseif scavengersEnabled then
 	legionEnabled = true
 end
 
