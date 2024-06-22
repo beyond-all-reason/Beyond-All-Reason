@@ -361,7 +361,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 800,
 				damage = {
 					default = stats.topTurretsDamage,
-					shields = stats.topTurretsDamage/3,
+					shields = stats.topTurretsDamage/2,
 					subs = stats.topTurretsDamage/4,
 				},
 			},
@@ -693,7 +693,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 800,
 				damage = {
 					default = stats.topTurretsDamage,
-					shields = stats.topTurretsDamage/3,
+					shields = stats.topTurretsDamage/2,
 					subs = stats.topTurretsDamage/4,
 				},
 			},
