@@ -285,7 +285,7 @@ local function airReworkTweaks(name, uDef)
 		uDef.turnrate = uDef.turnrate * 1.5
 		uDef.buildtime = uDef.buildtime * 0.8
 	end
-	if name == "armbrawl" or name == "armkam" or name == "armdfly" or name == "corseah" or name == "corape" then
+	if name == "armbrawl" or name == "armkam" or name == "corape" then
 		uDef.health = uDef.health * 1.3
 		uDef.speed = uDef.speed * 0.85
 		uDef.turnrate = uDef.turnrate * 1.5
