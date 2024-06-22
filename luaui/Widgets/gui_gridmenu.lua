@@ -902,7 +902,7 @@ local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
 	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
 	if isRepeatMex then
-		WG["areamex"].setAreaMexType(uDefID)
+		WG["areamex"].setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
 end
