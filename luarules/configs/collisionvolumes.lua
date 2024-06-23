@@ -239,7 +239,7 @@ pieceCollisionVolume['armanac'] = {
 }
 pieceCollisionVolume['corah'] = {
 	['0']={28,16,35,0,5,0,2,1},
-	['2']={10,15,10,0,0,0,2,1},
+	['2']={10,20,10,0,0,0,2,1},
 }
 pieceCollisionVolume['corhal'] = {
 	['0']={42,12,42,0,0,0,2,1},
