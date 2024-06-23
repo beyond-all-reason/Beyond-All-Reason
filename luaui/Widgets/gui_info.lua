@@ -22,6 +22,7 @@ local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 local showBuilderBuildlist = true
 local displayMapPosition = false
+local activeCmdID
 
 local emptyInfo = false
 local showEngineTooltip = false		-- straight up display old engine delivered text
@@ -326,7 +327,7 @@ local function refreshUnitInfo()
 				elseif
 					unitDef.customParams.isevocom  or -- use primary weapon for evolving commanders
 					unitDef.name == 'armcom'       or -- ignore underwater secondary
-					unitDef.name == 'corcom'       or 
+					unitDef.name == 'corcom'       or
 					unitDef.name == 'legcom'       or
 					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
@@ -410,8 +411,8 @@ local function refreshUnitInfo()
 					setEnergyAndMetalCosts(weaponDef)
 
 					if weaponDef.paralyzer ~= true then
-					
-					
+
+
 						if weaponDef.customParams then
 
 							if weaponDef.customParams.sweepfire then
@@ -1111,7 +1112,7 @@ local function drawUnitInfo()
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
-		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
+		if not displayMode == 'unitdef' or (WG['buildmenu'] and (activeCmdID and (not WG['buildmenu'].hoverID or (-activeCmdID == WG['buildmenu'].hoverID)))) then
 			unitNameColor = '\255\125\255\125'
 		end
 	end
@@ -2026,12 +2027,12 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	local activeCmdID = select(2, Spring.GetActiveCommand())
+	activeCmdID = select(2, Spring.GetActiveCommand())
 
 	-- buildmenu unitdef
-	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+	if WG['buildmenu'] and WG['buildmenu'].hoverID then
 		displayMode = 'unitdef'
-		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+		displayUnitDefID = WG['buildmenu'].hoverID
 
 	elseif activeCmdID and activeCmdID < 0 then
 		displayMode = 'unitdef'
