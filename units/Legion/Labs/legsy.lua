@@ -5,7 +5,7 @@ return {
 		energycost = 1200,
 		metalcost = 600,
 		builder = true,
-		buildpic = "CORASY.DDS",
+		buildpic = "legsy.dds",
 		buildtime = 6600,
 		canmove = true,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
