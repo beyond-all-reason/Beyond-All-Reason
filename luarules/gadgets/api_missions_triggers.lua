@@ -18,7 +18,7 @@ end
 
 --============================================================--
 
-local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
+local actionsDefs = VFS.Include('luarules/mission_api/types.lua')
 
 local actionsDispatcher, trackedUnits
 

@@ -4,7 +4,7 @@
 
 --============================================================--
 
-local trackedUnits = GG['MissionAPI'].Tracker.units
+--local trackedUnits = GG['MissionAPI'].Tracker.units
 
 --============================================================--
 

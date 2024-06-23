@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
