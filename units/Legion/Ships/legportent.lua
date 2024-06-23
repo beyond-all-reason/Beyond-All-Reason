@@ -142,14 +142,14 @@ return {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "hplasma",
 				maindir = "0 0 1",
-				maxangledif = 290,
+				maxangledif = 310,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "hplasma",
 				maindir = "0 0 1",
-				maxangledif = 200,
+				maxangledif = 310,
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {

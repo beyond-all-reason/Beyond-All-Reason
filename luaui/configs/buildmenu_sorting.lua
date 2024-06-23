@@ -687,6 +687,7 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
+   ['legsy']          = 211300,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['legfhp']         = 212250,

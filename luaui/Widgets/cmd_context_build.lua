@@ -100,7 +100,8 @@ local legionUnitlist = {
 	{'legsolar','legtide'},
 	--{'leglab','corsy'},--soon(tm)
 	{'leglht','legtl'},
-	{'leglht', 'legptl'},
+	{'leglht', 'legptl'},--this may need more hookery in 2 places below
+	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
 	{'legvp','legamsub'},
 	--{'corap','corplat'},
@@ -110,6 +111,7 @@ local legionUnitlist = {
 }
 
 
+--this has to account for legotter too, later
 local ptlCons = {
 	['armbeaver'] = true,
 	['cormuskrat'] = true,
