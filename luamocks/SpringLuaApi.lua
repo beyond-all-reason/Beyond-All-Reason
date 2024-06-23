@@ -1082,7 +1082,6 @@ function Spring.SetLandUnitGoal(unitID, goalX, goalY, goalZ, goalRadius)
 end
 
 unitdefs = Spring.CreateUnit('number UnitDefID')
-unitdefs.
 
 ---@param unitID number
 ---@return nil

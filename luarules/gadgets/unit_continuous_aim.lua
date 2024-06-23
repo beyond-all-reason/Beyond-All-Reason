@@ -113,6 +113,12 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
   ['legmed'] = 5,
 }
+--add entries for scavboss
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',
+ 'scavengerbossv4_veryeasy_scav', 'scavengerbossv4_easy_scav', 'scavengerbossv4_normal_scav', 'scavengerbossv4_hard_scav', 'scavengerbossv4_veryhard_scav', 'scavengerbossv4_epic_scav'}
+for _, name in pairs(scavengerBossV4Table) do
+	convertedUnitsNames[name] = 4
+end
 --if Spring.GetModOptions().emprework then
 	--convertedUnitsNames['armdfly'] = 50
 --end

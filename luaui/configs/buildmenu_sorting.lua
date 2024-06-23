@@ -193,9 +193,7 @@ local unitOrderTable = {
 	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
-	['armsam2']        = 005801, --LAND + AA
 	['cormist']        = 005810,
-	['cormist2']       = 005811,
 	['legrail']		   = 005811,
 
 	['armpincer']      = 005900, --LAND + AMPHIBIOUS
@@ -252,6 +250,7 @@ local unitOrderTable = {
 
 	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
+	['legsnapper']       = 006825,
 	['corsktl']        = 006830,
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
@@ -331,13 +330,16 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
+	['legpontus']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
 	['corpt']          = 009110,
+	['legvelite']      = 009120,
 
 	['armpship']       = 009200, --MAIN BATTLE
 	['corpship']       = 009210,
+	['leghastatus']    = 009210,
 	['armroy']         = 009220,
 	['corroy']         = 009230,
 
@@ -582,7 +584,7 @@ local unitOrderTable = {
    ['corhllllt']      = 106500, --scavengers
    ['armhlt']         = 106600,
    ['corhlt']         = 106700,
-   ['legdefcarryt1']  = 106800,
+   ['leghive']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
    ['legcluster']         = 106950,
@@ -652,6 +654,7 @@ local unitOrderTable = {
    --WATER ECO NRG CONVERTERS
    ['armfmkr']        = 200400,
    ['corfmkr']        = 200500,
+   ['legfmkr']        = 200550,
    ['armuwmmm']       = 200600,
    ['coruwmmm']       = 200700,
 
@@ -662,6 +665,7 @@ local unitOrderTable = {
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
    ['cortide']        = 203100,
+   ['legtide']        = 203200,
 
    --WATER ECO NRG GEOS
    ['armuwgeo']       = 204000,
@@ -683,6 +687,7 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
+   ['legsy']          = 211300,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['legfhp']         = 212250,
@@ -717,6 +722,7 @@ local unitOrderTable = {
    ['corfdrag']       = 230200,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
+   ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
 

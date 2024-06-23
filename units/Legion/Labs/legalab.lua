@@ -45,7 +45,7 @@ return {
 			[9] = "leginfestor",
 			[10] = "corhrk",
 			[11] = "coraak",
-			[12] = "corroach",
+			[12] = "legsnapper",
 			[13] = "corsktl",
 			[14] = "corvoyr",
 			[15] = "corspy",

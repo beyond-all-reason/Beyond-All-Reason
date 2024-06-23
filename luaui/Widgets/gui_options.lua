@@ -151,7 +151,6 @@ local GL_ONE = GL.ONE
 
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
 
@@ -2530,7 +2529,7 @@ function init()
 			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
-		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
+		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 3, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", value)
 			  Spring.SendCommands("GroundDecals " .. value)
@@ -2807,13 +2806,6 @@ function init()
 		  end,
 		},
 
-		{ id = "scav_messages", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.scav_messages'), type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
-		  end,
-		},
-		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
-
 		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
@@ -3026,7 +3018,7 @@ function init()
 			  Spring.SetConfigInt("DoubleClickTime", value)
 		  end,
 		},
-	
+
 		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
 		  onload = function(i)
 		  end,
@@ -3037,7 +3029,7 @@ function init()
 			  Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
 		  end,
 		},
-	
+
 
 
 		{ id = "label_ui_camera", group = "control", name = Spring.I18N('ui.settings.option.label_camera'), category = types.basic },
@@ -5594,11 +5586,6 @@ function init()
 		options[getOptionByID('widgetselector')] = nil
 	end
 
-	if not scavengersAIEnabled then
-		options[getOptionByID('scav_voicenotifs')] = nil
-		options[getOptionByID('scav_messages')] = nil
-	end
-
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
@@ -6132,7 +6119,6 @@ function init()
 		local filteredOptions = {}
 		for i, option in pairs(options) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				--local name = string.gsub(option.name, "(\\[0-9]+)+", "")
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
 				if string.find(string.lower(name), string.lower(inputText), nil, true) then

@@ -1,7 +1,7 @@
 return {
 	corstorm = {
-		maxacc = 0.1242,
-		maxdec = 0.6486,
+		maxacc = 0.118,
+		maxdec = 0.6162,
 		energycost = 1150,
 		metalcost = 110,
 		buildpic = "CORSTORM.DDS",
@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		health = 740,
 		maxslope = 14,
-		speed = 47.7,
+		speed = 45.3,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
 		movestate = 0,
