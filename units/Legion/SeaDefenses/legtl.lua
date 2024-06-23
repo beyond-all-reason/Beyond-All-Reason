@@ -1,5 +1,5 @@
 return {
-	cortl = {
+	legtl = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,

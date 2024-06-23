@@ -2434,6 +2434,19 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 
+	legtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	legptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+
 	-- LEGION T2 BUILDINGS
 
 	legstarfall = {

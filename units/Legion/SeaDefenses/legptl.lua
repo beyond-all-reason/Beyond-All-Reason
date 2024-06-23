@@ -1,5 +1,5 @@
 return {
-	corptl = {
+	legptl = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,

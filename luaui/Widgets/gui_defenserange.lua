@@ -114,6 +114,8 @@ modConfig["BYAR"]["unitList"] = {
 	legflak = { weapons = { 2 } }, -- t2 ravager gatling flak
 	leglraa = { weapons = { 2 } }, -- t2 aa railgun
 	
+	legtl = { weapons = { 1 } }, --torp launcher
+
 	-- SCAVENGERS
 	scavbeacon_t1_scav = { weapons = { 1 } },
 	scavbeacon_t2_scav = { weapons = { 1 } },
