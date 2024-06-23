@@ -1,8 +1,8 @@
 --============================================================--
 
-local trackedUnits = GGMissionAPI.TrackedUnits
-local triggers = GGMissionAPI.Triggers
-local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
+local trackedUnits = GG['MissionAPI'].TrackedUnits
+local triggers = GG['MissionAPI'].Triggers
+local actionsDefs = VFS.Include('luarules/mission_api/types.lua')
 
 --============================================================--
 

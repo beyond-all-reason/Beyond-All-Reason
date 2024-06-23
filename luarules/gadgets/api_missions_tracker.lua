@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Mission API tracker",
 		desc = "Tracks time, collisions, events etc. for the mission API",
 		date = "2024.01",
-		layer = 0,
+		layer = 1,
 		enabled = true,
 	}
 end
@@ -149,7 +149,7 @@ function gadget:Initialize()
 	GG['MissionAPI'].Tracker.addProximityMonitor = addProximityMonitor
 	GG['MissionAPI'].Tracker.removeProximityMonitor = removeProximityMonitor
 
-	GG['MissionAPI'].Tracker.units = trackedUnits
+	--GG['MissionAPI'].Tracker.units = trackedUnits
 end
 
 ----------------------------------------------------------------
