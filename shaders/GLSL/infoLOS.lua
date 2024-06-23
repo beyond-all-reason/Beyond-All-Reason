@@ -63,7 +63,7 @@ return {
 
 			float c = sin(uv.x) * 0.15;
 			col -= c;
-			col = pow(col, 2.75);
+			col = pow(col, 3.75);
 
 			return col;
 		}
@@ -77,7 +77,7 @@ return {
 
 			float c = sin(uv.x) * 0.20;
 			col -= c;
-			col = pow(col, 4.0);
+			col = pow(col, 2.25);
 
 			return col;
 		}
@@ -128,7 +128,7 @@ return {
 			
 			gl_FragColor.rgb += alwaysColor.rgb * mix(1.0, terraIncognitaEffect, terraIncognitaStatus);
 
-			gl_FragColor.a = 0.03;
+			gl_FragColor.a = 0.04;
 		}
 	]],
 	uniformFloat = {

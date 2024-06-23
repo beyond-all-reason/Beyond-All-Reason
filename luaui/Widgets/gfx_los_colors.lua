@@ -20,9 +20,9 @@ local specDetected = false
 local opacity = 0.88
 
 local losColorsWithRadarsGray = {
-	fog =    {0.20, 0.20, 0.20},
-	los =    {0.25, 0.25, 0.25},
-	radar =  {0.12, 0.12, 0.12},
+	fog =    {0.195, 0.195, 0.195},
+	los =    {0.30, 0.30, 0.30},
+	radar =  {0.20, 0.20, 0.20},
 	jam =    {0.10, 0.02, 0.02},
 	radar2 = {0.40, 0.40, 0.40},
 }

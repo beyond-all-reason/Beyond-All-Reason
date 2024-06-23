@@ -13,8 +13,8 @@ end
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
 
-local opacity = 0.19
-local teamcolorOpacity = 0.6
+local opacity = 0.0
+local teamcolorOpacity = 0.25
 
 ---- GL4 Backend Stuff----
 local selectionVBO = nil
@@ -48,7 +48,7 @@ local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = (8.0 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
@@ -91,8 +91,8 @@ local function AddPrimitiveAtUnit(unitID)
 		cornersize = (width + length) * 0.075
 		numVertices = 2
 	else
-		width = radius
-		length = radius
+		width = radius 
+		length = radius 
 	end
 
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
@@ -139,7 +139,7 @@ function widget:DrawWorldPreUnit()
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 1.3)
+		selectShader:SetUniform("addRadius", 1.2)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)

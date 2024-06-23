@@ -812,7 +812,7 @@ return {
     },
   },
 
-["sanddust"] = {
+  ["sanddust"] = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -901,7 +901,7 @@ return {
     },
   },
 
-["dunedust"] = {
+  ["dunedust"] = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -954,6 +954,23 @@ return {
     },
   },
 
+  ["ventairburstlong"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 300,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+        delay              = [[1 i2]],
+        explosiongenerator = [[custom:ventair-puff]],
+        pos                = [[-3 r6, 0 r10, -3 r6]],
+      },
+    },
+  },
+
   ["ventair-puff"] = {
         smoke = {
          air                = true,
@@ -963,7 +980,7 @@ return {
          water              = true,
          properties = {
            airdrag            = 0.96,
-           colormap           = [[0.15 0.14 0.16 0.07   0.16 0.15 0.17 0.18   0.16 0.15 0.17 0.13   0.12 0.11 0.13 0.09     0 0 0 0.01]],
+           colormap           = [[0.15 0.15 0.15 0.07   0.15 0.15 0.15 0.18   0.16 0.15 0.15 0.13   0.12 0.12 0.12 0.09     0 0 0 0.01]],
            directional        = false,
            emitrot            = 5,
            emitrotspread      = 1,
@@ -982,6 +999,7 @@ return {
            sizemod            = 0.99,
            texture            = [[dirtbar]],
            useairlos          = true,
+           --castShadow         = true,
          },
     },
   },
