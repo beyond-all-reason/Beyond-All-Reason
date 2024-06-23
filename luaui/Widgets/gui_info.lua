@@ -46,6 +46,7 @@ local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
 local lastUpdateClock = 0
 local infoShows = false
+local isPregame
 
 local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
@@ -601,7 +602,8 @@ function GetColor(colormap, slider)
 	col1[3] * ia + col2[3] * aa, col1[4] * ia + col2[4] * aa
 end
 
-function widget:GameFrame(n)
+function widget:GameFrame()
+	isPregame = false
 	if checkGeothermalFeatures then
 		checkGeothermalFeatures()
 		checkGeothermalFeatures = nil
@@ -610,6 +612,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
+	isPregame = Spring.GetGameFrame() < 1
+
 	refreshUnitInfo()
 
 	texts = Spring.I18N('ui.info')
@@ -716,7 +720,7 @@ function widget:Update(dt)
 		checkChanges()
 		doUpdate = true
 	end
-	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and Spring.GetGameFrame() > 0 then
+	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')
@@ -776,11 +780,11 @@ function widget:Update(dt)
 		displayUnitDefID = nil
 	end
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
 		return
 	end
 
-	if alwaysShow or not emptyInfo or Spring.GetGameFrame() == 0 then
+	if alwaysShow or not emptyInfo or isPregame then
 		infoShows = true
 	end
 end
@@ -1864,7 +1868,7 @@ local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1877,7 +1881,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo or  Spring.GetGameFrame() == 0 then
+	if alwaysShow or not emptyInfo or isPregame then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -2027,7 +2031,12 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	activeCmdID = select(2, Spring.GetActiveCommand())
+	if isPregame then
+ 		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
+		activeCmdID = activeCmdID and -activeCmdID
+	else
+		activeCmdID = select(2, Spring.GetActiveCommand())
+	end
 
 	-- buildmenu unitdef
 	if WG['buildmenu'] and WG['buildmenu'].hoverID then
@@ -2106,7 +2115,7 @@ function checkChanges()
 		doUpdate = true
 	end
 
-	if displayMode == 'text' and Spring.GetGameFrame() == 0 then
+	if displayMode == 'text' and isPregame then
 		displayMode = 'unitdef'
 		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 		hideBuildlist = true
