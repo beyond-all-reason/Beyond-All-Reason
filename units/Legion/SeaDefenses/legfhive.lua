@@ -1,11 +1,11 @@
 return {
-	legdefcarryt1 = {
+	legfhive = {
 		maxacc = 0,
 		maxdec = 4.5,
 		buildangle = 4096,
 		energycost = 9000,
 		metalcost = 300,
-		buildpic = "LEGDEFCARRYT1.DDS",
+		buildpic = "legfhive.DDS",
 		buildtime = 7500,
 		canrepeat = false,
 		canmove = true,
@@ -23,15 +23,16 @@ return {
 		mass = 700,
 		health = 1200,
 		maxslope = 10,
-		maxwaterdepth = 0,
+		minwaterdepth = 12,
 		nochasecategory = "MOBILE",
-		objectname = "Units/LEGDEFCARRYT1.s3o",
-		script = "Units/LEGDEFCARRYT1.cob",
+		objectname = "Units/legfhive.s3o",
+		script = "Units/leghive.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 1,
 		upright = true,
+		waterline = 4,
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
@@ -39,7 +40,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
+			model_author = "Zephyr",--naval edition by / c/o Hornet
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
@@ -61,7 +62,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 130,
-				object = "Units/legdefcarryt1_dead.s3o",
+				object = "Units/leghive_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -139,7 +140,7 @@ return {
 				customparams = {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1000,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 6,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.

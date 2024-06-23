@@ -197,6 +197,7 @@ local armorDefs = {
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
+		"legfmkr",
 		"corforge",
 		--"corfort",
 		"corfrt",
@@ -241,6 +242,7 @@ local armorDefs = {
 		"cortorch",
 		"corthud",
 		"cortide",
+		"legtide",
 		"cortron",
 		"coruwes",
 		"coruwfus",
@@ -358,6 +360,7 @@ local armorDefs = {
 		"corjugg",
 		"armtl",
 		"cortl",
+		"legtl",
 		"armatl",
 		"coratl",
 		"armcir",
@@ -568,7 +571,7 @@ local armorDefs = {
 		"leghastatus",
 		"leghastatusalt",
 		"legoptio",
-		"legpt",
+		"legpontus",
 	},
 
 	hvyboats = {

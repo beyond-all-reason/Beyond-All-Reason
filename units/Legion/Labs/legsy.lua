@@ -35,7 +35,7 @@ return {
 			[1] = "legcs",
 			[2] = "legstingray",--
 			[3] = "legvelite",--
-			[4] = "legpt",
+			[4] = "legpontus",
 			[5] = "leghastatus",
 			[6] = "legtriarius",--
 			[7] = "legsub",--
