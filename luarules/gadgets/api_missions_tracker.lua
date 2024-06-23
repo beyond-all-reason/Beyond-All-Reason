@@ -18,7 +18,7 @@ end
 
 --============================================================--
 
-local trackedUnits, trackedTimers, trackedColliders
+local trackedUnits, trackedTimers, trackedProximityMonitors
 
 local currentFrame = 0
 
@@ -89,32 +89,32 @@ end
 
 ----------------------------------------------------------------
 
--- COLLIDERS
+-- PROXIMITY MONITORS
 
 ----------------------------------------------------------------
 
-local function addCollider(name, collider)
-	if collider.__name ~= 'Collider' then
-		Spring.Log('api_missions_tracker.lua', LOG.ERROR, string.format("[Mission API] Collider '%s' is not valid collider object", name))
+local function addProximityMonitor(name, proximityMonitor)
+	if proximityMonitor.__name ~= 'Proximity Monitor' then
+		Spring.Log('api_missions_tracker.lua', LOG.ERROR, string.format("[Mission API] Proximity Monitor '%s' is not a valid proximity monitor object", name))
 		return
 	end
 
-	if not collider.validate or not collider.validate() then
-		Spring.Log('api_missions_tracker.lua', LOG.ERROR, string.format("[Mission API] Collider '%s' failed validation", name))
+	if not proximityMonitor.validate or not proximityMonitor.validate() then
+		Spring.Log('api_missions_tracker.lua', LOG.ERROR, string.format("[Mission API] Proximity Monitor '%s' failed validation", name))
 		return
 	end
 
-	if trackedColliders[name] then
-		Spring.Log('api_missions_tracker.lua', LOG.WARNING, string.format("[Mission API] Collider '%s' already exists. Overwriting..", name))
+	if trackedProximityMonitors[name] then
+		Spring.Log('api_missions_tracker.lua', LOG.WARNING, string.format("[Mission API] Proximity Monitor '%s' already exists. Overwriting..", name))
 	end
 
-	trackedColliders[name] = collider
+	trackedProximityMonitors[name] = proximityMonitor
 end
 
 ----------------------------------------------------------------
 
-local function removeCollider(name)
-	trackedColliders[name] = nil
+local function removeProximityMonitor(name)
+	trackedProximityMonitors[name] = nil
 end
 
 --============================================================--
@@ -127,9 +127,9 @@ end
 
 ----------------------------------------------------------------
 
-local function pollColliders()
-	for name, collider in pairs(trackedColliders) do
-		collider.poll()
+local function pollProximityMonitors()
+	for name, proximityMonitor in pairs(trackedProximityMonitors) do
+		proximityMonitor.poll()
 	end
 end
 
@@ -146,8 +146,8 @@ function gadget:Initialize()
 	GG['MissionAPI'].Tracker.addTimer = addTimer
 	GG['MissionAPI'].Tracker.removeTimer = removeTimer
 
-	GG['MissionAPI'].Tracker.addCollider = addCollider
-	GG['MissionAPI'].Tracker.removeCollider = removeCollider
+	GG['MissionAPI'].Tracker.addProximityMonitor = addProximityMonitor
+	GG['MissionAPI'].Tracker.removeProximityMonitor = removeProximityMonitor
 
 	GG['MissionAPI'].Tracker.units = trackedUnits
 end
