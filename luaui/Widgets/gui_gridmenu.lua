@@ -1156,6 +1156,9 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	WG["gridmenu"] = {}
+	WG["buildmenu"] = {}
+
 	doUpdateClock = os.clock()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1196,7 +1199,6 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
-	WG["gridmenu"] = {}
 	WG["gridmenu"].getAlwaysReturn = function()
 		return alwaysReturn
 	end
@@ -1223,7 +1225,6 @@ function widget:Initialize()
 		clearCategory()
 	end
 
-	WG["buildmenu"] = {}
 	WG["buildmenu"].getGroups = function()
 		return groups, units.unitGroup
 	end
@@ -2439,6 +2440,8 @@ function widget:SelectionChanged(newSel)
 		-- If no selection, we still have to draw empty cells
 		if alwaysShow then
 			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
 		end
 
 		return
@@ -2460,6 +2463,13 @@ function widget:SelectionChanged(newSel)
 
 	-- if no builders are selected, there's nothing to do
 	if selectedBuildersCount == 0 then
+		-- If no selection, we still have to draw empty cells
+		if alwaysShow then
+			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
+		end
+
 		return
 	end
 
