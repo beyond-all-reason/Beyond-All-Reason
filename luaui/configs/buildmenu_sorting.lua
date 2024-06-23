@@ -330,7 +330,7 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
-	['legpt']       = 009015,
+	['legpontus']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
@@ -584,7 +584,7 @@ local unitOrderTable = {
    ['corhllllt']      = 106500, --scavengers
    ['armhlt']         = 106600,
    ['corhlt']         = 106700,
-   ['legdefcarryt1']  = 106800,
+   ['leghive']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
    ['legcluster']         = 106950,
@@ -654,6 +654,7 @@ local unitOrderTable = {
    --WATER ECO NRG CONVERTERS
    ['armfmkr']        = 200400,
    ['corfmkr']        = 200500,
+   ['legfmkr']        = 200550,
    ['armuwmmm']       = 200600,
    ['coruwmmm']       = 200700,
 
@@ -664,6 +665,7 @@ local unitOrderTable = {
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
    ['cortide']        = 203100,
+   ['legtide']        = 203200,
 
    --WATER ECO NRG GEOS
    ['armuwgeo']       = 204000,

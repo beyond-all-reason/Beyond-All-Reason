@@ -99,7 +99,7 @@ modConfig["BYAR"]["unitList"] = {
 	legmg = { weapons = { 1 } }, -- machine gun tower
 	legdtr = { weapons = { 1 } }, -- t1 pop-up riot cannon
 	legcluster = { weapons = { 1 } },  -- t1 cluster arty
-	legdefcarryt1 = { weapons = { 1 } },  -- t1 drone pad
+	leghive = { weapons = { 1 } },  -- t1 drone pad
 
 	legrl = { weapons = { 2 } }, -- t1 light aa turret
 	legrhapsis = { weapons = { 2 } }, -- t1 salvo aa

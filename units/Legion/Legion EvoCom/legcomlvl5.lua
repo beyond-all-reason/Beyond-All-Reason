@@ -88,7 +88,7 @@ return {
 			[20] = "legrail",
 			[21] = "legmg",
 			[22] = "cortl",
-			[23] = "legdefcarryt1",
+			[23] = "leghive",
 			[24] = "legdtl",
 			[25] = "legdtf",
 			[26] = "legdtm",

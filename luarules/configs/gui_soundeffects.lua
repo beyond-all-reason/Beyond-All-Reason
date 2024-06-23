@@ -2390,6 +2390,20 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-windgen",
 	},
+	legfmkr = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+	},
+
+	legtide = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrghum",
+	},
+
 	legmex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
@@ -2404,7 +2418,12 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mexon",
         BaseSoundDeactivate = "mexoff",
 	},
-	legdefcarryt1 = {
+	leghive = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},
+	legfdefcarryt1 = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
