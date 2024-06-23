@@ -62,59 +62,59 @@ local function checkField(fileName, moduleName, objectName, fieldName, field, ex
 	fileName = fileName or 'types.lua'
 	moduleName = moduleName or 'Mission API'
 
-	local out = true
+	local valid = true
 
 	if required and field == nil then
 		errorMissingField(fileName, moduleName, objectName, fieldName)
-		out = false
+		valid = false
 	end
 
 	if field and type(field) ~= expectedType then
 		errorUnexpectedType(fileName, moduleName, objectName, fieldName, expectedType, type(field))
-		out = false
+		valid = false
 	end
 
-	return out
+	return valid
 end
 
 --============================================================--
 
--- Collider
+-- Proximity Monitor
 
 --============================================================--
 
---- Metatable for Collider objects
-local collider = { 
-	__name = 'Collider', -- Meta name used for type checking
+--- Metatable for Proximity Monitor objects
+local proximityMonitor = { 
+	__name = 'Proximity Monitor', -- Meta name used for type checking
 
-	position = {0, 0}, -- {x, z} position of the collider
-	scale = 0, -- Radius or {x, z} scale of collider, for cylindrical and rectangular colliders respectively
+	position = {0, 0}, -- {x, z} position of the proximity monitor
+	size = 0, -- Radius or {x, z} size of proximity monitor, for cylindrical and rectangular proximity monitors respectively
 
-	team = Spring.ALL_UNITS, -- TeamID for finding units inside collider
+	team = Spring.ALL_UNITS, -- TeamID for finding units inside proximity monitor
 
-	onEnter = nil, -- function, called when a unit enters the collider
-	onLeave = nil, -- function, called when a unit leaves the collider
+	onEnter = nil, -- function, called when a unit enters the proximity monitor
+	onLeave = nil, -- function, called when a unit leaves the proximity monitor
 
-	units = {}, -- units inside the collider on last poll
+	units = {}, -- units inside the proximity monitor on last poll
 }
-collider.__index = collider
+proximityMonitor.__index = proximityMonitor
 
 ----------------------------------------------------------------
 
---- Creates a new instance of Collider
--- @tab position Array of length 2, {x, z}, for the 2D position of the collider
--- @tparam number|table scale Radius or {x, z} scale of collider, for cylindrical and rectangular colliders respectively
--- @number team TeamID used as filter for units inside collider
--- @func onEnter Function called when a unit enters the collider. UnitID and UnitDefID are passed as arguments
--- @func onLeave Function called when a unit leaves the collider. UnitID and UnitDefID are passed as arguments
--- @treturn table Instance derived from the Collider metatable
-function collider:new(position, scale, team, onEnter, onLeave)
+--- Creates a new instance of Proximity Monitor
+-- @tab position Array of length 2, {x, z}, for the 2D position of the proximity monitor
+-- @tparam number|table Radius or {x, z} size of proximity monitor, for cylindrical and rectangular proximity monitors respectively
+-- @number team TeamID used as filter for units inside proximity monitor
+-- @func onEnter Function called when a unit enters the proximity monitor. UnitID and UnitDefID are passed as arguments
+-- @func onLeave Function called when a unit leaves the proximity monitor. UnitID and UnitDefID are passed as arguments
+-- @treturn table Instance derived from the Proximity Monitor metatable
+function proximityMonitor:new(position, size, team, onEnter, onLeave)
 	local object = {}
 
 	setmetatable(object, self)
 
 	object.position = position or self.position
-	object.scale = scale or self.scale
+	object.size = size or self.size
 
 	object.team = team or self.team
 
@@ -126,43 +126,43 @@ end
 
 ----------------------------------------------------------------
 
---- Validates the Collider's parameters
+--- Validates the Proximity Monitor's parameters
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @return boolean False if any validity errors are found
-function collider:validate(file, module)
-	local out = true
+function proximityMonitor:validate(file, module)
+	local valid = true
 
 	if not self.position then
 		errorMissingField(file, module, self.__name, 'position')
 	elseif type(self.position) ~= 'table' then
 		errorUnexpectedType(file, module, self.__name, 'position', 'table', type(self.position))
 	elseif #self.position ~= 2 then
-		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'position' in 'Collider' has unexpected length, expected 2, got %i", module, #self.position))
+		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'position' in 'Proximity Monitor' has unexpected length, expected 2, got %i", module, #self.position))
 	end
 
-	if not self.scale then
-		errorMissingField(file, module, self.__name, 'scale')
-	elseif type(self.scale) ~= 'number' and type(self.scale) ~= 'table' then
-		errorUnexpectedType(file, module, self.__name, 'scale', 'table or number', type(self.scale))
-	elseif type(self.scale) == 'table' and #self.scale ~= 2 then
-		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'scale' in 'Collider' has unexpected length, expected 2, got %i", module, #self.position))
+	if not self.size then
+		errorMissingField(file, module, self.__name, 'size')
+	elseif type(self.size) ~= 'number' and type(self.size) ~= 'table' then
+		errorUnexpectedType(file, module, self.__name, 'size', 'table or number', type(self.size))
+	elseif type(self.size) == 'table' and #self.size ~= 2 then
+		Spring.Log(file, LOG.ERROR, string.format("[%s] Field 'size' in 'Proximity Monitor' has unexpected length, expected 2, got %i", module, #self.position))
 	end
 
-	out = out and checkField(file, module, self.__name, 'width', self.width, 'number', true)
-	out = out and checkField(file, module, self.__name, 'height', self.height, 'number', false)
-	out = out and checkField(file, module, self.__name, 'team', self.team, 'number', true)
-	out = out and checkField(file, module, self.__name, 'onEnter', self.onEnter, 'function', false)
-	out = out and checkField(file, module, self.__name, 'onLeave', self.onLeave, 'function', false)
+	valid = valid and checkField(file, module, self.__name, 'width', self.width, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'height', self.height, 'number', false)
+	valid = valid and checkField(file, module, self.__name, 'team', self.team, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'onEnter', self.onEnter, 'function', false)
+	valid = valid and checkField(file, module, self.__name, 'onLeave', self.onLeave, 'function', false)
 
-	return out
+	return valid
 end
 
 ----------------------------------------------------------------
 
---- Gets all units inside the collider, filtered with the collider's teamID
+--- Gets all units inside the proximity monitor, filtered with the proximity monitor's teamID
 -- @treturn table {[1] = UnitID, ...}
-function collider:getUnits()
+function proximityMonitor:getUnits()
 	local units = {}
 
 	if not self.height then
@@ -175,8 +175,8 @@ function collider:getUnits()
 end
 ----------------------------------------------------------------
 
---- Polls the collider, checking if any units have entered or left and updating the current units table
-function collider:poll()
+--- Polls the proximity monitor, checking if any units have entered or left and updating the current units table
+function proximityMonitor:poll()
 	local currentUnits = self.getUnits()
 
 	if self.onEnter then
@@ -208,7 +208,7 @@ end
 local timer = {
 	__name = 'Timer', -- Meta name used for type checking
 
-	count = 0, -- Current count of frames since started
+	elapsed = 0, -- Current count of frames since started
 	length = 0, -- Length of timer in frames (60/s)
 
 	loop = false, -- If the timer should restart after finishing
@@ -232,7 +232,7 @@ function timer:new(length, loop, onUpdate, onFinished)
 
 	setmetatable(object, self)
 
-	object.count = self.count
+	object.elapsed = self.elapsed
 	object.length = length or self.length
 
 	object.loop = loop or self.loop
@@ -250,14 +250,14 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 function timer:validate(file, module)
-	local out = true
+	local valid = true
 
-	out = out and checkField(file, module, self.__name, 'length', self.length, 'number', true)
-	out = out and checkField(file, module, self.__name, 'loop', self.loop, 'bool', false)
-	out = out and checkField(file, module, self.__name, 'onUpdate', self.onUpdate, 'function', false)
-	out = out and checkField(file, module, self.__name, 'onFinished', self.onFinished, 'function', false)
+	valid = valid and checkField(file, module, self.__name, 'length', self.length, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'loop', self.loop, 'bool', false)
+	valid = valid and checkField(file, module, self.__name, 'onUpdate', self.onUpdate, 'function', false)
+	valid = valid and checkField(file, module, self.__name, 'onFinished', self.onFinished, 'function', false)
 
-	return out
+	return valid
 end
 
 ----------------------------------------------------------------
@@ -278,24 +278,24 @@ end
 
 --- Stops the timer and resets its current state
 function timer:stop()
-	self.count = 0
+	self.elapsed = 0
 	self.running = false
 end
 
 ----------------------------------------------------------------
 
---- Polls the timer, incrementing its count and calling the appropriate functions
+--- Polls the timer, incrementing its elapsed and calling the appropriate functions
 function timer:poll()
 	if not self.running then return end
 
-	self.count = self.count + 1
+	self.elapsed = self.elapsed + 1
 
-	if self.onUpdate then self.onUpdate(self.length / self.count) end
+	if self.onUpdate then self.onUpdate(self.length / self.elapsed) end
 
-	if self.count == self.length then
+	if self.elapsed == self.length then
 		if self.onFinished then self.onFinished() end
 		if not self.loop then self.running = false end
-		self.count = 0
+		self.elapsed = 0
 	end
 end
 
@@ -636,12 +636,12 @@ end
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
 function vec2:validate(file, module)
-	local out = true
+	local valid = true
 
-	out = out and checkField(file, module, self.__name, 'x', self.x, 'number', true)
-	out = out and checkField(file, module, self.__name, 'z', self.z, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'z', self.z, 'number', true)
 
-	return out
+	return valid
 end
 
 --============================================================--
@@ -686,19 +686,19 @@ end
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
 function vec2:validate(file, module)
-	local out = true
+	local valid = true
 
-	out = out and checkField(file, module, self.__name, 'x', self.x, 'number', true)
-	out = out and checkField(file, module, self.__name, 'y', self.y, 'number', true)
-	out = out and checkField(file, module, self.__name, 'z', self.z, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'y', self.y, 'number', true)
+	valid = valid and checkField(file, module, self.__name, 'z', self.z, 'number', true)
 
-	return out
+	return valid
 end
 
 --============================================================--
 
 return {
-	Collider = collider,
+	ProximityMonitor = proximityMonitor,
 	Timer = timer,
 	Unit = unit,
 	UnitDef = unitDef,
