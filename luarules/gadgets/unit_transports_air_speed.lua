@@ -50,7 +50,7 @@ local function updateAllowedSpeed(transportId)
 	local tunitdefid
 	local tunitdefcustom
 	local iscom = false
-	local transportspeedmult = 0.3
+	local transportspeedmult = 0.0
 	if units then
 		for _,tUnitId in pairs(units) do
 			tunitdefid = spGetUnitDefID(tUnitId)
