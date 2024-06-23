@@ -919,9 +919,22 @@ local function setCurrentCategory(category)
 	updateCategories(categories)
 	refreshCommands()
 
+	-- handle selecting first option when switching category
 	if changedCategory and autoSelectFirst and activeBuilder then
-		local firstCellCmdOpt = gridOpts[1 + (currentPage - 1) * cellCount]
-		local firstCmd = firstCellCmdOpt and firstCellCmdOpt.id
+		local offset = (currentPage - 1) * cellCount
+
+		local firstCmd
+
+		-- Get first available cell command
+		for i = offset + 1, offset + cellCount do
+			local cellCmdOpt = gridOpts[i]
+			local cellCmd = cellCmdOpt and cellCmdOpt.id
+
+			if cellCmd and not units.unitRestricted[-cellCmd] then
+				firstCmd = cellCmd
+				break
+			end
+		end
 
 		if not firstCmd then
 			return
