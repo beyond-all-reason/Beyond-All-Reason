@@ -430,8 +430,6 @@ local function updateHoverState()
 					resetHovered()
 				end
 
-				Spring.Echo("reset hovered", os.clock())
-
 				return
 			end
 
