@@ -323,10 +323,6 @@ startUnits = nil
 -------------------------------------------------------------------------------
 
 local function resetHovered()
-	if not hoveredRect then
-		return
-	end
-
 	for _, rects in ipairs({ catRects, builderRects }) do
 		for _, rect in pairs(rects) do
 			rect.opts.hovered = false
@@ -335,7 +331,6 @@ local function resetHovered()
 
 	for _, rect in pairs(cellRects) do
 		rect.opts.hovered = false
-		rect.opts.clicked = false
 	end
 
 	WG["buildmenu"].hoverID = nil
@@ -348,7 +343,18 @@ local function resetHovered()
 end
 
 local function setHoveredRect(rect, clicked)
-	if rect.opts.hovered and not hoveredRect then
+	clicked = clicked or nil
+
+	if rect.opts.clicked ~= clicked then
+		for _, cellRect in pairs(cellRects) do
+			cellRect.opts.clicked = nil
+		end
+
+		rect.opts.clicked = clicked
+		redraw = true
+	end
+
+	if rect.opts.hovered and hoveredRect then
 		return
 	end
 
@@ -356,9 +362,6 @@ local function setHoveredRect(rect, clicked)
 
 	hoveredRect = true
 	rect.opts.hovered = true
-	if clicked then
-		rect.opts.clicked = true
-	end
 end
 
 local function setHoveredRectTooltip(rect, text, title, clicked)
@@ -371,11 +374,49 @@ end
 
 local function updateHoverState()
 	local x, y, left, _, right = Spring.GetMouseState()
-	local isAbove = backgroundRect:contains(x, y)
-		or (selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)))
+	local isAboveBg = backgroundRect:contains(x, y)
+	local isAboveBuilders = not isAboveBg
+		and selectedBuildersCount > 1
+		and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
 
-	if not isAbove then
-		resetHovered()
+	if isAboveBuilders then
+		Spring.SetMouseCursor("cursornormal")
+
+		-- builder buttons
+		if nextBuilderRect:contains(x, y) then
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
+
+			return
+		end
+
+		for _, rect in pairs(builderRects) do
+			if rect:contains(x, y) then
+				-- if we reached the first inactive builderRect we stop checking
+				if not rect.opts.uDefID then
+					break
+				end
+
+				setHoveredRectTooltip(
+					rect,
+					unitTranslatedTooltip[rect.opts.uDefID],
+					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
+				)
+
+				return
+			end
+		end
+
+		if hoveredRect then
+			resetHovered()
+		end
+
+		return
+	end
+
+	if not isAboveBg then
+		if hoveredRect then
+			resetHovered()
+		end
 
 		return
 	end
@@ -385,7 +426,11 @@ local function updateHoverState()
 	for _, cellRect in pairs(cellRects) do
 		if cellRect:contains(x, y) then
 			if not cellRect.opts.uDefID then
-				resetHovered()
+				if hoveredRect then
+					resetHovered()
+				end
+
+				Spring.Echo("reset hovered", os.clock())
 
 				return
 			end
@@ -416,7 +461,7 @@ local function updateHoverState()
 	end
 
 	-- category buttons
-	if not currentCategory then
+	if not currentCategory and not builderIsFactory then
 		for cat, catRect in pairs(catRects) do
 			if catRect:contains(x, y) then
 				local text = categoryTooltips[cat]
@@ -431,6 +476,13 @@ local function updateHoverState()
 		end
 	end
 
+	-- build mode button
+	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) and labBuildModeRect:contains(x, y) then
+		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
+
+		return
+	end
+
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
@@ -440,51 +492,16 @@ local function updateHoverState()
 		end
 	end
 
-	if pages > 1 then
-		-- paginator buttons
-		if nextPageRect and nextPageRect:contains(x, y) then
-			setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
+	-- paginator buttons
+	if pages > 1 and nextPageRect and nextPageRect:contains(x, y) then
+		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
 
-			return
-		end
+		return
 	end
 
-	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
-		-- build mode button
-		if labBuildModeRect and labBuildModeRect:contains(x, y) then
-			setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
-
-			return
-		end
+	if hoveredRect then
+		resetHovered()
 	end
-
-	-- builder buttons
-	if selectedBuildersCount > 1 then
-		if nextBuilderRect:contains(x, y) then
-			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
-
-			return
-		end
-
-		for _, rect in pairs(builderRects) do
-			if rect:contains(x, y) then
-				-- if we reached the first inactive builderRect we stop checking
-				if not rect.opts.uDefID then
-					break
-				end
-
-				setHoveredRectTooltip(
-					rect,
-					unitTranslatedTooltip[rect.opts.uDefID],
-					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
-				)
-
-				return
-			end
-		end
-	end
-
-	resetHovered()
 end
 
 -- Retrieve from buildunit_ cmdParams on factories the number of de/enqueued units
@@ -2222,7 +2239,7 @@ function widget:MousePress(x, y, button)
 			end
 
 			if useLabBuildMode and builderIsFactory and not labBuildModeActive then
-				if labBuildModeRect and labBuildModeRect:contains(x, y) then
+				if labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
 					return true
