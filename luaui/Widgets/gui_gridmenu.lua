@@ -900,8 +900,8 @@ end
 
 local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex then
+	local cmd = (WG["areamex"] and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex and WG["areamex"] then
 		WG["areamex"].setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
@@ -919,9 +919,22 @@ local function setCurrentCategory(category)
 	updateCategories(categories)
 	refreshCommands()
 
+	-- handle selecting first option when switching category
 	if changedCategory and autoSelectFirst and activeBuilder then
-		local firstCellCmdOpt = gridOpts[1 + (currentPage - 1) * cellCount]
-		local firstCmd = firstCellCmdOpt and firstCellCmdOpt.id
+		local offset = (currentPage - 1) * cellCount
+
+		local firstCmd
+
+		-- Get first available cell command
+		for i = offset + 1, offset + cellCount do
+			local cellCmdOpt = gridOpts[i]
+			local cellCmd = cellCmdOpt and cellCmdOpt.id
+
+			if cellCmd and not units.unitRestricted[-cellCmd] then
+				firstCmd = cellCmd
+				break
+			end
+		end
 
 		if not firstCmd then
 			return
@@ -1143,6 +1156,9 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	WG["gridmenu"] = {}
+	WG["buildmenu"] = {}
+
 	doUpdateClock = os.clock()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1183,7 +1199,6 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
-	WG["gridmenu"] = {}
 	WG["gridmenu"].getAlwaysReturn = function()
 		return alwaysReturn
 	end
@@ -1210,7 +1225,6 @@ function widget:Initialize()
 		clearCategory()
 	end
 
-	WG["buildmenu"] = {}
 	WG["buildmenu"].getGroups = function()
 		return groups, units.unitGroup
 	end
@@ -2426,6 +2440,8 @@ function widget:SelectionChanged(newSel)
 		-- If no selection, we still have to draw empty cells
 		if alwaysShow then
 			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
 		end
 
 		return
@@ -2447,6 +2463,13 @@ function widget:SelectionChanged(newSel)
 
 	-- if no builders are selected, there's nothing to do
 	if selectedBuildersCount == 0 then
+		-- If no selection, we still have to draw empty cells
+		if alwaysShow then
+			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
+		end
+
 		return
 	end
 
