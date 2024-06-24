@@ -997,6 +997,25 @@ local Turrets = {
 		["cormakr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["armfmkr_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		["corfmkr_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
+		--Factories
+		["armlab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armvp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armhp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["corlab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["corvp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["corap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["corhp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["leglab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["legvp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["legap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["leghp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["armsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["corfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["corsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["legfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["legsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[3] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
@@ -1075,6 +1094,24 @@ local Turrets = {
 		["cormmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["armuwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		["coruwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
+		-- Factories
+		["armalab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armavp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armaap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["coralab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["coravp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["coraap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["legalab_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["legavp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["legaap_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.05, maxExisting = 1},
+		["armamsub_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["armasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["armplat_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["coramsub_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["corasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["corplat_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["legamsub_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {
 		-- T2 popup arty
@@ -1114,6 +1151,12 @@ local Turrets = {
 		--Eco
 		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
 		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
+		--Factories
+		["armshltx_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["corgant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["leggant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["armshltxuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
+		["corgantuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 	},
 	[7] = {
 		--Epic Bulwark and Pulsar/rag/cal
