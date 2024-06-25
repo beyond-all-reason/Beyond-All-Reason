@@ -1178,7 +1178,7 @@ function UnitDef_Post(name, uDef)
 	uDef.customparams.healthlookmod = 0
 	
 	-- Animation Cleanup
-	if modOptions.animationcleanup or true then 
+	if modOptions.animationcleanup  then 
 		if uDef.script then 
 			local oldscript = uDef.script:lower()
 			if oldscript:find(".cob", nil, true) then 
