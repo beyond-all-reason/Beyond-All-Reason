@@ -37,9 +37,9 @@ return {
 		buildoptions = {
 			"legacv",
 			"legmrv",
-			"legsco",
+			"legaskirmtank",
 			"legfloat",
-			"corgol",
+			"legaheattank",
 			"legmed",
 			"cormart",
 			"legvcarry",

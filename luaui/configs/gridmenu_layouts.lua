@@ -63,8 +63,8 @@ local labGrids = {
 		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
 	},
 	legavp = {
-		"legacv", "legmrv", "legsco", "cormart",              -- T2 con, Quickshot, scorpion, pillager
-		"corvrad", "coreter", "corgol", "leginf",             -- radar, jammer, goli, inferno
+		"legacv", "legmrv", "legaskirmtank", "cormart",              -- T2 con, Quickshot, scorpion, pillager
+		"corvrad", "coreter", "legaheattank", "leginf",             -- radar, jammer, goli, inferno
 		"legfloat", "legmed", "corsent", "corvroc",           -- croc, poison arrow, AA, diplomat
 	},
 	-- T1 air
