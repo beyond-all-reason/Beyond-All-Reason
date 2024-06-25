@@ -7,7 +7,7 @@ piece rig_Raptor_Artillery_Root, rig_Raptor_Artillery_Thorax, rig_Raptor_Artille
 static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
-#define MOVESCALE 100 // Higher values are bigger, 100 is default, for bigger/smaller units
+#define MOVESCALE 1000 // Higher values are bigger, 100 is default, for bigger/smaller units
 #define MOVESPEED 8 // At this movespeed and animamplitude, the ideal maxvelocity is 2.1 
 #define animAmplitude 100
 #define SIGNAL_MOVE 1
