@@ -533,7 +533,7 @@ local function updateQueueNr(unitDefID, count)
 		queuenr = nil
 	end
 
-	if previousQueuenr == cellRect.opts.queuenr then
+	if previousQueuenr == queuenr then
 		return
 	end
 
@@ -609,12 +609,14 @@ local function updateGrid()
 		or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
 		or (activeBuilder and currentCategory)
 
+	local offset = (currentPage - 1) * cellCount
+
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
 
 			-- offset for pages
-			local index = cellRectID + ((currentPage - 1) * cellCount)
+			local index = cellRectID + offset
 
 			local uDefID
 			local cmd = gridOpts[index]
@@ -633,6 +635,8 @@ local function updateGrid()
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
+				else
+					rect.opts.hotkey = nil
 				end
 
 				rect.opts.groupIcon = showRadarIcon and iconTypes[units.unitIconType[uDefID]]
@@ -2123,8 +2127,8 @@ local function drawBuilders()
 end
 
 local function drawGrid()
-	for i = 1, cellCount do
-		drawCell(cellRects[i])
+	for _, cellRect in ipairs(cellRects) do
+		drawCell(cellRect)
 	end
 end
 
@@ -2261,11 +2265,13 @@ function widget:MousePress(x, y, button)
 			end
 
 			if not disableInput then
-				for cat, catRect in pairs(catRects) do
-					if catRect:contains(x, y) then
-						setCurrentCategory(cat)
-						Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-						return true
+				if not currentCategory and not builderIsFactory then
+					for cat, catRect in pairs(catRects) do
+						if catRect:contains(x, y) then
+							setCurrentCategory(cat)
+							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							return true
+						end
 					end
 				end
 
@@ -2417,7 +2423,8 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- the command queue of the factory hasn't updated yet
 	-- ugly hack to schedule an update if our prediction fails
 	-- 500ms is our heuristic for a really bad scenario
-	doUpdateClock = os.clock() + 0.5
+	-- doUpdateClock = os.clock() + 0.5
+	-- Actually lets comment this and see if we really need it
 end
 
 -- update queue number
