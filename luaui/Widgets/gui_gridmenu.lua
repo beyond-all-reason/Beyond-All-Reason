@@ -533,7 +533,7 @@ local function updateQueueNr(unitDefID, count)
 		queuenr = nil
 	end
 
-	if previousQueuenr == cellRect.opts.queuenr then
+	if previousQueuenr == queuenr then
 		return
 	end
 
@@ -2423,7 +2423,8 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- the command queue of the factory hasn't updated yet
 	-- ugly hack to schedule an update if our prediction fails
 	-- 500ms is our heuristic for a really bad scenario
-	doUpdateClock = os.clock() + 0.5
+	-- doUpdateClock = os.clock() + 0.5
+	-- Actually lets comment this and see if we really need it
 end
 
 -- update queue number
