@@ -1,7 +1,7 @@
 return {
 	legaheattank = {
-		maxacc = 0.025,
-		maxdec = 0.05,
+		maxacc = 0.03,
+		maxdec = 0.065,
 		energycost = 19000,
 		metalcost = 1350,
 		buildpic = "LEGAHEATTANK.DDS",
@@ -36,7 +36,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6104,
-		turnrate = 300,
+		turnrate = 360,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
@@ -129,7 +129,7 @@ return {
 				laserflaresize = 5,
 				name = "HeatRay",
 				noselfdamage = true,
-				range = 500,
+				range = 450,
 				reloadtime = 0.6,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
