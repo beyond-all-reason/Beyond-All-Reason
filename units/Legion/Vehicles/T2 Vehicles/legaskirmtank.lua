@@ -28,7 +28,7 @@ return {
 		script = "Units/LEGASKIRMTANK.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 440,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "corwidetracks",
