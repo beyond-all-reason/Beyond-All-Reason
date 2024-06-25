@@ -2206,8 +2206,8 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	legdefcarryt1 = {
-		bitmap = "icons/legdefcarryt1.png",
+	leghive = {
+		bitmap = "icons/leghive.png",
 		size = 1.65999997
 	},
 	legdrone = {
@@ -2398,7 +2398,7 @@ local icontypes = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
 	},
-	legpt = {
+	legpontus = {
 		bitmap = "icons/ship.png",
 		size = 1.14999998
 	},
@@ -2466,7 +2466,14 @@ local icontypes = {
 		bitmap = "icons/factory_ship.png",
 		size = 1.52250004
 	},
-
+	legtide = {
+		bitmap = "icons/energy1_1.0.png",
+		size = 1.04999995
+	},
+	legfmkr = {
+		bitmap = "icons/metalmaker_t1.png",
+		size = 0.78749996
+	},
 	legtriarius = {
 		bitmap = "icons/ship_destroyer.png",
 		size = 1.51199996

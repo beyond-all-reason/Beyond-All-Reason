@@ -602,7 +602,7 @@ local function drawButton()
 				uiElementRect[2],
 				uiElementRect[3],
 				uiElementRect[4],
-				'pregameui'
+				'pregameui_draft'
 			)
 		end
 
@@ -878,7 +878,7 @@ function widget:DrawScreen()
 	end
 
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+		WG['guishader'].RemoveRect('pregameui_draft')
 	end
 
 	-- display autoready timer
@@ -1054,7 +1054,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam
 			end
-			if devUItestMode then -- dev UI testing mode		
+			if devUItestMode then -- dev UI testing mode
 				currentPlayerIndex = 1 -- simulating queue progress on local end only
 				progressQueueLocally(0)
 			end
@@ -1080,7 +1080,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				else
 					next_playerID = -1
 				end
-				
+
 				if current_playerID == myPlayerID then
 					myTurn = true
 					PlayChooseStartLocSound()
@@ -1122,7 +1122,7 @@ function widget:Shutdown()
 	glDeleteList(TeamPlacementUI)
 	gl.DeleteFont(font)
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+		WG['guishader'].RemoveRect('pregameui_draft')
 	end
 	if WG.StopDrawUnitShapeGL4 then
 		for id, _ in pairs(unitshapes) do

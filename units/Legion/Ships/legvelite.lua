@@ -28,7 +28,7 @@ return {
 		script = "Units/legvelite.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 375,
+		sightdistance = 550,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 400,

@@ -84,23 +84,24 @@ local unitlist = {
 
 
 local legionUnitlist = {
-	--{'cormakr','corfmkr'},
+	--{'cormakr','legfmkr'},
 	--{'cordrag','corfdrag'},
 	--{'cormstor', 'coruwms'},
 	--{'corestor', 'coruwes'},
-	{'legrl','corfrt'},
+	--{'legrl','corfrt'},--
 	{'leghp','legfhp'},
-	{'legrad','corfrad'},
-	{'legmg','corfhlt'},
+	--{'legrad','corfrad'},--asym pairs cannot overlap with core placeholders
+	--{'legmg','corfhlt'},--
 	--{'cortarg','corfatf'},
 	--{'cormmkr','coruwmmm'},
 	--{'corfus','coruwfus'},
 	--{'corflak','corenaa'},
 	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
-	{'legsolar','cortide'},
-	{'leglab','corsy'},--soon(tm)
-	{'leglht','cortl'},--these seem fussy, reason currently unknown
-	{'leglht', 'corptl'},
+	{'legsolar','legtide'},
+	--{'leglab','corsy'},--soon(tm)
+	{'leglht','legtl'},
+	{'leglht', 'legptl'},--this may need more hookery in 2 places below
+	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
 	{'legvp','legamsub'},
 	--{'corap','corplat'},
@@ -110,6 +111,7 @@ local legionUnitlist = {
 }
 
 
+--this has to account for legotter too, later
 local ptlCons = {
 	['armbeaver'] = true,
 	['cormuskrat'] = true,

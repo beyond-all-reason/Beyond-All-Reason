@@ -72,7 +72,7 @@ return {
 			[5] = "cormmkr",
 			[6] = "legadvsol",
 			[7] = "corageo",
-			[8] = "cortide",
+			[8] = "legtide",
 			[9] = "coruwadves",
 			[10] = "coruwadvms",
 			[11] = "coruwageo",

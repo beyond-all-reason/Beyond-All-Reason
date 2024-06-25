@@ -395,7 +395,7 @@ HitByWeaponId(anglex, anglez, weaponid, damage)
     #endif
 
 	damage = damage / (100 * UNITSIZE);
-	if (damage < 3  ) return (0);
+	if (damage < 3  ) return (100);//<--changed from 0
 	if (damage > MAXTILT) damage = MAXTILT;
 
 	RB_pitch_velocity = RB_pitch_velocity - (anglex * damage) ;

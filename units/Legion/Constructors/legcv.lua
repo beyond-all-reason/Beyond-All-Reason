@@ -73,7 +73,7 @@ return {
 			"legjam",
 			"corjuno",
 			"corsy",
-			"legdefcarryt1",
+			"leghive",
 		},
 		customparams = {
 			unitgroup = 'builder',

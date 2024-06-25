@@ -5,7 +5,7 @@ return {
 		energycost = 1200,
 		metalcost = 600,
 		builder = true,
-		buildpic = "CORASY.DDS",
+		buildpic = "legsy.dds",
 		buildtime = 6600,
 		canmove = true,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -35,7 +35,7 @@ return {
 			[1] = "legcs",
 			[2] = "legstingray",--
 			[3] = "legvelite",--
-			[4] = "legpt",
+			[4] = "legpontus",
 			[5] = "leghastatus",
 			[6] = "legtriarius",--
 			[7] = "legsub",--

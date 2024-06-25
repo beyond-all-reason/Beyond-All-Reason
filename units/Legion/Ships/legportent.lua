@@ -4,10 +4,10 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
 		buildangle = 16384,
-		energycost = 19000,
+		energycost = 15000,
 		metalcost = 1450,
 		buildpic = "legportent.DDS",
-		buildtime = 25000,
+		buildtime = 20000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 1",
@@ -107,7 +107,8 @@ return {
 
 		weapondefs = {
 			hplasma = {
-				areaofeffect = 70,
+				areaofeffect = 120,
+				accuracy=700,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -119,7 +120,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Heavy s2g plasma cannon",
 				noselfdamage = true,
-				range = 920,
+				range = 950,
 				reloadtime = 4,
 				size = 2.8,
 				soundhit = "xplosml3",
@@ -127,10 +128,11 @@ return {
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 330,
+				weaponvelocity = 400,
 				damage = {
 					default = 150,
 					vtol = 30,
+					sub = 30,
 				},
 
 			},
@@ -140,14 +142,14 @@ return {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "hplasma",
 				maindir = "0 0 1",
-				maxangledif = 290,
+				maxangledif = 310,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "hplasma",
 				maindir = "0 0 1",
-				maxangledif = 200,
+				maxangledif = 310,
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
