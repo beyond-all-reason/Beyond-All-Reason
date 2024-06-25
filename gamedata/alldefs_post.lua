@@ -1176,6 +1176,24 @@ function UnitDef_Post(name, uDef)
 	end
 	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
+	
+	-- Animation Cleanup
+	if modOptions.animationcleanup then 
+		if unitDefRenames[name] and uDef.script then 
+			local oldscript = uDef.script:lower()
+			
+			if oldscript:find(".cob", nil, true) and oldscript:find(name, nil, true) then 
+				local newscript = string.gsub(oldscript, name:lower(), string.format("%s_%s", name:lower(),unitDefRenames[name]:lower()))
+				if VFS.FileExists(newscript) then 
+					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+					uDef.script = newscript
+				else
+					Spring.Echo("Unable to find new script for",name, oldscript, '->', newscript)
+				end
+			end
+		end
+	end
+	
 end
 
 local function ProcessSoundDefaults(wd)
