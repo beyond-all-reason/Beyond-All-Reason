@@ -158,7 +158,7 @@ return {
 				model = "cormissile.s3o",
 				name = "AA2Missile",
 				noselfdamage = true,
-				range = 970,
+				range = 870,
 				reloadtime = 1.6,
 				smoketrail = true,
 				smokePeriod = 5,
