@@ -10,7 +10,7 @@ piece  base, bwing, lthrust, mthrust, rthrust;
 #define MAXTILT 100
 
 
-#include "air_barrelroll.h"
+#include "../air_barrelroll.h"
 
 Create()
 {

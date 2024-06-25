@@ -14,7 +14,7 @@ piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

@@ -13,7 +13,7 @@ piece  base, link, thrust1, thrust2, thrust3, thrust4;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

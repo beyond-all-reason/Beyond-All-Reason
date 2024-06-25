@@ -30,7 +30,7 @@ static-var  restore_delay, aa_gun, wpn1_lasthead;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-//#include "idlehover.h"
+//#include "../idlehover.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

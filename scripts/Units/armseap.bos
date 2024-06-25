@@ -18,7 +18,7 @@ piece  lwing, rwing, base, thrustm, lthrust, rthrust;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

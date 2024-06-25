@@ -11,7 +11,7 @@ piece  base, duct1, fan1, duct2, fan2, door1, door2, support, beam, nano, thrust
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

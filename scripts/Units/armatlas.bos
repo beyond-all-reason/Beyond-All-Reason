@@ -13,7 +13,7 @@ piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwin
 #define IDLEHOVERSCALE 16
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
 

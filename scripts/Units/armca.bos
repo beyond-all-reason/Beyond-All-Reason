@@ -14,7 +14,7 @@ piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doo
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

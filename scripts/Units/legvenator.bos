@@ -11,7 +11,7 @@ piece  missilea, missileb, base, thrustb1, thrustb2, nose,
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "air_barrelroll.h"
+#include "../air_barrelroll.h"
 
 Create()
 {

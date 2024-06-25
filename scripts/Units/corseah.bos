@@ -15,7 +15,7 @@ piece  base, link, thrustrr, thrustrl, thrustfr, thrustfl,
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
 Create()

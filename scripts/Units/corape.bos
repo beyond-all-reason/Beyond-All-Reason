@@ -12,7 +12,7 @@ static-var  gun_1, restore_delay;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
 #define BASEPIECE base

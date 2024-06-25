@@ -15,7 +15,7 @@ piece base, center, lwing, rwing, centerblad, backblade, thruster, thrusta, thru
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
 

@@ -12,7 +12,7 @@ piece  base, link, flare, barrel, fan1,fan2,fan3,fan4,thrusta,thrustb;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 Create()
 {

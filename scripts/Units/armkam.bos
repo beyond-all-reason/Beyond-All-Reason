@@ -10,7 +10,7 @@ piece  base, lflare, rflare, lfin, rfin, rturret, lturret, thrusta, thrustb, eng
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 static-var gun_1;
 Create()

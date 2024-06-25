@@ -8,7 +8,7 @@ piece  base, flare, thrust, base2, lloarm, lgun, lfire;
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 #define BASEPIECE base
 #define HITSPEED <105.0>

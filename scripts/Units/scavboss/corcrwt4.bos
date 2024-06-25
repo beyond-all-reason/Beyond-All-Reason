@@ -30,7 +30,7 @@ static-var  restore_delay, v1, aa_gun;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../../idlehover.h"
 
 Create()
 {
