@@ -29,6 +29,7 @@ end
 
 local gameFrame = 0
 local maxNumGroups = 9
+local minGroupID = 0
 
 ------------------------------------------- Begin GL4 stuff -----------------------------------------
 -- GL4 notes
@@ -43,7 +44,7 @@ local debugmode = false
 -- Managment:
 local unitIDtoGroup = {} -- keys unitID's to group numbers
 local grouptounitID = {}
-for i = 1, maxNumGroups do
+for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
@@ -54,7 +55,7 @@ local vbocachetables = {} -- A table of tables for speed
 
 local function initGL4()
 	local grid = 1 / 16
-	for i = 0, 9 do
+	for i = minGroupID, maxNumGroups do
 		local vbocachetable = {}
 
 		-- Initialize the cache table
@@ -207,7 +208,7 @@ function widget:Initialize()
 	unitIDtoGroup = {}
 
 	if gameFrame > 0 then
-		for i = 1, maxNumGroups do
+		for i = minGroupID, maxNumGroups do
 			widget:GroupChanged(i)
 		end
 	end
