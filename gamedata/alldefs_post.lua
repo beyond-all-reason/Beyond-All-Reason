@@ -1179,16 +1179,15 @@ function UnitDef_Post(name, uDef)
 	
 	-- Animation Cleanup
 	if modOptions.animationcleanup then 
-		if unitDefRenames[name] and uDef.script then 
+		if uDef.script then 
 			local oldscript = uDef.script:lower()
-			
-			if oldscript:find(".cob", nil, true) and oldscript:find(name, nil, true) then 
-				local newscript = string.gsub(oldscript, name:lower(), string.format("%s_%s", name:lower(),unitDefRenames[name]:lower()))
+			if oldscript:find(".cob", nil, true) then 
+				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists(newscript) then 
-					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+					Spring.Echo("Using new script for", name, oldscript, '->', newscript, "using old one")
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for",name, oldscript, '->', newscript)
+					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript)
 				end
 			end
 		end
