@@ -41,8 +41,8 @@ end
 ----------------------------------------------------------------
 
 function gadget:Initialize()
-	-- TODO: Actually pass script path in modoptions
-	scriptPath = 'test_mission.lua'-- Spring.GetModOptions().mission_path
+	-- TODO: Actually pass script path
+	scriptPath = 'test_mission.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -50,7 +50,7 @@ function gadget:Initialize()
 	end
 
 	GG['MissionAPI'] = {}
-	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
+	GG['MissionAPI'].Difficulty = 0 --TODO: implement mission difficulties
 
 	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
