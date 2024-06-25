@@ -150,7 +150,6 @@ if gadgetHandler:IsSyncedCode() then
 			-- stop missile retargeting when it runs out of fuel
 			return true
 		end
-
 		local targetTypeInt, targetID = SpGetProjectileTarget(proID)
 		-- if the missile is heading towards a unit
 		if targetTypeInt == string.byte('u') then
@@ -207,6 +206,30 @@ if gadgetHandler:IsSyncedCode() then
             return false
         end
     end
+	
+	
+	--a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
+	checkingFunctions.torpwaterpenretarget = {}
+    checkingFunctions.torpwaterpenretarget["ypos<0"] = function (proID)
+	
+		checkingFunctions.retarget["always"](proID)--subcontract that part
+	
+        local _,py,_ = Spring.GetProjectilePosition(proID)
+        if py <= 0 then
+			--and delegate that too
+			applyingFunctions.torpwaterpen(proID)
+        else
+            return false
+        end
+    end
+	
+	--fake function
+	applyingFunctions.torpwaterpenretarget = function (proID)
+		return false
+
+	end
+
+	
 
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
@@ -250,6 +273,25 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetProjectileVelocity(proID,vx,0,vz)
 		end
     end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	applyingFunctions.cannonwaterpen = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)

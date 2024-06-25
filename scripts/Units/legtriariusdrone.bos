@@ -30,7 +30,7 @@ Create()
 	hide flare2;
 	hide ground;
 	restore_delay = 3000;
-	//start-script InitRockBoat();
+	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	//start-script BoatPhysics();
 }
@@ -154,7 +154,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve2 type BITMAPONLY | NOHEATCLOUD;
@@ -163,7 +162,6 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode ground type FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve2 type FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -171,14 +169,12 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
