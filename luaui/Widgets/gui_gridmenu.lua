@@ -7,6 +7,7 @@
 -- gridmenu_cycle_builder <-- Go to next selected builder menu
 
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
+-- PERF: updateGrid should be replaced by a method that only updates prices on cells on places where setLabBuildMode is used followed by updateGrid
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -606,7 +607,7 @@ local function updateGrid()
 	uDefCellIds = {}
 
 	local showHotkeys = (builderIsFactory and not useLabBuildMode)
-		or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
+		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
 		or (activeBuilder and currentCategory)
 
 	local offset = (currentPage - 1) * cellCount
@@ -1019,6 +1020,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
+		updateGrid()
 		return true
 	end
 
@@ -2190,10 +2192,9 @@ function widget:KeyPress(key)
 		if currentCategory then
 			clearCategory()
 			return true
-		end
-
-		if useLabBuildMode and labBuildModeActive then
+		elseif useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
+			updateGrid()
 			return true
 		end
 	end
@@ -2202,10 +2203,6 @@ end
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then
 		return
-	end
-
-	if labBuildModeActive then
-		setLabBuildMode(false)
 	end
 
 	clearCategory()
@@ -2244,6 +2241,7 @@ function widget:MousePress(x, y, button)
 				if labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
+					updateGrid()
 					return true
 				end
 			end
