@@ -1,59 +1,88 @@
-
 function widget:GetInfo()
 	return {
-		name      = "DGun Stall Assist",
+		name      = "DGun Stall Assist v2",
 		desc      = "Waits cons/facs when trying to dgun and stalling",
-		author    = "Niobium",
-		date      = "2 April 2010",
+		author    = "zombean",
+		date      = "2 April 2024",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}
 end
 
-----------------------------------------------------------------
--- Config
-----------------------------------------------------------------
-local targetEnergy = 600
-local watchForTime = 5
+local millis_start_timer = Spring.GetTimer()
+local function millis()
+  return math.ceil(Spring.DiffTimers(Spring.GetTimer(), millis_start_timer) * 1000)
+end
 
-----------------------------------------------------------------
--- Globals
-----------------------------------------------------------------
-local watchTime = 0
-local waitedUnits = nil -- nil / waitedUnits[1..n] = uID
-local shouldWait = {} -- shouldWait[uDefID] = true / nil
-local isFactory = {} -- isFactory[uDefID] = true / nil
+local target_energy = 1000
+local dgun_cost = 500
+local time_in_ms_befor_unwaiting = 250 --how many fast we can unwait units after waiting them
+local gameStarted = false
+local DGUN_OUT = false
+local UNITS_WAITING = false
+local waitableUnits = {}
+local waitingUnits = {}
 
-local gameStarted
+local function getWaitAbleUnits()
+  local myWaitableUnits = {}
+  local myUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
+  for i=1, #myUnits do
+    local unitCmd = Spring.GetUnitCurrentCommand(myUnits[i])
+    local isEnergyConsumingCommand = not (unitCmd == CMD.WAIT or unitCmd == CMD.MOVE or unitCmd == CMD.RECLAIM)
+    if isEnergyConsumingCommand then
+      local unitDefId = Spring.GetUnitDefID(myUnits[i])
+      if waitableUnits[unitDefId] then myWaitableUnits[#myWaitableUnits + 1] = myUnits[i] end
+    end
+  end
+  return myWaitableUnits
+end
 
-local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id}
+local function doWeHaveLowEnergy()
+  local currentEnergy, energyStorage = Spring.GetTeamResources(Spring.GetMyTeamID(), "energy")
+  if energyStorage < dgun_cost then return false end
+  if currentEnergy < target_energy then return true end
+  return false
+end
 
-----------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local next_call_when = 0
+local function wait_units()
+  local time_now = millis()
+  if next_call_when > time_now then return end
+  next_call_when = time_now + time_in_ms_befor_unwaiting
+  UNITS_WAITING = true
+  for _, unitID in pairs(getWaitAbleUnits()) do
+    waitingUnits[#waitingUnits +1] = unitID
+  end
+  Spring.GiveOrderToUnitArray(waitingUnits, CMD.WAIT, {}, 0)
+end
 
-local CMD_DGUN = CMD.DGUN
-local CMD_WAIT = CMD.WAIT
-local CMD_MOVE = CMD.MOVE
-local CMD_REPAIR = CMD.REPAIR
-local CMD_RECLAIM = CMD.RECLAIM
+local function unwait_units()
+  Spring.GiveOrderToUnitArray(waitingUnits, CMD.WAIT, {}, 0)
+  UNITS_WAITING = false
+  waitingUnits = {}
+end
 
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
+local function buildWaitableUnitsTable()
+  for uDefID, uDef in pairs(UnitDefs) do
+		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then
+			waitableUnits[uDefID] = true
+		end
+	end
+end
 
-function maybeRemoveSelf()
+function widget:GameFrame()
+  local lowEnergy = doWeHaveLowEnergy()
+  local _, activeCmdID = Spring.GetActiveCommand()
+  DGUN_OUT = activeCmdID == CMD.DGUN
+
+  if DGUN_OUT and not UNITS_WAITING and lowEnergy then wait_units() return end 
+  if UNITS_WAITING and not DGUN_OUT then unwait_units() return end --when we stow dgun, just undo all the waiting stuff always
+  if UNITS_WAITING and not lowEnergy then unwait_units() return end
+
+end
+
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -69,89 +98,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
-
-	for uDefID, uDef in pairs(UnitDefs) do
-		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then
-			shouldWait[uDefID] = true
-			if uDef.isFactory then
-				isFactory[uDefID] = true
-			end
-		end
-	end
-end
-
-function widget:Update(dt)
-
-	local _, activeCmdID = spGetActiveCommand()
-	if activeCmdID == CMD_DGUN then
-		local selection = Spring.GetSelectedUnitsCounts()
-		local stallUnitSelected = false
-
-		for i = 1, #stallIds do
-			if selection[stallIds[i]] then
-				stallUnitSelected = true
-			end
-		end
-		
-		if (stallUnitSelected) then
-			watchTime = watchForTime
-		end
-	else
-		watchTime = watchTime - dt
-
-		if waitedUnits and (watchTime < 0) then
-
-			local toUnwait = {}
-			for i = 1, #waitedUnits do
-				local uID = waitedUnits[i]
-				local uDefID = spGetUnitDefID(uID)
-				if isFactory[uDefID] then
-					local uCmds = spGetFactoryCommands(uID, 1)
-					if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
-						toUnwait[#toUnwait + 1] = uID
-					end
-				else
-					local uCmd = spGetUnitCurrentCommand(uID, 1)
-					if uCmd and uCmd == CMD_WAIT then
-						toUnwait[#toUnwait + 1] = uID
-					end
-				end
-			end
-			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
-
-			waitedUnits = nil
-		end
-	end
-
-	if (watchTime > 0) and (not waitedUnits) then
-
-		local myTeamID = spGetMyTeamID()
-		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
-		if (currentEnergy < targetEnergy) and (energyStorage >= targetEnergy) then
-
-			waitedUnits = {}
-			local myUnits = spGetTeamUnits(myTeamID)
-			for i = 1, #myUnits do
-				local uID = myUnits[i]
-				local uDefID = spGetUnitDefID(uID)
-				if shouldWait[uDefID] then
-					if isFactory[uDefID] then
-						local uCmds = spGetFactoryCommands(uID, 1)
-						if #uCmds == 0 or uCmds[1].id ~= CMD_WAIT then
-							waitedUnits[#waitedUnits + 1] = uID
-						end
-					else
-						local uCmd, _, _, cmdParams = spGetUnitCurrentCommand(uID, 1)
-						if not uCmd or (uCmd ~= CMD_WAIT and uCmd ~= CMD_RECLAIM and uCmd ~= CMD_MOVE and (uCmd ~= CMD_REPAIR or (cmdParams and spGetUnitIsBeingBuilt(cmdParams)))) then
-							waitedUnits[#waitedUnits + 1] = uID
-						end
-					end
-				end
-			end
-			spGiveOrderToUnitArray(waitedUnits, CMD_WAIT, {}, 0)
-		end
-	end
+    if Spring.IsReplay() then widgetHandler:RemoveWidget() end
+    buildWaitableUnitsTable()
 end
