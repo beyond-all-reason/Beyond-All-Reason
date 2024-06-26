@@ -382,6 +382,9 @@ function widget:MousePress(mx, my, button)
 		end
 	elseif button == 1 and #buildQueue > 0 then -- avoid clashing first building and commander position
 		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
+		if not pos then
+			return
+		end
 		local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
 
 		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
