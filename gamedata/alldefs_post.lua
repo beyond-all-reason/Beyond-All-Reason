@@ -239,30 +239,37 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.evocom then	
-			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
+				
+				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
+				
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier
 				else
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
-				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				
+				if modOptions.evocomlevelupmethod == "dynamic" then
+					uDef.customparams.evolution_condition = "power"
+					uDef.customparams.evolution_power_threshold = 999999999			-- threshold for triggering the "power" evolution condition.
+					uDef.customparams.evolution_power_enemy_multiplier = 1	-- Scales the power calculated based on the average enemy combined power.
+					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
+				elseif modOptions.evocomlevelupmethod == "timer" then
+					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+					uDef.customparams.evolution_condition = "timer"
+				end
+
 				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "corcom" then
 				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "legcom" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				end
 				local levelsTable = {}
 				for i = modOptions.evocomlevelcap, 9 do
@@ -277,8 +284,10 @@ function UnitDef_Post(name, uDef)
 					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
 						uDef.customparams.evolution_announcement = nil
 						uDef.customparams.evolution_announcement_size = nil
+						uDef.customparams.evolution_health_transfer = nil
 						uDef.customparams.evolution_target = nil
 						uDef.customparams.evolution_condition = nil
+						uDef.customparams.combatradius = nil
 					end
 				end
 			end

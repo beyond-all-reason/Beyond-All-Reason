@@ -1209,8 +1209,20 @@ local options = {
     },
 
     {
+        key 	= "evocomlevelupmethod",
+        name 	= "Commander Evolution Method",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "dynamic", 	name = "Dynamic" },
+            { key = "time", name = "Time" },
+        }
+    },
+
+    {
         key    	= "evocomleveluprate",
-        name   	= "Commander Evolution Rate",
+        name   	= "Commander Evolution Time Rate",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
