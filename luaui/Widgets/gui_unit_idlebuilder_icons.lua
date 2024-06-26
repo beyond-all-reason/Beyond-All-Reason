@@ -1,7 +1,7 @@
 function widget:GetInfo()
    return {
-      name      = "Unit Wait Icons",
-      desc      = "Shows the wait/pause icon above units",
+      name      = "Unit Idle Builder Icons",
+      desc      = "Shows the sleeping icon above workers that are idle",
       author    = "Floris, Beherith",
       date      = "June 2024",
       license   = "GNU GPL, v2 or later",
@@ -10,27 +10,28 @@ function widget:GetInfo()
    }
 end
 
-local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
-local iconSequenceNum = 44	-- always starts at 1
+local idleUnitDelay = 15	-- how long a unit must be idle before the icon shows up
+
+local iconSequenceImages = 'Luaui/Images/idleicon/idlecon_' 	-- must be png's
+local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
-local CMD_WAIT = CMD.WAIT
+local unitConf = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
+		local xsize, zsize = unitDef.xsize, unitDef.zsize
+		local scale = 4*( xsize^2 + zsize^2 )^0.5
+		unitConf[unitDefID] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
+	end
+end
 
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
+local idleUnitList = {}
 
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
-
-local unitConf = {}
-for udid, unitDef in pairs(UnitDefs) do
-	if not unitDef.customParams.removewait then
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 6*( xsize^2 + zsize^2 )^0.5
-		unitConf[udid] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
-	end
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	spec, fullview = Spring.GetSpectatingState()
 	if spec then
@@ -107,25 +109,32 @@ local function updateIcons()
 	for teamID, units in pairs(teamUnits) do
 		for unitID, unitDefID in pairs(units) do
 			local queue = unitConf[unitDefID][3] and Spring.GetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
-			if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
+			if not (queue and queue[1]) then
 				if not Spring.GetUnitIsBeingBuilt(unitID) and waitIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 					if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
-						pushElementInstance(
-							waitIconVBO, -- push into this Instance VBO Table
-							{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-							 0, --Spring.GetUnitTeam(featureID), -- teamID
-							 4, -- how many vertices should we make ( 2 is a quad)
-							 gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-							 0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-							 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-							unitID, -- this is the key inside the VBO Table, should be unique per unit
-							false, -- update existing element
-							true, -- noupload, dont use unless you know what you want to batch push/pop
-							unitID) -- last one should be featureID!
+						if not idleUnitList[unitID] then
+							idleUnitList[unitID] = os.clock()
+						elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
+							pushElementInstance(
+								waitIconVBO, -- push into this Instance VBO Table
+								{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+								 0, --Spring.GetUnitTeam(featureID), -- teamID
+								 4, -- how many vertices should we make ( 2 is a quad)
+								 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+								 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+								 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+								unitID, -- this is the key inside the VBO Table, should be unique per unit
+								false, -- update existing element
+								true, -- noupload, dont use unless you know what you want to batch push/pop
+								unitID) -- last one should be featureID!
+						end
 					end
 				end
-			elseif waitIconVBO.instanceIDtoIndex[unitID] then
-				popElementInstance(waitIconVBO, unitID, true)
+			else
+				if waitIconVBO.instanceIDtoIndex[unitID] then
+					popElementInstance(waitIconVBO, unitID, true)
+				end
+				idleUnitList[unitID] = nil
 			end
 		end
 	end
@@ -135,7 +144,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 9 == 0 then
+	if Spring.GetGameFrame() % 14 == 0 then
 		updateIcons()
 	end
 end
@@ -155,6 +164,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	if waitIconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(waitIconVBO, unitID)
 	end
+	idleUnitList[unitID] = nil
 end
 
 function widget:DrawWorld()
@@ -166,7 +176,7 @@ function widget:DrawWorld()
 		gl.DepthMask(false)
 		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
 		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl.Texture(iconSequenceImages..animFrame..'.png')
+		gl.Texture(iconSequenceImages .. (animFrame < 100 and '0' or '') .. (animFrame < 10 and '0' or '') .. animFrame .. '.png')
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
 		energyIconShader:SetUniform("addRadius",0)
