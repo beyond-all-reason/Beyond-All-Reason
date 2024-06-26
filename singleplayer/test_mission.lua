@@ -13,7 +13,7 @@ local triggers = {
 		},
 		actions = { 'helloWorld' },
 	},
-
+--[[
 	spawnHero = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
@@ -36,7 +36,7 @@ local triggers = {
 			interval = 180,
 		},
 		actions = { 'despawnHero' },
-	},
+	},]]--
 }
 
 local actions = {
@@ -46,7 +46,7 @@ local actions = {
 			message = "Hello World",
 		},
 	},
-
+--[[
 	spawnHero = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -62,7 +62,7 @@ local actions = {
 		parameters = {
 			name = 'hero',
 		},
-	},
+	},--]]
 }
 
 return {
