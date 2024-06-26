@@ -44,6 +44,7 @@ Create()
 	turn exhaust2 to x-axis <-90> now;
 	turn exhaust3 to x-axis <-135> now;
 	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 

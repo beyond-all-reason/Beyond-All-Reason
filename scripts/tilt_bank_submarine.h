@@ -12,7 +12,7 @@
 #define TB_FRAMES 3 // how frequently you want updates
 #include "../tilt_bank_submarine.h"
 
-2. In Create() You must add before SLEEP_UNTIL_UNITFINISHED
+2. In Create() You must add
 call-script TB_Init(); 
 
 3. To the end of StartMoving you must add START_TILTBANK
