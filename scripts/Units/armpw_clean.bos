@@ -2,12 +2,14 @@
 #include "../recoil_common_includes.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
-static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
+static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, burst1, weaponReady ;
+
+static-var curHead1, curPitch1;
 
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
 #define Weapon1TurretY <300>
-#include "../weapon1control.h"
+//#include "../weapon1control.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -360,14 +362,19 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    //get PRINT(get RAND(1,1000));
+	
+	//get PRINT(get GAME_FRAME, 90000, curHead1);
 	turn aimy1 to y-axis <0> speed <300.0>;
+	turn aimx1 to x-axis <0> speed <300.0>;
 	turn ruparm to x-axis <0> speed <300.0>;
 	turn ruparm to x-axis <0> speed <300.0>;
 	turn lloarm to x-axis <90> speed <300.0>;
 	turn rloarm to x-axis <90> speed <300.0>;
-	start-script RestoreWeapon1();
-	call-script Weapon1Restored();
+
+	curPitch1 = 0;
+	curHead1 = 0;
+
+	weaponReady = FALSE;
 	isAiming = FALSE;
 	
 }
@@ -1018,14 +1025,12 @@ Create()
 	animSpeed = 2;
 	burst1 = 1;
 	bAnimate = FALSE;
-	start-script InitialSetup1();
+
+	weaponReady = FALSE;
+
 	call-script StopWalking(); // start in power stance!
 }
 
-SetMaxReloadTime(reloadMS)
-{
-	restore_delay = reloadMS * 2;
-}
 
 StartMoving(reversing)
 {
@@ -1044,26 +1049,6 @@ StopMoving()
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
 	start-script Animate();
-}
-
-
-
-
-
-DrawWeapon1()
-{
-	isAiming = TRUE;
-	turn aimy1 to y-axis <0> speed <300.0>;
-	turn ruparm to x-axis <0> speed <300.0>;
-	turn ruparm to x-axis <0> speed <300.0>;
-	turn lloarm to x-axis <0> speed <300.0>;
-	turn rloarm to x-axis <0> speed <300.0>;
-	wait-for-turn lloarm around x-axis;
-	wait-for-turn rloarm around x-axis;
-	wait-for-turn luparm around x-axis;
-	wait-for-turn ruparm around x-axis;
-	
-	Weapon1Drawn();
 }
 
 
@@ -1091,54 +1076,107 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = rfire + gun_1;
 }
 
+FireWeapon1()
+{
+	//Called whenever the trigger is pulled on a weapon. This occurs before the first shot in a burst/projectile salvo (only).
+	burst1 = 1;
+	gun_1 = !gun_1;
+}
+
 Shot1()
 {
+	//Called before every shot a weapon fires. This includes burst and projectile tags. This happens after FireWeaponX(), even for the first shot
 	if( gun_1 )
 	{
 		emit-sfx 1024 + 0 from lfire;
 		move lgun to z-axis [-0.5] now;
-		move lgun to z-axis [0] speed [1];
+		move lgun to z-axis [0] speed [2];
 		turn lloarm to x-axis <-2.5> * burst1 now;
 		turn lloarm to x-axis <0> speed <10>;
-		turn luparm to x-axis <-2.5> * burst1 now;
+		turn luparm to x-axis <2.5> * burst1 now;
 		turn luparm to x-axis <0> speed <10>;
 	}
 	else
 	{
 		emit-sfx 1024 + 0 from rfire;
 		move rgun to z-axis [-0.5] now;
-		move rgun to z-axis [0] speed [1];
+		move rgun to z-axis [0] speed [2];
 		turn rloarm to x-axis <-2.5> * burst1 now;
 		turn rloarm to x-axis <0> speed <10>;
-		turn ruparm to x-axis <-2.5> * burst1 now;
+		turn ruparm to x-axis <2.5> * burst1 now;
 		turn ruparm to x-axis <0> speed <10>;
 	}
 	burst1 = burst1 + 1;
-	if (burst1 == 4)
-	{
-		burst1 = 1;
-		gun_1 = !gun_1;
-	}
+}
+
+
+DrawWeapon1()
+{
+		isAiming = TRUE;
+
+		turn ruparm to x-axis <0> speed <300.0>;
+		turn ruparm to x-axis <0> speed <300.0>;
+		turn lloarm to x-axis <0> speed <300.0>;
+		turn rloarm to x-axis <0> speed <300.0>;
+		
+		wait-for-turn lloarm around x-axis;
+		wait-for-turn rloarm around x-axis;
+		wait-for-turn luparm around x-axis;
+		wait-for-turn ruparm around x-axis;
+	
+		weaponReady = TRUE;
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	if (wpnReady1 == 0)
-	{
+
+	signal SIGNAL_AIM1; // Teminates other aim threads, but not ready threads
+
+	if (bAnimate) { // Stop doing pushups
+		call-script StopAnimation();
+	}
+
+	// The usual problem here is the following:
+	// New threads are spawned every REAIMTIME (two) frames, and run before the queued older ones
+	// Due to the weapon ready check, many threads get added in, and then all start running when the weapon is ready
+
+	if (!weaponReady) {
 		start-script DrawWeapon1();
 	}
+
 	set-signal-mask SIGNAL_AIM1;
-	start-script Weapon1Control();
+
+	var canShoot;
+	var delta;
 	
-	// This is needed cause Weapon1Control() wont kick in till the next frame
-	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
+	while (!canShoot){
+		canShoot = TRUE;
+		delta = WRAPDELTA(heading - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			canShoot = FALSE;
+		}else{
+			curHead1 = heading;
+		}
+		delta = WRAPDELTA(pitch - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			canShoot = FALSE;
+		}else{
+			curPitch1 = pitch;
+		}
+		 
+		// Fun note, NOW does not override preexisting turn with other speed
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
+		
+		if (!canShoot) {
+			sleep 32;
+		}
+	}
 	
-	isAiming = TRUE;
-	
-	Weapon1SetWantedAim(heading, pitch);
 	start-script RestoreAfterDelay();
-	return (canFire);
+	return (weaponReady);
 }
 
 // For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armpw_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
@@ -1146,7 +1184,7 @@ AimWeapon1(heading, pitch)
 DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\death_anims\armpw_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
 	signal SIGNAL_AIM1;
 	call-script StopWalking();
-	turn aimy1 to y-axis <0> speed <120>;
+	//turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;
 		if (TRUE) { //Frame:10
 		sleep 296;

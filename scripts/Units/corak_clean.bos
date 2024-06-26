@@ -4,7 +4,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
-static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, wpnheading ;
+static-var  isMoving, isAiming, Static_Var_Weapon1Control, gun_1, moveSpeed, currentSpeed, curHead1, curPitch1, weaponReady;
 
 
 #define DEBUG
@@ -65,7 +65,7 @@ VehicleSteering(reversing)
 	// Could probably get away with half as many local vars...
 	var VS_currHeading;
 	var VS_deltaHeading;
-	var VS_prevSpeed;
+	//var VS_prevSpeed;
 	var VS_currSpeed;
 	
 	while(1)
@@ -105,7 +105,6 @@ VehicleSteering(reversing)
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
 #define Weapon1TurretY <300>
-#include "../weapon1control.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -1065,9 +1064,10 @@ Create()
 	gun_1 = torso;
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;
+	weaponReady = FALSE;
+	curPitch1 = 0;
+	curHead1 = 0;
 	animSpeed = 2;
-	wpnheading = 0;
-	start-script InitialSetup1();
 	start-script VS_Init();
 }
 
@@ -1098,9 +1098,11 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
-	start-script RestoreWeapon1();
-	call-script Weapon1Restored();
-    wpnheading = 0;
+	turn aimy1 to y-axis <0> speed <300.0>;
+	turn aimx1 to x-axis <0> speed <300.0>;
+	curPitch1 = 0;
+	curHead1 = 0;
+	weaponReady = FALSE;
     isAiming = 0;
 
 }
@@ -1114,7 +1116,7 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
-	sleep 2750;
+	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 
 }
@@ -1133,16 +1135,39 @@ AimWeapon1(heading, pitch)
 {	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	start-script Weapon1Control();
 
-	// This is needed cause Weapon1Control() wont kick in till the next frame
-	canfire = ABSOLUTE_LESS_THAN(WRAPDELTA(heading - curHead1),(Weapon1TurretX / 30));
+	var canShoot;
+	var delta;
 	
-	Weapon1Drawn();
-	Weapon1SetWantedAim(heading, pitch);
+	while (!canShoot){
+		canShoot = TRUE;
+		delta = WRAPDELTA(heading - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			canShoot = FALSE;
+		}else{
+			curHead1 = heading;
+		}
+		delta = WRAPDELTA(pitch - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			canShoot = FALSE;
+		}else{
+			curPitch1 = pitch;
+		}
+		
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
 
+		//get PRINT(get GAME_FRAME, curHead1, heading);
+
+		if (!canShoot) {
+			sleep 1;
+		}
+	}
+	
 	start-script RestoreAfterDelay();
-	return (canFire);
+	return (1);
 }
 
 
