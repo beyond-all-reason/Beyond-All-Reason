@@ -215,7 +215,7 @@ local unitOrderTable = {
 	['armbull']        = 006320,
 	['corftiger']      = 006325,
 	['correap']        = 006330,
-	['legsco']         = 006335,
+	['legaskirmtank']         = 006335,
 	['armmanni']       = 006340,
 	['corgatreap']     = 006350,
 
@@ -247,6 +247,7 @@ local unitOrderTable = {
 	['corsumo']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,
+	['legaheattank']   = 006760,
 
 	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
