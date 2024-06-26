@@ -428,7 +428,8 @@ DamagedSmoke()
 	var current_health_pct; // [0-100]
 	while( TRUE )
 	{
-		current_health_pct = (get HEALTH + 4); 
+		current_health_pct = (get HEALTH); 
+		if (current_health_pct < 4) current_health_pct = 4;
 		if (current_health_pct > 65) {
             // We no longer need to smoke, so terminate this thread by returning
 			isSmoking = 0;
