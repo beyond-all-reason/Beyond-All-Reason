@@ -31,13 +31,13 @@ static-var  gun_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, 
 
 Propcontrol()
 {
-	var currentSpeed;
+	var currentspeed;
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
-		spin lprop around z-axis speed (<-1.0> * currentSpeed )  accelerate <10.0>;
-		spin rprop around z-axis speed (<1.0> * currentSpeed )  accelerate <10.0>;
-		spin bprop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		currentspeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin lprop around z-axis speed (<-1.0> * currentspeed )  accelerate <10.0>;
+		spin rprop around z-axis speed (<1.0> * currentspeed )  accelerate <10.0>;
+		spin bprop around z-axis speed <1.0>*currentspeed accelerate <10.0>;
 		sleep 100;
 	}
 }

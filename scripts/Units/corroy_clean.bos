@@ -98,7 +98,7 @@ FireWeapon1()
 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 	if( gun_1 == 0 )
 	{
-		emit-sfx 1024 + 0 from flarea1
+		emit-sfx 1024 + 0 from flarea1;
 		move barrel1 to z-axis [-7.500000] speed [100.0];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.0] speed [7.500000];

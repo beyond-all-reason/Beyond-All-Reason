@@ -29,7 +29,6 @@ static-var  currentSpeed, moveSpeed;
 
 Propcontrol()
 {
-	var currentSpeed;
 	while(1)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
