@@ -50,7 +50,6 @@ Create()
 	readyToBuild = 0;
 	nanopiece=TRUE;
 	moveSpeed = get MAX_SPEED; //new	
-	SLEEP_UNTIL_UNITFINISHED;
 	call-script TB_Init();
 }
 
