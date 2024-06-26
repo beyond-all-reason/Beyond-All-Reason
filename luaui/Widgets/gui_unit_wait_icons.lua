@@ -27,7 +27,7 @@ local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if not unitDef.customParams.removewait then
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 6*( xsize^2 + zsize^2 )^0.5
+		local scale = 4 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
 		unitConf[udid] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
 	end
 end
