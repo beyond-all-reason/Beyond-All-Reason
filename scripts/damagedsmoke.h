@@ -13,7 +13,8 @@
 DamagedSmoke(){
     var healthleft;
     while(1){
-        healthleft = get HEALTH;
+        healthleft = (get HEALTH);
+        if (healthleft < 4) healthleft = 4;
         if (healthleft < 65){
             #if SMOKE_SFX == 257
                 emit-sfx 257 + (healthleft % 2) from SMOKE_PIECE;
