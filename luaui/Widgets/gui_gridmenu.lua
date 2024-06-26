@@ -895,8 +895,6 @@ local function reloadBindings()
 	key = getActionHotkey("gridmenu_cycle_builder")
 
 	nextBuilderRect.opts.keyText = keyConfig.sanitizeKey(key, currentLayout) or nil
-
-	refreshCommands()
 end
 
 local function setLabBuildMode(value)
@@ -1216,7 +1214,9 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	if not isPregame then
+	if isPregame then
+		refreshCommands()
+	else
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
@@ -1290,7 +1290,10 @@ function widget:Initialize()
 	WG["buildmenu"].getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = reloadBindings
+	WG["buildmenu"].reloadBindings = function()
+		reloadBindings()
+		refreshCommands()
+	end
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
 	end
@@ -1570,9 +1573,11 @@ function widget:Update(dt)
 
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
+		local previousStartDefID = startDefID
 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
-		doUpdate = true
+		-- Don't update unless defid has changed
+		doUpdate = previousStartDefID ~= startDefID
 	else
 		activeCmd = select(2, spGetActiveCommand())
 
