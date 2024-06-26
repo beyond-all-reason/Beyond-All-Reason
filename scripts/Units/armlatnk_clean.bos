@@ -175,7 +175,6 @@ Create()
 	call-script TB_Init();
 
 	start-script Sparks();
-	return (0);
 }
 
 StartMoving(reversing)
