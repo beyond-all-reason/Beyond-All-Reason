@@ -1347,7 +1347,7 @@ local options = {
         desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
         section = "dev",
         type    = "bool",
-        def     =  true,
+        def     =  false,
     },
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
