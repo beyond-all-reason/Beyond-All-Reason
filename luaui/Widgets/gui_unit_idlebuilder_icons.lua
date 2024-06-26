@@ -30,6 +30,7 @@ local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
 local spGetCommandQueue = Spring.GetCommandQueue
+local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 
@@ -106,9 +107,10 @@ end
 
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
+	local queue
 	for teamID, units in pairs(teamUnits) do
 		for unitID, unitDefID in pairs(units) do
-			local queue = unitConf[unitDefID][3] and Spring.GetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+			queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
 			if not (queue and queue[1]) then
 				if not Spring.GetUnitIsBeingBuilt(unitID) and waitIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 					if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
