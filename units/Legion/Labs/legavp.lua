@@ -41,7 +41,7 @@ return {
 			"legfloat",
 			"legaheattank",
 			"legmed",
-			"cormart",
+			"legamcluster",
 			"legvcarry",
 			"corvroc",
 			"leginf",

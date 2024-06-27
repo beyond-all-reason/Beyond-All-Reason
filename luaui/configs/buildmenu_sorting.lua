@@ -232,6 +232,7 @@ local unitOrderTable = {
 	['legvcarry']      = 006516,
 	['armmart']        = 006520,
 	['cormart']        = 006530,
+	['legamcluster']   = 006535,
 	['cortrem']        = 006540,
 	['leginf']         = 006550,
 

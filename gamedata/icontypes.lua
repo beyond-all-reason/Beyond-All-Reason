@@ -2051,6 +2051,10 @@ local icontypes = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
+	legamcluster = {
+		bitmap = "icons/vehicle_arty_t2.png",
+		size = 1.36499989
+	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
