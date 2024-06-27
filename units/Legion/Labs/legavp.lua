@@ -43,7 +43,7 @@ return {
 			"legmed",
 			"legamcluster",
 			"legvcarry",
-			"corvroc",
+			"legavroc",
 			"leginf",
 			"corsent",
 			"cormabm",

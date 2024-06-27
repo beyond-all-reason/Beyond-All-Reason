@@ -2083,6 +2083,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_tank_triplasma.png",
 		size = 1.36999991
 	},
+	legavroc = {
+		bitmap = "icons/vehicle_t2_vroc.png",
+		size = 1.62749982
+	},
 	legaheattank = {
 		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
 		size = 1.73749986
