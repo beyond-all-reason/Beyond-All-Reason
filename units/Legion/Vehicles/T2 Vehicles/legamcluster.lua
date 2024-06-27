@@ -137,7 +137,7 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 355.28159,
+				weaponvelocity = 345,
 				customparams = {
 					cluster = true,
 					bouncing = true,
