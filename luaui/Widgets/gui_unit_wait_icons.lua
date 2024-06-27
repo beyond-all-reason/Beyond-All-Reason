@@ -10,20 +10,26 @@ function widget:GetInfo()
    }
 end
 
+local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
+local iconSequenceNum = 44	-- always starts at 1
+local iconSequenceFrametime = 0.02	-- duration per frame
+
 local CMD_WAIT = CMD.WAIT
 
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 
 local spGetCommandQueue = Spring.GetCommandQueue
+local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
+
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if not unitDef.customParams.removewait then
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 6*( xsize^2 + zsize^2 )^0.5
+		local scale = 4 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
 		unitConf[udid] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
 	end
 end
@@ -100,9 +106,10 @@ end
 
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
+	local queue
 	for teamID, units in pairs(teamUnits) do
 		for unitID, unitDefID in pairs(units) do
-			local queue = unitConf[unitDefID][3] and Spring.GetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+			queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
 			if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
 				if not Spring.GetUnitIsBeingBuilt(unitID) and waitIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 					if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
@@ -131,7 +138,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 9 == 0 then
+	if Spring.GetGameFrame() % 13 == 0 then
 		updateIcons()
 	end
 end
@@ -160,9 +167,9 @@ function widget:DrawWorld()
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.DepthMask(false)
-		local clock = os.clock() * (1*(0.02*44))	-- adjust speed relative to anim frame speed of 0.02sec per frame (44 frames in total)
-		local animFrame = math.max(1, math.ceil(44 * (clock - math.floor(clock))))
-		gl.Texture('anims/icexuick_200/cursorwait_'..animFrame..'.png')
+		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
+		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
+		gl.Texture(iconSequenceImages..animFrame..'.png')
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
 		energyIconShader:SetUniform("addRadius",0)

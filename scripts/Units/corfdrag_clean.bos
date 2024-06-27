@@ -1,0 +1,14 @@
+
+#include "../recoil_common_includes.h"
+
+piece base;
+
+
+#define WATER_ROCK_UNITSIZE 3
+#include "../floatmotion.h"
+
+
+Create()
+{
+	start-script FloatMotion();
+}
