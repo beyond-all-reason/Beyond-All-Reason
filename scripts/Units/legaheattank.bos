@@ -126,8 +126,8 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	//start-script RequestState(0);
 	call-script deploy();
-	turn turretBase to y-axis heading speed <60>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <60>;
+	turn turretBase to y-axis heading speed <80>;
+	turn turretStrut to x-axis <0.000000> - pitch speed <80>;
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretStrut around x-axis;
 	start-script RestoreAfterDelay();
