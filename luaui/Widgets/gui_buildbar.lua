@@ -75,7 +75,7 @@ local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 local unitOrder = {}	-- retrieves from buildmenu in initialize
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
-local factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
+local factoriesArea, cornerSize, setInfoDisplayUnitID, setInfoDisplayUnitDefID, factoriesAreaHovered
 
 -------------------------------------------------------------------------------
 -- Speed Up
@@ -589,6 +589,13 @@ function widget:Update(dt)
 			WG['info'].clearDisplayUnitID()
 		end
 	end
+
+	if setInfoDisplayUnitDefID then
+		setInfoDisplayUnitDefID = nil
+		if WG['info'] then
+			WG['info'].clearDisplayUnitDefID()
+		end
+	end
 	if doupdate then
 		sec = 0
 		setupDimensions(#facs)
@@ -1024,11 +1031,9 @@ function widget:IsAbove(x, y)
 		if hoveredFac >= 0 then
 			setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
 			WG['info'].displayUnitID(setInfoDisplayUnitID)
-			WG['info'].clearDisplayUnitDefID()
 		elseif hoveredBOpt >= 0 then
-			WG['info'].displayUnitDefID(facs[openedMenu + 1].buildList[hoveredBOpt + 1])
-		else
-			WG['info'].clearDisplayUnitDefID()
+			setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
+			WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
 		end
 	end
 
