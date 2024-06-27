@@ -1020,14 +1020,15 @@ function widget:IsAbove(x, y)
 	hoveredBOpt = mouseOverSubIcon(x, y)
 
 	-- set hover unitdef id for buildmenu so info widget can show it
-	if WG['buildmenu'] then
+	if WG['info'] then
 		if hoveredFac >= 0 then
-			if WG['info'] then
-				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-				WG['info'].displayUnitID(setInfoDisplayUnitID)
-			end
+			setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
+			WG['info'].displayUnitID(setInfoDisplayUnitID)
+			WG['info'].clearDisplayUnitDefID()
 		elseif hoveredBOpt >= 0 then
-			WG['buildmenu'].hoverID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
+			WG['info'].displayUnitDefID(facs[openedMenu + 1].buildList[hoveredBOpt + 1])
+		else
+			WG['info'].clearDisplayUnitDefID()
 		end
 	end
 
