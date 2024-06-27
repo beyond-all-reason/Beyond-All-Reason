@@ -1336,6 +1336,10 @@ scavBehaviours = {
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
+		[UnitDefNames["squadarmpwt4_scav"].id] = true,
+		[UnitDefNames["squadcorakt4_scav"].id] = true,
+		[UnitDefNames["squadarmsptkt4_scav"].id] = true,
+		[UnitDefNames["squadcorkarganetht4_scav"].id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		--[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
