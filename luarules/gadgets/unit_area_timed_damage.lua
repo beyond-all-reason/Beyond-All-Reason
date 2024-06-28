@@ -352,8 +352,6 @@ end
 ---------------------------------------------------------------------------------------------------------------
 ---- Gadget call-ins
 
--- todo: there's also a Toggle, I think
-
 function gadget:Initialize()
 	for weaponDefID, _ in pairs(weaponTriggerParams) do
 		Script.SetWatchExplosion(weaponDefID, true)
@@ -482,38 +480,73 @@ end
 ---------------------------------------------------------------------------------------------------------------
 ---- Tests
 
--- if true then
--- 	-- Define a single test routine, for both weapons and units.
--- 	-- This needs to be yelly and shouty and angry at least until this branch gets approvals.
--- 	local function TestStuff(id, params, defTable)
--- 		local name = WeaponDefs[defTable[id].area_weaponDefID].name
+do
+	local messages = {}
+	local function testmsg(text, name)
+		table.insert(messages, test..text..' : '..name)
+	end
+	local function warnmsg(text, name)
+		table.insert(messages, warn..text..' : '..name)
+	end
 
--- 		-- Check for durations that we do not support properly.
--- 		local duration = params.area_duration
--- 		if duration <= loopDuration then
--- 			Spring.Echo(test..'Duration shorter than loop duration: '..name)
--- 		end
--- 		if 0.1 < 1 - (math.floor(duration / loopDuration) * loopDuration) / duration then
--- 			Spring.Echo(test..'Duration cut off due to loop period: '..name)
--- 		end
+	local function TestStuff(paramsTable, defID, params)
+		local areaDef = WeaponDefs[paramsTable[defID].area_weaponDefID]
 
--- 		-- Check for missing explosion generators.
--- 		-- Prob too hard: Check for EGs that are too short/long for their effects' durations.
--- 		local highDamage = 80
--- 		if not params.area_damagedCEG then
--- 			if not params.area_ongoingCEG then
--- 				Spring.Echo(test..'Area weapon has no CEGs in customparams: '..name)
--- 			else
--- 				if params.area_damages[0] > highDamage then
--- 					Spring.Echo(test..'High-damage area weapon without damagedCEG: '..name)
--- 				end
--- 			end
--- 		elseif not params.area_ongoingCEG and params.area_damages[0] > highDamage then
--- 			Spring.Echo(test..'High-damage area weapon without ongoingCEG: '..name)
--- 		end
--- 	end
+		-- Check for durations that we do not support properly.
+		local duration = params.area_duration
+		if duration < loopDuration then
+			testmsg('Duration shorter than loop duration', areaDef.name)
+		end
+		if 0.10 < 1.00 - (math.floor(duration / loopDuration) * loopDuration) / duration then
+			testmsg('Duration cut off due to loop period', areaDef.name)
+		end
 
--- 	-- Run the tests.
--- 	for id, params in pairs(weaponAreaParams) do TestStuff(id, params, WeaponDefs) end
--- 	for id, params in pairs(onDeathAreaParams) do TestStuff(id, params, UnitDefs) end
--- end
+		-- Check for missing explosion generators.
+		local highDamageTimesArea = 30 * 80 -- or whatever
+		local damage = areaDef.damages[0]
+		local radius = areaDef.damageAreaOfEffect / 2
+		if not params.area_damagedCEG then
+			if not params.area_ongoingCEG then
+				testmsg('Area weapon has no CEGs in customparams', areaDef.name)
+			elseif damage * radius > highDamageTimesArea then
+				testmsg('High-damage area weapon without damagedCEG', areaDef.name)
+			end
+		elseif not params.area_ongoingCEG and damage * radius > highDamageTimesArea then
+			testmsg('High-damage area weapon without ongoingCEG', areaDef.name)
+		end
+	end
+
+	local function FixIssues(paramsTable, defID, def)
+		local areaWeaponName = def.customParams.area_weaponName or def.name.."_"..defaultWeaponName
+		local areaWeaponDef = WeaponDefNames[areaWeaponName]
+
+		---- Remove misconfigured area weapons.
+		local misconfigured = false
+		if tonumber(def.customParams.area_duration) <= 1 / gameSpeed then
+			warnmsg('Invalid area_duration', def.name)
+			misconfigured = true
+		end
+		if def == areaWeaponDef then
+			warnmsg('Removed self-respawning area weapon', def.name)
+			misconfigured = true
+		end
+		----
+		if misconfigured then
+			paramsTable[defID] = nil
+		end
+	end
+
+	for defID, params in pairs(weaponTriggerParams)  do TestStuff(weaponTriggerParams, defID, params)  end
+	for defID, params in pairs(destroyTriggerParams) do TestStuff(destroyTriggerParams, defID, params) end
+	local testMessages = #messages
+
+	for defID, _ in pairs(weaponTriggerParams)  do FixIssues(weaponTriggerParams, defID, WeaponDefs[defID]) end
+	for defID, _ in pairs(destroyTriggerParams) do FixIssues(destroyTriggerParams, defID, UnitDefs[defID])  end
+	local warnMessages = #messages - testMessages
+
+	-- Print everything together.
+	if #messages then
+		Spring.Echo('unit_area_timed_damage test results: '..testMessages..' tests and '..warnMessages..' issues.')
+		Spring.Echo(table.concat(messages, '\n'))
+	end
+end
