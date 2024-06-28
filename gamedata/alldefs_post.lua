@@ -253,7 +253,6 @@ function UnitDef_Post(name, uDef)
 				
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
-					uDef.customparams.evolution_power_threshold = 999999999			-- threshold for triggering the "power" evolution condition.
 					uDef.customparams.evolution_power_enemy_multiplier = 1	-- Scales the power calculated based on the average enemy combined power.
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
 				elseif modOptions.evocomlevelupmethod == "timer" then
@@ -264,12 +263,15 @@ function UnitDef_Post(name, uDef)
 				if  name == "armcom" then
 				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "corcom" then
 				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "corcomlvl2"
+				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "legcom" then
 				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "legcomlvl2"
+				uDef.customparams.evolution_power_threshold = 10000
 				end
 				local levelsTable = {}
 				for i = modOptions.evocomlevelcap, 9 do

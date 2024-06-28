@@ -111,6 +111,9 @@ return {
 			evolution_target = "armcomlvl3",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
+			evolution_power_threshold = 20000,
+			evolution_power_enemy_multiplier = 1,
+			evolution_power_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {
