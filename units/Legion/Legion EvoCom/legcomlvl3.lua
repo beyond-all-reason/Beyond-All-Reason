@@ -126,7 +126,6 @@ return {
 			evolution_condition = "timer",
 			evolution_timer = 99999,
 			evolution_power_threshold = 45000,
-			evolution_power_enemy_multiplier = 1,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			inheritxpratemultiplier = 0.25,
