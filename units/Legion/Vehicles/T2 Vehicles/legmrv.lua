@@ -123,6 +123,8 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-t2",
 				gravityaffected = "true",
+				fireTolerance = 3640,
+				tolerance = 3640,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Two-Round Burst Fire Plasma Cannon",
@@ -146,6 +148,8 @@ return {
 				badtargetcategory = "VTOL",
 				def = "QUICKSHOT_CANNON",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
+
 			},
 		},
 	},

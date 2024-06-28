@@ -126,6 +126,8 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-t2",
 				firestarter = 100,
+				fireTolerance = 3640,
+				tolerance = 3640,
 				gravityaffected = "true",
 				predictboost = 0.5,
 				impulseboost = 0.123,
@@ -153,6 +155,7 @@ return {
 				def = "LEGMGPLASMA",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 2,
 			},
 			-- [2] = {
 			-- 	badtargetcategory = "VTOL",
