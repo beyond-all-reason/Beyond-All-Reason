@@ -36,7 +36,7 @@ return {
 		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
-		health = 8000,
+		health = 6000,
 		maxslope = 20,
 		speed = 37.5,
 		maxwaterdepth = 35,
