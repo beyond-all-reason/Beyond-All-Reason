@@ -271,7 +271,8 @@ local function startTimedArea(x, y, z, weaponParams)
 		if delayQueue[frameStart] then
 			delayQueue[frameStart][#delayQueue[frameStart]+1] = { x, elevation, z, weaponParams }
 		else
-			delayQueue[frameStart] = { x, elevation, z, weaponParams }
+			delayQueue[frameStart] = {}
+			delayQueue[frameStart][1] = { x, elevation, z, weaponParams }
 		end
 	end
 end
