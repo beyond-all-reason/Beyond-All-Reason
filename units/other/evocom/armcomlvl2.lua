@@ -105,12 +105,12 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			combatradius = 0,
-			evolution_announcement = "Armada commanders have upgraded to level 3",
-			evolution_announcement_size = 18.5,
 			evolution_health_transfer = "percentage",
 			evolution_target = "armcomlvl3",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
+			evolution_power_threshold = 20000,
+			evolution_power_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

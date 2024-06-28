@@ -1209,8 +1209,20 @@ local options = {
     },
 
     {
+        key 	= "evocomlevelupmethod",
+        name 	= "Evolving Commanders: Method",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "dynamic", 	name = "Dynamic" },
+            { key = "timed", name = "Timed" },
+        }
+    },
+
+    {
         key    	= "evocomleveluprate",
-        name   	= "Commander Evolution Rate",
+        name   	= "Evolving Commanders: Time",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
@@ -1222,7 +1234,7 @@ local options = {
 
     {
         key    	= "evocomxpmultiplier",
-        name   	= "Commander XP Multiplier",
+        name   	= "Evolving Commanders: Commander XP Multiplier",
         desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
         type   	= "number",
         section	= "options_experimental",
@@ -1234,7 +1246,7 @@ local options = {
 
     {
         key    	= "evocomlevelcap",
-        name   	= "Commander Level Cap",
+        name   	= "Evolving Commanders: Max Level",
         desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_experimental",

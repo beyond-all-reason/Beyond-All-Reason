@@ -5,7 +5,7 @@ return {
 		autoheal = 40,
 		maxdec = 1.125,
 		energycost = 110000,
-		metalcost = 110000,
+		metalcost = 11000,
 		builddistance = 600,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
@@ -499,6 +499,7 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 			[5] = {
+				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
 				onlytargetcategory = "SURFACE",
 			},
