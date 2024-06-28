@@ -39,6 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitVelocity     = Spring.GetUnitVelocity
 	local spGetUnitHealth 		= Spring.GetUnitHealth
 
+	local spGetTeamList			= Spring.GetTeamList
 	local spGetUnitExperience	= Spring.GetUnitExperience
 	local spGetUnitTeam 		= Spring.GetUnitTeam
 	local spGetUnitDirection 	= Spring.GetUnitDirection
@@ -71,7 +72,10 @@ if gadgetHandler:IsSyncedCode() then
 	local EMPTY_TABLE = {}
 
 	local evolutionMetaList = {}
+	local teamList = spGetTeamList()
+	local neutralTeamNumber = tonumber(teamList[#teamList])
 	local teamPowerList = {}
+	local highestTeamPower = 0
 
 	local lastTimerCheck = 0
 	local lastPowerCheck = 0
@@ -270,10 +274,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if UnitDefs[unitDefID].power then
-			if teamPowerList[unitTeam] then
-				teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
-			else
-				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+			if unitTeam < neutralTeamNumber then
+				if teamPowerList[unitTeam] then
+					teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
+				else
+					teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+				end
 			end
 		end
 
@@ -290,15 +296,17 @@ if gadgetHandler:IsSyncedCode() then
 			evolutionMetaList[unitID] = nil
 		end
 
-		if UnitDefs[unitDefID].power then
-			if teamPowerList[unitTeam] then
-				if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
-					teamPowerList[unitTeam] = nil
+		if unitTeam < neutralTeamNumber then
+			if UnitDefs[unitDefID].power then
+				if teamPowerList[unitTeam] then
+					if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
+						teamPowerList[unitTeam] = nil
+					else
+						teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+					end
 				else
-					teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+					teamPowerList[unitTeam] = UnitDefs[unitDefID].power
 				end
-			else
-				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
 			end
 		end
 	end
@@ -349,17 +357,15 @@ if gadgetHandler:IsSyncedCode() then
 				local currentTime =  spGetGameSeconds()
 				local teamID = spGetUnitTeam(unitID)
 				local transporterID = Spring.GetUnitTransporter(unitID)
-				local highestPower = 0
-
 					for team, power in pairs(teamPowerList) do
 						if team and teamID and power then
-							if highestPower < power then
-								highestPower = power * evolutionMetaList[unitID].evolution_power_multiplier
+							if highestTeamPower < power then
+								highestTeamPower = power * evolutionMetaList[unitID].evolution_power_multiplier
 							end
 						end
 					end
 				if transporterID then
-				elseif evolutionMetaList[unitID].evolution_condition == "power" and highestPower > evolutionMetaList[unitID].evolution_power_threshold then
+				elseif evolutionMetaList[unitID].evolution_condition == "power" and highestTeamPower > evolutionMetaList[unitID].evolution_power_threshold then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
