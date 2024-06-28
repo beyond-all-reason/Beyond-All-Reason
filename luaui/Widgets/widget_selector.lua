@@ -48,7 +48,11 @@ local sizeMultiplier = 1
 local buttons = {}
 local floor = math.floor
 
-local widgetsList = {}
+---@class NameDataPair a {displayName: string, data: WidgetInfo} pair
+
+---@type NameDataPair[]
+local visibleWidgetsList = {}
+---@type NameDataPair[]
 local fullWidgetsList = {}
 local localWidgetCount = 0
 
@@ -265,7 +269,7 @@ local function UpdateGeometry()
 	minx = floor(midx - halfWidth - (borderx * sizeMultiplier))
 	maxx = floor(midx + halfWidth + (borderx * sizeMultiplier))
 
-	local ySize = (yStep * sizeMultiplier) * math.max(#widgetsList, 8)
+	local ySize = (yStep * sizeMultiplier) * math.max(#visibleWidgetsList, 8)
 	miny = floor(midy - (0.5 * ySize)) - ((fontSize + bgPadding + bgPadding) * sizeMultiplier)
 	maxy = floor(midy + (0.5 * ySize))
 end
@@ -286,12 +290,12 @@ local function UpdateListScroll()
 		startEntry = 1
 	end
 
-	widgetsList = {}
+	visibleWidgetsList = {}
 	local se = startEntry
 	local ee = se + curMaxEntries - 1
 	local n = 1
 	for i = se, ee do
-		widgetsList[n], n = fullWidgetsList[i], n + 1
+		visibleWidgetsList[n], n = fullWidgetsList[i], n + 1
 	end
 end
 
@@ -389,7 +393,7 @@ local function SortWidgetListFunc(nd1, nd2)
 	end
 
 	-- sort by name
-	return (nd1[1] < nd2[1])
+	return (nd1[2].name < nd2[2].name)
 end
 
 function UpdateList(force)
@@ -400,26 +404,93 @@ function UpdateList(force)
 
 	local myName = widget:GetInfo().name
 	--maxWidth = 0
-	widgetsList = {}
+	visibleWidgetsList = {}
 	fullWidgetsList = {}
-	for name, data in pairs(widgetHandler.knownWidgets) do
-		if name ~= myName and name ~= 'Write customparam.__def to files' then
-			if (not inputText or inputText == '') or (string.find(string.lower(name), string.lower(inputText), nil, true) or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true)) or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true)) or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))) then
-				fullWidgetsList[#fullWidgetsList+1] = { name, data }
-				-- look for the maxWidth
-				local width = fontSize * font:GetTextWidth(name)
-				if width > maxWidth then
-					maxWidth = width
+
+	local function checkTextFilter(name, data, searchDirection)
+		searchDirection = searchDirection or 0
+
+		local function checkChildren(parentData)
+			if not parentData.children then
+				return false
+			end
+
+			for _, child in ipairs(parentData.children) do
+				if checkTextFilter(child.name, child, 1) then
+					return true
 				end
+			end
+
+			return false
+		end
+
+		return (not inputText or inputText == '') or (
+			string.find(string.lower(name), string.lower(inputText), nil, true)
+			or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true))
+			or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true))
+			or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))
+			or (searchDirection <= 0 and data.parent and checkTextFilter(data.parent.name, data.parent, -1))
+			or (searchDirection >= 0 and checkChildren(data))
+		)
+	end
+
+	for name, data in pairs(widgetHandler.knownWidgetInfos) do
+		if name ~= myName and name ~= 'Write customparam.__def to files' and not data.parent and checkTextFilter(name, data) then
+			fullWidgetsList[#fullWidgetsList+1] = { name, data }
+		end
+	end
+
+	table.sort(fullWidgetsList, SortWidgetListFunc)
+
+	local function insertChildWidgets(parentIndex, nameDataPair, _prefix)
+		_prefix = _prefix or ""
+		local children = nameDataPair[2].children
+		if children and #children > 0 then
+			local childrenToAdd = {}
+			local branch
+			local extraPrefix = {}
+
+			for idx, child in ipairs(children) do
+			    if idx == #children then
+					branch = "└╴"
+					extraPrefix[idx] = "  "
+				else
+					branch = "├╴"
+					extraPrefix[idx] = "│ "
+				end
+
+				local displayName = _prefix .. branch .. child.name
+				if checkTextFilter(displayName, child) then
+					childrenToAdd[#childrenToAdd + 1] =  { displayName, child }
+				end
+			end
+
+			table.sort(childrenToAdd, SortWidgetListFunc)
+
+			for childIdx = #childrenToAdd, 1, -1 do
+				local child = childrenToAdd[childIdx]
+				table.insert(fullWidgetsList, parentIndex + 1, child)
+				insertChildWidgets(parentIndex + 1, child, _prefix .. extraPrefix[childIdx])
 			end
 		end
 	end
-	--maxWidth = (maxWidth / fontSize)
 
-	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
+	-- iterating backwards is the only way this loop is certain to end
+	-- also makes it much easier to insert into the list
+	-- since new entries will keep pushing existing ones back
+	for idx = #fullWidgetsList, 1, -1 do
+		insertChildWidgets(idx, fullWidgetsList[idx])
+	end
 
 	localWidgetCount = 0
 	for _, namedata in ipairs(fullWidgetsList) do
+
+		-- look for the maxWidth
+		local width = fontSize * font:GetTextWidth(namedata[1])
+		if width > maxWidth then
+			maxWidth = width
+		end
+
 		if not namedata[2].fromZip then
 			localWidgetCount = localWidgetCount + 1
 		end
@@ -629,14 +700,14 @@ function widget:DrawScreen()
 	local nd = aboveLabel(mx, my)
 	local pointedY = nil
 	local pointedEnabled = false
-	local pointedName = (nd and nd[1]) or nil
+	local pointedName = (nd and nd[2].name) or nil
 	local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
 	sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
 	local prevFromZip = true
 	local customWidgetPosy
-	for _, namedata in ipairs(widgetsList) do
+	for _, namedata in ipairs(visibleWidgetsList) do
 
-		local name = namedata[1]
+		local name = namedata[2].name
 		local data = namedata[2]
 
 		if prevFromZip ~= data.fromZip then
@@ -662,7 +733,8 @@ function widget:DrawScreen()
 			color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
 		end
 		prevFromZip = data.fromZip
-		font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+
+		font:Print(color .. namedata[1], minx + fontSize * 2, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "v")
 		posy = posy - (yStep * sizeMultiplier)
 	end
 	if customWidgetPosy then
@@ -673,10 +745,10 @@ function widget:DrawScreen()
 	end
 
 	-- scrollbar
-	if #widgetsList < #fullWidgetsList then
+	if #visibleWidgetsList < #fullWidgetsList then
 		sby2 = posy + (yStep * sizeMultiplier) - (fontSpace * sizeMultiplier) * 0.5
 		sbheight = sby1 - sby2
-		sbsize = sbheight * #widgetsList / #fullWidgetsList
+		sbsize = sbheight * #visibleWidgetsList / #fullWidgetsList
 		if activescrollbar then
 			startEntry = math.max(0, math.min(
 				floor(#fullWidgetsList *
@@ -742,7 +814,7 @@ function widget:DrawScreen()
 	if WG['tooltip'] ~= nil then
 		local namedata = aboveLabel(mx, my)
 		if namedata then
-			local n = namedata[1]
+			local n = namedata[2].name
 			local d = namedata[2]
 
 			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
@@ -769,7 +841,7 @@ function widget:DrawScreen()
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
 				tooltip = tooltip.."\255\175\175\175" .. Spring.I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  .. d.localPath .. d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end
@@ -922,7 +994,7 @@ function widget:MouseRelease(x, y, mb)
 		if buttonID == 2 then
 			-- disable all widgets, but don't reload
 			for _, namedata in ipairs(fullWidgetsList) do
-				widgetHandler:DisableWidget(namedata[1])
+				widgetHandler:DisableWidget(namedata[2].name)
 			end
 			widgetHandler:SaveConfigData()
 			return -1
@@ -954,8 +1026,7 @@ function widget:MouseRelease(x, y, mb)
 		return false
 	end
 
-	local name = namedata[1]
-	local data = namedata[2]
+	local name = namedata[2].name
 
 	if mb == 1 then
 		widgetHandler:ToggleWidget(name)
@@ -974,12 +1045,13 @@ function widget:MouseRelease(x, y, mb)
 	return -1
 end
 
+---@return NameDataPair
 function aboveLabel(x, y)
 	if x < minx or y < (miny + bordery) or
 		x > maxx or y > (maxy - bordery) then
 		return nil
 	end
-	local count = #widgetsList
+	local count = #visibleWidgetsList
 	if count < 1 then
 		return nil
 	end
@@ -991,7 +1063,7 @@ function aboveLabel(x, y)
 		i = count
 	end
 
-	return widgetsList[i]
+	return visibleWidgetsList[i]
 end
 
 
