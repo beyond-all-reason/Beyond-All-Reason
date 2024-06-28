@@ -265,7 +265,7 @@ local function startTimedArea(x, y, z, weaponParams)
 	elseif shortDuration < weaponParams.area_duration -- Brief effects cannot be delayed.
 	   and y <= lowCeiling + gravity / 8              -- Up to half a second spent in free-fall.
 	then
-		local timeToLand = 0.9 * sqrt((y - elevation - weaponParams.area_radius * 0.5) * 2 / gravity)
+		local timeToLand = sqrt((y - elevation) * 2 / gravity)
 		local frameStart = spGetGameFrame()
 		frameStart = frameStart + ceil(timeToLand / gameSpeed) -- at least +1 frame
 		if delayQueue[frameStart] then
@@ -283,7 +283,7 @@ local function updateTimedAreas()
 	local holes = freed[frame]
 	local sizeg = #group
 	local sizeh = nfree[frame]
-	
+
 	for index = sizeg, 1, -1 do
 		local timedArea = group[index]
 		if timedArea then
