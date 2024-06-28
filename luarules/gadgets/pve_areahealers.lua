@@ -23,6 +23,24 @@ else
 	return false
 end
 
+local scavengerAITeamID = 999
+local raptorsAITeamID = 999
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		break
+	end
+end
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+		raptorsAITeamID = i - 1
+		break
+	end
+end
+
 local aliveHealers = {}
 local healersTable = {}
 if Spring.Utilities.Gametype.IsRaptors() then
@@ -84,7 +102,7 @@ end
 
 function gadget:GameFrame(frame)
     for unitID, statsTable in pairs(aliveHealers) do
-        if unitID%30 == frame%30 then
+        if unitID%30 == frame%30 and (Spring.GetUnitTeam(unitID) == scavengerAITeamID or Spring.GetUnitTeam(unitID) == raptorsAITeamID) then
             --Spring.Echo("Alive Healer ID", unitID, UnitDefs[Spring.GetUnitDefID(unitID)].name)
             local x,y,z = Spring.GetUnitPosition(unitID)
             local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
