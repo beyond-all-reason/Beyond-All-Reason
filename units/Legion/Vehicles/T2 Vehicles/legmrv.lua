@@ -42,7 +42,7 @@ return {
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
-			model_author = "Mr Bob",
+			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
