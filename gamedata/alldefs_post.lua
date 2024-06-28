@@ -527,7 +527,7 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
 		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
 		uDef.idletime = 1
-		uDef.customparams.areadamageresistance = "_RAPTORACID_"
+		uDef.customparams.areadamageresistance = "acid"
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplace = true
