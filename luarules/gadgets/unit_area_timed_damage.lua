@@ -49,31 +49,38 @@ end
 -- (3) Damage Immunities. Units can be made immune to area damage via their customParams.
 --
 --	area_immunities  -  <area_type[]> | nil  -  The list of damage types to which the unit is immune.
---	(where area_type := acid | napalm | all | none)
+--	                                            The base immunities are "acid", "napalm", and "all".
 --
 ---------------------------------------------------------------------------------------------------------------
 
--- Configuration
+---------------------------------------------------------------------------------------------------------------
+---- Configuration
 
 local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
-local frameResolution   = 3                    -- The bin size, in frames, to loop over groups of areas.
+local frameResolution   = 5                    -- The bin size, in frames, to loop over groups of areas.
 local loopDuration      = 0.5                  -- The time between area procs. Adjusts damage automagically.
+local shieldSuppression = false                -- Whether or not shields suppress timed areas.
 
 local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
 
 ---------------------------------------------------------------------------------------------------------------
+---- Locals
 
 local ceil                 = math.ceil
 local max                  = math.max
 local sqrt                 = math.sqrt
 local remove               = table.remove
+
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetGameFrame       = Spring.GetGameFrame
 local spGetGameSeconds     = Spring.GetGameSeconds
 local spGetGroundHeight    = Spring.GetGroundHeight
+local spGetUnitIsStunned   = Spring.GetUnitIsStunned
 local spGetUnitPosition    = Spring.GetUnitPosition
+local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSpawnCEG           = Spring.SpawnCEG
 local spSpawnExplosion     = Spring.SpawnExplosion
+
 local gameSpeed            = Game.gameSpeed
 local gravity              = Game.gravity
 
@@ -170,6 +177,24 @@ local explosionCache = {
 	ignoreOwner        = false,
 	damageGround       = false,
 }
+
+if shieldSuppression then
+	local suppressionCharge = 200 -- or whatever
+	local suppressionRadius = 200 -- or whatever
+	local suppressionFudger = 8   -- or whatever
+
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		if unitDef.customParams.shield_radius then
+			local charge = tonumber(unitDef.customParams.shield_power)  or 0
+			local radius = tonumber(unitDef.customParams.shield_radius) or 0
+			if charge >= suppressionCharge and
+			   radius >= suppressionRadius then
+				-- Just straight up ignoring emitter height, offset:
+				shieldUnitParams[unitDefID] = radius ^ 2 + suppressionFudger
+			end
+		end
+	end
+end
 
 -- Setup for the update loop.
 
@@ -304,12 +329,75 @@ local function UpdateTimedAreas()
 	nfree[frame] = sizeh
 end
 
+local function cancelDelayedAreas(maxGameFrame)
+	-- We probably have more shields than delayed areas, which are short-lived and circumstantial.
+	local radiusSq, sx, sy, sz, radiusTest, dx, dy, dz
+	for shieldUnitID, shieldParams in pairs(shieldUnits) do
+		shieldParams[1], shieldParams[2] = spGetUnitShieldState(shieldUnitID)
+		shieldParams[1] = shieldParams[1] and not spGetUnitIsStunned(shieldUnitID)
+		if shieldParams[1] and shieldParams[2] > 8 then
+			radiusSq = shieldParams[3]
+			sx, sy, sz = spGetUnitPosition(shieldUnitID)
+
+			-- We don't care about the correctness of a short-lived, single-purpose array.
+			-- So when suppressing, we just replace a suppressed area with `false`.
+			for frame, delayFrames in pairs(delayQueue) do
+				if frame <= maxGameFrame then
+					for ii, delayedArea in ipairs(delayQueue) do
+						if delayedArea then
+							radiusTest = radiusSq + delayQueue[4].area_radius -- close enough
+							dx = delayQueue[1] - sx
+							dy = delayQueue[2] - sy
+							dz = delayQueue[3] - sz
+							-- Cylindrical check is occasionally magical:
+							if dx*dx + dz*dz < radiusTest and dy*dy < radiusTest then
+								delayFrames[ii] = false
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------------------------
 
 function gadget:Initialize()
 	for weaponDefID, _ in pairs(weaponAreaParams) do
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
+
+	-- Start/restart timekeeping.
+
+	ticks = 1 + (Spring.GetGameFrame() % frameResolution)
+	frame = 1 + (time % groupCount)
+	time  = spGetGameSeconds() + groupDuration * 0.5
+
+	-- Build/rebuild info tables.
+
+	for ii = 1, groupCount do
+		areas[ii] = {}
+		freed[ii] = {}
+		nfree[ii] = 0
+	end
+
+	if shieldSuppression then
+		for _, unitID in pairs(Spring.GetAllUnits()) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			if unitDefID and shieldUnitParams[unitDefID] then
+				-- Initialize values: { active, capacity, search radius }
+				shieldUnits[unitID] = { false, 0, shieldUnitParams[unitDefID] }
+			end
+		end
+	end
+end
+
+function gadget:Shutdown()
+	areas = {}
+	freed = {}
+	nfree = {}
+	shieldUnits = {}
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
@@ -324,14 +412,22 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID
 	if weaponParams then
 		local ux, uy, uz = spGetUnitPosition(unitID)
 		StartTimedArea(ux, uy, uz, weaponParams)
+	shieldUnits[unitID] = nil
+if shieldSuppression then
+	function gadget:UnitFinished(unitID, unitDefID, teamID)
+		if shieldUnitParams[unitDefID] then
+			shieldUnits[unitID] = { false, 0, shieldUnitParams[unitDefID] }
+		end
 	end
 end
 
 function gadget:GameFrame(gameFrame)
-	-- Manage ongoing timed areas.
+	-- Skip some frames between demanding work.
 	ticks = ticks + 1
-	if ticks == frameResolution then
-		ticks = 0
+	if ticks > frameResolution then
+		ticks = 1
+		frame = frame == groupCount and 1 or frame + 1
+		time  = spGetGameSeconds() + groupDuration * 0.5 -- todo: => int cumulative group frames
 
 		if frame == groupCount
 		then frame = 1
@@ -342,18 +438,8 @@ function gadget:GameFrame(gameFrame)
 		UpdateTimedAreas()
 	end
 
-	-- Manage delayed-start timed areas.
-	-- These should be uncommon enough that the shield check isn't so bad.
-	for _, delayedAreas in pairs(queue) do
-		for ii = #delayedAreas,-1,1 do
-			-- todo: Exclude areas covered by active shields.
-			-- todo: How much overlap is too much? To center? More, less? I feel like "less"?
-			-- todo: Like wouldn't you be mad if a fire spread through your shield? You'd be mad.
-			local isInActiveShield = false
-			if isInActiveShield then
-				delayedAreas[ii] = false
-			end
-		end
+	if shieldSuppression and ticks == shieldFrame then
+		cancelDelayedAreas(gameFrame + frameResolution - 1)
 	end
 
 	-- Activate delayed-start timed areas.
