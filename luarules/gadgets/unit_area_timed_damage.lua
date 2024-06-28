@@ -34,6 +34,8 @@ end
 --    impulse*            -  Important. Set to 0 in most cases.
 --    weapontype          -  Important. Set to "Cannon" (or leave blank?) in most cases.
 --    damage              -  Important.
+--	In all likelihood, you also want to set the following weapon customparam:
+--    lups_noshockwave    -  Important. Set to true or 1 to remove a recurring shockwave effect.
 --
 --	Any other properties that control projectile behaviors are ignored, in addition to:
 --    crater*             -  No effect.
@@ -105,15 +107,16 @@ do
 		-- Add two new entries, one for the area trigger and one for the area weapon.
 		paramsTable[defID] = {
 			area_duration    = tonumber(def.customParams.area_duration or 0),
-			area_ongoingCEG  = def.customParams.area_ongoingCEG,
 			area_weaponDefID = areaWeaponDef.id,
-			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
+			area_weaponName  = areaWeaponDef.name,
 			area_damages     = areaWeaponDef.damages,
-			area_damagedCEG = def.customParams.area_damagedCEG,
-			area_damageType = string.lower(def.customParams.area_damageType or "any"),
+			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
+			area_damageType  = string.lower(def.customParams.area_damageType or "any"),
+			area_ongoingCEG  = tostring(def.customParams.area_ongoingCEG), -- always nil ?
+			area_damagedCEG  = tostring(def.customParams.area_damagedCEG), -- always nil ?
 		}
 
-		timedAreaParams[areaWeaponDef.id] = paramsTable[defID] -- the other id?
+		timedAreaParams[areaWeaponDef.id] = paramsTable[defID]
 	end
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -132,7 +135,7 @@ end
 -- Timed explosions use the values below, unless noted otherwise:
 local explosionCache = {
 	weaponDef          = 0, -- params.area_weaponDefID
-	owner              = 0,
+	owner              = 0, -- 0 for destroy triggers, unitID otherwise
 	projectileID       = 0,
 	damages            = 1, -- params.area_damages
 	hitUnit            = 1,
@@ -179,18 +182,14 @@ local groupDuration = groupCount * (1 / gameSpeed)
 
 -- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
 -- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
-local shortDuration = frameResolution * max(1, math.round(3 * gameSpeed / frameResolution))
+local shortDuration = 3 -- in seconds
 
 -- You don't think you're going to miss that data structure.
 -- Lua will prove you wrong. Nevertheless, this isn't so bad:
 local areas = {} -- Maintain a contiguous array of ongoing areas.
-local freed = {} -- Supported by an array of pseudo-holes.
-local nfree = {} -- Which are tracked by a running count.
 
 for ii = 1, groupCount do
 	areas[ii] = {}
-	freed[ii] = {}
-	nfree[ii] = 0
 end
 
 -- Timekeeping uses cycling counts.
@@ -209,28 +208,17 @@ local shieldFrame = math.clamp(math.round(frameResolution / 2), 1, math.round(ga
 ---------------------------------------------------------------------------------------------------------------
 ---- Functions
 
-local function startTimedArea(x, y, z, weaponParams)
+local function startTimedArea(x, y, z, weaponParams, ownerID)
 	local elevation = max(0, spGetGroundHeight(x, z))
-	local lowCeiling = elevation + 0.75 * weaponParams.area_radius
+	local lowCeiling = elevation + weaponParams.area_radius
 
 	-- Create an area on surface -- immediately.
 	if y <= lowCeiling then
 		local group = areas[frame]
-		local holes = freed[frame]
-		local sizeh = nfree[frame]
-
-		local index
-		if sizeh > 0 then
-			index = holes[sizeh]
-			nfree[frame] = sizeh - 1
-		else
-			index = #group + 1
-		end
-
-		-- Groups are looped periodically in GameFrame to spawn explosions.
-		group[index] = {
+		group[#group+1] = {
 			weaponParams = weaponParams,
 			endTime      = weaponParams.area_duration + time,
+			owner        = ownerID,
 			x            = x,
 			y            = elevation,
 			z            = z,
@@ -243,7 +231,7 @@ local function startTimedArea(x, y, z, weaponParams)
 				weaponParams.area_ongoingCEG,
 				x, elevation, z,
 				0, 0, 0,
-				weaponParams.area_radius,
+				weaponParams.area_radius * 2,
 				weaponParams.area_damages[0]
 			)
 		end
@@ -255,10 +243,9 @@ local function startTimedArea(x, y, z, weaponParams)
 		local frameStart = spGetGameFrame()
 		frameStart = frameStart + ceil(timeToLand / gameSpeed) -- at least +1 frame
 		if delayQueue[frameStart] then
-			delayQueue[frameStart][#delayQueue[frameStart]+1] = { x, elevation, z, weaponParams }
+			delayQueue[frameStart][#delayQueue[frameStart]+1] = { x, elevation, z, weaponParams, ownerID }
 		else
-			delayQueue[frameStart] = {}
-			delayQueue[frameStart][1] = { x, elevation, z, weaponParams }
+			delayQueue[frameStart] = { {x, elevation, z, weaponParams, ownerID} }
 		end
 	end
 end
@@ -266,41 +253,27 @@ end
 local function updateTimedAreas()
 	local params = explosionCache
 	local group = areas[frame]
-	local holes = freed[frame]
 	local sizeg = #group
-	local sizeh = nfree[frame]
 
-	for index = sizeg, 1, -1 do
+	local index = 1
+	while index <= sizeg do
 		local timedArea = group[index]
-		if timedArea then
-			if time <= timedArea.endTime then
-				params.weaponDef          = timedArea.weaponParams.area_weaponDefID
-				params.damages            = timedArea.weaponParams.area_damages
-				params.damageAreaOfEffect = timedArea.weaponParams.area_radius * 2 -- radius => diameter
-				spSpawnExplosion(timedArea.x, timedArea.y, timedArea.z, 0, 0, 0, params)
-			elseif index == sizeg then
-				group[index] = nil
-				sizeg = sizeg - 1
-			else
-				group[index] = false
-				sizeh = sizeh + 1
-				holes[sizeh] = index
-			end
-		-- We try to shrink `group` from within the loop.
+		if time <= timedArea.endTime then
+			params.weaponDef          = timedArea.weaponParams.area_weaponDefID
+			params.damages            = timedArea.weaponParams.area_damages
+			params.damageAreaOfEffect = timedArea.weaponParams.area_radius * 2 -- radius => diameter
+			params.owner              = timedArea.owner -- Being used to determine weapon vs destroy triggers. Maybe bad.
+			spSpawnExplosion(timedArea.x, timedArea.y, timedArea.z, 0, 0, 0, params)
 		elseif index == sizeg then
-			group[index] = nil -- Delete the tombstone.
-			sizeg = sizeg - 1  -- Decrement the cursor.
-			-- This invalidates a freed index, requiring a linear scan to remove.
-			for ii = 1, sizeh do -- Anything past the cursor is junk.
-				if index == holes[ii] then
-					remove(holes, ii) -- Slow.
-					sizeh = sizeh - 1
-					break
-				end
-			end
+			group[index] = nil
+		else
+			group[index] = group[sizeg]
+			group[sizeg] = nil
+			index = index - 1
+			sizeg = sizeg - 1
 		end
+		index = index + 1
 	end
-	nfree[frame] = sizeh
 end
 
 local function cancelDelayedAreas(maxGameFrame)
@@ -353,8 +326,6 @@ function gadget:Initialize()
 
 	for ii = 1, groupCount do
 		areas[ii] = {}
-		freed[ii] = {}
-		nfree[ii] = 0
 	end
 
 	if shieldSuppression then
@@ -370,15 +341,14 @@ end
 
 function gadget:Shutdown()
 	areas = {}
-	freed = {}
-	nfree = {}
+	delayQueue = {}
 	shieldUnits = {}
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
 	local weaponParams = weaponTriggerParams[weaponDefID]
 	if weaponParams then
-		startTimedArea(px, py, pz, weaponParams)
+		startTimedArea(px, py, pz, weaponParams, attackID)
 	end
 end
 
@@ -386,7 +356,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID
 	local weaponParams = destroyTriggerParams[unitDefID]
 	if weaponParams then
 		local ux, uy, uz = spGetUnitPosition(unitID)
-		startTimedArea(ux, uy, uz, weaponParams)
+		startTimedArea(ux, uy, uz, weaponParams, 0)
 	end
 	shieldUnits[unitID] = nil
 end
@@ -406,7 +376,6 @@ function gadget:GameFrame(gameFrame)
 		ticks = 1
 		frame = frame == groupCount and 1 or frame + 1
 		time  = spGetGameSeconds() + groupDuration * 0.5 -- todo: => int cumulative group frames
-
 		updateTimedAreas()
 	end
 
@@ -418,7 +387,7 @@ function gadget:GameFrame(gameFrame)
 	if delayQueue[gameFrame] then
 		for _, args in ipairs(delayQueue[gameFrame]) do
 			if args then
-				startTimedArea(args[1], args[2], args[3], args[4])
+				startTimedArea(args[1], args[2], args[3], args[4], args[5])
 			end
 		end
 		delayQueue[gameFrame] = nil
@@ -436,21 +405,17 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 				if immunityTo == damageType or immunityTo == "all" then return 0, 0 end
 			end
 		end
+		damage = damage * loopDuration
 		local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
-		if y > -8 then
-			damage = damage * loopDuration
-			if weaponParams.area_damagedCEG then
-				spSpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
-			end
-			return damage, areaImpulseRate
-		else
-			return 0, 0
+		if weaponParams.area_damagedCEG then
+			spSpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
 		end
+		return damage, areaImpulseRate
 	end
 	return damage, 1
 end
 
-function gadget:FeaturePreDamaged(featureID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
+function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	local weaponParams = timedAreaParams[weaponDefID]
 	if weaponParams then
 		damage = damage * loopDuration
@@ -533,6 +498,6 @@ do
 	-- Print everything together.
 	if #messages then
 		Spring.Echo('unit_area_timed_damage test results: '..testMessages..' tests and '..warnMessages..' issues.')
-		Spring.Echo(table.concat(messages, '\n'))
+		Spring.Echo('\n' .. table.concat(messages, '\n'))
 	end
 end
