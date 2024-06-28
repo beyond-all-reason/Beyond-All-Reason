@@ -102,7 +102,25 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 1, --damage done in unit_area_timed_damage.lua
+					default = 1,
+				},
+				customparams = {
+					area_duration = 1,
+					area_ongoingCEG = "acid-area-75",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+				},
+			},
+			-- Note: was missing timed damage entry. Values are assumed.
+			-- This is an especially strong change; fast reload, long ranged unit.
+			acidspit_area_timed_damage = {
+				areaofeffect = 75 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 30,
+					subs    = 30 / 10,
+					vtol    = 30 / 10,
+					walls   = 30 /  3,
 				},
 			},
 		},

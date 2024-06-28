@@ -112,8 +112,24 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 1, --damage done in unit_area_timed_damage.lua
+					default = 1,
 					shields = 160,
+				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+				},
+			},
+			acidspit_area_timed_damage = {
+				areaofeffect = 150 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 100,
+					subs    = 100 / 10,
+					vtol    = 100 / 10,
+					walls   = 100 /  3,
 				},
 			},
 		},

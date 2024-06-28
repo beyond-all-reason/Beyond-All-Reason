@@ -123,11 +123,13 @@ return {
 				},
 			},
 			napalmbombs_area_timed_damage = {
-				areaofeffect = 150,
+				areaofeffect = 150 * 2,
 				explosiongenerator = "burnold", -- replace me
 				damage = {
 					default = 30,
-					vtol    = 3,
+					subs    = 30 / 10,
+					vtol    = 30 / 10,
+					walls   = 30 /  3,
 				},
 			},
 		},

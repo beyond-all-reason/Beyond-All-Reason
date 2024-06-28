@@ -57,6 +57,11 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
+			area_duration = 10,
+			area_ongoingCEG = "acid-area-75",
+			area_damagedCEG = "acid-damage-gen",
+			area_damageType = "acid",
+			area_weaponName = "raptor_allterrain_swarmer_acid_t2_v1_area_timed_damage",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -107,8 +112,26 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 1, --damage done in unit_area_timed_damage.lua
+					default = 1,
 					shields = 80,
+				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-75",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+					area_weaponName = "raptor_land_swarmer_acids_t2_v1_area_timed_damage",
+				},
+			},
+			area_timed_damage = {
+				-- Shared area weapon for both unit destroyed and weapon area triggers.
+				areaofeffect = 75 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 40,
+					subs    = 40 / 10,
+					vtol    = 40 / 10,
+					walls   = 40 /  3,
 				},
 			},
 		},

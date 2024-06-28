@@ -58,6 +58,11 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
+			area_duration = 10,
+			area_ongoingCEG = "acid-area-150",
+			area_damagedCEG = "acid-damage-gen",
+			area_damageType = "acid",
+			area_weaponName = "raptor_allterrain_arty_acid_t2_v1_area_timed_damage",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -112,6 +117,24 @@ return {
 				damage = {
 					default = 1,
 					shields = 320,
+				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+					area_weaponName = "raptor_allterrain_arty_acid_t2_v1_area_timed_damage",
+				},
+			},
+			area_timed_damage = {
+				-- Shared area weapon for both unit destroyed and weapon area triggers.
+				areaofeffect = 150 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 100,
+					subs    = 100 / 10,
+					vtol    = 100 / 10,
+					walls   = 100 /  3,
 				},
 			},
 		},

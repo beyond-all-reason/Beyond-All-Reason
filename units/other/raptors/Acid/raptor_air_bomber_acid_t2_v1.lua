@@ -118,6 +118,22 @@ return {
 				damage = {
 					default = 1,
 				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+				},
+			},
+			acidbomb_area_timed_damage = {
+				areaofeffect = 150 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 100,
+					subs    = 100 / 10,
+					vtol    = 100 / 10,
+					walls   = 100 /  3,
+				},
 			},
 		},
 		weapons = {

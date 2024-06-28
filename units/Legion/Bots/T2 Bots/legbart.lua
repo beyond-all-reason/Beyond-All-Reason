@@ -137,6 +137,22 @@ return {
 					subs = 10,
 					vtol = 10,
 				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "fire-area-75",
+					area_damagedCEG = "burnflamexl",
+					area_damageType = "napalm",
+				},
+			},
+			clusternapalm_area_timed_damage = {
+				areaofeffect = 75 * 2,
+				explosiongenerator = "burnold", -- replace me
+				damage = {
+					default = 30,
+					subs    = 30 / 10,
+					vtol    = 30 / 10,
+					walls   = 30 /  3,
+				},
 			},
 		},
 		weapons = {

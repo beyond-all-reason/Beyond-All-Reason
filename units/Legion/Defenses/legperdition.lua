@@ -118,7 +118,6 @@ return {
 				areaofeffect = 425,
 				avoidfeature = false,
 				avoidfriendly = false,
-				cegtag = "burnflamexl",
 				collideenemy = false,
 				collidefeature = false,
 				collidefriendly = false,
@@ -132,8 +131,6 @@ return {
 				explosiongenerator = "custom:burnfirecom-xl",
 				gravityaffected = true,
 				hightrajectory = 1,
-				impulseboost = 0.123,
-				impulsefactor = 2,
 
 				flamegfxtime = 1,
 				impulseboost = 0.123,
@@ -157,11 +154,9 @@ return {
 				stockpile = true,
 				stockpiletime = 70,
 				turret = true,
-				weapontype = "Cannon",
 				--weapontype = "MissileLauncher",
 				weaponvelocity = 450,
 				--mygravity = 1.2,
-
 
 				--startvelocity = 240,
 				texture1 = "null",
@@ -178,8 +173,23 @@ return {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area
 				},
-			},			
-			
+				customparams = {
+					area_duration = 15,
+					area_ongoingCEG = "fire-area-150",
+					area_damagedCEG = "burnflamexl",
+					area_damageType = "napalm",
+				},
+			},
+			napalmmissile_area_timed_damage = {
+				areaofeffect = 150 * 2,
+				explosiongenerator = "burnold", -- replace me
+				damage = {
+					default = 175,
+					subs    = 175 / 10,
+					vtol    = 175 / 10,
+					walls   = 175 /  3,
+				},
+			},
 		},
 		weapons = {
 			[1] = {

@@ -112,6 +112,22 @@ return {
 					default = 1,
 					shields = 320,
 				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+				},
+			},
+			acidspit_area_timed_damage = {
+				areaofeffect = 150 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 200,
+					subs    = 200 / 10,
+					vtol    = 200 / 10,
+					walls   = 200 /  3,
+				},
 			},
 		},
 		weapons = {

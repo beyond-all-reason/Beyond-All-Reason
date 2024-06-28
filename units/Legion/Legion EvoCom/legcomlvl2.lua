@@ -353,6 +353,22 @@ return {
 				damage = {
 					default = 75,
 				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "fire-area-150",
+					area_damagedCEG = "burnflamexl",
+					area_damageType = "napalm",
+				},
+			},
+			napalmmissile_area_timed_damage = {
+				areaofeffect = 100 * 2,
+				explosiongenerator = "burnold", -- replace me
+				damage = {
+					default = 75,
+					subs    = 75 / 10,
+					vtol    = 75 / 10,
+					walls   = 75 /  3,
+				},
 			},
 			disintegrator = {
 				areaofeffect = 36,

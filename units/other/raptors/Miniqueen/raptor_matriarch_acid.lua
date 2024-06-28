@@ -113,6 +113,24 @@ return {
 					default = 1,
 					shields = 800,
 				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-75",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+					area_weaponName = "raptor_matriarch_acid_area_timed_damage",
+				},
+			},
+			area_timed_damage = {
+				-- Shared between multiple damage triggers.
+				areaofeffect = 75 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 40,
+					subs    = 40 / 10,
+					vtol    = 40 / 10,
+					walls   = 40 /  3,
+				},
 			},
 			melee = {
 				areaofeffect = 60,
@@ -181,6 +199,13 @@ return {
 				damage = {
 					default = 1,
 					shields = 800,
+				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+					area_weaponName = "raptor_matriarch_acid_area_timed_damage",
 				},
 			},
 		},

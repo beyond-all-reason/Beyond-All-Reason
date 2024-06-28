@@ -58,6 +58,11 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
 			paralyzemultiplier = 0,
+			area_duration = 10,
+			area_ongoingCEG = "acid-area-150",
+			area_damagedCEG = "acid-damage-gen",
+			area_damageType = "acid",
+			area_weaponName = "raptor_land_assault_acid_t2_v1_area_timed_damage",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -112,8 +117,26 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 1, --damage done in unit_area_timed_damage.lua
+					default = 1,
 					shields = 160,
+				},
+				customparams = {
+					area_duration = 10,
+					area_ongoingCEG = "acid-area-150",
+					area_damagedCEG = "acid-damage-gen",
+					area_damageType = "acid",
+					area_weaponName = "raptor_land_assault_acid_t2_v1_area_timed_damage"
+				},
+			},
+			acidspit_area_timed_damage = {
+				-- Shared area weapon for both unit destroyed and weapon triggers.
+				areaofeffect = 150 * 2,
+				explosiongenerator = "acid-damage", -- replace me
+				damage = {
+					default = 100,
+					subs    = 100 / 10,
+					vtol    = 100 / 10,
+					walls   = 100 /  3,
 				},
 			},
 		},
