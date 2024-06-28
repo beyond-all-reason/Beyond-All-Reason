@@ -114,20 +114,6 @@ do
 		}
 
 		timedAreaParams[areaWeaponDef.id] = paramsTable[defID] -- the other id?
-
-		-- Remove misconfigured area weapons.
-		local misconfigured = false
-		if tonumber(def.customParams.area_duration) <= 0 then
-			Spring.Echo(warn..'Invalid area_duration for ' .. def.name)
-			misconfigured = true
-		end
-		if def == areaWeaponDef then
-			Spring.Echo(warn..'Removed self-respawning area weapon from ' .. def.name)
-			misconfigured = true
-		end
-		if misconfigured then
-			paramsTable[defID] = nil
-		end
 	end
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
