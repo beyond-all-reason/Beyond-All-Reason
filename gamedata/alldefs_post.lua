@@ -246,14 +246,13 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.evolution_health_transfer = "percentage"
 				
 				if uDef.power then
-					uDef.power = uDef.power/modOptions.evocomxpmultiplier
+					uDef.power = uDef.power/modOptions.evocommultiplier
 				else
-					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocommultiplier)
 				end
 				
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
-					uDef.customparams.evolution_power_enemy_multiplier = 1	-- Scales the power calculated based on the average enemy combined power.
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
 				elseif modOptions.evocomlevelupmethod == "timer" then
 					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
