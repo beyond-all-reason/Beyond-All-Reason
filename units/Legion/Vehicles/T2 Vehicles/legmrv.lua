@@ -25,7 +25,7 @@ return {
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGMRV.s3o",
-		script = "Units/LEGMRV.cob",
+		script = "Units/LEGMRV_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 500,
