@@ -7,7 +7,6 @@
 // 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
 piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
-
 static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, whichGun, statechg_DesiredState, 
 			statechg_StateChanging, oldHeading;
 
@@ -35,12 +34,14 @@ Steering(heading, steery, currentSpeed)
 	{
 		heading = get HEADING;
 		steery = (heading - oldheading)*3;
-		turn flWheel to y-axis steery speed <180>;	
-		turn frWheel to y-axis steery speed <180>;		
+		turn flWheel to y-axis steery speed <180>;
+		//turn flCover to y-axis steery speed <180>;	
+		turn frWheel to y-axis steery speed <180>;
+		//turn frCover to y-axis steery speed <180>;		
 		currentSpeed = <2.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		spin flTyre around x-axis speed currentSpeed;
-		spin frTyre around x-axis speed currentSpeed;
+		spin flTyre around x-axis speed (currentSpeed*4.0);
+		spin frTyre around x-axis speed (currentSpeed*4.0);
 		sleep 66;
 		oldheading = heading;
 	}
@@ -91,7 +92,7 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	whichGun = 0;
+	whichGun = 9;
 	turn turret to y-axis <0.000000> speed <90.000000>;
 	turn sleeveTop to x-axis <0.000000> speed <50.000000>;
 	turn sleeveBottom to x-axis <0.000000> speed <50.000000>;
