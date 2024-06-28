@@ -125,6 +125,7 @@ return {
 				-- Shared between multiple damage triggers.
 				areaofeffect = 75 * 2,
 				explosiongenerator = "acid-damage", -- replace me
+				customparams = { lups_noshockwave = true },
 				damage = {
 					default = 40,
 					subs    = 40 / 10,

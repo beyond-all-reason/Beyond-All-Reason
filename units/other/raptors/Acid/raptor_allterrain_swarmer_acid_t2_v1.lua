@@ -127,6 +127,7 @@ return {
 				-- Shared area weapon for both unit destroyed and weapon area triggers.
 				areaofeffect = 75 * 2,
 				explosiongenerator = "acid-damage", -- replace me
+				customparams = { lups_noshockwave = true },
 				damage = {
 					default = 40,
 					subs    = 40 / 10,

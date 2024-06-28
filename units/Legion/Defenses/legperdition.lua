@@ -183,6 +183,7 @@ return {
 			napalmmissile_area_timed_damage = {
 				areaofeffect = 150 * 2,
 				explosiongenerator = "burnold", -- replace me
+				customparams = { lups_noshockwave = true },
 				damage = {
 					default = 175,
 					subs    = 175 / 10,

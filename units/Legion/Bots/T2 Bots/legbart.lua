@@ -147,6 +147,7 @@ return {
 			clusternapalm_area_timed_damage = {
 				areaofeffect = 75 * 2,
 				explosiongenerator = "burnold", -- replace me
+				customparams = { lups_noshockwave = true },
 				damage = {
 					default = 30,
 					subs    = 30 / 10,
