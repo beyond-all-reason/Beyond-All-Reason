@@ -130,8 +130,6 @@ return {
 			subfolder = "",
 			workertimeboost = 6,
 			wtboostunittype = "MOBILE",
-			evolution_announcement = "Legion commanders have upgraded to level 10 (max)",
-			evolution_announcement_size = 18.5,
 			evolution_health_transfer = "percentage",
 			evolution_target = "legcomlvl10",
 			evolution_condition = "timer",

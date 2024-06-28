@@ -241,7 +241,6 @@ function UnitDef_Post(name, uDef)
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
 				
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
 				
@@ -260,15 +259,12 @@ function UnitDef_Post(name, uDef)
 				end
 
 				if  name == "armcom" then
-				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "armcomlvl2"
 				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "corcom" then
-				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "corcomlvl2"
 				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "legcom" then
-				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
 				uDef.customparams.evolution_target = "legcomlvl2"
 				uDef.customparams.evolution_power_threshold = 10000
 				end

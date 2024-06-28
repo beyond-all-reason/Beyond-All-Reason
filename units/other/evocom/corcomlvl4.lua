@@ -107,8 +107,6 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 7800,
 			shield_radius = 100,
-			evolution_announcement = "Cortex commanders have upgraded to level 5",
-			evolution_announcement_size = 18.5,
 			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl5",
 			evolution_condition = "timer",
