@@ -113,9 +113,10 @@ return {
 			[48] = "corfhp",
             [49] = "cormabm",
             [50] = "legkeres",
-			[51] = "corasp",
-			[52] = "cornanotc",
-			[53] = "cornanotcplat",
+			[51] = "legpede",
+			[52] = "corasp",
+			[53] = "cornanotc",
+			[54] = "cornanotcplat",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -240,14 +240,13 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.evocom then	
 			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
-				
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
 				
 				if uDef.power then
-					uDef.power = uDef.power/modOptions.evocommultiplier
+					uDef.power = uDef.power/modOptions.evocomxpmultiplier
 				else
-					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocommultiplier)
+					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
 				
 				if modOptions.evocomlevelupmethod == "dynamic" then
@@ -279,8 +278,6 @@ function UnitDef_Post(name, uDef)
 					local armadaEvocomLevels = "armcomlvl" .. level
 					local legionEvocomLevels = "legcomlvl" .. level
 					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
-						uDef.customparams.evolution_announcement = nil
-						uDef.customparams.evolution_announcement_size = nil
 						uDef.customparams.evolution_health_transfer = nil
 						uDef.customparams.evolution_target = nil
 						uDef.customparams.evolution_condition = nil
