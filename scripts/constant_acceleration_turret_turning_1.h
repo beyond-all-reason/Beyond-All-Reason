@@ -157,8 +157,10 @@ CATT1_Aim(heading, pitch){
 			delta = heading - CATT1position ; 	
 
 			// Perform the turn with a NOW, this means that this will be run every frame!
-			turn CATT1_PIECE_Y to y-axis CATT1position now;
-			//turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
+			//turn CATT1_PIECE_Y to y-axis CATT1position now;
+
+			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
+			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
 		}
 		sleep 32;
 	}
