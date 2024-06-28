@@ -2087,6 +2087,10 @@ local icontypes = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
+	legamcluster = {
+		bitmap = "icons/vehicle_arty_t2.png",
+		size = 1.36499989
+	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
@@ -2111,7 +2115,18 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
-	
+	legaskirmtank = {
+		bitmap = "icons/vehicle_t2_tank_triplasma.png",
+		size = 1.36999991
+	},
+	legavroc = {
+		bitmap = "icons/vehicle_t2_vroc.png",
+		size = 1.62749982
+	},
+	legaheattank = {
+		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
+		size = 1.73749986
+	},
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2221,7 +2236,6 @@ local icontypes = {
 		bitmap = "icons/legcom.png",
 		size = 1.60000002
 	},
-
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2243,7 +2257,7 @@ local icontypes = {
 		size = 0.41999999
 	},
 	leghive = {
-		bitmap = "icons/leghive.png",
+		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
 	},
 	legdrone = {
@@ -2534,10 +2548,8 @@ local icontypes = {
 		bitmap = "icons/sub.png",
 		size = 1.29999995
 	},
-
-
 	legvcarry = {
-		bitmap = "icons/vehicle_t2_carry.png",
+		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
 	},
 	legvelite = {
