@@ -663,6 +663,14 @@ local icontypes = {
 		bitmap = "icons/armpwt4.png",
 		size = 2.30999994
 	},
+	squadarmpw = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadarmpwt4 = {
+		bitmap = "icons/armpwt4.png",
+		size = 2.30999994
+	},
 	armrad = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
@@ -843,6 +851,14 @@ local icontypes = {
 		bitmap = "icons/armsptkt4.png",
 		size = 2.30999994
 	},
+	squadarmsptk = {
+		bitmap = "icons/armsptk_1.44.png",
+		size = 1.65199995
+	},
+	squadarmsptkt4 = {
+		bitmap = "icons/armsptkt4.png",
+		size = 2.30999994
+	},
 	armspy = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
@@ -955,6 +971,10 @@ local icontypes = {
 		bitmap = "icons/armvader_0.9.png",
 		size = 0.94499993
 	},
+	babyarmvader = {
+		bitmap = "icons/armvader_0.9.png",
+		size = 0.94499993
+	},
 	armvadert4 = {
 		bitmap = "icons/armvadert4.png",
 		size = 2.625
@@ -1060,6 +1080,14 @@ local icontypes = {
 		size = 0.73499995
 	},
 	corakt4 = {
+		bitmap = "icons/corakt4.png",
+		size = 1.7
+	},
+	squadcorak = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadcorakt4 = {
 		bitmap = "icons/corakt4.png",
 		size = 1.7
 	},
@@ -1488,6 +1516,14 @@ local icontypes = {
 		size = 2.424999
 	},
 	corkarganetht4 = {
+		bitmap = "icons/corkarganetht4.png",
+		size = 3.14999986
+	},
+	squadcorkarg = {
+		bitmap = "icons/corkarg_2.05.png",
+		size = 2.424999
+	},
+	squadcorkarganetht4 = {
 		bitmap = "icons/corkarganetht4.png",
 		size = 3.14999986
 	},
@@ -2246,6 +2282,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
 	},
+	babyleggob = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.60000002
+	},
 	leghades = {
 		bitmap = "icons/vehicle_t1_raid.png",
 		size = 0.75
@@ -2315,6 +2355,10 @@ local icontypes = {
 		size = 0.41999999
 	},
 	leglob = {
+		bitmap = "icons/bot_plasma_t1.png",
+		size = 0.80000001
+	},
+	babyleglob = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
 	},
@@ -2435,6 +2479,10 @@ local icontypes = {
 		size = 2.51999998
 	},
 	legshot = {
+		bitmap = "icons/kbot_t2_shotgun.png",
+		size = 1.60000002
+	},
+	babylegshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
 	},

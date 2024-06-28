@@ -577,8 +577,10 @@ local armorDefs = {
 	hvyboats = {
 		"armroy",
 		"corroy",
-		"legtriarus",
-		"legtriarusalt",
+		"legtriarius",
+		"legtriariusheatray",
+		"legtriariusdrone",
+		"legpontus",
 		"corarch",
 		"armaas",
 		"armcrus",

@@ -703,8 +703,10 @@ function widget:DrawScreen()
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
+
 	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
-		activeCmd = WG['pregame-build'].selectedID
+		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
+		activeCmd = activeCmd and -activeCmd
 		if activeCmd then
 			activeCmd = units.unitName[activeCmd]
 		end

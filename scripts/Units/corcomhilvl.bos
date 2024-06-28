@@ -934,7 +934,6 @@ HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 		
 	if (shieldPower > 40000000){
 		set SHIELD_POWER to (shieldPower - ( dmg * 635 )); //635x is the multiplier by which damage is scaled according to shields
-		get PRINT(shieldPower, dmg);
 		return (0);
 	}
 	if (shieldPower <= 40000000){

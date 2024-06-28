@@ -7,6 +7,7 @@
 -- gridmenu_cycle_builder <-- Go to next selected builder menu
 
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
+-- PERF: updateGrid should be replaced by a method that only updates prices on cells on places where setLabBuildMode is used followed by updateGrid
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -323,10 +324,6 @@ startUnits = nil
 -------------------------------------------------------------------------------
 
 local function resetHovered()
-	if not hoveredRect then
-		return
-	end
-
 	for _, rects in ipairs({ catRects, builderRects }) do
 		for _, rect in pairs(rects) do
 			rect.opts.hovered = false
@@ -335,7 +332,6 @@ local function resetHovered()
 
 	for _, rect in pairs(cellRects) do
 		rect.opts.hovered = false
-		rect.opts.clicked = false
 	end
 
 	WG["buildmenu"].hoverID = nil
@@ -348,7 +344,18 @@ local function resetHovered()
 end
 
 local function setHoveredRect(rect, clicked)
-	if rect.opts.hovered and not hoveredRect then
+	clicked = clicked or nil
+
+	if rect.opts.clicked ~= clicked then
+		for _, cellRect in pairs(cellRects) do
+			cellRect.opts.clicked = nil
+		end
+
+		rect.opts.clicked = clicked
+		redraw = true
+	end
+
+	if rect.opts.hovered and hoveredRect then
 		return
 	end
 
@@ -356,9 +363,6 @@ local function setHoveredRect(rect, clicked)
 
 	hoveredRect = true
 	rect.opts.hovered = true
-	if clicked then
-		rect.opts.clicked = true
-	end
 end
 
 local function setHoveredRectTooltip(rect, text, title, clicked)
@@ -371,11 +375,49 @@ end
 
 local function updateHoverState()
 	local x, y, left, _, right = Spring.GetMouseState()
-	local isAbove = backgroundRect:contains(x, y)
-		or (selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)))
+	local isAboveBg = backgroundRect:contains(x, y)
+	local isAboveBuilders = not isAboveBg
+		and selectedBuildersCount > 1
+		and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
 
-	if not isAbove then
-		resetHovered()
+	if isAboveBuilders then
+		Spring.SetMouseCursor("cursornormal")
+
+		-- builder buttons
+		if nextBuilderRect:contains(x, y) then
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
+
+			return
+		end
+
+		for _, rect in pairs(builderRects) do
+			if rect:contains(x, y) then
+				-- if we reached the first inactive builderRect we stop checking
+				if not rect.opts.uDefID then
+					break
+				end
+
+				setHoveredRectTooltip(
+					rect,
+					unitTranslatedTooltip[rect.opts.uDefID],
+					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
+				)
+
+				return
+			end
+		end
+
+		if hoveredRect then
+			resetHovered()
+		end
+
+		return
+	end
+
+	if not isAboveBg then
+		if hoveredRect then
+			resetHovered()
+		end
 
 		return
 	end
@@ -385,7 +427,9 @@ local function updateHoverState()
 	for _, cellRect in pairs(cellRects) do
 		if cellRect:contains(x, y) then
 			if not cellRect.opts.uDefID then
-				resetHovered()
+				if hoveredRect then
+					resetHovered()
+				end
 
 				return
 			end
@@ -416,7 +460,7 @@ local function updateHoverState()
 	end
 
 	-- category buttons
-	if not currentCategory then
+	if not currentCategory and not builderIsFactory then
 		for cat, catRect in pairs(catRects) do
 			if catRect:contains(x, y) then
 				local text = categoryTooltips[cat]
@@ -431,6 +475,13 @@ local function updateHoverState()
 		end
 	end
 
+	-- build mode button
+	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) and labBuildModeRect:contains(x, y) then
+		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
+
+		return
+	end
+
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
@@ -440,51 +491,16 @@ local function updateHoverState()
 		end
 	end
 
-	if pages > 1 then
-		-- paginator buttons
-		if nextPageRect and nextPageRect:contains(x, y) then
-			setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
+	-- paginator buttons
+	if pages > 1 and nextPageRect and nextPageRect:contains(x, y) then
+		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
 
-			return
-		end
+		return
 	end
 
-	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) then
-		-- build mode button
-		if labBuildModeRect and labBuildModeRect:contains(x, y) then
-			setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
-
-			return
-		end
+	if hoveredRect then
+		resetHovered()
 	end
-
-	-- builder buttons
-	if selectedBuildersCount > 1 then
-		if nextBuilderRect:contains(x, y) then
-			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
-
-			return
-		end
-
-		for _, rect in pairs(builderRects) do
-			if rect:contains(x, y) then
-				-- if we reached the first inactive builderRect we stop checking
-				if not rect.opts.uDefID then
-					break
-				end
-
-				setHoveredRectTooltip(
-					rect,
-					unitTranslatedTooltip[rect.opts.uDefID],
-					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
-				)
-
-				return
-			end
-		end
-	end
-
-	resetHovered()
 end
 
 -- Retrieve from buildunit_ cmdParams on factories the number of de/enqueued units
@@ -518,7 +534,7 @@ local function updateQueueNr(unitDefID, count)
 		queuenr = nil
 	end
 
-	if previousQueuenr == cellRect.opts.queuenr then
+	if previousQueuenr == queuenr then
 		return
 	end
 
@@ -591,15 +607,17 @@ local function updateGrid()
 	uDefCellIds = {}
 
 	local showHotkeys = (builderIsFactory and not useLabBuildMode)
-		or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
+		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
 		or (activeBuilder and currentCategory)
+
+	local offset = (currentPage - 1) * cellCount
 
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
 
 			-- offset for pages
-			local index = cellRectID + ((currentPage - 1) * cellCount)
+			local index = cellRectID + offset
 
 			local uDefID
 			local cmd = gridOpts[index]
@@ -618,6 +636,8 @@ local function updateGrid()
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
+				else
+					rect.opts.hotkey = nil
 				end
 
 				rect.opts.groupIcon = showRadarIcon and iconTypes[units.unitIconType[uDefID]]
@@ -875,8 +895,6 @@ local function reloadBindings()
 	key = getActionHotkey("gridmenu_cycle_builder")
 
 	nextBuilderRect.opts.keyText = keyConfig.sanitizeKey(key, currentLayout) or nil
-
-	refreshCommands()
 end
 
 local function setLabBuildMode(value)
@@ -900,8 +918,8 @@ end
 
 local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex then
+	local cmd = (WG["areamex"] and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex and WG["areamex"] then
 		WG["areamex"].setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
@@ -919,9 +937,22 @@ local function setCurrentCategory(category)
 	updateCategories(categories)
 	refreshCommands()
 
+	-- handle selecting first option when switching category
 	if changedCategory and autoSelectFirst and activeBuilder then
-		local firstCellCmdOpt = gridOpts[1 + (currentPage - 1) * cellCount]
-		local firstCmd = firstCellCmdOpt and firstCellCmdOpt.id
+		local offset = (currentPage - 1) * cellCount
+
+		local firstCmd
+
+		-- Get first available cell command
+		for i = offset + 1, offset + cellCount do
+			local cellCmdOpt = gridOpts[i]
+			local cellCmd = cellCmdOpt and cellCmdOpt.id
+
+			if cellCmd and not units.unitRestricted[-cellCmd] then
+				firstCmd = cellCmd
+				break
+			end
+		end
 
 		if not firstCmd then
 			return
@@ -987,6 +1018,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
+		updateGrid()
 		return true
 	end
 
@@ -1143,6 +1175,9 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	WG["gridmenu"] = {}
+	WG["buildmenu"] = {}
+
 	doUpdateClock = os.clock()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1179,11 +1214,12 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	if not isPregame then
+	if isPregame then
+		refreshCommands()
+	else
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
-	WG["gridmenu"] = {}
 	WG["gridmenu"].getAlwaysReturn = function()
 		return alwaysReturn
 	end
@@ -1210,7 +1246,6 @@ function widget:Initialize()
 		clearCategory()
 	end
 
-	WG["buildmenu"] = {}
 	WG["buildmenu"].getGroups = function()
 		return groups, units.unitGroup
 	end
@@ -1255,7 +1290,10 @@ function widget:Initialize()
 	WG["buildmenu"].getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = reloadBindings
+	WG["buildmenu"].reloadBindings = function()
+		reloadBindings()
+		refreshCommands()
+	end
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
 	end
@@ -1535,9 +1573,11 @@ function widget:Update(dt)
 
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
+		local previousStartDefID = startDefID
 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
-		doUpdate = true
+		-- Don't update unless defid has changed
+		doUpdate = previousStartDefID ~= startDefID
 	else
 		activeCmd = select(2, spGetActiveCommand())
 
@@ -2094,8 +2134,8 @@ local function drawBuilders()
 end
 
 local function drawGrid()
-	for i = 1, cellCount do
-		drawCell(cellRects[i])
+	for _, cellRect in ipairs(cellRects) do
+		drawCell(cellRect)
 	end
 end
 
@@ -2157,10 +2197,9 @@ function widget:KeyPress(key)
 		if currentCategory then
 			clearCategory()
 			return true
-		end
-
-		if useLabBuildMode and labBuildModeActive then
+		elseif useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
+			updateGrid()
 			return true
 		end
 	end
@@ -2169,10 +2208,6 @@ end
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then
 		return
-	end
-
-	if labBuildModeActive then
-		setLabBuildMode(false)
 	end
 
 	clearCategory()
@@ -2208,9 +2243,10 @@ function widget:MousePress(x, y, button)
 			end
 
 			if useLabBuildMode and builderIsFactory and not labBuildModeActive then
-				if labBuildModeRect and labBuildModeRect:contains(x, y) then
+				if labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
+					updateGrid()
 					return true
 				end
 			end
@@ -2232,11 +2268,13 @@ function widget:MousePress(x, y, button)
 			end
 
 			if not disableInput then
-				for cat, catRect in pairs(catRects) do
-					if catRect:contains(x, y) then
-						setCurrentCategory(cat)
-						Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-						return true
+				if not currentCategory and not builderIsFactory then
+					for cat, catRect in pairs(catRects) do
+						if catRect:contains(x, y) then
+							setCurrentCategory(cat)
+							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							return true
+						end
 					end
 				end
 
@@ -2388,7 +2426,8 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- the command queue of the factory hasn't updated yet
 	-- ugly hack to schedule an update if our prediction fails
 	-- 500ms is our heuristic for a really bad scenario
-	doUpdateClock = os.clock() + 0.5
+	-- doUpdateClock = os.clock() + 0.5
+	-- Actually lets comment this and see if we really need it
 end
 
 -- update queue number
@@ -2426,6 +2465,8 @@ function widget:SelectionChanged(newSel)
 		-- If no selection, we still have to draw empty cells
 		if alwaysShow then
 			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
 		end
 
 		return
@@ -2447,6 +2488,13 @@ function widget:SelectionChanged(newSel)
 
 	-- if no builders are selected, there's nothing to do
 	if selectedBuildersCount == 0 then
+		-- If no selection, we still have to draw empty cells
+		if alwaysShow then
+			refreshCommands()
+		else
+			WG["buildmenu"].hoverID = nil
+		end
+
 		return
 	end
 
