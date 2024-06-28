@@ -133,16 +133,13 @@ local function scavUnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Remove commander customparams from _scav commanders
-	if uDef.customparams.evolution_target then
-		uDef.customparams.evolution_target = nil
-	end
-	if uDef.customparams.evolution_condition then
-		uDef.customparams.evolution_condition = nil
-	end
-	if uDef.customparams.evolution_timer then
-		uDef.customparams.evolution_timer = nil
-	end
+	-- Remove commander and evocom customparams from _scav commanders
+	uDef.customparams.evolution_target = nil
+	uDef.customparams.evolution_condition = nil
+	uDef.customparams.evolution_health_transfer = nil
+	uDef.customparams.evolution_timer = nil
+	uDef.customparams.evolution_power_threshold = nil
+	uDef.customparams.evolution_power_multiplier = nil
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
