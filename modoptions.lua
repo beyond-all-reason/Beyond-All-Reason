@@ -1216,7 +1216,7 @@ local options = {
         section = "options_experimental",
         items 	= {
             { key = "dynamic", 	name = "Dynamic" },
-            { key = "time", name = "Timed" },
+            { key = "timed", name = "Timed" },
         }
     },
 

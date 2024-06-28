@@ -252,20 +252,18 @@ function UnitDef_Post(name, uDef)
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
-				elseif modOptions.evocomlevelupmethod == "timer" then
+					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				elseif modOptions.evocomlevelupmethod == "timed" then
 					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
 					uDef.customparams.evolution_condition = "timer"
 				end
 
 				if  name == "armcom" then
 				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "corcom" then
 				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evolution_power_threshold = 10000
 				elseif name == "legcom" then
 				uDef.customparams.evolution_target = "legcomlvl2"
-				uDef.customparams.evolution_power_threshold = 10000
 				end
 				local levelsTable = {}
 				for i = modOptions.evocomlevelcap, 9 do
