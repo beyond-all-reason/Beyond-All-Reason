@@ -1,33 +1,39 @@
 // This debugging header defines a lua debugging function as a helper
 //
 // 1. Include this file
+// #include "../debug.h"
 //
 // 2. Before the include, specify if you want debugging on with:
 //	#define DEBUG
 //	- If the above define is not present, nothing is output, and all debug commands are stripped from the compiled file
 //	- So that means that you can leave in your instrumention, just comment the #define DEBUG (leave in the include file though!)
 //
-// 3. To print each time a builtin engine callin is called (see list below), rename the function like so:
-//	Open() -> print_Open()
-//	- Any arguments passed will also be forwarded correctly and printed out
-//	- Do not print_FUNCTIONS whos return values, such as AimWeaponX and Killed
-//
-// 4.A. RECOMMENDED USAGE: To write a debug message at any point use 
+// 3. RECOMMENDED USAGE: To write a debug message at any point use 
 //	dbg(args);
 //	- This will also smartly print out what line of the BOS file the print comes from
 //	- You can pass up to 8 arguments
 //	- Note that to figure out which function this was called from, the Lua counterpart of this debug header (dbg_cob_debug.lua) will read the .bos file 
 //
-// 4.B. To write a debug message with a known callin, like in Activate, use:
-//	dbg_Activate(args,...);
-//	-- This will also name the function and line. 
-//
-// 5. Interpret infolog.
+// 4. Interpret infolog.
 //	f:<25805.0> u:05541 corsolar.Open:74  p1=5 p2=6 p3=7 p4=8
-//	- f:<gameframe.order> can tell you what gameframe it happened in, and also the order within the gameframe.
+//	- f:<gameframe.order> can tell you what gameframe it happened in, and also the order within the gameframe, as often things get called multiple times during a gameframe
 //	- u:05541 is the unitID
 //	- corsolar.Open:74  unitDefName, the name of the BOS function (unless vanilla dbg()), and the line of BOS code it came from
 //	- p1=5 p2=6 p3=7 p4=8  values of any parameters passed
+//  - Note that dbg(); seems to interfere with the return value of the AimWeapon function (always returning 1 when there is a dbg(); call present)
+//  E.g.:
+//  Open(){
+//  	dbg(5,6,7,8); // will show this in console and infolog: f:<25805.0> u:05541 corsolar.Open:74  p1=5 p2=6 p3=7 p4=8
+//  }
+//
+// 5. To write a debug message with a known callin, like in Activate, use:
+//	dbg_Activate(args,...);
+//	-- This will also name the function and line. 
+//
+// 6. To print each time a builtin engine callin is called (see list below), rename the function like so:
+//	Open() -> print_Open()
+//	- Any arguments passed will also be forwarded correctly and printed out
+//	- Do not print_FUNCTIONS whos return values you depend on, such as AimWeaponX, HitByWeaponID and Killed
 
 // IMPORTANT NOTE:
 // DO NOT print_ FUNCTIONS whos return values you need!

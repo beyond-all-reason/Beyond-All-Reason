@@ -218,6 +218,9 @@
 #define ABSOLUTE_LESS_THAN(value, threshold) !((value)/threshold)
 #define ABSOLUTE_GREATER_THAN(value, threshold) ((value)/threshold)
 
+#define ANGLE_DIFFERENCE_GREATER_THAN(value, threshold) ABSOLUTE_GREATER_THAN(WRAPDELTA(value), threshold)
+#define ANGLE_DIFFERENCE_LESS_THAN(value, threshold) ABSOLUTE_LESS_THAN(WRAPDELTA(value), threshold)
+
 // Calculate how much sleep is needed given a delta and speed
 #define CALC_SLEEP(delta, speed) sleep(get ABS(delta / (speed + 1));
 
