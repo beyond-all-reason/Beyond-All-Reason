@@ -115,7 +115,7 @@ local function updateIcon(unitID, unitDefID, gf)
 	else
 		if not (unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
+				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) and not Spring.GetUnitIsBeingBuilt(unitID) then
 					if not idleUnitList[unitID] then
 						idleUnitList[unitID] = os.clock()
 					elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
