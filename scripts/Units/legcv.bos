@@ -105,7 +105,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide beam;
 	hide cagelight_emit;
 	restore_delay = 3000;
 	notBuilding = 1;
@@ -132,7 +131,6 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
-	show beam;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -145,7 +143,6 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	hide beam;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;

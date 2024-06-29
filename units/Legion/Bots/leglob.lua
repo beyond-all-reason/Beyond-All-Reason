@@ -37,8 +37,8 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob, Flaka, Zecrus",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots",
 		},
 		featuredefs = {
