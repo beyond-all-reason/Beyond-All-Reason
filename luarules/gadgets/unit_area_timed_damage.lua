@@ -96,7 +96,7 @@ local shieldUnitParams = {}
 
 do
 	local function AddTimedAreaDef(paramsTable, defID, def)
-		local areaWeaponName = def.customParams.area_weaponName or def.name.."_"..defaultWeaponName
+		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
 		if not areaWeaponDef then
@@ -107,13 +107,13 @@ do
 		-- Add two new entries, one for the area trigger and one for the area weapon.
 		paramsTable[defID] = {
 			area_duration    = tonumber(def.customParams.area_duration or 0),
-			area_weaponDefID = areaWeaponDef.id,
-			area_weaponName  = areaWeaponDef.name,
+			area_weapondefid = areaWeaponDef.id,
+			area_weaponname  = areaWeaponDef.name,
 			area_damages     = areaWeaponDef.damages,
 			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
-			area_damageType  = string.lower(def.customParams.area_damageType or "any"),
-			area_ongoingCEG  = tostring(def.customParams.area_ongoingCEG), -- always nil ?
-			area_damagedCEG  = tostring(def.customParams.area_damagedCEG), -- always nil ?
+			area_damagetype  = string.lower(def.customParams.area_damagetype or "any"),
+			area_ongoingceg  = tostring(def.customParams.area_ongoingceg),
+			area_damagedceg  = tostring(def.customParams.area_damagedceg),
 		}
 
 		timedAreaParams[areaWeaponDef.id] = paramsTable[defID]
@@ -134,7 +134,7 @@ end
 
 -- Timed explosions use the values below, unless noted otherwise:
 local explosionCache = {
-	weaponDef          = 0, -- params.area_weaponDefID
+	weaponDef          = 0, -- params.area_weapondefid
 	owner              = 0, -- 0 for destroy triggers, unitID otherwise
 	projectileID       = 0,
 	damages            = 1, -- params.area_damages
@@ -226,9 +226,9 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 
 		-- Ideally, area timed weapons are represented by a continuous vfx.
 		-- But another option is to use an explosiongenerator on the area weapon.
-		if weaponParams.area_ongoingCEG then
+		if weaponParams.area_ongoingceg then
 			spSpawnCEG(
-				weaponParams.area_ongoingCEG,
+				weaponParams.area_ongoingceg,
 				x, elevation, z,
 				0, 0, 0,
 				weaponParams.area_radius * 2,
@@ -259,7 +259,7 @@ local function updateTimedAreas()
 	while index <= sizeg do
 		local timedArea = group[index]
 		if time <= timedArea.endTime then
-			params.weaponDef          = timedArea.weaponParams.area_weaponDefID
+			params.weaponDef          = timedArea.weaponParams.area_weapondefid
 			params.damages            = timedArea.weaponParams.area_damages
 			params.damageAreaOfEffect = timedArea.weaponParams.area_radius * 2 -- radius => diameter
 			params.owner              = timedArea.owner -- Being used to determine weapon vs destroy triggers. Maybe bad.
@@ -399,7 +399,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if weaponParams then
 		local immunity = UnitDefs[unitDefID].customParams.area_immunities
 		if immunity then
-			local damageType = weaponParams.area_damageType
+			local damageType = weaponParams.area_damagetype
 			if damageType == "any" then return 0, 0 end
 			for _, immunityTo in ipairs(string.split(immunity, " ")) do -- todo: unitdef preprocessing step, instead of this
 				if immunityTo == damageType or immunityTo == "all" then return 0, 0 end
@@ -407,8 +407,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		end
 		damage = damage * loopDuration
 		local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
-		if weaponParams.area_damagedCEG then
-			spSpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+		if weaponParams.area_damagedceg then
+			spSpawnCEG(weaponParams.area_damagedceg, x, y + 8, z, 0, 0, 0, 0, damage)
 		end
 		return damage, areaImpulseRate
 	end
@@ -419,9 +419,9 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 	local weaponParams = timedAreaParams[weaponDefID]
 	if weaponParams then
 		damage = damage * loopDuration
-		if weaponParams.area_damagedCEG then
+		if weaponParams.area_damagedceg then
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
-			spSpawnCEG(weaponParams.area_damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(weaponParams.area_damagedceg, x, y + 8, z, 0, 0, 0, 0, damage)
 		end
 		return damage, areaImpulseRate
 	end
@@ -441,7 +441,7 @@ do
 	end
 
 	local function TestStuff(paramsTable, defID, params)
-		local areaDef = WeaponDefs[paramsTable[defID].area_weaponDefID]
+		local areaDef = WeaponDefs[paramsTable[defID].area_weapondefid]
 
 		-- Check for durations that we do not support properly.
 		local duration = params.area_duration
@@ -457,18 +457,18 @@ do
 		local damage = areaDef.damages[0]
 		local radius = areaDef.damageAreaOfEffect / 2
 		if not params.area_damagedCEG then
-			if not params.area_ongoingCEG then
+			if not params.area_ongoingceg then
 				testmsg('Area weapon has no CEGs in customparams', areaDef.name)
 			elseif damage * radius > highDamageTimesArea then
 				testmsg('High-damage area weapon without damagedCEG', areaDef.name)
 			end
-		elseif not params.area_ongoingCEG and damage * radius > highDamageTimesArea then
+		elseif not params.area_ongoingceg and damage * radius > highDamageTimesArea then
 			testmsg('High-damage area weapon without ongoingCEG', areaDef.name)
 		end
 	end
 
 	local function FixIssues(paramsTable, defID, def)
-		local areaWeaponName = def.customParams.area_weaponName or def.name.."_"..defaultWeaponName
+		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
 		---- Remove misconfigured area weapons.
