@@ -247,46 +247,32 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.respawn_announcement_size = 18.5
 				uDef.customparams.minimum_respawn_stun = 5
 				uDef.customparams.distance_stun_multiplier = 1
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
 			end
 		end
 		
 
 		if modOptions.evocom then	
-			
-			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
-				if uDef.customparams.isevocom then
-					uDef.customparams.respawn_condition = "health"
-				elseif name == "armcom" or name == "corcom" or name == "legcom" then
-					uDef.customparams.respawn_condition = "health"
-					uDef.customparams.respawn_announcement = "A Commander Effigy was sacrificed."
-					uDef.customparams.respawn_announcement_size = 18.5
-					uDef.customparams.minimum_respawn_stun = 5
-					uDef.customparams.distance_stun_multiplier = 1
-				end
-				if name == "armcom" or name == "corcom" or name == "legcom" then
-					uDef.customparams.effigy = "comeffigylvl1"
-				end
-				
-				local numBuildoptions = #uDef.buildoptions
-				if string.sub(name, -3) == "com" or string.sub(name, -7) == "comlvl2" then
-					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
-					Spring.Echo("flarf 1")
-				elseif string.sub(name, -7) == "comlvl3" or string.sub(name, -7) == "comlvl4" then
-					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
-					Spring.Echo("flarf 2")
-				elseif string.sub(name, -7) == "comlvl5" or string.sub(name, -7) == "comlvl6" then
-					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
-					Spring.Echo("flarf 3")
-				elseif string.sub(name, -7) == "comlvl7" or string.sub(name, -7) == "comlvl8" then
-					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
-					Spring.Echo("flarf 4")
-				elseif string.sub(name, -8) == "comlvl10" or string.sub(name, -7) == "comlvl9" then
-					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
-					Spring.Echo("flarf 5")
-				end
-			end
-
 			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
+				
+				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
+					uDef.customparams.respawn_condition = "health"
+					
+					Spring.Echo("flarf 1")
+					local numBuildoptions = #uDef.buildoptions
+					if string.sub(name, -3) == "com" or string.sub(name, -7) == "comlvl2" then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+					elseif string.sub(name, -7) == "comlvl3" or string.sub(name, -7) == "comlvl4" then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
+					elseif string.sub(name, -7) == "comlvl5" or string.sub(name, -7) == "comlvl6" then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
+					elseif string.sub(name, -7) == "comlvl7" or string.sub(name, -7) == "comlvl8" then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
+					elseif string.sub(name, -8) == "comlvl10" or string.sub(name, -7) == "comlvl9" then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
+					end
+				end
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
 				

@@ -1202,7 +1202,8 @@ local options = {
 
     {
         key 	= "comrespawn",
-        name 	= "Commander Respawn Effigies",
+        name 	= "Commander Respawning",
+        desc   	= "Commanders can build one Effigy. The first one is free. When the commander dies, the Effigy is sacrificed in its place.",
         type 	= "list",
         def 	= "dynamic",
         section = "options_experimental",
@@ -1216,6 +1217,7 @@ local options = {
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
+        desc   	= "Commanders evolve, gaining new weapons and abilities.",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
@@ -1224,6 +1226,7 @@ local options = {
     {
         key 	= "evocomlevelupmethod",
         name 	= "Evolving Commanders: Method",
+        desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
         type 	= "list",
         def 	= "dynamic",
         section = "options_experimental",
@@ -1236,7 +1239,7 @@ local options = {
     {
         key    	= "evocomleveluprate",
         name   	= "Evolving Commanders: Time",
-        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,

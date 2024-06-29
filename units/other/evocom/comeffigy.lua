@@ -40,7 +40,7 @@ for lvl, stats in pairs(lvlParams) do
 		energycost = stats.energycost,
 		metalcost = stats.metalcost,
 		builddistance = 145,
-		buildpic = "CORCOM.DDS",
+		buildpic = "COMEFFIGY.DDS",
 		buildtime = 20000,
 		cancloak = true,
 		canmove = false,
@@ -48,6 +48,7 @@ for lvl, stats in pairs(lvlParams) do
 		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 0,
 		cloakcostmoving = 0,
+		cloaktimeout = 0,
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "1 1 1",
 		collisionvolumetype = "CylY",
@@ -74,7 +75,7 @@ for lvl, stats in pairs(lvlParams) do
 		releaseheld  = true,
 		script = "Units/COMEFFIGY.cob",
 		seismicsignature = 0,
-		selfdestructas = " ",
+		selfdestructas = "decoycommander",
 		selfdestructcountdown = 3,
 		sightdistance = 0,
 		sonarstealth = true,
@@ -90,6 +91,7 @@ for lvl, stats in pairs(lvlParams) do
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			i18nfromunit = "comeffigy",
 		},
 		featuredefs = {
 			heap = {
