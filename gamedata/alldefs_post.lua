@@ -694,10 +694,9 @@ function UnitDef_Post(name, uDef)
 	
 	local categories = {}
 
-	-- Manual categories: T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
+	-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
 	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 	
-	categories["OBJECT"] = function(unitDef) return string.find(unitDef.category, "OBJECT") end
 	categories["ALL"] = function() return true end
 	categories["MOBILE"] = function(unitDef) return unitDef.speed and unitDef.speed > 0 end
 	categories["NOTMOBILE"] = function(unitDef) return not categories.MOBILE(unitDef) end
@@ -719,7 +718,7 @@ function UnitDef_Post(name, uDef)
 	
 	
 	for name, unitDef in pairs(UnitDefs) do
-		if string.find(unitDef.category, "OBJECT") then
+		if string.find(unitDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
 		else
 	
 			-- temrorary code, pending unitdef cleanup
