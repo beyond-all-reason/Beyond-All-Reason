@@ -239,7 +239,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		--normal commander respawning
-		if modOptions.comrespawn == "all" then
+		if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
 			if name == "armcom" or name == "corcom" or name == "legcom" then
 				uDef.customparams.effigy = "comeffigylvl1"
 				uDef.customparams.respawn_condition = "health"
@@ -259,9 +259,8 @@ function UnitDef_Post(name, uDef)
 				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
 					uDef.customparams.respawn_condition = "health"
 					
-					Spring.Echo("flarf 1")
 					local numBuildoptions = #uDef.buildoptions
-					if string.sub(name, -3) == "com" or string.sub(name, -7) == "comlvl2" then
+					if string.sub(name, -7) == "comlvl2" then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
 					elseif string.sub(name, -7) == "comlvl3" or string.sub(name, -7) == "comlvl4" then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"

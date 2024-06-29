@@ -161,23 +161,24 @@ if gadgetHandler:IsSyncedCode() then
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
-				
-				for i = 1, 1000, 100 do
-					local x,y,z = spGetUnitPosition(unitID)
+				for i = 1, 500, 10 do
+					local x, y, z = spGetUnitPosition(unitID)
 					local blockType, blockID = Spring.GetGroundBlocked(x+i, z+i)
 					local groundH = Spring.GetGroundHeight(x+i, z+i)
-
+			
 					if respawnMetaList[unitID].effigy_offset == 0 then
-						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
+						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
+						respawnMetaList[unitID].effigyID = newUnitID
+						Spring.Echo('VIP creates New Effigy Opt. 1')
+						Spring.Echo(respawnMetaList[unitID].effigyID)
 						return
-					elseif blockType then
-						
-					else
-						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x+i, groundH, z+i, 0, unitTeam)
+					elseif not blockType then
+						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x-i, groundH, z-i, 0, unitTeam)
+						respawnMetaList[unitID].effigyID = newUnitID
+						Spring.Echo('VIP creates New Effigy Opt. 2')
+						Spring.Echo(respawnMetaList[unitID].effigyID)
 						return
 					end
-
-
 				end
 			end
 		end
@@ -185,13 +186,19 @@ if gadgetHandler:IsSyncedCode() then
 		if udcp.iseffigy then
 			for vipID, _ in pairs(respawnMetaList) do
 				local team = spGetUnitTeam(vipID)
+				Spring.Echo('Effigy Created')
+				Spring.Echo(unitID)
+				Spring.Echo(respawnMetaList[vipID].effigyID)
 				if team == unitTeam then
+					Spring.Echo('Effigy is on same team')
 					local oldeffigyID = respawnMetaList[vipID].effigyID
+					Spring.Echo(oldeffigyID)
 					
-					effigyMetaList[unitID] = vipID
 					respawnMetaList[vipID].effigyID = unitID
-					
+					Spring.Echo('VIP assigned effigyID')
+					Spring.Echo(respawnMetaList[vipID].effigyID)
 					if oldeffigyID then
+						Spring.Echo('Old Effigy detected, destroyed')
 						spDestroyUnit(oldeffigyID, false, true)
 					end
 					return
@@ -206,6 +213,8 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				if respawnMetaList[unitID].effigyID then
 					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+					Spring.Echo("unit evolution detected")
+					Spring.Echo(newID)
 					if newID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
@@ -220,10 +229,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			respawnMetaList[unitID] = nil
-		end
-
-		if effigyMetaList[unitID] then
-			effigyMetaList[unitID] = nil
 		end
 	end
 	
