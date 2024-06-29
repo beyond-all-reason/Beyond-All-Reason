@@ -238,7 +238,47 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		--normal commander respawning
+		if modOptions.comrespawn == "all" then
+			if name == "armcom" or name == "corcom" or name == "legcom" then
+				uDef.customparams.respawn_condition = "health"
+				uDef.customparams.respawn_announcement = "A Commander Effigy was sacrificed."
+				uDef.customparams.respawn_announcement_size = 18.5
+				uDef.customparams.minimum_respawn_stun = 5
+				uDef.customparams.distance_stun_multiplier = 1
+			end
+			if name == "armcom" then
+				uDef.customparams.effigy = "armcomeffigylvl1"
+			elseif name == "corcom" then
+				uDef.customparams.effigy = "corcomeffigylvl1"
+			elseif name == "legcom" then
+				uDef.customparams.effigy = "legcomeffigylvl1"
+			end
+		end
+		
+
 		if modOptions.evocom then	
+			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then
+				
+				--add effigy respawning, if enabled
+				if uDef.customparams.isevocom then
+					uDef.customparams.respawn_condition = "health"
+				elseif name == "armcom" or name == "corcom" or name == "legcom" then
+					uDef.customparams.respawn_condition = "health"
+					uDef.customparams.respawn_announcement = "A Commander Effigy was sacrificed."
+					uDef.customparams.respawn_announcement_size = 18.5
+					uDef.customparams.minimum_respawn_stun = 5
+					uDef.customparams.distance_stun_multiplier = 1
+				end
+				if name == "armcom" then
+					uDef.customparams.effigy = "armcomeffigylvl1"
+				elseif name == "corcom" then
+					uDef.customparams.effigy = "corcomeffigylvl1"
+				elseif name == "legcom" then
+					uDef.customparams.effigy = "legcomeffigylvl1"
+				end
+			end
+			
 			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
@@ -621,7 +661,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Wreck and heap standardization
-	if not uDef.customparams.iscommander then
+	if not uDef.customparams.iscommander and not uDef.customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
 			-- wrecks
 			if uDef.featuredefs.dead then

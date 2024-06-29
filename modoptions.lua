@@ -1201,6 +1201,19 @@ local options = {
     },
 
     {
+        key 	= "comrespawn",
+        name 	= "Commander Respawn Effigies",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "evocom", 	name = "Evolving Commanders Only" },
+            { key = "all", name = "All Commanders" },
+            { key = "disabled", name = "Disabled" },
+        }
+    },
+
+    {
         key 	= "evocom",
         name 	= "Evolving Commanders",
         type 	= "bool",
