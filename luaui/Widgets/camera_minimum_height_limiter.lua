@@ -38,11 +38,15 @@ function widget:Update(dt)
 			if dist < desiredLevel then
 				local camstate = Spring.GetCameraState()
 				if camstate.name == "ta" then
-					camstate.height = desiredLevel
-					Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+					if camstate.height < desiredLevel then
+						camstate.height = desiredLevel
+						Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+					end
 				elseif camstate.name == "spring"  then
-					camstate.dist = desiredLevel
-					Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+					if camstate.dist < desiredLevel then
+						camstate.dist = desiredLevel
+						Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+					end
 				end
 			end
 
