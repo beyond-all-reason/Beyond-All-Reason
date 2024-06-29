@@ -843,6 +843,39 @@ local SeaUnitsList = {
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
+if not Spring.GetModOptions().unit_restrictions_noair then
+	local t1airconstructors = {
+		["armca_scav"] = 2,
+		["corca_scav"] = 2,
+		["legca_scav"] = 2,
+	}
+	local t2airconstructors = {
+		["armaca_scav"] = 2,
+		["coraca_scav"] = 2,
+		["legaca_scav"] = 2,
+		["armcsa_scav"] = 2,
+		["corcsa_scav"] = 2,
+	}
+
+	table.append(LandUnitsList.Healer[2], table.copy(t1airconstructors))
+	table.append(SeaUnitsList.Healer[2], table.copy(t1airconstructors))
+
+	table.append(LandUnitsList.Healer[3], table.copy(t1airconstructors))
+	table.append(SeaUnitsList.Healer[3], table.copy(t1airconstructors))
+
+	table.append(LandUnitsList.Healer[4], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[4], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[5], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[5], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[6], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[6], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[7], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[7], table.copy(t2airconstructors))
+end
+
 
 local AirUnitsList = {
 	[1] = {
@@ -866,20 +899,15 @@ local AirUnitsList = {
 	},
 	[3] = {
 		--Armada
-		["armca_scav"] = 1,
 		["armfig_scav"] = 1,
 		["armkam_scav"] = 1,
 		["armthund_scav"] = 1,
 		["armsfig_scav"] = 1,
-		["armcsa_scav"] = 1,
 		--Cortex
-		["corca_scav"] = 1,
 		["corveng_scav"] = 1,
 		["corshad_scav"] = 1,
 		["corsfig_scav"] = 1,
-		["corcsa_scav"] = 1,
 		--Legion
-		["legca_scav"] = 1,
 		["legmos_scav"] = 1,
 		["legcib_scav"] = 1,
 		["legkam_scav"] = 1,
@@ -887,14 +915,12 @@ local AirUnitsList = {
 	},
 	[4] = {
 		--Armada
-		["armaca_scav"] = 1,
 		["armawac_scav"] = 1,
 		["armsaber_scav"] = 1,
 		["armseap_scav"] = 1,
 		["armsb_scav"] = 1,
 		["armlance_scav"] = 1,
 		--Cortex
-		["coraca_scav"] = 1,
 		["corawac_scav"] = 1,
 		["corcut_scav"] = 1,
 		["corsb_scav"] = 1,
@@ -902,7 +928,6 @@ local AirUnitsList = {
 		["cortitan_scav"] = 1,
 		["corhunt_scav"] = 1,
 		--Legion
-		["legaca_scav"] = 1,
 		["legwhisper_scav"] = 1,
 	},
 	[5] = {
@@ -930,21 +955,22 @@ local AirUnitsList = {
 	},
 	[6] = {
 		--Armada
-		["armthundt4_scav"] = 3,
+		
 		--Cortex
 		["cordronecarryair_scav"] = 3,
 		--Legion
-		--N/A
+
 	},
 	[7] = {
 		--Armada
+		["armthundt4_scav"] = 3,
 		["armfepocht4_scav"] = 3,
 		["armlichet4_scav"] = 1,
 		--Cortex
 		["corfblackhyt4_scav"] = 3,
 		["corcrwt4_scav"] = 2,
 		--Legion
-		--N/A
+
 	},
 }
 ----------------------------------------------------------------------------------------------
