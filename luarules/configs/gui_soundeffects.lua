@@ -2390,6 +2390,20 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-windgen",
 	},
+	legfmkr = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+	},
+
+	legtide = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrghum",
+	},
+
 	legmex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
@@ -2404,7 +2418,12 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mexon",
         BaseSoundDeactivate = "mexoff",
 	},
-	legdefcarryt1 = {
+	leghive = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},
+	legfdefcarryt1 = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
@@ -2414,6 +2433,19 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
+
+	legtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	legptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
 
 	-- LEGION T2 BUILDINGS
 

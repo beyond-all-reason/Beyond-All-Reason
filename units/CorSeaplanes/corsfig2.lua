@@ -11,7 +11,7 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER CANBEUW",
 		collide = false,
 		cruisealtitude = 140,
 		explodeas = "smallExplosionGenericAir",

@@ -128,7 +128,7 @@ return {
 				name = "Guided g2a missile launcher",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 2,
+				reloadtime = 2.1,
 				smoketrail = true,
 				smokePeriod = 6,
 				smoketime = 12,
@@ -151,7 +151,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
 				damage = {
-					vtol = 85,
+					vtol = 90,
 				},
 			},
 			armmech_cannon = {

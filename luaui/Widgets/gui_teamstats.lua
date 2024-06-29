@@ -75,7 +75,7 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local glColor	= gl.Color
 local glCreateList = gl.CreateList

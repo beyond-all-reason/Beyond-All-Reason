@@ -55,7 +55,7 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				blocking = false,
+				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "-0.710494995117 -1.1132812503e-06 0.9375",
 				collisionvolumescales = "31.2236328125 16.1107177734 37.8449707031",
@@ -133,8 +133,8 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium",
 				firestarter = 90,
-				fireTolerance = 1820,
-				tolerance = 1820,
+				fireTolerance = 8820,
+				tolerance = 8820,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Medium g2g Heat Ray",

@@ -77,7 +77,7 @@ local unitLights = {
 		arm1 = {	-- looks like arm movement is different and light isnt fixed in place :/
 			lightType = 'point',
 			pieceName = 'luparm',
-			lightConfig = { posx = -25, posy = 5.5, posz = 0, radius = 13,
+			lightConfig = { posx = 5, posy = 5.5, posz = 0, radius = 13,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.07,
 							modelfactor = 0.2, specular = 1, scattering = 0.6, lensflare = 0,
@@ -86,7 +86,7 @@ local unitLights = {
 		arm2 = {	-- looks like arm movement is different and light isnt fixed in place :/
 			lightType = 'point',
 			pieceName = 'ruparm',
-			lightConfig = { posx = 25, posy = 5.5, posz = 0, radius = 13,
+			lightConfig = { posx = -5, posy = 5.5, posz = 0, radius = 13,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.07,
 							modelfactor = 0.2, specular = 1, scattering = 0.6, lensflare = 0,
@@ -105,8 +105,8 @@ local unitLights = {
 	['armfatf'] = {
 		greenblob = {
 			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 10, posy = 95, posz = 8.5, radius = 17,
+			pieceName = 'light',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 12,
 							r = 0, g = 1.5, b = 0, a = 0.8,
 							modelfactor = 0.8, specular = 0.9, scattering = 1, lensflare = 10,
@@ -1476,8 +1476,8 @@ local unitLights = {
 		},
 		top1 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 12, posz = -19, radius = 21,
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 14, posz = 1, radius = 21,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1485,8 +1485,8 @@ local unitLights = {
 		},
 		top2 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 12, posz = -26, radius = 21,
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 12, posz = -4, radius = 21,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1494,8 +1494,8 @@ local unitLights = {
 		},
 		top3 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 12, posz = -33, radius = 21,
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 12, posz = -11, radius = 21,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1503,8 +1503,8 @@ local unitLights = {
 		},
 		top4 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 12, posz = -40, radius = 21,
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 12, posz = -18, radius = 21,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1512,8 +1512,8 @@ local unitLights = {
 		},
 		topback1 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 0, posz = -50, radius = 17,
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 0, posz = -28, radius = 17,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1521,8 +1521,8 @@ local unitLights = {
 		},
 		topback2 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = -7, posy = 0, posz = -47.5, radius = 17,
+			pieceName = 'launcher',
+			lightConfig = { posx = -7, posy = 0, posz = -25.5, radius = 17,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -1530,8 +1530,8 @@ local unitLights = {
 		},
 		topback3 = {
 			lightType = 'point',
-			pieceName = 'sleeve',
-			lightConfig = { posx = 7, posy = 0, posz = -47.5, radius = 17,
+			pieceName = 'launcher',
+			lightConfig = { posx = 7, posy = 0, posz = -25.5, radius = 17,
 							color2r = 1, color2g = 1, color2b = 0.4, colortime = 0,
 							r = 1, g = 1, b = 0.4, a = 0.055,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -8710,6 +8710,118 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['scavengerbossv4_normal'] = {
+		vortex1 = {
+			lightType = 'point',
+			pieceName = 'vortex3',
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 50,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.75, g = 0.1, b = 1, a = 0.5,
+							modelfact3r = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		vortex2 = {
+			lightType = 'point',
+			pieceName = 'vortex2',
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 100,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.6, g = 0.057, b = 0.75, a = 0.2,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		leftarmgunflareglow = {
+			lightType = 'point',
+			pieceName = 'biggun',
+			lightConfig = { posx = 0, posy = -93, posz = 6.5, radius = 30,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.6, g = 0.057, b = 0.75, a = 0.7, 
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		backpackglow = {
+			lightType = 'point',
+			pieceName = 'torso',
+			lightConfig = { posx = 0, posy = 48, posz = -35, radius = 35,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.6, g = 0.057, b = 0.75, a = 0.6,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 12,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		--TURBO weapon lights
+		turbominigunspot = { --shows when TURBO minigun
+			lightType = 'cone',
+			pieceName = 'laserflarelight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 420,
+							dirx = 0.001, diry = -0.99, dirz = 0.001, theta = 0.36,
+							r = 0.75, g = 0.1, b = 1, a = 0.9,
+							modelfactor = 0.1, specular = 0.5, scattering = 3.2, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turbominigunlighthotpoint = {
+			lightType = 'point',
+			pieceName = 'laserflarelight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.6, g = 0.057, b = 0.75, a = 0.8,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 5,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		turboshotgunspot = { --shows when TURBO shotgun
+		lightType = 'cone',
+		pieceName = 'lflare',
+		lightConfig = { posx = 0, posy = 0, posz = 0, radius = 420,
+						dirx = 0.001, diry = 0.001, dirz = 0.99, theta = 0.36,
+						r = 0.75, g = 0.1, b = 1, a = 0.9,
+						modelfactor = 0.1, specular = 0.5, scattering = 3.2, lensflare = 1,
+						lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turbomissilespot = { --shows when TURBO missile
+		lightType = 'cone',
+		pieceName = 'misflare',
+		lightConfig = { posx = 0, posy = 0, posz = 0, radius = 420,
+						dirx = 0.001, diry = 0.001, dirz = 0.99, theta = 0.36,
+						r = 0.75, g = 0.1, b = 1, a = 0.9,
+						modelfactor = 0.1, specular = 0.5, scattering = 3.2, lensflare = 1,
+						lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turbomissilehotpoint = {
+			lightType = 'point',
+			pieceName = 'misflare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.6, g = 0.057, b = 0.75, a = 0.8,
+							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 5,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		turbolrpc1 = {
+			lightType = 'point',
+			pieceName = 'railflarer',
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 50,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.75, g = 0.1, b = 1, a = 0.9,
+							modelfact3r = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 1, animtype = 1},
+		},
+		turbolrpc2 = {
+			lightType = 'point',
+			pieceName = 'railflarel',
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 50,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.75, g = 0.1, b = 1, a = 0.9,
+							modelfact3r = 0.1, specular = 1.6, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+		eaterbeamactivelight = {
+			lightType = 'point',
+			pieceName = 'nano',
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 300,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.75, g = 0.1, b = 1, a = 0.8,
+							modelfact3r = 0.1, specular = 1.6, scattering = 1.5, lensflare = 5,
+							lifetime = 0, sustain = 1, animtype = 0},
+		},
+
+	},
 	['corcom'] = {
 		headlightcorcom = {
 			lightType = 'cone',
@@ -13942,6 +14054,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legsnapper'] = {
+		base = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 6, posz = -1.5, radius = 14,
+							color2r = 1, color2g = 1, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.75, a = 0.08,
+							modelfactor = 0.95, specular = 0.5, scattering = 0.75, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 4.4, posz = 7.2, radius = 12,
+							color2r = 0.1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.20,
+							modelfactor = 0.6, specular = 0, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legca'] = {
 		nanolight = {
 			lightType = 'point',
@@ -14133,6 +14265,27 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -9.9, radius = 10,
 							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
 							r = 0.88, g = 0.83, b = 0.2, a = 0.6,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legaheattank'] = {
+
+		gunglow1 = {
+			lightType = 'point',
+			pieceName = 'gun',
+			lightConfig = { posx = -8.4, posy = -2.9, posz = 11.4, radius = 10,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 60,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.4,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		gunglow2 = {
+			lightType = 'point',
+			pieceName = 'gun',
+			lightConfig = { posx = 8.4, posy = -2.9, posz = 11.4, radius = 10,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 60,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.4,
 							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -19801,6 +19954,31 @@ local unitEventLightsNames = {
 			},
 		},
 
+		['legaheattank'] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'gun',
+				lightName = 'toroidglow',
+				alwaysVisible = true,
+				lightConfig = { posx = -8, posy = 8, posz = -6.4, radius = 64,
+					color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 160,
+					r = 0.88, g = 0.83, b = 0.2, a = 0.09,
+					modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0,
+					lifetime = 80, sustain = 5},
+			},
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'gun',
+				lightName = 'toroidglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 8, posy = 8, posz = -6.4, radius = 64,
+					color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 160,
+					r = 0.88, g = 0.83, b = 0.2, a = 0.09,
+					modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0,
+					lifetime = 80, sustain = 5},
+			},
+		},
+
 		['leglrpc'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
@@ -20640,6 +20818,38 @@ local unitEventLightsNames = {
 		},
 	},
 }
+
+--duplicate lights from armcom for Armada Evocom
+local armComTable = {'armcomlvl2', 'armcomlvl3', 'armcomlvl4', 'armcomlvl5', 'armcomlvl6', 'armcomlvl7', 'armcomlvl8', 'armcomlvl9', 'armcomlvl10'}
+for _, name in pairs(armComTable) do
+	unitLights[name] = table.copy(unitLights['armcom'])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked['armcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['armcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['armcom'])
+end
+
+--duplicate lights from corcom for Cortex Evocom
+local corComTable = {'corcomlvl2', 'corcomlvl3', 'corcomlvl4', 'corcomlvl5', 'corcomlvl6', 'corcomlvl7', 'corcomlvl8', 'corcomlvl9', 'corcomlvl10'}
+for _, name in pairs(corComTable) do
+	unitLights[name] = table.copy(unitLights['corcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['corcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['corcom'])
+end
+
+--duplicate lights from armcom for Legion Evocom (and temporarily legcom)
+local legComTable = {'legcom', 'legcomlvl2', 'legcomlvl3', 'legcomlvl4', 'legcomlvl5', 'legcomlvl6', 'legcomlvl7', 'legcomlvl8', 'legcomlvl9', 'legcomlvl10'}
+for _, name in pairs(legComTable) do
+	unitLights[name] = table.copy(unitLights['armcom'])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked['armcom'])
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle['armcom'])
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights['armcom'])
+end
+
+--duplicate lights from scavengerbossv4_normal for all scavengerbossv4 variants
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic'}
+for _, name in pairs(scavengerBossV4Table) do
+	unitLights[name] = table.copy(unitLights['scavengerbossv4_normal'])
+end
 
 --AND THE REST
 ---unitEventLightsNames -> unitEventLights

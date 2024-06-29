@@ -769,9 +769,6 @@ UnitSpeed(){
  }
 }
 
-
-
-
 Create()
 {
 	hide rbigflash;
@@ -929,6 +926,21 @@ ResumeBuilding()
 	return (0);
 }
 
+HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
+{
+	var shieldPower, shieldDamage;
+	
+	shieldPower = get SHIELD_POWER;
+		
+	if (shieldPower > 40000000){
+		set SHIELD_POWER to (shieldPower - ( dmg * 635 )); //635x is the multiplier by which damage is scaled according to shields
+		return (0);
+	}
+	if (shieldPower <= 40000000){
+		return (100); //the return value is a percentage of the damage. 100 = 100%
+	}
+}
+
 AimFromPrimary(piecenum)
 {
 	piecenum = torso;
@@ -974,6 +986,7 @@ AimPrimary(heading, pitch)
 	{
 		start-script ResumeBuilding();
 	}
+	start-script RestorePosition();
 	return (1);
 }
 
@@ -1008,6 +1021,7 @@ AimTertiary(heading, pitch)
 	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
 	//wait-for-turn biggun around x-axis;
+	start-script RestorePosition();
 	return (1);
 }
 
@@ -1064,6 +1078,7 @@ AimSecondary(heading, pitch)
 	{
 		start-script ResumeBuilding();
 	}
+	start-script RestorePosition();
 	return (1);
 }
 
@@ -1102,22 +1117,24 @@ QueryWeapon5(piecenum)
 }
 
 AimWeapon5(heading, pitch)
-	{
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
-	bAiming = TRUE;
-	turn head to y-axis heading speed <300.000000>;
-	turn head to x-axis <-5.000000> - pitch speed <250.000000>;
-	if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
-	{
-		wait-for-turn head around y-axis;
-		wait-for-turn head around x-axis;
-	}
-	last_primary_heading=heading;
-	last_primary_pitch=pitch;
-	gun_eye = eyeflare;
-	return (1);
-	}
+{
+signal SIG_AIM2;
+set-signal-mask SIG_AIM2;
+bAiming = TRUE;
+turn head to y-axis heading speed <300.000000>;
+turn head to x-axis <-5.000000> - pitch speed <250.000000>;
+if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
+{
+	wait-for-turn head around y-axis;
+	wait-for-turn head around x-axis;
+}
+last_primary_heading=heading;
+last_primary_pitch=pitch;
+gun_eye = eyeflare;
+start-script RestoreHeadPosition();
+return (1);
+}
+
 FireWeapon5()
 {
 	sleep 100;
@@ -1163,6 +1180,7 @@ AimWeapon6(heading, pitch)
 	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
 	//wait-for-turn biggun around x-axis;
+	start-script RestorePosition();
 	return (1);
 }
 
