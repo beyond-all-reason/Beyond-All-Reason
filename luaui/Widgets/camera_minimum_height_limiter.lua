@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+
+
 local defaultDesiredLevel = 300
 local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
 local optionRefresh = 0
@@ -23,7 +25,7 @@ end
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > (fastUpdateRate and 0.01 or 0.15) then
+	if sec > (fastUpdateRate and 0.001 or 0.15) then
 		sec = 0
 		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
 			return
@@ -32,7 +34,7 @@ function widget:Update(dt)
 		local desc, params = Spring.TraceScreenRay(vsx/2, vsy/2, true)
 		if params and params[3] then
 			local dist = math.distance3d(x, y, z, params[1], params[2], params[3])
-			fastUpdateRate = dist < (desiredLevel + 250)
+			fastUpdateRate = dist < (desiredLevel + 200)
 			if dist < desiredLevel then
 				local camstate = Spring.GetCameraState()
 				if camstate.name == "ta" then
