@@ -110,6 +110,11 @@ return {
 			evolution_power_threshold = 20000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
+			respawn_announcement = "A Commander Effigy was sacrificed.",
+			respawn_announcement_size = 18.5,
+			effigy = "corcomeffigylvl1",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

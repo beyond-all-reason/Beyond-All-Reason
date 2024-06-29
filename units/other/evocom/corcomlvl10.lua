@@ -120,6 +120,11 @@ return {
 			shield_power = 30000,
 			shield_radius = 100,
 			maxrange = "500",
+			respawn_announcement = "A Commander Effigy was sacrificed.",
+			respawn_announcement_size = 18.5,
+			effigy = "corcomeffigylvl5",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {
