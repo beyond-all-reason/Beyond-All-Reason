@@ -32,7 +32,7 @@ local lvlParams = {
 }
 local unitsTable = {}
 for lvl, stats in pairs(lvlParams) do
-	unitsTable["corcomeffigylvl" .. lvl] = {
+	unitsTable["comeffigylvl" .. lvl] = {
         maxacc = 0.0,
 		activatewhenbuilt = true,
 		autoheal = 5000,
@@ -51,7 +51,7 @@ for lvl, stats in pairs(lvlParams) do
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "1 1 1",
 		collisionvolumetype = "CylY",
-		corpse = "DEAD",
+		corpse = "HEAP",
 		explodeas = "decoycommander",
 		footprintx = 2,
 		footprintz = 2,
@@ -70,9 +70,9 @@ for lvl, stats in pairs(lvlParams) do
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM.s3o",
+		objectname = "Units/COMEFFIGY.s3o",
 		releaseheld  = true,
-		script = "Units/CORCOMEFFIGY.cob",
+		script = "Units/COMEFFIGY.cob",
 		seismicsignature = 0,
 		selfdestructas = " ",
 		selfdestructcountdown = 3,
@@ -87,7 +87,7 @@ for lvl, stats in pairs(lvlParams) do
 			unitgroup = 'builder',
 			iseffigy = true,
 			model_author = "Mr Bob",
-			--normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 		},

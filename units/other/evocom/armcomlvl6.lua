@@ -132,6 +132,11 @@ return {
 			stockpileLimit = 30,
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",
+			respawn_announcement = "A Commander Effigy was sacrificed.",
+			respawn_announcement_size = 18.5,
+			effigy = "comeffigylvl3",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {
