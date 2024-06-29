@@ -1208,8 +1208,8 @@ local unitGrids = {
 	-- T1 sea con
 	armcs = {
 		{
-			{ "armmex",},                                     -- mex
-			{ "armfmkr", "armgeo","", "armtide"},               -- floating T1 converter, geo, tidal
+			{ "armmex","","armuwgeo"},                        -- mex, uw geo
+			{ "armfmkr", "armgeo","", "armtide"},             -- floating T1 converter, geo, tidal
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
@@ -1230,8 +1230,8 @@ local unitGrids = {
 
 	corcs = {
 		{
-			{ "cormex",},                                     -- mex
-			{ "corfmkr", "corgeo", "","cortide"},               -- floating T1 converter, geo, tidal
+			{ "cormex","","coruwgeo"},                        -- mex, uw geo
+			{ "corfmkr", "corgeo", "","cortide"},             -- floating T1 converter, geo, tidal
 			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
