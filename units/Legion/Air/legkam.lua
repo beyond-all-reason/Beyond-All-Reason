@@ -158,7 +158,8 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					spawns_name = "legvision",
-					spawns_surface = "LAND",
+					spawns_surface = "LAND SEA",
+					spawns_expire = 10,
 				},
 				damage = {
 					commanders = 220,

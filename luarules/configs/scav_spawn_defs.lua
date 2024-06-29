@@ -221,7 +221,7 @@ local LandUnitsList = {
 			--Cortex
 			["corgator_scav"] = 1,
 			--Legion
-			["leghades_scav"] = 1,
+			["legamphtank_scav"] = 1,
 		},
 		[4] = {
 			--Armada
@@ -237,7 +237,6 @@ local LandUnitsList = {
 			--Legion
 			["legmrv_scav"] = 1,
 			["legstr_scav"] = 1,
-			["legamphtank_scav"] = 1,
 		},
 		[5] = {
 			--Armada
@@ -326,7 +325,7 @@ local LandUnitsList = {
 			["correap_scav"] = 1,
 			["corgatreap_scav"] = 1,
 			--Legion
-			["legsco_scav"] = 1,
+			["legaheattank_scav"] = 1,
 			["leginc_scav"] = 1,
 			["legfloat_scav"] = 1,
 		},
@@ -407,6 +406,8 @@ local LandUnitsList = {
 			["coraak_scav"] = 1,
 			["cormort_scav"] = 1,
 			--Legion
+			["legaskirmtank_scav"] = 1,
+			["legamcluster_scav"] = 1,
 			["legvcarry_scav"] = 1,
 			["legbart_scav"] = 1,
 
@@ -423,6 +424,7 @@ local LandUnitsList = {
 			["corhrk_scav"] = 1,
 			["corsiegebreaker_scav"] = 1,
 			--Legion
+			["legavroc_scav"] = 1,
 			["leginf_scav"] = 1,
 			["legmed_scav"] = 1,
 
@@ -841,6 +843,39 @@ local SeaUnitsList = {
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
+if not Spring.GetModOptions().unit_restrictions_noair then
+	local t1airconstructors = {
+		["armca_scav"] = 2,
+		["corca_scav"] = 2,
+		["legca_scav"] = 2,
+	}
+	local t2airconstructors = {
+		["armaca_scav"] = 2,
+		["coraca_scav"] = 2,
+		["legaca_scav"] = 2,
+		["armcsa_scav"] = 2,
+		["corcsa_scav"] = 2,
+	}
+
+	table.append(LandUnitsList.Healer[2], table.copy(t1airconstructors))
+	table.append(SeaUnitsList.Healer[2], table.copy(t1airconstructors))
+
+	table.append(LandUnitsList.Healer[3], table.copy(t1airconstructors))
+	table.append(SeaUnitsList.Healer[3], table.copy(t1airconstructors))
+
+	table.append(LandUnitsList.Healer[4], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[4], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[5], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[5], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[6], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[6], table.copy(t2airconstructors))
+
+	table.append(LandUnitsList.Healer[7], table.copy(t2airconstructors))
+	table.append(SeaUnitsList.Healer[7], table.copy(t2airconstructors))
+end
+
 
 local AirUnitsList = {
 	[1] = {
@@ -864,20 +899,15 @@ local AirUnitsList = {
 	},
 	[3] = {
 		--Armada
-		["armca_scav"] = 1,
 		["armfig_scav"] = 1,
 		["armkam_scav"] = 1,
 		["armthund_scav"] = 1,
 		["armsfig_scav"] = 1,
-		["armcsa_scav"] = 1,
 		--Cortex
-		["corca_scav"] = 1,
 		["corveng_scav"] = 1,
 		["corshad_scav"] = 1,
 		["corsfig_scav"] = 1,
-		["corcsa_scav"] = 1,
 		--Legion
-		["legca_scav"] = 1,
 		["legmos_scav"] = 1,
 		["legcib_scav"] = 1,
 		["legkam_scav"] = 1,
@@ -885,14 +915,12 @@ local AirUnitsList = {
 	},
 	[4] = {
 		--Armada
-		["armaca_scav"] = 1,
 		["armawac_scav"] = 1,
 		["armsaber_scav"] = 1,
 		["armseap_scav"] = 1,
 		["armsb_scav"] = 1,
 		["armlance_scav"] = 1,
 		--Cortex
-		["coraca_scav"] = 1,
 		["corawac_scav"] = 1,
 		["corcut_scav"] = 1,
 		["corsb_scav"] = 1,
@@ -900,7 +928,6 @@ local AirUnitsList = {
 		["cortitan_scav"] = 1,
 		["corhunt_scav"] = 1,
 		--Legion
-		["legaca_scav"] = 1,
 		["legwhisper_scav"] = 1,
 	},
 	[5] = {
@@ -928,21 +955,22 @@ local AirUnitsList = {
 	},
 	[6] = {
 		--Armada
-		["armthundt4_scav"] = 3,
+		
 		--Cortex
 		["cordronecarryair_scav"] = 3,
 		--Legion
-		--N/A
+
 	},
 	[7] = {
 		--Armada
+		["armthundt4_scav"] = 3,
 		["armfepocht4_scav"] = 3,
 		["armlichet4_scav"] = 1,
 		--Cortex
 		["corfblackhyt4_scav"] = 3,
 		["corcrwt4_scav"] = 2,
 		--Legion
-		--N/A
+
 	},
 }
 ----------------------------------------------------------------------------------------------
@@ -1575,7 +1603,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, uni
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legsco_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Veh Unique
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Arty/AA
 --air

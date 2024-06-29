@@ -35,7 +35,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVADER.s3o",
 		pushresistant = false,
-		power = 20000,
+		power = 1000,
 		script = "Units/ARMVADER.cob",
 		seismicsignature = 0,
 		selfdestructas = "BABYARMVADER_EXP1",
