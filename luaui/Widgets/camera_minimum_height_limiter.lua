@@ -14,35 +14,41 @@ local defaultDesiredLevel = 300
 local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
 local optionRefresh = 0
 local fastUpdateRate = false
+local vsx,vsy = Spring.GetViewGeometry()
+
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+end
 
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > (fastUpdateRate and 0.03 or 0.4) then
+	if sec > (fastUpdateRate and 0.01 or 0.15) then
 		sec = 0
 		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
 			return
 		end
-
-		local camstate = Spring.GetCameraState()
-		if camstate.name == "ta" then
-			fastUpdateRate = camstate.height < (desiredLevel + 250)
-			if camstate.height < desiredLevel then
-				camstate.height = desiredLevel
-				Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+		local x,y,z = Spring.GetCameraPosition()
+		local desc, params = Spring.TraceScreenRay(vsx/2, vsy/2, true)
+		if params and params[3] then
+			local dist = math.distance3d(x, y, z, params[1], params[2], params[3])
+			fastUpdateRate = dist < (desiredLevel + 250)
+			if dist < desiredLevel then
+				local camstate = Spring.GetCameraState()
+				if camstate.name == "ta" then
+					camstate.height = desiredLevel
+					Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+				elseif camstate.name == "spring"  then
+					camstate.dist = desiredLevel
+					Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+				end
 			end
-		elseif camstate.name == "spring"  then
-			fastUpdateRate = camstate.dist < (desiredLevel + 250)
-			if camstate.dist < desiredLevel then
-				camstate.dist = desiredLevel
-				Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
-			end
-		end
 
-		optionRefresh = optionRefresh+1
-		if optionRefresh > 30 then
-			optionRefresh = 0
-			desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
+			optionRefresh = optionRefresh + 1
+			if optionRefresh > 20 then
+				optionRefresh = 0
+				desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
+			end
 		end
 	end
 end
