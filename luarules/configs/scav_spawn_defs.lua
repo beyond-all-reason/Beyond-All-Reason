@@ -221,7 +221,7 @@ local LandUnitsList = {
 			--Cortex
 			["corgator_scav"] = 1,
 			--Legion
-			["leghades_scav"] = 1,
+			["legamphtank_scav"] = 1,
 		},
 		[4] = {
 			--Armada
@@ -237,7 +237,6 @@ local LandUnitsList = {
 			--Legion
 			["legmrv_scav"] = 1,
 			["legstr_scav"] = 1,
-			["legamphtank_scav"] = 1,
 		},
 		[5] = {
 			--Armada
@@ -326,7 +325,7 @@ local LandUnitsList = {
 			["correap_scav"] = 1,
 			["corgatreap_scav"] = 1,
 			--Legion
-			["legsco_scav"] = 1,
+			["legaheattank_scav"] = 1,
 			["leginc_scav"] = 1,
 			["legfloat_scav"] = 1,
 		},
@@ -407,6 +406,8 @@ local LandUnitsList = {
 			["coraak_scav"] = 1,
 			["cormort_scav"] = 1,
 			--Legion
+			["legaskirmtank_scav"] = 1,
+			["legamcluster_scav"] = 1,
 			["legvcarry_scav"] = 1,
 			["legbart_scav"] = 1,
 
@@ -423,6 +424,7 @@ local LandUnitsList = {
 			["corhrk_scav"] = 1,
 			["corsiegebreaker_scav"] = 1,
 			--Legion
+			["legavroc_scav"] = 1,
 			["leginf_scav"] = 1,
 			["legmed_scav"] = 1,
 
@@ -1575,7 +1577,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, uni
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legsco_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Veh Unique
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Arty/AA
 --air
