@@ -138,7 +138,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Phoenix Flame",
+				name = "Heavy a2g Phoenix Flame Heat Ray",
 				noselfdamage = true,
 				predictboost = 1,
 				proximitypriority = -1,
