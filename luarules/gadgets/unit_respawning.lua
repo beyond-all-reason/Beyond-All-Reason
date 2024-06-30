@@ -231,11 +231,12 @@ if gadgetHandler:IsSyncedCode() then
                 if newID then
 					local effigyBuildProgress
 					if respawnMetaList[unitID].effigyID then
-					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
 					end
 					if not respawnMetaList[unitID].effigyID then
                     	spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 					end
+					spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = 5000})
 					if respawnMetaList[unitID].effigyID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
@@ -244,12 +245,12 @@ if gadgetHandler:IsSyncedCode() then
 								else
 									spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 								end
-							spSetUnitHealth(respawnMetaList[newID].effigyID, {_, _, _, effigyBuildProgress})
+							spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = 5000})
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
 						else
-							spSetUnitHealth(respawnMetaList[newID].effigyID, {_, _, _, effigyBuildProgress})
+							spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = 5000})
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 						end
 					end
