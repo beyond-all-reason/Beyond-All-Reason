@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		version = '2.0',
 		date    = '2024-06-27',
 		license = 'GNU GPL, v2 or later',
-		layer   = -10, -- Sim logic within gadget:Explosion _must_ run before layer 0.
+		layer   = 10, -- Sim logic within gadget:Explosion _must_ run before layer 0.
 		enabled = true
 	}
 end
@@ -170,7 +170,7 @@ end
 -- Setup for the update loop.
 
 frameResolution = math.clamp(math.round(frameResolution), 1, gameSpeed)
-loopDuration    = math.clamp(loopDuration, 0.25, 1)
+loopDuration    = math.clamp(loopDuration, 0.2, 1)
 
 -- The discrete loop length can differ from the target update time, which we adjust against.
 -- e.g. for a 1s period at 30fps with res=29, we end up looping a single group over 0.9667s.
@@ -240,8 +240,7 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 	   and y <= lowCeiling + gravity / 8              -- Up to half a second spent in free-fall.
 	then
 		local timeToLand = sqrt((y - elevation) * 2 / gravity)
-		local frameStart = spGetGameFrame()
-		frameStart = frameStart + ceil(timeToLand / gameSpeed) -- at least +1 frame
+		local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
 		if delayQueue[frameStart] then
 			delayQueue[frameStart][#delayQueue[frameStart]+1] = { x, elevation, z, weaponParams, ownerID }
 		else
@@ -346,9 +345,12 @@ function gadget:Shutdown()
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
-	local weaponParams = weaponTriggerParams[weaponDefID]
-	if weaponParams then
-		startTimedArea(px, py, pz, weaponParams, attackID)
+	if weaponTriggerParams[weaponDefID] then
+		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], attackID)
+	elseif timedAreaParams[weaponDefID] then
+		-- Consume the event and do whatever else to prevent these gadgets from running:
+		-- gfx_*, lups_shockwaves, unit_custom_weapons_cluster, unit_juno_*
+		return true
 	end
 end
 
@@ -405,14 +407,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 				if immunityTo == damageType or immunityTo == "all" then return 0, 0 end
 			end
 		end
-		damage = damage * loopDuration
-		local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
-		if weaponParams.area_damagedceg then
-			spSpawnCEG(weaponParams.area_damagedceg, x, y + 8, z, 0, 0, 0, 0, damage)
-		end
-		return damage, areaImpulseRate
+		return damage * loopDuration, areaImpulseRate
 	end
-	return damage, 1
+	return damage
 end
 
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
@@ -425,7 +422,17 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 		end
 		return damage, areaImpulseRate
 	end
-	return damage, 1
+	return damage
+end
+
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
+	if timedAreaParams[weaponDefID] then
+		local damagedCEG = timedAreaParams[weaponDefID].area_damagedceg
+		if damagedCEG then
+			local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
+			spSpawnCEG(damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+		end
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------------
@@ -441,6 +448,7 @@ do
 	end
 
 	local function TestStuff(paramsTable, defID, params)
+		local isWeaponDef = paramsTable[defID] == weaponTriggerParams[defID]
 		local areaDef = WeaponDefs[paramsTable[defID].area_weapondefid]
 
 		-- Check for durations that we do not support properly.
@@ -464,6 +472,13 @@ do
 			end
 		elseif not params.area_ongoingceg and damage * radius > highDamageTimesArea then
 			testmsg('High-damage area weapon without ongoingCEG', areaDef.name)
+		end
+
+		-- Check for bad/missing/??? damage types and immunities.
+		local damageTypes = { 'acid', 'napalm' }
+		local immunities  = { 'acid', 'napalm', 'raptor', 'friendly', 'all' } -- idk
+		if isWeaponDef and not paramsTable[defID].area_damagetype or not type(paramsTable[defID].area_damagetype) == "string" then
+			testmsg('Weapon is missing its damage type(acid/napalm/...)', areaDef.name)
 		end
 	end
 
