@@ -445,6 +445,7 @@ local unitOrderTable = {
    --ECO METAL STORAGE
    ['armmstor']       = 100800,
    ['cormstor']       = 100850,
+   ['legmstor']       = 100860,
    ['armuwadvms']     = 100900,
    ['coruwadvms']     = 100950,
 
