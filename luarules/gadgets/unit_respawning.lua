@@ -20,6 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame          = Spring.GetGameFrame
 	local spGetProjectileDefID    = Spring.GetProjectileDefID
 	local spGetProjectileTeamID   = Spring.GetProjectileTeamID
+	local spGetUnitHealth		  = Spring.GetUnitHealth
 	local spGetUnitShieldState    = Spring.GetUnitShieldState
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 	local spSetFeatureDirection   = Spring.SetFeatureDirection
@@ -144,15 +145,12 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[unitID] and respawnMetaList[unitID].respawn_announcement then
 				spEcho(respawnMetaList[unitID].respawn_announcement)
 				announcement = respawnMetaList[unitID].respawn_announcement
-				announcementSize = respawnMetaList[unitID].respawn_announcement_size
+				announcementSize = respawnMetaList[unitID].respawn_announcement_size or 18.5
 			end
 
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			SendToUnsynced("unit_respawned", announcement, announcementSize)
-
 		end
-		
-    
     end
 
 
@@ -231,6 +229,10 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
                 if newID then
+					local effigyBuildProgress
+					if respawnMetaList[unitID].effigyID then
+					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					end
 					if not respawnMetaList[unitID].effigyID then
                     	spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 					end
@@ -242,10 +244,12 @@ if gadgetHandler:IsSyncedCode() then
 								else
 									spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 								end
+							spSetUnitHealth(respawnMetaList[newID].effigyID, {_, _, _, effigyBuildProgress})
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
 						else
+							spSetUnitHealth(respawnMetaList[newID].effigyID, {_, _, _, effigyBuildProgress})
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 						end
 					end
@@ -261,9 +265,12 @@ if gadgetHandler:IsSyncedCode() then
 				local h, mh = spGetUnitHealth(unitID)
 				local currentTime =  spGetGameSeconds()
 				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
+					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					if effigyBuildProgress == 1 then
 						ReturnToBase(unitID)
 						respawnMetaList[unitID].respawnTimer = spGetGameSeconds()
 						return 0, 0
+					end
 				elseif (currentTime-respawnMetaList[unitID].respawnTimer) <= 5 then
 					return 0, 0
 				end

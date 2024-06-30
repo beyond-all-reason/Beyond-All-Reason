@@ -245,7 +245,6 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.effigy_offset = 1
 				uDef.customparams.respawn_condition = "health"
 				uDef.customparams.respawn_announcement = "A Commander Effigy was sacrificed."
-				uDef.customparams.respawn_announcement_size = 18.5
 				uDef.customparams.minimum_respawn_stun = 5
 				uDef.customparams.distance_stun_multiplier = 1
 				local numBuildoptions = #uDef.buildoptions
