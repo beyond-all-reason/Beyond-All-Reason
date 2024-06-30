@@ -119,7 +119,7 @@ return {
 				name = "Rockets",
 				noselfdamage = true,
 				range = 460,
-				reloadtime = 5,
+				reloadtime = 5.5,
 				smoketrail = true,
 				smokePeriod = 11,
 				smoketime = 28,

@@ -36,15 +36,36 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
+local legionLobberUnitsT1 = "leglob_scav leggob_scav leghades_scav leghelios_scav legsh_scav"
+local legionLobberUnitsT2 = "legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
+local legionLobberUnitsT3 = "legstr_scav leginfestor_scav legbart_scav legsrail_scav legmrv_scav legfloat_scav"
+local legionLobberUnitsT4 = "leginf_scav legsco_scav leginc_scav legmed_scav"
+
 customDefs.armsilo = {
 	weapondefs = {
 		nuclear_missile = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 120,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpilelimit = 10,
+			},
+		},
+	},
+}
+
+customDefs.legsilo = {
+	weapondefs = {
+		legicbm = {
+			stockpile = true,
+			stockpiletime = 120,
+			reloadtime = 10,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+				stockpilelimit = 10,
 			},
 		},
 	},
@@ -53,12 +74,13 @@ customDefs.armsilo = {
 customDefs.corsilo = {
 	weapondefs = {
 		crblmssl = {
-			stockpile = false,
-			stockpiletime = 0,
-			reloadtime = 30,
+			stockpile = true,
+			stockpiletime = 120,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpilelimit = 10,
 			},
 		},
 	},
@@ -67,13 +89,14 @@ customDefs.corsilo = {
 customDefs.armjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
@@ -82,39 +105,25 @@ customDefs.armjuno = {
 customDefs.corjuno = {
 	weapondefs = {
 		juno_pulse = {
-			stockpile = false,
-			stockpiletime = 0,
+			stockpile = true,
+			stockpiletime = 30,
 			explosiongenerator = "custom:juno-explo-purple",
-			reloadtime = 30,
+			reloadtime = 10,
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
+				stockpileLimit = 1,
 			},
 		},
 	},
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
 
 customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
+	decoyfor = "corcom_scav",
 }
 
 customDefs.armclaw = {
@@ -141,6 +150,141 @@ customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
 
+customDefs.legcomlvl3 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			projectiles = 6,
+			range = 600,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl4 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			projectiles = 4,
+			range = 600,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl5 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			projectiles = 5,
+			range = 650,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl6 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 6000,
+			projectiles = 6,
+			range = 700,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl7 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 7000,
+			projectiles = 3,
+			range = 750,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl8 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 8000,
+			projectiles = 5,
+			range = 800,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl9 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 9000,
+			projectiles = 2,
+			range = 850,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legcomlvl10 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 10000,
+			projectiles = 4,
+			range = 900,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
 
 -- local scavConstructorsList = {
 -- 	-- rezzers

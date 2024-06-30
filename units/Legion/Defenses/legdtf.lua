@@ -9,7 +9,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		damagemodifier = 0.25,
+		damagemodifier = 0.33,
 		decoyfor = "scavdrag",
 		energystorage = 15,
 		explodeas = "flamethrower",

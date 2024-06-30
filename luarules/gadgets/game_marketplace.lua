@@ -64,7 +64,6 @@ function gadget:UnitFinished(unitID, unitDefID, teamID)
 	end
 end
 gadget.UnitGiven = gadget.UnitFinished
-gadget.UnitCaptured = gadget.UnitFinished
 
 function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do

@@ -59,6 +59,8 @@ if not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
+local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
+
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
@@ -149,7 +151,6 @@ local GL_ONE = GL.ONE
 
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
 
@@ -656,7 +657,7 @@ function DrawWindow()
 	local column = 1
 	local drawColumnPos = 1
 
-	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
+	maxColumnRows = math.ceil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
 	local dontFilterGroup = false
@@ -786,6 +787,7 @@ function DrawWindow()
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
 							end
+							options[oid].nametext = text
 							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
@@ -842,6 +844,7 @@ function DrawWindow()
 									end
 									text = text .. '...'
 								end
+								options[oid].nametext = text
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
@@ -1279,7 +1282,16 @@ function widget:DrawScreen()
 								if options[i].restart then
 									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
 								end
-								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								local showTooltip = true
+								if options[i].nametext and string.find(options[i].nametext, desc) then
+									if string.len(desc) == (string.len(options[i].nametext)+1)-string.find(options[i].nametext, desc) then
+										showTooltip = false
+									end
+								end
+								if showTooltip then
+									desc = font:WrapText(desc, WG['tooltip'].getFontsize() * 90)
+									WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
+								end
 							end
 							break
 						end
@@ -2517,7 +2529,7 @@ function init()
 			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
-		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
+		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 3, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", value)
 			  Spring.SendCommands("GroundDecals " .. value)
@@ -2785,7 +2797,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			  Spring.SetConfigString("voiceset", (hideOtherLanguagesVoicepacks and Spring.GetConfigString('language', 'en')..'/' or '')..options[i].options[options[i].value])
 			  if widgetHandler.orderList["Notifications"] ~= nil then
 				  widgetHandler:DisableWidget("Notifications")
 				  widgetHandler:EnableWidget("Notifications")
@@ -2793,13 +2805,6 @@ function init()
 			  end
 		  end,
 		},
-
-		{ id = "scav_messages", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.scav_messages'), type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
-		  end,
-		},
-		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
 
 		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
@@ -2879,12 +2884,11 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 		  onload = function()
-			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local keyFile = Spring.GetConfigString("KeybindingFile")
 			  local value = 1
 
 			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
 				  keyFile = keyLayouts.keybindingLayoutFiles[1]
-				  Spring.SetConfigString("KeybindingFile", keyFile)
 			  end
 
 			  for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
@@ -3014,7 +3018,7 @@ function init()
 			  Spring.SetConfigInt("DoubleClickTime", value)
 		  end,
 		},
-	--[[
+
 		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
 		  onload = function(i)
 		  end,
@@ -3025,7 +3029,7 @@ function init()
 			  Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
 		  end,
 		},
-	]]--
+
 
 
 		{ id = "label_ui_camera", group = "control", name = Spring.I18N('ui.settings.option.label_camera'), category = types.basic },
@@ -3230,6 +3234,11 @@ function init()
 			onchange = function(i, value)
 				local language = languageCodes[value]
 				WG['language'].setLanguage(language)
+				if widgetHandler.orderList["Notifications"] ~= nil then
+					widgetHandler:DisableWidget("Notifications")
+					widgetHandler:EnableWidget("Notifications")
+					init()
+				end
 			end
 		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
@@ -3660,6 +3669,31 @@ function init()
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = Spring.I18N('ui.settings.option.buildbar'), type = "bool", value = GetWidgetToggleValue("BuildBar"), description = Spring.I18N('ui.settings.option.buildbar_descr') },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
+
+		{ id = "seeprices", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.seeprices'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getSeePrices() or 0), description = Spring.I18N('ui.settings.option.seeprices_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "seeprices", { 'seePrices' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setSeePrices', { 'seePrices' }, value)
+			end,
+		},
+		{ id = "showaisaleoffers", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.showaisaleoffers'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getShowAIsaleOffers() or 0), description = Spring.I18N('ui.settings.option.showaisaleoffers_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "showaisaleoffers", { 'showAIsaleOffers' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setShowAIsaleOffers', { 'showAIsaleOffers' }, value)
+			end,
+		},
+		{ id = "buywithoutholdignalt", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buywithoutholdignalt'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getBuyWithoutHoldingAlt() or 0), description = Spring.I18N('ui.settings.option.buywithoutholdignalt_descr'),
+			onload = function(i)
+				loadWidgetData("Unit Market", "buywithoutholdignalt", { 'buyWithoutHoldingAlt' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Unit Market', 'unit_market', 'setBuyWithoutHoldingAlt', { 'buyWithoutHoldingAlt' }, value)
+			end,
+		},
 
 		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
@@ -5552,11 +5586,6 @@ function init()
 		options[getOptionByID('widgetselector')] = nil
 	end
 
-	if not scavengersAIEnabled then
-		options[getOptionByID('scav_voicenotifs')] = nil
-		options[getOptionByID('scav_messages')] = nil
-	end
-
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
@@ -5809,46 +5838,73 @@ function init()
 		local voiceset = Spring.GetConfigString("voiceset", 'allison')
 		local currentVoiceSetOption
 		local sets = {}
-		local files = VFS.SubDirs('sounds/voice', '*')
-		for k, file in ipairs(files) do
-			local dirname = string.sub(file, 14, string.len(file)-1)
-			sets[#sets+1] = dirname
-			if dirname == voiceset then
-				currentVoiceSetOption = #sets
+		local languageDirs = VFS.SubDirs('sounds/voice', '*')
+		local setCount = 0
+		if hideOtherLanguagesVoicepacks then
+			local language = Spring.GetConfigString('language', 'en')
+			local files = VFS.SubDirs('sounds/voice/'..language, '*')
+			for k, file in ipairs(files) do
+				local dirname = string.sub(file, 17, string.len(file)-1)
+				sets[#sets+1] = dirname
+				setCount = setCount + 1
+				if dirname == string.sub(voiceset, 4) then
+					currentVoiceSetOption = #sets
+				end
+			end
+		else
+			for k, f in ipairs(languageDirs) do
+				local langDir = string.sub(f, 14, string.len(f)-1)
+				local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
+				for k, file in ipairs(files) do
+					local dirname = string.sub(file, 14, string.len(file)-1)
+					sets[#sets+1] = dirname
+					setCount = setCount + 1
+					if dirname == voiceset then
+						currentVoiceSetOption = #sets
+					end
+				end
 			end
 		end
-		options[getOptionByID('notifications_set')].options = sets
-		if currentVoiceSetOption then
-			options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+		if setCount == 0 then
+			options[getOptionByID('notifications_set')] = nil
+			options[getOptionByID('notifications_spoken')] = nil
+			options[getOptionByID('notifications_volume')] = nil
+		else
+			options[getOptionByID('notifications_set')].options = sets
+			if currentVoiceSetOption then
+				options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+			end
 		end
 	end
 
 	-- add sound notification widget sound toggle options
-	local soundList
+	local notificationList
 	if WG['notifications'] ~= nil then
-		soundList = WG['notifications'].getSoundList()
-	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].soundList ~= nil then
-		soundList = widgetHandler.configData["Notifications"].soundList
+		notificationList = WG['notifications'].getNotificationList()
+	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].notificationList ~= nil then
+		notificationList = widgetHandler.configData["Notifications"].notificationList
 	end
-	if type(soundList) == 'table' then
+	if type(notificationList) == 'table' then
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
 			if option.id == 'label_notif_messages_spacer' then
-				for k, v in pairs(soundList) do
+				for k, v in pairs(notificationList) do
 					if type(v) == 'table' then
 						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-							  onchange = function(i, value)
-								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-							  end,
-							  onclick = function()
-								  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
-									  WG['notifications'].playNotification(v[1])
-								  end
-							  end,
+						local color = widgetOptionColor
+						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+											  onchange = function(i, value)
+												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
+											  end,
+											  onclick = function()
+												  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
+													  WG['notifications'].playNotification(v[1])
+												  end
+											  end,
 						}
 					end
 				end
@@ -5867,7 +5923,7 @@ function init()
 		[UnitDefNames["armpb"].id] = false,
 		[UnitDefNames["armsnipe"].id] = false,
 		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = false,
+		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
@@ -5876,8 +5932,13 @@ function init()
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
 		unitdefConfig = WG['autocloak'].getUnitdefConfig()
-	elseif widgetHandler.configData["autocloak"] ~= nil and widgetHandler.configData["autocloak"].unitdefConfig ~= nil then
-		unitdefConfig = widgetHandler.configData["autocloak"].unitdefConfig
+	elseif widgetHandler.configData["Auto Cloak Units"] ~= nil and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil then
+		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
+			if UnitDefNames[unitName] then
+				local unitDefID = UnitDefNames[unitName].id
+				unitdefConfig[unitDefID] = value
+			end
+		end
 	end
 	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
 	if type(unitdefConfig) == 'table' then
@@ -5967,7 +6028,7 @@ function init()
 		options[getOptionByID('springcamheightmode')] = nil
 	end
 
-	if Spring.GetConfigString("KeybindingFile", "uikeys.txt") ~= "uikeys.txt" then
+	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID('gridmenu')] = nil
 	end
 
@@ -6058,7 +6119,6 @@ function init()
 		local filteredOptions = {}
 		for i, option in pairs(options) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				--local name = string.gsub(option.name, "(\\[0-9]+)+", "")
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
 				if string.find(string.lower(name), string.lower(inputText), nil, true) then

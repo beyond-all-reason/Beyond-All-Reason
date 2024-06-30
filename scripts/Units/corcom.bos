@@ -964,7 +964,7 @@ FirePrimary()
 
 AimFromTertiary(piecenum)
 {
-	piecenum = rbigflash;
+	piecenum = torso;
 	return (0);
 }
 
@@ -978,7 +978,7 @@ AimTertiary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	gun_3 = lfirept;
+	gun_3 = 1;//deny aiming on other weapons
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.000000>;
 	turn aimx1 to x-axis <0> - pitch speed <360.000000>;

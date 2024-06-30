@@ -38,7 +38,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weaponaa',
 			model_author = "Beherith",
-			normaltex = "unittextures/Arm_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 		},
@@ -142,7 +142,6 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
-					commanders = 5,
 					default = 18,
 					vtol = 18,
 				},

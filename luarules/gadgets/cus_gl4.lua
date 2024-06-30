@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		version = "0.5",
 		author	= "ivand, Beherith",
 		date 	= "20220310",
-		license = "Private while in testing mode",
+		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= true,
 	}
@@ -261,6 +261,7 @@ do --save a ton of locals
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
+	local OPTION_TREADS_LEG       = 8192
 
 	local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
@@ -275,6 +276,11 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
+		legunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_LEG + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
+		},
 		armscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
@@ -282,6 +288,11 @@ do --save a ton of locals
 		},
 		corscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.4,
+			brightnessFactor = 1.5,
+		},
+		legscavenger = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_TREADS_LEG + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
@@ -804,6 +815,11 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
+	["leg"] = {
+		"unittextures/leg_wreck_color.dds",
+		"unittextures/leg_wreck_shader.dds",
+		"unittextures/leg_wreck_normal.dds",
+	},
 	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
@@ -864,7 +880,11 @@ local function GetNormal(unitDef, featureDef)
 			if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then 
 				return unittextures.."cor_color_wreck_normal.dds"
 			end
-			-- try to search for an appropriate normal 
+
+			if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
+				return unittextures.."leg_wreck_normal.dds"
+			end
+			-- try to search for an appropriate normal
 			normalMap = tex1:gsub("%.","_normals.")
 			-- Spring.Echo(normalMap)
 			if (existingfilecache[normalMap] or FileExists(normalMap)) then
@@ -940,21 +960,23 @@ local function initBinsAndTextures()
 	Spring.Echo("[CUS GL4] Init Unit bins")
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then
-			objectDefToUniformBin[unitDefID] = "otherunit"
-			if unitDef.name:sub(1,3) == 'arm' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'cor' then
-				objectDefToUniformBin[unitDefID] = 'corunit'
-			elseif 	unitDef.name:sub(1,6) == 'leggat' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,7) == 'legrail' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,6) == 'legstr' then
-				objectDefToUniformBin[unitDefID] = 'armunit'
-			elseif 	unitDef.name:sub(1,3) == 'leg' then
-				objectDefToUniformBin[unitDefID] = 'corunit'
-			end
+			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
+			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
 			local normalTex = GetNormal(unitDef, nil)
+			local lowercasenormaltex = string.lower(normalTex or "")
+
+			-- bin units according to what faction's texture they use
+			local factionBinTag = lowercasetex1:sub(1,3)
+
+			objectDefToUniformBin[unitDefID] = "otherunit"
+			if factionBinTag == 'arm' then
+				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif factionBinTag == 'cor' then
+				objectDefToUniformBin[unitDefID] = 'corunit'
+			elseif factionBinTag == 'leg' then
+				objectDefToUniformBin[unitDefID] = 'legunit'
+			end
+
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1
 				[0] = string.format("%%%s:%i", unitDefID, 0),
@@ -971,32 +993,38 @@ local function initBinsAndTextures()
 				--[10] = envLUT,
 			}
 
-			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
-			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
-			local lowercasenormaltex = string.lower(normalTex or "")
-
-			
-			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds")  or false
+			local wreckTex1 =
+					(lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
+					(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds") or
+					(lowercasetex1:find("leg_color", nil, true) and "unittextures/leg_wreck_color.dds") or
+					false
 			if wreckTex1 and existingfilecache[wreckTex1] then -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
 				wreckTex1 = existingfilecache[wreckTex1]
 			end
-			local wreckTex2 = (lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
-								(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds")  or false
+			local wreckTex2 =
+					(lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
+					(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds") or
+					(lowercasetex2:find("leg_shader", nil, true) and "unittextures/leg_wreck_shader.dds") or
+					false
 			if wreckTex2 and existingfilecache[wreckTex2] then  -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
 				wreckTex2 = existingfilecache[wreckTex2]
 			end
-			local wreckNormalTex = (lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or false
+			local wreckNormalTex =
+					(lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
+					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or
+					(lowercasenormaltex:find("leg_normal") and "unittextures/leg_wreck_normal.dds") or
+					false
 
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
-				if unitDef.name:sub(1,3) == 'arm' then
+				if factionBinTag == 'arm' then
 					objectDefToUniformBin[unitDefID] = 'armscavenger'
-				elseif 	unitDef.name:sub(1,3) == 'cor' then
+				elseif factionBinTag == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
+				elseif factionBinTag == 'leg' then
+					objectDefToUniformBin[unitDefID] = 'legscavenger'
 				end
 			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
 				textureTable[5] = wreckAtlases['raptor'][1]
@@ -1040,6 +1068,9 @@ local function PreloadTextures()
 	--gl.Texture(0, "unittextures/cor_other_wreck.dds")
 	--gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
+	if Spring.GetModOptions().experimentallegionfaction then
+		gl.Texture(0, "unittextures/leg_wreck_normal.dds")
+	end
 	gl.Texture(0, false)
 	preloadedTextures = true
 end
@@ -1629,6 +1660,7 @@ local function ExecuteDrawPass(drawPass)
 	return batches, units, shaderswaps
 end
 
+
 local function initGL4()
 	if initiated then return end
 
@@ -1714,8 +1746,11 @@ local function tableEcho(data, name, indent, tableChecked)
 	Spring.Echo(indent .. "},")
 end
 
+local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
+
 local function ReloadCUSGL4(optName, line, words, playerID)
-	if initiated then return end
+	if initiated and (not words) then return end
+	manualReload = true
 	if playerID ~= Spring.GetMyPlayerID() then
 		return
 	end
@@ -2060,10 +2095,18 @@ function gadget:DrawWorldPreUnit()
 
 	if updateframe == 0 then
 		local t0 = Spring.GetTimerMicros()
-		-- local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
-		-- local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
-		local units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true)
-		local features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
+		
+		local units, drawFlagsUnits, features, drawFlagsFeatures
+		
+		if manualReload then 
+			manualReload = false
+			units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
+			features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+		else
+			units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true)
+			features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
+		end
+		
 		--if (Spring.GetGameFrame() % 31)  == 0 then
 		--	Spring.Echo("Updatenums", #units, #features, # drawFlagsUnits, #drawFlagsFeatures, numdestroyedUnits, numdestroyedFeatures)
 		--	Spring.Echo(printDrawPassStats())

@@ -148,9 +148,15 @@ return {
 				},
 				damage = {
 					default = 1,
-					mines = 1000,
+					mines = 1,
 				},
 			},
+			juno_pulse_ghost = {--juno rework needs this to avoid loops
+				damage = {
+					default = 1,
+					mines = 1,
+				},
+			}
 		},
 		weapons = {
 			[1] = {

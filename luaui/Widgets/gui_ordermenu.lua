@@ -53,6 +53,7 @@ local commandInfo = {
 	landatairbase	= { red = 0.4,	green = 0.7,	blue = 0.4 },
 	wantcloak		= { red = nil,	green = nil,	blue = nil },
 	onoff			= { red = nil,	green = nil,	blue = nil },
+	sellunit		= { red = nil,	green = nil,	blue = nil },
 }
 local isStateCommand = {}
 
@@ -67,8 +68,8 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local soundButton = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.66)
-local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local uiScale = Spring.GetConfigFloat("ui_scale", 1)
 
 local backgroundRect = {}
 local activeRect = {}

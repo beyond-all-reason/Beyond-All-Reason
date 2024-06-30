@@ -22,7 +22,7 @@ return {
 		idleautoheal = 2,
 		idletime = 1800,
 		losemitheight = 80,
-		health = 15000,
+		health = 12000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
@@ -113,9 +113,9 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidfriendly = true,
-				beamtime = 1,
+				beamtime = 0.1,
 				camerashake = 0.1,
-				corethickness = 0.4,
+				corethickness = 0.3,
 				craterareaofeffect = 120,
 				craterboost = 0,
 				cratermult = 0,
@@ -127,12 +127,12 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Cleansing Light",
+				name = "Heavy g2g Cleansing Heat Ray",
 				noselfdamage = true,
 				predictboost = 0.3,
 				proximitypriority = 1,
 				range = 1100,
-				reloadtime = 2.5,
+				reloadtime = 3,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "",
@@ -146,8 +146,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 4500,
+					default = 155,
 				},
+				
+				customparams = {
+					sweepfire=4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}			
 			},
 		},
 		weapons = {

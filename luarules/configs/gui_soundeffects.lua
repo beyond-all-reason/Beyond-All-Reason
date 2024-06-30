@@ -2330,7 +2330,12 @@ GUIUnitSoundEffects = {
 	},
 
 	-- LEGION COMMANDER
-	legcom = {
+
+	legdecom = {
+		BaseSoundSelectType = "cor-com-sel",
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundWeaponType = "fastemg-small",
+	},	legcom = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "fastemg-small",
@@ -2385,6 +2390,20 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-windgen",
 	},
+	legfmkr = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+	},
+
+	legtide = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrghum",
+	},
+
 	legmex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
@@ -2399,7 +2418,12 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mexon",
         BaseSoundDeactivate = "mexoff",
 	},
-	legdefcarryt1 = {
+	leghive = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},
+	legfdefcarryt1 = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
@@ -2409,6 +2433,19 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
+
+	legtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	legptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
 
 	-- LEGION T2 BUILDINGS
 
@@ -2450,6 +2487,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lab-t2",
+	},
+	legamsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
 	},
 	legvp = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2598,7 +2640,7 @@ GUIUnitSoundEffects = {
 	},
 	leghades = {
 		BaseSoundSelectType = "arm-veh-small-sel",
-		BaseSoundMovementType = "arm-veh-small-ok",
+		BaseSoundMovementType = "cor-veh-tiny-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legbar = {
@@ -2615,6 +2657,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
 		BaseSoundMovementType = "cor-tnk-small-ok",
 		BaseSoundWeaponType = "fastemg-medium",
+	},
+	legmlv = {
+		BaseSoundSelectType = "cor-veh-tiny-sel",
+		BaseSoundMovementType = "cor-veh-tiny-ok",
+		BaseSoundWeaponType = "mine-small",
 	},
 	-- LEGION T2 VEHICLES
 	legacv = {
@@ -2813,10 +2860,14 @@ GUIUnitSoundEffects = {
 	scavtacnukespawner = {},
 	lootdroppod_gold = {},
 	lootdroppod_printer = {},
-	scavengerdroppod = {},
+	scavbeacon_t1 = {},
+	scavbeacon_t2 = {},
+	scavbeacon_t3 = {},
+	scavbeacon_t4 = {},
 	scavengerdroppodfriendly = {},
-	scavempspawner = {},
-	scavtacnukespawner = {},
+	scavmist = {},
+	scavmistxl = {},
+	scavmistxxl = {},
 
 
 	lootboxbronze		= LootboxSoundEffects,

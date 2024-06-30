@@ -35,8 +35,8 @@ return {
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "coraircraft",
 			drone = 1,
 			nohealthbars = 1,

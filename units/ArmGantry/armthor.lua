@@ -217,10 +217,13 @@ return {
 				cratermult = 0,
 				duration = 0.01,
 				edgeeffectiveness = 0.15,
+				energypershot=15,
 				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
+				fireTolerance = 1820,
+				tolerance = 1820,
 				laserflaresize = 8.8,
 				name = "Long Range EMP laser",
 				noselfdamage = true,
@@ -247,6 +250,7 @@ return {
 			[1] = {
 				def = "thunder",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
 			},
 			[2] = {
 				def = "EMPMISSILE",

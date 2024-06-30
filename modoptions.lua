@@ -7,6 +7,7 @@
 --  key:      the string used in the script.txt
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
+--  hint:     greyed out text that appears in input field when empty
 --  type:     the option type ('list','string','number','bool')
 --  def:      the default value
 --  min:      minimum value for number options
@@ -83,6 +84,15 @@ local options = {
             { key= "none", 		name= "Disallow All", 		desc= "No enemy units can be napped" },
         }
     },
+
+	{
+		key 	= "no_comtrans",
+		name 	= "T1 transports cant load commanders",
+		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
 
     {
         key    	= "allowuserwidgets",
@@ -408,19 +418,6 @@ local options = {
     },
 
     {
-        key		= "multiplier_maxdamage",
-        name	= "Health Multiplier",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        hidden	= true,
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-    },
-
-    {
         key		= "multiplier_maxvelocity",
         name	= "Unit Max Velocity Multiplier",
         desc	= "(Range 0.1 - 10).",
@@ -466,45 +463,6 @@ local options = {
         min		= 0.1,
         max		= 10,
         step	= 0.1,
-    },
-
-    {
-        key		= "multiplier_metalcost",
-        name	= "Unit Cost Multiplier - Metal",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
-    },
-
-    {
-        key		= "multiplier_energycost",
-        name	= "Unit Cost Multiplier - Energy",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
-    },
-
-    {
-        key		= "multiplier_buildtimecost",
-        name	= "Unit Cost Multiplier - Time",
-        desc	= "(Range 0.1 - 10).",
-        type	= "number",
-        section = "options_unit_modifiers",
-        def		= 1,
-        min		= 0.1,
-        max		= 10,
-        step	= 0.1,
-        hidden 	= true,
     },
 
     {
@@ -571,6 +529,7 @@ local options = {
         key		= "tweakunits",
         name	= "Tweak Units",
         desc	= "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -580,6 +539,7 @@ local options = {
         key     = "tweakdefs",
         name    = "Tweak Defs",
         desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+        hint    = "Input must be base64",
         section = "options_unit_modifiers",
         type    = "string",
         def     = "",
@@ -641,11 +601,11 @@ local options = {
     {
         key		= "raptor_queentimemult",
         name	= "Queen Hatching Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Queen Hatch goes from 0 to 100%",
+        desc	= "(Range: 0.1 - 2). How quickly Queen Hatch goes from 0 to 100%",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 3,
+        max		= 2,
         step	= 0.1,
         section = "raptor_defense_options",
     },
@@ -670,18 +630,18 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 10,
-        step	= 0.1,
+        step	= 1,
         section	= "raptor_defense_options",
     },
 
     {
         key		= "raptor_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        name	= "Waves Amount Multiplier",
+        desc	= "(Range: 1 - 5). How often new waves will spawn. Bigger Number = More Waves",
         type	= "number",
         def		= 1,
-        min		= 0.1,
-        max		= 3,
+        min		= 1,
+        max		= 5,
         step	= 0.1,
         section	= "raptor_defense_options",
     },
@@ -689,11 +649,11 @@ local options = {
     {
         key		= "raptor_graceperiodmult",
         name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 5). Time before Raptors become active. ",
+        desc	= "(Range: 0.1 - 3). Time before Raptors become active. ",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 5,
+        max		= 3,
         step	= 0.1,
         section	= "raptor_defense_options",
     },
@@ -734,7 +694,7 @@ local options = {
         name	= "Spawner Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "initialbox",
+        def		= "avoid",
         section	= "scav_defense_options",
         items	= {
             { key = "avoid", 		name = "Avoid Players", 	desc="Burrows avoid player units" },
@@ -755,11 +715,11 @@ local options = {
     {
         key		= "scav_bosstimemult",
         name	= "Boss Preparation Time Multiplier",
-        desc	= "(Range: 0.1 - 3). How quickly Boss Anger goes from 0 to 100%.",
+        desc	= "(Range: 0.1 - 2). How quickly Boss Anger goes from 0 to 100%.",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 3,
+        max		= 2,
         step	= 0.1,
         section	= "scav_defense_options",
     },
@@ -778,24 +738,12 @@ local options = {
 
     {
         key		= "scav_spawntimemult",
-        name	= "Time Between Waves Multiplier",
-        desc	= "(Range: 0.1 - 3). How often new waves will spawn.",
+        name	= "Waves Amount Multiplier",
+        desc	= "(Range: 1 - 5). How often new waves will spawn. Bigger Number = More Waves",
         type	= "number",
         def		= 1,
-        min		= 0.1,
-        max		= 3,
-        step	= 0.1,
-        section	= "scav_defense_options",
-    },
-
-    {
-        key		= "scav_graceperiodmult",
-        name	= "Grace Period Time Multiplier",
-        desc	= "(Range: 0.1 - 3). Time before Scavs become active.",
-        type	= "number",
-        def		= 1,
-        min		= 0.1,
-        max		= 3,
+        min		= 1,
+        max		= 5,
         step	= 0.1,
         section	= "scav_defense_options",
     },
@@ -843,6 +791,31 @@ local options = {
 	--	def		= false,
 	--	section	= "options_extra",
 	--},
+
+    {
+        key     = "draft_mode",
+        name    = "Draft Spawn Order mod",
+        desc    = "Random/Captain/Skill/Fair based startPosType mods. Default: Random.",
+        type    = "list",
+        section = "options_extra",
+        def     = "random",
+        items 	= {
+            { key = "disabled", name = "Disabled",                      desc = "Disable draft mod. Fast-PC place first." },
+            { key = "random",   name = "Random Order",                  desc = "Players get to pick a start position with a delay in a random order." },
+            { key = "captain",  name = "Captains First",                desc = "Captain picks first, then everyone else in a random order." },
+            { key = "skill",    name = "Skill Order",                   desc = "Skill-based order, instead of random." },
+            { key = "fair",     name = "After full team has loaded",    desc = "Everyone must join the game first - after that (+2sec delay) everyone can place." }
+        },
+    },
+
+    {
+        key 	= "unit_market",
+        name 	= "Unit Market",
+        desc 	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
+        type   	= "bool",
+        def    	= false,
+        section = "options_extra",
+    },
 
     {
         key 	= "map_waterlevel",
@@ -931,7 +904,7 @@ local options = {
         key    	= "ruins_only_t1",
         name   	= "Ruins: Only T1",
         type   	= "bool",
-        def    	= true,
+        def    	= false,
         hidden 	= true,
         section	= "options_extra",
     },
@@ -1150,6 +1123,15 @@ local options = {
     },
 
     {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key 	= "air_rework",
         name 	= "Air Rework",
         desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
@@ -1161,7 +1143,16 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Whistler and Lasher reworked to switch between longer range tracking aa missiles and non-tracking ground missiles.  The AA missiles have 650 range and a faster projectile.  The ground missiles move slower than before and have +20% dps to make up for the removed tracking.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "energy_share_rework",
+        name 	= "Energy Share Rework",
+        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
@@ -1217,27 +1208,62 @@ local options = {
         section = "options_experimental",
         hidden 	= true,
     },
-    
+
     {
-        key 	= "unbacom",
-        name 	= "Unbalanced Commanders",
+        key 	= "evocom",
+        name 	= "Evolving Commanders",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
     },
 
     {
-        key    	= "unbacomleveluprate",
-        name   	= "Unbalanced Commanders Levelup Rate",
-        desc   	= "(Range 0.1 - 20 Minutes). Rate at which commanders will levelup and gain new (unbalanced) buffs, weapons and abilities.",
+        key 	= "evocomlevelupmethod",
+        name 	= "Evolving Commanders: Method",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "dynamic", 	name = "Dynamic" },
+            { key = "timed", name = "Timed" },
+        }
+    },
+
+    {
+        key    	= "evocomleveluprate",
+        name   	= "Evolving Commanders: Time",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
         min    	= 0.1,
-        max    	= 15,
+        max    	= 20,
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomxpmultiplier",
+        name   	= "Evolving Commanders: Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 10,
+        step   	= 0.1,
+    },
+
+    {
+        key    	= "evocomlevelcap",
+        name   	= "Evolving Commanders: Max Level",
+        desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 10,
+        min    	= 2,
+        max    	= 10,
+        step   	= 1,
+    },
 
     {
 		key		= "forceallunits",
@@ -1335,6 +1361,14 @@ local options = {
         section = "dev",
         type    = "string",
         def     = "",
+    },
+    {
+        key     = "animationcleanup",
+        name    = "Animation Cleanup",
+        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "bool",
+        def     =  false,
     },
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
