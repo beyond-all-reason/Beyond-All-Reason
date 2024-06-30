@@ -87,6 +87,35 @@ local test = '[area_timed_damage] [test] '
 ---------------------------------------------------------------------------------------------------------------
 ---- Initialization
 
+-- Setup for the update loop.
+
+frameResolution = math.clamp(math.round(frameResolution), 1, gameSpeed)
+loopDuration    = math.clamp(loopDuration, 0.2, 1)
+
+-- The discrete loop length can differ from the target update time, which we adjust against.
+-- e.g. for a 1s period at 30fps with res=29, we end up looping a single group over 0.9667s.
+local loopFrameCount = frameResolution * math.round(gameSpeed * loopDuration / frameResolution)
+loopDuration = loopFrameCount * (1 / gameSpeed) -- note: may be outside the clamp range.
+
+local groupCount = loopFrameCount / frameResolution
+local groupDuration = groupCount * (1 / gameSpeed)
+
+-- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
+-- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
+local shortDuration = 3 -- in seconds
+shortDuration = math.round(shortDuration / groupDuration) -- in frame groups
+
+-- Maintain a contiguous array of ongoing areas.
+local timedAreas = {}
+for ii = 1, groupCount do
+	timedAreas[ii] = {}
+end
+
+-- Timekeeping uses cycling counts.
+local ticks = 1 -- int within [1, frameResolution]
+local frame = 1 -- int within [1, groupCount]
+local time  = 1 -- int cumulative group frames
+
 -- Pull all the area params into tables.
 
 local weaponTriggerParams = {}
@@ -164,35 +193,6 @@ if shieldSuppression then
 		end
 	end
 end
-
--- Setup for the update loop.
-
-frameResolution = math.clamp(math.round(frameResolution), 1, gameSpeed)
-loopDuration    = math.clamp(loopDuration, 0.2, 1)
-
--- The discrete loop length can differ from the target update time, which we adjust against.
--- e.g. for a 1s period at 30fps with res=29, we end up looping a single group over 0.9667s.
-local loopFrameCount = frameResolution * math.round(gameSpeed * loopDuration / frameResolution)
-loopDuration = loopFrameCount * (1 / gameSpeed) -- note: may be outside the clamp range.
-
-local groupCount = loopFrameCount / frameResolution
-local groupDuration = groupCount * (1 / gameSpeed)
-
--- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
--- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
-local shortDuration = 3 -- in seconds
-
--- Maintain a contiguous array of ongoing areas.
-local timedAreas = {}
-
-for ii = 1, groupCount do
-	timedAreas[ii] = {}
-end
-
--- Timekeeping uses cycling counts.
-local ticks = 1 -- int within [1, frameResolution]
-local frame = 1 -- int within [1, groupCount]
-local time  = 0 -- start of frame in seconds -- todo: => int cumulative group frames
 
 -- We also keep a queue of delayed areas.
 -- This also must be a contiguous array.
