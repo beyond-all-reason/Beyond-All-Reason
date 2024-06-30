@@ -7,7 +7,7 @@
 piece  flare1, flare2, pelvis, aimy1, torso, aimx1, sleeve, nano, armor, cable, tank, decortilt, tankdecor, cagelight, cagelight_emit,
 	   blhinge, blleg, blfoot, brhinge, brleg, brfoot, flhinge, flleg, flfoot, frhinge, frleg, frfoot;
 
-static-var  notBuilding, isMoving, readyToBuild, animSpeed, maxSpeed, animFramesPerKeyframe, nanoNozzle;
+static-var  isMoving, readyToBuild, animSpeed, maxSpeed, animFramesPerKeyframe, nanoNozzle;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For C:\Users\logst\Downloads\BAR\legck anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
@@ -316,22 +316,25 @@ StopWalking() {
 	
 	turn blfoot to x-axis <0> speed <4381.322856> / animSpeed;
 	turn blhinge to x-axis <0> speed <854.961139> / animSpeed;
-	turn blhinge to y-axis <0> speed <1767.156744> / animSpeed;
+	//turn blhinge to y-axis <0> speed <1767.156744> / animSpeed;
 	turn blhinge to z-axis <0> speed <1761.693617> / animSpeed;
 	turn blleg to x-axis <0> speed <4057.364081> / animSpeed;
+	
 	turn brfoot to x-axis <0> speed <7310.155954> / animSpeed;
 	turn brhinge to x-axis <0> speed <1815.956226> / animSpeed;
-	turn brhinge to y-axis <0> speed <1177.668388> / animSpeed;
+	//turn brhinge to y-axis <0> speed <1177.668388> / animSpeed;
 	turn brhinge to z-axis <0> speed <1422.509411> / animSpeed;
 	turn brleg to x-axis <0> speed <5287.650198> / animSpeed;
+	
 	turn flfoot to x-axis <0> speed <1464.108636> / animSpeed;
 	turn flhinge to x-axis <0> speed <857.491233> / animSpeed;
-	turn flhinge to y-axis <0> speed <303.118502> / animSpeed;
+	//turn flhinge to y-axis <0> speed <303.118502> / animSpeed;
 	turn flhinge to z-axis <0> speed <187.504616> / animSpeed;
 	turn flleg to x-axis <0> speed <517.690325> / animSpeed;
+	
 	turn frfoot to x-axis <0> speed <1464.082521> / animSpeed;
 	turn frhinge to x-axis <0> speed <857.434414> / animSpeed;
-	turn frhinge to y-axis <0> speed <303.083241> / animSpeed;
+	//turn frhinge to y-axis <0> speed <303.083241> / animSpeed;
 	turn frhinge to z-axis <0> speed <187.464446> / animSpeed;
 	turn frleg to x-axis <0> speed <517.626463> / animSpeed;
 }
@@ -430,6 +433,7 @@ StopBuilding()
 {
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
+	
 	hide cagelight_emit;
 	turn cagelight_emit to z-axis <0> speed <1000>;
 	move nano to z-axis [0] speed [5];
@@ -443,12 +447,11 @@ StopBuilding()
 	
 	turn aimy1 to y-axis <0.0> speed <90>;
 	turn aimx1 to x-axis <0.0> speed <45>;
-	wait-for-turn aimy1 around y-axis;
 }
 
 QueryNanoPiece(pieceIndex)
 {
-	pieceIndex = nanoNozzle;
+	pieceIndex = nanoNozzle + flare1;
 	nanoNozzle = !nanoNozzle;
 }
 

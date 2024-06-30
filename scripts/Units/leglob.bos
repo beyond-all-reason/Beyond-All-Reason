@@ -6,7 +6,7 @@
 
 piece pelvis, aimy1, torso, aimx1, sleeve, barrel, flare, armor, flap, lthigh, lleg, lfoot, rthigh, rleg, rfoot;
 
-static-var  isMoving, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -18,8 +18,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIGNAL_MOVE 1
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-Walk() {// For C:\Users\logst\Downloads\BAR\LegionLobber.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
-	set-signal-mask SIGNAL_MOVE;
+Walk() {
 	while(isMoving) {
 		if (isMoving) { //Frame:5
 			turn lfoot to x-axis <31.054165> speed <1326.618251> / animSpeed; 
@@ -162,19 +161,21 @@ Create()
 	hide aimy1;
 	animSpeed = 3;
 	isMoving = FALSE;
-	isAiming = 0;
 	animSpeed = 4;
 }
 
 StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	
+	isMoving = TRUE;
+	
 	turn lthigh to y-axis <0> speed <600> / animSpeed;
 	turn rthigh to y-axis <0> speed <600> / animSpeed;
 	turn lleg to y-axis <0> speed <600> / animSpeed;
 	turn rleg to y-axis <0> speed <600> / animSpeed;
 	
-	isMoving = TRUE;
-	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Walk();
 	start-script UnitSpeed();
@@ -209,10 +210,8 @@ ExecuteRestoreAfterDelay()
 	
 	move flap to y-axis [0.0] speed [1];
 	move flap to z-axis [0.0] speed [6];
-	
-    isAiming = 0;
-
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -220,6 +219,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 
@@ -227,7 +227,6 @@ RestoreAfterDelay()
     sleep 2750;
 	start-script ExecuteRestoreAfterDelay();
 }
-
 
 AimWeapon1(heading, pitch)
 {
@@ -254,8 +253,6 @@ AimWeapon1(heading, pitch)
 	start-script RestoreAfterDelay();
 	return (1);
 }
-
-
 
 FireWeapon1()
 {
