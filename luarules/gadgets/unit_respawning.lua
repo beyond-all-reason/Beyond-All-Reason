@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, param in pairs(respawnMetaList) do
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local name = UnitDefs[unitDefID].name
-			Spring.Echo(name, " respawnMetaList[unitID].effigyID = ", respawnMetaList[unitID].effigyID)
+			--Spring.Echo(name, " respawnMetaList[unitID].effigyID = ", respawnMetaList[unitID].effigyID)
 			end
 		end
 	end
@@ -226,16 +226,19 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
-				if respawnMetaList[unitID].effigyID then
-					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")		
-					if newID then--and respawnMetaList[unitID].effigyID then
+				local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+                if newID then
+					if not respawnMetaList[unitID].effigyID then
+                    	spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+					end
+					if respawnMetaList[unitID].effigyID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
 							if ex then
 								Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
-							 else
-								 spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
-							 end
+								else
+									spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+								end
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
