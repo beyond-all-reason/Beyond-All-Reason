@@ -142,7 +142,6 @@ return {
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 			respawn_announcement = "A Commander Effigy was sacrificed.",
-			respawn_announcement_size = 18.5,
 			effigy = "comeffigylvl4",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
