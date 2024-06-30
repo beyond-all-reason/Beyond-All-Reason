@@ -116,16 +116,13 @@ return {
 				customparams = {
 					area_duration = 10,
 					area_ongoingCEG = "fire-area-150",
-					area_damagedCEG = "burnflamexl",
+					area_damagedCEG = "burnflamexm",
 					area_damageType = "napalm",
-					-- Test omitted area weapon name that matches fallback value:
-					-- area_weaponName = "legnap_napalmbombs_area_timed_damage",
 				},
 			},
 			napalmbombs_area_timed_damage = {
 				areaofeffect = 150 * 2,
-				explosiongenerator = "burnold", -- replace me
-				customparams = { lups_noshockwave = true },
+				explosiongenerator = "custom:burnrepeater", -- replace me
 				damage = {
 					default = 30,
 					subs    = 30 / 10,

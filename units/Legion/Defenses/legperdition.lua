@@ -176,14 +176,13 @@ return {
 				customparams = {
 					area_duration = 15,
 					area_ongoingCEG = "fire-area-150",
-					area_damagedCEG = "burnflamexl",
+					area_damagedCEG = "burnflamexm",
 					area_damageType = "napalm",
 				},
 			},
 			napalmmissile_area_timed_damage = {
 				areaofeffect = 150 * 2,
-				explosiongenerator = "burnold", -- replace me
-				customparams = { lups_noshockwave = true },
+				explosiongenerator = "custom:burnrepeater", -- replace me
 				damage = {
 					default = 175,
 					subs    = 175 / 10,

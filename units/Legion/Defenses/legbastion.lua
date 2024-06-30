@@ -151,16 +151,15 @@ return {
 				customparams = {
 					area_duration = 2,
 					area_ongoingCEG = "fire-incinerator",
-					area_damagedCEG = "burnflamexl",
+					area_damagedCEG = "burnflamexm",
 					area_damageType = "napalm",
 				},
 			},
 			pineappleofdoom_area_timed_damage = {
 				areaofeffect = 50 * 2,
-				explosiongenerator = "burnflamexm", -- replace me
-				customparams = { lups_noshockwave = true },
+				explosiongenerator = "custom:burnbrief", -- replace me
 				damage = {
-					default = 0 -- in fact, a minimum of 1
+					default = 2
 				},
 			},
 		},

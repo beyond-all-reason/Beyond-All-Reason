@@ -769,7 +769,9 @@ local weaponConfig = {}
 for weaponDefID=1, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
-	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
+	if  (not nodecal)
+	and (not string.find(weaponDef.cegTag, 'aa'))
+	and (not string.find(weaponDef.name, '_area_timed_')) then
 		local radius = weaponDef.damageAreaOfEffect * 1.4
 
 		local damage = 100
@@ -875,6 +877,9 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.8
 
 		elseif weaponDef.type == 'BeamLaser' then
+			alpha = 0.1
+			alphadecay = 0.00005
+			radius = radius * 0.8
 
 		elseif weaponDef.type == 'LaserCannon' then
 

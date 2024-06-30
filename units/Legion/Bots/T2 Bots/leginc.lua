@@ -145,18 +145,17 @@ return {
 					vtol = 11,
 				},
 				customparams = {
-					area_duration = 1,
+					area_duration = 1.5,
 					area_ongoingCEG = "burnflamexl",
-					area_damagedCEG = "burnflamexm",
+					area_damagedCEG = "burnblack",
 					area_damageType = "napalm",
 				},
 			},
 			heatraylarge_area_timed_damage = {
 				areaofeffect = 37 * 2,
-				explosiongenerator = "burnflamexm", -- replace me
-				customparams = { lups_noshockwave = true },
+				explosiongenerator = "custom:burnbrief", -- replace me
 				damage = {
-					default = 0 -- in fact, a minimum of 1
+					default = 2
 				},
 			},
 		},

@@ -621,6 +621,73 @@ return {
     },
   },
 
+  ["burnrepeater"] = {
+    usedefaultexplosions = false,
+    flameground = {
+      air                = false,
+      class              = [[CExpGenSpawner]],
+      count              = 4,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[0 r3]],
+        explosiongenerator = [[custom:fire-flames-small]],
+        pos                = [[-60 r120, 0 r5, -60 r120]],
+        --alwaysvisible      = true,
+      },
+    },
+    smokehigh = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.6,
+        colormap           = [[0 0 0 0.001  0.01 0.01 0.01 0.04   0.01 0.01 0.01 0.003   0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 45,
+        emitrotspread      = 30,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 2, 0]],
+        numparticles       = [[0.1 r1.7]],
+        particlelife       = 60,
+        particlelifespread = 100,
+        particlesize       = 120,
+        particlesizespread = 80,
+        particlespeed      = 20,
+        particlespeedspread = 4,
+        rotParams          = [[-2 r4, -1 r2, -180 r40]],
+        pos                = [[-100 r200, 50i r100, -100 r200]],
+        sizegrowth         = [[0.4 r0.4]],
+        sizemod            = 1,
+        texture            = [[fogdirty]],
+        alwaysvisible      = true,
+        castShadow         = false,
+        drawOrder          = -9999,
+      },
+    },
+  },
+  ["burnbrief"] = {
+    usedefaultexplosions = false,
+    flameground = {
+      air                = false,
+      class              = [[CExpGenSpawner]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[0 r3]],
+        explosiongenerator = [[custom:fire-flames-brief]],
+        pos                = [[-60 r120, 0 r5, -60 r120]],
+      },
+    }
+  },
+
   ["burngreen"] = {
     groundflash = {
       circlealpha        = 0.1,

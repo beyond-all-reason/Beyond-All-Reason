@@ -116,7 +116,6 @@ return {
 			acidspit_area_timed_damage = {
 				areaofeffect = 75 * 2,
 				explosiongenerator = "acid-damage", -- replace me
-				customparams = { lups_noshockwave = true },
 				damage = {
 					default = 30,
 					subs    = 30 / 10,
