@@ -127,7 +127,6 @@ return {
 			evolution_power_threshold = 350000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
-			respawn_announcement = "A Commander Effigy was sacrificed.",
 			effigy = "comeffigylvl3",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,

@@ -85,8 +85,6 @@ if gadgetHandler:IsSyncedCode() then
 		
 		
 		--	-- Optional:
-		-- respawn_announcement = "Unit Respawned",  	--Announcement printed when the unit is respawned.
-		-- respawn_announcement_size = 18.5, 			--Size of the onscreen announcement
 		-- effigy = "unit_name",						--Set this to spawn the effigy unit when the main unit is created.
 		-- minimum_respawn_stun = 5,					--respawn stun duration, roughly in seconds. 
 		-- distance_stun_multiplier = 1,				--respawn stun duration based on distance from respawn location when dying. (distance * distance_stun_multiplier) 
@@ -128,18 +126,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local stunDuration = maxHealth + (100*respawnMetaList[unitID].minimum_respawn_stun) + (diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)
 			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration, build = 0})
-
-
-			local announcement = nil
-			local announcementSize = nil
-			if respawnMetaList[unitID] and respawnMetaList[unitID].respawn_announcement then
-				spEcho(respawnMetaList[unitID].respawn_announcement)
-				announcement = respawnMetaList[unitID].respawn_announcement
-				announcementSize = respawnMetaList[unitID].respawn_announcement_size or 18.5
-			end
-
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-			SendToUnsynced("unit_respawned", announcement, announcementSize)
 		end
     end
 
@@ -157,8 +144,6 @@ if gadgetHandler:IsSyncedCode() then
 				respawn_health_threshold = tonumber(udcp.respawn_health_threshold) or 0,
 				effigy = udcp.effigy or "none",
 				effigy_offset = tonumber(udcp.effigy_offset) or 0,
-				respawn_announcement = udcp.respawn_announcement,
-				respawn_announcement_size = tonumber(udcp.respawn_announcement_size),
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,

@@ -128,7 +128,6 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			maxrange = "500",
-			respawn_announcement = "A Commander Effigy was sacrificed.",
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,

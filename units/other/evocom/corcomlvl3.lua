@@ -126,7 +126,6 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 6250,
 			shield_radius = 100,
-			respawn_announcement = "A Commander Effigy was sacrificed.",
 			effigy = "comeffigylvl2",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
