@@ -135,7 +135,7 @@ do
 
 		-- Add two new entries, one for the area trigger and one for the area weapon.
 		paramsTable[defID] = {
-			area_duration    = tonumber(def.customParams.area_duration or 0),
+			area_duration    = math.round(tonumber(def.customParams.area_duration or 0) / groupDuration),
 			area_weapondefid = areaWeaponDef.id,
 			area_weaponname  = areaWeaponDef.name,
 			area_damages     = areaWeaponDef.damages,
@@ -149,7 +149,7 @@ do
 	end
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		if weaponDef.customParams and tonumber(weaponDef.customParams.area_duration) then
+		if next(weaponDef.customParams) and tonumber(weaponDef.customParams.area_duration) then
 			AddTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
 		end
 	end
@@ -233,8 +233,8 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 			)
 		end
 	-- Create an area on surface -- eventually.
-	elseif shortDuration < weaponParams.area_duration -- Brief effects cannot be delayed.
-	   and y <= lowCeiling + gravity / 8              -- Up to half a second spent in free-fall.
+	elseif shortDuration <= weaponParams.area_duration -- Brief effects cannot be delayed.
+	   and y <= lowCeiling + gravity / (2 * 3 * 3)     -- Up to a third of a second spent in free-fall.
 	then
 		local timeToLand = sqrt((y - elevation) * 2 / gravity)
 		local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
@@ -314,9 +314,9 @@ function gadget:Initialize()
 
 	-- Start/restart timekeeping.
 
-	ticks = 1 + (Spring.GetGameFrame() % frameResolution)
+	time  = 1 + (math.floor(Spring.GetGameFrame() / frameResolution))
 	frame = 1 + (time % groupCount)
-	time  = spGetGameSeconds() + groupDuration * 0.5
+	ticks = 1 + (Spring.GetGameFrame() % frameResolution)
 
 	-- Build/rebuild info tables.
 
@@ -374,7 +374,7 @@ function gadget:GameFrame(gameFrame)
 	if ticks > frameResolution then
 		ticks = 1
 		frame = frame == groupCount and 1 or frame + 1
-		time  = spGetGameSeconds() + groupDuration * 0.5 -- todo: => int cumulative group frames
+		time  = time + 1
 		updateTimedAreas()
 	end
 
@@ -449,7 +449,7 @@ do
 		local areaDef = WeaponDefs[paramsTable[defID].area_weapondefid]
 
 		-- Check for durations that we do not support properly.
-		local duration = params.area_duration
+		local duration = params.area_duration * groupDuration
 		if duration < loopDuration then
 			testmsg('Duration shorter than loop duration', areaDef.name)
 		end
@@ -485,7 +485,7 @@ do
 
 		---- Remove misconfigured area weapons.
 		local misconfigured = false
-		if tonumber(def.customParams.area_duration) <= 1 / gameSpeed then
+		if tonumber(def.customParams.area_duration * groupDuration) <= 1 / gameSpeed then
 			warnmsg('Invalid area_duration', def.name)
 			misconfigured = true
 		end
