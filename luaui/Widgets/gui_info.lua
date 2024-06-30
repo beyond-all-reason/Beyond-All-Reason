@@ -281,6 +281,22 @@ local function refreshUnitInfo()
 		end
 
 
+		local function calculateAreaWeaponDPS(def, damage)
+			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
+			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
+
+			local areaWeapon = def.customParams.area_weaponname or def.name.."_area_timed_damage"
+			local areaRepeat = tonumber(def.customParams.area_duration)
+			local areaDamage = WeaponDefNames[areaWeapon] or WeaponDefNames[unitDef.name.."_area_timed_damage"]
+			areaDamage = areaDamage and areaDamage.damages[0] or 0
+
+			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * damage)
+			local areaDps = math_floor((def.salvoSize * def.projectiles) / def.reload * areaRepeat * areaDamage)
+			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps + areaDamage / def.reload
+			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + areaDps
+		end
+
+
 		local function setEnergyAndMetalCosts(def)
 			if def.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or def.energyCost > unitDefInfo[unitDefID].energyPerShot) then
 				unitDefInfo[unitDefID].energyPerShot = def.energyCost
@@ -367,7 +383,7 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif weaponDef.customParams then
+				elseif next(weaponDef.customParams) then
 					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
 						unitExempt = true
 						calculateClusterDPS(weaponDef, weaponDef.damages[0])
@@ -376,18 +392,22 @@ local function refreshUnitInfo()
 						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
-					end
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
 						unitExempt = true
 						local forkd = weaponDef.customParams.spark_forkdamage
 						local forkn = weaponDef.customParams.spark_maxunits or 1
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-						unitDefInfo[unitDefID].mindps = nil
-						unitDefInfo[unitDefID].maxdps = nil
+					elseif weaponDef.customParams.area_duration then -- Areas of effect with a duration
+						unitExempt = true
+						calculateAreaWeaponDPS(weaponDef, weaponDef.damages[0])
 					end
+				end
+
+				if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+					unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+					unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+					unitDefInfo[unitDefID].mindps = nil
+					unitDefInfo[unitDefID].maxdps = nil
 				end
 
 				if unitDefInfo[unitDefID].mainWeapon == i then
