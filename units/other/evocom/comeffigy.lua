@@ -84,7 +84,7 @@ for lvl, stats in pairs(lvlParams) do
 		turnrate = 0,
 		upright = true,
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = 'util',
 			iseffigy = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
