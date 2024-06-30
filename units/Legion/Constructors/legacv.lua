@@ -51,7 +51,7 @@ return {
 			[6] = "cormexp",
 			[7] = "cormmkr",
 			[8] = "coruwadves",
-			[9] = "coruwadvms",
+			[9] = "legamstor",
 			[10] = "corarad",
 			[11] = "corshroud",
 			[12] = "legforti",

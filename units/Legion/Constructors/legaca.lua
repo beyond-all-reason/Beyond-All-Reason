@@ -46,7 +46,7 @@ return {
 			"cormexp",
 			"cormmkr",
 			"coruwadves",
-			"coruwadvms",
+			"legamstor",
 			"corarad",
 			"corshroud",
 			"legforti",
