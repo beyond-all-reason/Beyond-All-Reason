@@ -595,7 +595,7 @@ Create()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = aimy1;
+	pieceIndex = flare;
 }
 
 QueryWeapon1(pieceIndex)
@@ -620,7 +620,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	
 	turn aimy1 to y-axis heading speed <30>;
-	turn aimx1 to x-axis 0 - pitch speed <15>;
+	turn aimx1 to x-axis -1*pitch speed <15>;
 	
 	if (get ABS(oldhead - heading) > 500)
 	{

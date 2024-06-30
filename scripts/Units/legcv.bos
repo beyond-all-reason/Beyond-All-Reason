@@ -82,6 +82,7 @@ Create()
 	oldheading = get HEADING;
 	start-script Steering();
 	SLEEP_UNTIL_UNITFINISHED;
+	set INBUILDSTANCE to FALSE;
 }
 
 StartBuilding(heading, pitch)
@@ -112,10 +113,12 @@ StartBuilding(heading, pitch)
 	turn upturret to y-axis heading speed <160>;
 	wait-for-turn upturret around y-axis;
 
-	set INBUILDSTANCE to FALSE;
+	set INBUILDSTANCE to TRUE;
 
 	show cagelight_emit;
 	spin cagelight_emit around y-axis speed <250>;
+	
+	readyToBuild = 1;
 }
 
 StopBuilding()
@@ -127,7 +130,7 @@ StopBuilding()
 	turn cagelight to y-axis <0> speed <1000>;
 
 	sleep 6000;
-	set INBUILDSTANCE to TRUE;
+	set INBUILDSTANCE to FALSE;
 	
 	hide cagelight_emit;
 	turn cagelight_emit to y-axis <0> now;
