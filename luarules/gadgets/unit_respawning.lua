@@ -106,16 +106,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:GameFrame(frame)
-		if frame % 30 then
-			for unitID, param in pairs(respawnMetaList) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			local name = UnitDefs[unitDefID].name
-			--Spring.Echo(name, " respawnMetaList[unitID].effigyID = ", respawnMetaList[unitID].effigyID)
-			end
-		end
-	end
-
     function ReturnToBase(unitID)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
 		local team = spGetUnitTeam(unitID)
