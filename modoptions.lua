@@ -85,6 +85,15 @@ local options = {
         }
     },
 
+	{
+		key 	= "no_comtrans",
+		name 	= "T1 transports cant load commanders",
+		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow custom widgets",
@@ -1264,15 +1273,6 @@ local options = {
 		type	= "bool",
 		def		= false,
 	},
-
-    {
-        key 	= "no_comtrans",
-        name 	= "No Comtrans t1",
-        desc 	= "Commanders are too heavy for Tier-1 transports to carry. (Tier-2 transports can still carry)",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
