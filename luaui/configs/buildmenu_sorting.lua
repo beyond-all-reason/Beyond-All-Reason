@@ -432,7 +432,7 @@ local unitOrderTable = {
 
    ['armmoho']        = 100200,
    ['cormoho']        = 100250,
-   ['legmext2']       = 100260,
+   ['legmoho']       = 100260,
    ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
 
@@ -445,8 +445,10 @@ local unitOrderTable = {
    --ECO METAL STORAGE
    ['armmstor']       = 100800,
    ['cormstor']       = 100850,
+   ['legmstor']       = 100860,
    ['armuwadvms']     = 100900,
    ['coruwadvms']     = 100950,
+   ['legamstor']      = 100960,
 
    --ECO NRG GENS
    ['armwin']         = 101000,

@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 //piece  base,fan,top,column;
-piece base, rotorBottom, rotorTop;
+piece base, rotor;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
 
@@ -17,15 +17,15 @@ Go()
 	set ARMORED to 0;
 	//move fan to y-axis [3.000000] speed [10.000000];
 	//wait-for-move fan along y-axis;
-	spin rotorBottom around y-axis speed (Static_Var_1*2) accelerate Static_Var_2;
-	spin rotorTop around y-axis speed (Static_Var_1*1) accelerate Static_Var_2;
+	//spin rotorBottom around y-axis speed (Static_Var_1*2) accelerate Static_Var_2;
+	spin rotor around y-axis speed (Static_Var_1/4) accelerate (Static_Var_2/2);
 }
 
 Stop()
 {
-	stop-spin rotorBottom around y-axis decelerate Static_Var_3;
-	stop-spin rotorTop around y-axis decelerate Static_Var_3;
-	wait-for-turn rotorBottom around y-axis;
+	//stop-spin rotorBottom around y-axis decelerate Static_Var_3;
+	stop-spin rotor around y-axis decelerate Static_Var_3;
+	wait-for-turn rotor around y-axis;
 	//move fan to y-axis [0.000000] speed [10.000000];
 	set ARMORED to 1;
 }
@@ -113,29 +113,29 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rotorTop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rotor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rotorTop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rotor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode rotorTop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rotorBottom type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rotor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rotorBottom type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode rotorTop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rotorBottom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rotor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rotorBottom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

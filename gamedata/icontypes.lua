@@ -2400,9 +2400,17 @@ local icontypes = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},
-	legmext2 = {
+	legmstor = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
+	},
+	legamstor = {
+		bitmap = "icons/metalstorage_t2.png",
+		size = 1.3125
 	},
 	legmg = {
 		bitmap = "icons/defence_2_mg.png",

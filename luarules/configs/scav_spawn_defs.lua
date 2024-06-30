@@ -1122,6 +1122,7 @@ local Turrets = {
 		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 5},
 		["armuwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["coruwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
+		["legamstor_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["armuwadves_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 3},
 		["coruwadves_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 3},
 		["armmmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},

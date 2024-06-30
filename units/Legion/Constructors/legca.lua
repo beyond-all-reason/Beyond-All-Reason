@@ -42,7 +42,7 @@ return {
 			"legwin",
 			"corgeo",
 			"coruwgeo",
-			"cormstor",
+			"legmstor",
 			"corestor",
 			"legmex",
 			"legmext15",
