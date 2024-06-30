@@ -1700,14 +1700,14 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ },                          --
+			{ "","armmine1", "armmine2", "armmine3" },    -- light mine, med mine, heavy mine
 			{ },                          --
 			{ },                                    --
 		},
 		{
 			{ "", "armeyes", "armdrag", },                  -- camera, dragon's teeth
+			{ },                          --
 			{ },                                        --
-			{ "armmine1", "armmine2", "armmine3", },    -- light mine, med mine, heavy mine
 		},
 		{
 			{ },        --
@@ -1723,14 +1723,36 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ },                          --
+			{ "","cormine1", "cormine2", "cormine3" },   -- light mine, med mine, heavy mine
 			{ },                          --
 			{ },                                    --
 		},
 		{
 			{ "", "coreyes", "cordrag", },                 -- camera, dragon's teeth
 			{ },                                       --
-			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
+			{ },                          --
+		},
+		{
+			{ },        --
+			{ },                                             --
+			{ },                          --
+		}
+	},
+	legmlv = {
+		{
+			{ }, --
+			{ },            --
+			{ },          --
+		},
+		{
+			{ "","cormine1", "cormine2", "cormine3" },   -- light mine, med mine, heavy mine
+			{ },                          --
+			{ },                                    --
+		},
+		{
+			{ "", "coreyes", "cordrag", },                 -- camera, dragon's teeth
+			{ },                          --
+			{ },                                       --
 		},
 		{
 			{ },        --
@@ -1747,14 +1769,14 @@ local unitGrids = {
 			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
-			{ "armllt", },                                   -- LLT
+			{ "armllt", "armmine1", "armmine2", "armmine3", },       -- LLT, light mine, med mine, heavy mine
 			{ "armrl", },                                    -- basic AA
-			{ },                                             --
+			{  },         
 		},
 		{
 			{ "armrad", },                                   -- radar
 			{ },                                             --
-			{ "armmine1", "armmine2", "armmine3", },         -- light mine, med mine, heavy mine
+  			{ },                                             --
 		},
 		{
 			{ },                                             --
@@ -1770,14 +1792,14 @@ local unitGrids = {
 			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
-			{ "corllt", },                                   -- LLT
+			{ "corllt","cormine1", "cormine2", "cormine3", },  -- LLT, light mine, med mine, heavy mine
 			{ "corrl", },                                    -- basic AA
-			{ },                                             --
+			{ },        
 		},
 		{
 			{ "corrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ },                                             --
 		},
 		{
 			{ },                                             --
@@ -1793,14 +1815,14 @@ local unitGrids = {
 			{ "corestor", "cormstor", "coruwes", "legfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
-			{ "leglht", },                                   -- LLT
+			{ "leglht","cormine1", "cormine2", "cormine3", },    -- LLT, light mine, med mine, heavy mine
 			{ "legrl", },                                    -- basic AA
 			{ },                                             --
 		},
 		{
 			{ "corrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ },      
 		},
 		{
 			{ },                                             --
@@ -1841,14 +1863,14 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
+			{ "corhllt", "corpyro", "cortoast"},                    -- HLLT, pyro, toaster
 			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
 			{ "cordl", "corroy", "cortermite", "coramph", },          -- coastal torp launcher, destroyer, termite, gimp
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{ "cormine2" },                                          --medmine
 		},
 		{
 			{ "corlab", "corck", },                                   -- bot lab, bot con
@@ -1865,14 +1887,14 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "legdtr", "legstr", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
+			{ "legdtr", "legstr", "legacluster", "cormine2"},               -- dragon's jaw, strider, t2 cluster arty, med mine
 			{ "legflak", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
 			{ "cordl", "legfloat", "legsrail", },               -- coastal torp launcher, triton, arquebus
 		},
 		{
 			{ "corarad", "coreyes", "legforti", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{ },                                          
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
@@ -1913,14 +1935,14 @@ local unitGrids = {
 			{ },          --
 		},
 		{
-			{ "cormaw", },                                           -- flame turret
+			{ "cormaw", "cormine4"},                                           -- flame turret, commando mine
 			{ },                                                     --
 			{ },                                                     --
 		},
 		{
 			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
 			{ "corvalk", },                                          -- transport
-			{ "cormine4" },                                          -- commando mine
+			{  },                                          
 		},
 		{
 			{ },        --
