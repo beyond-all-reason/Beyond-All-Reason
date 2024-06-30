@@ -112,6 +112,7 @@ local soundData = {
 		pitchmod = {
 			default = 0.17,
 			custom = {
+				['^helios-fire'] = 0,
 				['^beamershot2$'] = 0.04,
 				['^lasfirerc$'] = 0.06,
 				['^heatray'] = 0,
