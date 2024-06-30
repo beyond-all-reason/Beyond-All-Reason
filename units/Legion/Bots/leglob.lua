@@ -118,7 +118,7 @@ return {
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				predictboost = 0.6,
-				range = 380,
+				range = 400,
 				reloadtime = 2.5,
 				size = 1.8,
 				soundhit = "xplomed3",
@@ -126,7 +126,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 200,
+				weaponvelocity = 220,
 				damage = {
 					default = 75,
 					vtol = 21,
