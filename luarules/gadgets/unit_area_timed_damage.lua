@@ -243,6 +243,14 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		else
 			delayQueue[frameStart] = { {x, elevation, z, weaponParams, ownerID} }
 		end
+	-- Create an explosion in-place with no lasting effects.
+	else
+		local params = explosionCache
+		params.weaponDef          = weaponParams.area_weapondefid
+		params.damages            = weaponParams.area_damages
+		params.damageAreaOfEffect = weaponParams.area_radius * 2 -- radius => diameter
+		params.owner              = ownerID
+		spSpawnExplosion(x, y, z, 0, 0, 0, params)
 	end
 end
 
