@@ -147,7 +147,6 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	CommandersPopulation = 0
 	HumanTechLevel = 0
-	HumanTechLevelPenalty = 0
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -1348,6 +1347,10 @@ if gadgetHandler:IsSyncedCode() then
 			damage = damage * config.damageMod
 		end
 
+		if unitTeam == scavTeamID then
+			damage = damage / config.healthMod
+		end
+
 		if unitID == bossID then -- Boss Resistance
 			if attackerDefID then
 				if weaponID == -1 and damage > 1 then
@@ -1632,14 +1635,6 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		--if HumanTechLevel >= 2 and techAnger < config.tierConfiguration[4].minAnger then -- Early T2
-		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		--end
-
-		--if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
-		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		--end
-
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
 			announcedFirstWave = true
@@ -1679,7 +1674,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
+			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult*config.economyScale)) - config.gracePeriod) * 100), 999), 0)
 			if t < config.gracePeriod then
 				bossAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)
