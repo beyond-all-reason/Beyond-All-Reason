@@ -21,13 +21,15 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
-local unitBeingBuilt = {}
 
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -110,36 +112,32 @@ function widget:Initialize()
 end
 
 local function updateIcon(unitID, unitDefID, gf)
-	if unitBeingBuilt[unitID] and not Spring.GetUnitIsBeingBuilt(unitID) then
-		unitBeingBuilt[unitID] = nil
-	else
-		if not (unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
-			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
-					if not idleUnitList[unitID] then
-						idleUnitList[unitID] = os.clock()
-					elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
-						pushElementInstance(
-							iconVBO, -- push into this Instance VBO Table
-							{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-							 0, --Spring.GetUnitTeam(featureID), -- teamID
-							 4, -- how many vertices should we make ( 2 is a quad)
-							 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-							 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-							 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-							unitID, -- this is the key inside the VBO Table, should be unique per unit
-							false, -- update existing element
-							true, -- noupload, dont use unless you know what you want to batch push/pop
-							unitID) -- last one should be featureID!
-					end
+	if not (unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
+		if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
+				if not idleUnitList[unitID] then
+					idleUnitList[unitID] = os.clock()
+				elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
+					pushElementInstance(
+						iconVBO, -- push into this Instance VBO Table
+						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+						 0, --Spring.GetUnitTeam(featureID), -- teamID
+						 4, -- how many vertices should we make ( 2 is a quad)
+						 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+						 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+						 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+						unitID, -- this is the key inside the VBO Table, should be unique per unit
+						false, -- update existing element
+						true, -- noupload, dont use unless you know what you want to batch push/pop
+						unitID) -- last one should be featureID!
 				end
 			end
-		else
-			if iconVBO.instanceIDtoIndex[unitID] then
-				popElementInstance(iconVBO, unitID, true)
-			end
-			idleUnitList[unitID] = nil
 		end
+	else
+		if iconVBO.instanceIDtoIndex[unitID] then
+			popElementInstance(iconVBO, unitID, true)
+		end
+		idleUnitList[unitID] = nil
 	end
 end
 
@@ -171,9 +169,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corr
 	if unitConf[unitDefID] then
 		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
 		teamUnits[unitTeam][unitID] = unitDefID
-		if Spring.GetUnitIsBeingBuilt(unitID) then
-			unitBeingBuilt[unitID] = true
-		end
 	end
 end
 

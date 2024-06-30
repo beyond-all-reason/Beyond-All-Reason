@@ -60,7 +60,7 @@ local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor
 local anonymousName = '?????'
 
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
-local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
+local loadedFontSize, font, font2, font3, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
@@ -646,6 +646,12 @@ function widget:Initialize()
 	end
 	WG['info'].clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
+	end
+	WG['info'].displayUnitDefID = function(unitDefID)
+		cfgDisplayUnitDefID = unitDefID
+	end
+	WG['info'].clearDisplayUnitDefID = function()
+		cfgDisplayUnitDefID = nil
 	end
 	WG['info'].getPosition = function()
 		return width, height
@@ -2042,11 +2048,12 @@ function checkChanges()
 	if WG['buildmenu'] and WG['buildmenu'].hoverID then
 		displayMode = 'unitdef'
 		displayUnitDefID = WG['buildmenu'].hoverID
-
+	elseif cfgDisplayUnitDefID then
+		displayMode = 'unitdef'
+		displayUnitDefID = cfgDisplayUnitDefID
 	elseif activeCmdID and activeCmdID < 0 then
 		displayMode = 'unitdef'
 		displayUnitDefID = -activeCmdID
-
 	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
 		displayMode = 'unit'
 		displayUnitID = cfgDisplayUnitID

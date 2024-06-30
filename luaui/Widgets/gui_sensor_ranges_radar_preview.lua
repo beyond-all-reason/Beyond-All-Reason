@@ -200,7 +200,7 @@ function widget:DrawWorld()
 
 	radarTruthShader:Deactivate()
 	gl.Texture(0, false)
-
+	gl.Culling(false)
 	gl.DepthTest(true)
 end
 

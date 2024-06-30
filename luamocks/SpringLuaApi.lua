@@ -1847,38 +1847,38 @@ assert(type(teamID) == "number","Argument teamID is of invalid type - expected n
 return  numberMock
  end
 
-function Spring.GetUnitsInRectangle (  xmin, teamID, zmin, zmax, xmax)
+function Spring.GetUnitsInRectangle (  xmin, zmin, xmax, zmax, teamID)
 assert(type(xmin) == "number","Argument xmin, is of invalid type - expected number");
-assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(zmin) == "number","Argument zmin, is of invalid type - expected number");
 assert(type(zmax) == "number","Argument zmax is of invalid type - expected number");
 assert(type(xmax) == "number","Argument xmax, is of invalid type - expected number");
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInBox ( )
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInSphere (  radius, y, z, teamID, x)
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(y) == "number","Argument y, is of invalid type - expected number");
 assert(type(z) == "number","Argument z, is of invalid type - expected number");
-assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(x) == "number","Argument x, is of invalid type - expected number");
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInCylinder (x, z, radius, teamID)
     assert(type(x) == "number","Argument x, is of invalid type - expected number");
     assert(type(z) == "number","Argument z, is of invalid type - expected number");
     assert(type(radius) == "number","Argument radius is of invalid type - expected number");
-    assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
-return  numberMock
+    assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+return  tableMock
 end
 
 function Spring.GetUnitsInPlanes ( )
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitNearestAlly (  range, unitID)

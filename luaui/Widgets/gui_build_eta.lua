@@ -126,9 +126,9 @@ function widget:Update(dt)
 							bi.timeLeft = (1 - buildProgress) / rate
 						end
 					elseif rate < 0 then
-						local newTime = buildProgress / rate
+						local newTime = buildProgress / bi.rate -- use smooth rate
 						if bi.timeLeft and bi.timeLeft < 0 then
-							bi.timeLeft = ((1 - tf) * bi.timeLeft) + (tf * newTime)
+							bi.timeLeft = newTime -- we don't need to smoothen the time if the rate is smooth
 						else
 							bi.timeLeft = buildProgress / rate
 						end
