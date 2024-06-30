@@ -53,8 +53,8 @@ end
 ---- Configuration
 
 local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
-local frameResolution   = 5                    -- The bin size, in frames, to loop over groups of areas.
-local loopDuration      = 0.5                  -- The time between area procs. Adjusts damage automagically.
+local frameResolution   = 2                    -- The bin size, in frames, to loop over groups of areas.
+local loopDuration      = 1/3                  -- The time between area procs. Adjusts damage automagically.
 local shieldSuppression = false                -- Whether or not shields suppress timed areas.
 
 local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
@@ -152,8 +152,6 @@ local explosionCache = {
 if shieldSuppression then
 	local suppressionCharge = 200 -- or whatever
 	local suppressionRadius = 200 -- or whatever
-	local suppressionFudger = 8   -- or whatever
-
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		if unitDef.customParams.shield_radius then
 			local charge = tonumber(unitDef.customParams.shield_power)  or 0
@@ -161,7 +159,7 @@ if shieldSuppression then
 			if charge >= suppressionCharge and
 			   radius >= suppressionRadius then
 				-- Just straight up ignoring emitter height, offset:
-				shieldUnitParams[unitDefID] = radius ^ 2 + suppressionFudger
+				shieldUnitParams[unitDefID] = radius ^ 2
 			end
 		end
 	end
@@ -184,12 +182,11 @@ local groupDuration = groupCount * (1 / gameSpeed)
 -- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
 local shortDuration = 3 -- in seconds
 
--- You don't think you're going to miss that data structure.
--- Lua will prove you wrong. Nevertheless, this isn't so bad:
-local areas = {} -- Maintain a contiguous array of ongoing areas.
+-- Maintain a contiguous array of ongoing areas.
+local timedAreas = {}
 
 for ii = 1, groupCount do
-	areas[ii] = {}
+	timedAreas[ii] = {}
 end
 
 -- Timekeeping uses cycling counts.
@@ -214,7 +211,7 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 
 	-- Create an area on surface -- immediately.
 	if y <= lowCeiling then
-		local group = areas[frame]
+		local group = timedAreas[frame]
 		group[#group+1] = {
 			weaponParams = weaponParams,
 			endTime      = weaponParams.area_duration + time,
@@ -251,7 +248,7 @@ end
 
 local function updateTimedAreas()
 	local params = explosionCache
-	local group = areas[frame]
+	local group = timedAreas[frame]
 	local sizeg = #group
 
 	local index = 1
@@ -261,7 +258,7 @@ local function updateTimedAreas()
 			params.weaponDef          = timedArea.weaponParams.area_weapondefid
 			params.damages            = timedArea.weaponParams.area_damages
 			params.damageAreaOfEffect = timedArea.weaponParams.area_radius * 2 -- radius => diameter
-			params.owner              = timedArea.owner -- Being used to determine weapon vs destroy triggers. Maybe bad.
+			params.owner              = timedArea.owner
 			spSpawnExplosion(timedArea.x, timedArea.y, timedArea.z, 0, 0, 0, params)
 		elseif index == sizeg then
 			group[index] = nil
@@ -324,7 +321,7 @@ function gadget:Initialize()
 	-- Build/rebuild info tables.
 
 	for ii = 1, groupCount do
-		areas[ii] = {}
+		timedAreas[ii] = {}
 	end
 
 	if shieldSuppression then
@@ -339,7 +336,7 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	areas = {}
+	timedAreas = {}
 	delayQueue = {}
 	shieldUnits = {}
 end
