@@ -18,7 +18,7 @@ Go()
 	//move fan to y-axis [3.000000] speed [10.000000];
 	//wait-for-move fan along y-axis;
 	//spin rotorBottom around y-axis speed (Static_Var_1*2) accelerate Static_Var_2;
-	spin rotor around y-axis speed (Static_Var_1*1) accelerate Static_Var_2;
+	spin rotor around y-axis speed (Static_Var_1*0.5) accelerate Static_Var_2;
 }
 
 Stop()
