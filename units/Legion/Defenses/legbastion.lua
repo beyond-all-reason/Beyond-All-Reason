@@ -115,7 +115,7 @@ return {
 				avoidfriendly = true,
 				beamtime = 0.1,
 				camerashake = 0.1,
-				corethickness = 0.4,
+				corethickness = 0.3,
 				craterareaofeffect = 120,
 				craterboost = 0,
 				cratermult = 0,

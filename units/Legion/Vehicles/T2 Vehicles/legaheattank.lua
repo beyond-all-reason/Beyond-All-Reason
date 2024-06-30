@@ -128,7 +128,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 5,
+				laserflaresize = 6,
 				name = "HeatRay",
 				noselfdamage = true,
 				range = 450,
