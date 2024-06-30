@@ -15,13 +15,12 @@ function widget:GetInfo()
 	}
 end
 
+local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+
 local defaultBlurIntensity = 1
 
---hardware capability
-local canRTT = (gl.RenderToTexture ~= nil)
-local canCTT = (gl.CopyToTexture ~= nil)
-local canShader = (gl.CreateShader ~= nil)
-local canFBO = (gl.DeleteTextureFBO ~= nil)
+-- hardware capability
+local canShader = gl.CreateShader ~= nil
 local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 
 local renderDlists = {}
@@ -147,7 +146,7 @@ local function CheckHardware()
 	return true
 end
 
-function CreateShaders()
+local function CreateShaders()
 	if blurShader then
 		gl.DeleteShader(blurShader or 0)
 	end
@@ -225,7 +224,7 @@ function CreateShaders()
 	end
 end
 
-function DeleteShaders()
+local function DeleteShaders()
 	if gl.DeleteTextureFBO then
 		gl.DeleteTextureFBO(stenciltex)
 		gl.DeleteTextureFBO(stenciltexScreen)
@@ -245,7 +244,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreenEffects() -- This blurs the world underneath UI elements
-	if Spring.IsGUIHidden() then
+	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
 
@@ -291,7 +290,7 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 end
 
 local function DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
-	if Spring.IsGUIHidden() then
+	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
 	--if true then return false end
@@ -338,6 +337,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 end
 
 function widget:DrawScreen()
+	uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 	DrawScreen()
 end
 

@@ -39,6 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitVelocity     = Spring.GetUnitVelocity
 	local spGetUnitHealth 		= Spring.GetUnitHealth
 
+	local spGetTeamList			= Spring.GetTeamList
 	local spGetUnitExperience	= Spring.GetUnitExperience
 	local spGetUnitTeam 		= Spring.GetUnitTeam
 	local spGetUnitDirection 	= Spring.GetUnitDirection
@@ -71,13 +72,16 @@ if gadgetHandler:IsSyncedCode() then
 	local EMPTY_TABLE = {}
 
 	local evolutionMetaList = {}
+	local teamList = spGetTeamList()
+	local neutralTeamNumber = tonumber(teamList[#teamList])
 	local teamPowerList = {}
+	local highestTeamPower = 0
 
 	local lastTimerCheck = 0
 	local lastPowerCheck = 0
 
 	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
-	local POWER_CHECK_FREQUENCY = 300 -- gameframes
+	local POWER_CHECK_FREQUENCY = 45 -- gameframes
 
 	include("luarules/configs/customcmds.h.lua")
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
@@ -270,10 +274,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if UnitDefs[unitDefID].power then
-			if teamPowerList[unitTeam] then
-				teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
-			else
-				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+			if unitTeam < neutralTeamNumber then
+				if teamPowerList[unitTeam] then
+					teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
+				else
+					teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+				end
 			end
 		end
 
@@ -290,15 +296,17 @@ if gadgetHandler:IsSyncedCode() then
 			evolutionMetaList[unitID] = nil
 		end
 
-		if UnitDefs[unitDefID].power then
-			if teamPowerList[unitTeam] then
-				if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
-					teamPowerList[unitTeam] = nil
+		if unitTeam < neutralTeamNumber then
+			if UnitDefs[unitDefID].power then
+				if teamPowerList[unitTeam] then
+					if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
+						teamPowerList[unitTeam] = nil
+					else
+						teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+					end
 				else
-					teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+					teamPowerList[unitTeam] = UnitDefs[unitDefID].power
 				end
-			else
-				teamPowerList[unitTeam] = UnitDefs[unitDefID].power
 			end
 		end
 	end
@@ -343,40 +351,27 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
-			lastPowerCheck = f	
+			lastPowerCheck = f
 			
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
-				local enemyPower = 0
-				local enemyCount = -1
 				local teamID = spGetUnitTeam(unitID)
-				local powerValue = 0
 				local transporterID = Spring.GetUnitTransporter(unitID)
-
-				for team, power in pairs(teamPowerList) do
-					if team and teamID and power then
-						local teamsAllied = Spring.AreTeamsAllied(team, teamID)
-						if team == teamID then
-							powerValue = power*evolutionMetaList[unitID].evolution_power_multiplier
-						elseif teamsAllied == false then
-							enemyPower = enemyPower + power*evolutionMetaList[unitID].evolution_power_enemy_multiplier
-							enemyCount = enemyCount + 1
+					for team, power in pairs(teamPowerList) do
+						if team and teamID and power then
+							if highestTeamPower < power then
+								highestTeamPower = power * evolutionMetaList[unitID].evolution_power_multiplier
+							end
 						end
 					end
-				end
-				if enemyCount > 0 then
-					enemyPower = enemyPower/enemyCount
-				end
-				powerValue = powerValue + enemyPower
 				if transporterID then
-				elseif evolutionMetaList[unitID].evolution_condition == "power" and powerValue > evolutionMetaList[unitID].evolution_power_threshold then
+				elseif evolutionMetaList[unitID].evolution_condition == "power" and highestTeamPower > evolutionMetaList[unitID].evolution_power_threshold then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
 						inCombat = true
 						evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
 					end
-
 					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
 						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
 					end

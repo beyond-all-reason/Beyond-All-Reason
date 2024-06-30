@@ -42,6 +42,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

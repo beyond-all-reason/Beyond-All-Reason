@@ -395,7 +395,7 @@ HitByWeaponId(anglex, anglez, weaponid, damage)
     #endif
 
 	damage = damage / (100 * UNITSIZE);
-	if (damage < 3  ) return (0);
+	if (damage < 3  ) return (100);
 	if (damage > MAXTILT) damage = MAXTILT;
 
 	RB_pitch_velocity = RB_pitch_velocity - (anglex * damage) ;
@@ -428,7 +428,8 @@ DamagedSmoke()
 	var current_health_pct; // [0-100]
 	while( TRUE )
 	{
-		current_health_pct = (get HEALTH + 4); 
+		current_health_pct = (get HEALTH); 
+		if (current_health_pct < 4) current_health_pct = 4;
 		if (current_health_pct > 65) {
             // We no longer need to smoke, so terminate this thread by returning
 			isSmoking = 0;

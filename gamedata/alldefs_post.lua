@@ -239,30 +239,31 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.evocom then	
-			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
+				
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier
 				else
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
-				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				
+				if modOptions.evocomlevelupmethod == "dynamic" then
+					uDef.customparams.evolution_condition = "power"
+					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
+					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				elseif modOptions.evocomlevelupmethod == "timed" then
+					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+					uDef.customparams.evolution_condition = "timer"
+				end
+
 				if  name == "armcom" then
-				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "corcom" then
-				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "legcom" then
-				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				end
 				local levelsTable = {}
 				for i = modOptions.evocomlevelcap, 9 do
@@ -275,10 +276,10 @@ function UnitDef_Post(name, uDef)
 					local armadaEvocomLevels = "armcomlvl" .. level
 					local legionEvocomLevels = "legcomlvl" .. level
 					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
-						uDef.customparams.evolution_announcement = nil
-						uDef.customparams.evolution_announcement_size = nil
+						uDef.customparams.evolution_health_transfer = nil
 						uDef.customparams.evolution_target = nil
 						uDef.customparams.evolution_condition = nil
+						uDef.customparams.combatradius = nil
 					end
 				end
 			end
@@ -829,6 +830,12 @@ function UnitDef_Post(name, uDef)
 
 	end
 
+	--No Comtrans
+	if modOptions.no_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.mass = 5001
+		end
+	end
 
 	--Air rework
 	if modOptions.air_rework == true then
@@ -1176,6 +1183,23 @@ function UnitDef_Post(name, uDef)
 	end
 	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
+	
+	-- Animation Cleanup
+	if modOptions.animationcleanup  then 
+		if uDef.script then 
+			local oldscript = uDef.script:lower()
+			if oldscript:find(".cob", nil, true) then 
+				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
+				if VFS.FileExists('scripts/'..newscript) then 
+					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+					uDef.script = newscript
+				else
+					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
+				end
+			end
+		end
+	end
+	
 end
 
 local function ProcessSoundDefaults(wd)

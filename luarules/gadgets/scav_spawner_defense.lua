@@ -147,7 +147,6 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	CommandersPopulation = 0
 	HumanTechLevel = 0
-	HumanTechLevelPenalty = 0
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -1282,7 +1281,11 @@ if gadgetHandler:IsSyncedCode() then
 								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, uSettings, footprintAvg+32)
 								if turretUnitID then
 									setScavXP(turretUnitID)
-									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+									if UnitDefNames[uName].isFactory then
+										Spring.GiveOrderToUnit(turretUnitID, CMD.FIGHT, {spawnPosX + mRandom(-256,256), spawnPosY, spawnPosZ + mRandom(-256,256)}, {"meta"})
+									else
+										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+									end
 								end
 							until turretUnitID or attempts > 10
 						end
@@ -1344,6 +1347,10 @@ if gadgetHandler:IsSyncedCode() then
 			damage = damage * config.damageMod
 		end
 
+		if unitTeam == scavTeamID then
+			damage = damage / config.healthMod
+		end
+
 		if unitID == bossID then -- Boss Resistance
 			if attackerDefID then
 				if weaponID == -1 and damage > 1 then
@@ -1354,7 +1361,7 @@ if gadgetHandler:IsSyncedCode() then
 					bossResistance[attackerDefID].damage = (damage * 4 * config.bossResistanceMult)
 					bossResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.95)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.80)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
@@ -1628,14 +1635,6 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		--if HumanTechLevel >= 2 and techAnger < config.tierConfiguration[4].minAnger then -- Early T2
-		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		--end
-
-		--if HumanTechLevel >= 3 and techAnger < config.tierConfiguration[5].minAnger then -- Early T3
-		--	HumanTechLevelPenalty = HumanTechLevelPenalty + 0.0001
-		--end
-
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
 			announcedFirstWave = true
@@ -1675,20 +1674,20 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0) + math.floor(HumanTechLevelPenalty*100)
+			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult*config.economyScale)) - config.gracePeriod) * 100), 999), 0)
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = 4*(t/config.gracePeriod)
+				minBurrows = 8*(t/config.gracePeriod)
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
-					minBurrows = 4
+					minBurrows = 8
 					if burrowCount <= 2 then
 						playerAggression = playerAggression + 1
 					end
 				else
 					bossAnger = 100
-					minBurrows = 4
+					minBurrows = 8
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))

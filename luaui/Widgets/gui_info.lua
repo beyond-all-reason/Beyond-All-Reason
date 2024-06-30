@@ -22,6 +22,7 @@ local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 local showBuilderBuildlist = true
 local displayMapPosition = false
+local activeCmdID
 
 local emptyInfo = false
 local showEngineTooltip = false		-- straight up display old engine delivered text
@@ -45,6 +46,7 @@ local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
 local lastUpdateClock = 0
 local infoShows = false
+local isPregame
 
 local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
@@ -58,7 +60,7 @@ local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor
 local anonymousName = '?????'
 
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
-local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
+local loadedFontSize, font, font2, font3, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
@@ -326,7 +328,7 @@ local function refreshUnitInfo()
 				elseif
 					unitDef.customParams.isevocom  or -- use primary weapon for evolving commanders
 					unitDef.name == 'armcom'       or -- ignore underwater secondary
-					unitDef.name == 'corcom'       or 
+					unitDef.name == 'corcom'       or
 					unitDef.name == 'legcom'       or
 					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
@@ -410,8 +412,8 @@ local function refreshUnitInfo()
 					setEnergyAndMetalCosts(weaponDef)
 
 					if weaponDef.paralyzer ~= true then
-					
-					
+
+
 						if weaponDef.customParams then
 
 							if weaponDef.customParams.sweepfire then
@@ -600,7 +602,8 @@ function GetColor(colormap, slider)
 	col1[3] * ia + col2[3] * aa, col1[4] * ia + col2[4] * aa
 end
 
-function widget:GameFrame(n)
+function widget:GameFrame()
+	isPregame = false
 	if checkGeothermalFeatures then
 		checkGeothermalFeatures()
 		checkGeothermalFeatures = nil
@@ -609,6 +612,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
+	isPregame = Spring.GetGameFrame() < 1
+
 	refreshUnitInfo()
 
 	texts = Spring.I18N('ui.info')
@@ -641,6 +646,12 @@ function widget:Initialize()
 	end
 	WG['info'].clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
+	end
+	WG['info'].displayUnitDefID = function(unitDefID)
+		cfgDisplayUnitDefID = unitDefID
+	end
+	WG['info'].clearDisplayUnitDefID = function()
+		cfgDisplayUnitDefID = nil
 	end
 	WG['info'].getPosition = function()
 		return width, height
@@ -715,7 +726,7 @@ function widget:Update(dt)
 		checkChanges()
 		doUpdate = true
 	end
-	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and Spring.GetGameFrame() > 0 then
+	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')
@@ -775,11 +786,11 @@ function widget:Update(dt)
 		displayUnitDefID = nil
 	end
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
 		return
 	end
 
-	if alwaysShow or not emptyInfo or Spring.GetGameFrame() == 0 then
+	if alwaysShow or not emptyInfo or isPregame then
 		infoShows = true
 	end
 end
@@ -1111,7 +1122,7 @@ local function drawUnitInfo()
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
-		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
+		if not displayMode == 'unitdef' or (WG['buildmenu'] and (activeCmdID and activeCmdID < 0 and (not WG['buildmenu'].hoverID or (-activeCmdID == WG['buildmenu'].hoverID)))) then
 			unitNameColor = '\255\125\255\125'
 		end
 	end
@@ -1863,7 +1874,7 @@ local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1876,7 +1887,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo or  Spring.GetGameFrame() == 0 then
+	if alwaysShow or not emptyInfo or isPregame then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -2026,17 +2037,23 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	local activeCmdID = select(2, Spring.GetActiveCommand())
+	if isPregame then
+ 		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
+		activeCmdID = activeCmdID and -activeCmdID
+	else
+		activeCmdID = select(2, Spring.GetActiveCommand())
+	end
 
 	-- buildmenu unitdef
-	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+	if WG['buildmenu'] and WG['buildmenu'].hoverID then
 		displayMode = 'unitdef'
-		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-
+		displayUnitDefID = WG['buildmenu'].hoverID
+	elseif cfgDisplayUnitDefID then
+		displayMode = 'unitdef'
+		displayUnitDefID = cfgDisplayUnitDefID
 	elseif activeCmdID and activeCmdID < 0 then
 		displayMode = 'unitdef'
 		displayUnitDefID = -activeCmdID
-
 	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
 		displayMode = 'unit'
 		displayUnitID = cfgDisplayUnitID
@@ -2105,7 +2122,7 @@ function checkChanges()
 		doUpdate = true
 	end
 
-	if displayMode == 'text' and Spring.GetGameFrame() == 0 then
+	if displayMode == 'text' and isPregame then
 		displayMode = 'unitdef'
 		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 		hideBuildlist = true

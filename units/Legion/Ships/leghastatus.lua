@@ -7,7 +7,7 @@ return {
 		maxdec = 0.04771,
 		energycost = 2700,
 		metalcost = 400,
-		buildpic = "ARMPSHIP.DDS",
+		buildpic = "leghastatus.DDS",
 		buildtime = 4400,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
