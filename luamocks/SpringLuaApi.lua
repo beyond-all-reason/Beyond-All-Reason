@@ -1853,11 +1853,11 @@ assert(type(teamID) == "number","Argument teamID] is of invalid type - expected 
 assert(type(zmin) == "number","Argument zmin, is of invalid type - expected number");
 assert(type(zmax) == "number","Argument zmax is of invalid type - expected number");
 assert(type(xmax) == "number","Argument xmax, is of invalid type - expected number");
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInBox ( )
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInSphere (  radius, y, z, teamID, x)
@@ -1866,7 +1866,7 @@ assert(type(y) == "number","Argument y, is of invalid type - expected number");
 assert(type(z) == "number","Argument z, is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
 assert(type(x) == "number","Argument x, is of invalid type - expected number");
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitsInCylinder (x, z, radius, teamID)
@@ -1874,11 +1874,11 @@ function Spring.GetUnitsInCylinder (x, z, radius, teamID)
     assert(type(z) == "number","Argument z, is of invalid type - expected number");
     assert(type(radius) == "number","Argument radius is of invalid type - expected number");
     assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
-return  numberMock
+return  tableMock
 end
 
 function Spring.GetUnitsInPlanes ( )
-return  numberMock
+return  tableMock
  end
 
 function Spring.GetUnitNearestAlly (  range, unitID)
