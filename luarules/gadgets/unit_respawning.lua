@@ -105,6 +105,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:GameFrame(frame)
+		if frame % 30 then
+			for unitID, param in pairs(respawnMetaList) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local name = UnitDefs[unitDefID].name
+			Spring.Echo(name, " respawnMetaList[unitID].effigyID = ", respawnMetaList[unitID].effigyID)
+			end
+		end
+	end
+
     function ReturnToBase(unitID)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
 		local team = spGetUnitTeam(unitID)
@@ -146,11 +156,14 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		local udcp = defCustomParams[unitDefID]
 
+		if not udcp then
+			return
+		end
+
 		if udcp.respawn_condition then
-			Spring.Echo(unitID, unitDefID, UnitDefs[unitDefID].name, udcp.respawn_condition)
 			respawnMetaList[unitID] = {
 				respawn_condition = udcp.respawn_condition or "none",
 				respawn_health_threshold = tonumber(udcp.respawn_health_threshold) or 0,
@@ -176,34 +189,30 @@ if gadgetHandler:IsSyncedCode() then
 			
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
-						respawnMetaList[unitID].effigyID = newUnitID
-						Spring.Echo('VIP creates New Effigy Opt. 1 ',respawnMetaList[unitID].effigyID)
-						return
+						if newUnitID then
+							respawnMetaList[unitID].effigyID = newUnitID
+							return
+						end
 					elseif not blockType then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x+i, groundH, z+i, 0, unitTeam)
-						respawnMetaList[unitID].effigyID = newUnitID
-						Spring.Echo('VIP creates New Effigy Opt. 2 ',respawnMetaList[unitID].effigyID)
-						return
+						if newUnitID then
+							respawnMetaList[unitID].effigyID = newUnitID
+							return
+						end
 					end
 				end
 			end
 		end
 
-		if udcp.iseffigy then
-			Spring.Echo(unitID, unitDefID, UnitDefs[unitDefID].name, udcp.respawn_condition)
-			Spring.Echo('New Effigy Created')
+		if udcp.iseffigy  and builderID then
 			for vipID, _ in pairs(respawnMetaList) do
 				local team = spGetUnitTeam(vipID)
-				Spring.Echo('Search for vipID associations executed ', unitID, respawnMetaList[vipID].effigyID)
 				if team == unitTeam then
 					
 					local oldeffigyID = respawnMetaList[vipID].effigyID
-					Spring.Echo('Effigy is on same team ', oldeffigyID)
 					
 					respawnMetaList[vipID].effigyID = unitID
-					Spring.Echo('VIP assigned effigyID ',respawnMetaList[vipID].effigyID)
 					if oldeffigyID then
-						Spring.Echo('Old Effigy detected, destroyed', oldeffigyID)
 						spDestroyUnit(oldeffigyID, false, true)
 					end
 					return
@@ -212,25 +221,26 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	
 
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				if respawnMetaList[unitID].effigyID then
-					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
-					Spring.Echo("unit evolution detected", newID, type(newID))
-					if newID then
+					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")		
+					if newID then--and respawnMetaList[unitID].effigyID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
-							Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+							if ex then
+								Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+							 else
+								 spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+							 end
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
-							Spring.Echo("new evolution ID detected with .effigyID")
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
-							Spring.Echo("new evolution ID")
 						else
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
-							Spring.Echo("evolution triggered destruction of ID, no new evolution ID found")
 						end
 					end
 				end
