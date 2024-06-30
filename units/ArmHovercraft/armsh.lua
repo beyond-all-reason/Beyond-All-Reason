@@ -118,6 +118,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
+				laserflaresize = 4.5,
 				name = "Light Close-Quarters Fast-Firing g2g Laser",
 				noselfdamage = true,
 				range = 230,
