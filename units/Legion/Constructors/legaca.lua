@@ -42,7 +42,7 @@ return {
 			"corageo",
 			"coruwageo",
 			"corbhmth",
-			"cormoho",
+			"legmoho",
 			"cormexp",
 			"cormmkr",
 			"coruwadves",

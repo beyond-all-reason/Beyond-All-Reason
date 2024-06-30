@@ -45,7 +45,7 @@ return {
 			"leggant",
 			"corageo",
 			"corbhmth",
-			"cormoho",
+			"legmoho",
 			"cormexp",
 			"cormmkr",
 			"coruwadves",
@@ -72,7 +72,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'buildert2',
-			area_mex_def = "cormoho",
+			area_mex_def = "legmoho",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots/t2",

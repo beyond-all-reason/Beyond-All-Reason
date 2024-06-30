@@ -47,7 +47,7 @@ return {
 			[2] = "corafus",
 			[3] = "corageo",
 			[4] = "corbhmth",
-			[5] = "cormoho",
+			[5] = "legmoho",
 			[6] = "cormexp",
 			[7] = "cormmkr",
 			[8] = "coruwadves",

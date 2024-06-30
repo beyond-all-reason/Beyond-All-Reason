@@ -2400,7 +2400,7 @@ local icontypes = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},
-	legmext2 = {
+	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
 	},

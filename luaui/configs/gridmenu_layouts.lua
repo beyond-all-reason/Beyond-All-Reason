@@ -870,7 +870,7 @@ local unitGrids = {
 	},
 	legcomlvl5 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -892,7 +892,7 @@ local unitGrids = {
 	},
 	legcomlvl6 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -914,7 +914,7 @@ local unitGrids = {
 	},
 	legcomlvl7 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -936,7 +936,7 @@ local unitGrids = {
 	},
 	legcomlvl8 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -958,7 +958,7 @@ local unitGrids = {
 	},
 	legcomlvl9 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -980,7 +980,7 @@ local unitGrids = {
 	},
 	legcomlvl10 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -1486,7 +1486,7 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1556,7 +1556,7 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1625,7 +1625,7 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
