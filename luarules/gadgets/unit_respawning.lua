@@ -229,19 +229,10 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
                 if newID then
-					local effigyBuildProgress
-					local effigyBuildState
-					if respawnMetaList[unitID].effigyID then
-					effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
-					end
-					if effigyBuildProgress < 1 then
-						effigyBuildState = 1
-					end
-					if not respawnMetaList[unitID].effigyID then
+					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					if not respawnMetaList[unitID].effigyID or effigyBuildProgress ~= 1 then
                     	spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 					end
-					spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = effigyBuildState}) -- debugging line, remove when done
-					Spring.SetUnitExperience(newID, effigyBuildProgress)-- debugging line, remove when done
 					if respawnMetaList[unitID].effigyID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
@@ -250,14 +241,10 @@ if gadgetHandler:IsSyncedCode() then
 								else
 									spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
 								end
-							spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = effigyBuildState})
-							Spring.SetUnitExperience(newID, effigyBuildProgress)
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
 						else
-							spSetUnitHealth(respawnMetaList[newID].effigyID, {health = 50, build = effigyBuildState})
-							Spring.SetUnitExperience(newID, effigyBuildProgress)
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 						end
 					end
