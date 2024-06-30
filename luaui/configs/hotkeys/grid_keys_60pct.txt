@@ -157,3 +157,11 @@ bind             meta+1  focus_camera_anchor 1
 bind             meta+2  focus_camera_anchor 2
 bind             meta+3  focus_camera_anchor 3
 bind             meta+4  focus_camera_anchor 4
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind     Alt+Shift+sc_c  blueprint_create_selectionorder
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

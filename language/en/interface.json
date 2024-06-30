@@ -273,7 +273,10 @@
 			"hound_weapon_plasma": "Heavy Plasma",
 			"hound_weapon_gauss": "Gauss Cannon",
 			"hound_weapon_toggle_tooltip": "Sets weapon to a slow plasma projectile with a large aoe, or a fast projectile gauss weapon",
-
+			"blueprint_place": "Place Blueprint",
+			"blueprint_place_tooltip": "Place a saved blueprint",
+			"blueprint_create": "Save Blueprint",
+			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
