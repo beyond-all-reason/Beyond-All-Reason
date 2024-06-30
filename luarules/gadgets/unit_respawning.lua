@@ -182,10 +182,11 @@ if gadgetHandler:IsSyncedCode() then
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
-				for i = 1, 500, 100 do
+				local blockedIncriment = 1
+				for i = 1, 500, blockedIncriment do
 					local x, y, z = spGetUnitPosition(unitID)
-					local blockType, blockID = Spring.GetGroundBlocked(x+i, z+i)
-					local groundH = Spring.GetGroundHeight(x+i, z+i)
+					local blockType, blockID = Spring.GetGroundBlocked(x-i, z-i)
+					local groundH = Spring.GetGroundHeight(x-i, z-i)
 			
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
@@ -194,10 +195,12 @@ if gadgetHandler:IsSyncedCode() then
 							return
 						end
 					elseif not blockType then
-						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x+i, groundH, z+i, 0, unitTeam)
+						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x-i, groundH, z-i, 0, unitTeam)
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
 							return
+						else 
+							blockedIncriment = blockedIncriment+50
 						end
 					end
 				end

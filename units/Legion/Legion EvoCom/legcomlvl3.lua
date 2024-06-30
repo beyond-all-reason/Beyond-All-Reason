@@ -114,7 +114,8 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 3,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,

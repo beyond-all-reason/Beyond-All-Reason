@@ -242,6 +242,7 @@ function UnitDef_Post(name, uDef)
 		if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
 			if name == "armcom" or name == "corcom" or name == "legcom" then
 				uDef.customparams.effigy = "comeffigylvl1"
+				uDef.customparams.effigy_offset = 1
 				uDef.customparams.respawn_condition = "health"
 				uDef.customparams.respawn_announcement = "A Commander Effigy was sacrificed."
 				uDef.customparams.respawn_announcement_size = 18.5
@@ -254,21 +255,21 @@ function UnitDef_Post(name, uDef)
 		
 
 		if modOptions.evocom then	
-			if uDef.customparams.isevocom or name == "armcom" or name == "corcom" or name == "legcom" then
-				
+			if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
+				local comLevel = uDef.customparams.evocomlvl
 				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
 					uDef.customparams.respawn_condition = "health"
 					
 					local numBuildoptions = #uDef.buildoptions
-					if string.sub(name, -7) == "comlvl2" then
+					if comLevel == 2 then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
-					elseif string.sub(name, -7) == "comlvl3" or string.sub(name, -7) == "comlvl4" then
+					elseif comLevel == 3 or comLevel == 4 then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
-					elseif string.sub(name, -7) == "comlvl5" or string.sub(name, -7) == "comlvl6" then
+					elseif comLevel == 5 or comLevel == 6 then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
-					elseif string.sub(name, -7) == "comlvl7" or string.sub(name, -7) == "comlvl8" then
+					elseif comLevel == 7 or comLevel == 8 then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
-					elseif string.sub(name, -8) == "comlvl10" or string.sub(name, -7) == "comlvl9" then
+					elseif comLevel == 9 or comLevel == 10 then
 						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
 					end
 				end
@@ -297,22 +298,9 @@ function UnitDef_Post(name, uDef)
 				elseif name == "legcom" then
 				uDef.customparams.evolution_target = "legcomlvl2"
 				end
-				local levelsTable = {}
-				for i = modOptions.evocomlevelcap, 9 do
-					if i <= 10 then -- <- this 10 is because max level of evocom is 10
-						table.insert(levelsTable, i)
-					end
-				end
-				for _, level in ipairs(levelsTable) do
-					local cortexEvocomLevels = "corcomlvl" .. level
-					local armadaEvocomLevels = "armcomlvl" .. level
-					local legionEvocomLevels = "legcomlvl" .. level
-					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
-						uDef.customparams.evolution_health_transfer = nil
-						uDef.customparams.evolution_target = nil
-						uDef.customparams.evolution_condition = nil
-						uDef.customparams.combatradius = nil
-					end
+
+				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_condition = nil
 				end
 			end
 		end

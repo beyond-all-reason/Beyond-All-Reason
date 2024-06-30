@@ -326,7 +326,7 @@ local function refreshUnitInfo()
 					end
 
 				elseif
-					unitDef.customParams.isevocom  or -- use primary weapon for evolving commanders
+					unitDef.customParams.evocomlvl  or -- use primary weapon for evolving commanders
 					unitDef.name == 'armcom'       or -- ignore underwater secondary
 					unitDef.name == 'corcom'       or
 					unitDef.name == 'legcom'       or
