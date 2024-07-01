@@ -552,6 +552,7 @@ AimWeapon1(heading, pitch)
 	//get PRINT(get GAME_FRAME, OCA_intransition_wantOpen,IsClosed, IsOpen);
 	if (!IsOpen ) return 0;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
+	// TODO ADD 0xBADFACE
 	if (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpnheading - heading), <11>)){
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
