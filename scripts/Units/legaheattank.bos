@@ -7,13 +7,30 @@
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
 piece base, turretBase, turretStrut, gun, flarer, flarel;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun;
+// static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, 
+// gameframe, gameFrame1, targetswap, isfiring, oldhead, timer, lastfired, firetime, nowState;
 
 // Signal definitions
 #define SIG_AIM				2
-// #define SIG_AIM_2			4
-// #define SIG_AIM_3			8
+#define SIG_LIGHT			4
+#define SIG_RESTORE			8
 
+//-------------------------------CONSTANT maxaccTURRET TURNING---------------------------
+// speed and maxaccare in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// (c) CC BY NC ND Beherith mysterme@gmail.com
+//#define MAX_AIMY1_VELOCITY <3.00>
+#define AIMY1_maxacc<0.16>
+//#define AIMY1_JERK <0.5>
+//#define AIMY1_PRECISION <1.2>
+//#define AIMY1_RESTORE_SPEED <1.0>
+
+static-var timetozero, deceleratethreshold;
+//static-var Stunned;
+
+static-var  restore_delay, whichGun, timer, lastfired, gameframe, nowState, statechg_DesiredState, statechg_StateChanging, firetime;
+static-var oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
 
 
 #define BASEPIECE base
@@ -21,6 +38,29 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichG
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
 #define MAXTILT 100
+
+deployscript(){
+	nowState = 1;
+}
+
+undeployscript(){
+	signal SIG_AIM;
+	nowState = 0;
+}
+
+deploy(){
+
+	if(!nowState){
+		call-script deployscript();
+	}
+	nowState = 1;
+	
+}
+
+undeploy(){
+	nowState = 0;
+	call-script undeployscript();
+}
 
 InitState()
 {
@@ -54,36 +94,15 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-deploy(){
-
-	return (0);
-	
-}
-
-undeploy(){
-
-}
-
-// //rock the unit
-// RockUnit(anglex, anglez)
-// {
-// 	turn base to x-axis anglex speed <25.000000>;
-// 	turn base to z-axis <0> - anglez speed <25.000000>;
-// 	wait-for-turn base around z-axis;
-// 	wait-for-turn base around x-axis;
-// 	turn base to z-axis <0.000000> speed <10.000000>;
-// 	turn base to x-axis <0.000000> speed <10.000000>;
-// }
-
-Create()
+Activate()
 {
-	//hide flare;
-	// hide flarer;
-	// hide flarel;
-	restore_delay = 3000;
-	whichGun = 0;
-	start-script RestoreAfterDelay();
-	return (0);
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	start-script RequestState(1);
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -91,11 +110,33 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
-SetMaxReloadTime(Func_Var_1)
+Create()
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	//hide flare;
+	// hide flarer;
+	// hide flarel;
+	firetime = 75;
+	oldhead = 0;
+	targetswap = 0;
+	nowState=1;
+	call-script InitState();
+	isfiring = 0;
+	
+	lastfired = get(GAME_FRAME)-200;
+	whichGun = 0;
+	restore_delay = 4000;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	start-script SweepFire();
 }
+
+// SetMaxReloadTime(Func_Var_1)
+// {
+// 	restore_delay = Func_Var_1 * 2;
+// 	return (0);
+// }
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -103,15 +144,26 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turretBase to y-axis <0.000000> speed <40>;
-	turn turretStrut to x-axis <0.000000> speed <40>;
+
+	gameframe = get(GAME_FRAME);
+	isfiring = 0;
+	oldhead = -1000000;
+	timer = 0;
+	targetswap = 0;
+
+	if(nowState == 1){
+		turn turretBase to y-axis <0.000000> speed <40>;
+		turn turretStrut to x-axis <0.000000> speed <40>;
+	}
 	//stop-spin barrelMid around z-axis decelerate <5>;
-	wait-for-turn turretBase around y-axis;
-	start-script RequestState(1);
-	call-script undeploy();
+	//wait-for-turn turretBase around y-axis;
+	//start-script RequestState(1);
+	//call-script undeploy();
 	// turn turretr to y-axis <0.000000> speed <120>;
 	// turn turretl to y-axis <0.000000> speed <120>;
+	return (0);
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -119,56 +171,139 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
+	// signal SIG_AIM;
+	// set-signal-mask SIG_AIM;
+	// //start-script RequestState(0);
+	// call-script deploy();
+	// turn turretBase to y-axis heading speed <80>;
+	// turn turretStrut to x-axis <0.000000> - pitch speed <80>;
+	// wait-for-turn turretBase around y-axis;
+	// wait-for-turn turretStrut around x-axis;
+	// start-script RestoreAfterDelay();
+	// return (1);
+
+
+
+	if (nowState==0) return 0;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	//start-script RequestState(0);
-	call-script deploy();
-	turn turretBase to y-axis heading speed <80>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <80>;
+	turn turretBase to y-axis heading speed <25>;
+	turn turretStrut to x-axis -1*pitch speed <10>;
+	if (get ABS(oldhead - heading) > 500)
+	{
+		targetswap = 1;
+	}
+	gameframe = get(GAME_FRAME);
+	//get PRINT(1, lastfired, gameframe);
+	//if (lastfired+firetime>gameframe) return (0);
+	//lastfired = gameframe;
+	
+	if (get ABS(oldhead - heading) < 500)
+	{
+		//skip the wait just do it
+		oldhead = heading;
+		isfiring = 1;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretStrut around x-axis;
 	start-script RestoreAfterDelay();
+	isfiring = 1;
+	oldhead = heading;
 	return (1);
+}
+
+SweepFire()
+{
+	signal SIG_LIGHT;
+	set-signal-mask SIG_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			emit-sfx 2048 from flarel;
+			timer = timer + 1;
+		}
+		if (timer > 150)
+		{
+			//signal SIG_AIM;
+			//timer = 0;
+			start-script RestoreAfterDelay();
+		}
+		sleep 20;
+	}
 }
 
 FirePrimary()
 {
 	
-	if (whichGun == 0){
-		//emit-sfx 1024 + 0  from flarer;
-		call-script lua_UnitScriptLight(1, whichGun);
-		whichGun = 1;
-		return(0);
-	}
+	// if (whichGun == 0){
+	// 	gameframe = get(GAME_FRAME);
+	// 	lastfired = gameframe;
+	// 	timer = 0;
+	// 	//emit-sfx 1024 + 0  from flarer;
+	// 	call-script lua_UnitScriptLight(1, whichGun);
+	// 	start-script RestoreAfterDelay();
+	// 	whichGun = 1;
+	// 	return(1);
+	// }
 
-	if (whichGun == 1){
-		//emit-sfx 1024 + 0  from flarel;
-		call-script lua_UnitScriptLight(2, whichGun);
-		whichGun = 0;
-		return(0);
-	}
-	//emit-sfx 1024 + 0 from flare;
+	// if (whichGun == 1){
+	// 	gameframe = get(GAME_FRAME);
+	// 	lastfired = gameframe;
+	// 	timer = 0;
+	// 	//emit-sfx 1024 + 0  from flarer;
+	// 	call-script lua_UnitScriptLight(2, whichGun);
+	// 	start-script RestoreAfterDelay();
+	// 	whichGun = 0;
+	// 	return(1);
+	// }
+	// //emit-sfx 1024 + 0 from flare;
 
-	// move sleeve to z-axis [-3.000000] speed [1250.000000];
-	// move barrel to z-axis [-6.000000] speed [1250.000000];
-	// wait-for-move sleeve along z-axis;
-	// move barrel to z-axis [0.000000] speed [7.500000];
-	// move sleeve to z-axis [0.000000] speed [7.500000];
-	return (0);
+	// // move sleeve to z-axis [-3.000000] speed [1250.000000];
+	// // move barrel to z-axis [-6.000000] speed [1250.000000];
+	// // wait-for-move sleeve along z-axis;
+	// // move barrel to z-axis [0.000000] speed [7.500000];
+	// // move sleeve to z-axis [0.000000] speed [7.500000];
+	// return (1);
+
+	gameframe = get(GAME_FRAME);
+	//get PRINT(1, lastfired, gameframe);
+	//if (lastfired+firetime>gameframe) return (0);
+	lastfired = gameframe;
+	//get PRINT(11);
+	//start-script SpinFiring();
+	timer = 0;
+	//start-script Enlighten();
+	//sleep 150;
+	start-script RestoreAfterDelay();
+	//shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, whichGun);
+	return (1);
 }
 
 AimFromPrimary(piecenum)
 {
 	piecenum = gun;
-	return (0);
+	//return (0);
 }
 
 QueryPrimary(piecenum)
@@ -182,7 +317,7 @@ QueryPrimary(piecenum)
 		piecenum = flarel;
 		//whichGun = 0;
 	}
-	return (0);
+	//return (0);
 }
 
 // AimSecondary(heading, pitch)
