@@ -13,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "36 20 36",
+		collisionvolumescales = "36 14 36",
 		collisionvolumetype = "box",
 		crushresistance = 250,
 		explodeas = "WallExplosionWater",
@@ -31,7 +31,7 @@ return {
 		selfdestructas = "WallExplosionWater",
 		selfdestructcountdown = 1,
 		sightdistance = 1,
-		waterline = 2,
+		waterline = 8,
 		yardmap = "oooo",
 		customparams = {
 			model_author = "FireStorm",
