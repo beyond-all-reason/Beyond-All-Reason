@@ -97,6 +97,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -354,9 +355,15 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	-- So, to prevent zero build progress from further turning into problematic things
 	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
 	-- So we are relying on UnitFinished to be called right after this one
-	-- Stash it for now
-	-- local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
-	-- if health == maxhealth and buildProgress == 0 then return end
+	-- Sensibly enough, this is not a problem for players, as they see the units only after their LOS status is checked, later in the same gameframe. 
+	-- So spectators, and 'own team' suffers this hit only
+	local health,maxhealth, paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
+	if health == maxhealth and buildProgress == 0 then 
+		if debuglevel >= 3 then 
+			Spring.Echo("Skipping visibleUnitsAdd for CreateUnit'ed unit", UnitDefs[unitDefID].name, unitID, unitDefID, unitTeam, builderID, reason, silent)
+		end
+		return 
+	end
 
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
