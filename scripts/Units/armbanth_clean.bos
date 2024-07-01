@@ -613,14 +613,10 @@ ExecuteRestoreAfterDelay()
     
 	call-script ResetHands();
 	moveHands = TRUE;
-	turn aimy1 to y-axis <0.0> speed <90.021978>;
+	start-script CATT1_Restore();
+
 	turn head to y-axis <0.0> speed <50.010989>;
-	//turn luparm to x-axis <0.0> speed <50.010989>;
-	//turn ruparm to x-axis <0.0> speed <50.010989>;
-	turn aimx1 to x-axis <0.0> speed <120.027473>;
-	//wait-for-turn lshoulder around x-axis;
-	//wait-for-turn ruparm around x-axis;
-	//wait-for-turn lshoulder around y-axis;
+
 	wpn1_lasthead = 0xbadface;
 	wpn2_lasthead = 0xbadface;
 	isAiming = FALSE;
@@ -634,7 +630,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2 | SIGNAL_AIM3;
 	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -656,23 +652,29 @@ AimHands() {
 	turn ruparm to z-axis <0> speed <473.333441> / animSpeed;
 }
 
+
+#define CATT1_PIECE_Y aimy1
+#define CATT1_PIECE_X aimx1
+
+#define CATT1_MAX_VELOCITY <3.0>
+#define CATT1_ACCELERATION <0.15>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <1.2>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_RESTORE_DELAY 1000
+
+#include "../constant_acceleration_turret_turning_1.h"
+
 AimWeapon1(heading, pitch) //hand cannons
 {
 	signal SIGNAL_AIM1;
-	call-script AimHands();
+	set-signal-mask SIGNAL_AIM1;
+	if (moveHands) call-script AimHands();
 	isAiming = TRUE;
 	myHeading = heading;
 	moveHands = FALSE;
-	turn aimx1 to x-axis 0 - pitch speed <120>;
-	turn aimy1 to y-axis heading speed <100.021978>;
 
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <5>))
-	{
-		wpn1_lasthead = 0xbadface;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-	}
-	wpn1_lasthead = heading;
+	call-script CATT1_Aim(heading,pitch);
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -681,7 +683,7 @@ AimWeapon2(heading, pitch) //HEAD LASER
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn turret to y-axis (heading - myHeading) speed <300.071429>;
+	turn turret to y-axis (heading - CATT1position) speed <300.071429>;
 
 	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{

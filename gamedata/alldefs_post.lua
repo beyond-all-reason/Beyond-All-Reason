@@ -238,48 +238,67 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		--normal commander respawning
+		if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
+			if name == "armcom" or name == "corcom" or name == "legcom" then
+				uDef.customparams.effigy = "comeffigylvl1"
+				uDef.customparams.effigy_offset = 1
+				uDef.customparams.respawn_condition = "health"
+				uDef.customparams.minimum_respawn_stun = 5
+				uDef.customparams.distance_stun_multiplier = 1
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+			end
+		end
+		
+
 		if modOptions.evocom then	
-			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+			if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
+				local comLevel = uDef.customparams.evocomlvl
+				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
+					uDef.customparams.respawn_condition = "health"
+					
+					local numBuildoptions = #uDef.buildoptions
+					if comLevel == 2 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+					elseif comLevel == 3 or comLevel == 4 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
+					elseif comLevel == 5 or comLevel == 6 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
+					elseif comLevel == 7 or comLevel == 8 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
+					elseif comLevel == 9 or comLevel == 10 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
+					end
+				end
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
+				
 				if uDef.power then
 					uDef.power = uDef.power/modOptions.evocomxpmultiplier
 				else
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
-				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				
+				if modOptions.evocomlevelupmethod == "dynamic" then
+					uDef.customparams.evolution_condition = "power"
+					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
+					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				elseif modOptions.evocomlevelupmethod == "timed" then
+					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+					uDef.customparams.evolution_condition = "timer"
+				end
+
 				if  name == "armcom" then
-				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "corcom" then
-				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "legcom" then
-				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "legcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				end
-				local levelsTable = {}
-				for i = modOptions.evocomlevelcap, 9 do
-					if i <= 10 then -- <- this 10 is because max level of evocom is 10
-						table.insert(levelsTable, i)
-					end
-				end
-				for _, level in ipairs(levelsTable) do
-					local cortexEvocomLevels = "corcomlvl" .. level
-					local armadaEvocomLevels = "armcomlvl" .. level
-					local legionEvocomLevels = "legcomlvl" .. level
-					if cortexEvocomLevels == name or armadaEvocomLevels == name or legionEvocomLevels == name then
-						uDef.customparams.evolution_announcement = nil
-						uDef.customparams.evolution_announcement_size = nil
-						uDef.customparams.evolution_target = nil
-						uDef.customparams.evolution_condition = nil
-					end
+
+				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_condition = nil
 				end
 			end
 		end
@@ -620,7 +639,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Wreck and heap standardization
-	if not uDef.customparams.iscommander then
+	if not uDef.customparams.iscommander and not uDef.customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
 			-- wrecks
 			if uDef.featuredefs.dead then
@@ -829,6 +848,12 @@ function UnitDef_Post(name, uDef)
 
 	end
 
+	--No Comtrans
+	if modOptions.no_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.mass = 5001
+		end
+	end
 
 	--Air rework
 	if modOptions.air_rework == true then

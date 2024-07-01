@@ -277,7 +277,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
+		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<3) animSpeed=3;
 		if (animspeed>10) animSpeed = 10;
@@ -372,8 +372,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano;
-	hide aimy1;
 	hide cagelight_emit;
 	isMoving = FALSE;
 	nanoNozzle = 0;
@@ -422,7 +420,6 @@ Deactivate()
 
 StartBuilding(torsoing, pitch)
 {
-	show nano;
 	turn aimy1 to y-axis torsoing speed <160>;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
@@ -435,7 +432,6 @@ StartBuilding(torsoing, pitch)
 
 StopBuilding()
 {
-	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;

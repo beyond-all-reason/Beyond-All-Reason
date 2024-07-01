@@ -1,9 +1,12 @@
 
 #include "../recoil_common_includes.h"
 
-piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel, rflare, luparm, lblimb, lflimb, lcannon, lbarrel, lflare;
+//#define DEBUG
+#include "../debug.h"
 
-static-var  gun_1, isMoving, isAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
+piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel,  luparm, lblimb, lflimb, lcannon, lbarrel, rflare,lflare;
+
+static-var  gun_1, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, shotcount ; 
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -405,8 +408,6 @@ Create()
 	hide aimy1;
 	gun_1 = 0;
 	isMoving = FALSE;
-	isAiming = FALSE;
-	wpnheading  = 0;
 	animSpeed = 6;
 	shotcount = 0;
 }
@@ -419,14 +420,15 @@ lua_UnitScriptLight(lightIndex, count)
 
 RestoreAfterDelay()
 {
-	sleep 3500;
 	set-signal-mask SIGNAL_AIM1;
-	turn aimx1 to x-axis <0> speed <75>;
-	turn aimy1 to y-axis <0> speed <75>;
+	sleep 3500;
+	//turn aimx1 to x-axis <0> speed <75>;
+	//turn aimy1 to y-axis <0> speed <75>;
+	
+	start-script CATT1_Restore();
+	dbg(1);
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	isAiming = FALSE;
-	wpnheading  = 0;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -436,44 +438,52 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = rflare;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lflare;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = rflare;
-	}
-	if( gun_1 == 3 )
-	{
-		pieceIndex = lflare;
-	}
-
+	// Called after each Shot
+	//dbg(gun_1);
+	pieceIndex = rflare + (gun_1 % 2);
 }
+
+
+
+#define CATT1_PIECE_Y aimy1
+#define CATT1_PIECE_X aimx1
+
+#define CATT1_MAX_VELOCITY <7.5>
+#define CATT1_ACCELERATION <0.5>
+#define CATT1_JERK <1.5>
+#define CATT1_PRECISION <5>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_RESTORE_DELAY 1000
+#define CATT1_PITCH_SPEED <75>
+
+#include "../constant_acceleration_turret_turning_1.h"
 
 AimWeapon1(heading, pitch)
 {
-	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
+	
 	signal SIGNAL_AIM1;
-	if (isAiming == 1) return;
-	turn aimy1 to y-axis heading speed <225.005495>;
-	turn aimx1 to x-axis <0.0> - pitch speed <75.005495>;
 	spin rbarrel around z-axis speed <1000>;
 	spin lbarrel around z-axis speed <1000>;
+
+
+	/*
+	turn aimy1 to y-axis heading speed <225.005495>;
+	turn aimx1 to x-axis <0.0> - pitch speed <75.005495>;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 2000){
-		isAiming = 1;
+	if ((wpn1_lasthead == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(wpn1_lasthead - heading), <11>)){
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		isAiming = 0;
 	}
-	wpnheading = heading;
+	wpn1_lasthead = heading;
+	*/
+	set-signal-mask SIGNAL_AIM1;
+
+	call-script CATT1_Aim(heading,pitch);
+
 	stop-spin rbarrel around z-axis decelerate <10>;
 	stop-spin lbarrel around z-axis decelerate <10>;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -481,46 +491,33 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	// only triggered on first salvo!
+	gun_1 = 0;
+	//dbg(gun_1);
 	turn aimy1 to x-axis <-1> now;
 	turn aimy1 to x-axis <0> speed <5>;
+}
 
-	if( gun_1 == 0 )
+Shot1()
+{
+	//dbg(gun_1);
+	
+	gun_1 = (gun_1  + 1) %6;
+	if (gun_1 <= 1) {
+		call-script lua_UnitScriptLight(2 - gun_1, shotcount);
+		shotcount = shotcount + 1;
+	}
+
+	if( gun_1 % 2 == 1 )
 	{
 		move rbarrel to z-axis [-1.5] speed [1000];
-		call-script lua_UnitScriptLight(2, shotcount);
-		shotcount = shotcount + 1;
 		sleep 100;
 		move rbarrel to z-axis [0] speed [6];
-		gun_1 = 1;
-		return (1);
 	}
-	if ( gun_1 == 1 )
-	{
+	else{
 		move lbarrel to z-axis [-1.5] speed [1000];
-		call-script lua_UnitScriptLight(1, shotcount);
-		shotcount = shotcount + 1;
 		sleep 100;
 		move lbarrel to z-axis [0] speed [6];
-		gun_1 = 2;
-		return (1);
-	}
-		if( gun_1 == 2 )
-	{
-		move rbarrel to z-axis [-1.5] speed [1000];
-		//call-script lua_UnitScriptLight(2, shotcount);
-		sleep 100;
-		move rbarrel to z-axis [0] speed [6];
-		gun_1 = 3;
-		return (1);
-	}
-	if ( gun_1 == 3 )
-	{
-		move lbarrel to z-axis [-1.5] speed [1000];
-		//call-script lua_UnitScriptLight(1, shotcount);
-		sleep 100;
-		move lbarrel to z-axis [0] speed [6];
-		gun_1 = 0;
-		return (1);
 	}
 }
 

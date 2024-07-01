@@ -13,6 +13,15 @@
 // 4. return (1) from AimWeaponX after call-script finishes
 // 5. Optionally call-script CATT1_Init() in Create()
 
+// Note: 
+// When a unit cannot aim at a valid target (blocked by friendlies)
+// then ALL AimWeapon() threads by the engine are terminated.
+// The side effect that manifests here, is that since we call-script CATT1_Aim() from AimWeapon,
+// we are still technically in the AimWeapon thread, and the CATT1_Aim() call. 
+// A workaround is to spawn start-script CATT1_Aim(pitch,heading); from AimWeaponX with a signal mask of zero
+// This ensures that the CATT1_Aim() thread is not killed when the AimWeapon thread is killed.
+// Then we have to manually set the signal mask for CATT_Aim() to the desired value.
+
 
 #ifndef CATT1_PIECE_Y
 	#define CATT1_PIECE_Y aimy
@@ -106,7 +115,7 @@ CATT1_Aim(heading, pitch){
 	// Then 
 	call-script TurretAccelerationAim1(heading, pitch);
 	*/
-	
+
 	// Local vars
 	var timetozero;
 	var deceleratethreshold;
@@ -157,8 +166,10 @@ CATT1_Aim(heading, pitch){
 			delta = heading - CATT1position ; 	
 
 			// Perform the turn with a NOW, this means that this will be run every frame!
-			turn CATT1_PIECE_Y to y-axis CATT1position now;
-			//turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
+			//turn CATT1_PIECE_Y to y-axis CATT1position now;
+
+			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
+			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
 		}
 		sleep 32;
 	}

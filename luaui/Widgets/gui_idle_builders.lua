@@ -32,13 +32,12 @@ local spec = Spring.GetSpectatingState()
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRectRound, UiElement, UiButton, UiUnit
 
 
-local spGetMouseState = Spring.GetMouseState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetFullBuildQueue = Spring.GetFullBuildQueue
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetMouseState = Spring.GetMouseState
 local spGetCommandQueue = Spring.GetCommandQueue
-local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local spGetFactoryCommands = Spring.GetFactoryCommands
 local myTeamID = Spring.GetMyTeamID()
 
 local floor = math.floor
@@ -60,7 +59,9 @@ local groupSize = 0
 local usedWidth = 0
 local usedHeight = 0
 local hovered = false
+local prevHovered = false
 local numGroups = 0
+local hoveredGroup
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
@@ -71,72 +72,40 @@ local buildmenuIsShowing = true
 local groupButtons = {}
 local existingGroups = {}
 local clicks = {}
+local unitList = {}
 
-local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
 local idleList = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
-local isBuilder = {}
-local isFactory = {}
-local isResurrector = {}
 local unitHumanName = {}
+local unitConf = {}
 local function refreshUnitDefs()
-	isBuilder = {}
-	isFactory = {}
-	isResurrector = {}
 	unitHumanName = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
-			isBuilder[unitDefID] = true
-		end
-
-		if unitDef.isFactory then
-			isFactory[unitDefID] = true
-		end
-
-		if unitDef.canResurrect then
-			isResurrector[unitDefID] = true
-		end
-
 		if unitDef.translatedHumanName then
 			unitHumanName[unitDefID] = unitDef.translatedHumanName
+		end
+		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
+			unitConf[unitDefID] = unitDef.isFactory
 		end
 	end
 end
 
-local function isIdleBuilder(unitID)
-	local udef = spGetUnitDefID(unitID)
-
-	if isBuilder[udef] or (showRez and isResurrector[udef]) then
-
-		--- can build
-		local buildQueue = spGetFullBuildQueue(unitID)
-		if not buildQueue[1] then
-			--- has no build queue
-			if not spGetUnitIsBeingBuilt(unitID) then
-				--- isnt under construction
-				if isFactory[udef] then
-					return true
-				else
-					if (spGetCommandQueue(unitID, 0) == 0) and not(spGetUnitMoveTypeData(unitID).aircraftState == "crashing") then
-						return true
-					end
-				end
-			end
-		elseif isFactory[udef] then
-			local qCount = 0
-			for _, thing in ipairs(buildQueue) do
-				for _, count in pairs(thing) do
-					qCount = qCount + count
-				end
-			end
-			if qCount <= nearIdle then
-				return true
-			end
-		end
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		widget:VisibleUnitAdded(unitID, unitDefID)--, Spring.GetUnitTeam(unitID))
 	end
-	return false
+end
+
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitConf[unitDefID] ~= nil then
+		unitList[unitID] = unitDefID
+	end
+end
+
+function widget:VisibleUnitRemoved(unitID)
+	unitList[unitID] = nil
 end
 
 local function checkGuishader(force)
@@ -155,6 +124,7 @@ local function checkGuishader(force)
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 end
+
 
 local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpacity)
 	--Spring.Debug.TraceFullEcho()
@@ -176,21 +146,15 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 end
 
 local function updateList()
-	if dlist then
-		dlist = gl.DeleteList(dlist)
-	end
-
+	local prevIdleList = idleList
 	idleList = {}
-	local myUnits = spGetTeamUnitsSorted(myTeamID)
-	for unitDefID, units in pairs(myUnits) do
-		if type(units) == 'table' then
-			for count, unitID in pairs(units) do
-				if count ~= 'n' and isIdleBuilder(unitID) then
-					if idleList[unitDefID] then
-						idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
-					else
-						idleList[unitDefID] = { unitID }
-					end
+	for unitID, unitDefID in pairs(unitList) do
+		if not (unitConf[unitDefID] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
+			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
+				if idleList[unitDefID] then
+					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
+				else
+					idleList[unitDefID] = { unitID }
 				end
 			end
 		end
@@ -198,9 +162,52 @@ local function updateList()
 
 	numGroups = 0
 	existingGroups = {}
-	for unitDefID, units in pairs(idleList) do
+	for unitDefID, _ in pairs(idleList) do
 		numGroups = numGroups + 1
 		existingGroups[numGroups] = unitDefID
+	end
+	local prevHoveredGroup = hoveredGroup
+	hoveredGroup = -1
+	local x, y, b, b2, b3 = spGetMouseState()
+	if groupButtons then
+		for i,v in pairs(groupButtons) do
+			if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+				hoveredGroup = groupButtons[i][5]
+				break
+			end
+		end
+	end
+
+	-- compare with previous idle list
+	local changes = false
+	for unitDefID, units in pairs(prevIdleList) do
+		if not idleList[unitDefID] or #idleList[unitDefID] ~= #units then
+			changes = true
+			break
+		end
+	end
+	if not changes then
+		for unitDefID, units in pairs(idleList) do
+			if not prevIdleList[unitDefID] or #prevIdleList[unitDefID] ~= #units then
+				changes = true
+				break
+			end
+		end
+	end
+	if hovered ~= prevHovered then
+		changes = true
+	end
+	prevHovered = hovered
+	if not changes then
+		if not hovered then
+			return
+		elseif hoveredGroup == prevHoveredGroup then
+			return
+		end
+	end
+
+	if dlist then
+		dlist = gl.DeleteList(dlist)
 	end
 
 	if numGroups == 0 and not alwaysShow then
@@ -259,17 +266,6 @@ local function updateList()
 			end
 
 			if numGroups > 0 then
-				local hoveredGroup = -1
-				local x, y, b, b2, b3 = spGetMouseState()
-				if groupButtons then
-					for i,v in pairs(groupButtons) do
-						if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-							hoveredGroup = groupButtons[i][5]
-							break
-						end
-					end
-				end
-
 				local groupCounter = 0
 				groupButtons = {}
 				for group=1, maxGroups do
@@ -497,6 +493,11 @@ function widget:Initialize()
 	WG['idlebuilders'].getPosition = function()
 		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
+
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	end
+
 	updateList()
 end
 
@@ -517,8 +518,10 @@ local sec = 0
 local sec2 = 0
 local doUpdate = true
 local timerStart = Spring.GetTimer()
-function Update()
-	if Spring.GetGameFrame() <= initializeGameFrame then return end
+local function Update()
+	if Spring.GetGameFrame() <= initializeGameFrame then
+		return
+	end
 	checkgroups = true
 	if not (not spec or showWhenSpec) then
 		return
@@ -572,8 +575,7 @@ function Update()
 		doUpdate = true
 	end
 
-
-	if sec > 0.4 then
+	if sec > 0.33 then
 		sec = 0
 		if WG['buildmenu'] then
 			if buildmenuBottomPosition ~= WG['buildmenu'].getBottomPosition() or buildmenuIsShowing ~= WG['buildmenu'].getIsShowing() then
@@ -590,7 +592,7 @@ function Update()
 			end
 		end
 
-		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
+		doUpdate = true	-- TODO: find a way to detect changes and only doUpdate then
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true

@@ -29,10 +29,12 @@ Deactivate()
 	move barrel1 to z-axis [-7] speed [28];
 	wait-for-move barrel1 along z-axis;
 
-	move aimy1 to y-axis [-7] speed [40];
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;
 	turn hat to x-axis <0> speed <60>;
+	wait-for-turn aimy1 around y-axis;
+	
+	move aimy1 to y-axis [-7] speed [40];
 	set ARMORED to 1;
 }
 

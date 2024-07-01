@@ -67,6 +67,7 @@ AimWeapon2(heading, pitch)
 	turn turret1 to y-axis heading speed <400.0>;
 	turn turret1 to x-axis <0.0> - pitch speed <400.0>;
 	wait-for-turn turret1 around y-axis;
+	return (1);
 }
 
 FireWeapon2()
@@ -91,6 +92,7 @@ AimWeapon1(heading, pitch)
 	turn turret2 to x-axis <0.0> - pitch speed <300.0>;
 	wait-for-turn turret2 around y-axis;
 	start-script RestoreAfterDelay();
+	return (1);
 }
 
 FireWeapon1()

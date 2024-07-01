@@ -4,10 +4,8 @@
 piece  torso, rflare, lflare, pelvis, lleg, rleg, rthigh, lthigh,
        lturret, lbarrel, rbarrel, rturret, lexhaust, rexhaust, lfoot, rfoot, aimx1, aimy1;
 
-static-var  isMoving, canAim, gun_3, restore_delay,  moveSpeed, currentSpeed, wpn2_lasthead;
+static-var  isMoving, gun_3, restore_delay,  moveSpeed, currentSpeed, wpn2_lasthead;
 
-// Signal definitions
-#define SIGNAL_AIM3 1024
 // Generated for N:\animations\armjeth_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -283,6 +281,8 @@ StopMoving(){
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
+#include "../opencloseanim.h"
+
 Create()
 {
 	hide rflare;
@@ -294,7 +294,6 @@ Create()
 	hide rflare;
 	hide lflare;
 	isMoving = FALSE;
-	canAim = 0;
 	gun_3 = torso;
 	restore_delay = 3000;
 	animSpeed = 3;
@@ -311,14 +310,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	if( canAim )
-	{
-		canAim = 0;
-		turn rturret to z-axis <0> speed <360>;
-		turn lturret to z-axis <0> speed <360>;
-		wait-for-turn rturret around z-axis;
-	}
 	set-signal-mask 0;
+	start-script OpenCloseAnim(0);
 	turn aimy1 to y-axis <0.0> speed <90.0>;
 	wpn2_lasthead = 0xbadface;
 }
@@ -331,7 +324,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -346,30 +339,37 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = rflare + gun_3;;
 }
 
-AimWeapon2(heading, pitch)
-{
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
-	if( !canAim )
-	{
+Open(){
 		turn lturret to z-axis <-45> speed <360>;
 		turn rturret to z-axis <45> speed <360>;
 		wait-for-turn lturret around z-axis;
-		canAim = 1;
-	}
-	while( !canAim )
-	{
-		return(0);
-	}
-	turn aimy1 to y-axis heading speed <275.0>;
+}
 
+Close(){
+		turn rturret to z-axis <0> speed <360>;
+		turn lturret to z-axis <0> speed <360>;
+		wait-for-turn rturret around z-axis;
+}
+
+AimWeapon2(heading, pitch)
+{
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM2;
+	start-script RestoreAfterDelay();
+	turn aimy1 to y-axis heading speed <275.0>;
+	
+	if (!IsOpen) {
+		return 0;
+	}
+	// Very important note:
+	// Because wait-for-turn often takes much longer than just two frames, so for units which continuous aim set
+	// make sure to NOT have a signal mask for this thread!
 	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
 		wpn2_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 	}
 	wpn2_lasthead = heading;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 

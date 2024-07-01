@@ -118,7 +118,6 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <300.0>;
 	turn gun to x-axis <0.0> - pitch speed <300.0>;
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))

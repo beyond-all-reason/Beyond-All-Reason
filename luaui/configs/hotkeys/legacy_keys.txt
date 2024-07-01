@@ -125,6 +125,8 @@ bind sc_z buildunit_armmoho
 bind Shift+sc_z buildunit_armmoho
 bind sc_z buildunit_cormoho
 bind Shift+sc_z buildunit_cormoho
+bind sc_z buildunit_legmoho
+bind Shift+sc_z buildunit_legmoho
 bind sc_z buildunit_cormexp
 bind Shift+sc_z buildunit_cormexp
 bind sc_z buildunit_coruwmex
