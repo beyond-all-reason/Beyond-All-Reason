@@ -42,6 +42,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -51,17 +52,12 @@ return {
 				collisionvolumescales = "68 178 68",
 				collisionvolumetype = "CylY",
 				damage = 1125,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 20,
-				hitdensity = 100,
 				metal = 270,
 				object = "Units/scavbuildings/CORWINT2_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

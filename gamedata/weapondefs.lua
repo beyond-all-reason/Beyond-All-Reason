@@ -18,7 +18,6 @@ local preProcFile  = 'gamedata/weapondefs_pre.lua'
 local postProcFile = 'gamedata/weapondefs_post.lua'
 
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 
 local section = 'weapondefs.lua'
 
@@ -42,7 +41,7 @@ end
 --  Load the raw LUA format weapondef files
 --
 
-local luaFiles = RecursiveFileSearch('weapons/', '*.lua')
+local luaFiles = VFS.DirList('weapons/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
 	local wdEnv = {}

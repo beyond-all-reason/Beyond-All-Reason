@@ -23,7 +23,7 @@ local info = {
 	license = "GNU GPL, v2 or later",
 	layer = 0,
 	version = 8,
-	enabled = true  -- loaded by default
+	enabled = true
 }
 
 local CMD_PRIORITY = 34571

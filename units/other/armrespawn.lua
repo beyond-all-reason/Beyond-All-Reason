@@ -42,10 +42,6 @@ return {
 		turnrate = 1,
 		upright = true,
 		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
-		-- buildoptions = {
-		-- 	"armcom",
-		-- 	"armassistdrone",
-		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
@@ -56,7 +52,6 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/seautil",
-			--iscommander = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

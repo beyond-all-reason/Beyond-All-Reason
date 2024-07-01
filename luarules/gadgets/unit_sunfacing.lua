@@ -50,15 +50,14 @@ function gadget:Initialize()
 		end
 
 		--only look for advsols that care about the sun (coradvsol sun agnostic chad)
-		--legadvsol to follow
-		--if (UnitDefNames.legadvsol) then
-			--advsols[UnitDefNames.legadvsol.id] = true
-		--end
+		if (UnitDefNames.legadvsol) then
+			advsols[UnitDefNames.legadvsol.id] = true
+		end
 
-		--if (UnitDefNames.legadvsol_scav) then
-			--advsols[UnitDefNames.legadvsol_scav.id] = true
-		--end
-		
+		if (UnitDefNames.legadvsol_scav) then
+			advsols[UnitDefNames.legadvsol_scav.id] = true
+		end
+
 		success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
 				
 		if success and mapinfo then

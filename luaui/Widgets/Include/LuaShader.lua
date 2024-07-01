@@ -184,9 +184,9 @@ mat4 mat4mix(mat4 a, mat4 b, float alpha) {
 // Additional helper functions useful in Spring
 
 vec2 heightmapUVatWorldPos(vec2 worldpos){
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = vec2(1.0) / mapSize.xy;
 	// Some texel magic to make the heightmap tex perfectly align:
-	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	vec2 heightmaptexel = vec2(8.0, 8.0);
 	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
 	vec2 uvhm = clamp(worldpos, heightmaptexel, mapSize.xy - heightmaptexel);
 	uvhm = uvhm	* inverseMapSize;
@@ -195,9 +195,9 @@ vec2 heightmapUVatWorldPos(vec2 worldpos){
 
 // This does 'mirror' style tiling of UVs like the way the map edge extension works
 vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = vec2(1.0) / mapSize.xy;
 	// Some texel magic to make the heightmap tex perfectly align:
-	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	vec2 heightmaptexel = vec2(8.0, 8.0);
 	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
 	vec2 uvhm = worldpos * inverseMapSize;
 	
@@ -567,6 +567,22 @@ function LuaShader:Compile(suppresswarnings)
 		--Spring.Echo(uniName, uniforms[uniName].location, uniforms[uniName].type, uniforms[uniName].size)
 		--Spring.Echo(uniName, uniforms[uniName].location)
 	end
+	
+	-- Note that the function call overhead to the LuaShader:SetUniformFloat is about 500ns
+	-- With this, a direct gl.Uniform call, this goes down to 100ns
+	self.uniformLocations = {}
+	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do 
+		for uniName, defaultvalue in pairs(uniformGeneric) do 
+			local location = glGetUniformLocation(shaderObj, uniName) 
+			if location then 
+				self.uniformLocations[uniName] = location 
+			else
+				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
+			end
+			
+		end
+	end
+
 	return true
 end
 

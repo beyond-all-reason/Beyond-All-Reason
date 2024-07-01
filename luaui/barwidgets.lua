@@ -201,7 +201,12 @@ local callInLists = {
 	'VisibleUnitsChanged',
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
-	'AlliedUnitsChanged'
+	'AlliedUnitsChanged',
+	'UnitSale',
+	'UnitSold',
+	'VisibleExplosion',
+	'Barrelfire',
+	'CrashingAircraft',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1333,10 +1338,12 @@ end
 
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
-	for _, w in r_ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
-		w:DrawWorld()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldList) do
+			tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
+			w:DrawWorld()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1344,10 +1351,12 @@ end
 
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
-	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
-		w:DrawWorldPreUnit()
-		tracy.ZoneEnd()
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWorldPreUnitList) do
+			tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
+			w:DrawWorldPreUnit()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -1408,7 +1417,6 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
-
 	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
@@ -1418,6 +1426,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -1805,7 +1814,9 @@ end
 function widgetHandler:GameStart()
 	tracy.ZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
+		tracy.ZoneBeginN("W:GameStart:" .. w.whInfo.name)
 		w:GameStart()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2395,6 +2406,38 @@ end
 
 --------------------------------------------------------------------------------
 --
+--  GFX
+--
+
+function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:VisibleExplosion")
+	for _, w in ipairs(self.VisibleExplosionList) do
+		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:Barrelfire")
+	for _, w in ipairs(self.BarrelfireList) do
+		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("W:CrashingAircraft")
+	for _, w in ipairs(self.CrashingAircraftList) do
+		w:CrashingAircraft(unitID, unitDefID, unitTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+--------------------------------------------------------------------------------
+--
 --  Feature call-ins
 --
 
@@ -2411,6 +2454,30 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracy.ZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+
+--------------------------------------------------------------------------------
+--
+--  Unit Market
+--
+
+function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSale")
+	for _, w in ipairs(self.UnitSaleList) do
+		w:UnitSale(unitID, price, msgFromTeamID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
+	tracy.ZoneBeginN("W:UnitSold")
+	for _, w in ipairs(self.UnitSoldList) do
+		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
 	tracy.ZoneEnd()
 	return

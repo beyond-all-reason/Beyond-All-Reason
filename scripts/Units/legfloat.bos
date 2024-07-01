@@ -21,6 +21,7 @@ Steering(heading, steery, currentspeed)
 	{
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > 0 )
 		{
+			move hull to y-axis [0] speed [8];
 			turn rankle to x-axis <0.000000> speed <100.000000>;
 			turn lankle to x-axis <0.000000> speed <100.000000>;
 			heading = get HEADING;
@@ -39,6 +40,7 @@ Steering(heading, steery, currentspeed)
 		}
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) <= 0 )
 		{
+			move hull to y-axis [-8] speed [2.5000000];
 			turn rankle to y-axis <0.000000> speed <75.000000>;
 			turn lankle to y-axis <0.000000> speed <75.000000>;
 			stop-spin rwheel around x-axis decelerate <5.000000>;

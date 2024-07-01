@@ -282,7 +282,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			break
 		end
 	end
-	if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+	if string.find(UnitDefs[unitDefID].name, "scavbeacon") then
 		if math.random() <= 0.33 then
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			SpawnLootbox(posx, posy, posz)

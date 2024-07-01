@@ -251,7 +251,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 2002, py = 0, pz = 2719}},
     {cmdID = CMD.PATROL, position = {px = 1545, py = 0, pz = 4059}},
     }},
-    {name = "corcarry2", x = 372, y = 0, z = 3418, rot = -14339, teamID = 5, queue = {
+    {name = "cordronecarry", x = 372, y = 0, z = 3418, rot = -14339, teamID = 5, queue = {
     {cmdID = CMD.MOVE, position = {px = 1048, py = 0, pz = 3196}},
     {cmdID = CMD.PATROL, position = {px = 2060, py = 0, pz = 2486}},
     {cmdID = CMD.PATROL, position = {px = 1603, py = 0, pz = 3825}},
@@ -261,7 +261,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 1902, py = 0, pz = 2197}},
     {cmdID = CMD.PATROL, position = {px = 1445, py = 0, pz = 3536}},
     }},
-    {name = "corcarry2", x = 73, y = 0, z = 3292, rot = -20175, teamID = 5, queue = {
+    {name = "cordronecarry", x = 73, y = 0, z = 3292, rot = -20175, teamID = 5, queue = {
     {cmdID = CMD.MOVE, position = {px = 749, py = 0, pz = 3070}},
     {cmdID = CMD.PATROL, position = {px = 1761, py = 0, pz = 2360}},
     {cmdID = CMD.PATROL, position = {px = 1304, py = 0, pz = 3699}},
@@ -291,7 +291,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 3531, py = -81, pz = 1269}},
     {cmdID = CMD.PATROL, position = {px = 4317, py = -81, pz = 1882}},
     }},
-    {name = "corcarry2", x = 4272, y = 0, z = 350, rot = 30329, teamID = 4, queue = {
+    {name = "cordronecarry", x = 4272, y = 0, z = 350, rot = 30329, teamID = 4, queue = {
     {cmdID = CMD.MOVE, position = {px = 3892, py = 0, pz = 955}},
     {cmdID = CMD.PATROL, position = {px = 3353, py = 0, pz = 1411}},
     {cmdID = CMD.PATROL, position = {px = 4140, py = 0, pz = 2024}},
@@ -341,7 +341,7 @@ local loadout = {
     {cmdID = CMD.PATROL, position = {px = 3475, py = 0, pz = 1109}},
     {cmdID = CMD.PATROL, position = {px = 4261, py = 0, pz = 1722}},
     }},
-    {name = "corcarry2", x = 4283, y = 0, z = 65, rot = 20132, teamID = 4, queue = {
+    {name = "cordronecarry", x = 4283, y = 0, z = 65, rot = 20132, teamID = 4, queue = {
     {cmdID = CMD.MOVE, position = {px = 3902, py = 0, pz = 669}},
     {cmdID = CMD.PATROL, position = {px = 3363, py = 0, pz = 1126}},
     {cmdID = CMD.PATROL, position = {px = 4150, py = 0, pz = 1739}},

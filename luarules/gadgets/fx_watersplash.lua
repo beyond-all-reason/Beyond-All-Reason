@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date      = "April,2012",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true,  --  loaded by default?
+		enabled   = true,
 	}
 end
 
@@ -101,9 +101,14 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 end
 
 function gadget:Initialize()
-	for _,wDef in pairs(WeaponDefs) do
-		if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
-			Script.SetWatchExplosion(wDef.id, true)
+	local minHeight, maxHeight = Spring.GetGroundExtremes()
+	if minHeight < 100 then 
+		for _,wDef in pairs(WeaponDefs) do
+			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
+				Script.SetWatchExplosion(wDef.id, true)
+			end
 		end
+	else
+		gadgetHandler:RemoveGadget(self)
 	end
 end

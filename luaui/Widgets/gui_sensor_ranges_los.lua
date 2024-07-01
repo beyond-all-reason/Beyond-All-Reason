@@ -103,7 +103,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitHealth = Spring.GetUnitHealth
 local glColor = gl.Color
 local glColorMask = gl.ColorMask
 local glDepthTest = gl.DepthTest
@@ -166,6 +165,53 @@ function widget:PlayerChanged()
 	end
 end
 
+local function CalculateOverlapping()
+	local allcircles = circleInstanceVBO.indextoInstanceID
+	local totalcircles = 0
+	local totaloverlapping = 0
+	local inviewcircles = 0
+	local inviewoverlapping = 0
+	
+	for index, unitID in ipairs(allcircles) do 
+		local px,py,pz = Spring.GetUnitPosition(unitID)
+		--Spring.Echo(px,py,pz)
+		if px then 
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local losrange = unitRange[unitDefID]
+			totalcircles = totalcircles + 1
+			-- check for overlap
+			local overlaps = False
+			for index2, unitID2 in ipairs(allcircles) do 
+				local unitDefID2 = Spring.GetUnitDefID(unitID2)
+				local losrange2 = unitRange[unitDefID2]
+				--Spring.Echo(losrange2, losrange)
+				if losrange2 > losrange then 
+					local px2, py2, pz2 = Spring.GetUnitPosition(unitID2)
+					--Spring.Echo(px-px2, pz-pz2, losrange2, losrange)
+					if px2 and (math.diag(px-px2, pz-pz2) < losrange2 - losrange) then
+						overlaps = true
+					end
+				end
+			end
+			
+			
+			
+			if Spring.IsSphereInView(px,py,pz,losrange) then
+				inviewcircles =inviewcircles + 1
+				if overlaps then inviewoverlapping = inviewoverlapping + 1 end
+			end	
+			if overlaps then totaloverlapping = totaloverlapping + 1 end
+		end
+	end
+	return totalcircles, totaloverlapping, inviewcircles, inviewoverlapping
+end
+
+function widget:TextCommand(command)
+	if string.find(command, "loscircleoverlap", nil, true) then
+			Spring.Echo("CalculateOverlapping", CalculateOverlapping())
+	end
+end
+
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -202,9 +248,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
-	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress < 0.99 then return end
+
+	if Spring.GetUnitIsBeingBuilt(unitID) then return end
 
 	instanceCache[1] =  unitRange[unitDefID] 
 	pushElementInstance(circleInstanceVBO,
@@ -229,6 +274,7 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
+	
 	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	if circleInstanceVBO.usedElements == 0 then return end
 	if opacity < 0.01 then return end

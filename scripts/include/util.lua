@@ -1,8 +1,6 @@
---Maybe use not Spring.GetUnitIsBuilding(unitID) ?
---Returns true if Cob BUILD_PERCENT_LEFT is not zero
+
 function still_building()
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID);
-	if (buildProgress == 1) then return false; else return true; end
+	return Spring.GetUnitIsBeingBuilt(unitID);
 end
 
 function get_health_percent()

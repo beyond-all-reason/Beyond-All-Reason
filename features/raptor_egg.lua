@@ -4,7 +4,6 @@ local raptor_egg =  {
     category = "corpses",
     damage = 10000,
     energy = 1000,
-    featurereclamate = "SMUDGE01",
     footprintx = 1,
     footprintz = 1,
     height = 15,
@@ -13,7 +12,6 @@ local raptor_egg =  {
     mass = 100,
     reclaimable = 1,
     resurrectable = 0,
-    world = "All Worlds",
     smokeTime = 0,
 
     --collisions

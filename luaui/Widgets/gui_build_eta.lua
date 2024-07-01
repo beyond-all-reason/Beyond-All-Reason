@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2007",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -14,7 +14,8 @@ local lastGameUpdate = Spring.GetGameSeconds()
 
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetGameSeconds = Spring.GetGameSeconds
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
@@ -30,6 +31,7 @@ local font
 
 local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
+local blinkTime = 20
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -45,8 +47,8 @@ local function makeETA(unitID, unitDefID)
 	if unitDefID == nil then
 		return nil
 	end
-	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-	if buildProgress == nil or buildProgress >= 1  then
+	local isBuilding, buildProgress = spGetUnitIsBeingBuilt(unitID)
+	if not isBuilding  then
 		return nil
 	end
 
@@ -87,8 +89,8 @@ function widget:Update(dt)
 	local killTable = {}
 	local count = 0
 	for unitID, bi in pairs(etaTable) do
-		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-		if not buildProgress or buildProgress >= 1.0 then
+		local isBuilding, buildProgress = spGetUnitIsBeingBuilt(unitID)
+		if not isBuilding then
 			count = count + 1
 			killTable[count] = unitID
 		else
@@ -124,9 +126,9 @@ function widget:Update(dt)
 							bi.timeLeft = (1 - buildProgress) / rate
 						end
 					elseif rate < 0 then
-						local newTime = buildProgress / rate
+						local newTime = buildProgress / bi.rate -- use smooth rate
 						if bi.timeLeft and bi.timeLeft < 0 then
-							bi.timeLeft = ((1 - tf) * bi.timeLeft) + (tf * newTime)
+							bi.timeLeft = newTime -- we don't need to smoothen the time if the rate is smooth
 						else
 							bi.timeLeft = buildProgress / rate
 						end
@@ -175,16 +177,19 @@ local function drawEtaText(timeLeft, yoffset)
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
+		local canceled = timeLeft<0
+		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame()%blinkTime>=blinkTime/2) and "\255\255\255\255" or"\255\255\1\1")..Spring.I18N('ui.buildEstimate.cancelled').." ")
+		timeLeft = math.abs(timeLeft)
 		local minutes = timeLeft / 60
 		local seconds = timeLeft % 60
-		etaText = etaPrefix .. string.format("\255\1\255\1%02d:%02d", minutes, seconds)
+		etaText = etaPrefix .. string.format((not canceled and "\255\1\255\1" or "") .. "%02d:%02d", minutes, seconds)
 	end
 
 	glTranslate(0, yoffset, 10)
 	glBillboard()
 	glTranslate(0, 5, 0)
 	font:Begin()
-	font:Print(etaText, 0, 0, 6, "co")
+	font:Print(etaText, 0, -10, 6, "co")
 	font:End()
 end
 

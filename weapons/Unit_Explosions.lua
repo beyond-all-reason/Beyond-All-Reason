@@ -2116,7 +2116,7 @@ local unitDeaths = {
 		}
 	},
 
-	mistexplosm = {    -- for scavmist
+	mistexplo = {    -- for scavmist
 		areaofeffect = 200,
 		craterboost = 0,
 		cratermult = 0,
@@ -2127,18 +2127,18 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 5,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 1670,
+			default = 3000,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
 
-	mistexplo = {    -- for scavmist
+	mistexploxl = {    -- for scavmist
 		areaofeffect = 350,
 		craterboost = 0,
 		cratermult = 0,
@@ -2149,18 +2149,18 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 10,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 2800,
+			default = 6000,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
 
-	mistexploxl = {    -- for scavmist
+	mistexploxxl = {    -- for scavmist
 		areaofeffect = 400,
 		craterboost = 0,
 		cratermult = 0,
@@ -2171,11 +2171,11 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 12,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 3900,
+			default = 20000,
 		},
 		customparams = {
 			unitexplosion = 1,

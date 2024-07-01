@@ -6,7 +6,7 @@ function widget:GetInfo()
 	date      = "",
 	license   = "GNU GPL, v2 or later",
 	layer     = 999999,
-	enabled   = false  --  loaded by a horse?
+	enabled   = false
 	}
 end
 

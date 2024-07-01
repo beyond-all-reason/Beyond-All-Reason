@@ -38,10 +38,11 @@ return {
 			unitgroup = 'energy',
 			energymultiplier = 10, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
 			model_author = "Yzch",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -51,17 +52,12 @@ return {
 				collisionvolumescales = "68 178 68",
 				collisionvolumetype = "CylY",
 				damage = 1125,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
 				footprintx = 6,
 				footprintz = 6,
 				height = 20,
-				hitdensity = 100,
 				metal = 270,
 				object = "Units/scavbuildings/LEGWINT2_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

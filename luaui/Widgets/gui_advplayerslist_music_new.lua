@@ -260,10 +260,18 @@ local prevPlayedTime = playedTime
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+if maxMusicVolume > 99 then
+	Spring.SetConfigInt("snd_volmusic", 99)
+	maxMusicVolume = 99
+end
 local volume = Spring.GetConfigInt("snd_volmaster", 80)
+if volume > 80 then
+	Spring.SetConfigInt("snd_volmaster", 80)
+	volume = 80
+end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
+local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -273,7 +281,7 @@ local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
 
 local vsx, vsy = Spring.GetViewGeometry()
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 local shutdown
@@ -789,14 +797,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
@@ -1100,6 +1101,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if not boomboxTracks[boomboxTracksPlayCounter] then
 			boomboxTracksPlayCounter = 1
 		end
+		if Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) < 10 then
+			Spring.SetConfigInt("snd_volmusic", defaultMusicVolume)
+		end
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
@@ -1110,5 +1114,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		fadeOutSkipTrack = false
 		setMusicVolume(100)
 		createList()
+		Spring.SetConfigInt("boomboxcaptured", 1)
 	end
 end

@@ -35,6 +35,7 @@ return {
 		sightdistance = 1,
 		yardmap = "ffff",
 		customparams = {
+			unitgroup = "util",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corfort_aoplane.dds",
 			buildinggrounddecalsizey = 4,
@@ -62,12 +63,10 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 7,
 				object = "Units/cor1X1B.s3o",
 				reclaimable = true,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

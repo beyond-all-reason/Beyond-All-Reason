@@ -74,6 +74,45 @@ scanToCode["colemak"] = {
 	["\\"] = "\\",
 }
 
+scanToCode["colemak-dh"] = {
+	Q = "Q",
+	W = "W",
+	E = "F",
+	R = "P",
+	T = "B",
+	Y = "J",
+	U = "L",
+	I = "U",
+	O = "Y",
+	P = ";",
+	A = "A",
+	S = "R",
+	D = "S",
+	F = "T",
+	G = "G",
+	H = "M",
+	J = "N",
+	K = "E",
+	L = "I",
+	[";"] = "O",
+	Z = "Z",
+	X = "X",
+	C = "C",
+	V = "D",
+	B = "V",
+	N = "K",
+	M = "M",
+	["'"] = "'",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "/",
+	["`"] = "`",
+	["-"] = "-",
+	["="] = "=",
+	["\\"] = "\\",
+}
+
+
 scanToCode["dvorak"] = {
 	Q = "'",
 	W = ",",
@@ -163,6 +202,7 @@ local layouts = {
 	'qwertz',
 	'azerty',
 	'colemak',
+	'colemak-dh',
 	'dvorak',
 	'de-neo',
 }
@@ -183,19 +223,19 @@ local function sanitizeKey(key, layout)
 end
 
 local keybindingLayouts = {
-	'Default',
-	'Default 60% Keyboard',
-	'Grid Optimized',
-	'Grid Optimized 60% Keyboard',
+	'Grid', -- the first element will be the default value if a fallback is ever needed
+	'Grid (60% Keyboard)',
+	'Legacy',
+	'Legacy (60% Keyboard)',
 	'Custom'
 }
 
 local keybindingPresets = {
-	['Default'] = 'luaui/configs/hotkeys/default_keys.txt',
-	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
-	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
-	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	['Custom'] = 'uikeys.txt',
+	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
+	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
+	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
+	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
+	[keybindingLayouts[5]] = 'uikeys.txt',
 }
 
 local keybindingLayoutFiles = {}

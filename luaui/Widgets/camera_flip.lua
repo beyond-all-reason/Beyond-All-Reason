@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 	return {
 		name = "CameraFlip",
@@ -14,23 +13,34 @@ end
 local function cameraFlipHandler()
 	local camState = Spring.GetCameraState()
 
-	if camState.mode == 2 then
-		camState.ry = camState.ry + math.pi
+	if camState.mode ~= 1 and camState.mode ~= 2 then
+		return false
+	end --do nothing unless overhead or spring cam
 
-		Spring.SetCameraState(camState, 0)
-
-		return
-	end
-
-	if camState.mode ~= 1 and camState.mode ~= 5 then
-		return
-	end --do nothing unless overhead cam or smooth cam
-	
-	--Spring.Echo(camState.flipped)
-	if camState.flipped then
+	if camState.flipped then -- camera is overhead cam
 		camState.flipped = camState.flipped * -1
+
 		Spring.SetCameraState(camState, 0)
+
+		return true
 	end
+
+	-- camera is spring cam
+	-- CardinalLock messes up rotation
+	local previousLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
+
+	if previousLock == 1 then
+		Spring.SetConfigInt("CamSpringLockCardinalDirections", 0)
+	end
+
+	camState.ry = camState.ry + math.pi
+	Spring.SetCameraState(camState, 0)
+
+	if previousLock == 1 then
+		Spring.SetConfigInt("CamSpringLockCardinalDirections", previousLock)
+	end
+
+	return true
 end
 
 function widget:Initialize()

@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -15,6 +15,8 @@ local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua")
 if Game.startPosType ~= 2 then
 	return false
 end
+
+local draftMode = Spring.GetModOptions().draft_mode
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -185,7 +187,9 @@ local function createInfotextList()
 	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
+		if draftMode == nil or draftMode == "disabled" then
+			font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
+		end
 		font:End()
 	end)
 end
@@ -526,9 +530,11 @@ function widget:Update(delta)
 		end
 	end
 
-	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
-		playedChooseStartLoc = true
-		WG['notifications'].addEvent('ChooseStartLoc', true)
+	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
+		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+			playedChooseStartLoc = true
+			WG['notifications'].addEvent('ChooseStartLoc', true)
+		end
 	end
 
 	sec = sec + delta

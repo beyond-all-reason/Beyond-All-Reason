@@ -264,14 +264,13 @@ void main() {
 		lacunarity = 2.5;
 		minlightningcolor = vec3(0.1, 0.1, 1.0); //blue
 		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
-		wholeunitbasecolor = vec4(0.39, 0.43, 0.94, 0.30); // light blue base tone
+		wholeunitbasecolor = vec4(0.49, 0.43, 0.94, 0.35); // light blue base tone
 		lightningalpha = 1.2;
 		lighting_sharpness = 4.8; 
 		lighting_width = 3.8;
 		lightning_speed = 0.95;
 	}
 	// ------------------ CONFIG END --------------------
-	
 	
 	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
@@ -286,6 +285,8 @@ void main() {
 	vec3 lightningcolor;
 	float effectalpha;
 	if (paralysis_level < 0.9999) { 
+		//empreworktagdonotremove
+		//empreworkherealsodonotremove
 		// Calculate the lightning color based on the amount of electricity
 		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity); 
 		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
@@ -300,6 +301,12 @@ void main() {
 	fragColor = max(wholeunitbasecolor, fragColor); // apply whole unit base color	
 }
 ]]
+
+--holy hacks batman
+if Spring.GetModOptions().emprework then
+	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
+	fsSrc = string.gsub(fsSrc,'//empreworkherealsodonotremove','if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }')
+end
 
 local paralyzedDrawUnitVBOTable
 

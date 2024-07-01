@@ -30,6 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		['armsilo'] = 10,
 		['corsilo'] = 10,
+		['legsilo'] = 10,
 
 		['armamd'] = 20,
 		['corfmd'] = 20,
@@ -50,13 +51,28 @@ if gadgetHandler:IsSyncedCode() then
 
 		['armemp'] = 10,
 		['cortron'] = 10,
+		['legperdition'] = 10,
 
 		['armbotrail'] = 50,
-
+		['armcomlvl2'] = 30,
+		['armcomlvl3'] = 30,
+		['armcomlvl4'] = 30,
+		['armcomlvl5'] = 30,
+		['armcomlvl6'] = 30,
+		['armcomlvl7'] = 30,
+		['armcomlvl8'] = 30,
+		['armcomlvl9'] = 30,
+		['armcomlvl10'] = 30,
 		['legcom'] = 2,
-		['legcomlvl2'] = 2,
-		['legcomlvl3'] = 3,
-		['legcomlvl4'] = 4,
+		['legcomlvl2'] = 5,
+		['legcomlvl3'] = 5,
+		['legcomlvl4'] = 5,
+		['legcomlvl5'] = 5,
+		['legcomlvl6'] = 5,
+		['legcomlvl7'] = 5,
+		['legcomlvl8'] = 5,
+		['legcomlvl9'] = 5,
+		['legcomlvl10'] = 5,
 
 		['legstarfall'] = 1,
 	}
@@ -169,13 +185,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
-			UpdateStockpile(unitID, unitDefID)
-		end
-	end
-
-	function gadget:UnitCaptured(unitID, unitDefID, unitTeam)
 		if canStockpile[unitDefID] then
 			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
 			UpdateStockpile(unitID, unitDefID)
