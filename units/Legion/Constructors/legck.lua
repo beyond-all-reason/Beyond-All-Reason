@@ -26,8 +26,8 @@ return {
 		speed = 34.5,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
-		objectname = "Units/CORCK.s3o",
-		script = "Units/CORCK.cob",
+		objectname = "Units/LEGCK.s3o",
+		script = "Units/LEGCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 299,
@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.759,
 		turnrate = 1201.75,
-		upright = true,
+		upright = false,
 		workertime = 80,
 		buildoptions = {
 			"legsolar",
@@ -73,8 +73,8 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mexT15_def = "legmext15",
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots",
 		},
 		featuredefs = {
@@ -90,7 +90,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 73,
-				object = "Units/corck_dead.s3o",
+				object = "Units/legck_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

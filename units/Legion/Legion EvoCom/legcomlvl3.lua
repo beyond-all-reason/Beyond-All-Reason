@@ -114,7 +114,8 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 3,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -131,6 +132,9 @@ return {
 			inheritxpratemultiplier = 0.25,
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
+			effigy = "comeffigylvl2",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

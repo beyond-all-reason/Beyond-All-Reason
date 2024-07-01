@@ -5,12 +5,10 @@
 
 #define SIG_BUILD		2	
 
-piece  base, aimy1, turret, aimx1, sleeve, nanogun, flare1, flare2, larmor, rarmor, susfl, susfr, susbl, susbr, wheelfl, wheelfr, wheelbl, wheelbr;
+piece  flare1, flare2, base, aimy1, turret, aimx1, sleeve, nanogun, larmor, rarmor, 
+	   susfl, susfr, susbl, susbr, wheelfl, wheelfr, wheelbl, wheelbr;
 
-static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging, currentSpeed, wheelSpeed, movespeed;
-
-static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-
+static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging, currentSpeed, wheelSpeed, movespeed, animSpeed, maxSpeed, animFramesPerKeyframe, gun;
 
 #define BASEPIECE base
 #define HITSPEED <65.0>
@@ -67,8 +65,6 @@ Stop()
 
 	move nanogun to y-axis [0] speed [8];
 	
-
-	
 	turn aimy1 to y-axis <0> speed <240>;
 	move aimy1 to z-axis [0] speed [20];
 	
@@ -123,6 +119,7 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	bMoving = FALSE;
 	notBuilding = 1;
+	gun = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	animSpeed = 4;
@@ -154,9 +151,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	hide flare1;
-	hide flare2;
-	signal SIG_BUILD;	
+    signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
@@ -176,7 +171,8 @@ StopMoving()
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = flare1;
+	piecenum = gun;
+	gun = !gun;
 }
 
 AimPrimary(heading, pitch)

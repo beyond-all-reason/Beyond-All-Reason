@@ -5,7 +5,7 @@ return {
 		maxdec = 0.02757,
 		buildangle = 16384,
 		energycost = 8000,
-		metalcost = 820,
+		metalcost = 760,
 		buildpic = "legtriariusdrone.DDS",
 		buildtime = 11500,
 		canmove = true,
@@ -209,7 +209,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "heatroy",
 				onlytargetcategory = "SURFACE",
-				fastautoretargeting = true,
+				fastautoretargeting = false,
 			},
 		
 			[2] = {
