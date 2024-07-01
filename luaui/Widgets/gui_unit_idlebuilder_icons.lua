@@ -23,7 +23,7 @@ local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
 local spGetCommandQueue = Spring.GetCommandQueue
-local spGetFactoryCounts = Spring.GetFactoryCounts
+local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -111,19 +111,10 @@ function widget:Initialize()
 	end
 end
 
-local function isFactoryQueueEmpty(unitID)
-	local counts = spGetFactoryCounts(unitID, 1, false)
-	if not counts then return false end
-	for uDefID, count in pairs(counts) do
-		if count ~= 0 then
-			return false
-		end
-	end
-	return true
-end
 
 local function updateIcon(unitID, unitDefID, gf)
-	if (unitConf[unitDefID][3] and isFactoryQueueEmpty(unitID)) or not spGetCommandQueue(unitID, 1)[1] then
+	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+	if not (queue and queue[1]) then
 		if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if not idleUnitList[unitID] then
