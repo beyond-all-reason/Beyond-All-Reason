@@ -94,12 +94,12 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID)--, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitConf[unitDefID] ~= nil then
+	if myTeamID == unitTeam and unitConf[unitDefID] ~= nil then
 		unitList[unitID] = unitDefID
 	end
 end
