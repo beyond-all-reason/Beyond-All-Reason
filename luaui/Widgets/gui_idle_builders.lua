@@ -148,8 +148,10 @@ end
 local function updateList()
 	local prevIdleList = idleList
 	idleList = {}
+	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		if not (unitConf[unitDefID] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+		if not (queue and queue[1) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
