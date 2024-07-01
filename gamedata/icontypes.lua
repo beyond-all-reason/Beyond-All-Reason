@@ -663,6 +663,14 @@ local icontypes = {
 		bitmap = "icons/armpwt4.png",
 		size = 2.30999994
 	},
+	squadarmpw = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadarmpwt4 = {
+		bitmap = "icons/armpwt4.png",
+		size = 2.30999994
+	},
 	armrad = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
@@ -843,6 +851,14 @@ local icontypes = {
 		bitmap = "icons/armsptkt4.png",
 		size = 2.30999994
 	},
+	squadarmsptk = {
+		bitmap = "icons/armsptk_1.44.png",
+		size = 1.65199995
+	},
+	squadarmsptkt4 = {
+		bitmap = "icons/armsptkt4.png",
+		size = 2.30999994
+	},
 	armspy = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
@@ -955,6 +971,10 @@ local icontypes = {
 		bitmap = "icons/armvader_0.9.png",
 		size = 0.94499993
 	},
+	babyarmvader = {
+		bitmap = "icons/armvader_0.9.png",
+		size = 0.94499993
+	},
 	armvadert4 = {
 		bitmap = "icons/armvadert4.png",
 		size = 2.625
@@ -1060,6 +1080,14 @@ local icontypes = {
 		size = 0.73499995
 	},
 	corakt4 = {
+		bitmap = "icons/corakt4.png",
+		size = 1.7
+	},
+	squadcorak = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadcorakt4 = {
 		bitmap = "icons/corakt4.png",
 		size = 1.7
 	},
@@ -1488,6 +1516,14 @@ local icontypes = {
 		size = 2.424999
 	},
 	corkarganetht4 = {
+		bitmap = "icons/corkarganetht4.png",
+		size = 3.14999986
+	},
+	squadcorkarg = {
+		bitmap = "icons/corkarg_2.05.png",
+		size = 2.424999
+	},
+	squadcorkarganetht4 = {
 		bitmap = "icons/corkarganetht4.png",
 		size = 3.14999986
 	},
@@ -2051,6 +2087,10 @@ local icontypes = {
 		bitmap = "icons/def_t2_arty.png",
 		size = 1.57499993
 	},
+	legamcluster = {
+		bitmap = "icons/vehicle_arty_t2.png",
+		size = 1.36499989
+	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.36499989
@@ -2075,7 +2115,18 @@ local icontypes = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
-	
+	legaskirmtank = {
+		bitmap = "icons/vehicle_t2_tank_triplasma.png",
+		size = 1.36999991
+	},
+	legavroc = {
+		bitmap = "icons/vehicle_t2_vroc.png",
+		size = 1.62749982
+	},
+	legaheattank = {
+		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
+		size = 1.73749986
+	},
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -2185,7 +2236,6 @@ local icontypes = {
 		bitmap = "icons/legcom.png",
 		size = 1.60000002
 	},
-
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2207,7 +2257,7 @@ local icontypes = {
 		size = 0.41999999
 	},
 	leghive = {
-		bitmap = "icons/leghive.png",
+		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
 	},
 	legdrone = {
@@ -2243,6 +2293,10 @@ local icontypes = {
 		size = 1.29999995
 	},
 	leggob = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.60000002
+	},
+	babyleggob = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
 	},
@@ -2318,6 +2372,10 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
 	},
+	babyleglob = {
+		bitmap = "icons/bot_plasma_t1.png",
+		size = 0.80000001
+	},
 	leglupara = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
@@ -2342,9 +2400,17 @@ local icontypes = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},
-	legmext2 = {
+	legmstor = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
+	},
+	legamstor = {
+		bitmap = "icons/metalstorage_t2.png",
+		size = 1.3125
 	},
 	legmg = {
 		bitmap = "icons/defence_2_mg.png",
@@ -2438,6 +2504,10 @@ local icontypes = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
 	},
+	babylegshot = {
+		bitmap = "icons/kbot_t2_shotgun.png",
+		size = 1.60000002
+	},
 	legsnapper = {
 		bitmap = "icons/corroach_0.9.png",
 		size = 0.94499993
@@ -2490,10 +2560,8 @@ local icontypes = {
 		bitmap = "icons/sub.png",
 		size = 1.29999995
 	},
-
-
 	legvcarry = {
-		bitmap = "icons/vehicle_t2_carry.png",
+		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
 	},
 	legvelite = {

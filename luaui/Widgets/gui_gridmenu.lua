@@ -7,6 +7,7 @@
 -- gridmenu_cycle_builder <-- Go to next selected builder menu
 
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
+-- PERF: updateGrid should be replaced by a method that only updates prices on cells on places where setLabBuildMode is used followed by updateGrid
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -533,7 +534,7 @@ local function updateQueueNr(unitDefID, count)
 		queuenr = nil
 	end
 
-	if previousQueuenr == cellRect.opts.queuenr then
+	if previousQueuenr == queuenr then
 		return
 	end
 
@@ -606,15 +607,17 @@ local function updateGrid()
 	uDefCellIds = {}
 
 	local showHotkeys = (builderIsFactory and not useLabBuildMode)
-		or (builderIsFactory and (useLabBuildMode and labBuildModeActive))
+		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
 		or (activeBuilder and currentCategory)
+
+	local offset = (currentPage - 1) * cellCount
 
 	for row = 1, 3 do
 		for col = 1, 4 do
 			cellRectID = cellRectID + 1
 
 			-- offset for pages
-			local index = cellRectID + ((currentPage - 1) * cellCount)
+			local index = cellRectID + offset
 
 			local uDefID
 			local cmd = gridOpts[index]
@@ -633,6 +636,8 @@ local function updateGrid()
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
 					rect.opts.hotkey = keyConfig.sanitizeKey(hotkey, currentLayout)
+				else
+					rect.opts.hotkey = nil
 				end
 
 				rect.opts.groupIcon = showRadarIcon and iconTypes[units.unitIconType[uDefID]]
@@ -890,8 +895,6 @@ local function reloadBindings()
 	key = getActionHotkey("gridmenu_cycle_builder")
 
 	nextBuilderRect.opts.keyText = keyConfig.sanitizeKey(key, currentLayout) or nil
-
-	refreshCommands()
 end
 
 local function setLabBuildMode(value)
@@ -1015,6 +1018,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
+		updateGrid()
 		return true
 	end
 
@@ -1210,7 +1214,9 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	if not isPregame then
+	if isPregame then
+		refreshCommands()
+	else
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
@@ -1284,7 +1290,10 @@ function widget:Initialize()
 	WG["buildmenu"].getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = reloadBindings
+	WG["buildmenu"].reloadBindings = function()
+		reloadBindings()
+		refreshCommands()
+	end
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
 	end
@@ -1564,9 +1573,11 @@ function widget:Update(dt)
 
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
+		local previousStartDefID = startDefID
 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
-		doUpdate = true
+		-- Don't update unless defid has changed
+		doUpdate = previousStartDefID ~= startDefID
 	else
 		activeCmd = select(2, spGetActiveCommand())
 
@@ -2123,8 +2134,8 @@ local function drawBuilders()
 end
 
 local function drawGrid()
-	for i = 1, cellCount do
-		drawCell(cellRects[i])
+	for _, cellRect in ipairs(cellRects) do
+		drawCell(cellRect)
 	end
 end
 
@@ -2186,10 +2197,9 @@ function widget:KeyPress(key)
 		if currentCategory then
 			clearCategory()
 			return true
-		end
-
-		if useLabBuildMode and labBuildModeActive then
+		elseif useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
+			updateGrid()
 			return true
 		end
 	end
@@ -2198,10 +2208,6 @@ end
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then
 		return
-	end
-
-	if labBuildModeActive then
-		setLabBuildMode(false)
 	end
 
 	clearCategory()
@@ -2240,6 +2246,7 @@ function widget:MousePress(x, y, button)
 				if labBuildModeRect:contains(x, y) then
 					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
+					updateGrid()
 					return true
 				end
 			end
@@ -2261,11 +2268,13 @@ function widget:MousePress(x, y, button)
 			end
 
 			if not disableInput then
-				for cat, catRect in pairs(catRects) do
-					if catRect:contains(x, y) then
-						setCurrentCategory(cat)
-						Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-						return true
+				if not currentCategory and not builderIsFactory then
+					for cat, catRect in pairs(catRects) do
+						if catRect:contains(x, y) then
+							setCurrentCategory(cat)
+							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							return true
+						end
 					end
 				end
 
@@ -2417,7 +2426,8 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- the command queue of the factory hasn't updated yet
 	-- ugly hack to schedule an update if our prediction fails
 	-- 500ms is our heuristic for a really bad scenario
-	doUpdateClock = os.clock() + 0.5
+	-- doUpdateClock = os.clock() + 0.5
+	-- Actually lets comment this and see if we really need it
 end
 
 -- update queue number

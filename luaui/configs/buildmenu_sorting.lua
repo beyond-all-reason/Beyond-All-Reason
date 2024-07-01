@@ -215,7 +215,7 @@ local unitOrderTable = {
 	['armbull']        = 006320,
 	['corftiger']      = 006325,
 	['correap']        = 006330,
-	['legsco']         = 006335,
+	['legaskirmtank']         = 006335,
 	['armmanni']       = 006340,
 	['corgatreap']     = 006350,
 
@@ -223,6 +223,7 @@ local unitOrderTable = {
 	['armmerl']        = 006410,
 	['corvroc']        = 006420,
 	['armmerl']        = 006430,
+	['legavroc']       = 006435,
 	['corban']         = 006440,
 	['legmed']         = 006450,
 
@@ -232,6 +233,7 @@ local unitOrderTable = {
 	['legvcarry']      = 006516,
 	['armmart']        = 006520,
 	['cormart']        = 006530,
+	['legamcluster']   = 006535,
 	['cortrem']        = 006540,
 	['leginf']         = 006550,
 
@@ -247,6 +249,7 @@ local unitOrderTable = {
 	['corsumo']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,
+	['legaheattank']   = 006760,
 
 	['armvader']       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	['corroach']       = 006820,
@@ -429,7 +432,7 @@ local unitOrderTable = {
 
    ['armmoho']        = 100200,
    ['cormoho']        = 100250,
-   ['legmext2']       = 100260,
+   ['legmoho']       = 100260,
    ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
 
@@ -442,8 +445,10 @@ local unitOrderTable = {
    --ECO METAL STORAGE
    ['armmstor']       = 100800,
    ['cormstor']       = 100850,
+   ['legmstor']       = 100860,
    ['armuwadvms']     = 100900,
    ['coruwadvms']     = 100950,
+   ['legamstor']      = 100960,
 
    --ECO NRG GENS
    ['armwin']         = 101000,

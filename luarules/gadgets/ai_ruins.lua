@@ -55,6 +55,7 @@ local landMexesList = {
 	"armshockwave",
 	"cormoho",
 	"cormexp",
+	"legmoho",
 }
 local seaMexesList = {
 	--"armmex",

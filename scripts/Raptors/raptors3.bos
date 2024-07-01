@@ -2,20 +2,19 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 // For N:\animations\Raptors\raptor_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3))
 #define MOVESCALE 200
 #define MOVESPEED 2
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var  maxSpeed, animFramesPerKeyframe, bMoving, deltaSpeed;
-#define SIG_WALK 1
+static-var  maxSpeed, animFramesPerKeyframe, isMoving, deltaSpeed;
+#define SIGNAL_MOVE 1
 
 #include "raptor_fly.h"
 // REMEMBER TO animspeed = 3 in Create() !!
@@ -45,49 +44,16 @@ UnitSpeed(){
 	
 	//animSpeed = 3;
 }
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
-/*
-
-fly()
-{
-	if (bMoving)
-		{
-			turn lwing to z-axis <-40> speed<120>;
-			turn rwing to z-axis <40> speed<120>;
-			wait-for-turn lwing around z-axis;
-			turn lwing to z-axis <40> speed<240>;
-			turn rwing to z-axis <-40> speed<240>;
-			wait-for-turn lwing around z-axis;
-			start-script fly();
-		}
-}
-
-stopfly ()
-{	
-	turn lwing		to z-axis <0> 		speed <200>;
-	turn rwing		to z-axis <0> 		speed <200>;
-}*/
-
-
-Go()
-{
-	call-script Walk();
-}
-
-Stop()
-{
-	call-script StopWalking();
-}
-
 
 Create()
 {
@@ -100,11 +66,11 @@ Create()
 	start-script UnitSpeed();
 }
 
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryPrimary(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
 RestoreAfterDelay()
 	{
@@ -112,10 +78,10 @@ RestoreAfterDelay()
 	turn head to x-axis <0> speed <200>;
 	}
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn head to x-axis 0 -pitch speed <200>;
 	wait-for-turn head around y-axis;
 	start-script RestoreAfterDelay();
@@ -138,8 +104,6 @@ Shot1()
 	move mblade to z-axis <0> speed [20];
 	}
 
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
 	
 
 	
@@ -153,8 +117,6 @@ Killed( severity, corpsetype )
 	corpsetype = 1;
 	emit-sfx 1025 from body;
 	explode head type FALL | NOHEATCLOUD ;
-	//explode lwing type FALL;
-	//explode rwing type FALL;
 	explode mblade type FALL | EXPLODE_ON_HIT | NOHEATCLOUD ;
 	return( 0 );
 	}

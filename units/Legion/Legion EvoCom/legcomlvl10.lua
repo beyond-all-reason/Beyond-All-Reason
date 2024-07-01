@@ -5,7 +5,7 @@ return {
 		autoheal = 40,
 		maxdec = 1.125,
 		energycost = 110000,
-		metalcost = 110000,
+		metalcost = 11000,
 		builddistance = 600,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
@@ -122,7 +122,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "legmex",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 10,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
@@ -134,6 +135,10 @@ return {
 			inheritxpratemultiplier = 0.25,
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
+			respawn_announcement = "A Commander Effigy was sacrificed.",
+			effigy = "comeffigylvl5",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -499,6 +504,7 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 			[5] = {
+				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
 				onlytargetcategory = "SURFACE",
 			},

@@ -85,6 +85,15 @@ local options = {
         }
     },
 
+	{
+		key 	= "no_comtrans",
+		name 	= "T1 transports cant load commanders",
+		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow custom widgets",
@@ -1201,17 +1210,45 @@ local options = {
     },
 
     {
+        key 	= "comrespawn",
+        name 	= "Commander Respawning",
+        desc   	= "Commanders can build one Effigy. The first one is free. When the commander dies, the Effigy is sacrificed in its place.",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "evocom", 	name = "Evolving Commanders Only" },
+            { key = "all", name = "All Commanders" },
+            { key = "disabled", name = "Disabled" },
+        }
+    },
+
+    {
         key 	= "evocom",
         name 	= "Evolving Commanders",
+        desc   	= "Commanders evolve, gaining new weapons and abilities.",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
     },
 
     {
+        key 	= "evocomlevelupmethod",
+        name 	= "Evolving Commanders: Method",
+        desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
+        type 	= "list",
+        def 	= "dynamic",
+        section = "options_experimental",
+        items 	= {
+            { key = "dynamic", 	name = "Dynamic" },
+            { key = "timed", name = "Timed" },
+        }
+    },
+
+    {
         key    	= "evocomleveluprate",
-        name   	= "Commander Evolution Rate",
-        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        name   	= "Evolving Commanders: Time",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
@@ -1222,7 +1259,7 @@ local options = {
 
     {
         key    	= "evocomxpmultiplier",
-        name   	= "Commander XP Multiplier",
+        name   	= "Evolving Commanders: Commander XP Multiplier",
         desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
         type   	= "number",
         section	= "options_experimental",
@@ -1234,7 +1271,7 @@ local options = {
 
     {
         key    	= "evocomlevelcap",
-        name   	= "Commander Level Cap",
+        name   	= "Evolving Commanders: Max Level",
         desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_experimental",
@@ -1340,6 +1377,14 @@ local options = {
         section = "dev",
         type    = "string",
         def     = "",
+    },
+    {
+        key     = "animationcleanup",
+        name    = "Animation Cleanup",
+        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "bool",
+        def     =  false,
     },
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ return {
 			"legadvsol",
 			"legwin",
 			"corgeo",
-			"cormstor",
+			"legmstor",
 			"corestor",
 			"legmex",
 			"legmext15",
