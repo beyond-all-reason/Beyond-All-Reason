@@ -580,7 +580,7 @@ local armorDefs = {
 		"legtriarius",
 		"legtriariusheatray",
 		"legtriariusdrone",
-		"legpontus",
+		"legportent",
 		"corarch",
 		"armaas",
 		"armcrus",

@@ -1,5 +1,5 @@
 return {
-	legsy = {
+	legjim = {
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 1200,
