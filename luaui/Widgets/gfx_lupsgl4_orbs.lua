@@ -148,7 +148,7 @@ local UnitEffects = {
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
 	["armgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 20, -5 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = armgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
@@ -312,7 +312,7 @@ void main()
 	unitID_vs = 0.1 + float(uni[instData.y].composite >> 16 ) / 256000.0;
 	
 	float modelRot = uni[instData.y].drawPos.w;
-	mat3 rotY = rotation3dY(0);
+	mat3 rotY = rotation3dY(modelRot);
 		
 	vec4 vertexWorldPos = vec4(1);
 	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
