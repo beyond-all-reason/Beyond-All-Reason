@@ -3,6 +3,8 @@
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;
 
+#include "../opencloseanim.h"
+
 static-var  isOpen, restore_delay;
 
 // Signal definitions
@@ -10,7 +12,7 @@ static-var  isOpen, restore_delay;
 #define SIGNAL_AIM1 256
 
 
-OpenGun()
+Open()
 {
 	turn frleg   to x-axis <90>  speed <90>;
 	turn frtrack to x-axis <-90> speed <90>;
@@ -20,7 +22,7 @@ OpenGun()
 	turn brtrack to x-axis <90> speed <90>;
 	turn blleg   to x-axis <-90>  speed <90>;
 	turn bltrack to x-axis <90> speed <90>;
-	move barrel to z-axis [1.6] speed [1.6];
+	move barrel to z-axis [1.6] speed [1.5];
 	
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
@@ -29,16 +31,16 @@ OpenGun()
 
 	turn rdoor to z-axis <-180> speed <180>;
 	turn ldoor to z-axis <180> speed <180>;
-	move base to y-axis [3] speed [2];
+	move base to y-axis [8] speed [8];
 
 	wait-for-turn rdoor around z-axis;
-	isOpen = TRUE;
+//	isOpen = TRUE;
 }
 
-FoldGun()
+Close()
 {
 
-	isOpen = FALSE;
+//	isOpen = FALSE;
 	move barrel to z-axis [0] speed [1.6];
 	turn turret to y-axis <0> speed <360>;
 	turn sleeve to x-axis <0> speed <360>;
@@ -56,11 +58,11 @@ FoldGun()
 	
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
-	move base to y-axis [1.8] speed [2.8];
+	move base to y-axis [1.8] speed [3.6];
 	wait-for-turn rdoor around z-axis;
 	turn rdoor to z-axis <0> speed <180>;
 	turn ldoor to z-axis <0> speed <180>;
-	move base to y-axis [0] speed [3.6];
+	move base to y-axis [0] speed [8];
 
 	wait-for-turn rdoor around z-axis;
 }
@@ -114,7 +116,7 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.0> speed <360.0>;
 	turn sleeve to x-axis <0.0> speed <360.0>;
-	start-script FoldGun();
+	start-script OpenCloseAnim(0);
 }
 
 SetStunned(State)
@@ -132,10 +134,11 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
+	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	start-script OpenGun();
-	while( !isOpen )
+
+	while( !IsOpen )
 	{
 		sleep 200;
 	}

@@ -390,7 +390,7 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal 2;
+	signal SIGNAL_AIM1;
 	move turret to y-axis [5.5] speed [10];
 	turn sleeve to x-axis <270.0>-pitch speed <95.0>;
 	turn turret to y-axis heading speed <300.0>;
