@@ -108,7 +108,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 4,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",
@@ -125,6 +126,9 @@ return {
 			evolution_power_threshold = 90000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
+			effigy = "comeffigylvl2",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

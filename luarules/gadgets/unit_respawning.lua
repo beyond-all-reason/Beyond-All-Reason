@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author = "Xehrath",
 		date = "2023-05-12",
 		license = "None",
-		layer = 50,
+		layer = 49,
 		enabled = true
 	}
 end
@@ -20,6 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame          = Spring.GetGameFrame
 	local spGetProjectileDefID    = Spring.GetProjectileDefID
 	local spGetProjectileTeamID   = Spring.GetProjectileTeamID
+	local spGetUnitHealth		  = Spring.GetUnitHealth
 	local spGetUnitShieldState    = Spring.GetUnitShieldState
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 	local spSetFeatureDirection   = Spring.SetFeatureDirection
@@ -70,6 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local respawnMetaList = {}
 	local effigyMetaList = {}
+	local defCustomParams = {}
 
 	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
@@ -83,8 +85,6 @@ if gadgetHandler:IsSyncedCode() then
 		
 		
 		--	-- Optional:
-		-- respawn_announcement = "Unit Respawned",  	--Announcement printed when the unit is respawned.
-		-- respawn_announcement_size = 18.5, 			--Size of the onscreen announcement
 		-- effigy = "unit_name",						--Set this to spawn the effigy unit when the main unit is created.
 		-- minimum_respawn_stun = 5,					--respawn stun duration, roughly in seconds. 
 		-- distance_stun_multiplier = 1,				--respawn stun duration based on distance from respawn location when dying. (distance * distance_stun_multiplier) 
@@ -97,6 +97,12 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		-- },
+
+	for id, def in pairs(UnitDefs) do
+		if def.customParams.respawn_condition or def.customParams.iseffigy then
+			defCustomParams[id] = def.customParams
+		end
+	end
 
     function ReturnToBase(unitID)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
@@ -120,27 +126,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local stunDuration = maxHealth + (100*respawnMetaList[unitID].minimum_respawn_stun) + (diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)
 			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration, build = 0})
-
-
-			local announcement = nil
-			local announcementSize = nil
-			if respawnMetaList[unitID] and respawnMetaList[unitID].respawn_announcement then
-				spEcho(respawnMetaList[unitID].respawn_announcement)
-				announcement = respawnMetaList[unitID].respawn_announcement
-				announcementSize = respawnMetaList[unitID].respawn_announcement_size
-			end
-
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-			SendToUnsynced("unit_respawned", announcement, announcementSize)
-
 		end
-		
-    
     end
 
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		local udcp = UnitDefs[unitDefID].customParams
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+		local udcp = defCustomParams[unitDefID]
+
+		if not udcp then
+			return
+		end
 
 		if udcp.respawn_condition then
 			respawnMetaList[unitID] = {
@@ -148,8 +144,6 @@ if gadgetHandler:IsSyncedCode() then
 				respawn_health_threshold = tonumber(udcp.respawn_health_threshold) or 0,
 				effigy = udcp.effigy or "none",
 				effigy_offset = tonumber(udcp.effigy_offset) or 0,
-				respawn_announcement = udcp.respawn_announcement,
-				respawn_announcement_size = tonumber(udcp.respawn_announcement_size),
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,
@@ -161,36 +155,39 @@ if gadgetHandler:IsSyncedCode() then
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
-				
-				for i = 1, 1000, 100 do
-					local x,y,z = spGetUnitPosition(unitID)
-					local blockType, blockID = Spring.GetGroundBlocked(x+i, z+i)
-					local groundH = Spring.GetGroundHeight(x+i, z+i)
-
+				local blockedIncrement = 1
+				for i = 1, 500, blockedIncrement do
+					local x, y, z = spGetUnitPosition(unitID)
+					local blockType, blockID = Spring.GetGroundBlocked(x-i, z-i)
+					local groundH = Spring.GetGroundHeight(x-i, z-i)
+			
 					if respawnMetaList[unitID].effigy_offset == 0 then
-						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
-						return
-					elseif blockType then
-						
-					else
-						respawnMetaList[unitID].effigyID = spCreateUnit(respawnMetaList[unitID].effigy, x+i, groundH, z+i, 0, unitTeam)
-						return
+						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
+						if newUnitID then
+							respawnMetaList[unitID].effigyID = newUnitID
+							return
+						end
+					elseif not blockType then
+						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x-i, groundH, z-i, 0, unitTeam)
+						if newUnitID then
+							respawnMetaList[unitID].effigyID = newUnitID
+							return
+						else 
+							blockedIncrement = blockedIncrement+50
+						end
 					end
-
-
 				end
 			end
 		end
 
-		if udcp.iseffigy then
+		if udcp.iseffigy  and builderID then
 			for vipID, _ in pairs(respawnMetaList) do
 				local team = spGetUnitTeam(vipID)
 				if team == unitTeam then
+					
 					local oldeffigyID = respawnMetaList[vipID].effigyID
 					
-					effigyMetaList[unitID] = vipID
 					respawnMetaList[vipID].effigyID = unitID
-					
 					if oldeffigyID then
 						spDestroyUnit(oldeffigyID, false, true)
 					end
@@ -200,16 +197,25 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	
 
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
-				if respawnMetaList[unitID].effigyID then
-					local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
-					if newID then
+				local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+                if newID then
+					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					if not respawnMetaList[unitID].effigyID or effigyBuildProgress ~= 1 then
+                    	spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+					end
+					if respawnMetaList[unitID].effigyID then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
-							Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+							if ex then
+								Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+								else
+									spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+								end
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
@@ -221,10 +227,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			respawnMetaList[unitID] = nil
 		end
-
-		if effigyMetaList[unitID] then
-			effigyMetaList[unitID] = nil
-		end
 	end
 	
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -233,9 +235,12 @@ if gadgetHandler:IsSyncedCode() then
 				local h, mh = spGetUnitHealth(unitID)
 				local currentTime =  spGetGameSeconds()
 				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
+					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+					if effigyBuildProgress == 1 then
 						ReturnToBase(unitID)
 						respawnMetaList[unitID].respawnTimer = spGetGameSeconds()
 						return 0, 0
+					end
 				elseif (currentTime-respawnMetaList[unitID].respawnTimer) <= 5 then
 					return 0, 0
 				end
