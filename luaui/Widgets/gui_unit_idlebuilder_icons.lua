@@ -18,7 +18,7 @@ local iconSequenceImages = 'Luaui/Images/idleicon/idlecon_' 	-- must be png's
 local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
-local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
+local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
@@ -87,7 +87,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	end
 
 	clearInstanceTable(iconVBO) -- clear all instances
-	teamUnits = {}
+	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
@@ -143,16 +143,8 @@ end
 
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
-	if onlyOwnTeam then
-		for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-			updateIcon(unitID, unitDefID, gf)
-		end
-	else
-		for teamID, units in pairs(teamUnits) do
-			for unitID, unitDefID in pairs(units) do
-				updateIcon(unitID, unitDefID)
-			end
-		end
+	for unitID, unitDefID in pairs(unitScope) do
+		updateIcon(unitID, unitDefID, gf)
 	end
 	if iconVBO.dirty then
 		uploadAllElements(iconVBO)
@@ -166,17 +158,13 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] then
-		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
-		teamUnits[unitTeam][unitID] = unitDefID
+	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
+		unitScope[unitID] = unitDefID
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	local unitTeam = spGetUnitTeam(unitID)
-	if teamUnits[unitTeam] then
-		teamUnits[unitTeam][unitID] = nil
-	end
+	unitScope[unitID] = nil
 	if iconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(iconVBO, unitID)
 	end
@@ -203,26 +191,3 @@ function widget:DrawWorld()
 		gl.DepthMask(true)
 	end
 end
-
--- widget already disabled for specs so code below made irrelevant
---[[
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	if spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
-	if myTeamID ~= prevMyTeamID then
-		if onlyOwnTeam then
-			for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-				if iconVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(iconVBO, unitID, true)
-				end
-				idleUnitList[unitID] = nil
-			end
-		end
-	end
-end
-]]--
