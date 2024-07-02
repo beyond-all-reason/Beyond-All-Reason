@@ -1791,10 +1791,13 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			if pastFirstQueen or Spring.GetModOptions().raptor_graceperiodmult <= 1 then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult*((config.economyScale*0.5)+0.5))) - config.gracePeriod) * 100), 999), 0)
+				techAnger = math.max(math.min((t - config.gracePeriod) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - config.gracePeriod) * 100, 999), 0)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult*((config.economyScale*0.5)+0.5))) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100), 999), 0)
+				techAnger = math.max(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100, 999), 0)
 			end
+
+			techAnger = math.ceil(techAnger*config.economyScale)
+
 			if t < config.gracePeriod then
 				queenAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)

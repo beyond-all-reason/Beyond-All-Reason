@@ -1674,7 +1674,8 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult*((config.economyScale*0.5)+0.5))) - config.gracePeriod) * 100), 999), 0)
+			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
+			techAnger = math.ceil(techAnger*config.economyScale)
 			if t < config.gracePeriod then
 				bossAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)
