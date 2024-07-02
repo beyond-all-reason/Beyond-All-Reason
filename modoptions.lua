@@ -1028,6 +1028,127 @@ local options = {
         step   	= 1,
     },
 
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Micro Wars Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key		= "micro_wars_options",
+		name	= "Micro Wars",
+		desc	= "Micro Wars: fast-paced rounds with preset armies and no eco.",
+		type	= "section",
+	},
+
+	{
+		key    = "micro_wars_enabled",
+		name   = "Play Micro Wars Gamemode",
+		desc   = "Custom Micro Wars gamemode, created by Soareverix",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+	{
+		key    = "round_time",
+		name   = "Round Time",
+		desc   = "Duration of each round in minutes.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 5,
+		min    = 0.1,
+		max    = 20,
+		step   = 0.1,
+	},
+
+	{
+		key    = "units_per_round",
+		name   = "Units per Round Multiplier",
+		desc   = "Multiplier for the number of units each player receives per round.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = "micro_wars_despawn",
+		name   = "Remove extra units",
+		desc   = "Remove surviving units at the end of the round (more balanced games)",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = true,
+	},
+
+	{
+		key    = "micro_wars_battlefield_mode",
+		name   = "Battlefield Mode",
+		desc   = "Rather than time, rounds only end when one army has many more units/HP than the opposing team. The traditional army experience.",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = true,
+	},
+
+	{
+		key    = "end_round_early_percentage",
+		name   = "End Rounds Early At Unit Loss Percentage",
+		desc   = "Ends a round early (only in battlefield mode) when one team has mucher fewer units/HP. 200 would mean that a roudn ends when enemy has more than 200% more units and HP left than opposing team.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 50,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = "production_mode",
+		name   = "Production Mode",
+		desc   = "Toggle between receiving units directly and receiving a factory with a budget to produce units (not implemented yet).",
+		type   = "bool",
+		section= "micro_wars_options",
+		def    = false,
+	},
+
+	{
+		key    = "max_number_of_rounds",
+		name   = "Max Number of Rounds",
+		desc   = "Maximum number of rounds before declaring a winner based on points.",
+		type   = "number",
+		section= "micro_wars_options",
+		def    = 10,
+		min    = 1,
+		max    = 50,
+		step   = 1,
+	},
+
+	{
+		key    = "preset_army_compositions",
+		name   = "Preset Army Compositions",
+		desc   = "Choose from pre-defined army setups for each round.",
+		type   = "list",
+		section= "micro_wars_options",
+		def    = "Basic T1 - T3",
+		items  = {
+			{ key = "Basic T1 - T3", name = "Basic T1 - T3", desc = "Progression from basic to advanced units through rounds."},
+			{ key = "Raining Hell", name = "Raining Hell", desc = "Lots of rockets"},
+			{ key = "Royalty", name = "Royalty", desc = "Units with royal names: Pawns, Epic Pawns, Centurions, Shield Bots, Tzars, etc"},
+			{ key = "Inferno", name = "Inferno", desc = "Fire and Heat. Time to burn."},
+			{ key = "World of Tanks", name = "World of Tanks", desc = "Just tanks."},
+			{ key = "Arachnophobia", name = "Arachnophobia", desc = "I hope you're not afraid of spiders. (Spider units only)"},
+			{ key = "Can't Touch This", name = "Can't Touch This", desc = "I am SPEED. Very fast units only."},
+			{ key = "T1 Variety", name = "T1 Variety", desc = "Diverse compositions exclusively using Tier 1 units."},
+			{ key = "Death from Above", name = "Death from Above", desc = "Air-dominated unit compositions."},
+			{ key = "Glass the Runners", name = "Glass the Runners", desc = "Phoenixes, fast ground attackers, and mobile anti-air."},
+			{ key = "Long Range Standoff", name = "Long Range Standoff", desc = "Compositions specializing in long-range engagements."},
+		},
+	},
+
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options

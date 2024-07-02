@@ -6,3 +6,5 @@
 *.iml
 .project
 *.code-workspace
+.vs/  # ignore the whole .vs folder
+*.sqlite
